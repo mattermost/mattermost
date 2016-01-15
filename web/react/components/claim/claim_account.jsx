@@ -1,19 +1,28 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import EmailToSSO from './email_to_sso.jsx';
 import SSOToEmail from './sso_to_email.jsx';
 
-export default class ClaimAccount extends React.Component {
+const messages = defineMessages({
+   noEmail: {
+       id: 'claim.account.noEmail',
+       defaultMessage: 'No email specified.'
+   }
+});
+
+class ClaimAccount extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {};
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let content;
         if (this.props.email === '') {
-            content = <p>{'No email specified.'}</p>;
+            content = <p>{formatMessage(messages.noEmail)}</p>;
         } else if (this.props.currentType === '' && this.props.newType !== '') {
             content = (
                 <EmailToSSO
@@ -49,5 +58,8 @@ ClaimAccount.propTypes = {
     newType: React.PropTypes.string.isRequired,
     email: React.PropTypes.string.isRequired,
     teamName: React.PropTypes.string.isRequired,
-    teamDisplayName: React.PropTypes.string.isRequired
+    teamDisplayName: React.PropTypes.string.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(ClaimAccount)

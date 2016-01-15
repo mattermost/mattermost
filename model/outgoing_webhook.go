@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -62,47 +63,47 @@ func OutgoingWebhookListFromJson(data io.Reader) []*OutgoingWebhook {
 	}
 }
 
-func (o *OutgoingWebhook) IsValid() *AppError {
+func (o *OutgoingWebhook) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid Id", "")
+		return NewAppError("OutgoingWebhook.IsValid", T("Invalid Id"), "")
 	}
 
 	if len(o.Token) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid token", "")
+		return NewAppError("OutgoingWebhook.IsValid", T("Invalid token"), "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("OutgoingWebhook.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewAppError("OutgoingWebhook.IsValid", T("Create at must be a valid time"), "id="+o.Id)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("OutgoingWebhook.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewAppError("OutgoingWebhook.IsValid", T("Update at must be a valid time"), "id="+o.Id)
 	}
 
 	if len(o.CreatorId) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid user id", "")
+		return NewAppError("OutgoingWebhook.IsValid", T("Invalid user id"), "")
 	}
 
 	if len(o.ChannelId) != 0 && len(o.ChannelId) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid channel id", "")
+		return NewAppError("OutgoingWebhook.IsValid", T("Invalid channel id"), "")
 	}
 
 	if len(o.TeamId) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid team id", "")
+		return NewAppError("OutgoingWebhook.IsValid", T("Invalid team id"), "")
 	}
 
 	if len(fmt.Sprintf("%s", o.TriggerWords)) > 1024 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid trigger words", "")
+		return NewAppError("OutgoingWebhook.IsValid", T("Invalid trigger words"), "")
 	}
 
 	if len(o.CallbackURLs) == 0 || len(fmt.Sprintf("%s", o.CallbackURLs)) > 1024 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid callback urls", "")
+		return NewAppError("OutgoingWebhook.IsValid", T("Invalid callback urls"), "")
 	}
 
 	for _, callback := range o.CallbackURLs {
 		if !IsValidHttpUrl(callback) {
-			return NewAppError("OutgoingWebhook.IsValid", "Invalid callback URLs. Each must be a valid URL and start with http:// or https://", "")
+			return NewAppError("OutgoingWebhook.IsValid", T("Invalid callback URLs. Each must be a valid URL and start with http:// or https://"), "")
 		}
 	}
 

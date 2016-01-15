@@ -1,8 +1,21 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class SettingItemMax extends React.Component {
+const messages = defineMessages({
+    cancel: {
+        id: 'setting_item_max.cancel',
+        defaultMessage: 'Cancel'
+    },
+    save: {
+        id: 'setting_item_max.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class SettingItemMax extends React.Component {
     render() {
+        const {formatMessage} = this.props.intl;
         var clientError = null;
         if (this.props.client_error) {
             clientError = (<div className='form-group'><label className='col-sm-12 has-error'>{this.props.client_error}</label></div>);
@@ -26,7 +39,7 @@ export default class SettingItemMax extends React.Component {
                     href='#'
                     onClick={this.props.submit}
                 >
-                    Save
+                    {formatMessage(messages.save)}
                 </a>
             );
         }
@@ -60,7 +73,7 @@ export default class SettingItemMax extends React.Component {
                                 href='#'
                                 onClick={this.props.updateSection}
                             >
-                                Cancel
+                                {formatMessage(messages.cancel)}
                             </a>
                         </li>
                     </ul>
@@ -71,6 +84,7 @@ export default class SettingItemMax extends React.Component {
 }
 
 SettingItemMax.propTypes = {
+    intl: intlShape.isRequired,
     inputs: React.PropTypes.array,
     client_error: React.PropTypes.string,
     server_error: React.PropTypes.string,
@@ -80,3 +94,5 @@ SettingItemMax.propTypes = {
     title: React.PropTypes.string,
     width: React.PropTypes.string
 };
+
+export default injectIntl(SettingItemMax);

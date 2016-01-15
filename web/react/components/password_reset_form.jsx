@@ -1,9 +1,53 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as client from '../utils/client.jsx';
 
-export default class PasswordResetForm extends React.Component {
+const messages = defineMessages({
+    error: {
+        id: 'password_form.error',
+        defaultMessage: 'Please enter at least 5 characters.'
+    },
+    update: {
+        id: 'password_form.update',
+        defaultMessage: 'Your password has been updated successfully.'
+    },
+    click: {
+        id: 'password_form.click',
+        defaultMessage: ' Click '
+    },
+    here: {
+        id: 'password_form.here',
+        defaultMessage: 'here'
+    },
+    toLogin: {
+        id: 'password_form.toLogin',
+        defaultMessage: ' to log in.'
+    },
+    enter: {
+        id: 'password_form.enter',
+        defaultMessage: 'Enter a new password for your '
+    },
+    account: {
+        id: 'password_form.account',
+        defaultMessage: ' account.'
+    },
+    title: {
+        id: 'password_form.title',
+        defaultMessage: 'Password Reset'
+    },
+    pwd: {
+        id: 'password_form.pwd',
+        defaultMessage: 'Password'
+    },
+    change: {
+        id: 'password_form.change',
+        defaultMessage: 'Change my password'
+    }
+});
+
+class PasswordResetForm extends React.Component {
     constructor(props) {
         super(props);
 
@@ -13,11 +57,13 @@ export default class PasswordResetForm extends React.Component {
     }
     handlePasswordReset(e) {
         e.preventDefault();
+
+        const {formatMessage} = this.props.intl;
         var state = {};
 
         var password = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!password || password.length < 5) {
-            state.error = 'Please enter at least 5 characters.';
+            state.error = formatMessage(messages.error);
             this.setState(state);
             return;
         }
@@ -33,7 +79,7 @@ export default class PasswordResetForm extends React.Component {
 
         client.resetPassword(data,
             function resetSuccess() {
-                this.setState({error: null, updateText: 'Your password has been updated successfully.'});
+                this.setState({error: null, updateText: formatMessage(messages.update)});
             }.bind(this),
             function resetFailure(err) {
                 this.setState({error: err.message, updateText: null});
@@ -41,9 +87,11 @@ export default class PasswordResetForm extends React.Component {
         );
     }
     render() {
+        const {formatMessage, locale} = this.props.intl;
+
         var updateText = null;
         if (this.state.updateText) {
-            updateText = <div className='form-group'><br/><label className='control-label reset-form'>{this.state.updateText} Click <a href={'/' + this.props.teamName + '/login'}>here</a> to log in.</label></div>;
+            updateText = <div className='form-group'><br/><label className='control-label reset-form'>{this.state.updateText + formatMessage(messages.click)}<a href={'/' + this.props.teamName + '/login'}>{formatMessage(messages.here)}</a>{formatMessage(messages.toLogin)}</label></div>;
         }
 
         var error = null;
@@ -56,19 +104,23 @@ export default class PasswordResetForm extends React.Component {
             formClass += ' has-error';
         }
 
+        let msg = formatMessage(messages.enter) + this.props.teamDisplayName + ' ' + global.window.mm_config.SiteName + formatMessage(messages.account);
+        if (locale === 'es') {
+            msg = formatMessage(messages.enter) + formatMessage(messages.account) + this.props.teamDisplayName + ' ' + global.window.mm_config.SiteName;
+        }
         return (
             <div className='col-sm-12'>
                 <div className='signup-team__container'>
-                    <h3>Password Reset</h3>
+                    <h3>{formatMessage(messages.title)}</h3>
                     <form onSubmit={this.handlePasswordReset}>
-                        <p>{'Enter a new password for your ' + this.props.teamDisplayName + ' ' + global.window.mm_config.SiteName + ' account.'}</p>
+                        <p>{msg}</p>
                         <div className={formClass}>
                             <input
                                 type='password'
                                 className='form-control'
                                 name='password'
                                 ref='password'
-                                placeholder='Password'
+                                placeholder={formatMessage(messages.pwd)}
                                 spellCheck='false'
                             />
                         </div>
@@ -77,7 +129,7 @@ export default class PasswordResetForm extends React.Component {
                             type='submit'
                             className='btn btn-primary'
                         >
-                            Change my password
+                            {formatMessage(messages.change)}
                         </button>
                         {updateText}
                     </form>
@@ -94,8 +146,11 @@ PasswordResetForm.defaultProps = {
     data: ''
 };
 PasswordResetForm.propTypes = {
+    intl: intlShape.isRequired,
     teamName: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string,
     hash: React.PropTypes.string,
     data: React.PropTypes.string
 };
+
+export default injectIntl(PasswordResetForm);

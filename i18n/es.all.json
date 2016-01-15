@@ -1,0 +1,3567 @@
+[
+    {
+        "id": "\t User to login: ",
+        "translation": "\t Usuario que inicia sesión: ",
+        "modified": false
+    },
+    {
+        "id": "\r\n Channels Added \r\n",
+        "translation": "\r\n Canales agregados \r\n",
+        "modified": false
+    },
+    {
+        "id": "\r\n Notes \r\n",
+        "translation": "\r\n Notas \r\n",
+        "modified": false
+    },
+    {
+        "id": "\r\n Users Created\r\n",
+        "translation": "\r\n Usuarios creados\r\n",
+        "modified": false
+    },
+    {
+        "id": " account has already been used to sign up for team ",
+        "translation": " ya fue utilizada para ingresar al equipo ",
+        "modified": false
+    },
+    {
+        "id": " already has a user with the email address attached to your ",
+        "translation": " ya tiene esta dirección de correo electrónico asignada a un usuario con ",
+        "modified": false
+    },
+    {
+        "id": " does not exist!",
+        "translation": " no existe!",
+        "modified": false
+    },
+    {
+        "id": " parameter",
+        "translation": " parametro",
+        "modified": false
+    },
+    {
+        "id": " user object",
+        "translation": " objeto usuario",
+        "modified": false
+    },
+    {
+        "id": "%s: %s sent",
+        "translation": "%s: %s enviado",
+        "modified": false
+    },
+    {
+        "id": "%v added to the channel by %v",
+        "translation": "%v agregado al canal por %v",
+        "modified": false
+    },
+    {
+        "id": "%v has archived the channel.",
+        "translation": "%v ha archivado el canal.",
+        "modified": false
+    },
+    {
+        "id": "%v has left the channel.",
+        "translation": "%v ha abandonado el canal.",
+        "modified": false
+    },
+    {
+        "id": ", but are trying to access ",
+        "translation": ", pero estás intentando ingresar a ",
+        "modified": false
+    },
+    {
+        "id": "- Slack bot posts are currently not supported.\r\n",
+        "translation": "- mensajes realizadados por el bot de Slack actualmente no son soportados.\r\n",
+        "modified": false
+    },
+    {
+        "id": "- Some posts may not have been imported because they where not supported by this importer.\r\n",
+        "translation": "- Algunos mensajes puede que no hayan sido importados porque no son soportados por esta herramienta.\r\n",
+        "modified": false
+    },
+    {
+        "id": ";alert('Well this is awkward.');",
+        "translation": ";alert('Bueno, esto es raro.');",
+        "modified": false
+    },
+    {
+        "id": "<br/><br/><br/>It appears your Mattermost email is setup correctly!",
+        "translation": "<br/><br/><br/>Parece que tu correo electrónico para Mattermost fue configurado correctamente!",
+        "modified": false
+    },
+    {
+        "id": "<script type='text/javascript'>alert('yay puppies');</script>",
+        "translation": "<script type='text/javascript'>alert('yippie kayei');</script>",
+        "modified": false
+    },
+    {
+        "id": "A team with that domain already exists",
+        "translation": "Ya existe un equipo con ese dominio",
+        "modified": false
+    },
+    {
+        "id": "Add a specified number of random channels to current team <MinChannels> <MaxChannels>",
+        "translation": "Agrega un número específico de canales aleatorios al equipo actual <MinChannels> <MaxChannels>",
+        "modified": false
+    },
+    {
+        "id": "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>",
+        "translation": "Agrega un número específico de canales aleatorios con el texto fuzz al equipo actual <Min Channels> <Max Channels>",
+        "modified": false
+    },
+    {
+        "id": "Add a specified number of random users to current team <Min Users> <Max Users>",
+        "translation": "Agrega un número específico de usuarios aleatorios al equipo actual <Min Users> <Max Users>",
+        "modified": false
+    },
+    {
+        "id": "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>",
+        "translation": "Agraga un número específico de usuarios aleatorios con el texto fuzz al equipo actual <Min Users> <Max Users>",
+        "modified": false
+    },
+    {
+        "id": "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>",
+        "translation": "Agrega algunos mensajes aleatorios al canal actual <Min Mensajes> <Max Mensajes> <Min Images> <Max Imágenes>",
+        "modified": false
+    },
+    {
+        "id": "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>",
+        "translation": "Agrega algunos mensajes aleatorios con el texto fuzz al canal actual <Min Mensajes> <Max Mensajes> <Min Images> <Max Imágenes>",
+        "modified": false
+    },
+    {
+        "id": "Admin Console",
+        "translation": "Consola de Administración",
+        "modified": false
+    },
+    {
+        "id": "Already delted id=",
+        "translation": "Ya fue eliminado id=",
+        "modified": false
+    },
+    {
+        "id": "An account with that email already exists.",
+        "translation": "Ya existe una cuenta con ese correo electrónico.",
+        "modified": false
+    },
+    {
+        "id": "An error occured while sending an email in emailTeams err=%v",
+        "translation": "Ocurrió un error al enviar un correo en emailTeams err=%v",
+        "modified": false
+    },
+    {
+        "id": "An error occurred while saving the file to ",
+        "translation": "Ocurrió un error mientras se guardaba el archivo a ",
+        "modified": false
+    },
+    {
+        "id": "An unknown error has occured. Please contact support.",
+        "translation": "Ocurrió un error inesperado. Por favor contacta a soporte.",
+        "modified": false
+    },
+    {
+        "id": "Authorize Application",
+        "translation": "Authorizar Aplicación",
+        "modified": false
+    },
+    {
+        "id": "Bad filename discarded, filename=%v",
+        "translation": "Nombre errado de archivo descartado, archivo=%v",
+        "modified": false
+    },
+    {
+        "id": "Bad response from token request",
+        "translation": "Respuesta errada desde la consulta del token",
+        "modified": false
+    },
+    {
+        "id": "Bad timestamp detected",
+        "translation": "Se ha detectado la marca del tiempo errada",
+        "modified": false
+    },
+    {
+        "id": "Bad token type",
+        "translation": "Tipo de token errado",
+        "modified": false
+    },
+    {
+        "id": "Build Date: ",
+        "translation": "Fecha de ensamble: ",
+        "modified": false
+    },
+    {
+        "id": "Build Hash: ",
+        "translation": "Fecha del Hash: ",
+        "modified": false
+    },
+    {
+        "id": "Build Number: ",
+        "translation": "Número de ensamblaje: ",
+        "modified": false
+    },
+    {
+        "id": "Cannot delete the default channel ",
+        "translation": "No puedes eliminar el canal predeterminado ",
+        "modified": false
+    },
+    {
+        "id": "Cannot leave a direct message channel",
+        "translation": "No puedes dejar un mensaje directo a un canal",
+        "modified": false
+    },
+    {
+        "id": "Cannot leave the default channel ",
+        "translation": "No puedes abandonar el canal predeterminado ",
+        "modified": false
+    },
+    {
+        "id": "Cannot update the default channel ",
+        "translation": "No puedes actualizar el canal predeterminado ",
+        "modified": false
+    },
+    {
+        "id": "Command must start with /",
+        "translation": "El comando debe comenzar con  /",
+        "modified": false
+    },
+    {
+        "id": "Complete Team Sign Up",
+        "translation": "Registro del equipo completado",
+        "modified": false
+    },
+    {
+        "id": "Complete User Sign Up",
+        "translation": "Registro de usuario completado",
+        "modified": false
+    },
+    {
+        "id": "Could not add user initial to default profile picture",
+        "translation": "No se pudo asignar la inicial del usuario como imagen del pérfil predeterminada",
+        "modified": false
+    },
+    {
+        "id": "Could not create default profile image font",
+        "translation": "No se pudo crear la letra para la imagen del pérfil perdeterminada",
+        "modified": false
+    },
+    {
+        "id": "Could not create user out of ",
+        "translation": "No se pudo crear el usuario proveniente de ",
+        "modified": false
+    },
+    {
+        "id": "Could not decode profile image",
+        "translation": "No se pudo decodificar la imagen del pérfil",
+        "modified": false
+    },
+    {
+        "id": "Could not encode default profile image",
+        "translation": "No se pudo codificar la imagen del pérfil predeterminada",
+        "modified": false
+    },
+    {
+        "id": "Could not encode profile image",
+        "translation": "No se pudo codificar la imagen del pérfil",
+        "modified": false
+    },
+    {
+        "id": "Could not find file.",
+        "translation": "No se encontró el archivo.",
+        "modified": false
+    },
+    {
+        "id": "Could not open file",
+        "translation": "No se pudo abrir el archivo",
+        "modified": false
+    },
+    {
+        "id": "Could not open image file",
+        "translation": "No se pudo abrir el archivo de imagen",
+        "modified": false
+    },
+    {
+        "id": "Could not parse auth data out of ",
+        "translation": "No se pudo analizar el contenido de auth data proveniente de ",
+        "modified": false
+    },
+    {
+        "id": "Could not parse multipart form",
+        "translation": "No se pudo analizar el contenido del formulario multiparte",
+        "modified": false
+    },
+    {
+        "id": "Could not send apple push notification",
+        "translation": "No se pudo enviar la notificación push de apple",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find auth code for code=%s",
+        "translation": "No se encontró el auth code para el código=%s",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find team name=%v, teamURL=%v, err=%v",
+        "translation": "No se encontró el equipo con nombre=%v, URL=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find the channel",
+        "translation": "No se encontró el canal",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find the user",
+        "translation": "No se encontró el usuario",
+        "modified": false
+    },
+    {
+        "id": "Couldn't save the user err=%v",
+        "translation": "No se pudo guardar el usuario err=%v",
+        "modified": false
+    },
+    {
+        "id": "Couldn't upload profile image",
+        "translation": "No se pudo subir la imagen de pérfil",
+        "modified": false
+    },
+    {
+        "id": "Creates a testing enviroment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>",
+        "translation": "Crea un ambiente de pruebas para el equipo actual. [teams] [fuzz] <Num Canales> <Num Usuarios> <Num Mensajes>",
+        "modified": false
+    },
+    {
+        "id": "Current version is %v (%v/%v/%v)",
+        "translation": "La versión actual es %v (%v/%v/%v)",
+        "modified": false
+    },
+    {
+        "id": "Current working directory is %v",
+        "translation": "El directorio de trabajo actual es %v",
+        "modified": false
+    },
+    {
+        "id": "Debug Load Testing",
+        "translation": "Depurar pruebas de carga",
+        "modified": false
+    },
+    {
+        "id": "Delays must be under 10000 seconds",
+        "translation": "El retraso debe ser menor a 10000 segundos",
+        "modified": false
+    },
+    {
+        "id": "Echo back text from your account, /echo \"message\" [delay in seconds]",
+        "translation": "Echo del texto desde tu cuenta, /echo \"mensaje\" [retraso en segundos]",
+        "modified": false
+    },
+    {
+        "id": "Either user id or team name and user email must be provided",
+        "translation": "Ya sea el id de usuario o el nombre del equipo y la dirección de correo del usuario deben ser suministradas",
+        "modified": false
+    },
+    {
+        "id": "Email Verified",
+        "translation": "Correo electrónico verificado",
+        "modified": false
+    },
+    {
+        "id": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details.",
+        "translation": "El correo electrónico debe ser de un dominio específico (e.j. @ejemplo.com). Por favor pidele más detalles tu administrador de sistemas.",
+        "modified": false
+    },
+    {
+        "id": "Email, Password: ",
+        "translation": "Correo electrónico, Contraseña: ",
+        "modified": false
+    },
+    {
+        "id": "Empty array under 'file' in request",
+        "translation": "Solicitud con matriz vacia en 'archivo'",
+        "modified": false
+    },
+    {
+        "id": "Empty array under 'image' in request",
+        "translation": "Solicitud con matriz vacia en 'imagen'",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error creating the directory for the new file",
+        "translation": "Se encontró un error al crear el directorio para el nuevo archivo",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error reading from local server storage",
+        "translation": "Se encontró un error al leer desde el almacenamiento del servidor local",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error revoking an access token, err=",
+        "translation": "Se encontró un error al revocar el acceso del token, err=",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error writing to S3",
+        "translation": "Se encontró un error al escribir al S3",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error writing to local server storage",
+        "translation": "Se encontró un error al escribir en el almacenamiento del servidor local",
+        "modified": false
+    },
+    {
+        "id": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v",
+        "translation": "Se encontró un problema al unirse a los canales predeterminados user_id=%s, team_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Error creating post",
+        "translation": "Error creando el mensaje",
+        "modified": false
+    },
+    {
+        "id": "Error decoding config file=",
+        "translation": "Error decodificando el archivo de configuración=",
+        "modified": false
+    },
+    {
+        "id": "Error deleting access token from DB",
+        "translation": "Error eliminando el token de acceso desde la DB",
+        "modified": false
+    },
+    {
+        "id": "Error deleting authorization code from DB",
+        "translation": "Error eliminando el código de authorización desde la DB",
+        "modified": false
+    },
+    {
+        "id": "Error deleting session from DB",
+        "translation": "Error eliminando la sesión desde la DB",
+        "modified": false
+    },
+    {
+        "id": "Error getting access token from DB before deletion",
+        "translation": "Error obteniendo el token de acceso desde la BD antes de ser eliminado",
+        "modified": false
+    },
+    {
+        "id": "Error getting config info file=",
+        "translation": "Error obteniendo la información de configuración del archivo=",
+        "modified": false
+    },
+    {
+        "id": "Error in getting users profile for id=%v forcing logout",
+        "translation": "Error obteniendo el pérfil de usuario para id=%v forzando el cierre de sesión",
+        "modified": false
+    },
+    {
+        "id": "Error opening config file=",
+        "translation": "Error abriendo el archivo de configuración=",
+        "modified": false
+    },
+    {
+        "id": "Error reading log file",
+        "translation": "Error leyendo el archivo de registro",
+        "modified": false
+    },
+    {
+        "id": "Error rendering template %v err=%v",
+        "translation": "Error renderinzando la plantilla %v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Error saving post. user=",
+        "translation": "Error guardando el mensaje. user=",
+        "modified": false
+    },
+    {
+        "id": "Error saving user. err=%v",
+        "translation": "Error guardando el usuario. err=%v",
+        "modified": false
+    },
+    {
+        "id": "Error starting server ",
+        "translation": "Error arrancando el servidor ",
+        "modified": false
+    },
+    {
+        "id": "Error starting server, err:%v",
+        "translation": "Error arrancando el servidor, err:%v",
+        "modified": false
+    },
+    {
+        "id": "Error validating config file=",
+        "translation": "Error validando el archivo de configuración=",
+        "modified": false
+    },
+    {
+        "id": "Failed in directory watcher %v",
+        "translation": "Falla al vigilar el directorio %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to add directory to watcher %v",
+        "translation": "Falla al agregar el directorio a ser vigilado %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to add email messsage data",
+        "translation": "Falla al agregar la data al mensaje del correo electrónico",
+        "modified": false
+    },
+    {
+        "id": "Failed to add from email address",
+        "translation": "Falla al agregar el correo electrónico desde",
+        "modified": false
+    },
+    {
+        "id": "Failed to add member to channel",
+        "translation": "Falla al agregar un miembro al canal",
+        "modified": false
+    },
+    {
+        "id": "Failed to add member user_id=%v channel_id=%v err=%v",
+        "translation": "Falla al agregar el miembro user_id=%v channel_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to add to email address",
+        "translation": "Falla al agregar el correo electrónico para",
+        "modified": false
+    },
+    {
+        "id": "Failed to add user to channel",
+        "translation": "Falla al agregar el usuario al canal",
+        "modified": false
+    },
+    {
+        "id": "Failed to authenticate on SMTP server",
+        "translation": "Falla autenticando contra el servidor SMTP",
+        "modified": false
+    },
+    {
+        "id": "Failed to close connection to SMTP server",
+        "translation": "Falla al cerrar la conexión al servidor SMTP",
+        "modified": false
+    },
+    {
+        "id": "Failed to create directory watcher %v",
+        "translation": "Falla al crear el vigilante de directorio %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to create testing enviroment",
+        "translation": "Falla al crear el entorno de pruebas",
+        "modified": false
+    },
+    {
+        "id": "Failed to find channel",
+        "translation": "Falla al encontrar el canal",
+        "modified": false
+    },
+    {
+        "id": "Failed to find user doing the adding",
+        "translation": "Falla al encontrar el usuario mientras se agregaba",
+        "modified": false
+    },
+    {
+        "id": "Failed to find user to be added",
+        "translation": "Falla al encontrar el usuario a ser agregado",
+        "modified": false
+    },
+    {
+        "id": "Failed to get channel members channel_id=%v err=%v",
+        "translation": "Falla al obtener los miembros del canal channel_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to import: ",
+        "translation": "Falla al importar: ",
+        "modified": false
+    },
+    {
+        "id": "Failed to import: %s",
+        "translation": "Falla al importar: %s",
+        "modified": false
+    },
+    {
+        "id": "Failed to open TLS connection",
+        "translation": "Falla al abrir una conexión TLS",
+        "modified": false
+    },
+    {
+        "id": "Failed to open a connection to SMTP server %v",
+        "translation": "Falla al abrir la conexión al servidor SMTP %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to open connection",
+        "translation": "Falla al abrir conexión",
+        "modified": false
+    },
+    {
+        "id": "Failed to parse server templates %v",
+        "translation": "Falla al analizar el contenido de las plantillas de servidor %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to parse templates %v",
+        "translation": "Falla al analizar el contenido de las plantillas %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to post add message %v",
+        "translation": "Falla al agregar un mensaje %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to post archive message %v",
+        "translation": "Falla al publicar archivar el mensaje %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to post join message %v",
+        "translation": "Falla al publicar la unión del mensaje %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to post leave message %v",
+        "translation": "Falla al publicar abandonar mensaje %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve channel channel_id=%v, err=%v",
+        "translation": "Falla al recuperar el canal channel_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve sessions in notifications id=%v, err=%v",
+        "translation": "Falla al recuperar las sesiones en las notificaciones id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve team team_id=%v, err=%v",
+        "translation": "Falla al recuperar el equipo team_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve user profiles team_id=%v, err=%v",
+        "translation": "Falla al recuperar los perfiles de usuario team_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send archive message",
+        "translation": "Falla al enviar el archivo del mensaje",
+        "modified": false
+    },
+    {
+        "id": "Failed to send diagnostics %v",
+        "translation": "Falla al enviar el diagnostico %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send invite email successfully err=%v",
+        "translation": "Falla al enviar el correo de invitación satisfactoriamente err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send join request",
+        "translation": "Falla al enviar la solicitud para unirse",
+        "modified": false
+    },
+    {
+        "id": "Failed to send leave message",
+        "translation": "Falla al enviar el mensaje de abandonar",
+        "modified": false
+    },
+    {
+        "id": "Failed to send mention email successfully email=%v err=%v",
+        "translation": "Falla al enviar el correo con la mención satisfactoriamente email=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send password reset email successfully",
+        "translation": "Falla al enviar el correo para restablecer la contraseña satisfactorio",
+        "modified": false
+    },
+    {
+        "id": "Failed to send update password email successfully err=%v",
+        "translation": "Falla al enviar el correo del cambio de contraseña satisfactorio err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send verification email successfully err=%v",
+        "translation": "Falla al enviar el correo con la verificación éxitosa del correo electrónico err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send welcome email successfully err=%v",
+        "translation": "Falla al enviar el correo de bienvenida err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to set email verified err=%v",
+        "translation": "Falla al asignar el correo como verificado err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v",
+        "translation": "Falla al actualizar LastActivityAt para user_id=%v and session_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to update mention count for user_id=%v on channel_id=%v err=%v",
+        "translation": "Falla al actualizar el contador de mensiones para user_id=%v on channel_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to updated LastPingAt for user_id=%v, err=%v",
+        "translation": "Falla actualizando LastPingAt para user_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to upgrade websocket connection",
+        "translation": "Falla al actualizar la conexión del websocket",
+        "modified": false
+    },
+    {
+        "id": "Failed to write email message",
+        "translation": "Falla al escribir el mensaje del correo electrónico",
+        "modified": false
+    },
+    {
+        "id": "File",
+        "translation": "Archivo",
+        "modified": false
+    },
+    {
+        "id": "File storage not configured properly. Please configure for either S3 or local server file storage.",
+        "translation": "El almacenamiento de archivos no ha sido configurado apropiadamente. Por favor configuralo ya sea para S3 o para almacenamiento en el servidor local.",
+        "modified": false
+    },
+    {
+        "id": "Filesize not an integer",
+        "translation": "El tamaño del archivo no es un entero",
+        "modified": false
+    },
+    {
+        "id": "Filesize unavilable",
+        "translation": "El tamaño del archivo no está disponible",
+        "modified": false
+    },
+    {
+        "id": "Find Team",
+        "translation": "Encontrar Equipo",
+        "modified": false
+    },
+    {
+        "id": "High volume of echo request, cannot process request",
+        "translation": "Volumen alto de solicitudes echo, no se puede procesar la solicitud",
+        "modified": false
+    },
+    {
+        "id": "Home",
+        "translation": "Inicio",
+        "modified": false
+    },
+    {
+        "id": "Image",
+        "translation": "Imagen",
+        "modified": false
+    },
+    {
+        "id": "Inappropriate channel permissions",
+        "translation": "Permisos del canal inapropiados",
+        "modified": false
+    },
+    {
+        "id": "Inappropriate permissions to delete incoming webhook",
+        "translation": "Permisos inapropiados para eliminar un webhook entrante",
+        "modified": false
+    },
+    {
+        "id": "Incoming webhooks have been disabled by the system admin.",
+        "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema.",
+        "modified": false
+    },
+    {
+        "id": "Initializing admin api routes",
+        "translation": "Inicializando rutas del API para la administración",
+        "modified": false
+    },
+    {
+        "id": "Initializing channel api routes",
+        "translation": "Inicializando rutas del API para los canales",
+        "modified": false
+    },
+    {
+        "id": "Initializing command api routes",
+        "translation": "Inicializando rutas del API para los comandos",
+        "modified": false
+    },
+    {
+        "id": "Initializing file api routes",
+        "translation": "Inicializando rutas del API para los archivos",
+        "modified": false
+    },
+    {
+        "id": "Initializing oauth api routes",
+        "translation": "Inicializando rutas del API para el OAuth",
+        "modified": false
+    },
+    {
+        "id": "Initializing post api routes",
+        "translation": "Inicializando rutas del API para los mensajes",
+        "modified": false
+    },
+    {
+        "id": "Initializing team api routes",
+        "translation": "Inicializando rutas del API para los Equipos",
+        "modified": false
+    },
+    {
+        "id": "Initializing user api routes",
+        "translation": "Inicializando rutas del API para los Usuarios",
+        "modified": false
+    },
+    {
+        "id": "Initializing web routes",
+        "translation": "Inicializando rutas Web",
+        "modified": false
+    },
+    {
+        "id": "Initializing web socket api routes",
+        "translation": "Inicializando rutas del API para los web socket",
+        "modified": false
+    },
+    {
+        "id": "Initializing webhook api routes",
+        "translation": "Inicializando rutas del API para los Webhooks",
+        "modified": false
+    },
+    {
+        "id": "Invalid ",
+        "translation": "Inválido ",
+        "modified": false
+    },
+    {
+        "id": "Invalid ChannelId for RootId parameter",
+        "translation": "Canal inválido para el parámetro RootId",
+        "modified": false
+    },
+    {
+        "id": "Invalid ParentId parameter",
+        "translation": "Parámetro ParentId inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid RootId parameter",
+        "translation": "Parámetro RootId inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid character '__' in channel name for non-direct channel",
+        "translation": "carácter '__' inválido en el nombre del canal para un canal no-directo",
+        "modified": false
+    },
+    {
+        "id": "Invalid or expired session, please login again.",
+        "translation": "Sesión inválida o expirada, por favor inicia sesión otra vez.",
+        "modified": false
+    },
+    {
+        "id": "Invalid other user id ",
+        "translation": "Id de otro usuario inválido ",
+        "modified": false
+    },
+    {
+        "id": "Invalid session",
+        "translation": "Sesión inválida",
+        "modified": false
+    },
+    {
+        "id": "Invalid state",
+        "translation": "Estado inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid team name",
+        "translation": "Nombre del equipo inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid webhook",
+        "translation": "Webhook inválido",
+        "modified": false
+    },
+    {
+        "id": "It appears you are logged into ",
+        "translation": "Aparentemente iniciaste sesión en ",
+        "modified": false
+    },
+    {
+        "id": "Join an open channel",
+        "translation": "Únete a un canal abierto",
+        "modified": false
+    },
+    {
+        "id": "Join the open channel",
+        "translation": "Unirme al canal abierto",
+        "modified": false
+    },
+    {
+        "id": "Loaded config file from %v",
+        "translation": "Cargado el archivo de configuración desde %v",
+        "modified": false
+    },
+    {
+        "id": "Login",
+        "translation": "Inicio de sesión",
+        "modified": false
+    },
+    {
+        "id": "Login failed because email address has not been verified",
+        "translation": "El inicio de sesión falló porque la dirección de correo electrónico no ha sido verificada",
+        "modified": false
+    },
+    {
+        "id": "Login failed because of invalid password",
+        "translation": "El inicio de sesión falló porque la contraseña es inválida",
+        "modified": false
+    },
+    {
+        "id": "Login failed because your account has been set to inactive.  Please contact an administrator.",
+        "translation": "El inicio de sesión falló porque tu cuenta ha sido desactivada. Por favor contacta a un administrador.",
+        "modified": false
+    },
+    {
+        "id": "Logout",
+        "translation": "Cerrar sesión",
+        "modified": false
+    },
+    {
+        "id": "Mattermost - Testing Email Settings",
+        "translation": "Mattermost - Configuración de pruebas de correo",
+        "modified": false
+    },
+    {
+        "id": "Mattermost Slack Import Log\r\n",
+        "translation": "Mattermost Registros de importación de Slack\r\n",
+        "modified": false
+    },
+    {
+        "id": "Merged with existing channel: ",
+        "translation": "Fusionado con el canal existente: ",
+        "modified": false
+    },
+    {
+        "id": "Message without user",
+        "translation": "Mensaje sin usuario",
+        "modified": false
+    },
+    {
+        "id": "Missing access token",
+        "translation": "Token de acceso ausente",
+        "modified": false
+    },
+    {
+        "id": "Missing one or more of response_type, client_id, or redirect_uri",
+        "translation": "Falta uno o más de response_type, client_id, or redirect_uri",
+        "modified": false
+    },
+    {
+        "id": "Mr. Testing Tester",
+        "translation": "Mr. Testing Tester",
+        "modified": false
+    },
+    {
+        "id": "Must provide a positive size",
+        "translation": "Debe proporcionar un tamaño positivo",
+        "modified": false
+    },
+    {
+        "id": "Must use createDirectChannel api service for direct message channel creation",
+        "translation": "Debe usar el servicio del api createDirectChannel para crear un mensaje directo al canal",
+        "modified": false
+    },
+    {
+        "id": "New Direct Message",
+        "translation": "Nuevo Mensaje Directo",
+        "modified": false
+    },
+    {
+        "id": "New Mention",
+        "translation": "Nueva Mención",
+        "modified": false
+    },
+    {
+        "id": "No channels were found",
+        "translation": "No se encontró ningún canal",
+        "modified": false
+    },
+    {
+        "id": "No file under 'file' in request",
+        "translation": "No hay un archivo bajo la solicitud de 'archivo'",
+        "modified": false
+    },
+    {
+        "id": "No file under 'image' in request",
+        "translation": "No hay un archivo bajo la solicitud de 'imagen'",
+        "modified": false
+    },
+    {
+        "id": "No one to invite.",
+        "translation": "Nadie a quien invitar.",
+        "modified": false
+    },
+    {
+        "id": "No text specified",
+        "translation": "No se especificó un texto",
+        "modified": false
+    },
+    {
+        "id": "Only a team admin can export data.",
+        "translation": "Sólo un administrador del equipo puede exportar data.",
+        "modified": false
+    },
+    {
+        "id": "Only a team admin can import data.",
+        "translation": "Sólo un administrador del equipo puede importar data.",
+        "modified": false
+    },
+    {
+        "id": "Only a team admin can retrieve exported data.",
+        "translation": "Sólo un administrador del equipo puede recuperar la data exportada.",
+        "modified": false
+    },
+    {
+        "id": "Orientation",
+        "translation": "Orientación",
+        "modified": false
+    },
+    {
+        "id": "Parsing server templates at %v",
+        "translation": "Analizando el contenido plantillas del servidor en %v",
+        "modified": false
+    },
+    {
+        "id": "Parsing templates at %v",
+        "translation": "Analizando el contenido de las plantillas en %v",
+        "modified": false
+    },
+    {
+        "id": "Password field must not be blank",
+        "translation": "El campo de contraseña no debe quedar en blanco",
+        "modified": false
+    },
+    {
+        "id": "Post user_id not returned by GetProfiles user_id=%v",
+        "translation": "El user_id del Mensaje no fue retornado por GetProfiles user_id=%v",
+        "modified": false
+    },
+    {
+        "id": "Public links have been disabled",
+        "translation": "Los enlaces públicos han sido deshabilitados",
+        "modified": false
+    },
+    {
+        "id": "RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr",
+        "translation": "RateLimitSettings no ha sido configurado apropiadamente utilizando VaryByHeader y deshabilitado VaryByRemoteAddr",
+        "modified": false
+    },
+    {
+        "id": "RateLimiter is enabled",
+        "translation": "RateLimiter está habilitado",
+        "modified": false
+    },
+    {
+        "id": "Re-parsing templates because of modified file %v",
+        "translation": "Re-analizando el contenido de las plantillas porque el archivo %v fue modificado",
+        "modified": false
+    },
+    {
+        "id": "Reset Password ",
+        "translation": "Restablecer Contraseña ",
+        "modified": false
+    },
+    {
+        "id": "S3 is not supported for local storage export.",
+        "translation": "S3 no está soportado para exportar al almacenamiento local.",
+        "modified": false
+    },
+    {
+        "id": "S3 is not supported.",
+        "translation": "S3 no está soportado.",
+        "modified": false
+    },
+    {
+        "id": "SMTP connection settings do not appear to be configured properly err=%v details=%v",
+        "translation": "La conexión por SMTP paracen no estar configurada apropiadamente err=%v details=%v",
+        "modified": false
+    },
+    {
+        "id": "SMTP server settings do not appear to be configured properly err=%v details=%v",
+        "translation": "El servidor SMTP parece no estar configurado apropiadamente err=%v details=%v",
+        "modified": false
+    },
+    {
+        "id": "Sending error and diagnostic information to mattermost",
+        "translation": "Enviando información de errores y diagnóstico a Mattermost",
+        "modified": false
+    },
+    {
+        "id": "Server is initializing...",
+        "translation": "Inicializando el Servidor...",
+        "modified": false
+    },
+    {
+        "id": "Server is listening on ",
+        "translation": "El servidor está escuchando por ",
+        "modified": false
+    },
+    {
+        "id": "Server stopped",
+        "translation": "Servidor detenido",
+        "modified": false
+    },
+    {
+        "id": "Session is not OAuth but token was provided in the query string",
+        "translation": "La sesión no es de tipo OAuth pero existe un token en el query string",
+        "modified": false
+    },
+    {
+        "id": "Signup",
+        "translation": "Registrar",
+        "modified": false
+    },
+    {
+        "id": "Signup Email Sent",
+        "translation": "Correo de registro enviado",
+        "modified": false
+    },
+    {
+        "id": "Slack bot posts are not imported yet",
+        "translation": "Mensajes del Bot de Slack no han sido importados todavía",
+        "modified": false
+    },
+    {
+        "id": "SlackImport",
+        "translation": "SlackImport",
+        "modified": false
+    },
+    {
+        "id": "Sorry, we could not find the page.",
+        "translation": "Lo sentimos, pero no pudimos encontrar la página.",
+        "modified": false
+    },
+    {
+        "id": "Starting Server...",
+        "translation": "Arrancando el Servidor...",
+        "modified": false
+    },
+    {
+        "id": "Stopping Server...",
+        "translation": "Deteniendo el Servidor...",
+        "modified": false
+    },
+    {
+        "id": "Team ",
+        "translation": "Equipo ",
+        "modified": false
+    },
+    {
+        "id": "Team Created: ",
+        "translation": "Equipo Creado: ",
+        "modified": false
+    },
+    {
+        "id": "Team creation has been disabled. Please ask your systems administrator for details.",
+        "translation": "La creación de Equipos ha sido deshabilitada. Por favor pregunta a tu administrador de sistema por detalles.",
+        "modified": false
+    },
+    {
+        "id": "Team creation is disabled.",
+        "translation": "La creación de Equipos está deshabilitada.",
+        "modified": false
+    },
+    {
+        "id": "Team sign-up with email is disabled.",
+        "translation": "El registro a equipos por correo electrónico está deshabilitado.",
+        "modified": false
+    },
+    {
+        "id": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent",
+        "translation": "El URL de Equipo fue accesado de forma inválida. El URL del Equipo no debe ser utilizado en funciones del API o aquellas funciones que son independientes del equipo",
+        "modified": false
+    },
+    {
+        "id": "Testing enviroment created",
+        "translation": "Creado el entorno de pruebas",
+        "modified": false
+    },
+    {
+        "id": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again.",
+        "translation": "La \"Contraseña actual\" que ingresaste es incorrecta. Por favor revisa que tengas en Bloq Mayus apagado e intenta de nuevo.",
+        "modified": false
+    },
+    {
+        "id": "The channel has been archived or deleted",
+        "translation": "El canal ha sido archivado o eliminado",
+        "modified": false
+    },
+    {
+        "id": "The public link does not appear to be valid",
+        "translation": "El enlace público parece ser inválido",
+        "modified": false
+    },
+    {
+        "id": "The public link has expired",
+        "translation": "El enlace público ha expirado",
+        "modified": false
+    },
+    {
+        "id": "The reset link does not appear to be valid",
+        "translation": "El enlace para restablecer la contraseña parece ser inválido",
+        "modified": false
+    },
+    {
+        "id": "The reset link has expired",
+        "translation": "El enlace para restablecer la contraseña ha expirado",
+        "modified": false
+    },
+    {
+        "id": "The reset password link does not appear to be valid",
+        "translation": "El enlace para restablecer la contraseña parece ser inválido",
+        "modified": false
+    },
+    {
+        "id": "The signup link does not appear to be valid",
+        "translation": "El enlace de registro parece ser inválido",
+        "modified": false
+    },
+    {
+        "id": "The signup link has expired",
+        "translation": "El enlace de registro ha expirado",
+        "modified": false
+    },
+    {
+        "id": "The system admin has turned off OAuth service providing.",
+        "translation": "El administrador de sistema ha desactivado el servicio de autenticación por OAuth.",
+        "modified": false
+    },
+    {
+        "id": "The system_admin role can only be set by another system admin",
+        "translation": "El rol de administrador de sistema sólo puede ser asignado por otro administrador de sistema",
+        "modified": false
+    },
+    {
+        "id": "The team type doesn't allow open invites",
+        "translation": "El tipo de equipo no permite realizar invitaciones",
+        "modified": false
+    },
+    {
+        "id": "There must be at least one active admin",
+        "translation": "Debe haber al menos un administrador activo",
+        "modified": false
+    },
+    {
+        "id": "This ",
+        "translation": "Esta cuenta de ",
+        "modified": false
+    },
+    {
+        "id": "This URL is unavailable. Please try another.",
+        "translation": "Este URL no está disponible. Por favor, prueba con otra.",
+        "modified": false
+    },
+    {
+        "id": "This person is already on your team",
+        "translation": "Esta persona ya se encuentra en tu equipo",
+        "modified": false
+    },
+    {
+        "id": "Token request failed",
+        "translation": "Falló la solicitud del Token",
+        "modified": false
+    },
+    {
+        "id": "Token request to ",
+        "translation": "Solicitud de Token para ",
+        "modified": false
+    },
+    {
+        "id": "Trying to reset password for user on wrong team.",
+        "translation": "Intentando restablecer la contraseña para el usuario en el equipo equivocado.",
+        "modified": false
+    },
+    {
+        "id": "Unable to convert to json",
+        "translation": "No se puede convertir a JSON",
+        "modified": false
+    },
+    {
+        "id": "Unable to create /echo post, err=%v",
+        "translation": "No se puede crear /echo mensaje, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to create options file",
+        "translation": "No se puede crear el archivo de opciones",
+        "modified": false
+    },
+    {
+        "id": "Unable to decode image channelId=%v userId=%v filename=%v err=%v",
+        "translation": "No se puede decodificar la imagen channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v",
+        "translation": "No se puede codificar la imagen como jpeg channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v",
+        "translation": "No se puede codificar la imagen de muestra como jpg channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to get channel counts from the database",
+        "translation": "No se puede obtener el contador del canal desde la base de datos",
+        "modified": false
+    },
+    {
+        "id": "Unable to get file from S3",
+        "translation": "No se puede obtener el archivo desde el S3",
+        "modified": false
+    },
+    {
+        "id": "Unable to get file info. Image storage is not configured.",
+        "translation": "No se puede obtener la información del archivo. El almacenamiento de imágenes no está configurado.",
+        "modified": false
+    },
+    {
+        "id": "Unable to get file. Image storage is not configured.",
+        "translation": "No se puede obtener el archivo, El almacenamiento de imágenes no está configurado.",
+        "modified": false
+    },
+    {
+        "id": "Unable to get link. Image storage is not configured.",
+        "translation": "No se puede obtener el enlace. El almacenamiento de imágenes no está configurado.",
+        "modified": false
+    },
+    {
+        "id": "Unable to import user: ",
+        "translation": "No se puede importar el usuario: ",
+        "modified": false
+    },
+    {
+        "id": "Unable to open directory",
+        "translation": "No se puede abrir el directorio",
+        "modified": false
+    },
+    {
+        "id": "Unable to open file",
+        "translation": "No se puede abrir el archivo",
+        "modified": false
+    },
+    {
+        "id": "Unable to open file for export",
+        "translation": "No se puede abrir el archivo a exportar",
+        "modified": false
+    },
+    {
+        "id": "Unable to open zip file",
+        "translation": "No se puede abrir el archivo comprimido",
+        "modified": false
+    },
+    {
+        "id": "Unable to open: ",
+        "translation": "No se puede abrir: ",
+        "modified": false
+    },
+    {
+        "id": "Unable to read directory",
+        "translation": "No se puede leer el directorio",
+        "modified": false
+    },
+    {
+        "id": "Unable to retrieve exported file. Please re-export",
+        "translation": "No se puede recuperar el archivo exportado. Por favor vuelve a exportarlo",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload file. Image storage is not configured.",
+        "translation": "No se puede subir el archivo. El almacenamiento de imágenes no está configurado.",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload preview channelId=%v userId=%v filename=%v err=%v",
+        "translation": "No se puede subir la vista previa channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v",
+        "translation": "No se puede subir la miniatura channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to write to export file",
+        "translation": "No se puede escribir al archivo a exportar",
+        "modified": false
+    },
+    {
+        "id": "Unable to write to options file",
+        "translation": "No se puede escribir al archivo de opciones",
+        "modified": false
+    },
+    {
+        "id": "Unable to write to team export file",
+        "translation": "No se puede escribir al archivo de exportación del equipo",
+        "modified": false
+    },
+    {
+        "id": "Unauthorized",
+        "translation": "No autorizado",
+        "modified": false
+    },
+    {
+        "id": "Unsupported OAuth service provider",
+        "translation": "Proveedor de servicios de OAuth no es compatible",
+        "modified": false
+    },
+    {
+        "id": "Unsupported post type: ",
+        "translation": "Tipo de mensaje no compatible: ",
+        "modified": false
+    },
+    {
+        "id": "Update password failed",
+        "translation": "Falló al actualizar la contraseña",
+        "modified": false
+    },
+    {
+        "id": "Update password failed because context user_id did not match props user_id",
+        "translation": "La actualización de la contraseña falló debido a que el user_id del contexto no coincide con el user_id de los props",
+        "modified": false
+    },
+    {
+        "id": "Update password failed because the user is logged in through an OAuth service",
+        "translation": "La actualización de la contraseña falló debido a que el usuario está vinculado a un proveedor de OAuth",
+        "modified": false
+    },
+    {
+        "id": "Update password failed because we couldn't find a valid account",
+        "translation": "La actualización de la contraseña falló debido a que no encontramos una cuenta válida",
+        "modified": false
+    },
+    {
+        "id": "User %v has joined this channel.",
+        "translation": "El usuario %v se ha unido a este canal.",
+        "modified": false
+    },
+    {
+        "id": "User creation has been disabled. Please ask your systems administrator for details.",
+        "translation": "La creación de usuarios ha sido deshabilitada. Pregunta a tu administrador de sistemas por más detalles.",
+        "modified": false
+    },
+    {
+        "id": "User sign-up with email is disabled.",
+        "translation": "Registro de usuarios por correo electrónico está deshabilitado.",
+        "modified": false
+    },
+    {
+        "id": "User: ",
+        "translation": "Usuario: ",
+        "modified": false
+    },
+    {
+        "id": "Using static directory at %v",
+        "translation": "Utilizando el directorio de contenido estático %v",
+        "modified": false
+    },
+    {
+        "id": "Version: ",
+        "translation": "Versión: ",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing account",
+        "translation": "No pudimos encontrar la cuenta",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing post or comment to update.",
+        "translation": "No pudimos encontrar el mensaje o comentario para actualizarlo.",
+        "modified": false
+    },
+    {
+        "id": "We couldn’t find an account with that address.",
+        "translation": "No pudimos encontrar una cuenta con esa dirección.",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing team",
+        "translation": "No encontramos el equipo al que perteneces",
+        "modified": false
+    },
+    {
+        "id": "You do not have the appropriate permissions",
+        "translation": "No tienes los permisos apropiados",
+        "modified": false
+    },
+    {
+        "id": "You do not have the appropriate permissions ",
+        "translation": "No tienes los permisos apropiados ",
+        "modified": false
+    },
+    {
+        "id": "You have one new mention.",
+        "translation": "Tienes una mención nueva.",
+        "modified": false
+    },
+    {
+        "id": "You have one new message.",
+        "translation": "Tienes un mensaje nuevo.",
+        "modified": false
+    },
+    {
+        "id": "Your account is locked because of too many failed password attempts. Please reset your password.",
+        "translation": "Tu cuenta ha sido bloqueada debido a demasiados intentos fallidos. Por favor, restablece tu contraseña.",
+        "modified": false
+    },
+    {
+        "id": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 10 or higher, FireFox 14 or higher",
+        "translation": "Tu navegador actual no es compatible. Por favor, actualiza a uno de los siguientes navegadores: Google Chrome 21 o superior, Internet Explorer 10 o superior, FireFox 14 o superior",
+        "modified": false
+    },
+    {
+        "id": "Your user is not authorized to use the Chat app",
+        "translation": "Tu usuario no está autorizado para utilizar Mattermost",
+        "modified": false
+    },
+    {
+        "id": "Your user can only be used to signup to the %v Team unless you get an invitation to this team",
+        "translation": "Tu usuario solo puede ser utilizado para registrarte en el Equipo %v a menos que recibas una invitación para este equipo",
+        "modified": true
+    },
+    {
+        "id": "attempted",
+        "translation": "intentos",
+        "modified": false
+    },
+    {
+        "id": "fail - auth code expired",
+        "translation": "fallido - código de autenticación expirado",
+        "modified": false
+    },
+    {
+        "id": "fail - auth code has been used previously",
+        "translation": "fallido - código de autenticación fue previamente utilizado",
+        "modified": false
+    },
+    {
+        "id": "fail - auth code is invalid",
+        "translation": "fallido - código de autenticación inválido",
+        "modified": false
+    },
+    {
+        "id": "fail - bad channel permissions",
+        "translation": "fallido - permisos de canal errados",
+        "modified": false
+    },
+    {
+        "id": "fail - inappropriate conditions",
+        "translation": "fallido - condiciones inapropiadas",
+        "modified": false
+    },
+    {
+        "id": "fail - invalid auth code",
+        "translation": "fallido - código de autenticación inválido",
+        "modified": false
+    },
+    {
+        "id": "fail - invalid client credentials",
+        "translation": "fallido - credenciales de cliente inválidas",
+        "modified": false
+    },
+    {
+        "id": "fail - redirect uri provided did not match previous redirect uri",
+        "translation": "fallido - el URI para la redirección no coincide con ningún URI de redirección previo",
+        "modified": false
+    },
+    {
+        "id": "fail - redirect_uri did not match registered callback",
+        "translation": "fallido - El redirect_uri no coincide con el registrado",
+        "modified": false
+    },
+    {
+        "id": "failed - tried to update user password who was logged in through oauth",
+        "translation": "falla - tratando de actualizar la contraseña de usuario de quien inició sesión a través de oauth",
+        "modified": false
+    },
+    {
+        "id": "flag invalid argument needs to be more than 4 characters: -password",
+        "translation": "bandera de argumento inválido, se necesitan más de 4 carácteres: -password",
+        "modified": false
+    },
+    {
+        "id": "flag invalid argument: -role",
+        "translation": "bandera de argumento inválido: -role",
+        "modified": false
+    },
+    {
+        "id": "flag needs an argument: -email",
+        "translation": "bandera de argumento inválido: -email",
+        "modified": false
+    },
+    {
+        "id": "flag needs an argument: -password",
+        "translation": "bandera de argumento necesario: -password",
+        "modified": false
+    },
+    {
+        "id": "flag needs an argument: -team_name",
+        "translation": "bandera de argumento necesario: -team_name",
+        "modified": false
+    },
+    {
+        "id": "invalid_client: Invalid client credentials",
+        "translation": "invalid_client: credenciales inválidas de cliente",
+        "modified": false
+    },
+    {
+        "id": "invalid_grant: Authorization code already exchanged for an access token",
+        "translation": "invalid_grant: El código de autorización ya fue intercambiado por un token de acceso",
+        "modified": false
+    },
+    {
+        "id": "invalid_grant: Invalid or expired authorization code",
+        "translation": "invalid_grant: Código de autorización inválido o expirado",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Bad client_id",
+        "translation": "invalid_request: Mal client_id",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Bad grant_type",
+        "translation": "invalid_request: Mal grant_type",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Bad response_type",
+        "translation": "invalid_request: Mal response_type",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Missing client_secret",
+        "translation": "invalid_request: Missing client_secret",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Missing code",
+        "translation": "invalid_request: Falta el código",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Missing or bad redirect_uri",
+        "translation": "invalid_request: Falta o está malo el redirect_uri",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Supplied redirect_uri did not match registered callback_url",
+        "translation": "invalid_request: El redirect_uri suministrado no coincide con el callback_url registrado",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri",
+        "translation": "invalid_request: El redirect_uri suministrado no coincide con el código de autorización",
+        "modified": false
+    },
+    {
+        "id": "sending invitation to %v %v",
+        "translation": "enviando invtaciones a %v %v",
+        "modified": false
+    },
+    {
+        "id": "server_error: Encountered internal server error while accessing database",
+        "translation": "server_error: Se encontró un error interno al intentar de accesar la base de datos",
+        "modified": false
+    },
+    {
+        "id": "server_error: Encountered internal server error while pulling user from database",
+        "translation": "server_error: Se encontró un error interno al extraer el usuario de la base de datos",
+        "modified": false
+    },
+    {
+        "id": "server_error: Encountered internal server error while saving access token to database",
+        "translation": "server_error: Se encontró un error interno al guardar el token de acceso en la base de datos",
+        "modified": false
+    },
+    {
+        "id": "server_error: Encountered internal server error while saving session to database",
+        "translation": "server_error: Se enconttró un error interno al guardar la sesión en la base de datos",
+        "modified": false
+    },
+    {
+        "id": "server_error: Error accessing the database",
+        "translation": "server_error: Error accesando la base de datos",
+        "modified": false
+    },
+    {
+        "id": "stopping %v connections",
+        "translation": "deteniendo todas las conexiones",
+        "modified": false
+    },
+    {
+        "id": "team hub stopping for teamId=%v",
+        "translation": "deteniendo el hub de equipo para teamId=%v",
+        "modified": false
+    },
+    {
+        "id": "teams",
+        "translation": "equipos",
+        "modified": false
+    },
+    {
+        "id": "unknown",
+        "translation": "desconocido",
+        "modified": false
+    },
+    {
+        "id": "using a reset password link",
+        "translation": "utilizando el enlace para restablecer contraseña",
+        "modified": false
+    },
+    {
+        "id": "using the settings menu",
+        "translation": "utilizando la opción del menú",
+        "modified": false
+    },
+    {
+        "id": "websocket connect err: %v",
+        "translation": "websocket connect err: %v",
+        "modified": false
+    },
+    {
+        "id": "This username is already taken. Please choose another.",
+        "translation": "Este nombre de usuario ya está siendo utiizado. Por favor selecciona otro.",
+        "modified": false
+    },
+    {
+        "id": "This email is already taken. Please choose another",
+        "translation": "Esta dirección de correo ya está siendo utilizada. Por favor selecciona otra.",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the account",
+        "translation": "Encontramos un error al actualizar los datos de la cuenta",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the account",
+        "translation": "No pudimos realizar la actualización de los datos de la cuenta",
+        "modified": false
+    },
+    {
+        "id": "January",
+        "translation": "Enero",
+        "modified": false
+    },
+    {
+        "id": "February",
+        "translation": "Febrero",
+        "modified": false
+    },
+    {
+        "id": "March",
+        "translation": "Marzo",
+        "modified": false
+    },
+    {
+        "id": "April",
+        "translation": "Abril",
+        "modified": false
+    },
+    {
+        "id": "May",
+        "translation": "Mayo",
+        "modified": false
+    },
+    {
+        "id": "June",
+        "translation": "Junio",
+        "modified": false
+    },
+    {
+        "id": "July",
+        "translation": "Julio",
+        "modified": false
+    },
+    {
+        "id": "August",
+        "translation": "Agosto",
+        "modified": false
+    },
+    {
+        "id": "September",
+        "translation": "Septiembre",
+        "modified": false
+    },
+    {
+        "id": "October",
+        "translation": "Octubre",
+        "modified": false
+    },
+    {
+        "id": "November",
+        "translation": "Noviembre",
+        "modified": false
+    },
+    {
+        "id": "December",
+        "translation": "Diciembre",
+        "modified": false
+    },
+    {
+        "id": "administrator",
+        "translation": "administrador",
+        "modified": false
+    },
+    {
+        "id": "member",
+        "translation": "miembro",
+        "modified": false
+    },
+    {
+        "id": "%v needs your help:",
+        "translation": "En %v necesitamos de tu ayuda:",
+        "modified": false
+    },
+    {
+        "id": "Go back to team site",
+        "translation": "Volver al sitio del equipo",
+        "modified": false
+    },
+    {
+        "id": "Your email address has changed for %v",
+        "translation": "Tu dirección de correo para %v ha cambiado",
+        "modified": false
+    },
+    {
+        "id": "You updated your email",
+        "translation": "Haz actualizado tu correo electrónico",
+        "modified": false
+    },
+    {
+        "id": "Your email address for %v has been changed to %v.<br>If you did not make this change, please contact the system administrator.",
+        "translation": "Tu dirección de correo electrónico para %v ha sido cambiada por %v.<br>Si este cambio no fue realizado por ti, por favor contacta un administrador de sistema.",
+        "modified": false
+    },
+    {
+        "id": "Verify new email address for %v",
+        "translation": "Confirmación de la nueva dirección de correo electrónico para %v",
+        "modified": false
+    },
+    {
+        "id": "You updated your email",
+        "translation": "Haz actualizado tu correo electrónico",
+        "modified": false
+    },
+    {
+        "id": "To finish updating your email address for %v, please click the link below to confirm this is the right address.",
+        "translation": "Para terminar de actualizar tu dirección de correo para %v, por favor pincha en botón de abajo para confirmar que está es la dirección correcta.",
+        "modified": false
+    },
+    {
+        "id": "Verify Email",
+        "translation": "Confirmar Correo",
+        "modified": false
+    },
+    {
+        "id": "Your %v Teams",
+        "translation": "Tus Equipos en %v",
+        "modified": false
+    },
+    {
+        "id": "Finding teams",
+        "translation": "Tus Equipos",
+        "modified": false
+    },
+    {
+        "id": "Your request to find teams associated with your email found the following:",
+        "translation": "Haz solicitado encontrar los equipos a los que tienes asociado tu correo electrónico y encontramos los siguientes:",
+        "modified": false
+    },
+    {
+        "id": "We could not find any teams for the given email.",
+        "translation": "No hemos podido encontrar ningún equipo asociado al correo electrónico suministrado.",
+        "modified": false
+    },
+    {
+        "id": "invited you to join %v Team on",
+        "translation": "te ha invitado a unirte al Equipo %v en",
+        "modified": false
+    },
+    {
+        "id": "You've been invited",
+        "translation": "Haz sido invitado",
+        "modified": false
+    },
+    {
+        "id": "The team %v <strong>%v</strong>, has invited you to join <strong>%v</strong>.",
+        "translation": "El %v del equipo <strong>%v</strong>, te ha invitado a unirte a <strong>%v</strong>.",
+        "modified": false
+    },
+    {
+        "id": "Join Team",
+        "translation": "Unirme al Equipo",
+        "modified": false
+    },
+    {
+        "id": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>%v</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href=\"%v\">%v</a>",
+        "translation": "Mattermost te permite compartir mensajes y archivos de tu Computador o teléfono, incluyendo busquedas instantáneas. Una vez que te hayas unido a <strong>%v</strong>, Podrás iniciar sesión en tu nuevo equipo y utilizar todas las características en cualquier momento desde la dirección web:<br/><br/><a href=\"%v\">%v</a>",
+        "modified": false
+    },
+    {
+        "id": "You updated your password for %v on",
+        "translation": "Haz cambiado tu contraseña para %v en",
+        "modified": false
+    },
+    {
+        "id": "You updated your password",
+        "translation": "Haz cambiado tu contraseña",
+        "modified": false
+    },
+    {
+        "id": "You updated your password for %v on %v by %v.<br>If this change wasn't initiated by you, please contact your system administrator.",
+        "translation": "Haz cambiado tu contraseña para %v on %v a través de %v.<br>Si este cambio no fue realizado por ti, por favor contacta a un administrador del sistema.",
+        "modified": false
+    },
+    {
+        "id": "You have one new message.",
+        "translation": "Tienes un nuevo mensaje.",
+        "modified": false
+    },
+    {
+        "id": "New Direct Message",
+        "translation": "Nuevo Mensaje Directo",
+        "modified": false
+    },
+    {
+        "id": "You have one new mention.",
+        "translation": "Tienes una nueva mención.",
+        "modified": false
+    },
+    {
+        "id": "New Mention",
+        "translation": "Nueva Mención",
+        "modified": false
+    },
+    {
+        "id": "for :Team at :Month :Day, :Year",
+        "translation": "para %v el :Day :Month de :Year",
+        "modified": false
+    },
+    {
+        "id": "CHANNEL",
+        "translation": "CANAL",
+        "modified": false
+    },
+    {
+        "id": "Go To Channel",
+        "translation": "Ir al Canal",
+        "modified": false
+    },
+    {
+        "id": "Reset your password",
+        "translation": "Restablece tu contraseña",
+        "modified": false
+    },
+    {
+        "id": "You requested a password reset",
+        "translation": "Haz solicitado restablecer tu contraseña",
+        "modified": false
+    },
+    {
+        "id": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same.",
+        "translation": "Para cambiar tu contraseña, pincha el botón \"Restablecer Contraseña\" que se encuentra abajo.<br>Si no fue tu intención restablecer tu contraseña, por favor ignora este correo y tu contraseña seguirá siendo la misma.",
+        "modified": false
+    },
+    {
+        "id": "Reset Password",
+        "translation": "Restablecer Contraseña",
+        "modified": false
+    },
+    {
+        "id": "%v Team Setup",
+        "translation": "Configura tu equipo en %v",
+        "modified": false
+    },
+    {
+        "id": "Thanks for creating a team!",
+        "translation": "¡Gracias por haber creado un equipo!",
+        "modified": false
+    },
+    {
+        "id": "Set up your team",
+        "translation": "Configura tu equipo",
+        "modified": false
+    },
+    {
+        "id": "is one place for all your team communication, searchable and available anywhere.<br>You'll get more out of %v when your team is in constant communication--let's get them on board.",
+        "translation": "es el lugar para todas las comunicaciones de tu equipo, con capacidades de búsqueda y disponible desde cualquier parte.<br>Podrás aprovechar al máximo %v cuando tu equipo esté en constante comunicación--Traigamoslos a bordo.",
+        "modified": false
+    },
+    {
+        "id": "Email Verification",
+        "translation": "Verificación de correo electrónico",
+        "modified": false
+    },
+    {
+        "id": "Please verify your email address by clicking below.",
+        "translation": "Por favor verifica tu correo electrónico al pinchar el botón de abajo.",
+        "modified": false
+    },
+    {
+        "id": "Verify Email",
+        "translation": "Verificar Correo",
+        "modified": false
+    },
+    {
+        "id": "You joined",
+        "translation": "Te haz unido a",
+        "modified": false
+    },
+    {
+        "id": "You can sign-in to your new team from the web address:",
+        "translation": "Puedes iniciar sesión en tu nuevo equipo desde la dirección web:",
+        "modified": false
+    },
+    {
+        "id": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving.",
+        "translation": "Mattermost te permite compartir mensajes y archivos desde un computador o teléfono desde donde te encuentres.",
+        "modified": false
+    },
+    {
+        "id": "footer",
+        "translation": "(c) 2015 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301.<br>Para cambiar tus preferencias de notificaciones, inicia sesión en tu equipo y dirigete a Configurar Cuenta > Notificaciones.",
+        "modified": false
+    },
+    {
+        "id": "email_info",
+        "translation": "Si tienes alguna pregunta, escribenos en cualquier momento a:  <a href=\"mailto:%v\" style=\"text-decoration: none; color:#2389D7;\">%v</a>.<br>Los mejores deseos,<br>El Equipo %v<br>",
+        "modified": false
+    },
+    {
+        "id": "footer_company",
+        "translation": "© 2015 Mattermost, Inc.",
+        "modified": false
+    },
+    {
+        "id": "footer_help",
+        "translation": "Ayuda",
+        "modified": false
+    },
+    {
+        "id": "footer_terms",
+        "translation": "Terminos y Condiciones",
+        "modified": false
+    },
+    {
+        "id": "footer_privacy",
+        "translation": "Privacidad",
+        "modified": false
+    },
+    {
+        "id": "footer_about",
+        "translation": "Acerca",
+        "modified": false
+    },
+    {
+        "id": "authorize_title",
+        "translation": "Una aplicación quiere conectarse utilizando tu cuenta de %v.",
+        "modified": false
+    },
+    {
+        "id": "authorize_info",
+        "translation": "La app <strong>%v</strong> quiere tener la habilidad de accesar Mattermost en tu nombre.",
+        "modified": false
+    },
+    {
+        "id": "authorize_question",
+        "translation": "¿Permitir el acceso a <strong>%v</strong>?",
+        "modified": false
+    },
+    {
+        "id": "authorize_deny",
+        "translation": "Denegar",
+        "modified": false
+    },
+    {
+        "id": "authorize_allow",
+        "translation": "Permitir",
+        "modified": false
+    },
+    {
+        "id": "signup_team_confirm.title",
+        "translation": "Registro Completado",
+        "modified": false
+    },
+    {
+        "id": "signup_team_confirm.info",
+        "translation": "Por favor revisa tu correo: {{ .Props.Email }}<br>El correo electrónico contiene el enlace para configurar tu equipo",
+        "modified": false
+    },
+    {
+        "id": "signup_team.title",
+        "translation": "Todas las comunicaciones de tu equipo en un solo lugar y accesible desde cualquier parte",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find team name=%v, err=%v",
+        "translation": "No se encontro el equipo con nombre=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Invalid Post ID",
+        "translation": "El ID del Mensaje es inválido",
+        "modified": false
+    },
+    {
+        "id": "Documentation",
+        "translation": "Documentación",
+        "modified": false
+    },
+    {
+        "id": "Unable to parse incoming data",
+        "translation": "No se puede analizar la data entrante",
+        "modified": false
+    },
+    {
+        "id": "Checking for security update from Mattermost",
+        "translation": "Consultando si existen actualizaciones de seguridad para Mattermost",
+        "modified": false
+    },
+    {
+        "id": "Failed to get security update information from Mattermost.",
+        "translation": "Falla al obtener información sobre actualizaciones de seguridad para Mattermost.",
+        "modified": false
+    },
+    {
+        "id": "Failed to get system admins for security update information from Mattermost.",
+        "translation": "Falla al obtener los administradores de sistema que reciben información referente a las actualizaciones de seguridade de Mattermost.",
+        "modified": false
+    },
+    {
+        "id": "Failed to get security bulletin details",
+        "translation": "Falla al obtener el detalle del boletín de seguridad",
+        "modified": false
+    },
+    {
+        "id": "Failed to read security bulletin details",
+        "translation": "Falla al leer el detalle del boletín de seguridad",
+        "modified": false
+    },
+    {
+        "id": "Sending security bulletin for ",
+        "translation": "Enviando boletín de seguridad para ",
+        "modified": false
+    },
+    {
+        "id": " to ",
+        "translation": " a ",
+        "modified": false
+    },
+    {
+        "id": "Mattermost Security Bulletin",
+        "translation": "Boletín de Seguridad Mattermost",
+        "modified": false
+    },
+    {
+        "id": "Have you performed a database backup? (YES/NO): ",
+        "translation": "¿Ya realizaste un respaldo de la base de datos? (YES/NO): ",
+        "modified": false
+    },
+    {
+        "id": "Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): ",
+        "translation": "¿Estás seguro de querer eliminar al usuario %v?  Toda la data sera eliminada permanentemente (YES/NO): ",
+        "modified": false
+    },
+    {
+        "id": "Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): ",
+        "translation": "¿Estás seguro de querer eliminar al equipo %v?  Toda la data sera eliminada permanentemente (YES/NO): ",
+        "modified": false
+    },
+    {
+        "id": "Tried to perform an invalid update of the default channel ",
+        "translation": "Intento de realizar una actualización inválida sobre el canal predeterminado ",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve user while trying to save update channel header message %v",
+        "translation": "No se pudo recuperar de usuario al intentar guardar la actualización del encabezado del canal %v",
+        "modified": false
+    },
+    {
+        "id": "%s updated the channel header to: %s",
+        "translation": "%s actualizó el encabezado del canal a: %s",
+        "modified": false
+    },
+    {
+        "id": "%s removed the channel header (was: %s)",
+        "translation": "%s removió el encabezado del canal (era: %s)",
+        "modified": false
+    },
+    {
+        "id": "%s updated the channel header from: %s to: %s",
+        "translation": "%s actualizó el encabezado del canal de: %s a: %s",
+        "modified": false
+    },
+    {
+        "id": "Failed to post join/leave message %v",
+        "translation": "Fallo al publicar el mensaje de unir/abandonar %v",
+        "modified": false
+    },
+    {
+        "id": "%v has joined the channel.",
+        "translation": "%v se ha unido al canal.",
+        "modified": false
+    },
+    {
+        "id": "Encountered error deleting incoming webhook, id=",
+        "translation": "Encontrado un error al eliminar el webhook de entrada, id=",
+        "modified": false
+    },
+    {
+        "id": "Encountered error deleting outgoing webhook, id=",
+        "translation": "Encontrado un error al eliminar el webhook de salida, id=",
+        "modified": false
+    },
+    {
+        "id": "Unable to remove user.",
+        "translation": "No se puede remover el usuario.",
+        "modified": false
+    },
+    {
+        "id": "Command not implemented",
+        "translation": "Comando no implementado",
+        "modified": false
+    },
+    {
+        "id": "Unable to create /me post post, err=%v",
+        "translation": "No se pudo crear el mensaje /me mensaje, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Do an action, /me [message]",
+        "translation": "Realiza una acción, /me [mensaje]",
+        "modified": false
+    },
+    {
+        "id": "Unable to create /shrug post post, err=%v",
+        "translation": "No se pudo crear el mensaje /shrug mensaje, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]",
+        "translation": "Agrega ¯\\_(ツ)_/¯ a tu mensaje, /shrug [mensaje]",
+        "modified": false
+    },
+    {
+        "id": "Command must contain a url",
+        "translation": "El comando debe contener un url",
+        "modified": false
+    },
+    {
+        "id": "Unable to get file",
+        "translation": "No se puede obtener el archivo",
+        "modified": false
+    },
+    {
+        "id": "Encountered error reading file",
+        "translation": "Se encontró un error leyendo el archivo",
+        "modified": false
+    },
+    {
+        "id": "Unable to create post, err=%v",
+        "translation": "No se pudo crear el mensaje, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Add a post containing the text from a given url to current channel <Url>",
+        "translation": "Agraga un mensaje que contiene el texto de un url dado al canal actual <Url>",
+        "modified": false
+    },
+    {
+        "id": "Invalid session token=",
+        "translation": "Token de sesión inválido=",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload image file.",
+        "translation": "No se puede subir el archivo de la imagen.",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload image file. File is too large.",
+        "translation": "No se pudo subir la imagen. El archivo es demasiado grande.",
+        "modified": false
+    },
+    {
+        "id": "File exceeds max image size.",
+        "translation": "El archivo excede el tamaño máximo para una imagen.",
+        "modified": false
+    },
+    {
+        "id": "Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v",
+        "translation": "Se encontró un error al actualizar la última vista, channel_id=%s, user_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error getting team, team_id=%s, err=%v",
+        "translation": "Se encontró un error obteniendo el equipo, team_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error getting channel, channel_id=%s, err=%v",
+        "translation": "Se encontró un error obteniendo el canal, channel_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error getting user, user_id=%s, err=%v",
+        "translation": "Se encontró un error obteniendo el usuario, user_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to get 2 members for a direct channel channel_id=%v",
+        "translation": "Falla al obtener 2 miembros para un canal directo channel_id=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to save direct channel preference user_id=%v other_user_id=%v err=%v",
+        "translation": "Falla al guardar las preferencias del canal directo user_id=%v other_user_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to update direct channel preference user_id=%v other_user_id=%v err=%v",
+        "translation": "Falla al actualizar las preferencias del canal directo user_id=%v other_user_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error getting webhooks by team, err=%v",
+        "translation": "Se encontró un error obteniendo los webhooks por equipo, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Event POST failed, err=%s",
+        "translation": "Fallo el Evento POST, err=%s",
+        "modified": false
+    },
+    {
+        "id": "Failed to create response post, err=%v",
+        "translation": "Falla al crear la respuesta del mensaje, err=%v",
+        "modified": false
+    },
+    {
+        "id": " sent you a direct message",
+        "translation": " te envió un mensaje directo",
+        "modified": false
+    },
+    {
+        "id": " mentioned you in ",
+        "translation": " te mencionó en ",
+        "modified": false
+    },
+    {
+        "id": "Failed to send push notificationid=%v, err=%v",
+        "translation": "Falló el envio de la notificación push notificationid=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to get post",
+        "translation": "No se puede obtener el mensaje",
+        "modified": false
+    },
+    {
+        "id": "Initializing preference api routes",
+        "translation": "Inicializando las rutas de preferencias del API",
+        "modified": false
+    },
+    {
+        "id": "Unable to decode preferences from request",
+        "translation": "No se puede decodificar las preferencias desde la solicitud",
+        "modified": false
+    },
+    {
+        "id": "Unable to set preferences for other user",
+        "translation": "No se puede asignar las preferencias para otro usuario",
+        "modified": false
+    },
+    {
+        "id": "Attempting to permanently delete team %v id=%v",
+        "translation": "Intentando eliminar permanentemente al equipo %v id=%v",
+        "modified": false
+    },
+    {
+        "id": "Permanently deleted team %v id=%v",
+        "translation": "Equipo eliminado permanentemente %v id=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error saving tutorial preference, err=%v",
+        "translation": "Se encontró un error al guardar las preferencias del tutorial, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v",
+        "translation": "Falla al agragar las preferencias del canal directo para el usuario user_id=%s, team_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v",
+        "translation": "Falla al agregar las preferencias del canal directo para el nuevo usuario user_id=%s, eam_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Could not decode profile image config.",
+        "translation": "No se pudo decodificar la configuración de la imagen del perfil.",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload profile image. File is too large.",
+        "translation": "No se pudo actualizar la imagen del perfil. El archivo es muy grande.",
+        "modified": false
+    },
+    {
+        "id": "The system admin role can only by modified by another system admin",
+        "translation": "El rol de administrador de sistema sólo puede ser modificado por otro administrador de sistema",
+        "modified": false
+    },
+    {
+        "id": "Attempting to permanently delete account %v id=%v",
+        "translation": "Intentando eliminar permanentemente la cuenta %v id=%v",
+        "modified": false
+    },
+    {
+        "id": "attempt userId=%v",
+        "translation": "userId=%v intentado",
+        "modified": false
+    },
+    {
+        "id": "You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.",
+        "translation": "Estas eliminando a %v que es un administrador de sistema.  Es posible que necesites asignar otra cuenta como administrador de sistema utilizando las herramientas de linea de comando.",
+        "modified": false
+    },
+    {
+        "id": "Permanently deleted account %v id=%v",
+        "translation": "La cuenta %v ha sido eliminada permanentemente id=%v",
+        "modified": false
+    },
+    {
+        "id": "Cannot reset password for SSO accounts",
+        "translation": "No se puede restablecer la contraseña para cuentas SSO",
+        "modified": false
+    },
+    {
+        "id": "Failed to send email change verification email successfully err=%v",
+        "translation": "Error al enviar correo electrónico de verificación de cambio de correo electrónico con éxito err=%v",
+        "modified": false
+    },
+    {
+        "id": "Outgoing webhooks have been disabled by the system admin.",
+        "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema.",
+        "modified": false
+    },
+    {
+        "id": "fail - not open channel",
+        "translation": "falla - no hay canal abierto",
+        "modified": false
+    },
+    {
+        "id": "Either trigger_words or channel_id must be set",
+        "translation": "Debe establecerse palabras gatilladoras o un channel_id",
+        "modified": false
+    },
+    {
+        "id": "Inappropriate permissions to delete outcoming webhook",
+        "translation": "Permisos inapropiados para eliminar el webhook saliente",
+        "modified": false
+    },
+    {
+        "id": "fail - inappropriate permissions",
+        "translation": "falla - permisos inapropiados",
+        "modified": false
+    },
+    {
+        "id": "Inappropriate permissions to regenerate outcoming webhook token",
+        "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente",
+        "modified": false
+    },
+    {
+        "id": "Invalid header",
+        "translation": "Encabezado inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid purpose",
+        "translation": "Propósito inválido",
+        "modified": false
+    },
+    {
+        "id": "Loaded i18n file from %v",
+        "translation": "Cargado el archivo de i18n desde %v",
+        "modified": false
+    },
+    {
+        "id": "Error opening file=",
+        "translation": "Error abriendo el archivo=",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while connecting to the server",
+        "translation": "Encontramos un error mientras conectabamos al servidor",
+        "modified": false
+    },
+    {
+        "id": "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more.",
+        "translation": "Llave de cifrado rest para las configuraciones de SQL inválida.  Debe ser de 32 caracteres o más.",
+        "modified": false
+    },
+    {
+        "id": "Invalid public link salt for file settings.  Must be 32 chars or more.",
+        "translation": "Salt para crear enlaces públicos en la configuración a archivos es inválido.  Debe ser de 32 caracteres o más.",
+        "modified": false
+    },
+    {
+        "id": "Invalid invite salt for email settings.  Must be 32 chars or more.",
+        "translation": "Salt para crear invitaciones en la configuración de correos es inválido.  Debe ser de 32 caracteres o más.",
+        "modified": false
+    },
+    {
+        "id": "Invalid password reset salt for email settings.  Must be 32 chars or more.",
+        "translation": "Salt para restablecer contraseñas en la configuración de correos es inválido.  Debe ser de 32 caracteres o más.",
+        "modified": false
+    },
+    {
+        "id": "Invalid Id",
+        "translation": "Id inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid token",
+        "translation": "Token inválido",
+        "modified": false
+    },
+    {
+        "id": "Create at must be a valid time",
+        "translation": "Create debe ser un tiempo válido",
+        "modified": false
+    },
+    {
+        "id": "Update at must be a valid time",
+        "translation": "Update debe ser un tiempo válido",
+        "modified": false
+    },
+    {
+        "id": "Invalid user id",
+        "translation": "User id inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid channel id",
+        "translation": "Channel id inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid team id",
+        "translation": "Team id inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid callback urls",
+        "translation": "Callback urls inválido",
+        "modified": false
+    },
+    {
+        "id": "Invalid callback URLs. Each must be a valid URL and start with http:// or https://",
+        "translation": "Callback URLs inválido. Cada uno debe ser un URL válido y que comience con http:// o https://",
+        "modified": false
+    },
+    {
+        "id": "Invalid props",
+        "translation": "Props inválidos",
+        "modified": false
+    },
+    {
+        "id": "Invalid category",
+        "translation": "Categoría inválida",
+        "modified": false
+    },
+    {
+        "id": "Invalid name",
+        "translation": "Nombre inválido",
+        "modified": false
+    },
+    {
+        "id": "Value is too long",
+        "translation": "El valor es muy largo",
+        "modified": false
+    },
+    {
+        "id": "could not decode",
+        "translation": "no se puede decodificar",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the audits",
+        "translation": "Encontramos un error al buscar los audits",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error deleting the audits",
+        "translation": "Encontramos un error al eliminar los audits",
+        "modified": false
+    },
+    {
+        "id": "Use SaveDirectChannel to create a direct channel",
+        "translation": "Utiliza SaveDirectChannel para crear un canal directo",
+        "modified": false
+    },
+    {
+        "id": "Unable to open transaction",
+        "translation": "No se puede abrir la transacción",
+        "modified": false
+    },
+    {
+        "id": "Unable to commit transaction",
+        "translation": "No se puede perpetrar la transacción",
+        "modified": false
+    },
+    {
+        "id": "Unable to rollback transaction",
+        "translation": "No se puede anular la transacción",
+        "modified": false
+    },
+    {
+        "id": "Not a direct channel attempted to be created with SaveDirectChannel",
+        "translation": "No es un canal directo, se intentó crear con SaveDirectChannel",
+        "modified": false
+    },
+    {
+        "id": "Unable to add direct channel members",
+        "translation": "No se pueden agregar miembros a un canal directo",
+        "modified": false
+    },
+    {
+        "id": "Must call update for exisiting channel",
+        "translation": "Debe llamarse a actualizar para un canal existente",
+        "modified": false
+    },
+    {
+        "id": "Failed to get current channel count",
+        "translation": "Falla obteniendo la cantidad de canales actual",
+        "modified": false
+    },
+    {
+        "id": "You've reached the limit of the number of allowed channels.",
+        "translation": "Se ha alcanzado el límite de canales permitidos.",
+        "modified": false
+    },
+    {
+        "id": "A channel with that URL was previously created",
+        "translation": "Un canal con este URL fue creado previamente",
+        "modified": false
+    },
+    {
+        "id": "A channel with that URL already exists",
+        "translation": "Un canal con este URL ya existe",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the channel",
+        "translation": "No pudimos guardar el canal",
+        "modified": false
+    },
+    {
+        "id": "A channel with that handle was previously created",
+        "translation": "Un canal con este identificador fue creado previamente",
+        "modified": false
+    },
+    {
+        "id": "A channel with that handle already exists",
+        "translation": "Un canal con este identificador ya existe",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the channel",
+        "translation": "Encontramos un error al actualizar el canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the channel",
+        "translation": "No pudimos actualizar el canal",
+        "modified": false
+    },
+    {
+        "id": "Problem updating members last updated time",
+        "translation": "Problema actualizando el último momento de actualización de los miembros",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the channel",
+        "translation": "Encontramos un error buscando el canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing channel",
+        "translation": "No pudimos encontrar el canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the channel",
+        "translation": "No pudimos eliminar el canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the channels",
+        "translation": "No pudimos eliminar los canales",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channels",
+        "translation": "No pudimos obtener los canales",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channel counts",
+        "translation": "No pudimos obtener la cantidad de canales",
+        "modified": false
+    },
+    {
+        "id": "A channel member with that id already exists",
+        "translation": "Un miembro del canal con este id ya existe",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the channel member",
+        "translation": "No pudimos guardar el miembro del canal",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the channel member",
+        "translation": "Encontramos un error actualizando el miembro del canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channel members",
+        "translation": "No pudimos obtener los miembros del canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channel member",
+        "translation": "No pudimos obtener el miembro del canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channel member count",
+        "translation": "No pudimos obtener la cantidad de miembros del canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the extra info for channel members",
+        "translation": "No pudimos obtener información extra de los miembros del canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove the channel member",
+        "translation": "No pudimos remover al miembro del canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't check the permissions",
+        "translation": "No pudimos revisar los permisos",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the last viewed at time",
+        "translation": "No pudimos actualizar el tiempo de la última vista",
+        "modified": false
+    },
+    {
+        "id": "We couldn't increment the mention count",
+        "translation": "No pudimos incrementar la cantidad de menciones",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get all the channels",
+        "translation": "No pudimos obtener todos los canales",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get channel type counts",
+        "translation": "No pudimos obtener la cantidad de canales de este tipo",
+        "modified": false
+    },
+    {
+        "id": "Must call update for exisiting app",
+        "translation": "Se debe ejecutar actualizar para una app existente",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the app.",
+        "translation": "No pudimos guardar el app.",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error finding the app",
+        "translation": "Encontramos un error buscando la app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing app to update",
+        "translation": "No pudimos encontrar una app para actualizar",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the app",
+        "translation": "Encontramos un error actualizando la app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the app",
+        "translation": "No pudimos actualizar la app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing app",
+        "translation": "No pudimos encontrar la app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find any existing apps",
+        "translation": "No pudimos encontrar ninguna app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the access token.",
+        "translation": "No pudimos guardar el token de acceso.",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the access token",
+        "translation": "Encontramos un error buscando el token de acceso",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove the access token",
+        "translation": "No pudimos remover el token de acceso",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the authorization code.",
+        "translation": "No pudimos guardar el código de autorización.",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing authorization code",
+        "translation": "No pudimos encontrar el código de autorización",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove the authorization code",
+        "translation": "No pudimos remover el código de autorización",
+        "modified": false
+    },
+    {
+        "id": "You cannot update an existing Post",
+        "translation": "No puedes actualizar el Mensaje",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the Post",
+        "translation": "No pudimos guardar el Mensaje",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the Post",
+        "translation": "No pudimos actualizar el Mensaje",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the post",
+        "translation": "No pudimos obtener el mensaje",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the post",
+        "translation": "No pudimos eliminar el mensaje",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the comments for user",
+        "translation": "No pudimos eliminar los comentarios para el usuario",
+        "modified": false
+    },
+    {
+        "id": "We couldn't select the posts to delete for the user",
+        "translation": "No pudimos seleccionar los mensajes a borrar para el usuario",
+        "modified": false
+    },
+    {
+        "id": "We couldn't select the posts to delete for the user (too many), please re-run",
+        "translation": "No pudimos seleccionar todos los mensajes a eliminar por el usuario (son demasiados), por favor ejecuta de nuevo",
+        "modified": false
+    },
+    {
+        "id": "Limit exceeded for paging",
+        "translation": "Límite de paginación excedido",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the posts for the channel",
+        "translation": "No pudimos obtener los mensajes para el canal",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the parent posts for the channel",
+        "translation": "No pudimos obtener los mensajes padres del canal",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while searching for posts",
+        "translation": "Encontramos un error mientras buscabamos los mensajes",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get user counts with posts",
+        "translation": "No pudimos obtener la cantidad de usuarios con mensajes",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get post counts by day",
+        "translation": "No pudimos obtener la cantidad de mensajes por día",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get post counts",
+        "translation": "No pudimos obtener la cantidad de mensajes",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while updating preferences",
+        "translation": "Encontramos un error mientras actualizabamos las preferencias",
+        "modified": false
+    },
+    {
+        "id": "Failed to update preference because of missing driver",
+        "translation": "Falla al actualizar las preferencias debido a que falta el controlador",
+        "modified": false
+    },
+    {
+        "id": "A preference with that user id, category, and name already exists",
+        "translation": "La preferencia para ese usuario, categoria y nombre ya existe",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the preference",
+        "translation": "No pudimos guardar la preferencia",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the preference",
+        "translation": "No pudimos actualizar la preferencia",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while finding preferences",
+        "translation": "Encontramos un error mientras buscabamos las preferencias",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while deleteing preferences",
+        "translation": "Encontramos un error mientras eliminabamos las preferencias",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while finding a pre release feature preference",
+        "translation": "Encontramos un error mientras buscabamos las preferencias de las características de pre-lanzamiento",
+        "modified": false
+    },
+    {
+        "id": "Cannot update existing session",
+        "translation": "No se puede actualizar la sesión",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the session",
+        "translation": "No pudimos guardar la sesión",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error finding the session",
+        "translation": "Encontramos un error buscando la sesión",
+        "modified": false
+    },
+    {
+        "id": "Failed to cleanup sessions in getSessions err=%v",
+        "translation": "Falla al limpiar las sesiones en getSessions err=%v",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error while finding user sessions",
+        "translation": "Encontramos un error mientras buscabamos la sesión del usuario",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove the session",
+        "translation": "No pudimos remover la sesión",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove all the sessions for the team",
+        "translation": "No pudimos remover todas las sesiones para el equipo",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove all the sessions for the user",
+        "translation": "No pudimos remover todas las sesiones del usuario",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error while deleting expired user sessions",
+        "translation": "Encontramos un error mientras eliminabamos las sesiones expiradas del usuario",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the last_activity_at",
+        "translation": "No pudimos actualizar el campo last_activity_at",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the roles",
+        "translation": "No pudimos actualizar los roles",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error saving the system property",
+        "translation": "Encontramos un error guardando la propiedad del sistema",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the system property",
+        "translation": "Encontramos un error actualizando la propiedad del sistema",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error finding the system properties",
+        "translation": "Encontramos un error buscando las propiedades del sistema",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the team",
+        "translation": "No pudimos guardar el equipo",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error finding the team",
+        "translation": "Encontramos un error buscando el equipo",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing team to update",
+        "translation": "No pudimos encontrar el equipo a actualizar",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the team",
+        "translation": "Encontramos un error actualizando el equipo",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the team",
+        "translation": "No pudimos actualizar el equipo",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the team name",
+        "translation": "No pudimos actualizar el nombre del equipo",
+        "modified": false
+    },
+    {
+        "id": "We encounted a problem when looking up teams",
+        "translation": "Encontramos un problema buscando los equipos",
+        "modified": false
+    },
+    {
+        "id": "We could not get all teams",
+        "translation": "No pudimos obtener todos los equipos",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the existing team",
+        "translation": "No pudimos eliminar el equipo",
+        "modified": false
+    },
+    {
+        "id": "Must call update for exisiting user",
+        "translation": "Debe ejecutarse actualizar para un usuario existente",
+        "modified": false
+    },
+    {
+        "id": "Failed to get current team member count",
+        "translation": "Falla obteniendo la cantidad de miembros del equipo actual",
+        "modified": false
+    },
+    {
+        "id": "This team has reached the maxmium number of allowed accounts. Contact your systems administrator to set a higher limit.",
+        "translation": "Este equipo ha alcanzado el número máximo de cuentas permitidas. Contacta a un administrador de sistema para que asigne un límite mayor.",
+        "modified": false
+    },
+    {
+        "id": "An account with that username already exists.",
+        "translation": "Una cuenta con ese nombre de usuario ya existe.",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the account.",
+        "translation": "No pudimos guardar la cuenta.",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the account",
+        "translation": "Encontramos un error buscando la cuenta",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing account to update",
+        "translation": "No pudimos encontrar la cuenta a actualizar",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the update_at",
+        "translation": "No pudimos actualizar el campo update_at",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the last_ping_at",
+        "translation": "No pudimos actualizar el campo last_ping_at",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the last_activity_at",
+        "translation": "No pudimos actualizar el campo last_activity_at",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the user password",
+        "translation": "No pudimos actualizar la contraseña del usuario",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the failed_attempts",
+        "translation": "No pudimos actualizar el campo failed_attempts",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the account",
+        "translation": "Encontramos un error buscando la cuenta",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while finding user profiles",
+        "translation": "Encontramos un error mientras buscabamos los perfiles de usuario",
+        "modified": false
+    },
+    {
+        "id": "Unable to update verify email field",
+        "translation": "No se puede actualizar el campo de verificar correo",
+        "modified": false
+    },
+    {
+        "id": "We could not count the users",
+        "translation": "No pudimos contar los usuarios",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the existing account",
+        "translation": "No pudimos eliminar la cuenta",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the IncomingWebhook",
+        "translation": "No pudimos guardar el Webhook de Entrada",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the webhook",
+        "translation": "No pudimos obtener el webhook",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the webhook",
+        "translation": "No pudimos eliminar el webhook",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the webhooks",
+        "translation": "No pudimos obtener los webhooks",
+        "modified": false
+    },
+    {
+        "id": "You cannot overwrite an existing OutgoingWebhook",
+        "translation": "No puedes sobreescribir un Webhook de Salida existente",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the OutgoingWebhook",
+        "translation": "No pudimos guardar el Webhook de Salida",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the webhook",
+        "translation": "No pudimos actualizar el webhook",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload file. File is too large.",
+        "translation": "No se pudo subir el archivo. El archivo es demasiado grande.",
+        "modified": false
+    },
+    {
+        "id": "You updated your sign-in method",
+        "translation": "Haz actualizado el método con el que inicias sesión",
+        "modified": false
+    },
+    {
+        "id": "You updated your sign-in method for %v on %v to %v.<br>If this change wasn't initiated by you, please contact your system administrator.",
+        "translation": "Haz actualizado el método con el que inicias sesión para %v en %v a %v.<br>Si este cambio no fue realizado por ti, por favor contacta a un administrador del sistema.",
+        "modified": false
+    },
+    {
+        "id": "You updated your sign-in method for %v on %v",
+        "translation": "Cambio del método de inicio de sesión para %v en %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to parse member limit",
+        "translation": "Error al analizar el límite de miembros",
+        "modified": false
+    },
+    {
+        "id": "Invalid %v parameter",
+        "translation": "Parametro %v inválido",
+        "modified": false
+    },
+    {
+        "id": " oauth not avlailable on this server",
+        "translation": " oauth no está disponibe en este servidor",
+        "modified": false
+    },
+    {
+        "id": "Could not create user out of %v user object",
+        "translation": "No pudimos crear el usuario con el objecto proporcionado por %v",
+        "modified": false
+    },
+    {
+        "id": "This %v account has already been used to sign up for team %v",
+        "translation": "Esta cuenta de %v ya fue utilizada para registrarse en el equipo %v",
+        "modified": false
+    },
+    {
+        "id": "Team %v already has a user with the email address attached to your %v account",
+        "translation": "El Equipo %v ya tiene un usuario con esta dirección de correo electrónico vinculado a tu cuenta de %v",
+        "modified": false
+    },
+    {
+        "id": "Please sign in using ",
+        "translation": "Por favor inicia sesión utilizando ",
+        "modified": false
+    },
+    {
+        "id": "Could not parse auth data out of %v user object",
+        "translation": "No pudimos analizar los datos de autenticación proporcionados por el objeto de usuario de %v",
+        "modified": false
+    },
+    {
+        "id": "Revoking sessionId=%v for userId=%v re-login with same device Id",
+        "translation": "Revocando sessionId=%v para el userId=%v vuelve a iniciar la sesión el el mismo dispositivo",
+        "modified": false
+    },
+    {
+        "id": "LDAP not enabled on this server",
+        "translation": "LDAP no está habilitado en este servidor",
+        "modified": false
+    },
+    {
+        "id": "Password field must not be blank",
+        "translation": "El cambpo de Contraseña no puede estar en blanco",
+        "modified": false
+    },
+    {
+        "id": "Need an ID",
+        "translation": "Se necesita un ID",
+        "modified": false
+    },
+    {
+        "id": "LDAP not available on this server",
+        "translation": "LDAP no está disponible en este servidor",
+        "modified": false
+    },
+    {
+        "id": "fail - couldn't get team",
+        "translation": "falla - no se pudo obtener el equipo",
+        "modified": false
+    },
+    {
+        "id": "fail - couldn't get user",
+        "translation": "falla -no se pudo obtener el usuario",
+        "modified": false
+    },
+    {
+        "id": "fail - invalid password",
+        "translation": "falla - contraseña inválida",
+        "modified": false
+    },
+    {
+        "id": "fail - oauth issue",
+        "translation": "falla - problema de oauth",
+        "modified": false
+    },
+    {
+        "id": "Blank email",
+        "translation": "Correo electrónico en blanco",
+        "modified": false
+    },
+    {
+        "id": "fail - user ids didn't match",
+        "translation": "falla - los ids del usuario no coincidieron",
+        "modified": false
+    },
+    {
+        "id": "Update password failed because context user_id did not match provided user's id",
+        "translation": "La actualización de la contraseña falló porque el user_id del contexto no coincide con el id de usuario provisto",
+        "modified": false
+    },
+    {
+        "id": "fail - database issue",
+        "translation": "falla - problema de base de datos",
+        "modified": false
+    },
+    {
+        "id": "email and password",
+        "translation": "correo electrónico y contraseña",
+        "modified": false
+    },
+    {
+        "id": "Invalid trigger words",
+        "translation": "Palabras gatilladoras inválidas",
+        "modified": false
+    },
+    {
+        "id": "Unable to set default values for ChannelMembers.NotifyProps",
+        "translation": "No se pudo establecer los valores predeterminados para ChannelMembers.NotifyProps",
+        "modified": false
+    },
+    {
+        "id": "Unable to set values for ChannelMembers.NotifyProps when members previously had notifyLevel=all",
+        "translation": "No se puede asignar los valores para ChannelMembers.NotifyProps cuando los miembros tienen asignado previamente notifyLevel=all",
+        "modified": false
+    },
+    {
+        "id": "Unable to set values for ChannelMembers.NotifyProps when members previously had notifyLevel=quiet",
+        "translation": "No se puede asignar los valores para ChannelMembers.NotifyProps cuando los miembros tienen asignado previamente notifyLevel=quiet",
+        "modified": false
+    },
+    {
+        "id": "Failed to alter column Posts.Props to TEXT: ",
+        "translation": "Falla al alterar la columna Posts.Props a tipo TEXT: ",
+        "modified": false
+    },
+    {
+        "id": "Deleting any unused pre-release features",
+        "translation": "Eliminando las características de pre-release",
+        "modified": false
+    },
+    {
+        "id": "The database schema version of %v appears to be out of date",
+        "translation": "La versión del esquema de la base de datos %v parece estar desactualizada",
+        "modified": false
+    },
+    {
+        "id": "Attempting to upgrade the database schema version to ",
+        "translation": "Intentando actualizar el esquema de la base de datos a la versión ",
+        "modified": false
+    },
+    {
+        "id": "The database schema version of %v cannot be upgraded.  You must not skip a version.",
+        "translation": "La version del esquema de la base de datos %v no puede ser actualizada.  No debes saltarte ninguna versión anterior.",
+        "modified": false
+    },
+    {
+        "id": "Error creating database tables: %v",
+        "translation": "Error creando las tablas de la base de datos: %v",
+        "modified": false
+    },
+    {
+        "id": "The database schema has been upgraded to version ",
+        "translation": "El esquema de la base de datos ha sido actualizado a la versión ",
+        "modified": false
+    },
+    {
+        "id": "The database schema has been set to version ",
+        "translation": "El esquema de la base de datos ha sido asignado a la versión ",
+        "modified": false
+    },
+    {
+        "id": "Failed to open sql connection to err:%v",
+        "translation": "Falla al abrir una conexión sql a err:%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to open sql connection",
+        "translation": "Falla al abrir una conexión sql",
+        "modified": false
+    },
+    {
+        "id": "Pinging sql %v database",
+        "translation": "Verificando conexión con la base de datos sql %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to ping db err:%v",
+        "translation": "Falla al hacer ping a la base de datos err:%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to open sql connection ",
+        "translation": "Falla al abrir una conexión sql ",
+        "modified": false
+    },
+    {
+        "id": "Failed to create dialect specific driver",
+        "translation": "Falla al crear el controlador de base de datos especificado",
+        "modified": false
+    },
+    {
+        "id": "Failed to check if table exists %v",
+        "translation": "Falla al revisar si la tabla existe %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to check if table exists ",
+        "translation": "Falla al revisar si la tabla existe ",
+        "modified": false
+    },
+    {
+        "id": "Failed to check if column exists because of missing driver",
+        "translation": "Falla al revisar si la columna existe porque el controlador no se encuentra",
+        "modified": false
+    },
+    {
+        "id": "Failed to check if column exists %v",
+        "translation": "Falla al revisar si la columna existe %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to check if column exists ",
+        "translation": "Falla al revisar si la columna existe ",
+        "modified": false
+    },
+    {
+        "id": "Failed to create column %v",
+        "translation": "Falla al crear la columna %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to create column ",
+        "translation": "Falla al crear la columna ",
+        "modified": false
+    },
+    {
+        "id": "Failed to create column because of missing driver",
+        "translation": "Falla al crear la columna porque el controlador no se encuentra",
+        "modified": false
+    },
+    {
+        "id": "Failed to drop column %v",
+        "translation": "Falla al borrar la columna %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to drop column ",
+        "translation": "Falla al borrar la columna ",
+        "modified": false
+    },
+    {
+        "id": "Failed to rename column %v",
+        "translation": "Falla al renombrar la columna %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to rename column ",
+        "translation": "Falla al renombrar la columna ",
+        "modified": false
+    },
+    {
+        "id": "Failed to create index %v",
+        "translation": "Falla al crear el indice %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to create index ",
+        "translation": "Falla al crear el indice ",
+        "modified": false
+    },
+    {
+        "id": "Failed to check index %v",
+        "translation": "Falla al revisar el indice %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to check index ",
+        "translation": "Falla al revisar el indice ",
+        "modified": false
+    },
+    {
+        "id": "Failed to create index because of missing driver",
+        "translation": "Falla al crear el indice porque el controlador no se encuentra",
+        "modified": false
+    },
+    {
+        "id": "Failed to get data type for column %s from table %s: %v",
+        "translation": "Falla al obtener el tipo de dato de la columna %s de la tabla %s: %v",
+        "modified": false
+    },
+    {
+        "id": "sending mail to %v with subject of '%v'",
+        "translation": "enviano correo electrónico a %v con el asunto '%v'",
+        "modified": false
+    },
+    {
+        "id": "Enterprise Enabled: %t",
+        "translation": "Empresa habilitada: %t",
+        "modified": false
+    },
+    {
+        "id": "Build Enterprise Ready: ",
+        "translation": "Ensamblado para Empresa: ",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find an existing account matching your email address for this team. This team may require an invite from the team owner to join.",
+        "translation": "No pudimos encontrar una cuenta existente que coincida con tu dirección de correo electrónico para este equipo. Es posible que necesites una invitación del dueño del equipo para poder unirte.",
+        "modified": false
+    },
+    {
+        "id": "Name must be 2 or more lowercase alphanumeric characters",
+        "translation": "Debe tener 2 o más caracteres alfanumericos en minúscula",
+        "modified": false
+    },
+    {
+        "id": "attempt",
+        "translation": "intento",
+        "modified": false
+    }
+]

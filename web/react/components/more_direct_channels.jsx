@@ -4,8 +4,40 @@
 const Modal = ReactBootstrap.Modal;
 import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class MoreDirectChannels extends React.Component {
+const messages = defineMessages({
+    close: {
+        id: 'more_direct_channels.close',
+        defaultMessage: 'Close'
+    },
+    title: {
+        id: 'more_direct_channels.title',
+        defaultMessage: 'Direct Messages'
+    },
+    message: {
+        id: 'more_direct_channels.message',
+        defaultMessage: 'Message'
+    },
+    notFound: {
+        id: 'more_direct_channels.notFound',
+        defaultMessage: 'No users found :('
+    },
+    member: {
+        id: 'more_direct_channels.member',
+        defaultMessage: 'Member'
+    },
+    of: {
+        id: 'more_direct_channels.of',
+        defaultMessage: 'of'
+    },
+    search: {
+        id: 'more_direct_channels.search',
+        defaultMessage: 'Search members'
+    }
+});
+
+class MoreDirectChannels extends React.Component {
     constructor(props) {
         super(props);
 
@@ -108,6 +140,7 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     createRowForUser(user) {
+        const {formatMessage} = this.props.intl;
         const details = [];
 
         const fullName = Utils.getFullName(user);
@@ -148,7 +181,7 @@ export default class MoreDirectChannels extends React.Component {
                     className='btn btn-primary btn-message'
                     onClick={this.handleShowDirectChannel.bind(this, user)}
                 >
-                    {'Message'}
+                    {formatMessage(messages.message)}
                 </button>
             );
         }
@@ -157,7 +190,8 @@ export default class MoreDirectChannels extends React.Component {
             <tr key={'direct-channel-row-user' + user.id}>
                 <td
                     key={user.id}
-                    className='direct-channel'
+                    className='direct-channel pointer'
+                    onClick={this.handleShowDirectChannel.bind(this, user)}
                 >
                     <img
                         className='profile-img pull-left'
@@ -180,6 +214,7 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         if (!this.props.show) {
             return null;
         }
@@ -199,10 +234,10 @@ export default class MoreDirectChannels extends React.Component {
         const userEntries = users.map(this.createRowForUser);
 
         if (userEntries.length === 0) {
-            userEntries.push(<tr key='no-users-found'><td>{'No users found :('}</td></tr>);
+            userEntries.push(<tr key='no-users-found'><td>{formatMessage(messages.notFound)}</td></tr>);
         }
 
-        let memberString = 'Member';
+        let memberString = formatMessage(messages.member);
         if (users.length !== 1) {
             memberString += 's';
         }
@@ -211,7 +246,7 @@ export default class MoreDirectChannels extends React.Component {
         if (users.length === this.state.users.length) {
             count = `${users.length} ${memberString}`;
         } else {
-            count = `${users.length} ${memberString} of ${this.state.users.length} Total`;
+            count = `${users.length} ${memberString} ${formatMessage(messages.of)} ${this.state.users.length} Total`;
         }
 
         return (
@@ -221,7 +256,7 @@ export default class MoreDirectChannels extends React.Component {
                 onHide={this.handleHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Direct Messages'}</Modal.Title>
+                    <Modal.Title>{formatMessage(messages.title)}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
                     <div className='filter-row'>
@@ -229,7 +264,7 @@ export default class MoreDirectChannels extends React.Component {
                             <input
                                 ref='filter'
                                 className='form-control filter-textbox'
-                                placeholder='Search members'
+                                placeholder={formatMessage(messages.search)}
                                 onInput={this.handleFilterChange}
                             />
                         </div>
@@ -254,7 +289,7 @@ export default class MoreDirectChannels extends React.Component {
                         className='btn btn-default'
                         onClick={this.handleHide}
                     >
-                        {'Close'}
+                        {formatMessage(messages.close)}
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -264,5 +299,8 @@ export default class MoreDirectChannels extends React.Component {
 
 MoreDirectChannels.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func
+    onModalDismissed: React.PropTypes.func,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(MoreDirectChannels);

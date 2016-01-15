@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
 import FileAttachmentList from './file_attachment_list.jsx';
 import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
@@ -14,7 +15,34 @@ import YoutubeVideo from './youtube_video.jsx';
 
 import providers from './providers.json';
 
-export default class PostBody extends React.Component {
+const messages = defineMessages({
+    plus: {
+        id: 'post_body.plus',
+        defaultMessage: ' plus'
+    },
+    other: {
+        id: 'post_body.other',
+        defaultMessage: 'other file'
+    },
+    others: {
+        id: 'post_body.others',
+        defaultMessage: 'other files'
+    },
+    commented: {
+        id: 'post_body.commented',
+        defaultMessage: 'Commented on '
+    },
+    message: {
+        id: 'post_body.message',
+        defaultMessage: ' message:'
+    },
+    retry: {
+        id: 'post_body.retry',
+        defaultMessage: 'Retry'
+    }
+});
+
+class PostBody extends React.Component {
     constructor(props) {
         super(props);
 
@@ -187,6 +215,7 @@ export default class PostBody extends React.Component {
     }
 
     render() {
+        const {formatMessage, locale} = this.props.intl;
         const post = this.props.post;
         const filenames = this.props.post.filenames;
         const parentPost = this.props.parentPost;
@@ -213,12 +242,17 @@ export default class PostBody extends React.Component {
                 } else {
                     apostrophe = '\'s';
                 }
+                let profileName = username;
+                if (locale === 'en') {
+                    profileName += apostrophe;
+                }
+
                 name = (
                     <a
                         className='theme'
                         onClick={Utils.searchForTerm.bind(null, username)}
                     >
-                        {username}
+                        {profileName}
                     </a>
                 );
             }
@@ -230,16 +264,18 @@ export default class PostBody extends React.Component {
                 message = parentPost.filenames[0].split('/').pop();
 
                 if (parentPost.filenames.length === 2) {
-                    message += ' plus 1 other file';
+                    message += formatMessage(messages.plus) + ' 1 ' + formatMessage(messages.other);
                 } else if (parentPost.filenames.length > 2) {
-                    message += ` plus ${parentPost.filenames.length - 1} other files`;
+                    message += `${formatMessage(messages.plus)} ${parentPost.filenames.length - 1} ${formatMessage(messages.others)}`;
                 }
             }
 
-            comment = (
-                <div className='post__link'>
+            // Need to find a better way for this
+            if (locale === 'en') {
+                comment = (
+                    <div className='post__link'>
                     <span>
-                        {'Commented on '}{name}{apostrophe}{' message: '}
+                        {formatMessage(messages.commented)} {name} {formatMessage(messages.message) + ' '}
                         <a
                             className='theme'
                             onClick={this.props.handleCommentClick}
@@ -247,8 +283,23 @@ export default class PostBody extends React.Component {
                             {message}
                         </a>
                     </span>
-                </div>
-            );
+                    </div>
+                );
+            } else if (locale === 'es') {
+                comment = (
+                    <div className='post__link'>
+                    <span>
+                        {formatMessage(messages.commented)} {formatMessage(messages.message)} {name}:{' '}
+                        <a
+                            className='theme'
+                            onClick={this.props.handleCommentClick}
+                        >
+                            {message}
+                        </a>
+                    </span>
+                    </div>
+                );
+            }
         }
 
         let loading;
@@ -260,7 +311,7 @@ export default class PostBody extends React.Component {
                     href='#'
                     onClick={this.props.retryPost}
                 >
-                    {'Retry'}
+                    {formatMessage(messages.retry)}
                 </a>
             );
         } else if (post.state === Constants.POST_LOADING) {
@@ -313,8 +364,11 @@ export default class PostBody extends React.Component {
 }
 
 PostBody.propTypes = {
+    intl: intlShape.isRequired,
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(PostBody);

@@ -1,12 +1,36 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import LoadingScreen from './loading_screen.jsx';
 import NewChannelFlow from './new_channel_flow.jsx';
+
+const messages = defineMessages({
+    noMore: {
+        id: 'more_channels.noMore',
+        defaultMessage: 'No more channels to join'
+    },
+    createClick: {
+        id: 'more_channels.createClick',
+        defaultMessage: "Click 'Create New Channel' to make a new one"
+    },
+    close: {
+        id: 'more_channels.close',
+        defaultMessage: 'Close'
+    },
+    title: {
+        id: 'more_channels.title',
+        defaultMessage: 'More Channels'
+    },
+    create: {
+        id: 'more_channels.create',
+        defaultMessage: 'Create New Channel'
+    }
+});
 
 function getStateFromStores() {
     return {
@@ -15,7 +39,7 @@ function getStateFromStores() {
     };
 }
 
-export default class MoreChannels extends React.Component {
+class MoreChannels extends React.Component {
     constructor(props) {
         super(props);
 
@@ -69,6 +93,7 @@ export default class MoreChannels extends React.Component {
         this.setState({showNewChannelModal: true});
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -123,8 +148,8 @@ export default class MoreChannels extends React.Component {
             } else {
                 moreChannels = (
                     <div className='no-channel-message'>
-                       <p className='primary-message'>No more channels to join</p>
-                       <p className='secondary-message'>Click 'Create New Channel' to make a new one</p>
+                       <p className='primary-message'>{formatMessage(messages.noMore)}</p>
+                       <p className='secondary-message'>{formatMessage(messages.createClick)}</p>
                     </div>
                 );
             }
@@ -148,15 +173,15 @@ export default class MoreChannels extends React.Component {
                                 data-dismiss='modal'
                             >
                                 <span aria-hidden='true'>{'×'}</span>
-                                <span className='sr-only'>{'Close'}</span>
+                                <span className='sr-only'>{formatMessage(messages.close)}</span>
                             </button>
-                            <h4 className='modal-title'>{'More Channels'}</h4>
+                            <h4 className='modal-title'>{formatMessage(messages.title)}</h4>
                             <button
                                 type='button'
                                 className='btn btn-primary channel-create-btn'
                                 onClick={this.handleNewChannel}
                             >
-                                {'Create New Channel'}
+                                {formatMessage(messages.create)}
                             </button>
                             <NewChannelFlow
                                 show={this.state.showNewChannelModal}
@@ -174,7 +199,7 @@ export default class MoreChannels extends React.Component {
                                 className='btn btn-default'
                                 data-dismiss='modal'
                             >
-                                {'Close'}
+                                {formatMessage(messages.close)}
                             </button>
                         </div>
                     </div>
@@ -184,3 +209,9 @@ export default class MoreChannels extends React.Component {
         );
     }
 }
+
+MoreChannels.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(MoreChannels);

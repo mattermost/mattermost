@@ -15,6 +15,7 @@ import (
 type ChannelCounts struct {
 	Counts      map[string]int64 `json:"counts"`
 	UpdateTimes map[string]int64 `json:"update_times"`
+	Total		int64 `json:"total"`
 }
 
 func (o *ChannelCounts) Etag() string {

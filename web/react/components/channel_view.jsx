@@ -1,12 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl} from 'react-intl';
 import CenterPanel from '../components/center_panel.jsx';
 import Sidebar from '../components/sidebar.jsx';
 import SidebarRight from '../components/sidebar_right.jsx';
 import SidebarRightMenu from '../components/sidebar_right_menu.jsx';
 
-export default class ChannelView extends React.Component {
+class ChannelView extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -40,4 +41,7 @@ ChannelView.defaultProps = {
 };
 
 ChannelView.propTypes = {
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(ChannelView);

@@ -19,6 +19,7 @@ import (
 
 	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/manualtesting"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -46,26 +47,28 @@ var flagPassword string
 var flagTeamName string
 var flagRole string
 var flagRunCmds bool
-
+var T = i18n.TranslateFunc
 func main() {
 
+	i18n.Init()
+	T = i18n.GetSystemLanguage()
 	parseCmds()
 
-	utils.LoadConfig(flagConfigFile)
+	utils.LoadConfig(flagConfigFile, T)
 
 	if flagRunCmds {
 		utils.ConfigureCmdLineLog()
 	}
 
 	pwd, _ := os.Getwd()
-	l4g.Info("Current version is %v (%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
-	l4g.Info("Enterprise Enabled: %t", model.BuildEnterpriseReady)
-	l4g.Info("Current working directory is %v", pwd)
-	l4g.Info("Loaded config file from %v", utils.FindConfigFile(flagConfigFile))
+	l4g.Info(T("Current version is %v (%v/%v/%v)"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
+	l4g.Info(T("Enterprise Enabled: %t"), model.BuildEnterpriseReady)
+	l4g.Info(T("Current working directory is %v"), pwd)
+	l4g.Info(T("Loaded config file from %v"), utils.FindConfigFile(flagConfigFile))
 
 	api.NewServer()
 	api.InitApi()
-	web.InitWeb()
+	web.InitWeb(T)
 
 	if flagRunCmds {
 		runCmds()
@@ -91,14 +94,14 @@ func main() {
 }
 
 func setDiagnosticId() {
-	if result := <-api.Srv.Store.System().Get(); result.Err == nil {
+	if result := <-api.Srv.Store.System().Get(T); result.Err == nil {
 		props := result.Data.(model.StringMap)
 
 		id := props[model.SYSTEM_DIAGNOSTIC_ID]
 		if len(id) == 0 {
 			id = model.NewId()
 			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-api.Srv.Store.System().Save(systemId)
+			<-api.Srv.Store.System().Save(systemId, T)
 		}
 
 		utils.CfgDiagnosticId = id
@@ -109,13 +112,13 @@ func runSecurityAndDiagnosticsJobAndForget() {
 	go func() {
 		for {
 			if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
-				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
+				if result := <-api.Srv.Store.System().Get(T); result.Err == nil {
 					props := result.Data.(model.StringMap)
 					lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
 					currentTime := model.GetMillis()
 
 					if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
-						l4g.Debug("Checking for security update from Mattermost")
+						l4g.Debug(T("Checking for security update from Mattermost"))
 
 						v := url.Values{}
 
@@ -134,22 +137,22 @@ func runSecurityAndDiagnosticsJobAndForget() {
 
 						systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
 						if lastSecurityTime == 0 {
-							<-api.Srv.Store.System().Save(systemSecurityLastTime)
+							<-api.Srv.Store.System().Save(systemSecurityLastTime, T)
 						} else {
-							<-api.Srv.Store.System().Update(systemSecurityLastTime)
+							<-api.Srv.Store.System().Update(systemSecurityLastTime, T)
 						}
 
-						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(T); ucr.Err == nil {
 							v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 						}
 
-						if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(); ucr.Err == nil {
+						if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(T); ucr.Err == nil {
 							v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 						}
 
 						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
 						if err != nil {
-							l4g.Error("Failed to get security update information from Mattermost.")
+							l4g.Error(T("Failed to get security update information from Mattermost."))
 							return
 						}
 
@@ -158,33 +161,33 @@ func runSecurityAndDiagnosticsJobAndForget() {
 						for _, bulletin := range bulletins {
 							if bulletin.AppliesToVersion == model.CurrentVersion {
 								if props["SecurityBulletin_"+bulletin.Id] == "" {
-									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
-										l4g.Error("Failed to get system admins for security update information from Mattermost.")
+									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(T); results.Err != nil {
+										l4g.Error(T("Failed to get system admins for security update information from Mattermost."))
 										return
 									} else {
 										users := results.Data.(map[string]*model.User)
 
 										resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
 										if err != nil {
-											l4g.Error("Failed to get security bulletin details")
+											l4g.Error(T("Failed to get security bulletin details"))
 											return
 										}
 
 										body, err := ioutil.ReadAll(resBody.Body)
 										res.Body.Close()
 										if err != nil || resBody.StatusCode != 200 {
-											l4g.Error("Failed to read security bulletin details")
+											l4g.Error(T("Failed to read security bulletin details"))
 											return
 										}
 
 										for _, user := range users {
-											l4g.Info("Sending security bulletin for " + bulletin.Id + " to " + user.Email)
-											utils.SendMail(user.Email, "Mattermost Security Bulletin", string(body))
+											l4g.Info(T("Sending security bulletin for ") + bulletin.Id + T(" to ") + user.Email)
+											utils.SendMail(user.Email, T("Mattermost Security Bulletin"), string(body), T)
 										}
 									}
 
 									bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-									<-api.Srv.Store.System().Save(bulletinSeen)
+									<-api.Srv.Store.System().Save(bulletinSeen, T)
 								}
 							}
 						}
@@ -240,13 +243,13 @@ func runCmds() {
 func cmdCreateTeam() {
 	if flagCmdCreateTeam {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -team_name"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -email"))
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -261,9 +264,9 @@ func cmdCreateTeam() {
 		team.Email = flagEmail
 		team.Type = model.TEAM_INVITE
 
-		api.CreateTeam(c, team)
+		api.CreateTeam(c, team, T)
 		if c.Err != nil {
-			if c.Err.Message != "A team with that domain already exists" {
+			if c.Err.Message != T("A team with that domain already exists") {
 				l4g.Error("%v", c.Err)
 				flushLogAndExit(1)
 			}
@@ -276,19 +279,19 @@ func cmdCreateTeam() {
 func cmdCreateUser() {
 	if flagCmdCreateUser {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -team_name"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -email"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagPassword) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -password")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -password"))
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -300,7 +303,7 @@ func cmdCreateUser() {
 		splits := strings.Split(strings.Replace(flagEmail, "@", " ", -1), " ")
 		user.Username = splits[0]
 
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName, T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -308,9 +311,9 @@ func cmdCreateUser() {
 			user.TeamId = team.Id
 		}
 
-		_, err := api.CreateUser(team, user)
+		_, err := api.CreateUser(team, user, T)
 		if err != nil {
-			if err.Message != "An account with that email already exists." {
+			if err.Message != T("An account with that email already exists.") {
 				l4g.Error("%v", err)
 				flushLogAndExit(1)
 			}
@@ -322,11 +325,11 @@ func cmdCreateUser() {
 
 func cmdVersion() {
 	if flagCmdVersion {
-		fmt.Fprintln(os.Stderr, "Version: "+model.CurrentVersion)
-		fmt.Fprintln(os.Stderr, "Build Number: "+model.BuildNumber)
-		fmt.Fprintln(os.Stderr, "Build Date: "+model.BuildDate)
-		fmt.Fprintln(os.Stderr, "Build Hash: "+model.BuildHash)
-		fmt.Fprintln(os.Stderr, "Build Enterprise Ready: "+model.BuildEnterpriseReady)
+		fmt.Fprintln(os.Stderr, T("Version: ")+model.CurrentVersion)
+		fmt.Fprintln(os.Stderr, T("Build Number: ")+model.BuildNumber)
+		fmt.Fprintln(os.Stderr, T("Build Date: ")+model.BuildDate)
+		fmt.Fprintln(os.Stderr, T("Build Hash: ")+model.BuildHash)
+		fmt.Fprintln(os.Stderr, T("Build Enterprise Ready: ")+model.BuildEnterpriseReady)
 
 		os.Exit(0)
 	}
@@ -335,19 +338,19 @@ func cmdVersion() {
 func cmdAssignRole() {
 	if flagCmdAssignRole {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -team_name"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -email"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if !model.IsValidRoles(flagRole) {
-			fmt.Fprintln(os.Stderr, "flag invalid argument: -role")
+			fmt.Fprintln(os.Stderr, T("flag invalid argument: -role"))
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -357,7 +360,7 @@ func cmdAssignRole() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName, T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -365,7 +368,7 @@ func cmdAssignRole() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail, T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -373,7 +376,7 @@ func cmdAssignRole() {
 		}
 
 		if !user.IsInRole(flagRole) {
-			api.UpdateRoles(c, user, flagRole)
+			api.UpdateRoles(c, user, flagRole, T)
 		}
 
 		os.Exit(0)
@@ -383,25 +386,25 @@ func cmdAssignRole() {
 func cmdResetPassword() {
 	if flagCmdResetPassword {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -team_name"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -email"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagPassword) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -password")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -password"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagPassword) < 5 {
-			fmt.Fprintln(os.Stderr, "flag invalid argument needs to be more than 4 characters: -password")
+			fmt.Fprintln(os.Stderr, T("flag invalid argument needs to be more than 4 characters: -password"))
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -411,7 +414,7 @@ func cmdResetPassword() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName, T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -419,14 +422,14 @@ func cmdResetPassword() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail, T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
 			user = result.Data.(*model.User)
 		}
 
-		if result := <-api.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(flagPassword)); result.Err != nil {
+		if result := <-api.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(flagPassword), T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		}
@@ -438,13 +441,13 @@ func cmdResetPassword() {
 func cmdPermDeleteUser() {
 	if flagCmdPermanentDeleteUser {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -team_name"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -email"))
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -454,7 +457,7 @@ func cmdPermDeleteUser() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName, T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -462,7 +465,7 @@ func cmdPermDeleteUser() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail, T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -470,20 +473,20 @@ func cmdPermDeleteUser() {
 		}
 
 		var confirmBackup string
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Print(T("Have you performed a database backup? (YES/NO): "))
 		fmt.Scanln(&confirmBackup)
 		if confirmBackup != "YES" {
 			flushLogAndExit(1)
 		}
 
 		var confirm string
-		fmt.Printf("Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): ", user.Email)
+		fmt.Printf(T("Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): "), user.Email)
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteUser(c, user); err != nil {
+		if err := api.PermanentDeleteUser(c, user, T); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
@@ -495,7 +498,7 @@ func cmdPermDeleteUser() {
 func cmdPermDeleteTeam() {
 	if flagCmdPermanentDeleteTeam {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -team_name"))
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -505,7 +508,7 @@ func cmdPermDeleteTeam() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName, T); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -513,20 +516,20 @@ func cmdPermDeleteTeam() {
 		}
 
 		var confirmBackup string
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Print(T("Have you performed a database backup? (YES/NO): "))
 		fmt.Scanln(&confirmBackup)
 		if confirmBackup != "YES" {
 			flushLogAndExit(1)
 		}
 
 		var confirm string
-		fmt.Printf("Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): ", team.Name)
+		fmt.Printf(T("Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): "), team.Name)
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteTeam(c, team); err != nil {
+		if err := api.PermanentDeleteTeam(c, team, T); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {

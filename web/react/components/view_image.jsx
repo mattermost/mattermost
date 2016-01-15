@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
@@ -12,7 +13,14 @@ import ViewImagePopoverBar from './view_image_popover_bar.jsx';
 const Modal = ReactBootstrap.Modal;
 const KeyCodes = Constants.KeyCodes;
 
-export default class ViewImageModal extends React.Component {
+const messages = defineMessages({
+    loading: {
+        id: 'view_image.loading',
+        defaultMessage: 'Loading '
+    }
+});
+
+class ViewImageModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -206,6 +214,7 @@ export default class ViewImageModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         if (this.props.filenames.length < 1 || this.props.filenames.length - 1 < this.state.imgId) {
             return <div/>;
         }
@@ -250,7 +259,7 @@ export default class ViewImageModal extends React.Component {
             // display a progress indicator when the preview for an image is still loading
             const progress = Math.floor(this.state.progress[this.state.imgId]);
 
-            content = <LoadingImagePreview progress={progress} />;
+            content = <LoadingImagePreview progress={progress} msg={formatMessage(messages.loading)} />;
         }
 
         let leftArrow = null;
@@ -335,6 +344,7 @@ ViewImageModal.defaultProps = {
     startId: 0
 };
 ViewImageModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
     filenames: React.PropTypes.array,
@@ -344,12 +354,12 @@ ViewImageModal.propTypes = {
     startId: React.PropTypes.number
 };
 
-function LoadingImagePreview({progress}) {
+function LoadingImagePreview({progress}, {msg}) {
     let progressView = null;
     if (progress) {
         progressView = (
             <span className='loader-percent'>
-                {'Loading ' + progress + '%'}
+                {msg + progress + '%'}
             </span>
         );
     }
@@ -385,3 +395,5 @@ function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
         </a>
     );
 }
+
+export default injectIntl(ViewImageModal);

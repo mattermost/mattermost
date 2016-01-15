@@ -1,9 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
 const Modal = ReactBootstrap.Modal;
 
-export default class ConfirmModal extends React.Component {
+const messages = defineMessages({
+    cancel: {
+        id: 'confirm_modal.cancel',
+        defaultMessage: 'Cancel'
+    }
+});
+
+class ConfirmModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -15,6 +23,7 @@ export default class ConfirmModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         return (
             <Modal
                 className='modal-confirm'
@@ -33,7 +42,7 @@ export default class ConfirmModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onCancel}
                     >
-                        {'Cancel'}
+                        {formatMessage(messages.cancel)}
                     </button>
                     <button
                         type='button'
@@ -54,6 +63,7 @@ ConfirmModal.defaultProps = {
     confirm_button: ''
 };
 ConfirmModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     title: React.PropTypes.string,
     message: React.PropTypes.string,
@@ -61,3 +71,5 @@ ConfirmModal.propTypes = {
     onConfirm: React.PropTypes.func.isRequired,
     onCancel: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(ConfirmModal);

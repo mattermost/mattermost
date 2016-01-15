@@ -7,13 +7,15 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
 )
 
 var Client *model.Client
 
 func Setup() {
+	T := i18n.GetSystemLanguage()
 	if Srv == nil {
-		utils.LoadConfig("config.json")
+		utils.LoadConfig("config.json", T)
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		NewServer()
 		StartServer()

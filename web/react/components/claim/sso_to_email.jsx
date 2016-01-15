@@ -1,10 +1,34 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import * as Utils from '../../utils/utils.jsx';
 import * as Client from '../../utils/client.jsx';
 
-export default class SSOToEmail extends React.Component {
+const messages = defineMessages({
+    enterPwd: {
+        id: 'claim.sso_to_email.enterPwd',
+        defaultMessage: 'Please enter a password.'
+    },
+    pwdNotMatch: {
+        id: 'claim.sso_to_email.pwdNotMatch',
+        defaultMessage: 'Password do not match.'
+    },
+    description: {
+        id: 'claim.sso_to_email.description',
+        defaultMessage: 'Upon changing your account type, you will only be able to login with your email and password.'
+    },
+    newPwd: {
+        id: 'claim.sso_to_email.newPwd',
+        defaultMessage: 'New Password'
+    },
+    confirm: {
+        id: 'claim.sso_to_email.confirm',
+        defaultMessage: 'Confirm Password'
+    }
+});
+
+class SSOToEmail extends React.Component {
     constructor(props) {
         super(props);
 
@@ -13,19 +37,20 @@ export default class SSOToEmail extends React.Component {
         this.state = {};
     }
     submit(e) {
+        const {formatMessage} = this.props.intl;
         e.preventDefault();
         const state = {};
 
         const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!password) {
-            state.error = 'Please enter a password.';
+            state.error = formatMessage(messages.enterPwd);
             this.setState(state);
             return;
         }
 
         const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value.trim();
         if (!confirmPassword || password !== confirmPassword) {
-            state.error = 'Passwords do not match.';
+            state.error = formatMessage(messages.pwdNotMatch);
             this.setState(state);
             return;
         }
@@ -50,6 +75,7 @@ export default class SSOToEmail extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var error = null;
         if (this.state.error) {
             error = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
@@ -65,17 +91,34 @@ export default class SSOToEmail extends React.Component {
         return (
             <div className='col-sm-12'>
                 <div className='signup-team__container'>
-                    <h3>{'Switch ' + uiType + ' Account to Email'}</h3>
+                    <h3>
+                        <FormattedMessage
+                            id='claim.sso_to_email.title'
+                            defaultMessage='Switch {type} Account to Email'
+                            values={{
+                                type: uiType
+                            }}
+                        />
+                    </h3>
                     <form onSubmit={this.submit}>
-                        <p>{'Upon changing your account type, you will only be able to login with your email and password.'}</p>
-                        <p>{'Enter a new password for your ' + this.props.teamDisplayName + ' ' + global.window.mm_config.SiteName + ' account.'}</p>
+                        <p>{formatMessage(messages.description)}</p>
+                        <p>
+                            <FormattedMessage
+                                id='claim.sso_to_email_newPwd'
+                                defaultMessage='Enter a new password for your {team} {site} account'
+                                values={{
+                                    team: this.props.teamDisplayName,
+                                    site: global.window.mm_config.SiteName
+                                }}
+                            />
+                        </p>
                         <div className={formClass}>
                             <input
                                 type='password'
                                 className='form-control'
                                 name='password'
                                 ref='password'
-                                placeholder='New Password'
+                                placeholder={formatMessage(messages.newPwd)}
                                 spellCheck='false'
                             />
                         </div>
@@ -85,7 +128,7 @@ export default class SSOToEmail extends React.Component {
                                 className='form-control'
                                 name='passwordconfirm'
                                 ref='passwordconfirm'
-                                placeholder='Confirm Password'
+                                placeholder={formatMessage(messages.confirm)}
                                 spellCheck='false'
                             />
                         </div>
@@ -94,7 +137,13 @@ export default class SSOToEmail extends React.Component {
                             type='submit'
                             className='btn btn-primary'
                         >
-                            {'Switch ' + uiType + ' account to email and password'}
+                            <FormattedMessage
+                                id='claim.sso_to_email.switchTo'
+                                defaultMessage='Switch {type} to email and password'
+                                values={{
+                                    type: uiType
+                                }}
+                             />
                         </button>
                     </form>
                 </div>
@@ -109,5 +158,8 @@ SSOToEmail.propTypes = {
     currentType: React.PropTypes.string.isRequired,
     email: React.PropTypes.string.isRequired,
     teamName: React.PropTypes.string.isRequired,
-    teamDisplayName: React.PropTypes.string.isRequired
+    teamDisplayName: React.PropTypes.string.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(SSOToEmail);

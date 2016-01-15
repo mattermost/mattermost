@@ -1,5 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
 import NavbarSearchBox from './search_bar.jsx';
 import MessageWrapper from './message_wrapper.jsx';
@@ -30,7 +31,54 @@ const Popover = ReactBootstrap.Popover;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 const Tooltip = ReactBootstrap.Tooltip;
 
-export default class ChannelHeader extends React.Component {
+const messages = defineMessages({
+    channel: {
+        id: 'channel_header.channel',
+        defaultMessage: 'Channel'
+    },
+    group: {
+        id: 'channel_header.group',
+        defaultMessage: 'Group'
+    },
+    channelHeader: {
+        id: 'channel_header.channelHeader',
+        defaultMessage: 'Set Channel Header...'
+    },
+    viewInfo: {
+        id: 'channel_header.viewInfo',
+        defaultMessage: 'View Info'
+    },
+    addMembers: {
+        id: 'chanel_header.addMembers',
+        defaultMessage: 'Add Members'
+    },
+    manageMembers: {
+        id: 'channel_header.manageMembers',
+        defaultMessage: 'Manage Members'
+    },
+    notificationPreferences: {
+        id: 'channel_header.notificationPreferences',
+        defaultMessage: 'Notification Preferences'
+    },
+    rename: {
+        id: 'channel_header.rename',
+        defaultMessage: 'Rename '
+    },
+    deleteChannel: {
+        id: 'channel_header.deleteChannel',
+        defaultMessage: 'Delete '
+    },
+    leave: {
+        id: 'channel_header.leave',
+        defaultMessage: 'Leave '
+    },
+    recentMentions: {
+        id: 'channel_header.recentMentions',
+        defaultMessage: 'Recent Mentions'
+    }
+});
+
+class ChannelHeader extends React.Component {
     constructor(props) {
         super(props);
 
@@ -84,7 +132,7 @@ export default class ChannelHeader extends React.Component {
                     id: this.state.channel.id
                 });
 
-                const townsquare = ChannelStore.getByName('town-square');
+                const townsquare = ChannelStore.getByName('general');
                 Utils.switchChannel(townsquare);
             },
             (err) => {
@@ -123,8 +171,9 @@ export default class ChannelHeader extends React.Component {
             return null;
         }
 
+        const {formatMessage} = this.props.intl;
         const channel = this.state.channel;
-        const recentMentionsTooltip = <Tooltip id='recentMentionsTooltip'>{'Recent Mentions'}</Tooltip>;
+        const recentMentionsTooltip = <Tooltip id='recentMentionsTooltip'>{formatMessage(messages.recentMentions)}</Tooltip>;
         const popoverContent = (
             <Popover
                 id='hader-popover'
@@ -157,9 +206,9 @@ export default class ChannelHeader extends React.Component {
             }
         }
 
-        let channelTerm = 'Channel';
+        let channelTerm = formatMessage(messages.channel);
         if (channel.type === 'P') {
-            channelTerm = 'Group';
+            channelTerm = formatMessage(messages.group);
         }
 
         const dropdownContents = [];
@@ -174,7 +223,7 @@ export default class ChannelHeader extends React.Component {
                         dialogType={EditChannelHeaderModal}
                         dialogProps={{channel}}
                     >
-                        {'Set Channel Header...'}
+                        {formatMessage(messages.channelHeader)}
                     </ToggleModalButton>
                 </li>
             );
@@ -189,7 +238,7 @@ export default class ChannelHeader extends React.Component {
                         dialogType={ChannelInfoModal}
                         dialogProps={{channel}}
                     >
-                        {'View Info'}
+                        {formatMessage(messages.viewInfo)}
                     </ToggleModalButton>
                 </li>
             );
@@ -205,7 +254,7 @@ export default class ChannelHeader extends React.Component {
                             dialogType={ChannelInviteModal}
                             dialogProps={{channel}}
                         >
-                            {'Add Members'}
+                            {formatMessage(messages.addMembers)}
                         </ToggleModalButton>
                     </li>
                 );
@@ -221,7 +270,7 @@ export default class ChannelHeader extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showMembersModal: true})}
                             >
-                                {'Manage Members'}
+                                {formatMessage(messages.manageMembers)}
                             </a>
                         </li>
                     );
@@ -238,7 +287,13 @@ export default class ChannelHeader extends React.Component {
                         dialogType={EditChannelHeaderModal}
                         dialogProps={{channel}}
                     >
-                        {`Set ${channelTerm} Header...`}
+                        <FormattedMessage
+                            id='channel_header.header'
+                            defaultMessage='Set {term} Header...'
+                            values={{
+                                term: channelTerm
+                            }}
+                        />
                     </ToggleModalButton>
                 </li>
             );
@@ -252,7 +307,13 @@ export default class ChannelHeader extends React.Component {
                         href='#'
                         onClick={() => this.setState({showEditChannelPurposeModal: true})}
                     >
-                        {'Set '}{channelTerm}{' Purpose...'}
+                        <FormattedMessage
+                            id='channel_header.purpose'
+                            defaultMessage='Set {term} Purpose...'
+                            values={{
+                                term: channelTerm
+                            }}
+                            />
                     </a>
                 </li>
             );
@@ -266,7 +327,7 @@ export default class ChannelHeader extends React.Component {
                         dialogType={ChannelNotificationsModal}
                         dialogProps={{channel}}
                     >
-                        {'Notification Preferences'}
+                        {formatMessage(messages.notificationPreferences)}
                     </ToggleModalButton>
                 </li>
             );
@@ -286,7 +347,7 @@ export default class ChannelHeader extends React.Component {
                             data-name={channel.name}
                             data-channelid={channel.id}
                         >
-                            {'Rename '}{channelTerm}{'...'}
+                            {formatMessage(messages.rename) + channelTerm}...
                         </a>
                     </li>
                 );
@@ -302,7 +363,7 @@ export default class ChannelHeader extends React.Component {
                                 dialogType={DeleteChannelModal}
                                 dialogProps={{channel}}
                             >
-                                {'Delete '}{channelTerm}{'...'}
+                                {formatMessage(messages.deleteChannel) + channelTerm}...
                             </ToggleModalButton>
                         </li>
                     );
@@ -320,7 +381,7 @@ export default class ChannelHeader extends React.Component {
                             href='#'
                             onClick={this.handleLeave}
                         >
-                            {'Leave '}{channelTerm}
+                            {formatMessage(messages.leave) + channelTerm}
                         </a>
                     </li>
                 );
@@ -410,3 +471,9 @@ export default class ChannelHeader extends React.Component {
         );
     }
 }
+
+ChannelHeader.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(ChannelHeader);

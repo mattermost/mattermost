@@ -1,8 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class FileUploadOverlay extends React.Component {
+const messages = defineMessages({
+    info: {
+        id: 'upload_overlay.info',
+        defaultMessage: 'Drop a file to upload it.'
+    }
+});
+
+class FileUploadOverlay extends React.Component {
     render() {
+        const {formatMessage} = this.props.intl;
         var overlayClass = 'file-overlay hidden';
         if (this.props.overlayType === 'right') {
             overlayClass += ' right-file-overlay';
@@ -19,7 +28,7 @@ export default class FileUploadOverlay extends React.Component {
                             src='/static/images/filesOverlay.png'
                             alt='Files'
                         />
-                        <span><i className='fa fa-upload'></i>{'Drop a file to upload it.'}</span>
+                        <span><i className='fa fa-upload'></i>{formatMessage(messages.info)}</span>
                         <img
                             className='overlay__logo'
                             src='/static/images/logoWhite.png'
@@ -34,5 +43,8 @@ export default class FileUploadOverlay extends React.Component {
 }
 
 FileUploadOverlay.propTypes = {
+    intl: intlShape.isRequired,
     overlayType: React.PropTypes.string
 };
+
+export default injectIntl(FileUploadOverlay);

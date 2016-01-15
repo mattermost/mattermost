@@ -1,9 +1,30 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import ErrorStore from '../stores/error_store.jsx';
+import * as Client from '../utils/client.jsx';
 
-export default class ErrorBar extends React.Component {
+const messages = defineMessages({
+    webSocket: {
+        id: 'error_bar.webSocket',
+        defaultMessage: 'We cannot reach the Mattermost service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly.'
+    },
+    internet: {
+        id: 'error_bar.internet',
+        defaultMessage: 'There appears to be a problem with your internet connection'
+    },
+    unexpected: {
+        id: 'error_bar.unexpected',
+        defaultMessage: 'We received an unexpected status code from the server'
+    },
+    unreachable: {
+        id: 'error_bar.unreachable',
+        defaultMessage: "Please check connection, Mattermost is unreachable. If issue persists, ask administrator to check WebSocket port."
+    }
+});
+
+class ErrorBar extends React.Component {
     constructor() {
         super();
 
@@ -42,6 +63,13 @@ export default class ErrorBar extends React.Component {
     }
 
     componentDidMount() {
+        const {formatMessage} = this.props.intl;
+        const msgs = {
+            internet: formatMessage(messages.internet),
+            unreachable: formatMessage(messages.unreachable),
+            unexpected: formatMessage(messages.unexpected)
+        };
+        Client.setTranslations(msgs);
         ErrorStore.addChangeListener(this.onErrorChange);
     }
 
@@ -50,9 +78,13 @@ export default class ErrorBar extends React.Component {
     }
 
     onErrorChange() {
+        const {formatMessage} = this.props.intl;
         var newState = ErrorStore.getLastError();
 
         if (newState) {
+            if (newState.message === 'webSocket') {
+                newState.message = formatMessage(messages.webSocket);
+            }
             this.setState(newState);
         } else {
             this.setState({message: null});
@@ -86,3 +118,9 @@ export default class ErrorBar extends React.Component {
         );
     }
 }
+
+ErrorBar.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(ErrorBar);

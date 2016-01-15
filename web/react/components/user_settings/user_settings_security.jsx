@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import AccessHistoryModal from '../access_history_modal.jsx';
@@ -13,7 +14,114 @@ import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import Constants from '../../utils/constants.jsx';
 
-export default class SecurityTab extends React.Component {
+const messages = defineMessages({
+    currentPasswordError: {
+        id: 'user.settings.security.currentPasswordError',
+        defaultMessage: 'Please enter your current password'
+    },
+    passwordLengthError: {
+        id: 'user.settings.security.passwordLengthError',
+        defaultMessage: 'New passwords must be at least 5 characters'
+    },
+    passwordMatchError: {
+        id: 'user.settings.security.passwordMatchError',
+        defaultMessage: 'The new passwords you entered do not match'
+    },
+    currentPassword: {
+        id: 'user.settings.security.currentPassword',
+        defaultMessage: 'Current Password'
+    },
+    newPassword: {
+        id: 'user.settings.security.newPassword',
+        defaultMessage: 'New Password'
+    },
+    retypePassword: {
+        id: 'user.settings.security.retypePassword',
+        defaultMessage: 'Retype New Password'
+    },
+    authService: {
+        id: 'user.settings.security.authService',
+        defaultMessage: 'Log in occurs through SSO. Please see your SSO account settings page to update your password.'
+    },
+    password: {
+        id: 'user.settings.security.password',
+        defaultMessage: 'Password'
+    },
+    lastUpdated: {
+        id: 'user.settings.security.lastUpdated',
+        defaultMessage: 'Last updated '
+    },
+    at: {
+        id: 'user.settings.security.at',
+        defaultMessage: ' at '
+    },
+    loginService: {
+        id: 'user.settings.security.loginService',
+        defaultMessage: 'Log in done through SSO'
+    },
+    close: {
+        id: 'user.settings.security.close',
+        defaultMessage: 'Close'
+    },
+    title: {
+        id: 'user.settings.security.title',
+        defaultMessage: 'Security Settings'
+    },
+    version: {
+        id: 'user.settings.security.version',
+        defaultMessage: 'Version '
+    },
+    buildNumber: {
+        id: 'user.settings.security.buildNumber',
+        defaultMessage: 'Build Number: '
+    },
+    buildDate: {
+        id: 'user.settings.security.buildDate',
+        defaultMessage: 'Build Date: '
+    },
+    buildHash: {
+        id: 'user.settings.security.buildHash',
+        defaultMessage: 'Build Hash: '
+    },
+    viewHistory: {
+        id: 'user.settings.security.viewHistory',
+        defaultMessage: 'View Access History'
+    },
+    logoutActiveSessions: {
+        id: 'user.settings.security.logoutActiveSessions',
+        defaultMessage: 'View and Logout of Active Sessions'
+    },
+    switchEmail: {
+        id: 'user.settings.security.switchEmail',
+        defaultMessage: 'Switch to using email and password'
+    },
+    switchGitlab: {
+        id: 'user.settings.security.switchGitlab',
+        defaultMessage: 'Switch to using GitLab SSO'
+    },
+    switchGoogle: {
+        id: 'user.settings.security.switchGoogle',
+        defaultMessage: 'Switch to using Google SSO'
+    },
+    oneSignin: {
+        id: 'user.settings.security.oneSignin',
+        defaultMessage: 'You may only have one sign-in method at a time. Switching sign-in method will send an email notifying you if the change was successful.'
+    },
+    method: {
+        id: 'user.settings.security.method',
+        defaultMessage: 'Sign-in Method'
+    },
+    emailPwd: {
+        id: 'user.settings.security.emailPwd',
+        defaultMessage: 'Email and Password'
+    },
+    gitlab: {
+        id: 'user.settings.security.gitlab',
+        defaultMessage: 'GitLab SSO'
+    }
+});
+
+class SecurityTab extends React.Component {
     constructor(props) {
         super(props);
 
@@ -38,23 +146,24 @@ export default class SecurityTab extends React.Component {
     submitPassword(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         var user = this.props.user;
         var currentPassword = this.state.currentPassword;
         var newPassword = this.state.newPassword;
         var confirmPassword = this.state.confirmPassword;
 
         if (currentPassword === '') {
-            this.setState({passwordError: 'Please enter your current password', serverError: ''});
+            this.setState({passwordError: formatMessage(messages.currentPasswordError), serverError: ''});
             return;
         }
 
         if (newPassword.length < 5) {
-            this.setState({passwordError: 'New passwords must be at least 5 characters', serverError: ''});
+            this.setState({passwordError: formatMessage(messages.passwordLengthError), serverError: ''});
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            this.setState({passwordError: 'The new passwords you entered do not match', serverError: ''});
+            this.setState({passwordError: formatMessage(messages.passwordMatchError), serverError: ''});
             return;
         }
 
@@ -91,6 +200,7 @@ export default class SecurityTab extends React.Component {
         this.setState({confirmPassword: e.target.value});
     }
     createPasswordSection() {
+        const {formatMessage, locale} = this.props.intl;
         let updateSectionStatus;
 
         if (this.props.activeSection === 'password' && this.props.user.auth_service === '') {
@@ -101,7 +211,7 @@ export default class SecurityTab extends React.Component {
                     key='currentPasswordUpdateForm'
                     className='form-group'
                 >
-                    <label className='col-sm-5 control-label'>{'Current Password'}</label>
+                    <label className='col-sm-5 control-label'>{formatMessage(messages.currentPassword)}</label>
                     <div className='col-sm-7'>
                         <input
                             className='form-control'
@@ -117,7 +227,7 @@ export default class SecurityTab extends React.Component {
                     key='newPasswordUpdateForm'
                     className='form-group'
                 >
-                    <label className='col-sm-5 control-label'>{'New Password'}</label>
+                    <label className='col-sm-5 control-label'>{formatMessage(messages.newPassword)}</label>
                     <div className='col-sm-7'>
                         <input
                             className='form-control'
@@ -133,7 +243,7 @@ export default class SecurityTab extends React.Component {
                     key='retypeNewPasswordUpdateForm'
                     className='form-group'
                 >
-                    <label className='col-sm-5 control-label'>{'Retype New Password'}</label>
+                    <label className='col-sm-5 control-label'>{formatMessage(messages.retypePassword)}</label>
                     <div className='col-sm-7'>
                         <input
                             className='form-control'
@@ -153,7 +263,7 @@ export default class SecurityTab extends React.Component {
 
             return (
                 <SettingItemMax
-                    title='Password'
+                    title={formatMessage(messages.password)}
                     inputs={inputs}
                     submit={this.submitPassword}
                     server_error={this.state.serverError}
@@ -165,20 +275,9 @@ export default class SecurityTab extends React.Component {
 
         var describe;
         var d = new Date(this.props.user.last_password_update);
-        var hour = '12';
-        if (d.getHours() % 12) {
-            hour = String(d.getHours() % 12);
-        }
-        var min = String(d.getMinutes());
-        if (d.getMinutes() < 10) {
-            min = '0' + d.getMinutes();
-        }
-        var timeOfDay = ' am';
-        if (d.getHours() >= 12) {
-            timeOfDay = ' pm';
-        }
-
-        describe = 'Last updated ' + Constants.MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' at ' + hour + ':' + min + timeOfDay;
+        var dateString = d.toLocaleDateString(locale, {year:'numeric', month: 'long', day:'2-digit'});
+        var timeString = d.toLocaleTimeString(locale, {hour:'2-digit', minute: '2-digit', hour12: true});
+        describe = formatMessage(messages.lastUpdated) + dateString + formatMessage(messages.at) + timeString;
 
         updateSectionStatus = function updateSection() {
             this.props.updateSection('password');
@@ -186,13 +285,14 @@ export default class SecurityTab extends React.Component {
 
         return (
             <SettingItemMin
-                title='Password'
+                title={formatMessage(messages.password)}
                 describe={describe}
                 updateSection={updateSectionStatus}
             />
         );
     }
     createSignInSection() {
+        const {formatMessage} = this.props.intl;
         let updateSectionStatus;
         const user = this.props.user;
 
@@ -208,7 +308,7 @@ export default class SecurityTab extends React.Component {
                             className='btn btn-primary'
                             href={'/' + teamName + '/claim?email=' + user.email}
                         >
-                            {'Switch to using email and password'}
+                            {formatMessage(messages.switchEmail)}
                         </a>
                         <br/>
                     </div>
@@ -223,7 +323,7 @@ export default class SecurityTab extends React.Component {
                             className='btn btn-primary'
                             href={'/' + teamName + '/claim?email=' + user.email + '&new_type=' + Constants.GITLAB_SERVICE}
                         >
-                            {'Switch to using GitLab SSO'}
+                            {formatMessage(messages.switchGitlab)}
                         </a>
                         <br/>
                     </div>
@@ -238,7 +338,7 @@ export default class SecurityTab extends React.Component {
                             className='btn btn-primary'
                             href={'/' + teamName + '/claim?email=' + user.email + '&new_type=' + Constants.GOOGLE_SERVICE}
                         >
-                            {'Switch to using Google SSO'}
+                            {formatMessage(messages.switchGoogle)}
                         </a>
                         <br/>
                     </div>
@@ -260,11 +360,11 @@ export default class SecurityTab extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
-            const extraInfo = <span>{'You may only have one sign-in method at a time. Switching sign-in method will send an email notifying you if the change was successful.'}</span>;
+            const extraInfo = <span>{formatMessage(messages.oneSignin)}</span>;
 
             return (
                 <SettingItemMax
-                    title='Sign-in Method'
+                    title={formatMessage(messages.method)}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     server_error={this.state.serverError}
@@ -277,20 +377,21 @@ export default class SecurityTab extends React.Component {
             this.props.updateSection('signin');
         }.bind(this);
 
-        let describe = 'Email and Password';
+        let describe = formatMessage(messages.emailPwd);
         if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
-            describe = 'GitLab SSO';
+            describe = formatMessage(messages.gitlab);
         }
 
         return (
             <SettingItemMin
-                title='Sign-in Method'
+                title={formatMessage(messages.method)}
                 describe={describe}
                 updateSection={updateSectionStatus}
             />
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         const passwordSection = this.createPasswordSection();
         let signInSection;
 
@@ -309,7 +410,7 @@ export default class SecurityTab extends React.Component {
                         type='button'
                         className='close'
                         data-dismiss='modal'
-                        aria-label='Close'
+                        aria-label={formatMessage(messages.close)}
                         onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
@@ -322,11 +423,11 @@ export default class SecurityTab extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Security Settings'}
+                        {formatMessage(messages.title)}
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>{'Security Settings'}</h3>
+                    <h3 className='tab-header'>{formatMessage(messages.title)}</h3>
                     <div className='divider-dark first'/>
                     {passwordSection}
                     <div className='divider-light'/>
@@ -337,14 +438,14 @@ export default class SecurityTab extends React.Component {
                         className='security-links theme'
                         dialogType={AccessHistoryModal}
                     >
-                        <i className='fa fa-clock-o'></i>View Access History
+                        <i className='fa fa-clock-o'></i>{formatMessage(messages.viewHistory)}
                     </ToggleModalButton>
                     <b> </b>
                     <ToggleModalButton
                         className='security-links theme'
                         dialogType={ActivityLogModal}
                     >
-                        <i className='fa fa-clock-o'></i>{'View and Logout of Active Sessions'}
+                        <i className='fa fa-clock-o'></i>{formatMessage(messages.logoutActiveSessions)}
                     </ToggleModalButton>
                 </div>
             </div>
@@ -357,6 +458,7 @@ SecurityTab.defaultProps = {
     activeSection: ''
 };
 SecurityTab.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     activeSection: React.PropTypes.string,
     updateSection: React.PropTypes.func,
@@ -365,3 +467,5 @@ SecurityTab.propTypes = {
     collapseModal: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(SecurityTab);

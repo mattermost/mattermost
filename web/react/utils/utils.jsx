@@ -143,6 +143,7 @@ export function notifyMe(title, body, channel) {
                     } else {
                         window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
                     }
+                    console.log('notification'); //eslint-disable-line no-console
                 };
                 setTimeout(function closeNotificationOnTimeout() {
                     notification.close();
@@ -179,70 +180,47 @@ export function getDateForUnixTicks(ticks) {
     return new Date(ticks);
 }
 
-export function displayDate(ticks) {
+export function displayDate(ticks, locale) {
     var d = new Date(ticks);
-    var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-    return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    return d.toLocaleDateString(locale, {year:'numeric', month: 'long', day:'2-digit'});
 }
 
-export function displayTime(ticks) {
+export function displayTime(ticks, locale) {
     const d = new Date(ticks);
-    let hours = d.getHours();
-    let minutes = d.getMinutes();
-    let ampm = '';
-
-    if (minutes <= 9) {
-        minutes = '0' + minutes;
-    }
-
     const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
-    if (!useMilitaryTime) {
-        ampm = ' AM';
-        if (hours >= 12) {
-            ampm = ' PM';
-        }
-
-        hours = hours % 12;
-        if (!hours) {
-            hours = '12';
-        }
-    }
-
-    return hours + ':' + minutes + ampm;
+    return d.toLocaleTimeString(locale, {hour:'2-digit', minute: '2-digit', hour12: useMilitaryTime});
 }
 
-export function displayDateTime(ticks) {
+export function displayDateTime(ticks, locale, messages) {
     var seconds = Math.floor((Date.now() - ticks) / 1000);
 
     var interval = Math.floor(seconds / 3600);
 
     if (interval > 24) {
-        return this.displayTime(ticks);
+        return this.displayTime(ticks, locale);
     }
 
     if (interval > 1) {
-        return interval + ' hours ago';
+        return messages.hours.replace('@interval', interval.toString());
     }
 
     if (interval === 1) {
-        return interval + ' hour ago';
+        return messages.hour;
     }
 
     interval = Math.floor(seconds / 60);
     if (interval >= 2) {
-        return interval + ' minutes ago';
+        return messages.minutes.replace('@interval', interval.toString());
     }
-
     if (interval >= 1) {
-        return '1 minute ago';
+        return messages.minute;
     }
 
-    return 'just now';
+    return messages.justNow;
 }
 
-export function displayCommentDateTime(ticks) {
-    return displayDate(ticks) + ' ' + displayTime(ticks);
+export function displayCommentDateTime(ticks, locale) {
+    return displayDate(ticks, locale) + ' ' + displayTime(ticks, locale);
 }
 
 // returns Unix timestamp in milliseconds
@@ -1241,19 +1219,19 @@ export function sortByDisplayName(a, b) {
     return 0;
 }
 
-export function getChannelTerm(channelType) {
-    let channelTerm = 'Channel';
+export function getChannelTerm(channelType, locale) {
+    let channelTerm = locale === 'en' ? 'Channel' : 'Canal';
     if (channelType === Constants.PRIVATE_CHANNEL) {
-        channelTerm = 'Group';
+        channelTerm = locale === 'en' ? 'Private Group' : 'Grupo Privado';
     }
 
     return channelTerm;
 }
 
-export function getPostTerm(post) {
+export function getPostTerm(post, locale) {
     let postTerm = 'Post';
     if (post.root_id) {
-        postTerm = 'Comment';
+        postTerm = locale === 'en' ? 'Comment' : 'Comentario';
     }
 
     return postTerm;

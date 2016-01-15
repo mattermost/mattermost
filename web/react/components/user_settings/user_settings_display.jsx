@@ -1,12 +1,68 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import {savePreferences} from '../../utils/client.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from '../../utils/constants.jsx';
 import PreferenceStore from '../../stores/preference_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
+
+const messages = defineMessages({
+    normalClock: {
+        id: 'user.settings.display.normalClock',
+        defaultMessage: '12-hour clock (example: 4:00 pm)'
+    },
+    militaryClock: {
+        id: 'user.settings.display.militaryClock',
+        defaultMessage: '24-hour clock (example: 16:00)'
+    },
+    preferTime: {
+        id: 'user.settings.display.preferTime',
+        defaultMessage: 'Select how you prefer time displayed.'
+    },
+    clockDisplay: {
+        id: 'user.settings.display.clockDisplay',
+        defaultMessage: 'Clock Display'
+    },
+    showNickname: {
+        id: 'user.settings.display.showNickname',
+        defaultMessage: 'Show nickname if one exists, otherwise show first and last name'
+    },
+    showUsername: {
+        id: 'user.settings.display.showUsername',
+        defaultMessage: 'Show username (team default)'
+    },
+    showFullname: {
+        id: 'user.settings.display.showFullname',
+        defaultMessage: 'Show first and last name'
+    },
+    nameOptsDesc: {
+        id: 'user.settings.display.nameOptsDesc',
+        defaultMessage: 'Set how to display other user\'s names in posts and the Direct Messages list.'
+    },
+    teammateDisplay: {
+        id: 'user.settings.display.teammateDisplay',
+        defaultMessage: 'Teammate Name Display'
+    },
+    title: {
+        id: 'user.settings.display.title',
+        defaultMessage: 'Display Settings'
+    },
+    fontDesc: {
+        id: 'user.settings.display.fontDesc',
+        defaultMessage: 'Select the font displayed in the Mattermost user interface.'
+    },
+    fontTitle: {
+        id: 'user.settings.display.fontTitle',
+        defaultMessage: 'Display Font'
+    },
+    close: {
+        id: 'user.settings.display.close',
+        defaultMessage: 'Close'
+    }
+});
 
 function getDisplayStateFromStores() {
     const militaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'});
@@ -20,7 +76,7 @@ function getDisplayStateFromStores() {
     };
 }
 
-export default class UserSettingsDisplay extends React.Component {
+class UserSettingsDisplay extends React.Component {
     constructor(props) {
         super(props);
 
@@ -74,6 +130,8 @@ export default class UserSettingsDisplay extends React.Component {
         this.updateState();
     }
     render() {
+        const {formatMessage} = this.props.intl;
+
         const serverError = this.state.serverError || null;
         let clockSection;
         let nameFormatSection;
@@ -101,7 +159,7 @@ export default class UserSettingsDisplay extends React.Component {
                                 checked={clockFormat[0]}
                                 onChange={this.handleClockRadio.bind(this, 'false')}
                             />
-                            {'12-hour clock (example: 4:00 PM)'}
+                            {formatMessage(messages.normalClock)}
                         </label>
                         <br/>
                     </div>
@@ -112,17 +170,17 @@ export default class UserSettingsDisplay extends React.Component {
                                 checked={clockFormat[1]}
                                 onChange={this.handleClockRadio.bind(this, 'true')}
                             />
-                            {'24-hour clock (example: 16:00)'}
+                            {formatMessage(messages.militaryClock)}
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'Select how you prefer time displayed.'}</div>
+                    <div><br/>{formatMessage(messages.preferTime)}</div>
                 </div>
             ];
 
             clockSection = (
                 <SettingItemMax
-                    title='Clock Display'
+                    title={formatMessage(messages.clockDisplay)}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -132,9 +190,9 @@ export default class UserSettingsDisplay extends React.Component {
         } else {
             let describe = '';
             if (this.state.militaryTime === 'true') {
-                describe = '24-hour clock (example: 16:00)';
+                describe = formatMessage(messages.militaryClock);
             } else {
-                describe = '12-hour clock (example: 4:00 PM)';
+                describe = formatMessage(messages.normalClock);
             }
 
             const handleUpdateClockSection = () => {
@@ -143,16 +201,16 @@ export default class UserSettingsDisplay extends React.Component {
 
             clockSection = (
                 <SettingItemMin
-                    title='Clock Display'
+                    title={formatMessage(messages.clockDisplay)}
                     describe={describe}
                     updateSection={handleUpdateClockSection}
                 />
             );
         }
 
-        const showUsername = 'Show username (team default)';
-        const showNickname = 'Show nickname if one exists, otherwise show first and last name';
-        const showFullName = 'Show first and last name';
+        const showUsername = formatMessage(messages.showUsername);
+        const showNickname = formatMessage(messages.showNickname);
+        const showFullName = formatMessage(messages.showFullname);
         if (this.props.activeSection === 'name_format') {
             const nameFormat = [false, false, false];
             if (this.state.nameFormat === 'nickname_full_name') {
@@ -198,13 +256,13 @@ export default class UserSettingsDisplay extends React.Component {
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'Set how to display other user\'s names in posts and the Direct Messages list.'}</div>
+                    <div><br/>{formatMessage(messages.nameOptsDesc)}</div>
                 </div>
             ];
 
             nameFormatSection = (
                 <SettingItemMax
-                    title='Teammate Name Display'
+                    title={formatMessage(messages.teammateDisplay)}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -226,7 +284,7 @@ export default class UserSettingsDisplay extends React.Component {
 
             nameFormatSection = (
                 <SettingItemMin
-                    title='Teammate Name Display'
+                    title={formatMessage(messages.teammateDisplay)}
                     describe={describe}
                     updateSection={() => {
                         this.props.updateSection('name_format');
@@ -264,13 +322,13 @@ export default class UserSettingsDisplay extends React.Component {
                             {options}
                         </select>
                     </div>
-                    <div><br/>{'Select the font displayed in the Mattermost user interface.'}</div>
+                    <div><br/>{formatMessage(messages.fontDesc)}</div>
                 </div>
             ];
 
             fontSection = (
                 <SettingItemMax
-                    title='Display Font'
+                    title={formatMessage(messages.fontTitle)}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -283,7 +341,7 @@ export default class UserSettingsDisplay extends React.Component {
         } else {
             fontSection = (
                 <SettingItemMin
-                    title='Display Font'
+                    title={formatMessage(messages.fontTitle)}
                     describe={this.state.selectedFont}
                     updateSection={() => {
                         this.props.updateSection('font');
@@ -299,7 +357,7 @@ export default class UserSettingsDisplay extends React.Component {
                         type='button'
                         className='close'
                         data-dismiss='modal'
-                        aria-label='Close'
+                        aria-label={formatMessage(messages.close)}
                         onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
@@ -312,11 +370,11 @@ export default class UserSettingsDisplay extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Display Settings'}
+                        {formatMessage(messages.title)}
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>{'Display Settings'}</h3>
+                    <h3 className='tab-header'>{formatMessage(messages.title)}</h3>
                     <div className='divider-dark first'/>
                     {fontSection}
                     <div className='divider-dark'/>
@@ -336,5 +394,8 @@ UserSettingsDisplay.propTypes = {
     updateTab: React.PropTypes.func,
     activeSection: React.PropTypes.string,
     closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired
+    collapseModal: React.PropTypes.func.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(UserSettingsDisplay);

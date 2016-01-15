@@ -28,6 +28,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -51,24 +53,24 @@ type SqlStore struct {
 }
 
 func NewSqlStore() Store {
-
+	T := i18n.GetSystemLanguage()
 	sqlStore := &SqlStore{}
 
 	sqlStore.master = setupConnection("master", utils.Cfg.SqlSettings.DriverName,
 		utils.Cfg.SqlSettings.DataSource, utils.Cfg.SqlSettings.MaxIdleConns,
-		utils.Cfg.SqlSettings.MaxOpenConns, utils.Cfg.SqlSettings.Trace)
+		utils.Cfg.SqlSettings.MaxOpenConns, utils.Cfg.SqlSettings.Trace, T)
 
 	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
 		sqlStore.replicas = make([]*gorp.DbMap, 1)
 		sqlStore.replicas[0] = setupConnection(fmt.Sprintf("replica-%v", 0), utils.Cfg.SqlSettings.DriverName, utils.Cfg.SqlSettings.DataSource,
 			utils.Cfg.SqlSettings.MaxIdleConns, utils.Cfg.SqlSettings.MaxOpenConns,
-			utils.Cfg.SqlSettings.Trace)
+			utils.Cfg.SqlSettings.Trace, T)
 	} else {
 		sqlStore.replicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceReplicas))
 		for i, replica := range utils.Cfg.SqlSettings.DataSourceReplicas {
 			sqlStore.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), utils.Cfg.SqlSettings.DriverName, replica,
 				utils.Cfg.SqlSettings.MaxIdleConns, utils.Cfg.SqlSettings.MaxOpenConns,
-				utils.Cfg.SqlSettings.Trace)
+				utils.Cfg.SqlSettings.Trace, T)
 		}
 	}
 
@@ -92,20 +94,20 @@ func NewSqlStore() Store {
 			}
 
 			if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 || isSchemaVersion10 {
-				l4g.Warn("The database schema version of " + schemaVersion + " appears to be out of date")
-				l4g.Warn("Attempting to upgrade the database schema version to " + model.CurrentVersion)
+				l4g.Warn(T("The database schema version of %v appears to be out of date"), schemaVersion)
+				l4g.Warn(T("Attempting to upgrade the database schema version to ") + model.CurrentVersion)
 			} else {
 				// If this is an 'upgrade needed' state but the user is attempting to skip a version then halt the world
-				l4g.Critical("The database schema version of " + schemaVersion + " cannot be upgraded.  You must not skip a version.")
+				l4g.Critical(T("The database schema version of %v cannot be upgraded.  You must not skip a version."), schemaVersion)
 				time.Sleep(time.Second)
-				panic("The database schema version of " + schemaVersion + " cannot be upgraded.  You must not skip a version.")
+				panic(fmt.Sprintf(T("The database schema version of %v cannot be upgraded.  You must not skip a version."), schemaVersion))
 			}
 		}
 	}
 
 	// REMOVE AFTER 1.2 SHIP see PLT-828
-	if sqlStore.DoesTableExist("Sessions") {
-		if sqlStore.DoesColumnExist("Sessions", "AltId") {
+	if sqlStore.DoesTableExist("Sessions", T) {
+		if sqlStore.DoesColumnExist("Sessions", "AltId", T) {
 			sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
 		}
 	}
@@ -123,13 +125,13 @@ func NewSqlStore() Store {
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
-		l4g.Critical("Error creating database tables: %v", err)
+		l4g.Critical(T("Error creating database tables: %v"), err)
 	}
 
-	sqlStore.team.(*SqlTeamStore).UpgradeSchemaIfNeeded()
-	sqlStore.channel.(*SqlChannelStore).UpgradeSchemaIfNeeded()
-	sqlStore.post.(*SqlPostStore).UpgradeSchemaIfNeeded()
-	sqlStore.user.(*SqlUserStore).UpgradeSchemaIfNeeded()
+	sqlStore.team.(*SqlTeamStore).UpgradeSchemaIfNeeded(T)
+	sqlStore.channel.(*SqlChannelStore).UpgradeSchemaIfNeeded(T)
+	sqlStore.post.(*SqlPostStore).UpgradeSchemaIfNeeded(T)
+	sqlStore.user.(*SqlUserStore).UpgradeSchemaIfNeeded(T)
 	sqlStore.audit.(*SqlAuditStore).UpgradeSchemaIfNeeded()
 	sqlStore.session.(*SqlSessionStore).UpgradeSchemaIfNeeded()
 	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
@@ -137,47 +139,47 @@ func NewSqlStore() Store {
 	sqlStore.webhook.(*SqlWebhookStore).UpgradeSchemaIfNeeded()
 	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
 
-	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
-	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
-	sqlStore.post.(*SqlPostStore).CreateIndexesIfNotExists()
-	sqlStore.user.(*SqlUserStore).CreateIndexesIfNotExists()
-	sqlStore.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
-	sqlStore.session.(*SqlSessionStore).CreateIndexesIfNotExists()
-	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
+	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists(T)
+	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists(T)
+	sqlStore.post.(*SqlPostStore).CreateIndexesIfNotExists(T)
+	sqlStore.user.(*SqlUserStore).CreateIndexesIfNotExists(T)
+	sqlStore.audit.(*SqlAuditStore).CreateIndexesIfNotExists(T)
+	sqlStore.session.(*SqlSessionStore).CreateIndexesIfNotExists(T)
+	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists(T)
 	sqlStore.system.(*SqlSystemStore).CreateIndexesIfNotExists()
-	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
-	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
+	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists(T)
+	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists(T)
 
-	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
+	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures(T)
 
 	if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 || isSchemaVersion10 {
-		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
-		l4g.Warn("The database schema has been upgraded to version " + model.CurrentVersion)
+		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion}, T)
+		l4g.Warn(T("The database schema has been upgraded to version ") + model.CurrentVersion)
 	}
 
 	if schemaVersion == "" {
-		sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion})
-		l4g.Info("The database schema has been set to version " + model.CurrentVersion)
+		sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion}, T)
+		l4g.Info(T("The database schema has been set to version ") + model.CurrentVersion)
 	}
 
 	return sqlStore
 }
 
-func setupConnection(con_type string, driver string, dataSource string, maxIdle int, maxOpen int, trace bool) *gorp.DbMap {
+func setupConnection(con_type string, driver string, dataSource string, maxIdle int, maxOpen int, trace bool, T goi18n.TranslateFunc) *gorp.DbMap {
 
 	db, err := dbsql.Open(driver, dataSource)
 	if err != nil {
-		l4g.Critical("Failed to open sql connection to err:%v", err)
+		l4g.Critical(T("Failed to open sql connection to err:%v"), err)
 		time.Sleep(time.Second)
-		panic("Failed to open sql connection" + err.Error())
+		panic(T("Failed to open sql connection") + err.Error())
 	}
 
-	l4g.Info("Pinging sql %v database", con_type)
+	l4g.Info(T("Pinging sql %v database"), con_type)
 	err = db.Ping()
 	if err != nil {
-		l4g.Critical("Failed to ping db err:%v", err)
+		l4g.Critical(T("Failed to ping db err:%v"), err)
 		time.Sleep(time.Second)
-		panic("Failed to open sql connection " + err.Error())
+		panic(T("Failed to open sql connection ") + err.Error())
 	}
 
 	db.SetMaxIdleConns(maxIdle)
@@ -192,9 +194,9 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	} else if driver == model.DATABASE_DRIVER_POSTGRES {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}}
 	} else {
-		l4g.Critical("Failed to create dialect specific driver")
+		l4g.Critical(T("Failed to create dialect specific driver"))
 		time.Sleep(time.Second)
-		panic("Failed to create dialect specific driver " + err.Error())
+		panic(T("Failed to create dialect specific driver ") + err.Error())
 	}
 
 	if trace {
@@ -209,18 +211,18 @@ func (ss SqlStore) GetCurrentSchemaVersion() string {
 	return version
 }
 
-func (ss SqlStore) MarkSystemRanUnitTests() {
-	if result := <-ss.System().Get(); result.Err == nil {
+func (ss SqlStore) MarkSystemRanUnitTests(T goi18n.TranslateFunc) {
+	if result := <-ss.System().Get(T); result.Err == nil {
 		props := result.Data.(model.StringMap)
 		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
 		if len(unitTests) == 0 {
 			systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
-			<-ss.System().Save(systemTests)
+			<-ss.System().Save(systemTests, T)
 		}
 	}
 }
 
-func (ss SqlStore) DoesTableExist(tableName string) bool {
+func (ss SqlStore) DoesTableExist(tableName string, T goi18n.TranslateFunc) bool {
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
@@ -228,9 +230,9 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 		)
 
 		if err != nil {
-			l4g.Critical("Failed to check if table exists %v", err)
+				l4g.Critical(T("Failed to check if table exists %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to check if table exists " + err.Error())
+			panic(T("Failed to check if table exists ") + err.Error())
 		}
 
 		return count > 0
@@ -250,22 +252,22 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 		)
 
 		if err != nil {
-			l4g.Critical("Failed to check if table exists %v", err)
+			l4g.Critical(T("Failed to check if table exists %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to check if table exists " + err.Error())
+			panic(T("Failed to check if table exists ") + err.Error())
 		}
 
 		return count > 0
 
 	} else {
-		l4g.Critical("Failed to check if column exists because of missing driver")
+		l4g.Critical(T("Failed to check if column exists because of missing driver"))
 		time.Sleep(time.Second)
-		panic("Failed to check if column exists because of missing driver")
+		panic(T("Failed to check if column exists because of missing driver"))
 	}
 
 }
 
-func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
+func (ss SqlStore) DoesColumnExist(tableName string, columnName string, T goi18n.TranslateFunc) bool {
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT COUNT(0)
@@ -282,9 +284,9 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 				return false
 			}
 
-			l4g.Critical("Failed to check if column exists %v", err)
+			l4g.Critical(T("Failed to check if column exists %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to check if column exists " + err.Error())
+			panic(T("Failed to check if column exists ") + err.Error())
 		}
 
 		return count > 0
@@ -305,33 +307,33 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		)
 
 		if err != nil {
-			l4g.Critical("Failed to check if column exists %v", err)
+			l4g.Critical(T("Failed to check if column exists %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to check if column exists " + err.Error())
+			panic(T("Failed to check if column exists ") + err.Error())
 		}
 
 		return count > 0
 
 	} else {
-		l4g.Critical("Failed to check if column exists because of missing driver")
+		l4g.Critical(T("Failed to check if column exists because of missing driver"))
 		time.Sleep(time.Second)
-		panic("Failed to check if column exists because of missing driver")
+		panic(T("Failed to check if column exists because of missing driver"))
 	}
 
 }
 
-func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
+func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string, T goi18n.TranslateFunc) bool {
 
-	if ss.DoesColumnExist(tableName, columnName) {
+	if ss.DoesColumnExist(tableName, columnName, T) {
 		return false
 	}
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
-			l4g.Critical("Failed to create column %v", err)
+			l4g.Critical(T("Failed to create column %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to create column " + err.Error())
+			panic(T("Failed to create column ") + err.Error())
 		}
 
 		return true
@@ -339,38 +341,38 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
-			l4g.Critical("Failed to create column %v", err)
+			l4g.Critical(T("Failed to create column %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to create column " + err.Error())
+			panic(T("Failed to create column ") + err.Error())
 		}
 
 		return true
 
 	} else {
-		l4g.Critical("Failed to create column because of missing driver")
+		l4g.Critical(T("Failed to create column because of missing driver"))
 		time.Sleep(time.Second)
-		panic("Failed to create column because of missing driver")
+		panic(T("Failed to create column because of missing driver"))
 	}
 }
 
-func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
+func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string, T goi18n.TranslateFunc) bool {
 
-	if !ss.DoesColumnExist(tableName, columnName) {
+	if !ss.DoesColumnExist(tableName, columnName, T) {
 		return false
 	}
 
 	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
 	if err != nil {
-		l4g.Critical("Failed to drop column %v", err)
+		l4g.Critical(T("Failed to drop column %v"), err)
 		time.Sleep(time.Second)
-		panic("Failed to drop column " + err.Error())
+		panic(T("Failed to drop column ") + err.Error())
 	}
 
 	return true
 }
 
-func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
-	if !ss.DoesColumnExist(tableName, oldColumnName) {
+func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string, T goi18n.TranslateFunc) bool {
+	if !ss.DoesColumnExist(tableName, oldColumnName, T) {
 		return false
 	}
 
@@ -382,23 +384,23 @@ func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, 
 	}
 
 	if err != nil {
-		l4g.Critical("Failed to rename column %v", err)
+		l4g.Critical(T("Failed to rename column %v"), err)
 		time.Sleep(time.Second)
-		panic("Failed to drop column " + err.Error())
+		panic(T("Failed to rename column ") + err.Error())
 	}
 
 	return true
 }
 
-func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT)
+func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string, T goi18n.TranslateFunc) {
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, T)
 }
 
-func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT)
+func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string, T goi18n.TranslateFunc) {
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT, T)
 }
 
-func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string) {
+func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string, T goi18n.TranslateFunc) {
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
@@ -416,17 +418,17 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 
 		_, err = ss.GetMaster().Exec(query)
 		if err != nil {
-			l4g.Critical("Failed to create index %v", err)
+			l4g.Critical(T("Failed to create index %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to create index " + err.Error())
+			panic(T("Failed to create index ") + err.Error())
 		}
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
-			l4g.Critical("Failed to check index %v", err)
+			l4g.Critical(T("Failed to check index %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to check index " + err.Error())
+			panic(T("Failed to check index ") + err.Error())
 		}
 
 		if count > 0 {
@@ -440,14 +442,14 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 
 		_, err = ss.GetMaster().Exec("CREATE " + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
 		if err != nil {
-			l4g.Critical("Failed to create index %v", err)
+			l4g.Critical(T("Failed to create index %v"), err)
 			time.Sleep(time.Second)
-			panic("Failed to create index " + err.Error())
+			panic(T("Failed to create index ") + err.Error())
 		}
 	} else {
-		l4g.Critical("Failed to create index because of missing driver")
+		l4g.Critical(T("Failed to create index because of missing driver"))
 		time.Sleep(time.Second)
-		panic("Failed to create index because of missing driver")
+		panic(T("Failed to create index because of missing driver"))
 	}
 }
 
@@ -457,15 +459,15 @@ func IsUniqueConstraintError(err string, mysql string, postgres string) bool {
 	return unique && field
 }
 
-func (ss SqlStore) GetColumnDataType(tableName, columnName string) string {
+func (ss SqlStore) GetColumnDataType(tableName, columnName string, T goi18n.TranslateFunc) string {
 	dataType, err := ss.GetMaster().SelectStr("SELECT data_type FROM INFORMATION_SCHEMA.COLUMNS where table_name = :Tablename AND column_name = :Columnname", map[string]interface{}{
 		"Tablename":  tableName,
 		"Columnname": columnName,
 	})
 	if err != nil {
-		l4g.Critical("Failed to get data type for column %s from table %s: %v", columnName, tableName, err.Error())
+		l4g.Critical(T("Failed to get data type for column %s from table %s: %v"), columnName, tableName, err.Error())
 		time.Sleep(time.Second)
-		panic("Failed to get get data type for column " + columnName + " from table " + tableName + ": " + err.Error())
+		panic(fmt.Sprintf(T("Failed to get data type for column %s from table %s: %v"), columnName, tableName, err.Error()))
 	}
 
 	return dataType

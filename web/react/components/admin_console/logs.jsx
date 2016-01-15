@@ -1,11 +1,23 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import AdminStore from '../../stores/admin_store.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class Logs extends React.Component {
+const messages = defineMessages({
+    title: {
+        id: 'admin.logs.title',
+        defaultMessage: 'Server Logs'
+    },
+    reload: {
+        id: 'admin.logs.reload',
+        defaultMessage: 'Reload'
+    }
+});
+
+class Logs extends React.Component {
     constructor(props) {
         super(props);
 
@@ -42,6 +54,7 @@ export default class Logs extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var content = null;
 
         if (this.state.logs === null) {
@@ -73,13 +86,13 @@ export default class Logs extends React.Component {
 
         return (
             <div className='panel'>
-                <h3>{'Server Logs'}</h3>
+                <h3>{formatMessage(messages.title)}</h3>
                 <button
                     type='submit'
                     className='btn btn-primary'
                     onClick={this.reload}
                 >
-                    {'Reload'}
+                    {formatMessage(messages.reload)}
                 </button>
                 <div className='log__panel'>
                     {content}
@@ -88,3 +101,9 @@ export default class Logs extends React.Component {
         );
     }
 }
+
+Logs.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(Logs);

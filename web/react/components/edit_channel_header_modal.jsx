@@ -2,13 +2,37 @@
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 import * as Utils from '../utils/utils.jsx';
 
 const Modal = ReactBootstrap.Modal;
 
-export default class EditChannelHeaderModal extends React.Component {
+const messages = defineMessages({
+    editError: {
+        id: 'edit_channel_header_modal.error',
+        defaultMessage: 'This channel header is too long, please enter a shorter one'
+    },
+    title: {
+        id: 'edit_channel_header_modal.title',
+        defaultMessage: 'Edit Header for '
+    },
+    description: {
+        id: 'edit_channel_header_modal.description',
+        defaultMessage: 'Edit the text appearing next to the channel name in the channel header.'
+    },
+    cancel: {
+        id: 'edit_channel_header_modal.cancel',
+        defaultMessage: 'Cancel'
+    },
+    save: {
+        id: 'edit_channel_header_modal.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class EditChannelHeaderModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -51,6 +75,7 @@ export default class EditChannelHeaderModal extends React.Component {
     }
 
     handleSubmit() {
+        const {formatMessage} = this.props.intl;
         Client.updateChannelHeader(
             this.props.channel.id,
             this.state.header,
@@ -65,7 +90,7 @@ export default class EditChannelHeaderModal extends React.Component {
             },
             (err) => {
                 if (err.message === 'Invalid channel_header parameter') {
-                    this.setState({serverError: 'This channel header is too long, please enter a shorter one'});
+                    this.setState({serverError: formatMessage(messages.editError)});
                 } else {
                     this.setState({serverError: err.message});
                 }
@@ -88,6 +113,8 @@ export default class EditChannelHeaderModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
+
         var serverError = null;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><br/><label className='control-label'>{this.state.serverError}</label></div>;
@@ -99,10 +126,10 @@ export default class EditChannelHeaderModal extends React.Component {
                 onHide={this.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Edit Header for ' + this.props.channel.display_name}</Modal.Title>
+                    <Modal.Title>{formatMessage(messages.title) + this.props.channel.display_name}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>{'Edit the text appearing next to the channel name in the channel header.'}</p>
+                    <p>{formatMessage(messages.description)}</p>
                     <textarea
                         ref='textarea'
                         className='form-control no-resize'
@@ -120,14 +147,14 @@ export default class EditChannelHeaderModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.onHide}
                     >
-                        {'Cancel'}
+                        {formatMessage(messages.cancel)}
                     </button>
                     <button
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSubmit}
                     >
-                        {'Save'}
+                        {formatMessage(messages.save)}
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -138,5 +165,8 @@ export default class EditChannelHeaderModal extends React.Component {
 EditChannelHeaderModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    channel: React.PropTypes.object.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(EditChannelHeaderModal);

@@ -14,10 +14,12 @@ import (
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
 )
 
 func InitAdmin(r *mux.Router) {
-	l4g.Debug("Initializing admin api routes")
+	T := i18n.GetSystemLanguage()
+	l4g.Debug(T("Initializing admin api routes"))
 
 	sr := r.PathPrefix("/admin").Subrouter()
 	sr.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
@@ -30,8 +32,8 @@ func InitAdmin(r *mux.Router) {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	if !c.HasSystemAdminPermissions("getLogs") {
+	T := i18n.Language(w, r)
+	if !c.HasSystemAdminPermissions("getLogs", T) {
 		return
 	}
 
@@ -41,7 +43,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		file, err := os.Open(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation))
 		if err != nil {
-			c.Err = model.NewAppError("getLogs", "Error reading log file", err.Error())
+			c.Err = model.NewAppError("getLogs", T("Error reading log file"), err.Error())
 		}
 
 		defer file.Close()
@@ -82,7 +84,8 @@ func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getConfig") {
+	T := i18n.Language(w, r)
+	if !c.HasSystemAdminPermissions("getConfig", T) {
 		return
 	}
 
@@ -94,7 +97,8 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getConfig") {
+	T := i18n.Language(w, r)
+	if !c.HasSystemAdminPermissions("getConfig", T) {
 		return
 	}
 
@@ -106,19 +110,20 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cfg.SetDefaults()
 
-	if err := cfg.IsValid(); err != nil {
+	if err := cfg.IsValid(T); err != nil {
 		c.Err = err
 		return
 	}
 
-	utils.SaveConfig(utils.CfgFileName, cfg)
-	utils.LoadConfig(utils.CfgFileName)
+	utils.SaveConfig(utils.CfgFileName, cfg, T)
+	utils.LoadConfig(utils.CfgFileName, T)
 	json := utils.Cfg.ToJson()
 	w.Write([]byte(json))
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("testEmail") {
+	T := i18n.Language(w, r)
+	if !c.HasSystemAdminPermissions("testEmail", T) {
 		return
 	}
 
@@ -128,11 +133,11 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.User().Get(c.Session.UserId, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		if err := utils.SendMailUsingConfig(result.Data.(*model.User).Email, "Mattermost - Testing Email Settings", "<br/><br/><br/>It appears your Mattermost email is setup correctly!", cfg); err != nil {
+		if err := utils.SendMailUsingConfig(result.Data.(*model.User).Email, T("Mattermost - Testing Email Settings"), T("<br/><br/><br/>It appears your Mattermost email is setup correctly!"), cfg, T); err != nil {
 			c.Err = err
 			return
 		}
@@ -144,7 +149,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getAnalytics") {
+	T := i18n.Language(w, r)
+	if !c.HasSystemAdminPermissions("getAnalytics", T) {
 		return
 	}
 
@@ -157,9 +163,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
-		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		postChan := Srv.Store.Post().AnalyticsPostCount(teamId)
+		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN, T)
+		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE, T)
+		postChan := Srv.Store.Post().AnalyticsPostCount(teamId, T)
 
 		if r := <-openChan; r.Err != nil {
 			c.Err = r.Err
@@ -184,14 +190,14 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(rows.ToJson()))
 	} else if name == "post_counts_day" {
-		if r := <-Srv.Store.Post().AnalyticsPostCountsByDay(teamId); r.Err != nil {
+		if r := <-Srv.Store.Post().AnalyticsPostCountsByDay(teamId, T); r.Err != nil {
 			c.Err = r.Err
 			return
 		} else {
 			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
 		}
 	} else if name == "user_counts_with_posts_day" {
-		if r := <-Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId); r.Err != nil {
+		if r := <-Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId, T); r.Err != nil {
 			c.Err = r.Err
 			return
 		} else {
