@@ -21,6 +21,7 @@ const (
 
 	SERVICE_GITLAB = "gitlab"
 	SERVICE_GOOGLE = "google"
+	SERVICE_OAUTH  = "oauth"
 )
 
 type ServiceSettings struct {
@@ -52,6 +53,12 @@ type SSOSettings struct {
 	AuthEndpoint    string
 	TokenEndpoint   string
 	UserApiEndpoint string
+
+	// custom SSO specific
+	ProviderName  string
+	UsernameField string
+	EMailField    string
+	AuthDataField string
 }
 
 type SqlSettings struct {
@@ -176,6 +183,7 @@ type Config struct {
 	SupportSettings   SupportSettings
 	GitLabSettings    SSOSettings
 	GoogleSettings    SSOSettings
+	OAuthSettings     SSOSettings
 	LdapSettings      LdapSettings
 }
 
@@ -194,6 +202,8 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 		return &o.GitLabSettings
 	case SERVICE_GOOGLE:
 		return &o.GoogleSettings
+	case SERVICE_OAUTH:
+		return &o.OAuthSettings
 	}
 
 	return nil

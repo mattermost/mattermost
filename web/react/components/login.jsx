@@ -42,6 +42,18 @@ export default class Login extends React.Component {
            );
         }
 
+        if (global.window.mm_config.EnableSignUpWithOAuth === 'true') {
+            loginMessage.push(
+                    <a
+                        className='btn btn-custom-login oauth'
+                        href={'/' + teamName + '/login/oauth'}
+                    >
+                        <span className='icon' />
+                        <span>{'Login with OAuth'}</span>
+                    </a>
+           );
+        }
+
         const extraParam = Utils.getUrlParameter('extra');
         let extraBox = '';
         if (extraParam) {

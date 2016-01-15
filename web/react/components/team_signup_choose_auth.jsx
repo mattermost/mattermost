@@ -44,6 +44,24 @@ export default class ChooseAuthPage extends React.Component {
             );
         }
 
+        if (global.window.mm_config.EnableSignUpWithOAuth === 'true') {
+            buttons.push(
+                    <a
+                        className='btn btn-custom-login oauth btn-full'
+                        href='#'
+                        onClick={
+                            (e) => {
+                                e.preventDefault();
+                                this.props.updatePage('oauth');
+                            }
+                        }
+                    >
+                        <span className='icon' />
+                        <span>{'Create new team with OAuth Account'}</span>
+                    </a>
+            );
+        }
+
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             buttons.push(
                     <a

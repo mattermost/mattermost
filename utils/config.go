@@ -14,6 +14,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/model/custom_oauth"
 )
 
 const (
@@ -161,6 +162,10 @@ func LoadConfig(fileName string) {
 		panic("Error validating config file=" + fileName + ", err=" + err.Message)
 	}
 
+	if _, err := oauth.LoadOAuthProviderFromConfig(&config.OAuthSettings); err != nil {
+		l4g.Info("Error loading oauth provider: " + err.Error())
+	}
+
 	configureLog(&config.LogSettings)
 	TestConnection(&config)
 
@@ -207,6 +212,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
 	props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
+	props["EnableSignUpWithOAuth"] = strconv.FormatBool(c.OAuthSettings.Enable)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 
