@@ -4,7 +4,9 @@
 package api
 
 import (
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -45,6 +47,9 @@ func InitCommand(r *mux.Router) {
 	sr.Handle("/list_team_commands", ApiUserRequired(listTeamCommands)).Methods("GET")
 	sr.Handle("/regen_token", ApiUserRequired(regenCommandToken)).Methods("POST")
 	sr.Handle("/delete", ApiUserRequired(deleteCommand)).Methods("POST")
+
+	sr.Handle("/test", ApiAppHandler(testCommand)).Methods("POST")
+	sr.Handle("/test", ApiAppHandler(testCommand)).Methods("GET")
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -96,32 +101,126 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(command, " ")
 	trigger := parts[0][1:]
+	message := strings.Join(parts[1:], " ")
 	provider := GetCommandProvidersProvider(trigger)
 
 	if provider != nil {
-		message := strings.Join(parts[1:], " ")
+
 		response := provider.DoCommand(c, channelId, message)
-
-		if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
-			post := &model.Post{}
-			post.ChannelId = channelId
-			post.Message = response.Text
-			if _, err := CreatePost(c, post, true); err != nil {
-				c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
-			}
-		} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
-			post := &model.Post{}
-			post.ChannelId = channelId
-			post.Message = "TODO_EPHEMERAL: " + response.Text
-			if _, err := CreatePost(c, post, true); err != nil {
-				c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
-			}
-		}
-
-		w.Write([]byte(response.ToJson()))
+		handleResponse(c, w, response, channelId)
+		return
 	} else {
-		c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' not found", "")
+		chanChan := Srv.Store.Channel().Get(channelId)
+		teamChan := Srv.Store.Team().Get(c.Session.TeamId)
+		userChan := Srv.Store.User().Get(c.Session.UserId)
+
+		if result := <-Srv.Store.Command().GetByTeam(c.Session.TeamId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+
+			var team *model.Team
+			if tr := <-teamChan; tr.Err != nil {
+				c.Err = tr.Err
+				return
+			} else {
+				team = tr.Data.(*model.Team)
+
+			}
+
+			var user *model.User
+			if ur := <-userChan; ur.Err != nil {
+				c.Err = ur.Err
+				return
+			} else {
+				user = ur.Data.(*model.User)
+			}
+
+			var channel *model.Channel
+			if cr := <-chanChan; cr.Err != nil {
+				c.Err = cr.Err
+				return
+			} else {
+				channel = cr.Data.(*model.Channel)
+			}
+
+			teamCmds := result.Data.([]*model.Command)
+			for _, cmd := range teamCmds {
+				if trigger == cmd.Trigger {
+					l4g.Debug("Executing cmd=" + trigger + " userId=" + c.Session.UserId)
+
+					p := url.Values{}
+					p.Set("token", cmd.Token)
+
+					p.Set("team_id", cmd.TeamId)
+					p.Set("team_domain", team.Name)
+
+					p.Set("channel_id", channelId)
+					p.Set("channel_name", channel.Name)
+
+					p.Set("user_id", c.Session.UserId)
+					p.Set("user_name", user.Username)
+
+					p.Set("command", "/"+trigger)
+					p.Set("text", message)
+					p.Set("response_url", "not supported yet")
+
+					method := "POST"
+					if cmd.Method == model.COMMAND_METHOD_GET {
+						method = "GET"
+					}
+
+					client := &http.Client{}
+					req, _ := http.NewRequest(method, cmd.URL, strings.NewReader(p.Encode()))
+					req.Header.Set("Accept", "application/json")
+					if cmd.Method == model.COMMAND_METHOD_POST {
+						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+					}
+
+					if resp, err := client.Do(req); err != nil {
+						c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' failed", err.Error())
+					} else {
+						if resp.StatusCode == http.StatusOK {
+							response := model.CommandResponseFromJson(resp.Body)
+							if response == nil {
+								c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' returned an empty response", "")
+							} else {
+								handleResponse(c, w, response, channelId)
+							}
+						} else {
+							body, _ := ioutil.ReadAll(resp.Body)
+							c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' returned response "+resp.Status, string(body))
+						}
+					}
+
+					return
+				}
+			}
+
+		}
 	}
+
+	c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' not found", "")
+}
+
+func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, channelId string) {
+	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
+		post := &model.Post{}
+		post.ChannelId = channelId
+		post.Message = response.Text
+		if _, err := CreatePost(c, post, true); err != nil {
+			c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
+		}
+	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
+		post := &model.Post{}
+		post.ChannelId = channelId
+		post.Message = "TODO_EPHEMERAL: " + response.Text
+		if _, err := CreatePost(c, post, true); err != nil {
+			c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
+		}
+	}
+
+	w.Write([]byte(response.ToJson()))
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -277,4 +376,24 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(props)))
+}
+
+func testCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	msg := ""
+	if r.Method == "POST" {
+		msg = msg + "\ntoken=" + r.FormValue("token")
+		msg = msg + "\nteam_domain=" + r.FormValue("team_domain")
+	} else {
+		body, _ := ioutil.ReadAll(r.Body)
+		msg = string(body)
+	}
+
+	rc := &model.CommandResponse{
+		Text:         "test command response " + msg,
+		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+	}
+
+	w.Write([]byte(rc.ToJson()))
 }

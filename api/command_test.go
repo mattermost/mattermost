@@ -5,6 +5,7 @@ package api
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -204,5 +205,70 @@ func TestDeleteCommand(t *testing.T) {
 	cmds := Client.Must(Client.ListTeamCommands()).Data.([]*model.Command)
 	if len(cmds) != 0 {
 		t.Fatal("delete didn't work properly")
+	}
+}
+
+func TestTestCommand(t *testing.T) {
+	Setup()
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	cmd1 := &model.Command{
+		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/commands/test",
+		Method:  model.COMMAND_METHOD_POST,
+		Trigger: "test",
+	}
+
+	cmd1 = Client.Must(Client.CreateCommand(cmd1)).Data.(*model.Command)
+
+	r1 := Client.Must(Client.Command(channel1.Id, "/test", false)).Data.(*model.CommandResponse)
+	if r1 == nil {
+		t.Fatal("Test command failed to execute")
+	}
+
+	time.Sleep(100 * time.Millisecond)
+
+	p1 := Client.Must(Client.GetPosts(channel1.Id, 0, 2, "")).Data.(*model.PostList)
+	if len(p1.Order) != 1 {
+		t.Fatal("Test command failed to send")
+	}
+
+	cmd2 := &model.Command{
+		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/commands/test",
+		Method:  model.COMMAND_METHOD_GET,
+		Trigger: "test2",
+	}
+
+	cmd2 = Client.Must(Client.CreateCommand(cmd2)).Data.(*model.Command)
+
+	r2 := Client.Must(Client.Command(channel1.Id, "/test2", false)).Data.(*model.CommandResponse)
+	if r2 == nil {
+		t.Fatal("Test2 command failed to execute")
+	}
+
+	time.Sleep(100 * time.Millisecond)
+
+	p2 := Client.Must(Client.GetPosts(channel1.Id, 0, 2, "")).Data.(*model.PostList)
+	if len(p2.Order) != 2 {
+		t.Fatal("Test command failed to send")
 	}
 }
