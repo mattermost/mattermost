@@ -14,11 +14,8 @@ class Docs extends React.Component {
         const errorState = {text: '## 404'};
 
         if (props.site) {
-            let md = props.site + '.md';
             const locale = props.intl.locale;
-            if (locale !== 'en') {
-                md = props.site + '_' + locale + '.md';
-            }
+            let md = props.site + '_' + locale + '.md';
 
             $.get('/static/help/' + md).then((response) => {
                 this.setState({text: response});
