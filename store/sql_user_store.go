@@ -5,6 +5,7 @@ package store
 
 import (
 	"fmt"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
@@ -47,7 +48,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (us SqlUserStore) UpgradeSchemaIfNeeded(T goi18n.TranslateFunc) {
-	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE, T)
+	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", i18n.DEFAULT_LOCALE, T)
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists(T goi18n.TranslateFunc) {

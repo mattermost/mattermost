@@ -8,17 +8,17 @@ import (
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/i18n"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
-	"html/template"
 )
 
 func InitTeam(r *mux.Router) {
@@ -351,7 +351,7 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		session := result.Data.(*model.Session)
 
-		c.LogAudit("revoked_all=" + id, T)
+		c.LogAudit("revoked_all="+id, T)
 
 		if session.IsOAuth {
 			RevokeAccessToken(session.Token, T)
@@ -613,7 +613,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 func PermanentDeleteTeam(c *Context, team *model.Team, T goi18n.TranslateFunc) *model.AppError {
 	l4g.Warn(T("Attempting to permanently delete team %v id=%v"), team.Name, team.Id)
 	c.Path = "/teams/permanent_delete"
-	c.LogAuditWithUserId("", fmt.Sprintf(T("attempt") +" teamId=%v", team.Id), T)
+	c.LogAuditWithUserId("", fmt.Sprintf(T("attempt")+" teamId=%v", team.Id), T)
 
 	team.DeleteAt = model.GetMillis()
 	if result := <-Srv.Store.Team().Update(team, T); result.Err != nil {
@@ -638,7 +638,7 @@ func PermanentDeleteTeam(c *Context, team *model.Team, T goi18n.TranslateFunc) *
 	}
 
 	l4g.Warn(T("Permanently deleted team %v id=%v"), team.Name, team.Id)
-	c.LogAuditWithUserId("", fmt.Sprintf(T("success") +" teamId=%v", team.Id), T)
+	c.LogAuditWithUserId("", fmt.Sprintf(T("success")+" teamId=%v", team.Id), T)
 
 	return nil
 }

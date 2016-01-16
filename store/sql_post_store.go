@@ -184,7 +184,6 @@ func (s SqlPostStore) Get(id string, T goi18n.TranslateFunc) StoreChannel {
 			rootId = post.Id
 		}
 
-
 		var posts []*model.Post
 		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 		if err != nil {

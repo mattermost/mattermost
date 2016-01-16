@@ -4,9 +4,13 @@
 package model
 
 import (
+	intl "github.com/mattermost/platform/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"strings"
 	"testing"
 )
+
+var T goi18n.TranslateFunc = intl.GetTranslationsBySystemLocale()
 
 func TestAccessJson(t *testing.T) {
 	a1 := AccessData{}
@@ -25,17 +29,17 @@ func TestAccessJson(t *testing.T) {
 func TestAccessIsValid(t *testing.T) {
 	ad := AccessData{}
 
-	if err := ad.IsValid(); err == nil {
+	if err := ad.IsValid(T); err == nil {
 		t.Fatal("should have failed")
 	}
 
 	ad.AuthCode = NewId()
-	if err := ad.IsValid(); err == nil {
+	if err := ad.IsValid(T); err == nil {
 		t.Fatal("should have failed")
 	}
 
 	ad.Token = NewId()
-	if err := ad.IsValid(); err != nil {
+	if err := ad.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 }

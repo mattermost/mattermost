@@ -15,42 +15,42 @@ func TestPreferenceIsValid(t *testing.T) {
 		Name:     NewId(),
 	}
 
-	if err := preference.IsValid(); err == nil {
+	if err := preference.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	preference.UserId = NewId()
-	if err := preference.IsValid(); err != nil {
+	if err := preference.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 
 	preference.Category = strings.Repeat("01234567890", 20)
-	if err := preference.IsValid(); err == nil {
+	if err := preference.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	preference.Category = PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
-	if err := preference.IsValid(); err != nil {
+	if err := preference.IsValid(T); err != nil {
 		t.Fatal()
 	}
 
 	preference.Name = strings.Repeat("01234567890", 20)
-	if err := preference.IsValid(); err == nil {
+	if err := preference.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	preference.Name = NewId()
-	if err := preference.IsValid(); err != nil {
+	if err := preference.IsValid(T); err != nil {
 		t.Fatal()
 	}
 
 	preference.Value = strings.Repeat("01234567890", 20)
-	if err := preference.IsValid(); err == nil {
+	if err := preference.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	preference.Value = "1234garbage"
-	if err := preference.IsValid(); err != nil {
+	if err := preference.IsValid(T); err != nil {
 		t.Fatal()
 	}
 }

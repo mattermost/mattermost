@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/i18n"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"html/template"
 )
@@ -37,7 +37,7 @@ type Context struct {
 type Page struct {
 	TemplateName      string
 	Props             map[string]string
-	Html			  map[string]template.HTML
+	Html              map[string]template.HTML
 	ClientCfg         map[string]string
 	ClientLicense     map[string]string
 	User              *model.User
@@ -329,7 +329,7 @@ func (c *Context) HasSystemAdminPermissions(where string, T goi18n.TranslateFunc
 		return true
 	}
 
-	c.Err = model.NewAppError(where, T("You do not have the appropriate permissions") + " (system)", "userId="+c.Session.UserId)
+	c.Err = model.NewAppError(where, T("You do not have the appropriate permissions")+" (system)", "userId="+c.Session.UserId)
 	c.Err.StatusCode = http.StatusForbidden
 	return false
 }
@@ -377,11 +377,11 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) SetTeamCookie(w http.ResponseWriter, r *http.Request, teamName string) {
-	maxAge := (*utils.Cfg.ServiceSettings.SessionCacheInMinutes*60)
+	maxAge := (*utils.Cfg.ServiceSettings.SessionCacheInMinutes * 60)
 	cookie := &http.Cookie{
-		Name:	model.SESSION_TEAM,
-		Value:	teamName,
-		Path:	"/",
+		Name:   model.SESSION_TEAM,
+		Value:  teamName,
+		Path:   "/",
 		MaxAge: maxAge,
 	}
 
@@ -390,9 +390,9 @@ func (c *Context) SetTeamCookie(w http.ResponseWriter, r *http.Request, teamName
 
 func (c *Context) RemoveTeamCookie(w http.ResponseWriter, r *http.Request) {
 	cookie := &http.Cookie{
-		Name:	model.SESSION_TEAM,
-		Value:	"",
-		Path:	"/",
+		Name:   model.SESSION_TEAM,
+		Value:  "",
+		Path:   "/",
 		MaxAge: -1,
 	}
 

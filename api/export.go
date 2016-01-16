@@ -54,7 +54,7 @@ func ExportOptionsFromJson(data io.Reader) *ExportOptions {
 
 func ExportToFile(options *ExportOptions, T goi18n.TranslateFunc) (link string, err *model.AppError) {
 	// Open file for export
-	if file, err := openFileWriteStream(EXPORT_PATH + EXPORT_FILENAME, T); err != nil {
+	if file, err := openFileWriteStream(EXPORT_PATH+EXPORT_FILENAME, T); err != nil {
 		return "", err
 	} else {
 		defer closeFileWriteStream(file)

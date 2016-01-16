@@ -6,11 +6,11 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/i18n"
-	"time"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"time"
 )
 
 const (

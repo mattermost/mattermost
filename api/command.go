@@ -13,8 +13,8 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/i18n"
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )

@@ -5,8 +5,8 @@ package manualtesting
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/i18n"
+	"github.com/mattermost/platform/model"
 )
 
 const LINK_POST_TEXT = `

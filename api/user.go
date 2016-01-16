@@ -12,13 +12,14 @@ import (
 	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/i18n"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/mssola/user_agent"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"hash/fnv"
+	"html/template"
 	"image"
 	"image/color"
 	"image/draw"
@@ -31,7 +32,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"html/template"
 )
 
 func InitUser(r *mux.Router) {
@@ -514,7 +514,7 @@ func checkUserPassword(c *Context, user *model.User, password string, T goi18n.T
 
 // User MUST be validated before calling Login
 func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
-	i18n.SetLocaleCookie(w, user.Locale)
+	i18n.SetLocaleCookie(w, user.Locale, *utils.Cfg.ServiceSettings.SessionCacheInMinutes)
 	T := i18n.GetTranslations(w, r)
 	c.LogAuditWithUserId(user.Id, T("attempt"), T)
 
@@ -736,7 +736,7 @@ func RevokeSessionById(c *Context, sessionId string, T goi18n.TranslateFunc) {
 		c.Err = result.Err
 	} else {
 		session := result.Data.(*model.Session)
-		c.LogAudit("session_id=" + session.Id, T)
+		c.LogAudit("session_id="+session.Id, T)
 
 		if session.IsOAuth {
 			RevokeAccessToken(session.Token, T)
@@ -1166,8 +1166,8 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		c.LogAudit("", T)
 
-		if(user.Locale != "") {
-			i18n.SetLocaleCookie(w, user.Locale)
+		if user.Locale != "" {
+			i18n.SetLocaleCookie(w, user.Locale, *utils.Cfg.ServiceSettings.SessionCacheInMinutes)
 		}
 
 		rusers := result.Data.([2]*model.User)
@@ -1515,7 +1515,7 @@ func PermanentDeleteUser(c *Context, user *model.User, T goi18n.TranslateFunc) *
 	}
 
 	l4g.Warn(T("Permanently deleted account %v id=%v"), user.Email, user.Id)
-	c.LogAuditWithUserId("", fmt.Sprintf(T("success") + " userId=%v", user.Id), T)
+	c.LogAuditWithUserId("", fmt.Sprintf(T("success")+" userId=%v", user.Id), T)
 
 	return nil
 }

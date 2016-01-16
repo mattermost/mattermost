@@ -2,8 +2,6 @@ package i18n
 
 import (
 	"github.com/nicksnyder/go-i18n/i18n"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"github.com/cloudfoundry/jibber_jabber"
 	"net/http"
 	"strings"
@@ -13,10 +11,16 @@ import (
 	"path/filepath"
 )
 
+const (
+	SESSION_LOCALE        = "MMLOCALE"
+	DEFAULT_LOCALE       = "en"
+)
+
 var keyRegexp = regexp.MustCompile(`:[[:word:]]+`)
 var TranslateFunc i18n.TranslateFunc
 var locales = []string{}
 var i18nDirectory = "./i18n/"
+
 
 func Init() {
 	files, _ := ioutil.ReadDir(i18nDirectory)
@@ -31,7 +35,7 @@ func Init() {
 
 //GetTranslationsBySystemLocale get the Translations based on the LC_ALL OR LANG Environt variables
 func GetTranslationsBySystemLocale() (i18n.TranslateFunc) {
-	locale := model.DEFAULT_LOCALE
+	locale := DEFAULT_LOCALE
 	if userLanguage, err := jibber_jabber.DetectLanguage(); err == nil {
 		locale = userLanguage
 	}
@@ -53,10 +57,10 @@ func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.Tran
 	return getTranslationsAndLocale(w, r)
 }
 
-func SetLocaleCookie(w http.ResponseWriter, lang string) {
-	maxAge := (*utils.Cfg.ServiceSettings.SessionCacheInMinutes*60)
+func SetLocaleCookie(w http.ResponseWriter, lang string, sessionCacheInMinutes int) {
+	maxAge := (sessionCacheInMinutes * 60)
 	cookie := &http.Cookie{
-		Name:	model.SESSION_LOCALE,
+		Name:	SESSION_LOCALE,
 		Value:	lang,
 		Path:	"/",
 		MaxAge: maxAge,
@@ -110,7 +114,7 @@ func getTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.Tran
 	var translations i18n.TranslateFunc
 	var _ error
 	localeCookie := ""
-	if cookie, err := r.Cookie(model.SESSION_LOCALE); err == nil {
+	if cookie, err := r.Cookie(SESSION_LOCALE); err == nil {
 		localeCookie = cookie.Value
 		if contains(localeCookie) {
 			translations, _ = i18n.Tfunc(localeCookie)
@@ -121,11 +125,11 @@ func getTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.Tran
 	localeCookie = strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
 	if contains(localeCookie) {
 		translations, _ = i18n.Tfunc(localeCookie)
-		SetLocaleCookie(w, localeCookie)
+		SetLocaleCookie(w, localeCookie, 10)
 		return translations, localeCookie
 	}
 
-	translations, _ = i18n.Tfunc(model.DEFAULT_LOCALE)
-	SetLocaleCookie(w, model.DEFAULT_LOCALE)
-	return translations, model.DEFAULT_LOCALE
+	translations, _ = i18n.Tfunc(DEFAULT_LOCALE)
+	SetLocaleCookie(w, DEFAULT_LOCALE, 10)
+	return translations, DEFAULT_LOCALE
 }

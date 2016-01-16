@@ -18,18 +18,18 @@ func TestSocket(t *testing.T) {
 
 	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/websocket"
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+	user1 = Client.Must(Client.CreateUser(user1, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id, T))
+	Client.LoginByEmail(team.Name, user1.Email, "pwd", T)
 
 	channel1 := &model.Channel{DisplayName: "Test Web Scoket 1", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	channel1 = Client.Must(Client.CreateChannel(channel1, T)).Data.(*model.Channel)
 
 	channel2 := &model.Channel{DisplayName: "Test Web Scoket 2", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+	channel2 = Client.Must(Client.CreateChannel(channel2, T)).Data.(*model.Channel)
 
 	header1 := http.Header{}
 	header1.Set(model.HEADER_AUTH, "BEARER "+Client.AuthToken)
@@ -40,9 +40,9 @@ func TestSocket(t *testing.T) {
 	}
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
-	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+	user2 = Client.Must(Client.CreateUser(user2, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id, T))
+	Client.LoginByEmail(team.Name, user2.Email, "pwd", T)
 
 	header2 := http.Header{}
 	header2.Set(model.HEADER_AUTH, "BEARER "+Client.AuthToken)
@@ -53,7 +53,7 @@ func TestSocket(t *testing.T) {
 	}
 
 	time.Sleep(300 * time.Millisecond)
-	Client.Must(Client.JoinChannel(channel1.Id))
+	Client.Must(Client.JoinChannel(channel1.Id, T))
 
 	// Read the user_added message that gets generated
 	var rmsg model.Message

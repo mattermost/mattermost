@@ -4,8 +4,8 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/i18n"
+	"github.com/mattermost/platform/model"
 	"testing"
 )
 

@@ -7,9 +7,9 @@ import (
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/i18n"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"net/http"
 	"net/url"
@@ -51,7 +51,7 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		app = result.Data.(*model.OAuthApp)
 		app.ClientSecret = secret
 
-		c.LogAudit("client_id=" + app.Id, T)
+		c.LogAudit("client_id="+app.Id, T)
 
 		w.Write([]byte(app.ToJson()))
 		return

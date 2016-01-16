@@ -6,11 +6,11 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"image/gif"
 	"io"
 	"mime"
 	"path/filepath"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type FileInfo struct {

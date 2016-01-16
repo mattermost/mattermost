@@ -6,9 +6,9 @@ package manualtesting
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/i18n"
 	"hash/fnv"
 	"math/rand"
 	"net/http"

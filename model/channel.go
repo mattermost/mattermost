@@ -4,8 +4,8 @@
 package model
 
 import (
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"io"
 	"unicode/utf8"
 )
@@ -14,8 +14,7 @@ const (
 	CHANNEL_OPEN    = "O"
 	CHANNEL_PRIVATE = "P"
 	CHANNEL_DIRECT  = "D"
-	DEFAULT_CHANNEL = "general"
-	DEFAULT_PRIVATE = "sala-privada"
+	DEFAULT_CHANNEL = "town-square"
 )
 
 type Channel struct {

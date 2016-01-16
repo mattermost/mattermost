@@ -8,10 +8,11 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/i18n"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"html/template"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -19,7 +20,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"html/template"
 )
 
 func InitPost(r *mux.Router) {
@@ -574,7 +574,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 					subjectPage.Props["SiteURL"] = c.GetSiteURL()
 					subjectPage.Props["SubjectText"] = subjectText
 					subjectPage.Props["Subject"] = i18n.MaybeExpandNamedText(T("for :Team at :Month :Day, :Year"),
-						map[string]interface{}{ "Month": T(tm.Month().String())[:3], "Day": fmt.Sprintf("%d", tm.Day()), "Year": fmt.Sprintf("%d", tm.Year())})
+						map[string]interface{}{"Month": T(tm.Month().String())[:3], "Day": fmt.Sprintf("%d", tm.Day()), "Year": fmt.Sprintf("%d", tm.Year())})
 
 					bodyPage := NewServerTemplatePage("post_body")
 					bodyPage.Props["SiteURL"] = c.GetSiteURL()

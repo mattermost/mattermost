@@ -44,66 +44,66 @@ func TestUserPreUpdate(t *testing.T) {
 func TestUserIsValid(t *testing.T) {
 	user := User{}
 
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	user.Id = NewId()
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	user.CreateAt = GetMillis()
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	user.UpdateAt = GetMillis()
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	user.TeamId = NewId()
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	user.Username = NewId() + "^hello#"
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	user.Username = NewId()
 	user.Email = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	user.Email = "test@nowhere.com"
 	user.Nickname = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	user.Nickname = ""
-	if err := user.IsValid(); err != nil {
+	if err := user.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 
 	user.FirstName = ""
 	user.LastName = ""
-	if err := user.IsValid(); err != nil {
+	if err := user.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 
 	user.FirstName = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal(err)
 	}
 
 	user.FirstName = ""
 	user.LastName = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(T); err == nil {
 		t.Fatal(err)
 	}
 }

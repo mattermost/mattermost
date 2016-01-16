@@ -6,14 +6,13 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
-	l4g "github.com/alecthomas/log4go"
-
-	"github.com/mattermost/platform/model"
 )
 
 const (

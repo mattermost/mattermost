@@ -5,9 +5,9 @@ package model
 
 import (
 	"bytes"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"io/ioutil"
 	"net/http"
 	"net/url"

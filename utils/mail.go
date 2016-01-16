@@ -9,11 +9,11 @@ import (
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"net"
 	"net/mail"
 	"net/smtp"
 	"time"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 func encodeRFC2047Word(s string) string {

@@ -8,12 +8,12 @@ import (
 	"bytes"
 	"encoding/json"
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"io"
 	"mime/multipart"
 	"strconv"
 	"strings"
-	"github.com/mattermost/platform/i18n"
 )
 
 type SlackChannel struct {

@@ -12,10 +12,10 @@ import (
 	"github.com/goamz/goamz/s3"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/i18n"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	"image"
@@ -511,7 +511,7 @@ func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
-	data, err := readFile(EXPORT_PATH + EXPORT_FILENAME, T)
+	data, err := readFile(EXPORT_PATH+EXPORT_FILENAME, T)
 	if err != nil {
 		c.Err = model.NewAppError("getExport", T("Unable to retrieve exported file. Please re-export"), err.Error())
 		return

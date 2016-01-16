@@ -4,10 +4,10 @@
 package store
 
 import (
+	l4g "github.com/alecthomas/log4go"
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	l4g "github.com/alecthomas/log4go"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -489,11 +489,11 @@ func (s SqlChannelStore) GetTotalChannelsByType(teamType string, teamId string, 
 	go func() {
 		result := StoreResult{}
 
-		var data[] totalChannelsByType
+		var data []totalChannelsByType
 		_, err := s.GetReplica().Select(&data, "SELECT COUNT(DISTINCT Id) as Total FROM Channels WHERE TeamId = :TeamId AND Type = :TeamType AND DeleteAt=0",
 			map[string]interface{}{"TeamId": teamId, "TeamType": teamType})
 
-		if(err != nil) {
+		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetChannelCounts", T("We couldn't get the channel counts"), "teamId="+teamId+", err="+err.Error())
 		} else {
 			counts := &model.ChannelCounts{Total: data[0].Total}

@@ -46,6 +46,7 @@ var flagTeamName string
 var flagRole string
 var flagRunCmds bool
 var T = i18n.TranslateFunc
+
 func main() {
 
 	i18n.Init()

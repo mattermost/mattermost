@@ -12,9 +12,9 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/i18n"
 )
 
 func InitAdmin(r *mux.Router) {

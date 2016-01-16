@@ -20,7 +20,7 @@ func NewServerTemplatePage(templateName string) *ServerTemplatePage {
 	return &ServerTemplatePage{
 		TemplateName: templateName,
 		Props:        make(map[string]string),
-		Html:		  make(map[string]template.HTML),
+		Html:         make(map[string]template.HTML),
 		ClientCfg:    utils.ClientCfg,
 	}
 }

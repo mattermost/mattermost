@@ -4,9 +4,9 @@
 package model
 
 import (
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"fmt"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"regexp"
@@ -25,7 +25,6 @@ const (
 	USER_NOTIFY_ALL      = "all"
 	USER_NOTIFY_MENTION  = "mention"
 	USER_NOTIFY_NONE     = "none"
-	DEFAULT_LOCALE		 = "en"
 )
 
 type User struct {
@@ -44,7 +43,7 @@ type User struct {
 	FirstName          string    `json:"first_name"`
 	LastName           string    `json:"last_name"`
 	Roles              string    `json:"roles"`
-	Locale 			   string	 `json:"locale"`
+	Locale             string    `json:"locale"`
 	LastActivityAt     int64     `json:"last_activity_at,omitempty"`
 	LastPingAt         int64     `json:"last_ping_at,omitempty"`
 	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
@@ -129,10 +128,6 @@ func (u *User) PreSave() {
 
 	if u.Username == "" {
 		u.Username = NewId()
-	}
-
-	if(u.Locale == "") {
-		u.Locale = DEFAULT_LOCALE
 	}
 
 	u.Username = strings.ToLower(u.Username)
@@ -293,14 +288,6 @@ func (u *User) GetDisplayName() string {
 	} else {
 		return u.Username
 	}
-}
-
-func (u *User) GetLanguage() string {
-	if(u.Locale == "") {
-		return DEFAULT_LOCALE
-	}
-
-	return u.Locale
 }
 
 func IsValidRoles(userRoles string) bool {

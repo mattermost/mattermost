@@ -48,7 +48,7 @@ func BenchmarkUpdatePost(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for i := range posts {
-			if _, err := Client.UpdatePost(posts[i]); err != nil {
+			if _, err := Client.UpdatePost(posts[i], T); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -67,7 +67,7 @@ func BenchmarkGetPosts(b *testing.B) {
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Client.Must(Client.GetPosts(channel.Id, 0, NUM_POSTS, ""))
+		Client.Must(Client.GetPosts(channel.Id, 0, NUM_POSTS, "", T))
 	}
 }
 
@@ -83,9 +83,9 @@ func BenchmarkSearchPosts(b *testing.B) {
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Client.Must(Client.SearchPosts("nothere"))
-		Client.Must(Client.SearchPosts("n"))
-		Client.Must(Client.SearchPosts("#tag"))
+		Client.Must(Client.SearchPosts("nothere", T))
+		Client.Must(Client.SearchPosts("n", T))
+		Client.Must(Client.SearchPosts("#tag", T))
 	}
 }
 
@@ -98,12 +98,12 @@ func BenchmarkEtagCache(b *testing.B) {
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 	testPoster.CreateTestPosts(NUM_POSTS_RANGE)
 
-	etag := Client.Must(Client.GetPosts(channel.Id, 0, NUM_POSTS/2, "")).Etag
+	etag := Client.Must(Client.GetPosts(channel.Id, 0, NUM_POSTS/2, "", T)).Etag
 
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Client.Must(Client.GetPosts(channel.Id, 0, NUM_POSTS/2, etag))
+		Client.Must(Client.GetPosts(channel.Id, 0, NUM_POSTS/2, etag, T))
 	}
 }
 
@@ -123,7 +123,7 @@ func BenchmarkDeletePosts(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for i := range posts {
-			Client.Must(Client.DeletePost(channel.Id, posts[i].Id))
+			Client.Must(Client.DeletePost(channel.Id, posts[i].Id, T))
 		}
 	}
 

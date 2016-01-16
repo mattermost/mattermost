@@ -7,8 +7,8 @@ import (
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/i18n"
+	"github.com/mattermost/platform/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"net/http"
 	"strconv"
@@ -92,7 +92,7 @@ func CreateChannel(c *Context, channel *model.Channel, addMember bool, T goi18n.
 			}
 		}
 
-		c.LogAudit("name=" + channel.Name, T)
+		c.LogAudit("name="+channel.Name, T)
 
 		return sc, nil
 	}
@@ -239,7 +239,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = ucresult.Err
 			return
 		} else {
-			c.LogAudit("name=" + channel.Name, T)
+			c.LogAudit("name="+channel.Name, T)
 			w.Write([]byte(oldChannel.ToJson()))
 		}
 	}
@@ -284,7 +284,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			PostUpdateChannelHeaderMessageAndForget(c, channel.Id, oldChannelHeader, channelHeader, T)
-			c.LogAudit("name=" + channel.Name, T)
+			c.LogAudit("name="+channel.Name, T)
 			w.Write([]byte(channel.ToJson()))
 		}
 	}
@@ -359,7 +359,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = ucresult.Err
 			return
 		} else {
-			c.LogAudit("name=" + channel.Name, T)
+			c.LogAudit("name="+channel.Name, T)
 			w.Write([]byte(channel.ToJson()))
 		}
 	}
@@ -530,9 +530,9 @@ func JoinDefaultChannels(user *model.User, channelRole string, T goi18n.Translat
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
 			Roles: channelRole, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
-			if cmResult := <-Srv.Store.Channel().SaveMember(cm, T); cmResult.Err != nil {
-				err = cmResult.Err
-			}
+		if cmResult := <-Srv.Store.Channel().SaveMember(cm, T); cmResult.Err != nil {
+			err = cmResult.Err
+		}
 	}
 
 	return err
@@ -664,7 +664,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.LogAudit("name=" + channel.Name, T)
+		c.LogAudit("name="+channel.Name, T)
 
 		post := &model.Post{ChannelId: channel.Id, Message: fmt.Sprintf(
 			T(`%v has archived the channel.`),
@@ -852,7 +852,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			c.LogAudit("name=" + channel.Name + " user_id=" + userId, T)
+			c.LogAudit("name="+channel.Name+" user_id="+userId, T)
 
 			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(T(`%v added to the channel by %v`), nUser.Username, oUser.Username))
 
@@ -903,7 +903,7 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.LogAudit("name=" + channel.Name + " user_id=" + userIdToRemove, T)
+		c.LogAudit("name="+channel.Name+" user_id="+userIdToRemove, T)
 
 		result := make(map[string]string)
 		result["channel_id"] = channel.Id

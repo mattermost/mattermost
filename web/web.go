@@ -249,18 +249,18 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	if !CheckBrowserCompatability(c, w, r) {
 		return
 	}
 
-	page := NewHtmlTemplatePage("signup_team", T("Signup"), lang, T)
+	page := NewHtmlTemplatePage("signup_team", T("Signup"), locale, T)
 	page.Props["SignupTitle"] = T("signup_team.title")
 	page.Render(c, w, T)
 }
 
 func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 
 	if !CheckBrowserCompatability(c, w, r) {
 		return
@@ -292,7 +292,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage("login", T("Login"), lang, T)
+	page := NewHtmlTemplatePage("login", T("Login"), locale, T)
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
 
@@ -304,17 +304,17 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func signupTeamConfirm(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	email := r.FormValue("email")
 
-	page := NewHtmlTemplatePage("signup_team_confirm", T("Signup Email Sent"), lang, T)
+	page := NewHtmlTemplatePage("signup_team_confirm", T("Signup Email Sent"), locale, T)
 	page.Props["SignupTitle"] = T("signup_team_confirm.title")
 	page.Html["SignupInfo"] = template.HTML(fmt.Sprintf(T("signup_team_confirm.info"), email))
 	page.Render(c, w, T)
 }
 
 func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	data := r.FormValue("d")
 	hash := r.FormValue("h")
 
@@ -331,7 +331,7 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	page := NewHtmlTemplatePage("signup_team_complete", T("Complete Team Sign Up"), lang, T)
+	page := NewHtmlTemplatePage("signup_team_complete", T("Complete Team Sign Up"), locale, T)
 	page.Props["Email"] = props["email"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
@@ -339,7 +339,7 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	id := r.FormValue("id")
 	data := r.FormValue("d")
 	hash := r.FormValue("h")
@@ -381,7 +381,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	page := NewHtmlTemplatePage("signup_user_complete", T("Complete User Sign Up"), lang, T)
+	page := NewHtmlTemplatePage("signup_user_complete", T("Complete User Sign Up"), locale, T)
 	page.Props["Email"] = props["email"]
 	page.Props["TeamDisplayName"] = props["display_name"]
 	page.Props["TeamName"] = props["name"]
@@ -561,7 +561,7 @@ func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, 
 }
 
 func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team *model.Team, channel *model.Channel, postid string) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	userChan := api.Srv.Store.User().Get(c.Session.UserId, T)
 
 	var user *model.User
@@ -574,7 +574,7 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 		user = ur.Data.(*model.User)
 	}
 
-	page := NewHtmlTemplatePage("channel", "", lang, T)
+	page := NewHtmlTemplatePage("channel", "", locale, T)
 	page.Props["Title"] = channel.DisplayName + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["ChannelName"] = channel.Name
@@ -587,7 +587,7 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 }
 
 func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	resend := r.URL.Query().Get("resend")
 	resendSuccess := r.URL.Query().Get("resend_success")
 	name := r.URL.Query().Get("teamname")
@@ -632,7 +632,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	page := NewHtmlTemplatePage("verify", T("Email Verified"), lang, T)
+	page := NewHtmlTemplatePage("verify", T("Email Verified"), locale, T)
 	page.Props["TeamURL"] = c.GetTeamURLFromTeam(team)
 	page.Props["UserEmail"] = email
 	page.Props["ResendSuccess"] = resendSuccess
@@ -640,24 +640,24 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func findTeam(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 
-	page := NewHtmlTemplatePage("find_team", T("Find Team"), lang, T)
+	page := NewHtmlTemplatePage("find_team", T("Find Team"), locale, T)
 	page.Render(c, w, T)
 }
 
 func docs(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	params := mux.Vars(r)
 	doc := params["doc"]
 
-	page := NewHtmlTemplatePage("docs", T("Documentation"), lang, T)
+	page := NewHtmlTemplatePage("docs", T("Documentation"), locale, T)
 	page.Props["Site"] = doc
 	page.Render(c, w, T)
 }
 
 func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	isResetLink := true
 	hash := r.URL.Query().Get("h")
 	data := r.URL.Query().Get("d")
@@ -694,7 +694,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		teamDisplayName = team.DisplayName
 	}
 
-	page := NewHtmlTemplatePage("password_reset", "", lang, T)
+	page := NewHtmlTemplatePage("password_reset", "", locale, T)
 	page.Props["Title"] = T("Reset Password ") + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = teamDisplayName
 	page.Props["TeamName"] = teamName
@@ -846,7 +846,7 @@ func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	if !c.HasSystemAdminPermissions("adminConsole", T) {
 		return
 	}
@@ -875,7 +875,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	activeTab := params["tab"]
 	teamId := params["team"]
 
-	page := NewHtmlTemplatePage("admin_console", T("Admin Console"), lang, T)
+	page := NewHtmlTemplatePage("admin_console", T("Admin Console"), locale, T)
 	page.User = user
 	page.Team = team
 	page.Props["ActiveTab"] = activeTab
@@ -884,7 +884,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T, lang := i18n.GetTranslationsAndLocale(w, r)
+	T, locale := i18n.GetTranslationsAndLocale(w, r)
 	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
 		c.Err = model.NewAppError("authorizeOAuth", T("The system admin has turned off OAuth service providing."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
@@ -922,7 +922,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		team = result.Data.(*model.Team)
 	}
 
-	page := NewHtmlTemplatePage("authorize", T("Authorize Application"), lang, T)
+	page := NewHtmlTemplatePage("authorize", T("Authorize Application"), locale, T)
 	page.Props["ResponseType"] = responseType
 	page.Props["ClientId"] = clientId
 	page.Props["RedirectUri"] = redirect

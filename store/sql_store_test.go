@@ -4,12 +4,11 @@
 package store
 
 import (
-	"strings"
-	"testing"
-
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/i18n"
+	"strings"
+	"testing"
 )
 
 var store Store
@@ -21,7 +20,7 @@ func Setup() {
 		utils.LoadConfig("config.json", T)
 		store = NewSqlStore()
 
-		store.MarkSystemRanUnitTests()
+		store.MarkSystemRanUnitTests(T)
 	}
 }
 

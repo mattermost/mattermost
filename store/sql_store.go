@@ -26,9 +26,9 @@ import (
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/i18n"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -230,7 +230,7 @@ func (ss SqlStore) DoesTableExist(tableName string, T goi18n.TranslateFunc) bool
 		)
 
 		if err != nil {
-				l4g.Critical(T("Failed to check if table exists %v"), err)
+			l4g.Critical(T("Failed to check if table exists %v"), err)
 			time.Sleep(time.Second)
 			panic(T("Failed to check if table exists ") + err.Error())
 		}

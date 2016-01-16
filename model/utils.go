@@ -4,12 +4,12 @@
 package model
 
 import (
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"bytes"
 	"crypto/rand"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
 	"io"
 	"net/mail"
