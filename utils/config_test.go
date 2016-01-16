@@ -5,8 +5,10 @@ package utils
 
 import (
 	"testing"
+	"github.com/mattermost/platform/i18n"
 )
 
 func TestConfig(t *testing.T) {
-	LoadConfig("config.json")
+	T := i18n.GetTranslationsBySystemLocale()
+	LoadConfig("config.json", T)
 }

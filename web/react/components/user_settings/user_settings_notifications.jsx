@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 
@@ -9,6 +10,101 @@ import UserStore from '../../stores/user_store.jsx';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import * as Utils from '../../utils/utils.jsx';
+
+const messages = defineMessages({
+    allActivity: {
+        id: 'user.settings.notification.allActivity',
+        defaultMessage: 'For all activity'
+    },
+    onlyMentions: {
+        id: 'user.settings.notifications.onlyMentions',
+        defaultMessage: 'Only for mentions and direct messages'
+    },
+    never: {
+        id: 'user.settings.notifications.never',
+        defaultMessage: 'Never'
+    },
+    info: {
+        id: 'user.settings.notifications.info',
+        defaultMessage: 'Desktop notifications are available on Firefox, Safari, and Chrome.'
+    },
+    desktop: {
+        id: 'user.settings.notifications.desktop',
+        defaultMessage: 'Send desktop notifications'
+    },
+    on: {
+        id: 'user.settings.notifications.on',
+        defaultMessage: 'On'
+    },
+    off: {
+        id: 'user.settings.notifications.off',
+        defaultMessage: 'Off'
+    },
+    soundsInfo: {
+        id: 'user.settings.notifications.soundInfo',
+        defaultMessage: 'Desktop notification sounds are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'
+    },
+    desktopSounds: {
+        id: 'user.settings.notifications.desktopSounds',
+        defaultMessage: 'Desktop notification sounds'
+    },
+    soundConfig: {
+        id: 'user.settings.notification.soundConfig',
+        defaultMessage: 'Please configure notification sounds in your browser settings'
+    },
+    emailInfo1: {
+        id: 'user.settings.notifications.emailInfo1',
+        defaultMessage: 'Email notifications are sent for mentions and direct messages after you’ve been offline for more than 60 seconds or away from '
+    },
+    emailInfo2: {
+        id: 'user.settings.notifications.emailInfo2',
+        defaultMessage: ' for more than 5 minutes.'
+    },
+    emailNotifications: {
+        id: 'user.settings.notifications.emailNotifications',
+        defaultMessage: 'Email notifications'
+    },
+    sensitiveName: {
+        id: 'user.settings.notifications.sensitiveName',
+        defaultMessage: 'Your case sensitive first name "'
+    },
+    sensitiveUsername: {
+        id: 'user.settings.notifications.sensitiveUsername',
+        defaultMessage: 'Your non-case sensitive username "'
+    },
+    usernameMention: {
+        id: 'user.settings.notifications.usernameMention',
+        defaultMessage: 'Your username mentioned "@'
+    },
+    teamWide: {
+        id: 'user.settings.notifications.teamWide',
+        defaultMessage: 'Team-wide mentions "@all"'
+    },
+    channelWide: {
+        id: 'user.settings.notifications.channelWide',
+        defaultMessage: 'Channel-wide mentions "@channel"'
+    },
+    sensitiveWords: {
+        id: 'user.settings.notifications.sensitiveWords',
+        defaultMessage: 'Other non-case sensitive words, separated by commas:'
+    },
+    wordsTrigger: {
+        id: 'user.settings.notifications.wordsTrigger',
+        defaultMessage: 'Words that trigger mentions'
+    },
+    noWords: {
+        id: 'user.settings.notifications.noWords',
+        defaultMessage: 'No words configured'
+    },
+    close: {
+        id: 'user.settings.notifications.close',
+        defaultMessage: 'Close'
+    },
+    title: {
+        id: 'user.settings.notifications.title',
+        defaultMessage: 'Notification Settings'
+    }
+});
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
@@ -73,7 +169,7 @@ function getNotificationsStateFromStores() {
             firstNameKey: firstNameKey, allKey: allKey, channelKey: channelKey};
 }
 
-export default class NotificationsTab extends React.Component {
+class NotificationsTab extends React.Component {
     constructor(props) {
         super(props);
 
@@ -198,6 +294,7 @@ export default class NotificationsTab extends React.Component {
         this.updateCustomMentionKeys();
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = null;
         if (this.state.serverError) {
             serverError = this.state.serverError;
@@ -227,7 +324,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={notifyActive[0]}
                                 onChange={this.handleNotifyRadio.bind(this, 'all')}
                             />
-                            {'For all activity'}
+                            {formatMessage(messages.allActivity)}
                         </label>
                         <br/>
                     </div>
@@ -238,7 +335,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={notifyActive[1]}
                                 onChange={this.handleNotifyRadio.bind(this, 'mention')}
                             />
-                            {'Only for mentions and direct messages'}
+                            {formatMessage(messages.onlyMentions)}
                         </label>
                         <br/>
                     </div>
@@ -249,17 +346,17 @@ export default class NotificationsTab extends React.Component {
                                 checked={notifyActive[2]}
                                 onChange={this.handleNotifyRadio.bind(this, 'none')}
                             />
-                            {'Never'}
+                            {formatMessage(messages.never)}
                         </label>
                     </div>
                 </div>
             );
 
-            const extraInfo = <span>{'Desktop notifications are available on Firefox, Safari, and Chrome.'}</span>;
+            const extraInfo = <span>{formatMessage(messages.info)}</span>;
 
             desktopSection = (
                 <SettingItemMax
-                    title='Send desktop notifications'
+                    title={formatMessage(messages.desktop)}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
@@ -270,11 +367,11 @@ export default class NotificationsTab extends React.Component {
         } else {
             let describe = '';
             if (this.state.notifyLevel === 'mention') {
-                describe = 'Only for mentions and direct messages';
+                describe = formatMessage(messages.onlyMentions);
             } else if (this.state.notifyLevel === 'none') {
-                describe = 'Never';
+                describe = formatMessage(messages.never);
             } else {
-                describe = 'For all activity';
+                describe = formatMessage(messages.allActivity);
             }
 
             handleUpdateDesktopSection = function updateDesktopSection() {
@@ -283,7 +380,7 @@ export default class NotificationsTab extends React.Component {
 
             desktopSection = (
                 <SettingItemMin
-                    title='Send desktop notifications'
+                    title={formatMessage(messages.desktop)}
                     describe={describe}
                     updateSection={handleUpdateDesktopSection}
                 />
@@ -311,7 +408,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={soundActive[0]}
                                 onChange={this.handleSoundRadio.bind(this, 'true')}
                             />
-                            {'On'}
+                            {formatMessage(messages.on)}
                         </label>
                         <br/>
                     </div>
@@ -322,18 +419,18 @@ export default class NotificationsTab extends React.Component {
                                 checked={soundActive[1]}
                                 onChange={this.handleSoundRadio.bind(this, 'false')}
                             />
-                            {'Off'}
+                            {formatMessage(messages.off)}
                         </label>
                         <br/>
                      </div>
                  </div>
             );
 
-            const extraInfo = <span>{'Desktop notification sounds are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'}</span>;
+            const extraInfo = <span>{formatMessage(messages.soundsInfo)}</span>;
 
             soundSection = (
                 <SettingItemMax
-                    title='Desktop notification sounds'
+                    title={formatMessage(messages.desktopSounds)}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
@@ -344,11 +441,11 @@ export default class NotificationsTab extends React.Component {
         } else {
             let describe = '';
             if (!this.state.soundNeeded) {
-                describe = 'Please configure notification sounds in your browser settings';
+                describe = formatMessage(messages.soundConfig);
             } else if (this.state.enableSound === 'false') {
-                describe = 'Off';
+                describe = formatMessage(messages.off);
             } else {
-                describe = 'On';
+                describe = formatMessage(messages.on);
             }
 
             handleUpdateSoundSection = function updateSoundSection() {
@@ -357,7 +454,7 @@ export default class NotificationsTab extends React.Component {
 
             soundSection = (
                 <SettingItemMin
-                    title='Desktop notification sounds'
+                    title={formatMessage(messages.desktopSounds)}
                     describe={describe}
                     updateSection={handleUpdateSoundSection}
                     disableOpen = {!this.state.soundNeeded}
@@ -386,7 +483,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={emailActive[0]}
                                 onChange={this.handleEmailRadio.bind(this, 'true')}
                             />
-                            {'On'}
+                            {formatMessage(messages.on)}
                         </label>
                         <br/>
                     </div>
@@ -397,17 +494,17 @@ export default class NotificationsTab extends React.Component {
                                 checked={emailActive[1]}
                                 onChange={this.handleEmailRadio.bind(this, 'false')}
                             />
-                            {'Off'}
+                            {formatMessage(messages.off)}
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'Email notifications are sent for mentions and direct messages after you’ve been offline for more than 60 seconds or away from ' + global.window.mm_config.SiteName + ' for more than 5 minutes.'}</div>
+                    <div><br/>{formatMessage(messages.emailInfo1) + global.window.mm_config.SiteName + formatMessage(messages.emailInfo2)}</div>
                 </div>
             );
 
             emailSection = (
                 <SettingItemMax
-                    title='Email notifications'
+                    title={formatMessage(messages.emailNotifications)}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -417,9 +514,9 @@ export default class NotificationsTab extends React.Component {
         } else {
             let describe = '';
             if (this.state.enableEmail === 'false') {
-                describe = 'Off';
+                describe = formatMessage(messages.off);
             } else {
-                describe = 'On';
+                describe = formatMessage(messages.on);
             }
 
             handleUpdateEmailSection = function updateEmailSection() {
@@ -428,7 +525,7 @@ export default class NotificationsTab extends React.Component {
 
             emailSection = (
                 <SettingItemMin
-                    title='Email notifications'
+                    title={formatMessage(messages.emailNotifications)}
                     describe={describe}
                     updateSection={handleUpdateEmailSection}
                 />
@@ -459,7 +556,7 @@ export default class NotificationsTab extends React.Component {
                                     checked={this.state.firstNameKey}
                                     onChange={handleUpdateFirstNameKey}
                                 />
-                                {'Your case sensitive first name "' + user.first_name + '"'}
+                                {formatMessage(messages.sensitiveName) + user.first_name + '"'}
                             </label>
                         </div>
                     </div>
@@ -478,7 +575,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={this.state.usernameKey}
                                 onChange={handleUpdateUsernameKey}
                             />
-                            {'Your non-case sensitive username "' + user.username + '"'}
+                            {formatMessage(messages.sensitiveName) + user.username + '"'}
                         </label>
                     </div>
                 </div>
@@ -496,7 +593,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={this.state.mentionKey}
                                 onChange={handleUpdateMentionKey}
                             />
-                            {'Your username mentioned "@' + user.username + '"'}
+                            {formatMessage(messages.usernameMention) + user.username + '"'}
                         </label>
                     </div>
                 </div>
@@ -514,7 +611,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={this.state.allKey}
                                 onChange={handleUpdateAllKey}
                             />
-                            {'Team-wide mentions "@all"'}
+                            {formatMessage(messages.teamWide)}
                         </label>
                     </div>
                 </div>
@@ -532,7 +629,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={this.state.channelKey}
                                 onChange={handleUpdateChannelKey}
                             />
-                            {'Channel-wide mentions "@channel"'}
+                            {formatMessage(messages.channelWide)}
                         </label>
                     </div>
                 </div>
@@ -548,7 +645,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={this.state.customKeysChecked}
                                 onChange={this.updateCustomMentionKeys}
                             />
-                            {'Other non-case sensitive words, separated by commas:'}
+                            {formatMessage(messages.sensitiveWords)}
                         </label>
                     </div>
                     <input
@@ -563,7 +660,7 @@ export default class NotificationsTab extends React.Component {
 
             keysSection = (
                 <SettingItemMax
-                    title='Words that trigger mentions'
+                    title={formatMessage(messages.wordsTrigger)}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -601,7 +698,7 @@ export default class NotificationsTab extends React.Component {
             if (describe.length > 0) {
                 describe = describe.substring(0, describe.length - 2);
             } else {
-                describe = 'No words configured';
+                describe = formatMessage(messages.noWords);
             }
 
             handleUpdateKeysSection = function updateKeysSection() {
@@ -610,7 +707,7 @@ export default class NotificationsTab extends React.Component {
 
             keysSection = (
                 <SettingItemMin
-                    title='Words that trigger mentions'
+                    title={formatMessage(messages.wordsTrigger)}
                     describe={describe}
                     updateSection={handleUpdateKeysSection}
                 />
@@ -624,7 +721,7 @@ export default class NotificationsTab extends React.Component {
                         type='button'
                         className='close'
                         data-dismiss='modal'
-                        aria-label='Close'
+                        aria-label={formatMessage(messages.close)}
                         onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
@@ -637,14 +734,14 @@ export default class NotificationsTab extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Notification Settings'}
+                        {formatMessage(messages.title)}
                     </h4>
                 </div>
                 <div
                     ref='wrapper'
                     className='user-settings'
                 >
-                    <h3 className='tab-header'>{'Notifications'}</h3>
+                    <h3 className='tab-header'>{formatMessage(messages.title)}</h3>
                     <div className='divider-dark first'/>
                     {desktopSection}
                     <div className='divider-light'/>
@@ -667,6 +764,7 @@ NotificationsTab.defaultProps = {
     activeTab: ''
 };
 NotificationsTab.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
@@ -675,3 +773,5 @@ NotificationsTab.propTypes = {
     closeModal: React.PropTypes.func.isRequired,
     collapseModal: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(NotificationsTab);

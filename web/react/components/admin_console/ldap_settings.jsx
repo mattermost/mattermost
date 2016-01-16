@@ -1,13 +1,177 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
 const DEFAULT_LDAP_PORT = 389;
 const DEFAULT_QUERY_TIMEOUT = 60;
 
-export default class LdapSettings extends React.Component {
+const messages = defineMessages({
+    bannerHeading: {
+        id: 'admin.ldap.bannerHeading',
+        defaultMessage: 'Note:'
+    },
+    bannerDesc: {
+        id: 'admin.ldap.bannerDesc',
+        defaultMessage: 'If a user attribute changes on the LDAP server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from an LDAP server. Synchronization with LDAP servers is planned in a future release.'
+    },
+    title: {
+        id: 'admin.ldap.title',
+        defaultMessage: 'LDAP Settings'
+    },
+    enableTitle: {
+        id: 'admin.ldap.enableTitle',
+        defaultMessage: 'Enable Login With LDAP:'
+    },
+    enableDesc: {
+        id: 'admin.ldap.enableDesc',
+        defaultMessage: 'When true, Mattermost allows login using LDAP'
+    },
+    true: {
+        id: 'admin.ldap.true',
+        defaultMessage: 'true'
+    },
+    false: {
+        id: 'admin.ldap.false',
+        defaultMessage: 'false'
+    },
+    serverTitle: {
+        id: 'admin.ldap.serverTitle',
+        defaultMessage: 'LDAP Server:'
+    },
+    serverEx: {
+        id: 'admin.ldap.serverEx',
+        defaultMessage: 'Ex "10.0.0.23"'
+    },
+    serverDesc: {
+        id: 'admin.ldap.serverDesc',
+        defaultMessage: 'The domain or IP address of LDAP server.'
+    },
+    portTitle: {
+        id: 'admin.ldap.portTitle',
+        defaultMessage: 'LDAP Port:'
+    },
+    portEx: {
+        id: 'admin.ldap.portEx',
+        defaultMessage: 'Ex "389"'
+    },
+    portDesc: {
+        id: 'admin.ldap.portDesc',
+        defaultMessage: 'The port Mattermost will use to connect to the LDAP server. Default is 389.'
+    },
+    baseTitle: {
+        id: 'admin.ldap.baseTitle',
+        defaultMessage: 'BaseDN:'
+    },
+    baseEx: {
+        id: 'admin.ldap.baseEx',
+        defaultMessage: 'Ex "dc=mydomain,dc=com"'
+    },
+    baseDesc: {
+        id: 'admin.ldap.baseDesc',
+        defaultMessage: 'The Base DN is the Distinguished Name of the location where Mattermost should start its search for users in the LDAP tree.'
+    },
+    bindUserTitle: {
+        id: 'admin.ldap.bindUserTitle',
+        defaultMessage: 'Bind Username:'
+    },
+    bindUserDesc: {
+        id: 'admin.ldap.bindUserDesc',
+        defaultMessage: 'The username used to perform the LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the LDAP tree specified in the BaseDN field.'
+    },
+    bindPwdTitle: {
+        id: 'admin.ldap.bindPwdTitle',
+        defaultMessage: 'Bind Password:'
+    },
+    bindPwdDesc: {
+        id: 'admin.ldap.bindPwdDesc',
+        defaultMessage: 'Password of the user given in "Bind Username".'
+    },
+    firstnameAttrTitle: {
+        id: 'admin.ldap.firstnameAttrTitle',
+        defaultMessage: 'First Name Attrubute'
+    },
+    firstnameAttrEx: {
+        id: 'admin.ldap.firstnameAttrEx',
+        defaultMessage: 'Ex "givenName"'
+    },
+    firstnameAttrDesc: {
+        id: 'admin.ldap.firstnameAttrDesc',
+        defaultMessage: 'The attribute in the LDAP server that will be used to populate the first name of users in Mattermost.'
+    },
+    lastnameAttrTitle: {
+        id: 'admin.ldap.lastnameAttrTitle',
+        defaultMessage: 'Last Name Attribute:'
+    },
+    lastnameAttrEx: {
+        id: 'admin.ldap.lastnameAttrEx',
+        defaultMessage: 'Ex "sn"'
+    },
+    lastnameAttrDesc: {
+        id: 'admin.ldap.lastnameAttrDesc',
+        defaultMessage: 'The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.'
+    },
+    emailAttrTitle: {
+        id: 'admin.ldap.emailAttrTitle',
+        defaultMessage: 'Email Attribute:'
+    },
+    emailAttrEx: {
+        id: 'admin.ldap.emailAttrEx',
+        defaultMessage: 'Ex "mail"'
+    },
+    emailAttrDesc: {
+        id: 'admin.ldap.emailAttrDesc',
+        defaultMessage: 'The attribute in the LDAP server that will be used to populate the email addresses of users in Mattermost.'
+    },
+    usernameAttrTitle: {
+        id: 'admin.ldap.usernameAttrTitle',
+        defaultMessage: 'Username Attribute:'
+    },
+    usernameAttrEx: {
+        id: 'admin.ldap.usernameAttrEx',
+        defaultMessage: 'Ex "sAMAccountName"'
+    },
+    usernameAttrDesc: {
+        id: 'admin.ldap.uernameAttrDesc',
+        defaultMessage: 'The attribute in the LDAP server that will be used to populate the username field in Mattermost. This may be the same as the ID Attribute.'
+    },
+    idAttrTitle: {
+        id: 'admin.ldap.idAttrTitle',
+        defaultMessage: 'Id Attribute: '
+    },
+    idAttrEx: {
+        id: 'admin.ldap.idAttrEx',
+        defaultMessage: 'Ex "sAMAccountName"'
+    },
+    idAttrDesc: {
+        id: 'admin.ldap.idAttrDesc',
+        defaultMessage: 'The attribute in the LDAP server that will be used as a unique identifier in Mattermost. It should be an LDAP attribute with a value that does not change, such as username or uid. If a user\'s Id Attribute changes, it will create a new Mattermost account unassociated with their old one. This is the value used to log in to Mattermost in the "LDAP Username" field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\\\\username to sign in to other services with LDAP, you may choose to put domain\\\\username in this field to maintain consistency between sites.'
+    },
+    queryTitle: {
+        id: 'admin.ldap.queryTitle',
+        defaultMessage: 'Query Timeout (seconds):'
+    },
+    queryEx: {
+        id: 'admin.ldap.queryEx',
+        defaultMessage: 'Ex "60"'
+    },
+    queryDesc: {
+        id: 'admin.ldap.queryDesc',
+        defaultMessage: 'The timeout value for queries to the LDAP server. Increase if you are getting timeout errors caused by a slow LDAP server.'
+    },
+    saving: {
+        id: 'admin.ldap.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.ldap.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class LdapSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -80,6 +244,7 @@ export default class LdapSettings extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -97,8 +262,8 @@ export default class LdapSettings extends React.Component {
             bannerContent = (
                 <div className='banner'>
                     <div className='banner__content'>
-                        <h4 className='banner__heading'>{'Note:'}</h4>
-                        <p>{'If a user attribute changes on the LDAP server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from an LDAP server. Synchronization with LDAP servers is planned in a future release.'}</p>
+                        <h4 className='banner__heading'>{formatMessage(messages.bannerHeading)}</h4>
+                        <p>{formatMessage(messages.bannerDesc)}</p>
                     </div>
                 </div>
             );
@@ -106,17 +271,10 @@ export default class LdapSettings extends React.Component {
             bannerContent = (
                 <div className='banner warning'>
                     <div className='banner__content'>
-                        <h4 className='banner__heading'>{'Note:'}</h4>
-                        <p>
-                            {'LDAP is an enterprise feature. Your current license does not support LDAP. Click '}
-                            <a
-                                href='http://mattermost.com'
-                                target='_blank'
-                            >
-                            {'here'}
-                            </a>
-                            {' for information and pricing on enterprise licenses.'}
-                        </p>
+                        <FormattedHTMLMessage
+                            id='admin.ldap.noLicense'
+                            defaultMessage='<h4 className="banner__heading">Note:</h4><p>LDAP is an enterprise feature. Your current license does not support LDAP. Click <a href="http://mattermost.com"target="_blank">here</a> for information and pricing on enterprise licenses.</p>'
+                        />
                     </div>
                 </div>
             );
@@ -125,7 +283,7 @@ export default class LdapSettings extends React.Component {
         return (
             <div className='wrapper--fixed'>
                 {bannerContent}
-                <h3>{'LDAP Settings'}</h3>
+                <h3>{formatMessage(messages.title)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -135,7 +293,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='Enable'
                         >
-                            {'Enable Login With LDAP:'}
+                            {formatMessage(messages.enableTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -148,7 +306,7 @@ export default class LdapSettings extends React.Component {
                                     onChange={this.handleEnable}
                                     disabled={!licenseEnabled}
                                 />
-                                {'true'}
+                                {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -158,9 +316,9 @@ export default class LdapSettings extends React.Component {
                                     defaultChecked={!this.props.config.LdapSettings.Enable}
                                     onChange={this.handleDisable}
                                 />
-                                {'false'}
+                                {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, Mattermost allows login using LDAP'}</p>
+                            <p className='help-text'>{formatMessage(messages.enableDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -168,7 +326,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='LdapServer'
                         >
-                            {'LDAP Server:'}
+                            {formatMessage(messages.serverTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -176,12 +334,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='LdapServer'
                                 ref='LdapServer'
-                                placeholder='Ex "10.0.0.23"'
+                                placeholder={formatMessage(messages.serverEx)}
                                 defaultValue={this.props.config.LdapSettings.LdapServer}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The domain or IP address of LDAP server.'}</p>
+                            <p className='help-text'>{formatMessage(messages.serverDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -189,7 +347,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='LdapPort'
                         >
-                            {'LDAP Port:'}
+                            {formatMessage(messages.portTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -197,12 +355,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='LdapPort'
                                 ref='LdapPort'
-                                placeholder='Ex "389"'
+                                placeholder={formatMessage(messages.portEx)}
                                 defaultValue={this.props.config.LdapSettings.LdapPort}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The port Mattermost will use to connect to the LDAP server. Default is 389.'}</p>
+                            <p className='help-text'>{formatMessage(messages.portDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -210,7 +368,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='BaseDN'
                         >
-                            {'BaseDN:'}
+                            {formatMessage(messages.baseTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -218,12 +376,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='BaseDN'
                                 ref='BaseDN'
-                                placeholder='Ex "dc=mydomain,dc=com"'
+                                placeholder={formatMessage(messages.baseEx)}
                                 defaultValue={this.props.config.LdapSettings.BaseDN}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The Base DN is the Distinguished Name of the location where Mattermost should start its search for users in the LDAP tree.'}</p>
+                            <p className='help-text'>{formatMessage(messages.baseDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -231,7 +389,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='BindUsername'
                         >
-                            {'Bind Username:'}
+                            {formatMessage(messages.bindUserTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -244,7 +402,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The username used to perform the LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the LDAP tree specified in the BaseDN field.'}</p>
+                            <p className='help-text'>{formatMessage(messages.bindUserDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -252,7 +410,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='BindPassword'
                         >
-                            {'Bind Password:'}
+                            {formatMessage(messages.bindPwdTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -265,7 +423,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'Password of the user given in "Bind Username".'}</p>
+                            <p className='help-text'>{formatMessage(messages.bindPwdDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -273,7 +431,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='FirstNameAttribute'
                         >
-                            {'First Name Attrubute'}
+                            {formatMessage(messages.firstnameAttrTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -281,12 +439,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='FirstNameAttribute'
                                 ref='FirstNameAttribute'
-                                placeholder='Ex "givenName"'
+                                placeholder={formatMessage(messages.firstnameAttrEx)}
                                 defaultValue={this.props.config.LdapSettings.FirstNameAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The attribute in the LDAP server that will be used to populate the first name of users in Mattermost.'}</p>
+                            <p className='help-text'>{formatMessage(messages.firstnameAttrDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -294,7 +452,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='LastNameAttribute'
                         >
-                            {'Last Name Attribute:'}
+                            {formatMessage(messages.lastnameAttrTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -302,12 +460,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='LastNameAttribute'
                                 ref='LastNameAttribute'
-                                placeholder='Ex "sn"'
+                                placeholder={formatMessage(messages.lastnameAttrEx)}
                                 defaultValue={this.props.config.LdapSettings.LastNameAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.'}</p>
+                            <p className='help-text'>{formatMessage(messages.lastnameAttrDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -315,7 +473,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EmailAttribute'
                         >
-                            {'Email Attribute:'}
+                            {formatMessage(messages.emailAttrTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -323,12 +481,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='EmailAttribute'
                                 ref='EmailAttribute'
-                                placeholder='Ex "mail"'
+                                placeholder={formatMessage(messages.emailAttrEx)}
                                 defaultValue={this.props.config.LdapSettings.EmailAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The attribute in the LDAP server that will be used to populate the email addresses of users in Mattermost.'}</p>
+                            <p className='help-text'>{formatMessage(messages.emailAttrDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -336,7 +494,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='UsernameAttribute'
                         >
-                            {'Username Attribute:'}
+                            {formatMessage(messages.usernameAttrTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -344,12 +502,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='UsernameAttribute'
                                 ref='UsernameAttribute'
-                                placeholder='Ex "sAMAccountName"'
+                                placeholder={formatMessage(messages.usernameAttrEx)}
                                 defaultValue={this.props.config.LdapSettings.UsernameAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The attribute in the LDAP server that will be used to populate the username field in Mattermost. This may be the same as the ID Attribute.'}</p>
+                            <p className='help-text'>{formatMessage(messages.usernameAttrDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -357,7 +515,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='IdAttribute'
                         >
-                            {'Id Attribute: '}
+                            {formatMessage(messages.idAttrTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -365,12 +523,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='IdAttribute'
                                 ref='IdAttribute'
-                                placeholder='Ex "sAMAccountName"'
+                                placeholder={formatMessage(messages.idAttrEx)}
                                 defaultValue={this.props.config.LdapSettings.IdAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The attribute in the LDAP server that will be used as a unique identifier in Mattermost. It should be an LDAP attribute with a value that does not change, such as username or uid. If a user’s Id Attribute changes, it will create a new Mattermost account unassociated with their old one. This is the value used to log in to Mattermost in the "LDAP Username" field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\\username to sign in to other services with LDAP, you may choose to put domain\\username in this field to maintain consistency between sites.'}</p>
+                            <p className='help-text'>{formatMessage(messages.idAttrDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -378,7 +536,7 @@ export default class LdapSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='QueryTimeout'
                         >
-                            {'Query Timeout (seconds):'}
+                            {formatMessage(messages.queryTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -386,12 +544,12 @@ export default class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='QueryTimeout'
                                 ref='QueryTimeout'
-                                placeholder='Ex "60"'
+                                placeholder={formatMessage(messages.queryEx)}
                                 defaultValue={this.props.config.LdapSettings.QueryTimeout}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The timeout value for queries to the LDAP server. Increase if you are getting timeout errors caused by a slow LDAP server.'}</p>
+                            <p className='help-text'>{formatMessage(messages.queryDesc)}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -403,9 +561,9 @@ export default class LdapSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.saving)}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -418,5 +576,8 @@ LdapSettings.defaultProps = {
 };
 
 LdapSettings.propTypes = {
-    config: React.PropTypes.object
+    config: React.PropTypes.object,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(LdapSettings);

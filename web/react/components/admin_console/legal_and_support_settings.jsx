@@ -1,10 +1,74 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class LegalAndSupportSettings extends React.Component {
+const messages = defineMessages({
+    title: {
+        id: 'admin.support.title',
+        defaultMessage: 'Legal and Support Settings'
+    },
+    termsTitle: {
+        id: 'admin.support.termsTitle',
+        defaultMessage: 'Terms of Service link:'
+    },
+    termsDesc: {
+        id: 'admin.support.termsDesc',
+        defaultMessage: 'Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
+    },
+    privacyTitle: {
+        id: 'admin.support.privacyTitle',
+        defaultMessage: 'Privacy Policy link:'
+    },
+    privacyDesc: {
+        id: 'admin.support.privacyDesc',
+        defaultMessage: 'Link to Privacy Policy available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
+    },
+    aboutTitle: {
+        id: 'admin.support.aboutTitle',
+        defaultMessage: 'About link:'
+    },
+    aboutDesc: {
+        id: 'admin.support.aboutDesc',
+        defaultMessage: 'Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'
+    },
+    helpTitle: {
+        id: 'admin.support.helpTitle',
+        defaultMessage: 'Help link:'
+    },
+    helpDesc: {
+        id: 'admin.support.helpDesc',
+        defaultMessage: 'Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.'
+    },
+    problemTitle: {
+        id: 'admin.support.problemTitle',
+        defaultMessage: 'Report a Problem link:'
+    },
+    problemDesc: {
+        id: 'admin.support.problemDesc',
+        defaultMessage: 'Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.'
+    },
+    emailTitle: {
+        id: 'admin.support.emailTitle',
+        defaultMessage: 'Support email:'
+    },
+    emailDesc: {
+        id: 'admin.support.emailHelp',
+        defaultMessage: 'Email shown during tutorial for end users to ask support questions.'
+    },
+    saving: {
+        id: 'admin.support.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.support.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class LegalAndSupportSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -56,6 +120,8 @@ export default class LegalAndSupportSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
+
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -69,7 +135,7 @@ export default class LegalAndSupportSettings extends React.Component {
         return (
             <div className='wrapper--fixed'>
 
-                <h3>{'Legal and Support Settings'}</h3>
+                <h3>{formatMessage(messages.title)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -80,7 +146,7 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='TermsOfServiceLink'
                         >
-                            {'Terms of Service link:'}
+                            {formatMessage(messages.termsTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -91,7 +157,7 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.TermsOfServiceLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'}</p>
+                            <p className='help-text'>{formatMessage(messages.termsDesc)}</p>
                         </div>
                     </div>
 
@@ -100,7 +166,7 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='PrivacyPolicyLink'
                         >
-                            {'Privacy Policy link:'}
+                            {formatMessage(messages.privacyTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -111,7 +177,7 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.PrivacyPolicyLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to Privacy Policy available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'}</p>
+                            <p className='help-text'>{formatMessage(messages.privacyDesc)}</p>
                         </div>
                     </div>
 
@@ -120,7 +186,7 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='AboutLink'
                         >
-                            {'About link:'}
+                            {formatMessage(messages.aboutTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -131,7 +197,7 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.AboutLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'}</p>
+                            <p className='help-text'>{formatMessage(messages.aboutDesc)}</p>
                         </div>
                     </div>
 
@@ -140,7 +206,7 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='HelpLink'
                         >
-                            {'Help link:'}
+                            {formatMessage(messages.helpTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -151,7 +217,7 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.HelpLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.'}</p>
+                            <p className='help-text'>{formatMessage(messages.helpDesc)}</p>
                         </div>
                     </div>
 
@@ -160,7 +226,7 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ReportAProblemLink'
                         >
-                            {'Report a Problem link:'}
+                            {formatMessage(messages.problemTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -171,7 +237,7 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.ReportAProblemLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.'}</p>
+                            <p className='help-text'>{formatMessage(messages.problemDesc)}</p>
                         </div>
                     </div>
 
@@ -180,7 +246,7 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='SupportEmail'
                         >
-                            {'Support email:'}
+                            {formatMessage(messages.emailTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -191,7 +257,7 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.SupportEmail}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Email shown during tutorial for end users to ask support questions.'}</p>
+                            <p className='help-text'>{formatMessage(messages.emailDesc)}</p>
                         </div>
                     </div>
 
@@ -204,9 +270,9 @@ export default class LegalAndSupportSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={`<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> $formatMessage(messages.saving)`}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -218,5 +284,8 @@ export default class LegalAndSupportSettings extends React.Component {
 }
 
 LegalAndSupportSettings.propTypes = {
-    config: React.PropTypes.object
+    config: React.PropTypes.object,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(LegalAndSupportSettings);

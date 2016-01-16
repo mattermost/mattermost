@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"io"
 	"unicode/utf8"
@@ -13,7 +14,8 @@ const (
 	CHANNEL_OPEN    = "O"
 	CHANNEL_PRIVATE = "P"
 	CHANNEL_DIRECT  = "D"
-	DEFAULT_CHANNEL = "town-square"
+	DEFAULT_CHANNEL = "general"
+	DEFAULT_PRIVATE = "sala-privada"
 )
 
 type Channel struct {
@@ -61,46 +63,46 @@ func (o *Channel) ExtraEtag(memberLimit int) string {
 	return Etag(o.Id, o.ExtraUpdateAt, memberLimit)
 }
 
-func (o *Channel) IsValid() *AppError {
+func (o *Channel) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("Channel.IsValid", "Invalid Id", "")
+		return NewAppError("Channel.IsValid", T("Invalid Id"), "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("Channel.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Create at must be a valid time"), "id="+o.Id)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("Channel.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Update at must be a valid time"), "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.DisplayName) > 64 {
-		return NewAppError("Channel.IsValid", "Invalid display name", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Invalid display name"), "id="+o.Id)
 	}
 
 	if len(o.Name) > 64 {
-		return NewAppError("Channel.IsValid", "Invalid name", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Invalid name"), "id="+o.Id)
 	}
 
 	if !IsValidChannelIdentifier(o.Name) {
-		return NewAppError("Channel.IsValid", "Name must be 2 or more lowercase alphanumeric characters", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Name must be 2 or more lowercase alphanumeric characters"), "id="+o.Id)
 	}
 
 	if !(o.Type == CHANNEL_OPEN || o.Type == CHANNEL_PRIVATE || o.Type == CHANNEL_DIRECT) {
-		return NewAppError("Channel.IsValid", "Invalid type", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Invalid type"), "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.Header) > 1024 {
-		return NewAppError("Channel.IsValid", "Invalid header", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Invalid header"), "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.Purpose) > 128 {
-		return NewAppError("Channel.IsValid", "Invalid purpose", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Invalid purpose"), "id="+o.Id)
 	}
 
 	if len(o.CreatorId) > 26 {
-		return NewAppError("Channel.IsValid", "Invalid creator id", "")
+		return NewAppError("Channel.IsValid", T("Invalid creator id"), "")
 	}
 
 	return nil

@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"io"
 )
@@ -73,30 +74,30 @@ func IncomingWebhookListFromJson(data io.Reader) []*IncomingWebhook {
 	}
 }
 
-func (o *IncomingWebhook) IsValid() *AppError {
+func (o *IncomingWebhook) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("IncomingWebhook.IsValid", "Invalid Id", "")
+		return NewAppError("IncomingWebhook.IsValid", T("Invalid Id"), "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("IncomingWebhook.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewAppError("IncomingWebhook.IsValid", T("Create at must be a valid time"), "id="+o.Id)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("IncomingWebhook.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewAppError("IncomingWebhook.IsValid", T("Update at must be a valid time"), "id="+o.Id)
 	}
 
 	if len(o.UserId) != 26 {
-		return NewAppError("IncomingWebhook.IsValid", "Invalid user id", "")
+		return NewAppError("IncomingWebhook.IsValid", T("Invalid user id"), "")
 	}
 
 	if len(o.ChannelId) != 26 {
-		return NewAppError("IncomingWebhook.IsValid", "Invalid channel id", "")
+		return NewAppError("IncomingWebhook.IsValid", T("Invalid channel id"), "")
 	}
 
 	if len(o.TeamId) != 26 {
-		return NewAppError("IncomingWebhook.IsValid", "Invalid channel id", "")
+		return NewAppError("IncomingWebhook.IsValid", T("Invalid channel id"), "")
 	}
 
 	return nil

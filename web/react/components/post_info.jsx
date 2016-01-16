@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import UserStore from '../stores/user_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import * as Utils from '../utils/utils.jsx';
@@ -12,7 +13,38 @@ import Constants from '../utils/constants.jsx';
 const Overlay = ReactBootstrap.Overlay;
 const Popover = ReactBootstrap.Popover;
 
-export default class PostInfo extends React.Component {
+const messages = defineMessages({
+    edit: {
+        id: 'post_info.edit',
+        defaultMessage: 'Edit'
+    },
+    del: {
+        id: 'post_info.del',
+        defaultMessage: 'Delete'
+    },
+    reply: {
+        id: 'post_info.reply',
+        defaultMessage: 'Reply'
+    },
+    comment: {
+        id: 'post_info.comment',
+        defaultMessage: 'Comment'
+    },
+    post: {
+        id: 'post_info.post',
+        defaultMessage: 'Post'
+    },
+    copy: {
+        id: 'post_info.copy',
+        defaultMessage: 'Copy '
+    },
+    permalink: {
+        id: 'post_info.permalink',
+        defaultMessage: 'Permalink'
+    }
+});
+
+class PostInfo extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -23,6 +55,7 @@ export default class PostInfo extends React.Component {
         this.handlePermalinkCopy = this.handlePermalinkCopy.bind(this);
     }
     createDropdown() {
+        const {formatMessage} = this.props.intl;
         var post = this.props.post;
         var isOwner = UserStore.getCurrentId() === post.user_id;
         var isAdmin = Utils.isAdmin(UserStore.getCurrentUser().roles);
@@ -31,14 +64,14 @@ export default class PostInfo extends React.Component {
             return '';
         }
 
-        var type = 'Post';
+        var type = formatMessage(messages.post);
         if (post.root_id && post.root_id.length > 0) {
-            type = 'Comment';
+            type = formatMessage(messages.comment);
         }
 
         var dropdownContents = [];
         var dataComments = 0;
-        if (type === 'Post') {
+        if (type === formatMessage(messages.post)) {
             dataComments = this.props.commentCount;
         }
 
@@ -53,7 +86,7 @@ export default class PostInfo extends React.Component {
                         href='#'
                         onClick={this.props.handleCommentClick}
                     >
-                        {'Reply'}
+                        {formatMessage(messages.reply)}
                     </a>
                 </li>
             );
@@ -68,7 +101,7 @@ export default class PostInfo extends React.Component {
                     href='#'
                     onClick={(e) => this.setState({target: e.target, show: !this.state.show})}
                 >
-                    {'Permalink'}
+                    {formatMessage(messages.permalink)}
                 </a>
             </li>
         );
@@ -84,7 +117,7 @@ export default class PostInfo extends React.Component {
                         role='menuitem'
                         onClick={() => EventHelpers.showDeletePostModal(post, dataComments)}
                     >
-                        {'Delete'}
+                        {formatMessage(messages.del)}
                     </a>
                 </li>
             );
@@ -108,7 +141,7 @@ export default class PostInfo extends React.Component {
                         data-channelid={post.channel_id}
                         data-comments={dataComments}
                     >
-                        {'Edit'}
+                        {formatMessage(messages.edit)}
                     </a>
                 </li>
             );
@@ -153,6 +186,7 @@ export default class PostInfo extends React.Component {
         }
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var post = this.props.post;
         var comments = '';
         var showCommentClass = '';
@@ -183,7 +217,7 @@ export default class PostInfo extends React.Component {
         var dropdown = this.createDropdown();
 
         const permalink = TeamStore.getCurrentTeamUrl() + '/pl/' + post.id;
-        const copyButtonText = this.state.copiedLink ? (<div>{'Copy '}<i className='fa fa-check'/></div>) : 'Copy';
+        const copyButtonText = this.state.copiedLink ? (<div>{formatMessage(messages.copy)}<i className='fa fa-check'/></div>) : formatMessage(messages.copy).trim();
         const permalinkOverlay = (
             <Popover
                 id='permalink-overlay'
@@ -254,9 +288,12 @@ PostInfo.defaultProps = {
     allowReply: false
 };
 PostInfo.propTypes = {
+    intl: intlShape.isRequired,
     post: React.PropTypes.object,
     commentCount: React.PropTypes.number,
     isLastComment: React.PropTypes.bool,
     allowReply: React.PropTypes.string,
     handleCommentClick: React.PropTypes.func
 };
+
+export default injectIntl(PostInfo);

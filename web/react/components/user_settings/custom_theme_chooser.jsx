@@ -1,12 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import Constants from '../../utils/constants.jsx';
 
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 const Popover = ReactBootstrap.Popover;
 
-export default class CustomThemeChooser extends React.Component {
+const messages = defineMessages({
+    copyPaste: {
+        id: 'user.settings.custom_theme.copyPaste',
+        defaultMessage: 'Copy and paste to share theme colors:'
+    }
+});
+
+class CustomThemeChooser extends React.Component {
     constructor(props) {
         super(props);
 
@@ -65,6 +73,7 @@ export default class CustomThemeChooser extends React.Component {
         this.props.updateTheme(theme);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         const theme = this.props.theme;
 
         const elements = [];
@@ -160,7 +169,7 @@ export default class CustomThemeChooser extends React.Component {
         const pasteBox = (
             <div className='col-sm-12'>
                 <label className='custom-label'>
-                    {'Copy and paste to share theme colors:'}
+                    {formatMessage(messages.copyPaste)}
                 </label>
                 <input
                     type='text'
@@ -185,6 +194,9 @@ export default class CustomThemeChooser extends React.Component {
 }
 
 CustomThemeChooser.propTypes = {
+    intl: intlShape.isRequired,
     theme: React.PropTypes.object.isRequired,
     updateTheme: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(CustomThemeChooser);

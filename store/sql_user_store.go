@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"strings"
 )
 
@@ -34,6 +35,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("FirstName").SetMaxSize(64)
 		table.ColMap("LastName").SetMaxSize(64)
 		table.ColMap("Roles").SetMaxSize(64)
+		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("NotifyProps").SetMaxSize(2000)
 		table.ColMap("ThemeProps").SetMaxSize(2000)
@@ -44,15 +46,16 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 	return us
 }
 
-func (us SqlUserStore) UpgradeSchemaIfNeeded() {
+func (us SqlUserStore) UpgradeSchemaIfNeeded(T goi18n.TranslateFunc) {
+	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE, T)
 }
 
-func (us SqlUserStore) CreateIndexesIfNotExists() {
-	us.CreateIndexIfNotExists("idx_users_team_id", "Users", "TeamId")
-	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
+func (us SqlUserStore) CreateIndexesIfNotExists(T goi18n.TranslateFunc) {
+	us.CreateIndexIfNotExists("idx_users_team_id", "Users", "TeamId", T)
+	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email", T)
 }
 
-func (us SqlUserStore) Save(user *model.User) StoreChannel {
+func (us SqlUserStore) Save(user *model.User, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -60,26 +63,26 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 		result := StoreResult{}
 
 		if len(user.Id) > 0 {
-			result.Err = model.NewAppError("SqlUserStore.Save", "Must call update for exisiting user", "user_id="+user.Id)
+			result.Err = model.NewAppError("SqlUserStore.Save", T("Must call update for exisiting user"), "user_id="+user.Id)
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		user.PreSave()
-		if result.Err = user.IsValid(); result.Err != nil {
+		if result.Err = user.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if count, err := us.GetMaster().SelectInt("SELECT COUNT(0) FROM Users WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": user.TeamId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Save", "Failed to get current team member count", "teamId="+user.TeamId+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.Save", T("Failed to get current team member count"), "teamId="+user.TeamId+", "+err.Error())
 			storeChannel <- result
 			close(storeChannel)
 			return
 		} else if int(count) > utils.Cfg.TeamSettings.MaxUsersPerTeam {
-			result.Err = model.NewAppError("SqlUserStore.Save", "This team has reached the maxmium number of allowed accounts. Contact your systems administrator to set a higher limit.", "teamId="+user.TeamId)
+			result.Err = model.NewAppError("SqlUserStore.Save", T("This team has reached the maxmium number of allowed accounts. Contact your systems administrator to set a higher limit."), "teamId="+user.TeamId)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -87,11 +90,11 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 
 		if err := us.GetMaster().Insert(user); err != nil {
 			if IsUniqueConstraintError(err.Error(), "Email", "users_email_teamid_key") {
-				result.Err = model.NewAppError("SqlUserStore.Save", "An account with that email already exists.", "user_id="+user.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlUserStore.Save", T("An account with that email already exists."), "user_id="+user.Id+", "+err.Error())
 			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_teamid_key") {
-				result.Err = model.NewAppError("SqlUserStore.Save", "An account with that username already exists.", "user_id="+user.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlUserStore.Save", T("An account with that username already exists."), "user_id="+user.Id+", "+err.Error())
 			} else {
-				result.Err = model.NewAppError("SqlUserStore.Save", "We couldn't save the account.", "user_id="+user.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlUserStore.Save", T("We couldn't save the account."), "user_id="+user.Id+", "+err.Error())
 			}
 		} else {
 			result.Data = user
@@ -104,7 +107,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreChannel {
+func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -113,16 +116,16 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 
 		user.PreUpdate()
 
-		if result.Err = user.IsValid(); result.Err != nil {
+		if result.Err = user.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if oldUserResult, err := us.GetMaster().Get(model.User{}, user.Id); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Update", "We encountered an error finding the account", "user_id="+user.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.Update", T("We encountered an error finding the account"), "user_id="+user.Id+", "+err.Error())
 		} else if oldUserResult == nil {
-			result.Err = model.NewAppError("SqlUserStore.Update", "We couldn't find the existing account to update", "user_id="+user.Id)
+			result.Err = model.NewAppError("SqlUserStore.Update", T("We couldn't find the existing account to update"), "user_id="+user.Id)
 		} else {
 			oldUser := oldUserResult.(*model.User)
 			user.CreateAt = oldUser.CreateAt
@@ -161,14 +164,14 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 
 			if count, err := us.GetMaster().Update(user); err != nil {
 				if IsUniqueConstraintError(err.Error(), "Email", "users_email_teamid_key") {
-					result.Err = model.NewAppError("SqlUserStore.Update", "This email is already taken. Please choose another.", "user_id="+user.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlUserStore.Update", T("This email is already taken. Please choose another"), "user_id="+user.Id+", "+err.Error())
 				} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_teamid_key") {
-					result.Err = model.NewAppError("SqlUserStore.Update", "This username is already taken. Please choose another.", "user_id="+user.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlUserStore.Update", T("This username is already taken. Please choose another."), "user_id="+user.Id+", "+err.Error())
 				} else {
-					result.Err = model.NewAppError("SqlUserStore.Update", "We encountered an error updating the account", "user_id="+user.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlUserStore.Update", T("We encounted an error updating the account"), "user_id="+user.Id+", "+err.Error())
 				}
 			} else if count != 1 {
-				result.Err = model.NewAppError("SqlUserStore.Update", "We couldn't update the account", fmt.Sprintf("user_id=%v, count=%v", user.Id, count))
+				result.Err = model.NewAppError("SqlUserStore.Update", T("We couldn't update the account"), fmt.Sprintf("user_id=%v, count=%v", user.Id, count))
 			} else {
 				result.Data = [2]*model.User{user, oldUser}
 			}
@@ -181,7 +184,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
+func (us SqlUserStore) UpdateLastPictureUpdate(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -190,7 +193,7 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
 		curTime := model.GetMillis()
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "We couldn't update the update_at", "user_id="+userId)
+			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", T("We couldn't update the update_at"), "user_id="+userId)
 		} else {
 			result.Data = userId
 		}
@@ -202,14 +205,14 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel {
+func (us SqlUserStore) UpdateLastPingAt(userId string, time int64, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPingAt = :LastPingAt WHERE Id = :UserId", map[string]interface{}{"LastPingAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateLastPingAt", "We couldn't update the last_ping_at", "user_id="+userId)
+			result.Err = model.NewAppError("SqlUserStore.UpdateLastPingAt", T("We couldn't update the last_ping_at"), "user_id="+userId)
 		} else {
 			result.Data = userId
 		}
@@ -221,14 +224,14 @@ func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel 
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64) StoreChannel {
+func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :LastActivityAt WHERE Id = :UserId", map[string]interface{}{"LastActivityAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "user_id="+userId)
+			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", T("We couldn't update the last_activity_at"), "user_id="+userId)
 		} else {
 			result.Data = userId
 		}
@@ -240,16 +243,16 @@ func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64) StoreChan
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel {
+func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId string, time int64, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :UserLastActivityAt WHERE Id = :UserId", map[string]interface{}{"UserLastActivityAt": time, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "1 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", T("We couldn't update the last_activity_at"), "1 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
 		} else if _, err := us.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :SessionLastActivityAt WHERE Id = :SessionId", map[string]interface{}{"SessionLastActivityAt": time, "SessionId": sessionId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "2 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", T("We couldn't update the last_activity_at"), "2 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
 		} else {
 			result.Data = userId
 		}
@@ -261,7 +264,7 @@ func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId str
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChannel {
+func (us SqlUserStore) UpdatePassword(userId, hashedPassword string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -271,7 +274,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 		updateAt := model.GetMillis()
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = '', AuthService = '', FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdatePassword", "We couldn't update the user password", "id="+userId+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.UpdatePassword", T("We couldn't update the user password"), "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId
 		}
@@ -283,14 +286,14 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel {
+func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET FailedAttempts = :FailedAttempts WHERE Id = :UserId", map[string]interface{}{"FailedAttempts": attempts, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateFailedPasswordAttempts", "We couldn't update the failed_attempts", "user_id="+userId)
+			result.Err = model.NewAppError("SqlUserStore.UpdateFailedPasswordAttempts", T("We couldn't update the failed_attempts"), "user_id="+userId)
 		} else {
 			result.Data = userId
 		}
@@ -302,7 +305,7 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateAuthData(userId, service, authData string) StoreChannel {
+func (us SqlUserStore) UpdateAuthData(userId, service, authData string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -324,7 +327,7 @@ func (us SqlUserStore) UpdateAuthData(userId, service, authData string) StoreCha
 	return storeChannel
 }
 
-func (us SqlUserStore) Get(id string) StoreChannel {
+func (us SqlUserStore) Get(id string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -332,9 +335,9 @@ func (us SqlUserStore) Get(id string) StoreChannel {
 		result := StoreResult{}
 
 		if obj, err := us.GetReplica().Get(model.User{}, id); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Get", "We encountered an error finding the account", "user_id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.Get", T("We encountered an error finding the account"), "user_id="+id+", "+err.Error())
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlUserStore.Get", MISSING_ACCOUNT_ERROR, "user_id="+id)
+			result.Err = model.NewAppError("SqlUserStore.Get", T(MISSING_ACCOUNT_ERROR), "user_id="+id)
 		} else {
 			result.Data = obj.(*model.User)
 		}
@@ -367,7 +370,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
+func (us SqlUserStore) GetProfiles(teamId string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -377,7 +380,7 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 		var users []*model.User
 
 		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "We encountered an error while finding user profiles", err.Error())
+			result.Err = model.NewAppError("SqlUserStore.GetProfiles", T("We encountered an error while finding user profiles"), err.Error())
 		} else {
 
 			userMap := make(map[string]*model.User)
@@ -398,7 +401,7 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
+func (us SqlUserStore) GetSystemAdminProfiles(T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -408,7 +411,7 @@ func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
 		var users []*model.User
 
 		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE Roles = :Roles", map[string]interface{}{"Roles": "system_admin"}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "We encountered an error while finding user profiles", err.Error())
+			result.Err = model.NewAppError("SqlUserStore.GetSystemAdminProfiles", T("We encountered an error while finding user profiles"), err.Error())
 		} else {
 
 			userMap := make(map[string]*model.User)
@@ -429,7 +432,7 @@ func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
+func (us SqlUserStore) GetByEmail(teamId string, email string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -439,7 +442,7 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 		user := model.User{}
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND Email = :Email", map[string]interface{}{"TeamId": teamId, "Email": email}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetByEmail", MISSING_ACCOUNT_ERROR, "teamId="+teamId+", email="+email+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.GetByEmail", T(MISSING_ACCOUNT_ERROR), "teamId="+teamId+", email="+email+", "+err.Error())
 		}
 
 		result.Data = &user
@@ -451,7 +454,7 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByAuth(teamId string, authData string, authService string) StoreChannel {
+func (us SqlUserStore) GetByAuth(teamId string, authData string, authService string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -473,7 +476,7 @@ func (us SqlUserStore) GetByAuth(teamId string, authData string, authService str
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByUsername(teamId string, username string) StoreChannel {
+func (us SqlUserStore) GetByUsername(teamId string, username string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -495,14 +498,14 @@ func (us SqlUserStore) GetByUsername(teamId string, username string) StoreChanne
 	return storeChannel
 }
 
-func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
+func (us SqlUserStore) VerifyEmail(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = '1' WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.VerifyEmail", "Unable to update verify email field", "userId="+userId+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.VerifyEmail", T("Unable to update verify email field"), "userId="+userId+", "+err.Error())
 		}
 
 		result.Data = userId
@@ -514,7 +517,7 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
+func (us SqlUserStore) GetForExport(teamId string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -524,7 +527,7 @@ func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
 		var users []*model.User
 
 		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "We encountered an error while finding user profiles", err.Error())
+			result.Err = model.NewAppError("SqlUserStore.GetProfiles", T("We encounted an error while finding user profiles"), err.Error())
 		} else {
 			for _, u := range users {
 				u.Password = ""
@@ -541,14 +544,14 @@ func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
+func (us SqlUserStore) GetTotalUsersCount(T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users"); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetTotalUsersCount", "We could not count the users", err.Error())
+			result.Err = model.NewAppError("SqlUserStore.GetTotalUsersCount", T("We could not count the users"), err.Error())
 		} else {
 			result.Data = count
 		}
@@ -560,7 +563,7 @@ func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
+func (us SqlUserStore) GetTotalActiveUsersCount(T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -569,7 +572,7 @@ func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
 		time := model.GetMillis() - (1000 * 60 * 60 * 24)
 
 		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetTotalActiveUsersCount", "We could not count the users", err.Error())
+			result.Err = model.NewAppError("SqlUserStore.GetTotalActiveUsersCount", T("We could not count the users"), err.Error())
 		} else {
 			result.Data = count
 		}
@@ -581,7 +584,7 @@ func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) PermanentDelete(userId string) StoreChannel {
+func (us SqlUserStore) PermanentDelete(userId string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -589,7 +592,7 @@ func (us SqlUserStore) PermanentDelete(userId string) StoreChannel {
 		result := StoreResult{}
 
 		if _, err := us.GetMaster().Exec("DELETE FROM Users WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetByEmail", "We couldn't delete the existing account", "userId="+userId+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.GetByEmail", T("We couldn't delete the existing account"), "userId="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result

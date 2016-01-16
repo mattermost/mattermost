@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type AutoUserCreator struct {
@@ -32,26 +33,26 @@ func NewAutoUserCreator(client *model.Client, teamID string) *AutoUserCreator {
 }
 
 // Basic test team and user so you always know one
-func CreateBasicUser(client *model.Client) *model.AppError {
-	result, _ := client.FindTeamByName(BTEST_TEAM_NAME, true)
+func CreateBasicUser(client *model.Client, T goi18n.TranslateFunc) *model.AppError {
+	result, _ := client.FindTeamByName(BTEST_TEAM_NAME, true, T)
 	if result.Data.(bool) == false {
 		newteam := &model.Team{DisplayName: BTEST_TEAM_DISPLAY_NAME, Name: BTEST_TEAM_NAME, Email: BTEST_TEAM_EMAIL, Type: BTEST_TEAM_TYPE}
-		result, err := client.CreateTeam(newteam)
+		result, err := client.CreateTeam(newteam, T)
 		if err != nil {
 			return err
 		}
 		basicteam := result.Data.(*model.Team)
 		newuser := &model.User{TeamId: basicteam.Id, Email: BTEST_USER_EMAIL, Nickname: BTEST_USER_NAME, Password: BTEST_USER_PASSWORD}
-		result, err = client.CreateUser(newuser, "")
+		result, err = client.CreateUser(newuser, "", T)
 		if err != nil {
 			return err
 		}
-		store.Must(Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id))
+		store.Must(Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id, T))
 	}
 	return nil
 }
 
-func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
+func (cfg *AutoUserCreator) createRandomUser(T goi18n.TranslateFunc) (*model.User, bool) {
 	var userEmail string
 	var userName string
 	if cfg.Fuzzy {
@@ -68,22 +69,22 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 		Nickname: userName,
 		Password: USER_PASSWORD}
 
-	result, err := cfg.client.CreateUser(user, "")
+	result, err := cfg.client.CreateUser(user, "", T)
 	if err != nil {
 		return nil, false
 	}
 	// We need to cheat to verify the user's email
-	store.Must(Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id))
+	store.Must(Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id, T))
 	return result.Data.(*model.User), true
 }
 
-func (cfg *AutoUserCreator) CreateTestUsers(num utils.Range) ([]*model.User, bool) {
+func (cfg *AutoUserCreator) CreateTestUsers(num utils.Range, T goi18n.TranslateFunc) ([]*model.User, bool) {
 	numUsers := utils.RandIntFromRange(num)
 	users := make([]*model.User, numUsers)
 
 	for i := 0; i < numUsers; i++ {
 		var err bool
-		users[i], err = cfg.createRandomUser()
+		users[i], err = cfg.createRandomUser(T)
 		if err != true {
 			return users, false
 		}

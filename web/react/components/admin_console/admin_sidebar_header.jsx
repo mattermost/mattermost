@@ -1,11 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import AdminNavbarDropdown from './admin_navbar_dropdown.jsx';
 import UserStore from '../../stores/user_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
-export default class SidebarHeader extends React.Component {
+const messages = defineMessages({
+    console: {
+        id: 'admin.sidebarHeader.systemConsole',
+        defaultMessage: 'System Console'
+    }
+});
+
+class SidebarHeader extends React.Component {
     constructor(props) {
         super(props);
 
@@ -26,6 +34,8 @@ export default class SidebarHeader extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
+
         var me = UserStore.getCurrentUser();
         var profilePicture = null;
 
@@ -51,7 +61,7 @@ export default class SidebarHeader extends React.Component {
                     {profilePicture}
                     <div className='header__info'>
                         <div className='user__name'>{'@' + me.username}</div>
-                        <div className='team__name'>{'System Console'}</div>
+                        <div className='team__name'>{formatMessage(messages.console)}</div>
                     </div>
                 </a>
                 <AdminNavbarDropdown ref='dropdown' />
@@ -59,3 +69,9 @@ export default class SidebarHeader extends React.Component {
         );
     }
 }
+
+SidebarHeader.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(SidebarHeader);

@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import UserStore from '../stores/user_store.jsx';
 var Popover = ReactBootstrap.Popover;
 var Overlay = ReactBootstrap.Overlay;
@@ -9,7 +10,18 @@ import Constants from '../utils/constants.jsx';
 
 import ChannelStore from '../stores/channel_store.jsx';
 
-export default class PopoverListMembers extends React.Component {
+const messages = defineMessages({
+    members: {
+        id: 'popover.members',
+        defaultMessage: 'Members'
+    },
+    message: {
+        id: 'popover.message',
+        defaultMessage: 'Message'
+    }
+});
+
+class PopoverListMembers extends React.Component {
     constructor(props) {
         super(props);
 
@@ -69,6 +81,7 @@ export default class PopoverListMembers extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         const popoverHtml = [];
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
@@ -92,7 +105,7 @@ export default class PopoverListMembers extends React.Component {
                             className='btn-message'
                             onClick={(e) => this.handleShowDirectChannel(m, e)}
                         >
-                            {'Message'}
+                            {formatMessage(messages.message)}
                         </a>
                     );
                 }
@@ -171,7 +184,7 @@ export default class PopoverListMembers extends React.Component {
                 >
                     <Popover
                         ref='memebersPopover'
-                        title='Members'
+                        title={formatMessage(messages.members)}
                         id='member-list-popover'
                     >
                         {popoverHtml}
@@ -183,7 +196,10 @@ export default class PopoverListMembers extends React.Component {
 }
 
 PopoverListMembers.propTypes = {
+    intl: intlShape.isRequired,
     members: React.PropTypes.array.isRequired,
     memberCount: React.PropTypes.number,
     channelId: React.PropTypes.string.isRequired
 };
+
+export default injectIntl(PopoverListMembers);

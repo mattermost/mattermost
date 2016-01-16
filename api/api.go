@@ -20,6 +20,7 @@ func NewServerTemplatePage(templateName string) *ServerTemplatePage {
 	return &ServerTemplatePage{
 		TemplateName: templateName,
 		Props:        make(map[string]string),
+		Html:		  make(map[string]template.HTML),
 		ClientCfg:    utils.ClientCfg,
 	}
 }
@@ -27,7 +28,7 @@ func NewServerTemplatePage(templateName string) *ServerTemplatePage {
 func (me *ServerTemplatePage) Render() string {
 	var text bytes.Buffer
 	if err := ServerTemplates.ExecuteTemplate(&text, me.TemplateName, me); err != nil {
-		l4g.Error("Error rendering template %v err=%v", me.TemplateName, err)
+		l4g.Error(T("Error rendering template %v err=%v"), me.TemplateName, err)
 	}
 
 	return text.String()
@@ -49,10 +50,10 @@ func InitApi() {
 	InitLicense(r)
 
 	templatesDir := utils.FindDir("api/templates")
-	l4g.Debug("Parsing server templates at %v", templatesDir)
+	l4g.Debug(T("Parsing server templates at %v"), templatesDir)
 	var err error
 	if ServerTemplates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
-		l4g.Error("Failed to parse server templates %v", err)
+		l4g.Error(T("Failed to parse server templates %v"), err)
 	}
 }
 

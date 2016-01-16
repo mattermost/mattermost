@@ -9,13 +9,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
 	"io"
 	"net/http"
 	"strings"
 )
 
 func InitLicense(r *mux.Router) {
-	l4g.Debug("Initializing license api routes")
+	l4g.Debug(T("Initializing license api routes"))
 
 	sr := r.PathPrefix("/license").Subrouter()
 	sr.Handle("/add", ApiAdminSystemRequired(addLicense)).Methods("POST")
@@ -23,7 +24,8 @@ func InitLicense(r *mux.Router) {
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.LogAudit("attempt")
+	T := i18n.GetTranslations(w, r)
+	c.LogAudit(T("attempt"), T)
 	err := r.ParseMultipartForm(model.MAX_FILE_SIZE)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -34,13 +36,13 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileArray, ok := m.File["license"]
 	if !ok {
-		c.Err = model.NewAppError("addLicense", "No file under 'license' in request", "")
+		c.Err = model.NewAppError("addLicense", T("No file under 'license' in request"), "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	if len(fileArray) <= 0 {
-		c.Err = model.NewAppError("addLicense", "Empty array under 'license' in request", "")
+		c.Err = model.NewAppError("addLicense", T("Empty array under 'license' in request"), "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -50,7 +52,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	file, err := fileData.Open()
 	defer file.Close()
 	if err != nil {
-		c.Err = model.NewAppError("addLicense", "Could not open license file", err.Error())
+		c.Err = model.NewAppError("addLicense", T("Could not open license file"), err.Error())
 		return
 	}
 
@@ -60,37 +62,38 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := buf.Bytes()
 
 	var license *model.License
-	if success, licenseStr := utils.ValidateLicense(data); success {
+	if success, licenseStr := utils.ValidateLicense(data, T); success {
 		license = model.LicenseFromJson(strings.NewReader(licenseStr))
 
 		if ok := utils.SetLicense(license); !ok {
-			c.LogAudit("failed - expired or non-started license")
-			c.Err = model.NewAppError("addLicense", "License is either expired or has not yet started.", "")
+			c.LogAudit(T("failed - expired or non-started license"), T)
+			c.Err = model.NewAppError("addLicense", T("License is either expired or has not yet started."), "")
 			return
 		}
 
 		if err := writeFileLocally(data, utils.LicenseLocation()); err != nil {
-			c.LogAudit("failed - could not save license file")
-			c.Err = model.NewAppError("addLicense", "License did not save properly.", "path="+utils.LicenseLocation())
-			utils.RemoveLicense()
+			c.LogAudit(T("failed - could not save license file"), T)
+			c.Err = model.NewAppError("addLicense", T("License did not save properly."), "path="+utils.LicenseLocation())
+			utils.RemoveLicense(T)
 			return
 		}
 	} else {
-		c.LogAudit("failed - invalid license")
-		c.Err = model.NewAppError("addLicense", "Invalid license file.", "")
+		c.LogAudit(T("failed - invalid license"), T)
+		c.Err = model.NewAppError("addLicense", T("Invalid license file."), "")
 		return
 	}
 
-	c.LogAudit("success")
+	c.LogAudit(T("success"), T)
 	w.Write([]byte(license.ToJson()))
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.LogAudit("")
+	T := i18n.GetTranslations(w, r)
+	c.LogAudit("", T)
 
-	if ok := utils.RemoveLicense(); !ok {
-		c.LogAudit("failed - could not remove license file")
-		c.Err = model.NewAppError("removeLicense", "License did not remove properly.", "")
+	if ok := utils.RemoveLicense(T); !ok {
+		c.LogAudit(T("failed - could not remove license file"), T)
+		c.Err = model.NewAppError("removeLicense", T("License did not remove properly."), "")
 		return
 	}
 
