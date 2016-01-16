@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"image/gif"
 	"io"
 	"mime"
@@ -20,7 +21,7 @@ type FileInfo struct {
 	HasPreviewImage bool   `json:"has_preview_image"`
 }
 
-func GetInfoForBytes(filename string, data []byte) (*FileInfo, *AppError) {
+func GetInfoForBytes(filename string, data []byte, T goi18n.TranslateFunc) (*FileInfo, *AppError) {
 	size := len(data)
 
 	var mimeType string
@@ -36,7 +37,7 @@ func GetInfoForBytes(filename string, data []byte) (*FileInfo, *AppError) {
 	if mimeType == "image/gif" {
 		// just show the gif itself instead of a preview image for animated gifs
 		if gifImage, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
-			return nil, NewAppError("GetInfoForBytes", "Could not decode gif.", "filename="+filename)
+			return nil, NewAppError("GetInfoForBytes", T("Could not decode gif."), "filename="+filename)
 		} else {
 			hasPreviewImage = len(gifImage.Image) == 1
 		}

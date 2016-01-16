@@ -1,11 +1,43 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import UserStore from '../stores/user_store.jsx';
 
-export default class LoginEmail extends React.Component {
+const messages = defineMessages({
+    badTeam: {
+        id: 'login_email.badTeam',
+        defaultMessage: 'Bad team name'
+    },
+    emailReq: {
+        id: 'login_email.emailReq',
+        defaultMessage: 'An email is required'
+    },
+    pwdReq: {
+        id: 'login_email.pwdReq',
+        defaultMessage: 'A password is required'
+    },
+    notVerified: {
+        id: 'login_email.notVerified',
+        defaultMessage: 'Login failed because email address has not been verified'
+    },
+    email: {
+        id: 'login_email.email',
+        defaultMessage: 'Email'
+    },
+    pwd: {
+        id: 'login_email.pwd',
+        defaultMessage: 'Password'
+    },
+    signin: {
+        id: 'login_email.signin',
+        defaultMessage: 'Sign in'
+    }
+});
+
+class LoginEmail extends React.Component {
     constructor(props) {
         super(props);
 
@@ -17,25 +49,26 @@ export default class LoginEmail extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
+        const {formatMessage} = this.props.intl;
         var state = {};
 
         const name = this.props.teamName;
         if (!name) {
-            state.serverError = 'Bad team name';
+            state.serverError = formatMessage(messages.badTeam);
             this.setState(state);
             return;
         }
 
         const email = this.refs.email.value.trim();
         if (!email) {
-            state.serverError = 'An email is required';
+            state.serverError = formatMessage(messages.emailReq);
             this.setState(state);
             return;
         }
 
         const password = this.refs.password.value.trim();
         if (!password) {
-            state.serverError = 'A password is required';
+            state.serverError = formatMessage(messages.pwdReq);
             this.setState(state);
             return;
         }
@@ -55,7 +88,7 @@ export default class LoginEmail extends React.Component {
                 }
             },
             (err) => {
-                if (err.message === 'Login failed because email address has not been verified') {
+                if (err.message === formatMessage(messages.notVerified)) {
                     window.location.href = '/verify_email?teamname=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email);
                     return;
                 }
@@ -66,6 +99,7 @@ export default class LoginEmail extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let serverError;
         let errorClass = '';
         if (this.state.serverError) {
@@ -101,7 +135,7 @@ export default class LoginEmail extends React.Component {
                             name='email'
                             defaultValue={priorEmail}
                             ref='email'
-                            placeholder='Email'
+                            placeholder={formatMessage(messages.email)}
                             spellCheck='false'
                         />
                     </div>
@@ -112,7 +146,7 @@ export default class LoginEmail extends React.Component {
                             className='form-control'
                             name='password'
                             ref='password'
-                            placeholder='Password'
+                            placeholder={formatMessage(messages.pwd)}
                             spellCheck='false'
                         />
                     </div>
@@ -121,7 +155,7 @@ export default class LoginEmail extends React.Component {
                             type='submit'
                             className='btn btn-primary'
                         >
-                            {'Sign in'}
+                            {formatMessage(messages.signin)}
                         </button>
                     </div>
                 </div>
@@ -133,5 +167,8 @@ LoginEmail.defaultProps = {
 };
 
 LoginEmail.propTypes = {
-    teamName: React.PropTypes.string.isRequired
+    teamName: React.PropTypes.string.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(LoginEmail);

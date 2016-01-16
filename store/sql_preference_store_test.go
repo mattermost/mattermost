@@ -27,24 +27,24 @@ func TestPreferenceSave(t *testing.T) {
 			Value:    "value1b",
 		},
 	}
-	if count := Must(store.Preference().Save(&preferences)); count != 2 {
+	if count := Must(store.Preference().Save(&preferences, T)); count != 2 {
 		t.Fatal("got incorrect number of rows saved")
 	}
 
 	for _, preference := range preferences {
-		if data := Must(store.Preference().Get(preference.UserId, preference.Category, preference.Name)).(model.Preference); preference != data {
+		if data := Must(store.Preference().Get(preference.UserId, preference.Category, preference.Name, T)).(model.Preference); preference != data {
 			t.Fatal("got incorrect preference after first Save")
 		}
 	}
 
 	preferences[0].Value = "value2a"
 	preferences[1].Value = "value2b"
-	if count := Must(store.Preference().Save(&preferences)); count != 2 {
+	if count := Must(store.Preference().Save(&preferences, T)); count != 2 {
 		t.Fatal("got incorrect number of rows saved")
 	}
 
 	for _, preference := range preferences {
-		if data := Must(store.Preference().Get(preference.UserId, preference.Category, preference.Name)).(model.Preference); preference != data {
+		if data := Must(store.Preference().Get(preference.UserId, preference.Category, preference.Name, T)).(model.Preference); preference != data {
 			t.Fatal("got incorrect preference after second Save")
 		}
 	}
@@ -80,16 +80,16 @@ func TestPreferenceGet(t *testing.T) {
 		},
 	}
 
-	Must(store.Preference().Save(&preferences))
+	Must(store.Preference().Save(&preferences, T))
 
-	if result := <-store.Preference().Get(userId, category, name); result.Err != nil {
+	if result := <-store.Preference().Get(userId, category, name, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(model.Preference); data != preferences[0] {
 		t.Fatal("got incorrect preference")
 	}
 
 	// make sure getting a missing preference fails
-	if result := <-store.Preference().Get(model.NewId(), model.NewId(), model.NewId()); result.Err == nil {
+	if result := <-store.Preference().Get(model.NewId(), model.NewId(), model.NewId(), T); result.Err == nil {
 		t.Fatal("no error on getting a missing preference")
 	}
 }
@@ -127,9 +127,9 @@ func TestPreferenceGetCategory(t *testing.T) {
 		},
 	}
 
-	Must(store.Preference().Save(&preferences))
+	Must(store.Preference().Save(&preferences, T))
 
-	if result := <-store.Preference().GetCategory(userId, category); result.Err != nil {
+	if result := <-store.Preference().GetCategory(userId, category, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(model.Preferences); len(data) != 2 {
 		t.Fatal("got the wrong number of preferences")
@@ -138,7 +138,7 @@ func TestPreferenceGetCategory(t *testing.T) {
 	}
 
 	// make sure getting a missing preference category doesn't fail
-	if result := <-store.Preference().GetCategory(model.NewId(), model.NewId()); result.Err != nil {
+	if result := <-store.Preference().GetCategory(model.NewId(), model.NewId(), T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(model.Preferences); len(data) != 0 {
 		t.Fatal("shouldn't have got any preferences")
@@ -178,9 +178,9 @@ func TestPreferenceGetAll(t *testing.T) {
 		},
 	}
 
-	Must(store.Preference().Save(&preferences))
+	Must(store.Preference().Save(&preferences, T))
 
-	if result := <-store.Preference().GetAll(userId); result.Err != nil {
+	if result := <-store.Preference().GetAll(userId, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(model.Preferences); len(data) != 3 {
 		t.Fatal("got the wrong number of preferences")
@@ -226,9 +226,9 @@ func TestPreferenceDelete(t *testing.T) {
 		},
 	}
 
-	Must(store.Preference().Save(&preferences))
+	Must(store.Preference().Save(&preferences, T))
 
-	if result := <-store.Preference().PermanentDeleteByUser(userId); result.Err != nil {
+	if result := <-store.Preference().PermanentDeleteByUser(userId, T); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 }
@@ -276,29 +276,29 @@ func TestIsFeatureEnabled(t *testing.T) {
 		},
 	}
 
-	Must(store.Preference().Save(&features))
+	Must(store.Preference().Save(&features, T))
 
-	if result := <-store.Preference().IsFeatureEnabled(feature1, userId); result.Err != nil {
+	if result := <-store.Preference().IsFeatureEnabled(feature1, userId, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(bool); data != true {
 		t.Fatalf("got incorrect setting for feature1, %v=%v", true, data)
 	}
 
-	if result := <-store.Preference().IsFeatureEnabled(feature2, userId); result.Err != nil {
+	if result := <-store.Preference().IsFeatureEnabled(feature2, userId, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(bool); data != false {
 		t.Fatalf("got incorrect setting for feature2, %v=%v", false, data)
 	}
 
 	// make sure we get false if something different than "true" or "false" has been saved to database
-	if result := <-store.Preference().IsFeatureEnabled(feature3, userId); result.Err != nil {
+	if result := <-store.Preference().IsFeatureEnabled(feature3, userId, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(bool); data != false {
 		t.Fatalf("got incorrect setting for feature3, %v=%v", false, data)
 	}
 
 	// make sure false is returned if a non-existent feature is queried
-	if result := <-store.Preference().IsFeatureEnabled("someOtherFeature", userId); result.Err != nil {
+	if result := <-store.Preference().IsFeatureEnabled("someOtherFeature", userId, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(bool); data != false {
 		t.Fatalf("got incorrect setting for non-existent feature 'someOtherFeature', %v=%v", false, data)
@@ -341,9 +341,9 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 		},
 	}
 
-	Must(store.Preference().Save(&features))
+	Must(store.Preference().Save(&features, T))
 
-	store.(*SqlStore).preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
+	store.(*SqlStore).preference.(*SqlPreferenceStore).DeleteUnusedFeatures(T)
 
 	//make sure features with value "false" have actually been deleted from the database
 	if val, err := store.(*SqlStore).preference.(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)

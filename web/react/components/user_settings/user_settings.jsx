@@ -11,6 +11,7 @@ import DeveloperTab from './user_settings_developer.jsx';
 import IntegrationsTab from './user_settings_integrations.jsx';
 import DisplayTab from './user_settings_display.jsx';
 import AdvancedTab from './user_settings_advanced.jsx';
+import LanguagesTab from './user_settings_language.jsx';
 
 export default class UserSettings extends React.Component {
     constructor(props) {
@@ -116,6 +117,20 @@ export default class UserSettings extends React.Component {
             return (
                 <div>
                     <IntegrationsTab
+                        ref='activeTab'
+                        user={this.state.user}
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
+                        updateTab={this.props.updateTab}
+                        closeModal={this.props.closeModal}
+                        collapseModal={this.props.collapseModal}
+                    />
+                </div>
+            );
+        } else if (this.props.activeTab === 'languages') {
+            return (
+                <div>
+                    <LanguagesTab
                         ref='activeTab'
                         user={this.state.user}
                         activeSection={this.props.activeSection}

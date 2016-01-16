@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import LoadingScreen from './loading_screen.jsx';
 import MemberList from './member_list.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
@@ -14,7 +15,22 @@ import * as Utils from '../utils/utils.jsx';
 
 const Modal = ReactBootstrap.Modal;
 
-export default class ChannelMembersModal extends React.Component {
+const messages = defineMessages({
+    members: {
+        id: 'channel_memebers_modal.members',
+        defaultMessage: ' Members'
+    },
+    addNew: {
+        id: 'channel_members_modal.addNew',
+        defaultMessage: ' Add New Memebers'
+    },
+    close: {
+        id: 'channel_members_modal.close',
+        defaultMessage: 'Close'
+    }
+});
+
+class ChannelMembersModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -157,6 +173,8 @@ export default class ChannelMembersModal extends React.Component {
          );
     }
     render() {
+        const {formatMessage} = this.props.intl;
+
         var maxHeight = 1000;
         if (Utils.windowHeight() <= 1200) {
             maxHeight = Utils.windowHeight() - 300;
@@ -191,7 +209,7 @@ export default class ChannelMembersModal extends React.Component {
                     onHide={this.props.onModalDismissed}
                 >
                     <Modal.Header closeButton={true}>
-                        <Modal.Title><span className='name'>{this.props.channel.display_name}</span>{' Members'}</Modal.Title>
+                        <Modal.Title><span className='name'>{this.props.channel.display_name}</span>{formatMessage(messages.members)}</Modal.Title>
                         <a
                             className='btn btn-md btn-primary'
                             href='#'
@@ -200,7 +218,7 @@ export default class ChannelMembersModal extends React.Component {
                                 this.props.onModalDismissed();
                             }}
                         >
-                            <i className='glyphicon glyphicon-envelope'/>{' Add New Members'}
+                            <i className='glyphicon glyphicon-envelope'/>{formatMessage(messages.addNew)}
                         </a>
                     </Modal.Header>
                     <Modal.Body
@@ -215,7 +233,7 @@ export default class ChannelMembersModal extends React.Component {
                             className='btn btn-default'
                             onClick={this.props.onModalDismissed}
                         >
-                            {'Close'}
+                            {formatMessage(messages.close)}
                         </button>
                     </Modal.Footer>
                 </Modal>
@@ -236,5 +254,8 @@ ChannelMembersModal.defaultProps = {
 ChannelMembersModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    channel: React.PropTypes.object.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(ChannelMembersModal);

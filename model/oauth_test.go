@@ -49,47 +49,47 @@ func TestOAuthAppPreUpdate(t *testing.T) {
 func TestOAuthAppIsValid(t *testing.T) {
 	app := OAuthApp{}
 
-	if err := app.IsValid(); err == nil {
+	if err := app.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	app.Id = NewId()
-	if err := app.IsValid(); err == nil {
+	if err := app.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	app.CreateAt = 1
-	if err := app.IsValid(); err == nil {
+	if err := app.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	app.UpdateAt = 1
-	if err := app.IsValid(); err == nil {
+	if err := app.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	app.CreatorId = NewId()
-	if err := app.IsValid(); err == nil {
+	if err := app.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	app.ClientSecret = NewId()
-	if err := app.IsValid(); err == nil {
+	if err := app.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	app.Name = "TestOAuthApp"
-	if err := app.IsValid(); err == nil {
+	if err := app.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	app.CallbackUrls = []string{"https://nowhere.com"}
-	if err := app.IsValid(); err == nil {
+	if err := app.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	app.Homepage = "https://nowhere.com"
-	if err := app.IsValid(); err != nil {
+	if err := app.IsValid(T); err != nil {
 		t.Fatal()
 	}
 }

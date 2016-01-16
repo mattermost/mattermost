@@ -1,11 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+const messages = defineMessages({
+    details: {
+        id: 'rhs_header.details',
+        defaultMessage: 'Message Details'
+    }
+});
 
-export default class RhsHeaderPost extends React.Component {
+class RhsHeaderPost extends React.Component {
     constructor(props) {
         super(props);
 
@@ -43,6 +50,7 @@ export default class RhsHeaderPost extends React.Component {
         });
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let back;
         if (this.props.fromSearch) {
             back = (
@@ -58,7 +66,7 @@ export default class RhsHeaderPost extends React.Component {
 
         return (
             <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>{back}Message Details</span>
+                <span className='sidebar--right__title'>{back} {formatMessage(messages.details)}</span>
                 <button
                     type='button'
                     className='sidebar--right__close'
@@ -77,6 +85,9 @@ RhsHeaderPost.defaultProps = {
     fromSearch: ''
 };
 RhsHeaderPost.propTypes = {
+    intl: intlShape.isRequired,
     isMentionSearch: React.PropTypes.bool,
     fromSearch: React.PropTypes.string
 };
+
+export default injectIntl(RhsHeaderPost);

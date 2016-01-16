@@ -1,7 +1,47 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class EmailVerify extends React.Component {
+const messages = defineMessages({
+    verified: {
+        id: 'email_verify.verified',
+        defaultMessage: ' Email Verified'
+    },
+    notVerified: {
+        id: 'email_verify.notVerified',
+        defaultMessage: ' Email Not Verified'
+    },
+    verifiedBody1: {
+        id: 'email_verify.verifiedBody1',
+        defaultMessage: 'Your email has been verified! Click '
+    },
+    verifiedBody2: {
+        id: 'email_verify.verifiedBody2',
+        defaultMessage: 'here'
+    },
+    verifiedBody3: {
+        id: 'email_verify.verifiedBody3',
+        defaultMessage: ' to log in.'
+    },
+    notVerifiedBody: {
+        id: 'email_verify.notVerifiedBody',
+        defaultMessage: 'Please verify your email address. Check your inbox for an email.'
+    },
+    resend: {
+        id: 'email_verify.resend',
+        defaultMessage: 'Resend Email'
+    },
+    sent: {
+        id: 'email_verify.sent',
+        defaultMessage: ' Verification email sent.'
+    },
+    almost: {
+        id: 'email_verify.almost',
+        defaultMessage: ': You are almost done'
+    }
+});
+
+class EmailVerify extends React.Component {
     constructor(props) {
         super(props);
 
@@ -14,26 +54,27 @@ export default class EmailVerify extends React.Component {
         window.location.href = newAddress + '&resend=true';
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var title = '';
         var body = '';
         var resend = '';
         var resendConfirm = '';
         if (this.props.isVerified === 'true') {
-            title = global.window.mm_config.SiteName + ' Email Verified';
-            body = <p>Your email has been verified! Click <a href={this.props.teamURL + '?email=' + this.props.userEmail}>here</a> to log in.</p>;
+            title = global.window.mm_config.SiteName + formatMessage(messages.verified);
+            body = <p>{formatMessage(messages.verifiedBody1)}<a href={this.props.teamURL + '?email=' + this.props.userEmail}>{formatMessage(messages.verifiedBody2)}</a>{formatMessage(messages.verifiedBody3)}</p>;
         } else {
-            title = global.window.mm_config.SiteName + ': You are almost done';
-            body = <p>Please verify your email address. Check your inbox for an email.</p>;
+            title = global.window.mm_config.SiteName + formatMessage(messages.almost);
+            body = <p>{formatMessage(messages.notVerifiedBody)}</p>;
             resend = (
                 <button
                     onClick={this.handleResend}
                     className='btn btn-primary'
                 >
-                    Resend Email
+                    {formatMessage(messages.resend)}
                 </button>
             );
             if (this.props.resendSuccess) {
-                resendConfirm = <div><br /><p className='alert alert-success'><i className='fa fa-check'></i>{' Verification email sent.'}</p></div>;
+                resendConfirm = <div><br /><p className='alert alert-success'><i className='fa fa-check'></i>{formatMessage(messages.sent)}</p></div>;
             }
         }
 
@@ -59,8 +100,11 @@ EmailVerify.defaultProps = {
     resendSuccess: 'false'
 };
 EmailVerify.propTypes = {
+    intl: intlShape.isRequired,
     isVerified: React.PropTypes.string,
     teamURL: React.PropTypes.string,
     userEmail: React.PropTypes.string,
     resendSuccess: React.PropTypes.string
 };
+
+export default injectIntl(EmailVerify);

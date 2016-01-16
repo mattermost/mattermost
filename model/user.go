@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"regexp"
@@ -42,6 +43,7 @@ type User struct {
 	FirstName          string    `json:"first_name"`
 	LastName           string    `json:"last_name"`
 	Roles              string    `json:"roles"`
+	Locale             string    `json:"locale"`
 	LastActivityAt     int64     `json:"last_activity_at,omitempty"`
 	LastPingAt         int64     `json:"last_ping_at,omitempty"`
 	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
@@ -55,62 +57,62 @@ type User struct {
 
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
-func (u *User) IsValid() *AppError {
+func (u *User) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(u.Id) != 26 {
-		return NewAppError("User.IsValid", "Invalid user id", "")
+		return NewAppError("User.IsValid", T("Invalid user id"), "")
 	}
 
 	if u.CreateAt == 0 {
-		return NewAppError("User.IsValid", "Create at must be a valid time", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Create at must be a valid time"), "user_id="+u.Id)
 	}
 
 	if u.UpdateAt == 0 {
-		return NewAppError("User.IsValid", "Update at must be a valid time", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Update at must be a valid time"), "user_id="+u.Id)
 	}
 
 	if len(u.TeamId) != 26 {
-		return NewAppError("User.IsValid", "Invalid team id", "")
+		return NewAppError("User.IsValid", T("Invalid team id"), "")
 	}
 
 	if !IsValidUsername(u.Username) {
-		return NewAppError("User.IsValid", "Invalid username", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid username"), "user_id="+u.Id)
 	}
 
 	if len(u.Email) > 128 || len(u.Email) == 0 {
-		return NewAppError("User.IsValid", "Invalid email", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid email"), "user_id="+u.Id)
 	}
 
 	if utf8.RuneCountInString(u.Nickname) > 64 {
-		return NewAppError("User.IsValid", "Invalid nickname", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid nickname"), "user_id="+u.Id)
 	}
 
 	if utf8.RuneCountInString(u.FirstName) > 64 {
-		return NewAppError("User.IsValid", "Invalid first name", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid first name"), "user_id="+u.Id)
 	}
 
 	if utf8.RuneCountInString(u.LastName) > 64 {
-		return NewAppError("User.IsValid", "Invalid last name", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid last name"), "user_id="+u.Id)
 	}
 
 	if len(u.Password) > 128 {
-		return NewAppError("User.IsValid", "Invalid password", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid password"), "user_id="+u.Id)
 	}
 
 	if len(u.AuthData) > 128 {
-		return NewAppError("User.IsValid", "Invalid auth data", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid auth data"), "user_id="+u.Id)
 	}
 
 	if len(u.AuthData) > 0 && len(u.AuthService) == 0 {
-		return NewAppError("User.IsValid", "Invalid user, auth data must be set with auth type", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid user, auth data must be set with auth type"), "user_id="+u.Id)
 	}
 
 	if len(u.Password) > 0 && len(u.AuthData) > 0 {
-		return NewAppError("User.IsValid", "Invalid user, password and auth data cannot both be set", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid user, password and auth data cannot both be set"), "user_id="+u.Id)
 	}
 
 	if len(u.ThemeProps) > 2000 {
-		return NewAppError("User.IsValid", "Invalid theme", "user_id="+u.Id)
+		return NewAppError("User.IsValid", T("Invalid theme"), "user_id="+u.Id)
 	}
 
 	return nil
@@ -130,6 +132,7 @@ func (u *User) PreSave() {
 
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
+	u.Locale = strings.ToLower(u.Locale)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
@@ -153,6 +156,7 @@ func (u *User) PreSave() {
 func (u *User) PreUpdate() {
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
+	u.Locale = strings.ToLower(u.Locale)
 	u.UpdateAt = GetMillis()
 
 	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
@@ -227,7 +231,6 @@ func (u *User) Sanitize(options map[string]bool) {
 }
 
 func (u *User) ClearNonProfileFields() {
-	u.CreateAt = 0
 	u.UpdateAt = 0
 	u.Password = ""
 	u.AuthData = ""
@@ -455,6 +458,12 @@ func CleanUsername(s string) string {
 	if !IsValidUsername(s) {
 		s = "a" + NewId()
 	}
+
+	return s
+}
+
+func SetUsernameFromEmail(s string) string {
+	s = strings.Split(s, "@")[0]
 
 	return s
 }

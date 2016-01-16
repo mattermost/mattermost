@@ -21,52 +21,52 @@ func TestIncomingWebhookJson(t *testing.T) {
 func TestIncomingWebhookIsValid(t *testing.T) {
 	o := IncomingWebhook{}
 
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UserId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UserId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ChannelId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ChannelId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.TeamId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.TeamId = NewId()
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 }

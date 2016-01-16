@@ -18,16 +18,16 @@ func TestTeamStoreSave(t *testing.T) {
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 
-	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+	if err := (<-store.Team().Save(&o1, T)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
 	}
 
-	if err := (<-store.Team().Save(&o1)).Err; err == nil {
+	if err := (<-store.Team().Save(&o1, T)).Err; err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
 
 	o1.Id = ""
-	if err := (<-store.Team().Save(&o1)).Err; err == nil {
+	if err := (<-store.Team().Save(&o1, T)).Err; err == nil {
 		t.Fatal("should be unique domain")
 	}
 }
@@ -40,23 +40,23 @@ func TestTeamStoreUpdate(t *testing.T) {
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+	if err := (<-store.Team().Save(&o1, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-store.Team().Update(&o1)).Err; err != nil {
+	if err := (<-store.Team().Update(&o1, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
 	o1.Id = "missing"
-	if err := (<-store.Team().Update(&o1)).Err; err == nil {
+	if err := (<-store.Team().Update(&o1, T)).Err; err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	o1.Id = model.NewId()
-	if err := (<-store.Team().Update(&o1)).Err; err == nil {
+	if err := (<-store.Team().Update(&o1, T)).Err; err == nil {
 		t.Fatal("Update should have faile because id change")
 	}
 }
@@ -69,15 +69,15 @@ func TestTeamStoreUpdateDisplayName(t *testing.T) {
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1 = (<-store.Team().Save(o1)).Data.(*model.Team)
+	o1 = (<-store.Team().Save(o1, T)).Data.(*model.Team)
 
 	newDisplayName := "NewDisplayName"
 
-	if err := (<-store.Team().UpdateDisplayName(newDisplayName, o1.Id)).Err; err != nil {
+	if err := (<-store.Team().UpdateDisplayName(newDisplayName, o1.Id, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	ro1 := (<-store.Team().Get(o1.Id)).Data.(*model.Team)
+	ro1 := (<-store.Team().Get(o1.Id, T)).Data.(*model.Team)
 	if ro1.DisplayName != newDisplayName {
 		t.Fatal("DisplayName not updated")
 	}
@@ -91,9 +91,9 @@ func TestTeamStoreGet(t *testing.T) {
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	Must(store.Team().Save(&o1))
+	Must(store.Team().Save(&o1, T))
 
-	if r1 := <-store.Team().Get(o1.Id); r1.Err != nil {
+	if r1 := <-store.Team().Get(o1.Id, T); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
@@ -101,7 +101,7 @@ func TestTeamStoreGet(t *testing.T) {
 		}
 	}
 
-	if err := (<-store.Team().Get("")).Err; err == nil {
+	if err := (<-store.Team().Get("", T)).Err; err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -115,11 +115,11 @@ func TestTeamStoreGetByName(t *testing.T) {
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 
-	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+	if err := (<-store.Team().Save(&o1, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if r1 := <-store.Team().GetByName(o1.Name); r1.Err != nil {
+	if r1 := <-store.Team().GetByName(o1.Name, T); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
@@ -127,7 +127,7 @@ func TestTeamStoreGetByName(t *testing.T) {
 		}
 	}
 
-	if err := (<-store.Team().GetByName("")).Err; err == nil {
+	if err := (<-store.Team().GetByName("", T)).Err; err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -142,7 +142,7 @@ func TestTeamStoreGetByIniviteId(t *testing.T) {
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
 
-	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+	if err := (<-store.Team().Save(&o1, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -152,11 +152,11 @@ func TestTeamStoreGetByIniviteId(t *testing.T) {
 	o2.Email = model.NewId() + "@nowhere.com"
 	o2.Type = model.TEAM_OPEN
 
-	if err := (<-store.Team().Save(&o2)).Err; err != nil {
+	if err := (<-store.Team().Save(&o2, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if r1 := <-store.Team().GetByInviteId(o1.InviteId); r1.Err != nil {
+	if r1 := <-store.Team().GetByInviteId(o1.InviteId, T); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
@@ -165,9 +165,9 @@ func TestTeamStoreGetByIniviteId(t *testing.T) {
 	}
 
 	o2.InviteId = ""
-	<-store.Team().Update(&o2)
+	<-store.Team().Update(&o2, T)
 
-	if r1 := <-store.Team().GetByInviteId(o2.Id); r1.Err != nil {
+	if r1 := <-store.Team().GetByInviteId(o2.Id, T); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Team).Id != o2.Id {
@@ -175,7 +175,7 @@ func TestTeamStoreGetByIniviteId(t *testing.T) {
 		}
 	}
 
-	if err := (<-store.Team().GetByInviteId("")).Err; err == nil {
+	if err := (<-store.Team().GetByInviteId("", T)).Err; err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -188,14 +188,14 @@ func TestTeamStoreGetForEmail(t *testing.T) {
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	Must(store.Team().Save(&o1))
+	Must(store.Team().Save(&o1, T))
 
 	u1 := model.User{}
 	u1.TeamId = o1.Id
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(&u1, T))
 
-	if r1 := <-store.Team().GetTeamsForEmail(u1.Email); r1.Err != nil {
+	if r1 := <-store.Team().GetTeamsForEmail(u1.Email, T); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		teams := r1.Data.([]*model.Team)
@@ -205,7 +205,7 @@ func TestTeamStoreGetForEmail(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.Team().GetTeamsForEmail("missing"); r1.Err != nil {
+	if r1 := <-store.Team().GetTeamsForEmail("missing", T); r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
 }
@@ -219,16 +219,16 @@ func TestAllTeamListing(t *testing.T) {
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	o1.AllowTeamListing = true
-	Must(store.Team().Save(&o1))
+	Must(store.Team().Save(&o1, T))
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
 	o2.Name = "a" + model.NewId() + "b"
 	o2.Email = model.NewId() + "@nowhere.com"
 	o2.Type = model.TEAM_OPEN
-	Must(store.Team().Save(&o2))
+	Must(store.Team().Save(&o2, T))
 
-	if r1 := <-store.Team().GetAllTeamListing(); r1.Err != nil {
+	if r1 := <-store.Team().GetAllTeamListing(T); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		teams := r1.Data.([]*model.Team)
@@ -248,16 +248,16 @@ func TestDelete(t *testing.T) {
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	o1.AllowTeamListing = true
-	Must(store.Team().Save(&o1))
+	Must(store.Team().Save(&o1, T))
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
 	o2.Name = "a" + model.NewId() + "b"
 	o2.Email = model.NewId() + "@nowhere.com"
 	o2.Type = model.TEAM_OPEN
-	Must(store.Team().Save(&o2))
+	Must(store.Team().Save(&o2, T))
 
-	if r1 := <-store.Team().PermanentDelete(o1.Id); r1.Err != nil {
+	if r1 := <-store.Team().PermanentDelete(o1.Id, T); r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
 }

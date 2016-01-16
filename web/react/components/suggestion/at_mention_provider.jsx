@@ -8,17 +8,18 @@ import * as Utils from '../../utils/utils.jsx';
 class AtMentionSuggestion extends React.Component {
     render() {
         const {item, isSelection, onClick} = this.props;
+        const messages = SuggestionStore.getTranslations();
 
         let username;
         let description;
         let icon;
         if (item.username === 'all') {
             username = 'all';
-            description = 'Notifies everyone in the team';
+            description = messages.all;
             icon = <i className='mention-img fa fa-users fa-2x' />;
         } else if (item.username === 'channel') {
             username = 'channel';
-            description = 'Notifies everyone in the channel';
+            description = messages.channel;
             icon = <i className='mention-img fa fa-users fa-2x' />;
         } else {
             username = item.username;

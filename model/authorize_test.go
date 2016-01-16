@@ -35,32 +35,32 @@ func TestAuthIsValid(t *testing.T) {
 
 	ad := AuthData{}
 
-	if err := ad.IsValid(); err == nil {
+	if err := ad.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	ad.ClientId = NewId()
-	if err := ad.IsValid(); err == nil {
+	if err := ad.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	ad.UserId = NewId()
-	if err := ad.IsValid(); err == nil {
+	if err := ad.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	ad.Code = NewId()
-	if err := ad.IsValid(); err == nil {
+	if err := ad.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	ad.ExpiresIn = 1
-	if err := ad.IsValid(); err == nil {
+	if err := ad.IsValid(T); err == nil {
 		t.Fatal()
 	}
 
 	ad.CreateAt = 1
-	if err := ad.IsValid(); err != nil {
+	if err := ad.IsValid(T); err != nil {
 		t.Fatal()
 	}
 }

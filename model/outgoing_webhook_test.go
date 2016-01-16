@@ -21,72 +21,72 @@ func TestOutgoingWebhookJson(t *testing.T) {
 func TestOutgoingWebhookIsValid(t *testing.T) {
 	o := OutgoingWebhook{}
 
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CreatorId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CreatorId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Token = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Token = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ChannelId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ChannelId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.TeamId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.TeamId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CallbackURLs = []string{"nowhere.com/"}
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CallbackURLs = []string{"http://nowhere.com/"}
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 }

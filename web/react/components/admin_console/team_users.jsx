@@ -1,12 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import UserItem from './user_item.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';
 
-export default class UserList extends React.Component {
+const messages = defineMessages({
+    title: {
+        id: 'admin.userList.title',
+        defaultMessage: 'Users for '
+    }
+});
+
+class UserList extends React.Component {
     constructor(props) {
         super(props);
 
@@ -114,6 +122,7 @@ export default class UserList extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -122,7 +131,7 @@ export default class UserList extends React.Component {
         if (this.state.users == null) {
             return (
                 <div className='wrapper--fixed'>
-                    <h3>{'Users for ' + this.props.team.name}</h3>
+                    <h3>{formatMessage(messages.title) + this.props.team.name}</h3>
                     {serverError}
                     <LoadingScreen />
                 </div>
@@ -141,7 +150,7 @@ export default class UserList extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'Users for ' + this.props.team.name + ' (' + this.state.users.length + ')'}</h3>
+                <h3>{formatMessage(messages.title) + this.props.team.name + ' (' + this.state.users.length + ')'}</h3>
                 {serverError}
                 <form
                     className='form-horizontal'
@@ -166,5 +175,8 @@ export default class UserList extends React.Component {
 }
 
 UserList.propTypes = {
+    intl: intlShape.isRequired,
     team: React.PropTypes.object
 };
+
+export default injectIntl(UserList);

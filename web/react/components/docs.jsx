@@ -1,10 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl} from 'react-intl';
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import UserStore from '../stores/user_store.jsx';
 
-export default class Docs extends React.Component {
+class Docs extends React.Component {
     constructor(props) {
         super(props);
         UserStore.setCurrentUser(global.window.mm_user || {});
@@ -13,7 +14,10 @@ export default class Docs extends React.Component {
         const errorState = {text: '## 404'};
 
         if (props.site) {
-            $.get('/static/help/' + props.site + '.md').then((response) => {
+            const locale = props.intl.locale;
+            let md = props.site + '_' + locale + '.md';
+
+            $.get('/static/help/' + md).then((response) => {
                 this.setState({text: response});
             }, () => {
                 this.setState(errorState);
@@ -37,5 +41,8 @@ Docs.defaultProps = {
     site: ''
 };
 Docs.propTypes = {
-    site: React.PropTypes.string
+    site: React.PropTypes.string,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(Docs);

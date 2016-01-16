@@ -1,10 +1,34 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import SettingsSidebar from './settings_sidebar.jsx';
 import TeamSettings from './team_settings.jsx';
 
-export default class TeamSettingsModal extends React.Component {
+const messages = defineMessages({
+    close: {
+        id: 'team_settings_modal.close',
+        defaultMessage: 'Close'
+    },
+    title: {
+        id: 'team_settings_modal.title',
+        defaultMessage: 'Team Settings'
+    },
+    generalTab: {
+        id: 'team_settings_modal.generalTab',
+        defaultMessage: 'General'
+    },
+    importTab: {
+        id: 'team_settings_modal.importTab',
+        defaultMessage: 'Import'
+    },
+    exportTab: {
+        id: 'team_settings_modal.exportTab',
+        defaultMessage: 'Export'
+    }
+});
+
+class TeamSettingsModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -36,12 +60,17 @@ export default class TeamSettingsModal extends React.Component {
         this.setState({activeSection: section});
     }
     render() {
+        const {formatMessage} = this.props.intl;
         const tabs = [];
-        tabs.push({name: 'general', uiName: 'General', icon: 'glyphicon glyphicon-cog'});
-        tabs.push({name: 'import', uiName: 'Import', icon: 'glyphicon glyphicon-upload'});
+        tabs.push({name: 'general', uiName: formatMessage(messages.generalTab), icon: 'glyphicon glyphicon-cog'});
+        if (this.props.teamType === 'I') {
+            tabs.push({name: 'import', uiName: formatMessage(messages.importTab), icon: 'glyphicon glyphicon-upload'});
+        }
 
+        //
         // To enable export uncomment this line
-        //tabs.push({name: 'export', uiName: 'Export', icon: 'glyphicon glyphicon-download'});
+        //tabs.push({name: 'export', uiName: formatMessage(messages.exportTab), icon: 'glyphicon glyphicon-download'});
+        //
 
         return (
             <div
@@ -59,7 +88,7 @@ export default class TeamSettingsModal extends React.Component {
                                 type='button'
                                 className='close'
                                 data-dismiss='modal'
-                                aria-label='Close'
+                                aria-label={formatMessage(messages.close)}
                             >
                                 <span aria-hidden='true'>&times;</span>
                             </button>
@@ -67,7 +96,7 @@ export default class TeamSettingsModal extends React.Component {
                                 className='modal-title'
                                 ref='title'
                             >
-                                {'Team Settings'}
+                                {formatMessage(messages.title)}
                             </h4>
                         </div>
                         <div className='modal-body'>
@@ -96,4 +125,8 @@ export default class TeamSettingsModal extends React.Component {
 }
 
 TeamSettingsModal.propTypes = {
+    intl: intlShape.isRequired,
+    teamType: React.PropTypes.string.isRequired
 };
+
+export default injectIntl(TeamSettingsModal);

@@ -1,18 +1,44 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class ChooseAuthPage extends React.Component {
+const messages = defineMessages({
+    gitlabCreate: {
+        id: 'choose_auth_page.gitlabCreate',
+        defaultMessage: 'Create new team with GitLab Account'
+    },
+    googleCreate: {
+        id: 'choose_auth_page.googleCreate',
+        defaultMessage: 'Create new team with Google Apps Account'
+    },
+    emailCreate: {
+        id: 'choose_auth_page.emailCreate',
+        defaultMessage: 'Create new team with email address'
+    },
+    noSignup: {
+        id: 'choose_auth_page.noSignup',
+        defaultMessage: 'No sign-up methods configured, please contact your system administrator.'
+    },
+    find: {
+        id: 'choose_auth_page.find',
+        defaultMessage: 'Find my team'
+    }
+});
+
+class ChooseAuthPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var buttons = [];
         if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             buttons.push(
                     <a
                         className='btn btn-custom-login gitlab btn-full'
                         href='#'
+                        key='gitlab'
                         onClick={
                             function clickGit(e) {
                                 e.preventDefault();
@@ -21,7 +47,7 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='icon' />
-                        <span>{'Create new team with GitLab Account'}</span>
+                        <span>{formatMessage(messages.gitlabCreate)}</span>
                     </a>
             );
         }
@@ -31,6 +57,7 @@ export default class ChooseAuthPage extends React.Component {
                     <a
                         className='btn btn-custom-login google btn-full'
                         href='#'
+                        key='google'
                         onClick={
                             (e) => {
                                 e.preventDefault();
@@ -39,7 +66,7 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='icon' />
-                        <span>{'Create new team with Google Apps Account'}</span>
+                        <span>{formatMessage(messages.googleCreate)}</span>
                     </a>
             );
         }
@@ -49,6 +76,7 @@ export default class ChooseAuthPage extends React.Component {
                     <a
                         className='btn btn-custom-login email btn-full'
                         href='#'
+                        key='email'
                         onClick={
                             function clickEmail(e) {
                                 e.preventDefault();
@@ -57,20 +85,20 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='fa fa-envelope' />
-                        <span>{'Create new team with email address'}</span>
+                        <span>{formatMessage(messages.emailCreate)}</span>
                     </a>
             );
         }
 
         if (buttons.length === 0) {
-            buttons = <span>{'No sign-up methods configured, please contact your system administrator.'}</span>;
+            buttons = <span>{formatMessage(messages.noSignup)}</span>;
         }
 
         return (
             <div>
                 {buttons}
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{'Find my teams'}</a></span>
+                    <span><a href='/find_team'>{formatMessage(messages.find)}</a></span>
                 </div>
             </div>
         );
@@ -78,5 +106,8 @@ export default class ChooseAuthPage extends React.Component {
 }
 
 ChooseAuthPage.propTypes = {
+    intl: intlShape.isRequired,
     updatePage: React.PropTypes.func
 };
+
+export default injectIntl(ChooseAuthPage);

@@ -36,7 +36,7 @@ func BenchmarkCreateDirectChannel(b *testing.B) {
 	team, _, _ := SetupBenchmark()
 
 	userCreator := NewAutoUserCreator(Client, team.Id)
-	users, err := userCreator.CreateTestUsers(NUM_CHANNELS_RANGE)
+	users, err := userCreator.CreateTestUsers(NUM_CHANNELS_RANGE, T)
 	if err == false {
 		b.Fatal("Could not create users")
 	}
@@ -54,7 +54,7 @@ func BenchmarkCreateDirectChannel(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < NUM_CHANNELS; j++ {
-			Client.CreateDirectChannel(data[j])
+			Client.CreateDirectChannel(data[j], T)
 		}
 	}
 }
@@ -80,7 +80,7 @@ func BenchmarkUpdateChannel(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range channels {
-			if _, err := Client.UpdateChannel(channels[j]); err != nil {
+			if _, err := Client.UpdateChannel(channels[j], T); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -102,7 +102,7 @@ func BenchmarkGetChannels(b *testing.B) {
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Client.Must(Client.GetChannels(""))
+		Client.Must(Client.GetChannels("", T))
 	}
 }
 
@@ -121,7 +121,7 @@ func BenchmarkGetMoreChannels(b *testing.B) {
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Client.Must(Client.GetMoreChannels(""))
+		Client.Must(Client.GetMoreChannels("", T))
 	}
 }
 
@@ -139,15 +139,15 @@ func BenchmarkJoinChannel(b *testing.B) {
 
 	// Secondary test user to join channels created by primary test user
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "random@test.com", Nickname: "That Guy", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range channels {
-			Client.Must(Client.JoinChannel(channels[j].Id))
+			Client.Must(Client.JoinChannel(channels[j].Id, T))
 		}
 	}
 }
@@ -168,7 +168,7 @@ func BenchmarkDeleteChannel(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range channels {
-			Client.Must(Client.DeleteChannel(channels[j].Id))
+			Client.Must(Client.DeleteChannel(channels[j].Id, T))
 		}
 	}
 }
@@ -189,7 +189,7 @@ func BenchmarkGetChannelExtraInfo(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range channels {
-			Client.Must(Client.GetChannelExtraInfo(channels[j].Id, -1, ""))
+			Client.Must(Client.GetChannelExtraInfo(channels[j].Id, -1, "", T))
 		}
 	}
 }
@@ -202,10 +202,10 @@ func BenchmarkAddChannelMember(b *testing.B) {
 	team, _, _ := SetupBenchmark()
 
 	channel := &model.Channel{DisplayName: "Test Channel", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel = Client.Must(Client.CreateChannel(channel)).Data.(*model.Channel)
+	channel = Client.Must(Client.CreateChannel(channel, T)).Data.(*model.Channel)
 
 	userCreator := NewAutoUserCreator(Client, team.Id)
-	users, valid := userCreator.CreateTestUsers(NUM_USERS_RANGE)
+	users, valid := userCreator.CreateTestUsers(NUM_USERS_RANGE, T)
 	if valid == false {
 		b.Fatal("Unable to create test users")
 	}
@@ -214,7 +214,7 @@ func BenchmarkAddChannelMember(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range users {
-			if _, err := Client.AddChannelMember(channel.Id, users[j].Id); err != nil {
+			if _, err := Client.AddChannelMember(channel.Id, users[j].Id, T); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -230,16 +230,16 @@ func BenchmarkRemoveChannelMember(b *testing.B) {
 	team, _, _ := SetupBenchmark()
 
 	channel := &model.Channel{DisplayName: "Test Channel", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel = Client.Must(Client.CreateChannel(channel)).Data.(*model.Channel)
+	channel = Client.Must(Client.CreateChannel(channel, T)).Data.(*model.Channel)
 
 	userCreator := NewAutoUserCreator(Client, team.Id)
-	users, valid := userCreator.CreateTestUsers(NUM_USERS_RANGE)
+	users, valid := userCreator.CreateTestUsers(NUM_USERS_RANGE, T)
 	if valid == false {
 		b.Fatal("Unable to create test users")
 	}
 
 	for i := range users {
-		if _, err := Client.AddChannelMember(channel.Id, users[i].Id); err != nil {
+		if _, err := Client.AddChannelMember(channel.Id, users[i].Id, T); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -248,7 +248,7 @@ func BenchmarkRemoveChannelMember(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range users {
-			if _, err := Client.RemoveChannelMember(channel.Id, users[j].Id); err != nil {
+			if _, err := Client.RemoveChannelMember(channel.Id, users[j].Id, T); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -283,7 +283,7 @@ func BenchmarkUpdateNotifyProps(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range channels {
-			Client.Must(Client.UpdateNotifyProps(data[j]))
+			Client.Must(Client.UpdateNotifyProps(data[j], T))
 		}
 	}
 }

@@ -13,15 +13,15 @@ func TestGetAllPreferences(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	user1 = Client.Must(Client.CreateUser(user1, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id, T))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	user2 = Client.Must(Client.CreateUser(user2, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id, T))
 
 	category := model.NewId()
 
@@ -43,21 +43,21 @@ func TestGetAllPreferences(t *testing.T) {
 		},
 	}
 
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
-	Client.Must(Client.SetPreferences(&preferences1))
+	Client.LoginByEmail(team.Name, user1.Email, "pwd", T)
+	Client.Must(Client.SetPreferences(&preferences1, T))
 
-	if result, err := Client.GetAllPreferences(); err != nil {
+	if result, err := Client.GetAllPreferences(T); err != nil {
 		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 4 {
+	} else if data := result.Data.(model.Preferences); len(data) != 6 {
 		t.Fatal("received the wrong number of preferences")
 	}
 
-	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd", T)
 
 	// note that user2 will automatically have a preference set for them to show user1 for direct messages
-	if result, err := Client.GetAllPreferences(); err != nil {
+	if result, err := Client.GetAllPreferences(T); err != nil {
 		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 2 {
+	} else if data := result.Data.(model.Preferences); len(data) != 4 {
 		t.Fatal("received the wrong number of preferences")
 	}
 }
@@ -66,13 +66,13 @@ func TestSetPreferences(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	user1 = Client.Must(Client.CreateUser(user1, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id, T))
 
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd", T)
 
 	// save 10 preferences
 	var preferences model.Preferences
@@ -85,7 +85,7 @@ func TestSetPreferences(t *testing.T) {
 		preferences = append(preferences, preference)
 	}
 
-	if _, err := Client.SetPreferences(&preferences); err != nil {
+	if _, err := Client.SetPreferences(&preferences, T); err != nil {
 		t.Fatal(err)
 	}
 
@@ -94,18 +94,18 @@ func TestSetPreferences(t *testing.T) {
 		preference.Value = "1234garbage"
 	}
 
-	if _, err := Client.SetPreferences(&preferences); err != nil {
+	if _, err := Client.SetPreferences(&preferences, T); err != nil {
 		t.Fatal(err)
 	}
 
 	// not able to update as a different user
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	user2 = Client.Must(Client.CreateUser(user2, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id, T))
 
-	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd", T)
 
-	if _, err := Client.SetPreferences(&preferences); err == nil {
+	if _, err := Client.SetPreferences(&preferences, T); err == nil {
 		t.Fatal("shouldn't have been able to update another user's preferences")
 	}
 }
@@ -114,15 +114,15 @@ func TestGetPreferenceCategory(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	user1 = Client.Must(Client.CreateUser(user1, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id, T))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	user2 = Client.Must(Client.CreateUser(user2, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id, T))
 
 	category := model.NewId()
 
@@ -144,12 +144,12 @@ func TestGetPreferenceCategory(t *testing.T) {
 		},
 	}
 
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
-	Client.Must(Client.SetPreferences(&preferences1))
+	Client.LoginByEmail(team.Name, user1.Email, "pwd", T)
+	Client.Must(Client.SetPreferences(&preferences1, T))
 
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd", T)
 
-	if result, err := Client.GetPreferenceCategory(category); err != nil {
+	if result, err := Client.GetPreferenceCategory(category, T); err != nil {
 		t.Fatal(err)
 	} else if data := result.Data.(model.Preferences); len(data) != 2 {
 		t.Fatal("received the wrong number of preferences")
@@ -157,9 +157,9 @@ func TestGetPreferenceCategory(t *testing.T) {
 		t.Fatal("received incorrect preferences")
 	}
 
-	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd", T)
 
-	if result, err := Client.GetPreferenceCategory(category); err != nil {
+	if result, err := Client.GetPreferenceCategory(category, T); err != nil {
 		t.Fatal(err)
 	} else if data := result.Data.(model.Preferences); len(data) != 0 {
 		t.Fatal("received the wrong number of preferences")
@@ -170,13 +170,13 @@ func TestGetPreference(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	preferences := model.Preferences{
 		{
@@ -187,18 +187,18 @@ func TestGetPreference(t *testing.T) {
 		},
 	}
 
-	Client.Must(Client.SetPreferences(&preferences))
+	Client.Must(Client.SetPreferences(&preferences, T))
 
-	if result, err := Client.GetPreference(preferences[0].Category, preferences[0].Name); err != nil {
+	if result, err := Client.GetPreference(preferences[0].Category, preferences[0].Name, T); err != nil {
 		t.Fatal(err)
 	} else if data := result.Data.(*model.Preference); *data != preferences[0] {
 		t.Fatal("preference saved incorrectly")
 	}
 
 	preferences[0].Value = model.NewId()
-	Client.Must(Client.SetPreferences(&preferences))
+	Client.Must(Client.SetPreferences(&preferences, T))
 
-	if result, err := Client.GetPreference(preferences[0].Category, preferences[0].Name); err != nil {
+	if result, err := Client.GetPreference(preferences[0].Category, preferences[0].Name, T); err != nil {
 		t.Fatal(err)
 	} else if data := result.Data.(*model.Preference); *data != preferences[0] {
 		t.Fatal("preference updated incorrectly")

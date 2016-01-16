@@ -1,8 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class SettingItemMin extends React.Component {
+const messages = defineMessages({
+    edit: {
+        id: 'setting_item_min.edit',
+        defaultMessage: 'Edit'
+    }
+});
+
+class SettingItemMin extends React.Component {
     render() {
+        const {formatMessage} = this.props.intl;
         let editButton = null;
         if (!this.props.disableOpen) {
             editButton = (
@@ -13,7 +22,7 @@ export default class SettingItemMin extends React.Component {
                         onClick={this.props.updateSection}
                     >
                         <i className='fa fa-pencil'/>
-                        {'Edit'}
+                        {formatMessage(messages.edit)}
                     </a>
                 </li>
             );
@@ -33,8 +42,11 @@ export default class SettingItemMin extends React.Component {
 }
 
 SettingItemMin.propTypes = {
+    intl: intlShape.isRequired,
     title: React.PropTypes.string,
     disableOpen: React.PropTypes.bool,
     updateSection: React.PropTypes.func,
     describe: React.PropTypes.string
 };
+
+export default injectIntl(SettingItemMin);
