@@ -2,19 +2,19 @@
 
 ## Escribiendo Mensajes
 
-Puedes escribir mensajes utilizando el cuadro de texto que dice "Escribe un mensaje..." al final de ZBox Chat.
+Puedes escribir mensajes utilizando el cuadro de texto que dice "Escribe un mensaje..." al final de Mattermost.
 
 Presiona **RETORNO** para enviar un mensaje. Utiliza **Shift+RETORNO** para crear una nueva linea sin enviar el mensaje.
 
 ## Darle formato a los Mensajes
 
-Los mensajes de ZBox Chat se les asigna formato utilizando un estándard que se llama "markdown". Aquí algunos ejemplos:
+Los mensajes de Mattermost se les asigna formato utilizando un estándard que se llama "markdown". Aquí algunos ejemplos:
 
 | Texto escrito | Como aparece |
 |:--------------|:-------------|
 |`**negrita**`| **negrita** |
 | `_italica_`|_italica_|
-|`[hipervinculo](http://zboxapp.com)`|[hipervinculo](http://zboxapp.com)|
+|`[hipervinculo](http://mattermost.org)`|[hipervinculo](http://mattermost.org)|
 |`![imagen embebida](https://travis-ci.org/mattermost/platform.svg)`|![imagen embebida](https://travis-ci.org/mattermost/platform.svg)|
 |`:smile:` `:sheep:` `:alien:`|:smile: :sheep: :alien:|
 
