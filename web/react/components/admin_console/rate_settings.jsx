@@ -1,10 +1,94 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class RateSettings extends React.Component {
+const messages = defineMessages({
+    true: {
+        id: 'admin.rate.true',
+        defaultMessage: 'true'
+    },
+    false: {
+        id: 'admin.rate.false',
+        defaultMessage: 'false'
+    },
+    noteTitle: {
+        id: 'admin.rate.noteTitle',
+        defaultMessage: 'Note:'
+    },
+    noteDescription: {
+        id: 'admin.rate.noteDescription',
+        defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'
+    },
+    title: {
+        id: 'admin.rate.title',
+        defaultMessage: 'Rate Limit Settings'
+    },
+    enableLimiterTitle: {
+        id: 'admin.rate.enableLimiterTitle',
+        defaultMessage: 'Enable Rate Limiter: '
+    },
+    enableLimiterDescription: {
+        id: 'admin.rate.enableLimiterDescription',
+        defaultMessage: 'When true, APIs are throttled at rates specified below.'
+    },
+    queriesTitle: {
+        id: 'admin.rate.queriesTitle',
+        defaultMessage: 'Number Of Queries Per Second:'
+    },
+    queriesExample: {
+        id: 'admin.rate.queriesExample',
+        defaultMessage: 'Ex "10"'
+    },
+    queriesDescription: {
+        id: 'admin.rate.queriesDescription',
+        defaultMessage: 'Throttles API at this number of requests per second.'
+    },
+    memoryTitle: {
+        id: 'admin.rate.memoryTitle',
+        defaultMessage: 'Memory Store Size:'
+    },
+    memoryExample: {
+        id: 'admin.rate.memoryExample',
+        defaultMessage: 'Ex "10000"'
+    },
+    memoryDescription: {
+        id: 'admin.rate.memoryDescription',
+        defaultMessage: 'Maximum number of users sessions connected to the system as determined by "Vary By Remote Address" and "Vary By Header" settings below.'
+    },
+    remoteTitle: {
+        id: 'admin.rate.remoteTitle',
+        defaultMessage: 'Vary By Remote Address: '
+    },
+    remoteDescription: {
+        id: 'admin.rate.remoteDescription',
+        defaultMessage: 'When true, rate limit API access by IP address.'
+    },
+    httpHeaderTitle: {
+        id: 'admin.rate.httpHeaderTitle',
+        defaultMessage: 'Vary By HTTP Header:'
+    },
+    httpHeaderExample: {
+        id: 'admin.rate.httpHeaderExample',
+        defaultMessage: 'Ex "X-Real-IP", "X-Forwarded-For"'
+    },
+    httpHeaderDescription: {
+        id: 'admin.rate.httpHeaderDescription',
+        defaultMessage: 'When filled in, vary rate limiting by HTTP header field specified (e.g. when configuring NGINX set to "X-Real-IP", when configuring AmazonELB set to "X-Forwarded-For").'
+    },
+    saving: {
+        id: 'admin.rate.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.rate.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class RateSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -85,6 +169,7 @@ export default class RateSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -100,12 +185,12 @@ export default class RateSettings extends React.Component {
 
                 <div className='banner'>
                     <div className='banner__content'>
-                        <h4 className='banner__heading'>{'Note:'}</h4>
-                        <p>{'Changing properties in this section will require a server restart before taking effect.'}</p>
+                        <h4 className='banner__heading'>{formatMessage(messages.noteTitle)}</h4>
+                        <p>{formatMessage(messages.noteDescription)}</p>
                     </div>
                 </div>
 
-                <h3>{'Rate Limit Settings'}</h3>
+                <h3>{formatMessage(messages.title)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -116,7 +201,7 @@ export default class RateSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnableRateLimiter'
                         >
-                            {'Enable Rate Limiter: '}
+                            {formatMessage(messages.enableLimiterTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -128,7 +213,7 @@ export default class RateSettings extends React.Component {
                                     defaultChecked={this.props.config.RateLimitSettings.EnableRateLimiter}
                                     onChange={this.handleChange.bind(this, 'EnableRateLimiterTrue')}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -138,9 +223,9 @@ export default class RateSettings extends React.Component {
                                     defaultChecked={!this.props.config.RateLimitSettings.EnableRateLimiter}
                                     onChange={this.handleChange.bind(this, 'EnableRateLimiterFalse')}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, APIs are throttled at rates specified below.'}</p>
+                            <p className='help-text'>{formatMessage(messages.enableLimiterDescription)}</p>
                         </div>
                     </div>
 
@@ -149,7 +234,7 @@ export default class RateSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='PerSec'
                         >
-                            {'Number Of Queries Per Second:'}
+                            {formatMessage(messages.queriesTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -157,12 +242,12 @@ export default class RateSettings extends React.Component {
                                 className='form-control'
                                 id='PerSec'
                                 ref='PerSec'
-                                placeholder='Ex "10"'
+                                placeholder={formatMessage(messages.queriesExample)}
                                 defaultValue={this.props.config.RateLimitSettings.PerSec}
                                 onChange={this.handleChange}
                                 disabled={!this.state.EnableRateLimiter}
                             />
-                            <p className='help-text'>{'Throttles API at this number of requests per second.'}</p>
+                            <p className='help-text'>{formatMessage(messages.queriesDescription)}</p>
                         </div>
                     </div>
 
@@ -171,7 +256,7 @@ export default class RateSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='MemoryStoreSize'
                         >
-                            {'Memory Store Size:'}
+                            {formatMessage(messages.memoryTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -179,12 +264,12 @@ export default class RateSettings extends React.Component {
                                 className='form-control'
                                 id='MemoryStoreSize'
                                 ref='MemoryStoreSize'
-                                placeholder='Ex "10000"'
+                                placeholder={formatMessage(messages.memoryExample)}
                                 defaultValue={this.props.config.RateLimitSettings.MemoryStoreSize}
                                 onChange={this.handleChange}
                                 disabled={!this.state.EnableRateLimiter}
                             />
-                            <p className='help-text'>{'Maximum number of users sessions connected to the system as determined by "Vary By Remote Address" and "Vary By Header" settings below.'}</p>
+                            <p className='help-text'>{formatMessage(messages.memoryDescription)}</p>
                         </div>
                     </div>
 
@@ -193,7 +278,7 @@ export default class RateSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='VaryByRemoteAddr'
                         >
-                            {'Vary By Remote Address: '}
+                            {formatMessage(messages.remoteTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -206,7 +291,7 @@ export default class RateSettings extends React.Component {
                                     onChange={this.handleChange.bind(this, 'VaryByRemoteAddrTrue')}
                                     disabled={!this.state.EnableRateLimiter}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -217,9 +302,9 @@ export default class RateSettings extends React.Component {
                                     onChange={this.handleChange.bind(this, 'VaryByRemoteAddrFalse')}
                                     disabled={!this.state.EnableRateLimiter}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, rate limit API access by IP address.'}</p>
+                            <p className='help-text'>{formatMessage(messages.remoteDescription)}</p>
                         </div>
                     </div>
 
@@ -228,7 +313,7 @@ export default class RateSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='VaryByHeader'
                         >
-                            {'Vary By HTTP Header:'}
+                            {formatMessage(messages.httpHeaderTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -236,12 +321,12 @@ export default class RateSettings extends React.Component {
                                 className='form-control'
                                 id='VaryByHeader'
                                 ref='VaryByHeader'
-                                placeholder='Ex "X-Real-IP", "X-Forwarded-For"'
+                                placeholder={formatMessage(messages.httpHeaderExample)}
                                 defaultValue={this.props.config.RateLimitSettings.VaryByHeader}
                                 onChange={this.handleChange}
                                 disabled={!this.state.EnableRateLimiter || this.state.VaryByRemoteAddr}
                             />
-                            <p className='help-text'>{'When filled in, vary rate limiting by HTTP header field specified (e.g. when configuring NGINX set to "X-Real-IP", when configuring AmazonELB set to "X-Forwarded-For").'}</p>
+                            <p className='help-text'>{formatMessage(messages.httpHeaderDescription)}</p>
                         </div>
                     </div>
 
@@ -254,9 +339,9 @@ export default class RateSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.saving)}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -268,5 +353,8 @@ export default class RateSettings extends React.Component {
 }
 
 RateSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(RateSettings);

@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, FormattedHTMLMessage} from 'react-intl';
 import NavbarDropdown from './navbar_dropdown.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 
@@ -15,7 +16,7 @@ const TutorialSteps = Constants.TutorialSteps;
 const Tooltip = ReactBootstrap.Tooltip;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-export default class SidebarHeader extends React.Component {
+class SidebarHeader extends React.Component {
     constructor(props) {
         super(props);
 
@@ -51,20 +52,10 @@ export default class SidebarHeader extends React.Component {
 
         screens.push(
             <div>
-                <h4>{'Main Menu'}</h4>
-                <p>
-                {'The '}<strong>{'Main Menu'}</strong>{' is where you can '}
-                <strong>{'Invite New Members'}</strong>
-                {', access your '}
-                <strong>{'Account Settings'}</strong>
-                {' and set your '}<strong>{'Theme Color'}</strong>{'.'}
-                </p>
-                <p>
-                {'Team administrators can also access their '}<strong>{'Team Settings'}</strong>{' from this menu.'}
-                </p>
-                <p>
-                {'System administrators will find a '}<strong>{'System Console'}</strong>{' option to administrate the entire system.'}
-                </p>
+                <FormattedHTMLMessage
+                    id='sidebar_header.tutorial'
+                    defaultMessage='<h4>Main Menu</h4><p>The <strong>Main Menu</strong> is where you can <strong>Invite New Members</strong>, access your <strong>Account Settings</strong> and set your <strong>Theme Color</strong>.</p><p>Team administrators can also access their <strong>Team Settings</strong> from this menu.</p><p>System administrators will find a <strong>System Console</strong> option to administrate the entire system.</p>'
+                />
             </div>
         );
 
@@ -142,5 +133,8 @@ SidebarHeader.defaultProps = {
 SidebarHeader.propTypes = {
     teamDisplayName: React.PropTypes.string,
     teamName: React.PropTypes.string,
-    teamType: React.PropTypes.string
+    teamType: React.PropTypes.string,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(SidebarHeader);

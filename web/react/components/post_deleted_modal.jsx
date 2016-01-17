@@ -1,12 +1,32 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import UserStore from '../stores/user_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 
-export default class PostDeletedModal extends React.Component {
+const messages = defineMessages({
+    close: {
+        id: 'post_delete.close',
+        defaultMessage: 'Close'
+    },
+    notPosted: {
+        id: 'post_delete.notPosted',
+        defaultMessage: 'Comment could not be posted'
+    },
+    someone: {
+        id: 'post_delete.someone',
+        defaultMessage: 'Someone deleted the message on which you tried to post a comment.'
+    },
+    okay: {
+        id: 'post_delete.okay',
+        defaultMessage: 'Okay'
+    }
+});
+
+class PostDeletedModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -38,6 +58,7 @@ export default class PostDeletedModal extends React.Component {
         });
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var currentUser = UserStore.getCurrentUser();
 
         if (currentUser != null) {
@@ -57,7 +78,7 @@ export default class PostDeletedModal extends React.Component {
                                     type='button'
                                     className='close'
                                     data-dismiss='modal'
-                                    aria-label='Close'
+                                    aria-label={formatMessage(messages.close)}
                                 >
                                     <span aria-hidden='true'>{'×'}</span>
                                 </button>
@@ -65,11 +86,11 @@ export default class PostDeletedModal extends React.Component {
                                     className='modal-title'
                                     id='myModalLabel'
                                 >
-                                    {'Comment could not be posted'}
+                                    {formatMessage(messages.notPosted)}
                                 </h4>
                             </div>
                             <div className='modal-body'>
-                                <p>{'Someone deleted the message on which you tried to post a comment.'}</p>
+                                <p>{formatMessage(messages.someone)}</p>
                             </div>
                             <div className='modal-footer'>
                                 <button
@@ -77,7 +98,7 @@ export default class PostDeletedModal extends React.Component {
                                     className='btn btn-primary'
                                     data-dismiss='modal'
                                 >
-                                    {'Okay'}
+                                    {formatMessage(messages.okay)}
                                 </button>
                             </div>
                         </div>
@@ -89,3 +110,9 @@ export default class PostDeletedModal extends React.Component {
         return <div/>;
     }
 }
+
+PostDeletedModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(PostDeletedModal);

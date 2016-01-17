@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 import UserStore from '../stores/user_store.jsx';
@@ -13,6 +14,61 @@ import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
 import Constants from '../utils/constants.jsx';
+
+const messages = defineMessages({
+    inviteMember: {
+        id: 'navbar_dropdown.inviteMember',
+        defaultMessage: 'Invite New Member'
+    },
+    teamLink: {
+        id: 'navbar_dropdown.teamLink',
+        defaultMessage: 'Get Team Invite Link'
+    },
+    teamLinkTitle: {
+        id: 'navbar_dropdown.teamLinkTitle',
+        defaultMessage: 'Team Invite'
+    },
+    manageTeam: {
+        id: 'navbar_dropdown.manageTeam',
+        defaultMessage: 'Manage Members'
+    },
+    teamSettings: {
+        id: 'navbar_dropdown.teamSettings',
+        defaultMessage: 'Team Settings'
+    },
+    console: {
+        id: 'navbar_dropdown.console',
+        defaultMessage: 'System Console'
+    },
+    switch: {
+        id: 'navbar_dropdown.switch',
+        defaultMessage: 'Switch to '
+    },
+    create: {
+        id: 'navbar_dropdown.create',
+        defaultMessage: 'Create a New Team'
+    },
+    accountSettings: {
+        id: 'navbar_dropdown.accountSettings',
+        defaultMessage: 'Account Settings'
+    },
+    logout: {
+        id: 'navbar_dropdown.logout',
+        defaultMessage: 'Logout'
+    },
+    help: {
+        id: 'navbar_dropdown.help',
+        defaultMessage: 'Help'
+    },
+    report: {
+        id: 'navbar_dropdown.report',
+        defaultMessage: 'Report a Problem'
+    },
+    about: {
+        id: 'navbar_dropdown.about',
+        defaultMessage: 'About Mattermost'
+    }
+});
 
 function getStateFromStores() {
     const teams = [];
@@ -27,7 +83,7 @@ function getStateFromStores() {
     return {teams};
 }
 
-export default class NavbarDropdown extends React.Component {
+class NavbarDropdown extends React.Component {
     constructor(props) {
         super(props);
         this.blockToggle = false;
@@ -77,6 +133,7 @@ export default class NavbarDropdown extends React.Component {
         }
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var teamLink = '';
         var inviteLink = '';
         var manageLink = '';
@@ -97,7 +154,7 @@ export default class NavbarDropdown extends React.Component {
                         href='#'
                         onClick={EventHelpers.showInviteMemberModal}
                     >
-                        {'Invite New Member'}
+                        {formatMessage(messages.inviteMember)}
                     </a>
                 </li>
             );
@@ -109,7 +166,7 @@ export default class NavbarDropdown extends React.Component {
                             href='#'
                             onClick={EventHelpers.showGetTeamInviteLinkModal}
                         >
-                            {'Get Team Invite Link'}
+                            {formatMessage(messages.teamLink)}
                         </a>
                     </li>
                 );
@@ -120,7 +177,7 @@ export default class NavbarDropdown extends React.Component {
             manageLink = (
                 <li>
                     <ToggleModalButton dialogType={TeamMembersModal}>
-                        {'Manage Members'}
+                        {formatMessage(messages.manageTeam)}
                     </ToggleModalButton>
                 </li>
             );
@@ -134,7 +191,7 @@ export default class NavbarDropdown extends React.Component {
                         data-toggle='modal'
                         data-target='#team_settings'
                     >
-                        {'Team Settings'}
+                        {formatMessage(messages.teamSettings)}
                     </a>
                 </li>
             );
@@ -146,7 +203,7 @@ export default class NavbarDropdown extends React.Component {
                     <a
                         href={'/admin_console?' + Utils.getSessionIndex()}
                     >
-                        {'System Console'}
+                        {formatMessage(messages.console)}
                     </a>
                 </li>
             );
@@ -165,7 +222,7 @@ export default class NavbarDropdown extends React.Component {
 
             this.state.teams.forEach((team) => {
                 if (team.name !== this.props.teamName) {
-                    teams.push(<li key={team.name}><a href={Utils.getWindowLocationOrigin() + '/' + team.name}>{'Switch to ' + team.display_name}</a></li>);
+                    teams.push(<li key={team.name}><a href={Utils.getWindowLocationOrigin() + '/' + team.name}>{formatMessage(messages.switch) + team.display_name}</a></li>);
                 }
             });
         }
@@ -178,7 +235,7 @@ export default class NavbarDropdown extends React.Component {
                         target='_blank'
                         href={Utils.getWindowLocationOrigin() + '/signup_team'}
                     >
-                        {'Create a New Team'}
+                        {formatMessage(messages.create)}
                     </a>
                 </li>
             );
@@ -192,7 +249,7 @@ export default class NavbarDropdown extends React.Component {
                         target='_blank'
                         href={global.window.mm_config.HelpLink}
                     >
-                        {'Help'}
+                        {formatMessage(messages.help)}
                     </a>
                 </li>
             );
@@ -206,7 +263,7 @@ export default class NavbarDropdown extends React.Component {
                         target='_blank'
                         href={global.window.mm_config.ReportAProblemLink}
                     >
-                        {'Report a Problem'}
+                        {formatMessage(messages.report)}
                     </a>
                 </li>
             );
@@ -239,7 +296,7 @@ export default class NavbarDropdown extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showUserSettingsModal: true})}
                             >
-                                {'Account Settings'}
+                                {formatMessage(messages.accountSettings)}
                             </a>
                         </li>
                         {inviteLink}
@@ -249,7 +306,7 @@ export default class NavbarDropdown extends React.Component {
                                 href='#'
                                 onClick={this.handleLogoutClick}
                             >
-                                {'Logout'}
+                                {formatMessage(messages.logout)}
                             </a>
                         </li>
                         {adminDivider}
@@ -265,7 +322,7 @@ export default class NavbarDropdown extends React.Component {
                                 href='#'
                                 onClick={this.handleAboutModal}
                             >
-                                {'About Mattermost'}
+                                {formatMessage(messages.about)}
                             </a>
                         </li>
                         <UserSettingsModal
@@ -287,7 +344,10 @@ NavbarDropdown.defaultProps = {
     teamType: ''
 };
 NavbarDropdown.propTypes = {
+    intl: intlShape.isRequired,
     teamType: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string,
     teamName: React.PropTypes.string
 };
+
+export default injectIntl(NavbarDropdown);

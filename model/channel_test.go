@@ -21,70 +21,70 @@ func TestChannelJson(t *testing.T) {
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.DisplayName = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.DisplayName = "1234"
 	o.Name = "ZZZZZZZ"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Name = "zzzzz"
 
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Type = "U"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Type = "P"
 
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 
 	o.Header = strings.Repeat("01234567890", 100)
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Header = "1234"
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 
 	o.Purpose = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Purpose = "1234"
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 }

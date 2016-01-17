@@ -1,12 +1,40 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-export default class FileUpload extends React.Component {
+const messages = defineMessages({
+    limit1: {
+        id: 'file_upload.limit1',
+        defaultMessage: 'Uploads limited to'
+    },
+    limit2: {
+        id: 'file_upload.limit2',
+        defaultMessage: 'files maximum. Please use additional posts for more files.'
+    },
+    filesAbove: {
+        id: 'file_upload.filesAbove',
+        defaultMessage: 'Files above'
+    },
+    fileAbove: {
+        id: 'file_upload.fileAbove',
+        defaultMessage: 'File above'
+    },
+    fileAboveDescription: {
+        id: 'file_upload.fileAboveDescription',
+        defaultMessage: 'MB could not be uploaded:'
+    },
+    pasted: {
+        id: 'file_upload.pasted',
+        defaultMessage: 'Image Pasted at '
+    }
+});
+
+class FileUpload extends React.Component {
     constructor(props) {
         super(props);
 
@@ -34,6 +62,8 @@ export default class FileUpload extends React.Component {
     }
 
     uploadFiles(files) {
+        const {formatMessage} = this.props.intl;
+
         // clear any existing errors
         this.props.onUploadError(null);
 
@@ -75,13 +105,13 @@ export default class FileUpload extends React.Component {
         }
 
         if (files.length > uploadsRemaining) {
-            this.props.onUploadError(`Uploads limited to ${Constants.MAX_UPLOAD_FILES} files maximum. Please use additional posts for more files.`);
+            this.props.onUploadError(`${formatMessage(messages.limit1)} ${Constants.MAX_UPLOAD_FILES} ${formatMessage(messages.limit2)}`);
         } else if (tooLargeFiles.length > 1) {
             var tooLargeFilenames = tooLargeFiles.map((file) => file.name).join(', ');
 
-            this.props.onUploadError(`Files above ${Constants.MAX_FILE_SIZE / 1000000}MB could not be uploaded: ${tooLargeFilenames}`);
+            this.props.onUploadError(`${formatMessage(messages.filesAbove)} ${Constants.MAX_FILE_SIZE / 1000000}${formatMessage(messages.fileAboveDescription)} ${tooLargeFilenames}`);
         } else if (tooLargeFiles.length > 0) {
-            this.props.onUploadError(`File above ${Constants.MAX_FILE_SIZE / 1000000}MB could not be uploaded: ${tooLargeFiles[0].name}`);
+            this.props.onUploadError(`${formatMessage(messages.fileAbove)} ${Constants.MAX_FILE_SIZE / 1000000}${formatMessage(messages.fileAboveDescription)} ${tooLargeFiles[0].name}`);
         }
     }
 
@@ -104,6 +134,7 @@ export default class FileUpload extends React.Component {
     }
 
     componentDidMount() {
+        const {formatMessage} = this.props.intl;
         var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         var self = this;
 
@@ -180,7 +211,7 @@ export default class FileUpload extends React.Component {
                 var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - self.props.getFileCount(ChannelStore.getCurrentId()), numItems);
 
                 if (numItems > numToUpload) {
-                    self.props.onUploadError('Uploads limited to ' + Constants.MAX_UPLOAD_FILES + ' files maximum. Please use additional posts for more files.');
+                    self.props.onUploadError(`${formatMessage(messages.limit1)} ${Constants.MAX_UPLOAD_FILES} ${formatMessage(messages.limit2)}`);
                 }
 
                 for (var i = 0; i < items.length && i < numToUpload; i++) {
@@ -214,7 +245,7 @@ export default class FileUpload extends React.Component {
                             min = String(d.getMinutes());
                         }
 
-                        var name = 'Image Pasted at ' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
+                        var name = formatMessage(messages.pasted) + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
                         formData.append('files', file, name);
                         formData.append('client_ids', clientId);
 
@@ -292,6 +323,7 @@ export default class FileUpload extends React.Component {
 }
 
 FileUpload.propTypes = {
+    intl: intlShape.isRequired,
     onUploadError: React.PropTypes.func,
     getFileCount: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
@@ -300,3 +332,5 @@ FileUpload.propTypes = {
     channelId: React.PropTypes.string,
     postType: React.PropTypes.string
 };
+
+export default injectIntl(FileUpload);

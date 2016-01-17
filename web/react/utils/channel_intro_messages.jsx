@@ -11,19 +11,19 @@ import Constants from '../utils/constants.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
-export function createChannelIntroMessage(channel) {
+export function createChannelIntroMessage(channel, messages) {
     if (channel.type === 'D') {
-        return createDMIntroMessage(channel);
+        return createDMIntroMessage(channel, messages);
     } else if (ChannelStore.isDefault(channel)) {
-        return createDefaultIntroMessage(channel);
+        return createDefaultIntroMessage(channel, messages);
     } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
-        return createOffTopicIntroMessage(channel);
+        return createOffTopicIntroMessage(channel, messages);
     } else if (channel.type === 'O' || channel.type === 'P') {
-        return createStandardIntroMessage(channel);
+        return createStandardIntroMessage(channel, messages);
     }
 }
 
-export function createDMIntroMessage(channel) {
+export function createDMIntroMessage(channel, messages) {
     var teammate = Utils.getDirectTeammate(channel.id);
 
     if (teammate) {
@@ -48,36 +48,36 @@ export function createDMIntroMessage(channel) {
                     </strong>
                 </div>
                 <p className='channel-intro-text'>
-                    {'This is the start of your direct message history with ' + teammateName + '.'}<br/>
-                    {'Direct messages and files shared here are not shown to people outside this area.'}
+                    {messages.DMIntro1 + teammateName + '.'}<br/>
+                    {messages.DMIntro2}
                 </p>
-                {createSetHeaderButton(channel)}
+                {createSetHeaderButton(channel, messages)}
             </div>
         );
     }
 
     return (
         <div className='channel-intro'>
-            <p className='channel-intro-text'>{'This is the start of your direct message history with this teammate. Direct messages and files shared here are not shown to people outside this area.'}</p>
+            <p className='channel-intro-text'>{messages.DMIntro3}</p>
         </div>
     );
 }
 
-export function createOffTopicIntroMessage(channel) {
+export function createOffTopicIntroMessage(channel, messages) {
     return (
         <div className='channel-intro'>
-            <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
+            <h4 className='channel-intro__title'>{messages.beginning + channel.display_name}</h4>
             <p className='channel-intro__content'>
-                {'This is the start of ' + channel.display_name + ', a channel for non-work-related conversations.'}
+                {messages.start1 + channel.display_name + messages.offTopic}
                 <br/>
             </p>
-            {createSetHeaderButton(channel)}
-            {createInviteChannelMemberButton(channel, 'channel')}
+            {createSetHeaderButton(channel, messages)}
+            {createInviteChannelMemberButton(channel, 'channel', messages)}
         </div>
     );
 }
 
-export function createDefaultIntroMessage(channel) {
+export function createDefaultIntroMessage(channel, messages) {
     const team = TeamStore.getCurrent();
     let inviteModalLink;
     if (team.type === Constants.INVITE_TEAM) {
@@ -87,7 +87,7 @@ export function createDefaultIntroMessage(channel) {
                 href='#'
                 onClick={EventHelpers.showInviteMemberModal}
             >
-                <i className='fa fa-user-plus'></i>{'Invite others to this team'}
+                <i className='fa fa-user-plus'></i>{messages.inviteOthers}
             </a>
         );
     } else {
@@ -97,91 +97,81 @@ export function createDefaultIntroMessage(channel) {
                 href='#'
                 onClick={EventHelpers.showGetTeamInviteLinkModal}
             >
-                <i className='fa fa-user-plus'></i>{'Invite others to this team'}
+                <i className='fa fa-user-plus'></i>{messages.inviteOthers}
             </a>
         );
     }
 
     return (
         <div className='channel-intro'>
-            <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
+            <h4 className='channel-intro__title'>{messages.beginning + channel.display_name}</h4>
             <p className='channel-intro__content'>
-                <strong>{'Welcome to ' + channel.display_name + '!'}</strong>
+                <strong>{messages.welcome + channel.display_name + '!'}</strong>
                 <br/><br/>
-                {'This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'}
+                {messages.defaultIntro}
             </p>
             {inviteModalLink}
-            {createSetHeaderButton(channel)}
+            {createSetHeaderButton(channel, messages)}
             <br/>
         </div>
     );
 }
 
-export function createStandardIntroMessage(channel) {
+export function createStandardIntroMessage(channel, messages) {
     var uiName = channel.display_name;
     var creatorName = '';
 
     var uiType;
     var memberMessage;
     if (channel.type === 'P') {
-        uiType = 'private group';
-        memberMessage = ' Only invited members can see this private group.';
+        uiType = messages.pg;
+        memberMessage = messages.memberMsg1;
     } else {
-        uiType = 'channel';
-        memberMessage = ' Any member can join and read this channel.';
+        uiType = messages.channel;
+        memberMessage = messages.memberMsg2;
     }
 
     var createMessage;
     if (creatorName === '') {
-        createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created on ' + Utils.displayDate(channel.create_at) + '.';
+        createMessage = messages.created + '.';
     } else {
-        createMessage = (
-            <span>
-                {'This is the start of the '}
-                <strong>{uiName}</strong>
-                {' '}
-                {uiType}{', created by '}
-                <strong>{creatorName}</strong>
-                {' on '}
-                <strong>{Utils.displayDate(channel.create_at)}</strong>
-            </span>
-        );
+        createMessage = messages.createdBy;
     }
 
     return (
         <div className='channel-intro'>
-            <h4 className='channel-intro__title'>{'Beginning of ' + uiName}</h4>
+            <h4 className='channel-intro__title'>{messages.beginning + uiName}</h4>
             <p className='channel-intro__content'>
                 {createMessage}
                 {memberMessage}
                 <br/>
             </p>
-            {createSetHeaderButton(channel)}
-            {createInviteChannelMemberButton(channel, uiType)}
+            {createSetHeaderButton(channel, messages)}
+            {createInviteChannelMemberButton(channel, uiType, messages)}
         </div>
     );
 }
 
-function createInviteChannelMemberButton(channel, uiType) {
+function createInviteChannelMemberButton(channel, uiType, messages) {
     return (
         <ToggleModalButton
             className='intro-links'
             dialogType={ChannelInviteModal}
             dialogProps={{channel}}
         >
-            <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
+            <i className='fa fa-user-plus'></i>{messages.inviteType + uiType}
         </ToggleModalButton>
     );
 }
 
-function createSetHeaderButton(channel) {
+function createSetHeaderButton(channel, messages) {
     return (
         <ToggleModalButton
             className='intro-links'
             dialogType={EditChannelHeaderModal}
             dialogProps={{channel}}
         >
-            <i className='fa fa-pencil'></i>{'Set a header'}
+            <i className='fa fa-pencil'></i>{messages.header}
         </ToggleModalButton>
     );
 }

@@ -9,6 +9,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
 	"io"
 	"net/mail"
@@ -47,14 +48,14 @@ func (er *AppError) ToJson() string {
 }
 
 // AppErrorFromJson will decode the input and return an AppError
-func AppErrorFromJson(data io.Reader) *AppError {
+func AppErrorFromJson(data io.Reader, T goi18n.TranslateFunc) *AppError {
 	decoder := json.NewDecoder(data)
 	var er AppError
 	err := decoder.Decode(&er)
 	if err == nil {
 		return &er
 	} else {
-		return NewAppError("AppErrorFromJson", "could not decode", err.Error())
+		return NewAppError("AppErrorFromJson", T("could not decode"), err.Error())
 	}
 }
 
@@ -345,4 +346,24 @@ func IsValidHttpUrl(rawUrl string) bool {
 	}
 
 	return true
+}
+
+func NumberedSqlElements(startNum, numElements int) string {
+	if numElements == 1 {
+		// Special case
+		return fmt.Sprintf("(?)")
+	}
+
+	var numberedElements string
+
+	for i := startNum; i < (startNum + numElements); i++ {
+		if i < (startNum + numElements - 1) {
+			// Not the last item
+			numberedElements += fmt.Sprintf("?, ")
+		} else {
+			// Last element, no comma.
+			numberedElements += fmt.Sprintf("?")
+		}
+	}
+	return numberedElements
 }

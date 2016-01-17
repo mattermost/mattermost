@@ -1,10 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 import UserStore from '../stores/user_store.jsx';
 var Popover = ReactBootstrap.Popover;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+
+const messages = defineMessages({
+    notShared: {
+        id: 'user_profile.notShared',
+        defaultMessage: 'Email not shared'
+    }
+});
 
 var id = 0;
 
@@ -13,7 +21,7 @@ function nextId() {
     return id;
 }
 
-export default class UserProfile extends React.Component {
+class UserProfile extends React.Component {
     constructor(props) {
         super(props);
 
@@ -54,6 +62,8 @@ export default class UserProfile extends React.Component {
         }
     }
     render() {
+        const {formatMessage} = this.props.intl;
+
         var name = Utils.displayUsername(this.state.profile.id);
         if (this.props.overwriteName) {
             name = this.props.overwriteName;
@@ -87,7 +97,7 @@ export default class UserProfile extends React.Component {
                     className='text-nowrap'
                     key='user-popover-no-email'
                 >
-                    {'Email not shared'}
+                    {formatMessage(messages.notShared)}
                 </div>
             );
         } else {
@@ -139,8 +149,11 @@ UserProfile.defaultProps = {
     disablePopover: false
 };
 UserProfile.propTypes = {
+    intl: intlShape.isRequired,
     userId: React.PropTypes.string,
     overwriteName: React.PropTypes.string,
     overwriteImage: React.PropTypes.string,
     disablePopover: React.PropTypes.bool
 };
+
+export default injectIntl(UserProfile);

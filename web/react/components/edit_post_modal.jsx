@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
@@ -12,7 +13,30 @@ import PreferenceStore from '../stores/preference_store.jsx';
 import Constants from '../utils/constants.jsx';
 var KeyCodes = Constants.KeyCodes;
 
-export default class EditPostModal extends React.Component {
+const messages = defineMessages({
+    close: {
+        id: 'edit_post.close',
+        defaultMessage: 'Close'
+    },
+    edit: {
+        id: 'edit_post.edit',
+        defaultMessage: 'Edit '
+    },
+    editPost: {
+        id: 'edit_post.editPost',
+        defaultMessage: 'Edit the post...'
+    },
+    cancel: {
+        id: 'edit_post.cancel',
+        defaultMessage: 'Cancel'
+    },
+    save: {
+        id: 'edit_post.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class EditPostModal extends React.Component {
     constructor() {
         super();
 
@@ -125,6 +149,7 @@ export default class EditPostModal extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var error = (<div className='form-group'><br /></div>);
         if (this.state.error) {
             error = (<div className='form-group has-error'><br /><label className='control-label'>{this.state.error}</label></div>);
@@ -146,12 +171,12 @@ export default class EditPostModal extends React.Component {
                                 type='button'
                                 className='close'
                                 data-dismiss='modal'
-                                aria-label='Close'
+                                aria-label={formatMessage(messages.close)}
                                 onClick={this.handleEditClose}
                             >
                                 <span aria-hidden='true'>&times;</span>
                             </button>
-                        <h4 className='modal-title'>Edit {this.state.title}</h4>
+                            <h4 className='modal-title'>{formatMessage(messages.edit) + this.state.title}</h4>
                         </div>
                         <div className='edit-modal-body modal-body'>
                             <Textbox
@@ -159,7 +184,7 @@ export default class EditPostModal extends React.Component {
                                 onKeyPress={this.handleEditKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.editText}
-                                createMessage='Edit the post...'
+                                createMessage={formatMessage(messages.editPost)}
                                 supportsCommands={false}
                                 id='edit_textbox'
                                 ref='editbox'
@@ -172,14 +197,14 @@ export default class EditPostModal extends React.Component {
                                 className='btn btn-default'
                                 data-dismiss='modal'
                             >
-                                Cancel
+                                {formatMessage(messages.cancel)}
                             </button>
                             <button
                                 type='button'
                                 className='btn btn-primary'
                                 onClick={this.handleEdit}
                             >
-                                Save
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -188,3 +213,9 @@ export default class EditPostModal extends React.Component {
         );
     }
 }
+
+EditPostModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(EditPostModal);

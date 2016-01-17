@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserProfile from './user_profile.jsx';
 import UserStore from '../stores/user_store.jsx';
@@ -14,7 +15,30 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
 
-export default class RhsRootPost extends React.Component {
+const messages = defineMessages({
+    post: {
+        id: 'rhs_root.post',
+        defaultMessage: 'Post'
+    },
+    comment: {
+        id: 'rhs_root.comment',
+        defaultMessage: 'Comment'
+    },
+    direct: {
+        id: 'rhs_root.direct',
+        defaultMessage: 'Direct Message'
+    },
+    edit: {
+        id: 'rhs_root.edit',
+        defaultMessage: 'Edit'
+    },
+    del: {
+        id: 'rhs_root.del',
+        defaultMessage: 'Delete'
+    }
+});
+
+class RhsRootPost extends React.Component {
     constructor(props) {
         super(props);
 
@@ -43,6 +67,7 @@ export default class RhsRootPost extends React.Component {
         this.parseEmojis();
     }
     render() {
+        const {formatMessage, locale} = this.props.intl;
         var post = this.props.post;
         var currentUser = UserStore.getCurrentUser();
         var isOwner = currentUser.id === post.user_id;
@@ -50,9 +75,9 @@ export default class RhsRootPost extends React.Component {
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
 
-        var type = 'Post';
+        var type = formatMessage(messages.post);
         if (post.root_id.length > 0) {
-            type = 'Comment';
+            type = formatMessage(messages.comment);
         }
 
         var currentUserCss = '';
@@ -68,7 +93,7 @@ export default class RhsRootPost extends React.Component {
         var channelName;
         if (channel) {
             if (channel.type === 'D') {
-                channelName = 'Direct Message';
+                channelName = formatMessage(messages.direct);
             } else {
                 channelName = channel.display_name;
             }
@@ -93,7 +118,7 @@ export default class RhsRootPost extends React.Component {
                         data-postid={post.id}
                         data-channelid={post.channel_id}
                     >
-                        {'Edit'}
+                        {formatMessage(messages.edit)}
                     </a>
                 </li>
             );
@@ -110,7 +135,7 @@ export default class RhsRootPost extends React.Component {
                         role='menuitem'
                         onClick={() => EventHelpers.showDeletePostModal(post, this.props.commentCount)}
                     >
-                        {'Delete'}
+                        {formatMessage(messages.del)}
                     </a>
                 </li>
             );
@@ -205,7 +230,7 @@ export default class RhsRootPost extends React.Component {
                             {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
-                                    {utils.displayCommentDateTime(post.create_at)}
+                                    {utils.displayCommentDateTime(post.create_at, locale)}
                                 </time>
                             </li>
                             <li className='col col__reply'>
@@ -237,6 +262,9 @@ RhsRootPost.defaultProps = {
     commentCount: 0
 };
 RhsRootPost.propTypes = {
+    intl: intlShape.isRequired,
     post: React.PropTypes.object,
     commentCount: React.PropTypes.number
 };
+
+export default injectIntl(RhsRootPost);

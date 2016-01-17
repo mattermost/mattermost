@@ -1,9 +1,37 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 const Modal = ReactBootstrap.Modal;
 
-export default class GetLinkModal extends React.Component {
+const messages = defineMessages({
+    clipboard: {
+        id: 'get_link.clipboard',
+        defaultMessage: ' Link copied to clipboard.'
+    },
+    close: {
+        id: 'get_link.close',
+        defaultMessage: 'Close'
+    },
+    link: {
+        id: 'get_link.link',
+        defaultMessage: ' Link'
+    },
+    body1: {
+        id: 'get_link.body1',
+        defaultMessage: 'Send teammates the link below for them to sign-up to this team site.'
+    },
+    body2: {
+        id: 'get_link.body2',
+        defaultMessage: 'Be careful not to share this link publicly, since anyone with the link can join your team.'
+    },
+    copy: {
+        id: 'get_link.copy',
+        defaultMessage: 'Copy Link'
+    }
+});
+
+class GetLinkModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -39,6 +67,7 @@ export default class GetLinkModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         let helpText = null;
         if (this.props.helpText) {
             helpText = (
@@ -59,14 +88,14 @@ export default class GetLinkModal extends React.Component {
                     className='btn btn-primary pull-left'
                     onClick={this.copyLink}
                 >
-                    {'Copy Link'}
+                    {formatMessage(messages.copy)}
                 </button>
             );
         }
 
         var copyLinkConfirm = null;
         if (this.state.copiedLink) {
-            copyLinkConfirm = <p className='alert alert-success copy-link-confirm'><i className='fa fa-check'></i>{' Link copied to clipboard.'}</p>;
+            copyLinkConfirm = <p className='alert alert-success copy-link-confirm'><i className='fa fa-check'></i>{formatMessage(messages.clipboard)}</p>;
         }
 
         return (
@@ -92,7 +121,7 @@ export default class GetLinkModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.onHide}
                     >
-                        {'Close'}
+                        {formatMessage(messages.close)}
                     </button>
                     {copyLink}
                     {copyLinkConfirm}
@@ -107,9 +136,12 @@ GetLinkModal.propTypes = {
     onHide: React.PropTypes.func.isRequired,
     title: React.PropTypes.string.isRequired,
     helpText: React.PropTypes.string,
-    link: React.PropTypes.string.isRequired
+    link: React.PropTypes.string.isRequired,
+    intl: intlShape.isRequired
 };
 
 GetLinkModal.defaultProps = {
     helpText: null
 };
+
+export default injectIntl(GetLinkModal);

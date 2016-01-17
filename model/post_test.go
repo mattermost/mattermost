@@ -21,61 +21,61 @@ func TestPostJson(t *testing.T) {
 func TestPostIsValid(t *testing.T) {
 	o := Post{}
 
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UserId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ChannelId = NewId()
 	o.RootId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.RootId = ""
 	o.ParentId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ParentId = NewId()
 	o.RootId = ""
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ParentId = ""
 	o.Message = strings.Repeat("0", 4001)
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Message = strings.Repeat("0", 4000)
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 
 	o.Message = "test"
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 }

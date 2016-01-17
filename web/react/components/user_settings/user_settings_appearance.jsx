@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import CustomThemeChooser from './custom_theme_chooser.jsx';
 import PremadeThemeChooser from './premade_theme_chooser.jsx';
 
@@ -13,7 +14,42 @@ import * as Utils from '../../utils/utils.jsx';
 import Constants from '../../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
-export default class UserSettingsAppearance extends React.Component {
+const messages = defineMessages({
+    themeColors: {
+        id: 'user.settings.appearance.themeColors',
+        defaultMessage: 'Theme Colors'
+    },
+    customTheme: {
+        id: 'user.settings.appearance.customTheme',
+        defaultMessage: 'Custom Theme'
+    },
+    submit: {
+        id: 'user.settings.appearance.submit',
+        defaultMessage: 'Submit'
+    },
+    cancel: {
+        id: 'user.settings.appearance.cancel',
+        defaultMessage: 'Cancel'
+    },
+    title: {
+        id: 'user.settings.appearance.title',
+        defaultMessage: 'Appearance Settings'
+    },
+    import: {
+        id: 'user.settings.appearance.import',
+        defaultMessage: 'Import theme colors from Slack'
+    },
+    save: {
+        id: 'user.settings.appearance.save',
+        defaultMessage: 'Save'
+    },
+    close: {
+        id: 'user.settings.appearance.close',
+        defaultMessage: 'Close'
+    }
+});
+
+class UserSettingsAppearance extends React.Component {
     constructor(props) {
         super(props);
 
@@ -146,6 +182,7 @@ export default class UserSettingsAppearance extends React.Component {
         this.props.setEnforceFocus(false);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError;
         if (this.state.serverError) {
             serverError = this.state.serverError;
@@ -180,7 +217,7 @@ export default class UserSettingsAppearance extends React.Component {
                                 checked={!displayCustom}
                                 onChange={this.updateType.bind(this, 'premade')}
                             />
-                            {'Theme Colors'}
+                            {formatMessage(messages.themeColors)}
                         </label>
                         <br/>
                     </div>
@@ -191,7 +228,7 @@ export default class UserSettingsAppearance extends React.Component {
                                 checked={displayCustom}
                                 onChange={this.updateType.bind(this, 'custom')}
                             />
-                            {'Custom Theme'}
+                            {formatMessage(messages.customTheme)}
                         </label>
                         <br/>
                     </div>
@@ -203,14 +240,14 @@ export default class UserSettingsAppearance extends React.Component {
                         href='#'
                         onClick={this.submitTheme}
                     >
-                        {'Save'}
+                        {formatMessage(messages.save)}
                     </a>
                     <a
                         className='btn btn-sm theme'
                         href='#'
                         onClick={this.resetFields}
                     >
-                        {'Cancel'}
+                        {formatMessage(messages.cancel)}
                     </a>
                 </div>
             </div>
@@ -222,7 +259,7 @@ export default class UserSettingsAppearance extends React.Component {
                     <button
                         type='button'
                         className='close'
-                        aria-label='Close'
+                        aria-label={formatMessage(messages.close)}
                         onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
@@ -235,11 +272,11 @@ export default class UserSettingsAppearance extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Appearance Settings'}
+                        {formatMessage(messages.title)}
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>{'Appearance Settings'}</h3>
+                    <h3 className='tab-header'>{formatMessage(messages.title)}</h3>
                     <div className='divider-dark first'/>
                     {themeUI}
                     <div className='divider-dark'/>
@@ -248,7 +285,7 @@ export default class UserSettingsAppearance extends React.Component {
                         className='theme'
                         onClick={this.handleImportModal}
                     >
-                        {'Import theme colors from Slack'}
+                        {formatMessage(messages.import)}
                     </a>
                 </div>
             </div>
@@ -260,6 +297,7 @@ UserSettingsAppearance.defaultProps = {
     activeSection: ''
 };
 UserSettingsAppearance.propTypes = {
+    intl: intlShape.isRequired,
     activeSection: React.PropTypes.string,
     updateTab: React.PropTypes.func,
     closeModal: React.PropTypes.func.isRequired,
@@ -267,3 +305,5 @@ UserSettingsAppearance.propTypes = {
     setRequireConfirm: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(UserSettingsAppearance);

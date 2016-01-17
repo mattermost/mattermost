@@ -13,19 +13,19 @@ func TestSqlAuditStore(t *testing.T) {
 	Setup()
 
 	audit := &model.Audit{UserId: model.NewId(), IpAddress: "ipaddress", Action: "Action"}
-	Must(store.Audit().Save(audit))
+	Must(store.Audit().Save(audit, T))
 	time.Sleep(100 * time.Millisecond)
-	Must(store.Audit().Save(audit))
+	Must(store.Audit().Save(audit, T))
 	time.Sleep(100 * time.Millisecond)
-	Must(store.Audit().Save(audit))
+	Must(store.Audit().Save(audit, T))
 	time.Sleep(100 * time.Millisecond)
 	audit.ExtraInfo = "extra"
 	time.Sleep(100 * time.Millisecond)
-	Must(store.Audit().Save(audit))
+	Must(store.Audit().Save(audit, T))
 
 	time.Sleep(100 * time.Millisecond)
 
-	c := store.Audit().Get(audit.UserId, 100)
+	c := store.Audit().Get(audit.UserId, 100, T)
 	result := <-c
 	audits := result.Data.(model.Audits)
 
@@ -37,7 +37,7 @@ func TestSqlAuditStore(t *testing.T) {
 		t.Fatal("Failed to save property for extra info")
 	}
 
-	c = store.Audit().Get("missing", 100)
+	c = store.Audit().Get("missing", 100, T)
 	result = <-c
 	audits = result.Data.(model.Audits)
 
@@ -45,7 +45,7 @@ func TestSqlAuditStore(t *testing.T) {
 		t.Fatal("Should have returned empty because user_id is missing")
 	}
 
-	if r2 := <-store.Audit().PermanentDeleteByUser(audit.UserId); r2.Err != nil {
+	if r2 := <-store.Audit().PermanentDeleteByUser(audit.UserId, T); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
 }

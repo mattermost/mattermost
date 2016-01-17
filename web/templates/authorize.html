@@ -8,18 +8,18 @@
                 <div class="prompt__app-icon">
                     <img src="/static/images/icon50x50.png" width="50" height="50" alt="">
                 </div>
-                <div class="text">An application would like to connect to your {{.Props.TeamName}} account.</div>
+                <div class="text">{{.Props.AuthorizeTitle}}</div>
             </div>
-            <p>The app <strong>{{.Props.AppName}}</strong> would like the ability to access Mattermost on your behalf.</p>
-            <h2 class="prompt__allow">Allow <strong>{{.Props.AppName}}</strong> access?</h2>
+            <p>{{.Html.AuthorizeInfo}}</p>
+            <h2 class="prompt__allow">{{.Html.AuthorizeQuestion}}</h2>
             <div class="prompt__buttons">
-                <input type="button" class="btn btn-link" value="Deny">
-                <input type="button" class="btn btn-primary" value="Allow">
+                <input type="button" class="btn btn-link" value="{{.Props.AuthorizeDeny}}">
+                <input type="button" class="btn btn-primary" value="{{.Props.AuthorizeAllow}}">
             </div>
         </div>
     </div>
     <script>
-        window.setup_authorize_page('{{.Props}}');
+        window.setup_authorize_page({{.Props}});
     </script>
 </body>
 </html>

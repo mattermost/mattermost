@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -14,7 +15,86 @@ import ConfirmModal from './confirm_modal.jsx';
 
 const Modal = ReactBootstrap.Modal;
 
-export default class InviteMemberModal extends React.Component {
+const messages = defineMessages({
+    emailError: {
+        id: 'invite_member.emailError',
+        defaultMessage: 'Please enter a valid email address'
+    },
+    alreadyOnTeam: {
+        id: 'invite_member.alreadyOnTeam',
+        defaultMessage: 'This person is already on your team'
+    },
+    firstname: {
+        id: 'invite_member.firstname',
+        defaultMessage: 'First name'
+    },
+    lastname: {
+        id: 'invite_member.lastname',
+        defaultMessage: 'Last name'
+    },
+    addAnother: {
+        id: 'invite_member.addAnother',
+        defaultMessage: 'Add another'
+    },
+    autoJoin: {
+        id: 'invite_member.autoJoin',
+        defaultMessage: 'People invited automatically join the '
+    },
+    send: {
+        id: 'invite_member.send',
+        defaultMessage: 'Send Invitations'
+    },
+    inviteLink: {
+        id: 'invite_member.inviteLink',
+        defaultMessage: 'Team Invite Link'
+    },
+    teamInvite: {
+        id: 'invite_member.teamInvite',
+        defaultMessage: 'Team Invite'
+    },
+    teamInviteLink: {
+        id: 'invite_member.teamInviteLink',
+        defaultMessage: 'You can also invite people using the '
+    },
+    content: {
+        id: 'invite_member.content',
+        defaultMessage: 'Email is currently disabled for your team, and email invitations cannot be sent. Contact your system administrator to enable email and email invitations.'
+    },
+    close: {
+        id: 'invite_member.close',
+        defaultMessage: 'Close'
+    },
+    newMember: {
+        id: 'invite_member.newMember',
+        defaultMessage: 'Invite New Member'
+    },
+    cancel: {
+        id: 'invite_member.cancel',
+        defaultMessage: 'Cancel'
+    },
+    modalTitle: {
+        id: 'invite_member.modalTitle',
+        defaultMessage: 'Discard Invitations?'
+    },
+    modalMessage: {
+        id: 'invite_member.modalMessage',
+        defaultMessage: 'You have unsent invitations, are you sure you want to discard them?'
+    },
+    modalButton: {
+        id: 'invite_member.modalButton',
+        defaultMessage: 'Yes, Discard'
+    },
+    sending: {
+        id: 'invite_member.sending',
+        defaultMessage: ' Sending'
+    },
+    disabled: {
+        id: 'invite_member.disabled',
+        defaultMessage: 'User creation has been disabled for your team. Please ask your team administrator for details.'
+    }
+});
+
+class InviteMemberModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -55,6 +135,7 @@ export default class InviteMemberModal extends React.Component {
     }
 
     handleSubmit() {
+        const {formatMessage} = this.props.intl;
         if (!this.state.emailEnabled) {
             return;
         }
@@ -72,7 +153,7 @@ export default class InviteMemberModal extends React.Component {
             var invite = {};
             invite.email = ReactDOM.findDOMNode(this.refs['email' + index]).value.trim();
             if (!invite.email || !utils.isEmail(invite.email)) {
-                emailErrors[index] = 'Please enter a valid email address';
+                emailErrors[index] = formatMessage(messages.emailError);
                 valid = false;
             } else {
                 emailErrors[index] = '';
@@ -103,7 +184,7 @@ export default class InviteMemberModal extends React.Component {
                 this.setState({isSendingEmails: false});
             },
             (err) => {
-                if (err.message === 'This person is already on your team') {
+                if (err.message === formatMessage(messages.alreadyOnTeam)) {
                     emailErrors[err.detailed_error] = err.message;
                     this.setState({emailErrors: emailErrors});
                 } else {
@@ -198,6 +279,7 @@ export default class InviteMemberModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var currentUser = UserStore.getCurrentUser();
 
         if (currentUser != null) {
@@ -252,7 +334,7 @@ export default class InviteMemberModal extends React.Component {
                                             type='text'
                                             className='form-control'
                                             ref={'first_name' + index}
-                                            placeholder='First name'
+                                            placeholder={formatMessage(messages.firstname)}
                                             maxLength='64'
                                             disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
                                             spellCheck='false'
@@ -266,7 +348,7 @@ export default class InviteMemberModal extends React.Component {
                                             type='text'
                                             className='form-control'
                                             ref={'last_name' + index}
-                                            placeholder='Last name'
+                                            placeholder={formatMessage(messages.lastname)}
                                             maxLength='64'
                                             disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
                                             spellCheck='false'
@@ -318,20 +400,20 @@ export default class InviteMemberModal extends React.Component {
                             type='button'
                             className='btn btn-default'
                             onClick={this.addInviteFields}
-                        >{'Add another'}</button>
+                        >{formatMessage(messages.addAnother)}</button>
                         <br/>
                         <br/>
-                        <span>{'People invited automatically join the '}<strong>{defaultChannelName}</strong>{' channel.'}</span>
+                        <span>{formatMessage(messages.autoJoin)}<strong>{defaultChannelName}</strong>{' channel.'}</span>
                     </div>
                 );
 
-                var sendButtonLabel = 'Send Invitation';
+                var sendButtonLabel = formatMessage(messages.send);
                 if (this.state.isSendingEmails) {
                     sendButtonLabel = (
-                        <span><i className='fa fa-spinner fa-spin' />{' Sending'}</span>
+                        <span><i className='fa fa-spinner fa-spin' />{formatMessage(messages.sending)}</span>
                     );
                 } else if (this.state.inviteIds.length > 1) {
-                    sendButtonLabel = 'Send Invitations';
+                    sendButtonLabel = formatMessage(messages.send);
                 }
 
                 sendButton = (
@@ -352,27 +434,27 @@ export default class InviteMemberModal extends React.Component {
                             href='#'
                             onClick={this.showGetTeamInviteLinkModal}
                         >
-                            {'Team Invite Link'}
+                            {formatMessage(messages.inviteLink)}
                         </a>
                     );
 
                     teamInviteLink = (
                         <p>
-                            {'You can also invite people using the '}{link}{'.'}
+                            {formatMessage(messages.teamInviteLink)} {link}.
                         </p>
                     );
                 }
 
                 content = (
                     <div>
-                        <p>{'Email is currently disabled for your team, and email invitations cannot be sent. Contact your system administrator to enable email and email invitations.'}</p>
+                        <p>{formatMessage(messages.content)}</p>
                         {teamInviteLink}
                     </div>
                 );
             } else {
                 content = (
                     <div>
-                        <p>{'User creation has been disabled for your team. Please ask your team administrator for details.'}</p>
+                        <p>{formatMessage(messages.disabled)}</p>
                     </div>
                 );
             }
@@ -387,7 +469,7 @@ export default class InviteMemberModal extends React.Component {
                         backdrop={this.state.isSendingEmails ? 'static' : true}
                     >
                         <Modal.Header closeButton={!this.state.isSendingEmails}>
-                            <Modal.Title>{'Invite New Member'}</Modal.Title>
+                            <Modal.Title>{formatMessage(messages.newMember)}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body ref='modalBody'>
                             <form role='form'>
@@ -402,15 +484,15 @@ export default class InviteMemberModal extends React.Component {
                                 onClick={this.handleHide.bind(this, true)}
                                 disabled={this.state.isSendingEmails}
                             >
-                                {'Cancel'}
+                                {formatMessage(messages.cancel)}
                             </button>
                             {sendButton}
                         </Modal.Footer>
                     </Modal>
                     <ConfirmModal
-                        title='Discard Invitations?'
-                        message='You have unsent invitations, are you sure you want to discard them?'
-                        confirm_button='Yes, Discard'
+                        title={formatMessage(messages.modalTitle)}
+                        message={formatMessage(messages.modalMessage)}
+                        confirm_button={formatMessage(messages.modalButton)}
                         show={this.state.showConfirmModal}
                         onConfirm={this.handleHide.bind(this, false)}
                         onCancel={() => this.setState({showConfirmModal: false})}
@@ -424,4 +506,7 @@ export default class InviteMemberModal extends React.Component {
 }
 
 InviteMemberModal.propTypes = {
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(InviteMemberModal);

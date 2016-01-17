@@ -20,6 +20,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -41,10 +42,10 @@ NxpC+5KFhU+xSeeklNqwCgnlOyZ7qSTxmdJHb+60SwuYnnGIYzLJhY4LYDr4J+KR
 1wIDAQAB
 -----END PUBLIC KEY-----`)
 
-func LoadLicense() {
+func LoadLicense(T goi18n.TranslateFunc) {
 	file, err := os.Open(LicenseLocation())
 	if err != nil {
-		l4g.Warn("Unable to open/find license file")
+		l4g.Warn(T("Unable to open/find license file"))
 		return
 	}
 	defer file.Close()
@@ -52,12 +53,12 @@ func LoadLicense() {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	if success, licenseStr := ValidateLicense(buf.Bytes()); success {
+	if success, licenseStr := ValidateLicense(buf.Bytes(), T); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		SetLicense(license)
 	}
 
-	l4g.Warn("No valid enterprise license found")
+	l4g.Warn(T("No valid enterprise license found"))
 }
 
 func SetLicense(license *model.License) bool {
@@ -77,30 +78,30 @@ func LicenseLocation() string {
 	return filepath.Dir(CfgFileName) + "/" + LICENSE_FILENAME
 }
 
-func RemoveLicense() bool {
+func RemoveLicense(T goi18n.TranslateFunc) bool {
 	License = &model.License{}
 	IsLicensed = false
 	ClientLicense = getClientLicense(License)
 
 	if err := os.Remove(LicenseLocation()); err != nil {
-		l4g.Error("Unable to remove license file, err=%v", err.Error())
+		l4g.Error(T("Unable to remove license file, err=%v"), err.Error())
 		return false
 	}
 
 	return true
 }
 
-func ValidateLicense(signed []byte) (bool, string) {
+func ValidateLicense(signed []byte, T goi18n.TranslateFunc) (bool, string) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
-		l4g.Error("Encountered error decoding license, err=%v", err.Error())
+		l4g.Error(T("Encountered error decoding license, err=%v"), err.Error())
 		return false, ""
 	}
 
 	if len(decoded) <= 256 {
-		l4g.Error("Signed license not long enough")
+		l4g.Error(T("Signed license not long enough"))
 		return false, ""
 	}
 
@@ -116,7 +117,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		l4g.Error("Encountered error signing license, err=%v", err.Error())
+		l4g.Error(T("Encountered error signing license, err=%v"), err.Error())
 		return false, ""
 	}
 
@@ -128,7 +129,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, d, signature)
 	if err != nil {
-		l4g.Error("Invalid signature, err=%v", err.Error())
+		l4g.Error(T("Invalid signature, err=%v"), err.Error())
 		return false, ""
 	}
 

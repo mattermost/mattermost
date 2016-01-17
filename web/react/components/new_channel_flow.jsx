@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
@@ -12,8 +13,46 @@ import ChangeURLModal from './change_url_modal.jsx';
 const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;
 const SHOW_EDIT_URL_THEN_COMPLETE = 3;
+const messages = defineMessages({
+    invalidName: {
+        id: 'channel_flow.invalidName',
+        defaultMessage: 'Invalid Channel Name'
+    },
+    alreadyExist: {
+        id: 'channel_flow.alreadyExist',
+        defaultMessage: 'A channel with that handle already exists'
+    },
+    channel: {
+        id: 'channel_flow.channel',
+        defaultMessage: 'Channel'
+    },
+    group: {
+        id: 'channel_flow.group',
+        defaultMessage: 'Group'
+    },
+    change: {
+        id: 'channel_flow.changeUrlTitle',
+        defaultMessage: 'Change {term} URL'
+    },
+    set: {
+        id: 'channel_flow.set_url_title',
+        defaultMessage: 'Set {term} URL'
+    },
+    create: {
+        id: 'channel_flow.create',
+        defaultMessage: 'Create '
+    },
+    changeUrlDescription: {
+        id: 'channel_flow.changeUrlDescription',
+        defaultMessage: 'Some characters are not allowed in URLs and may be removed.'
+    },
+    lowercase: {
+        id: 'channel_flow.lowercase',
+        defaultMessage: 'Name must be 2 or more lowercase alphanumeric characters'
+    }
+});
 
-export default class NewChannelFlow extends React.Component {
+class NewChannelFlow extends React.Component {
     constructor(props) {
         super(props);
 
@@ -49,11 +88,12 @@ export default class NewChannelFlow extends React.Component {
         }
     }
     doSubmit() {
+        const {formatMessage} = this.props.intl;
         var channel = {};
 
         channel.display_name = this.state.channelDisplayName;
         if (!channel.display_name) {
-            this.setState({serverError: 'Invalid Channel Name'});
+            this.setState({serverError: formatMessage(messages.invalidName)});
             return;
         }
 
@@ -75,11 +115,11 @@ export default class NewChannelFlow extends React.Component {
                 Utils.switchChannel(data);
             },
             (err) => {
-                if (err.message === 'Name must be 2 or more lowercase alphanumeric characters') {
+                if (err.message === formatMessage(messages.lowercase)) {
                     this.setState({flowState: SHOW_EDIT_URL_THEN_COMPLETE});
                 }
-                if (err.message === 'A channel with that handle already exists') {
-                    this.setState({serverError: 'A channel with that URL already exists'});
+                if (err.message === formatMessage(messages.alreadyExist)) {
+                    this.setState({serverError: formatMessage(messages.alreadyExist)});
                     return;
                 }
                 this.setState({serverError: err.message});
@@ -116,6 +156,7 @@ export default class NewChannelFlow extends React.Component {
         }
     }
     render() {
+        const {formatMessage} = this.props.intl;
         const channelData = {
             name: this.state.channelName,
             displayName: this.state.channelDisplayName,
@@ -130,27 +171,33 @@ export default class NewChannelFlow extends React.Component {
         let changeURLSubmitButtonText = '';
         let channelTerm = '';
 
+        if (this.state.channelType === 'O') {
+            channelTerm = formatMessage(messages.channel);
+        } else {
+            channelTerm = formatMessage(messages.group);
+        }
+
         // Only listen to flow state if we are being shown
         if (this.props.show) {
             switch (this.state.flowState) {
             case SHOW_NEW_CHANNEL:
                 if (this.state.channelType === 'O') {
                     showChannelModal = true;
-                    channelTerm = 'Channel';
+                    channelTerm = formatMessage(messages.channel);
                 } else {
                     showGroupModal = true;
-                    channelTerm = 'Group';
+                    channelTerm = formatMessage(messages.group);
                 }
                 break;
             case SHOW_EDIT_URL:
                 showChangeURLModal = true;
-                changeURLTitle = 'Change ' + channelTerm + ' URL';
-                changeURLSubmitButtonText = 'Change ' + channelTerm + ' URL';
+                changeURLTitle = formatMessage(messages.change, {term: channelTerm});
+                changeURLSubmitButtonText = changeURLTitle;
                 break;
             case SHOW_EDIT_URL_THEN_COMPLETE:
                 showChangeURLModal = true;
-                changeURLTitle = 'Set ' + channelTerm + ' URL';
-                changeURLSubmitButtonText = 'Create ' + channelTerm;
+                changeURLTitle = formatMessage(messages.set, {term: channelTerm});
+                changeURLSubmitButtonText = formatMessage(messages.create) + channelTerm;
                 break;
             }
         }
@@ -181,7 +228,7 @@ export default class NewChannelFlow extends React.Component {
                 <ChangeURLModal
                     show={showChangeURLModal}
                     title={changeURLTitle}
-                    description={'Some characters are not allowed in URLs and may be removed.'}
+                    description={formatMessage(messages.changeUrlDescription)}
                     urlLabel={channelTerm + ' URL'}
                     submitButtonText={changeURLSubmitButtonText}
                     currentURL={this.state.channelName}
@@ -200,7 +247,10 @@ NewChannelFlow.defaultProps = {
 };
 
 NewChannelFlow.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channelType: React.PropTypes.string.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(NewChannelFlow);

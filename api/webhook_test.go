@@ -15,25 +15,25 @@ func TestCreateIncomingHook(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	channel1 = Client.Must(Client.CreateChannel(channel1, T)).Data.(*model.Channel)
 
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+	channel2 = Client.Must(Client.CreateChannel(channel2, T)).Data.(*model.Channel)
 
 	hook := &model.IncomingWebhook{ChannelId: channel1.Id}
 
 	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		var rhook *model.IncomingWebhook
-		if result, err := Client.CreateIncomingWebhook(hook); err != nil {
+		if result, err := Client.CreateIncomingWebhook(hook, T); err != nil {
 			t.Fatal(err)
 		} else {
 			rhook = result.Data.(*model.IncomingWebhook)
@@ -52,12 +52,12 @@ func TestCreateIncomingHook(t *testing.T) {
 		}
 
 		hook = &model.IncomingWebhook{ChannelId: "junk"}
-		if _, err := Client.CreateIncomingWebhook(hook); err == nil {
+		if _, err := Client.CreateIncomingWebhook(hook, T); err == nil {
 			t.Fatal("should have failed - bad channel id")
 		}
 
 		hook = &model.IncomingWebhook{ChannelId: channel2.Id, UserId: "123", TeamId: "456"}
-		if result, err := Client.CreateIncomingWebhook(hook); err != nil {
+		if result, err := Client.CreateIncomingWebhook(hook, T); err != nil {
 			t.Fatal(err)
 		} else {
 			if result.Data.(*model.IncomingWebhook).UserId != user.Id {
@@ -68,7 +68,7 @@ func TestCreateIncomingHook(t *testing.T) {
 			}
 		}
 	} else {
-		if _, err := Client.CreateIncomingWebhook(hook); err == nil {
+		if _, err := Client.CreateIncomingWebhook(hook, T); err == nil {
 			t.Fatal("should have errored - webhooks turned off")
 		}
 	}
@@ -78,25 +78,25 @@ func TestListIncomingHooks(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	channel1 = Client.Must(Client.CreateChannel(channel1, T)).Data.(*model.Channel)
 
 	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		hook1 := &model.IncomingWebhook{ChannelId: channel1.Id}
-		hook1 = Client.Must(Client.CreateIncomingWebhook(hook1)).Data.(*model.IncomingWebhook)
+		hook1 = Client.Must(Client.CreateIncomingWebhook(hook1, T)).Data.(*model.IncomingWebhook)
 
 		hook2 := &model.IncomingWebhook{ChannelId: channel1.Id}
-		hook2 = Client.Must(Client.CreateIncomingWebhook(hook2)).Data.(*model.IncomingWebhook)
+		hook2 = Client.Must(Client.CreateIncomingWebhook(hook2, T)).Data.(*model.IncomingWebhook)
 
-		if result, err := Client.ListIncomingWebhooks(); err != nil {
+		if result, err := Client.ListIncomingWebhooks(T); err != nil {
 			t.Fatal(err)
 		} else {
 			hooks := result.Data.([]*model.IncomingWebhook)
@@ -106,7 +106,7 @@ func TestListIncomingHooks(t *testing.T) {
 			}
 		}
 	} else {
-		if _, err := Client.ListIncomingWebhooks(); err == nil {
+		if _, err := Client.ListIncomingWebhooks(T); err == nil {
 			t.Fatal("should have errored - webhooks turned off")
 		}
 	}
@@ -116,29 +116,29 @@ func TestDeleteIncomingHook(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	channel1 = Client.Must(Client.CreateChannel(channel1, T)).Data.(*model.Channel)
 
 	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		hook := &model.IncomingWebhook{ChannelId: channel1.Id}
-		hook = Client.Must(Client.CreateIncomingWebhook(hook)).Data.(*model.IncomingWebhook)
+		hook = Client.Must(Client.CreateIncomingWebhook(hook, T)).Data.(*model.IncomingWebhook)
 
 		data := make(map[string]string)
 		data["id"] = hook.Id
 
-		if _, err := Client.DeleteIncomingWebhook(data); err != nil {
+		if _, err := Client.DeleteIncomingWebhook(data, T); err != nil {
 			t.Fatal(err)
 		}
 
-		hooks := Client.Must(Client.ListIncomingWebhooks()).Data.([]*model.IncomingWebhook)
+		hooks := Client.Must(Client.ListIncomingWebhooks(T)).Data.([]*model.IncomingWebhook)
 		if len(hooks) != 0 {
 			t.Fatal("delete didn't work properly")
 		}
@@ -146,7 +146,7 @@ func TestDeleteIncomingHook(t *testing.T) {
 		data := make(map[string]string)
 		data["id"] = "123"
 
-		if _, err := Client.DeleteIncomingWebhook(data); err == nil {
+		if _, err := Client.DeleteIncomingWebhook(data, T); err == nil {
 			t.Fatal("should have errored - webhooks turned off")
 		}
 	}
@@ -156,25 +156,25 @@ func TestCreateOutgoingHook(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	channel1 = Client.Must(Client.CreateChannel(channel1, T)).Data.(*model.Channel)
 
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+	channel2 = Client.Must(Client.CreateChannel(channel2, T)).Data.(*model.Channel)
 
 	hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 
 	if utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		var rhook *model.OutgoingWebhook
-		if result, err := Client.CreateOutgoingWebhook(hook); err != nil {
+		if result, err := Client.CreateOutgoingWebhook(hook, T); err != nil {
 			t.Fatal(err)
 		} else {
 			rhook = result.Data.(*model.OutgoingWebhook)
@@ -193,12 +193,12 @@ func TestCreateOutgoingHook(t *testing.T) {
 		}
 
 		hook = &model.OutgoingWebhook{ChannelId: "junk", CallbackURLs: []string{"http://nowhere.com"}}
-		if _, err := Client.CreateOutgoingWebhook(hook); err == nil {
+		if _, err := Client.CreateOutgoingWebhook(hook, T); err == nil {
 			t.Fatal("should have failed - bad channel id")
 		}
 
 		hook = &model.OutgoingWebhook{ChannelId: channel2.Id, CreatorId: "123", TeamId: "456", CallbackURLs: []string{"http://nowhere.com"}}
-		if result, err := Client.CreateOutgoingWebhook(hook); err != nil {
+		if result, err := Client.CreateOutgoingWebhook(hook, T); err != nil {
 			t.Fatal(err)
 		} else {
 			if result.Data.(*model.OutgoingWebhook).CreatorId != user.Id {
@@ -209,7 +209,7 @@ func TestCreateOutgoingHook(t *testing.T) {
 			}
 		}
 	} else {
-		if _, err := Client.CreateOutgoingWebhook(hook); err == nil {
+		if _, err := Client.CreateOutgoingWebhook(hook, T); err == nil {
 			t.Fatal("should have errored - webhooks turned off")
 		}
 	}
@@ -219,25 +219,25 @@ func TestListOutgoingHooks(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	channel1 = Client.Must(Client.CreateChannel(channel1, T)).Data.(*model.Channel)
 
 	if utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		hook1 := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
-		hook1 = Client.Must(Client.CreateOutgoingWebhook(hook1)).Data.(*model.OutgoingWebhook)
+		hook1 = Client.Must(Client.CreateOutgoingWebhook(hook1, T)).Data.(*model.OutgoingWebhook)
 
 		hook2 := &model.OutgoingWebhook{TriggerWords: []string{"trigger"}, CallbackURLs: []string{"http://nowhere.com"}}
-		hook2 = Client.Must(Client.CreateOutgoingWebhook(hook2)).Data.(*model.OutgoingWebhook)
+		hook2 = Client.Must(Client.CreateOutgoingWebhook(hook2, T)).Data.(*model.OutgoingWebhook)
 
-		if result, err := Client.ListOutgoingWebhooks(); err != nil {
+		if result, err := Client.ListOutgoingWebhooks(T); err != nil {
 			t.Fatal(err)
 		} else {
 			hooks := result.Data.([]*model.OutgoingWebhook)
@@ -247,7 +247,7 @@ func TestListOutgoingHooks(t *testing.T) {
 			}
 		}
 	} else {
-		if _, err := Client.ListOutgoingWebhooks(); err == nil {
+		if _, err := Client.ListOutgoingWebhooks(T); err == nil {
 			t.Fatal("should have errored - webhooks turned off")
 		}
 	}
@@ -257,29 +257,29 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	channel1 = Client.Must(Client.CreateChannel(channel1, T)).Data.(*model.Channel)
 
 	if utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
-		hook = Client.Must(Client.CreateOutgoingWebhook(hook)).Data.(*model.OutgoingWebhook)
+		hook = Client.Must(Client.CreateOutgoingWebhook(hook, T)).Data.(*model.OutgoingWebhook)
 
 		data := make(map[string]string)
 		data["id"] = hook.Id
 
-		if _, err := Client.DeleteOutgoingWebhook(data); err != nil {
+		if _, err := Client.DeleteOutgoingWebhook(data, T); err != nil {
 			t.Fatal(err)
 		}
 
-		hooks := Client.Must(Client.ListOutgoingWebhooks()).Data.([]*model.OutgoingWebhook)
+		hooks := Client.Must(Client.ListOutgoingWebhooks(T)).Data.([]*model.OutgoingWebhook)
 		if len(hooks) != 0 {
 			t.Fatal("delete didn't work properly")
 		}
@@ -287,7 +287,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		data := make(map[string]string)
 		data["id"] = "123"
 
-		if _, err := Client.DeleteOutgoingWebhook(data); err == nil {
+		if _, err := Client.DeleteOutgoingWebhook(data, T); err == nil {
 			t.Fatal("should have errored - webhooks turned off")
 		}
 	}
@@ -297,25 +297,25 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	team = Client.Must(Client.CreateTeam(team, T)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	user = Client.Must(Client.CreateUser(user, "", T)).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id, T))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd", T)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	channel1 = Client.Must(Client.CreateChannel(channel1, T)).Data.(*model.Channel)
 
 	if utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
-		hook = Client.Must(Client.CreateOutgoingWebhook(hook)).Data.(*model.OutgoingWebhook)
+		hook = Client.Must(Client.CreateOutgoingWebhook(hook, T)).Data.(*model.OutgoingWebhook)
 
 		data := make(map[string]string)
 		data["id"] = hook.Id
 
-		if result, err := Client.RegenOutgoingWebhookToken(data); err != nil {
+		if result, err := Client.RegenOutgoingWebhookToken(data, T); err != nil {
 			t.Fatal(err)
 		} else {
 			if result.Data.(*model.OutgoingWebhook).Token == hook.Token {
@@ -327,7 +327,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 		data := make(map[string]string)
 		data["id"] = "123"
 
-		if _, err := Client.RegenOutgoingWebhookToken(data); err == nil {
+		if _, err := Client.RegenOutgoingWebhookToken(data, T); err == nil {
 			t.Fatal("should have errored - webhooks turned off")
 		}
 	}

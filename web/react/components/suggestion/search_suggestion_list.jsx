@@ -17,11 +17,20 @@ export default class SearchSuggestionList extends SuggestionList {
     }
 
     renderChannelDivider(type) {
+        const locale = this.props.locale;
         let text;
         if (type === Constants.OPEN_CHANNEL) {
-            text = 'Public ' + Utils.getChannelTerm(type) + 's';
+            if (locale === 'es') {
+                text = Utils.getChannelTerm(type, locale) + locale;
+            } else {
+                text = Utils.getChannelTerm(type, locale) + 's';
+            }
+        } else if (locale === 'es') {
+            text = Utils.getChannelTerm(type, locale).split(' ').map(function plural(s) {
+                return s + 's';
+            }).join(' ');
         } else {
-            text = 'Private ' + Utils.getChannelTerm(type) + 's';
+            text = Utils.getChannelTerm(type, locale) + 's';
         }
 
         return (

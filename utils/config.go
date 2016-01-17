@@ -6,14 +6,13 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
-
-	l4g "github.com/alecthomas/log4go"
-
-	"github.com/mattermost/platform/model"
 )
 
 const (
@@ -115,15 +114,15 @@ func GetLogFileLocation(fileLocation string) string {
 	}
 }
 
-func SaveConfig(fileName string, config *model.Config) *model.AppError {
+func SaveConfig(fileName string, config *model.Config, T goi18n.TranslateFunc) *model.AppError {
 	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {
-		return model.NewAppError("SaveConfig", "An error occurred while saving the file to "+fileName, err.Error())
+		return model.NewAppError("SaveConfig", T("An error occurred while saving the file to ")+fileName, err.Error())
 	}
 
 	err = ioutil.WriteFile(fileName, b, 0644)
 	if err != nil {
-		return model.NewAppError("SaveConfig", "An error occurred while saving the file to "+fileName, err.Error())
+		return model.NewAppError("SaveConfig", T("An error occurred while saving the file to ")+fileName, err.Error())
 	}
 
 	return nil
@@ -132,24 +131,24 @@ func SaveConfig(fileName string, config *model.Config) *model.AppError {
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName
-func LoadConfig(fileName string) {
+func LoadConfig(fileName string, T goi18n.TranslateFunc) {
 
 	fileName = FindConfigFile(fileName)
 
 	file, err := os.Open(fileName)
 	if err != nil {
-		panic("Error opening config file=" + fileName + ", err=" + err.Error())
+		panic(T("Error opening config file=") + fileName + ", err=" + err.Error())
 	}
 
 	decoder := json.NewDecoder(file)
 	config := model.Config{}
 	err = decoder.Decode(&config)
 	if err != nil {
-		panic("Error decoding config file=" + fileName + ", err=" + err.Error())
+		panic(T("Error decoding config file=") + fileName + ", err=" + err.Error())
 	}
 
 	if info, err := file.Stat(); err != nil {
-		panic("Error getting config info file=" + fileName + ", err=" + err.Error())
+		panic(T("Error getting config info file=") + fileName + ", err=" + err.Error())
 	} else {
 		CfgLastModified = info.ModTime().Unix()
 		CfgFileName = fileName
@@ -157,12 +156,12 @@ func LoadConfig(fileName string) {
 
 	config.SetDefaults()
 
-	if err := config.IsValid(); err != nil {
-		panic("Error validating config file=" + fileName + ", err=" + err.Message)
+	if err := config.IsValid(T); err != nil {
+		panic(T("Error validating config file=") + fileName + ", err=" + err.Message)
 	}
 
 	configureLog(&config.LogSettings)
-	TestConnection(&config)
+	TestConnection(&config, T)
 
 	if config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		dir := config.FileSettings.Directory

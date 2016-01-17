@@ -1,15 +1,75 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 import Constants from '../../utils/constants.jsx';
 import LineChart from './line_chart.jsx';
 
+const messages = defineMessages({
+    totalPosts: {
+        id: 'admin.team_analytics.totalPosts',
+        defaultMessage: 'Total Posts'
+    },
+    usrWithPosts: {
+        id: 'admin.team_analytics.usrWithPosts',
+        defaultMessage: 'Active Users With Posts'
+    },
+    loading: {
+        id: 'admin.team_analytics.loading',
+        defaultMessage: 'Loading...'
+    },
+    totalUsers: {
+        id: 'admin.team_analytics.totalUsers',
+        defaultMessage: 'Total Users'
+    },
+    totalChannels: {
+        id: 'admin.team_analytics.totalChannels',
+        defaultMessage: 'Channels'
+    },
+    totalGroups: {
+        id: 'admin.team_analytics.totalGroups',
+        defaultMessage: 'Private Groups'
+    },
+    recentUsers: {
+        id: 'admin.team_analytics.recentUsers',
+        defaultMessage: 'Recent Active Users'
+    },
+    newUsers: {
+        id: 'admin.team_analytics.newUsers',
+        defaultMessage: 'Newly Created Users'
+    },
+    title: {
+        id: 'admin.team_analytics.title',
+        defaultMessage: 'Statistics for '
+    },
+    hours: {
+        id: 'admin.team_analytics.hours',
+        defaultMessage: '@interval hours ago'
+    },
+    hour: {
+        id: 'admin.team_analytics.hour',
+        defaultMessage: '1 hour ago'
+    },
+    minutes: {
+        id: 'admin.team_analytics.minutes',
+        defaultMessage: '@interval minutes ago'
+    },
+    minute: {
+        id: 'admin.team_analytics.minute',
+        defaultMessage: '1 minute ago'
+    },
+    justNow: {
+        id: 'admin.team_analytics.justNow',
+        defaultMessage: 'just now'
+    }
+});
+
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-export default class TeamAnalytics extends React.Component {
+class TeamAnalytics extends React.Component {
     constructor(props) {
         super(props);
 
@@ -33,6 +93,8 @@ export default class TeamAnalytics extends React.Component {
     }
 
     getData(teamId) {
+        const {formatMessage} = this.props.intl;
+
         Client.getAnalytics(
             teamId,
             'standard',
@@ -65,7 +127,7 @@ export default class TeamAnalytics extends React.Component {
                 var chartData = {
                     labels: [],
                     datasets: [{
-                        label: 'Total Posts',
+                        label: formatMessage(messages.totalPosts),
                         fillColor: 'rgba(151,187,205,0.2)',
                         strokeColor: 'rgba(151,187,205,1)',
                         pointColor: 'rgba(151,187,205,1)',
@@ -100,7 +162,7 @@ export default class TeamAnalytics extends React.Component {
                 var chartData = {
                     labels: [],
                     datasets: [{
-                        label: 'Active Users With Posts',
+                        label: formatMessage(messages.usrWithPosts),
                         fillColor: 'rgba(151,187,205,0.2)',
                         strokeColor: 'rgba(151,187,205,1)',
                         pointColor: 'rgba(151,187,205,1)',
@@ -208,16 +270,25 @@ export default class TeamAnalytics extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
+        const translations = {
+            hours: formatMessage(messages.hours),
+            hour: formatMessage(messages.hour),
+            minutes: formatMessage(messages.minutes),
+            minute: formatMessage(messages.minute),
+            justNow: formatMessage(messages.justNow)
+        };
+
         var totalCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Total Users'}<i className='fa fa-users'/></div>
-                    <div className='content'>{this.state.users == null ? 'Loading...' : Object.keys(this.state.users).length}</div>
+                    <div className='title'>{formatMessage(messages.totalUsers)}<i className='fa fa-users'/></div>
+                    <div className='content'>{this.state.users == null ? formatMessage(messages.loading) : Object.keys(this.state.users).length}</div>
                 </div>
             </div>
         );
@@ -225,8 +296,8 @@ export default class TeamAnalytics extends React.Component {
         var openChannelCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Public Channels'}<i className='fa fa-globe'/></div>
-                    <div className='content'>{this.state.channel_open_count == null ? 'Loading...' : this.state.channel_open_count}</div>
+                    <div className='title'>{formatMessage(messages.totalChannels)}<i className='fa fa-globe'/></div>
+                    <div className='content'>{this.state.channel_open_count == null ? formatMessage(messages.loading) : this.state.channel_open_count}</div>
                 </div>
             </div>
         );
@@ -234,8 +305,8 @@ export default class TeamAnalytics extends React.Component {
         var openPrivateCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Private Groups'}<i className='fa fa-lock'/></div>
-                    <div className='content'>{this.state.channel_private_count == null ? 'Loading...' : this.state.channel_private_count}</div>
+                    <div className='title'>{formatMessage(messages.totalGroups)}<i className='fa fa-lock'/></div>
+                    <div className='content'>{this.state.channel_private_count == null ? formatMessage(messages.loading) : this.state.channel_private_count}</div>
                 </div>
             </div>
         );
@@ -243,8 +314,8 @@ export default class TeamAnalytics extends React.Component {
         var postCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Total Posts'}<i className='fa fa-comment'/></div>
-                    <div className='content'>{this.state.post_count == null ? 'Loading...' : this.state.post_count}</div>
+                    <div className='title'>{formatMessage(messages.totalPosts)}<i className='fa fa-comment'/></div>
+                    <div className='content'>{this.state.post_count == null ? formatMessage(messages.loading) : this.state.post_count}</div>
                 </div>
             </div>
         );
@@ -252,8 +323,8 @@ export default class TeamAnalytics extends React.Component {
         var postCountsByDay = (
             <div className='col-sm-12'>
                 <div className='total-count by-day'>
-                    <div className='title'>{'Total Posts'}</div>
-                    <div className='content'>{'Loading...'}</div>
+                    <div className='title'>{formatMessage(messages.totalPosts)}</div>
+                    <div className='content'>{formatMessage(messages.loading)}</div>
                 </div>
             </div>
         );
@@ -262,7 +333,7 @@ export default class TeamAnalytics extends React.Component {
             postCountsByDay = (
                 <div className='col-sm-12'>
                     <div className='total-count by-day'>
-                        <div className='title'>{'Total Posts'}</div>
+                        <div className='title'>{formatMessage(messages.totalPosts)}</div>
                         <div className='content'>
                             <LineChart
                                 data={this.state.post_counts_day}
@@ -278,8 +349,8 @@ export default class TeamAnalytics extends React.Component {
         var usersWithPostsByDay = (
             <div className='col-sm-12'>
                 <div className='total-count by-day'>
-                    <div className='title'>{'Total Posts'}</div>
-                    <div>{'Loading...'}</div>
+                    <div className='title'>{formatMessage(messages.totalPosts)}</div>
+                    <div>{formatMessage(messages.loading)}</div>
                 </div>
             </div>
         );
@@ -288,7 +359,7 @@ export default class TeamAnalytics extends React.Component {
             usersWithPostsByDay = (
                 <div className='col-sm-12'>
                     <div className='total-count by-day'>
-                        <div className='title'>{'Active Users With Posts'}</div>
+                        <div className='title'>{formatMessage(messages.usrWithPosts)}</div>
                         <div className='content'>
                             <LineChart
                                 data={this.state.user_counts_with_posts_day}
@@ -303,8 +374,8 @@ export default class TeamAnalytics extends React.Component {
 
         var recentActiveUser = (
             <div className='recent-active-users'>
-                <div>{'Recent Active Users'}</div>
-                <div>{'Loading...'}</div>
+                <div>{formatMessage(messages.recentUsers)}</div>
+                <div>{formatMessage(messages.loading)}</div>
             </div>
         );
 
@@ -312,7 +383,7 @@ export default class TeamAnalytics extends React.Component {
             recentActiveUser = (
                 <div className='col-sm-6'>
                     <div className='total-count recent-active-users'>
-                        <div className='title'>{'Recent Active Users'}</div>
+                        <div className='title'>{formatMessage(messages.recentUsers)}</div>
                         <div className='content'>
                             <table>
                                 <tbody>
@@ -337,7 +408,7 @@ export default class TeamAnalytics extends React.Component {
                                                             </time>
                                                         </OverlayTrigger>
                                                     </td>
-                                                    <td>{Utils.displayDateTime(user.last_activity_at)}</td>
+                                                    <td>{Utils.displayDateTime(user.last_activity_at, translations)}</td>
                                                 </tr>
                                             );
                                         })
@@ -352,8 +423,8 @@ export default class TeamAnalytics extends React.Component {
 
         var newUsers = (
             <div className='recent-active-users'>
-                <div>{'Newly Created Users'}</div>
-                <div>{'Loading...'}</div>
+                <div>{formatMessage(messages.newUsers)}</div>
+                <div>{formatMessage(messages.loading)}</div>
             </div>
         );
 
@@ -361,7 +432,7 @@ export default class TeamAnalytics extends React.Component {
             newUsers = (
                 <div className='col-sm-6'>
                     <div className='total-count recent-active-users'>
-                        <div className='title'>{'Newly Created Users'}</div>
+                        <div className='title'>{formatMessage(messages.newUsers)}</div>
                         <div className='content'>
                             <table>
                                 <tbody>
@@ -386,7 +457,7 @@ export default class TeamAnalytics extends React.Component {
                                                             </time>
                                                         </OverlayTrigger>
                                                     </td>
-                                                    <td>{Utils.displayDateTime(user.create_at)}</td>
+                                                    <td>{Utils.displayDateTime(user.create_at, translations)}</td>
                                                 </tr>
                                             );
                                         })
@@ -401,7 +472,7 @@ export default class TeamAnalytics extends React.Component {
 
         return (
             <div className='wrapper--fixed team_statistics'>
-                <h3>{'Statistics for ' + this.props.team.name}</h3>
+                <h3>{formatMessage(messages.title) + this.props.team.name}</h3>
                 {serverError}
                 <div className='row'>
                     {totalCount}
@@ -425,5 +496,8 @@ export default class TeamAnalytics extends React.Component {
 }
 
 TeamAnalytics.propTypes = {
-    team: React.PropTypes.object
+    team: React.PropTypes.object,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(TeamAnalytics);
