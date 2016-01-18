@@ -44,7 +44,7 @@
 1. For the sake of making this guide simple we located the files at `/home/ubuntu/mattermost`. In the future we will give guidance for storing under `/opt`.
 1. We have also elected to run the Mattermost Server as the `ubuntu` account for simplicity.  We recommend setting up and running the service under a `mattermost` user account with limited permissions.
 1. Download the latest Mattermost Server by typing:
-  * ``` wget https://github.com/mattermost/platform/releases/download/v1.3.0/mattermost.tar.gz```
+  * ``` wget https://github.com/mattermost/platform/releases/download/v1.4.0/mattermost.tar.gz```
 1. Unzip the Mattermost Server by typing:
   * ``` tar -xvzf mattermost.tar.gz```
 1. Create the storage directory for files.  We assume you will have attached a large drive for storage of images and files.  For this setup we will assume the directory is located at `/mattermost/data`.
