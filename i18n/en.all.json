@@ -1475,11 +1475,6 @@
         "modified": false
     },
     {
-        "id": "Your user is not authorized to use the Chat app",
-        "translation": "Your user is not authorized to use Mattermost",
-        "modified": false
-    },
-    {
         "id": "Your user can only be used to signup to the %v Team unless you get an invitation to this team",
         "translation": "Your user can only be used to signup to the %v Team unless you get an invitation to this team",
         "modified": true

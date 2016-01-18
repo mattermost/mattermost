@@ -85,6 +85,14 @@ const messages = defineMessages({
     support: {
         id: 'admin.sidebar.support',
         defaultMessage: 'Legal and Support Settings'
+    },
+    ldap: {
+        id: 'admin.sidebar.ldap',
+        defaultMessage: 'LDAP Settings'
+    },
+    license: {
+        id: 'admin.sidebar.license',
+        defaultMessage: 'Edition and License'
     }
 });
 
@@ -247,7 +255,7 @@ class AdminSidebar extends React.Component {
                             className={this.isSelected('ldap_settings')}
                             onClick={this.handleClick.bind(this, 'ldap_settings', null)}
                         >
-                            {'LDAP Settings'}
+                            {formatMessage(messages.ldap)}
                         </a>
                     </li>
                 );
@@ -260,7 +268,7 @@ class AdminSidebar extends React.Component {
                         className={this.isSelected('license')}
                         onClick={this.handleClick.bind(this, 'license', null)}
                     >
-                        {'Edition and License'}
+                        {formatMessage(messages.license)}
                     </a>
                 </li>
             );

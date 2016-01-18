@@ -264,7 +264,7 @@ class LicenseSettings extends React.Component {
                         disabled={!this.state.fileSelected}
                         onClick={this.handleSubmit}
                         id='upload-button'
-                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.licensed)}
+                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.license)}
                     >
                         {formatMessage(messages.upload)}
                     </button>

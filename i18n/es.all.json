@@ -1535,11 +1535,6 @@
         "modified": false
     },
     {
-        "id": "Your user is not authorized to use the Chat app",
-        "translation": "Tu usuario no está autorizado para utilizar Mattermost",
-        "modified": false
-    },
-    {
         "id": "Your user can only be used to signup to the %v Team unless you get an invitation to this team",
         "translation": "Tu usuario solo puede ser utilizado para registrarte en el Equipo %v a menos que recibas una invitación para este equipo",
         "modified": true
@@ -3296,7 +3291,7 @@
     },
     {
         "id": "Password field must not be blank",
-        "translation": "El cambpo de Contraseña no puede estar en blanco",
+        "translation": "El campo de Contraseña no puede estar en blanco",
         "modified": false
     },
     {
