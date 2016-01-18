@@ -207,6 +207,10 @@ const messages = defineMessages({
         id: 'admin.email.pushServerDesc',
         defaultMessage: 'Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'
     },
+    pushServerEx: {
+        id: 'admin.email.pushServerEx',
+        defaultMessage: 'E.g.: "https://push-test.mattermost.com"'
+    },
     testing: {
         id: 'admin.email.testing',
         defaultMessage: 'Testing...'
@@ -790,7 +794,7 @@ class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='PushNotificationServer'
                                 ref='PushNotificationServer'
-                                placeholder='E.g.: "https://push-test.mattermost.com"'
+                                placeholder={formatMessage(messages.pushServerEx)}
                                 defaultValue={this.props.config.EmailSettings.PushNotificationServer}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendPushNotifications}

@@ -11,6 +11,90 @@ const messages = defineMessages({
     copyPaste: {
         id: 'user.settings.custom_theme.copyPaste',
         defaultMessage: 'Copy and paste to share theme colors:'
+    },
+    sidebarBg: {
+        id: 'user.settings.custom_theme.sidebarBg',
+        defaultMessage: 'Sidebar BG'
+    },
+    sidebarText: {
+        id: 'user.settings.custom_theme.sidebarText',
+        defaultMessage: 'Sidebar Text'
+    },
+    sidebarHeaderBg: {
+        id: 'user.settings.custom_theme.sidebarHeaderBg',
+        defaultMessage: 'Sidebar Header BG'
+    },
+    sidebarHeaderTextColor: {
+        id: 'user.settings.custom_theme.sidebarHeaderTextColor',
+        defaultMessage: 'Sidebar Header Text'
+    },
+    sidebarUnreadText: {
+        id: 'user.settings.custom_theme.sidebarUnreadText',
+        defaultMessage: 'Sidebar Unread Text'
+    },
+    sidebarTextHoverBg: {
+        id: 'user.settings.custom_theme.sidebarTextHoverBg',
+        defaultMessage: 'Sidebar Text Hover BG'
+    },
+    sidebarTextActiveBorder: {
+        id: 'user.settings.custom_theme.sidebarTextActiveBorder',
+        defaultMessage: 'Sidebar Text Active Border'
+    },
+    sidebarTextActiveColor: {
+        id: 'user.settings.custom_theme.sidebarTextActiveColor',
+        defaultMessage: 'Sidebar Text Active Color'
+    },
+    onlineIndicator: {
+        id: 'user.settings.custom_theme.onlineIndicator',
+        defaultMessage: 'Online Indicator'
+    },
+    awayIndicator: {
+        id: 'user.settings.custom_theme.awayIndicator',
+        defaultMessage: 'Away Indicator'
+    },
+    mentionBj: {
+        id: 'user.settings.custom_theme.mentionBj',
+        defaultMessage: 'Mention Jewel BG'
+    },
+    mentionColor: {
+        id: 'user.settings.custom_theme.mentionColor',
+        defaultMessage: 'Mention Jewel Text'
+    },
+    centerChannelBg: {
+        id: 'user.settings.custom_theme.centerChannelBg',
+        defaultMessage: 'Center Channel BG'
+    },
+    centerChannelColor: {
+        id: 'user.settings.custom_theme.centerChannelColor',
+        defaultMessage: 'Center Channel Text'
+    },
+    newMessageSeparator: {
+        id: 'user.settings.custom_theme.newMessageSeparator',
+        defaultMessage: 'New Message Separator'
+    },
+    linkColor: {
+        id: 'user.settings.custom_theme.linkColor',
+        defaultMessage: 'Link Color'
+    },
+    buttonBg: {
+        id: 'user.settings.custom_theme.buttonBg',
+        defaultMessage: 'Button BG'
+    },
+    buttonColor: {
+        id: 'user.settings.custom_theme.buttonColor',
+        defaultMessage: 'Button Text'
+    },
+    mentionHighlightBg: {
+        id: 'user.settings.custom_theme.mentionHighlightBg',
+        defaultMessage: 'Mention Highlight BG'
+    },
+    mentionHighlightLink: {
+        id: 'user.settings.custom_theme.mentionHighlightLink',
+        defaultMessage: 'Mention Highlight Link'
+    },
+    codeTheme: {
+        id: 'user.settings.custom_theme.codeTheme',
+        defaultMessage: 'Code Theme'
     }
 });
 
@@ -111,7 +195,7 @@ class CustomThemeChooser extends React.Component {
                         className='col-sm-4 form-group'
                         key={'custom-theme-key' + index}
                     >
-                        <label className='custom-label'>{element.uiName}</label>
+                        <label className='custom-label'>{formatMessage(messages[element.id])}</label>
                         <div
                             className='input-group theme-group group--code dropdown'
                             id={element.id}
@@ -144,7 +228,7 @@ class CustomThemeChooser extends React.Component {
                         className='col-sm-4 form-group'
                         key={'custom-theme-key' + index}
                     >
-                        <label className='custom-label'>{element.uiName}</label>
+                        <label className='custom-label'>{formatMessage(messages[element.id])}</label>
                         <div
                             className='input-group color-picker'
                             id={element.id}

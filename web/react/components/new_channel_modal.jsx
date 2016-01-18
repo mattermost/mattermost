@@ -42,6 +42,10 @@ const messages = defineMessages({
         id: 'channel_modal.name',
         defaultMessage: 'Name'
     },
+    nameEx: {
+        id: 'channel_modal.nameEx',
+        defaultMessage: 'E.g.: "Bugs", "Marketing", "办公室恋情"'
+    },
     edit: {
         id: 'channel_modal.edit',
         defaultMessage: 'Edit'
@@ -53,6 +57,10 @@ const messages = defineMessages({
     optional: {
         id: 'channel_modal.optional',
         defaultMessage: '(optional)'
+    },
+    purposeEx: {
+        id: 'channel_modal.purposeEx',
+        defaultMessage: 'Purpose'
     },
     descriptionHelp1: {
         id: 'channel_modal.descriptionHelp1',
@@ -185,7 +193,7 @@ class NewChannelModal extends React.Component {
                                         type='text'
                                         ref='display_name'
                                         className='form-control'
-                                        placeholder='E.g.: "Bugs", "Marketing", "办公室恋情"'
+                                        placeholder={formatMessage(messages.nameEx)}
                                         maxLength='22'
                                         value={this.props.channelData.displayName}
                                         autoFocus={true}
@@ -214,7 +222,7 @@ class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_purpose'
                                         rows='4'
-                                        placeholder='Purpose'
+                                        placeholder={formatMessage(messages.purposeEx)}
                                         maxLength='128'
                                         value={this.props.channelData.purpose}
                                         onChange={this.handleChange}

@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {intlShape, injectIntl, defineMessages} from 'react-intl';
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
@@ -15,10 +15,6 @@ const messages = defineMessages({
     direct: {
         id: 'search_item.direct',
         defaultMessage: 'Direct Message'
-    },
-    jump: {
-        id: 'search_item.jump',
-        defaultMessage: 'Jump'
     }
 });
 
@@ -91,7 +87,10 @@ class SearchResultsItem extends React.Component {
                                     className='search-item__jump'
                                     onClick={this.handleClick}
                                 >
-                                    {formatMessage(messages.jump)}
+                                    <FormattedHTMLMessage
+                                        id='search_item.jump'
+                                        defaultMessage='Jump'
+                                    />
                                 </a>
                             </li>
                             <li>
