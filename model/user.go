@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mattermost/platform/i18n"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"golang.org/x/crypto/bcrypt"
 	"io"
@@ -138,6 +139,10 @@ func (u *User) PreSave() {
 	u.UpdateAt = u.CreateAt
 
 	u.LastPasswordUpdate = u.CreateAt
+
+	if u.Locale == "" {
+		u.Locale = i18n.DEFAULT_LOCALE
+	}
 
 	if u.Props == nil {
 		u.Props = make(map[string]string)

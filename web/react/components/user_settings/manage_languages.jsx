@@ -30,14 +30,14 @@ class ManageLanguage extends React.Component {
         return {
             languages: [
                 {
-                    value: 'es',
-                    name: 'Español'
-                },
-                {
                     value: 'en',
                     name: 'English'
+                },
+                {
+                    value: 'es',
+                    name: 'Español'
                 }],
-            locale: user.language
+            locale: user.locale
         };
     }
     setLanguage(e) {
@@ -47,9 +47,9 @@ class ManageLanguage extends React.Component {
         e.preventDefault();
 
         var user = this.props.user;
-        var lang = this.state.locale;
+        var locale = this.state.locale;
 
-        user.language = lang;
+        user.locale = locale;
 
         this.submitUser(user);
     }

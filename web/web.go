@@ -203,6 +203,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(c.Session.UserId) == 0 {
 		page := NewHtmlTemplatePage("signup_team", T("Signup"), locale, T)
+		page.Props["SignupTitle"] = T("signup_team.title")
 
 		if result := <-api.Srv.Store.Team().GetAllTeamListing(T); result.Err != nil {
 			c.Err = result.Err
