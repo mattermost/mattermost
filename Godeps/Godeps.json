@@ -12,6 +12,10 @@
 			"Rev": "3fdfadabc96863ceec055bd73ab1e80324e72706"
 		},
 		{
+			"ImportPath": "github.com/cloudfoundry/jibber_jabber",
+			"Rev": "bcc4c8345a21301bf47c032ff42dd1aae2fe3027"
+		},
+		{
 			"ImportPath": "github.com/disintegration/imaging",
 			"Rev": "546cb3c5137b3f1232e123a26aa033aade6b3066"
 		},
@@ -78,6 +82,11 @@
 			"Rev": "783ec61292aee3fc2f442ce740aa491e4849b794"
 		},
 		{
+			"ImportPath": "github.com/nicksnyder/go-i18n/i18n",
+			"Comment": "v1.4.0",
+			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
+		},
+		{
 			"ImportPath": "github.com/pborman/uuid",
 			"Rev": "dee7705ef7b324f27ceb85a121c61f2c2e8ce988"
 		},
@@ -131,6 +140,10 @@
 			"ImportPath": "gopkg.in/throttled/throttled.v1",
 			"Comment": "v1.0.0",
 			"Rev": "74e328a1af88a9b54f9eca1397d74ad98572a6df"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4"
 		}
 	]
 }
