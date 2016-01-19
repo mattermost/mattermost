@@ -531,7 +531,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                 } else {
                     describe = UserStore.getCurrentUser().email;
                 }
-            } else {
+            } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
                 describe = 'Log in done through GitLab';
             }
 
