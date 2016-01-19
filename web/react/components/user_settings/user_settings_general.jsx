@@ -493,7 +493,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                 );
 
                 submit = this.submitEmail;
-            } else {
+            } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
                 inputs.push(
                     <div
                         key='oauthEmailInfo'
