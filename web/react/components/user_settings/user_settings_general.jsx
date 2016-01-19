@@ -47,7 +47,7 @@ export default class UserSettingsGeneralTab extends React.Component {
             this.setState({clientError: 'This username is reserved, please choose a new one.'});
             return;
         } else if (usernameError) {
-            this.setState({clientError: "Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'."});
+            this.setState({clientError: 'Username must begin with a letter, and contain between ' + Constants.MIN_USERNAME_LENGTH + ' to ' + Constants.MAX_USERNAME_LENGTH + " lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'."});
             return;
         }
 

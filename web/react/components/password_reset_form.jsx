@@ -1,7 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as client from '../utils/client.jsx';
+import * as Client from '../utils/client.jsx';
+import Constants from '../utils/constants.jsx';
 
 export default class PasswordResetForm extends React.Component {
     constructor(props) {
@@ -16,8 +17,8 @@ export default class PasswordResetForm extends React.Component {
         var state = {};
 
         var password = ReactDOM.findDOMNode(this.refs.password).value.trim();
-        if (!password || password.length < 5) {
-            state.error = 'Please enter at least 5 characters.';
+        if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
+            state.error = 'Please enter at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters.';
             this.setState(state);
             return;
         }
@@ -31,7 +32,7 @@ export default class PasswordResetForm extends React.Component {
         data.data = this.props.data;
         data.name = this.props.teamName;
 
-        client.resetPassword(data,
+        Client.resetPassword(data,
             function resetSuccess() {
                 this.setState({error: null, updateText: 'Your password has been updated successfully.'});
             }.bind(this),
@@ -59,7 +60,7 @@ export default class PasswordResetForm extends React.Component {
         return (
             <div className='col-sm-12'>
                 <div className='signup-team__container'>
-                    <h3>Password Reset</h3>
+                    <h3>{'Password Reset'}</h3>
                     <form onSubmit={this.handlePasswordReset}>
                         <p>{'Enter a new password for your ' + this.props.teamDisplayName + ' ' + global.window.mm_config.SiteName + ' account.'}</p>
                         <div className={formClass}>
@@ -77,7 +78,7 @@ export default class PasswordResetForm extends React.Component {
                             type='submit'
                             className='btn btn-primary'
                         >
-                            Change my password
+                            {'Change my password'}
                         </button>
                         {updateText}
                     </form>

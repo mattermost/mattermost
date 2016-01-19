@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import * as Client from '../../utils/client.jsx';
+import Constants from '../../utils/constants.jsx';
 var Modal = ReactBootstrap.Modal;
 
 export default class ResetPasswordModal extends React.Component {
@@ -20,8 +21,8 @@ export default class ResetPasswordModal extends React.Component {
         e.preventDefault();
         var password = ReactDOM.findDOMNode(this.refs.password).value;
 
-        if (!password || password.length < 5) {
-            this.setState({serverError: 'Please enter at least 5 characters.'});
+        if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
+            this.setState({serverError: 'Please enter at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters.'});
             return;
         }
 
