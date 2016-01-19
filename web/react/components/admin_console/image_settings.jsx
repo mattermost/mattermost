@@ -1,11 +1,207 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import crypto from 'crypto';
 
-export default class FileSettings extends React.Component {
+const messages = defineMessages({
+    fileSettings: {
+        id: 'admin.image.fileSettings',
+        defaultMessage: 'File Settings'
+    },
+    storeTitle: {
+        id: 'admin.image.storeTitle',
+        defaultMessage: 'Store Files In:'
+    },
+    storeDisabled: {
+        id: 'admin.image.storeDisabled',
+        defaultMessage: 'Disable File Storage'
+    },
+    storeLocal: {
+        id: 'admin.image.storeLocal',
+        defaultMessage: 'Local File System'
+    },
+    storeAmazonS3: {
+        id: 'admin.image.storeAmazonS3',
+        defaultMessage: 'Amazon S3'
+    },
+    localTitle: {
+        id: 'admin.image.localTitle',
+        defaultMessage: 'Local Directory Location:'
+    },
+    localExample: {
+        id: 'admin.image.localExample',
+        defaultMessage: 'Ex "./data/"'
+    },
+    localDescription: {
+        id: 'admin.image.localDescription',
+        defaultMessage: 'Directory to which image files are written. If blank, will be set to ./data/.'
+    },
+    amazonS3IdTitle: {
+        id: 'admin.image.amazonS3IdTitle',
+        defaultMessage: 'Amazon S3 Access Key Id:'
+    },
+    amazonS3IdExample: {
+        id: 'admin.image.amazonS3IdExample',
+        defaultMessage: 'Ex "AKIADTOVBGERKLCBV"'
+    },
+    amazonS3IdDescription: {
+        id: 'admin.image.amazonS3IdDescription',
+        defaultMessage: 'Obtain this credential from your Amazon EC2 administrator.'
+    },
+    amazonS3SecretTitle: {
+        id: 'admin.image.amazonS3SecretTitle',
+        defaultMessage: 'Amazon S3 Secret Access Key:'
+    },
+    amazonS3SecretExample: {
+        id: 'admin.image.amazonS3SecretExample',
+        defaultMessage: 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+    },
+    amazonS3SecretDescription: {
+        id: 'admin.image.amazonS3SecretDescription',
+        defaultMessage: 'Obtain this credential from your Amazon EC2 administrator.'
+    },
+    amazonS3BucketTitle: {
+        id: 'admin.image.amazonS3BucketTitle',
+        defaultMessage: 'Amazon S3 Bucket:'
+    },
+    amazonS3BucketExample: {
+        id: 'admin.image.amazonS3BucketExample',
+        defaultMessage: 'Ex "mattermost-media"'
+    },
+    amazonS3BucketDescription: {
+        id: 'admin.image.amazonS3BucketDescription',
+        defaultMessage: 'Name you selected for your S3 bucket in AWS.'
+    },
+    amazonS3RegionTitle: {
+        id: 'admin.image.amazonS3RegionTitle',
+        defaultMessage: 'Amazon S3 Region:'
+    },
+    amazonS3RegionExample: {
+        id: 'admin.image.amazonS3RegionExample',
+        defaultMessage: 'Ex "us-east-1"'
+    },
+    amazonS3RegionDescription: {
+        id: 'admin.image.amazonS3RegionDescription',
+        defaultMessage: 'AWS region you selected for creating your S3 bucket.'
+    },
+    thumbWidthTitle: {
+        id: 'admin.image.thumbWidthTitle',
+        defaultMessage: 'Thumbnail Width:'
+    },
+    thumbWidthExample: {
+        id: 'admin.image.thumbWidthExample',
+        defaultMessage: 'Ex "120"'
+    },
+    thumbWidthDescription: {
+        id: 'admin.image.thumbWidthDescription',
+        defaultMessage: 'Width of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'
+    },
+    thumbHeightTitle: {
+        id: 'admin.image.thumbHeightTitle',
+        defaultMessage: 'Thumbnail Height:'
+    },
+    thumbHeightExample: {
+        id: 'admin.image.thumbHeightExample',
+        defaultMessage: 'Ex "100"'
+    },
+    thumbHeightDescription: {
+        id: 'admin.image.thumbHeightDescription',
+        defaultMessage: 'Height of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'
+    },
+    previewWidthTitle: {
+        id: 'admin.image.previewWidthTitle',
+        defaultMessage: 'Preview Width:'
+    },
+    previewWidthExample: {
+        id: 'admin.image.previewWidthExample',
+        defaultMessage: 'Ex "1024"'
+    },
+    previewWidthDescription: {
+        id: 'admin.image.previewWidthDescription',
+        defaultMessage: 'Maximum width of preview image. Updating this value changes how preview images render in future, but does not change images created in the past.'
+    },
+    previewHeightTitle: {
+        id: 'admin.image.previewHeightTitle',
+        defaultMessage: 'Preview Height:'
+    },
+    previewHeightExample: {
+        id: 'admin.image.previewHeightExample',
+        defaultMessage: 'Ex "0"'
+    },
+    previewHeightDescription: {
+        id: 'admin.image.previewHeightDescription',
+        defaultMessage: 'Maximum height of preview image ("0": Sets to auto-size). Updating this value changes how preview images render in future, but does not change images created in the past.'
+    },
+    profileWidthTitle: {
+        id: 'admin.image.profileWidthTitle',
+        defaultMessage: 'Profile Width:'
+    },
+    profileWidthExample: {
+        id: 'admin.image.profileWidthExample',
+        defaultMessage: 'Ex "1024"'
+    },
+    profileWidthDescription: {
+        id: 'admin.image.profileWidthDescription',
+        defaultMessage: 'Width of profile picture.'
+    },
+    profileHeightTitle: {
+        id: 'admin.image.profileHeightTitle',
+        defaultMessage: 'Profile Height:'
+    },
+    profileHeightExample: {
+        id: 'admin.image.profileHeightExample',
+        defaultMessage: 'Ex "0"'
+    },
+    profileHeightDescription: {
+        id: 'admin.image.profileHeightDescription',
+        defaultMessage: 'Height of profile picture.'
+    },
+    true: {
+        id: 'admin.image.true',
+        defaultMessage: 'true'
+    },
+    false: {
+        id: 'admin.image.false',
+        defaultMessage: 'false'
+    },
+    shareTitle: {
+        id: 'admin.image.shareTitle',
+        defaultMessage: 'Share Public File Link: '
+    },
+    shareDescription: {
+        id: 'admin.image.shareDescription',
+        defaultMessage: 'Allow users to share public links to files and images.'
+    },
+    publicLinkTitle: {
+        id: 'admin.image.publicLinkTitle',
+        defaultMessage: 'Public Link Salt:'
+    },
+    publicLinkExample: {
+        id: 'admin.image.publicLinkExample',
+        defaultMessage: 'Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"'
+    },
+    publicLinkDescription: {
+        id: 'admin.image.publicLinkDescription',
+        defaultMessage: '32-character salt added to signing of public image links. Randomly generated on install. Click "Re-Generate" to create new salt.'
+    },
+    regenerate: {
+        id: 'admin.image.regenerate',
+        defaultMessage: 'Re-Generate'
+    },
+    saving: {
+        id: 'admin.image.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.image.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class FileSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -120,6 +316,8 @@ export default class FileSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
+
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -143,7 +341,7 @@ export default class FileSettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'File Settings'}</h3>
+                <h3>{formatMessage(messages.fileSettings)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -154,7 +352,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='DriverName'
                         >
-                            {'Store Files In:'}
+                            {formatMessage(messages.storeTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <select
@@ -164,9 +362,9 @@ export default class FileSettings extends React.Component {
                                 defaultValue={this.props.config.FileSettings.DriverName}
                                 onChange={this.handleChange.bind(this, 'DriverName')}
                             >
-                                <option value=''>{'Disable File Storage'}</option>
-                                <option value='local'>{'Local File System'}</option>
-                                <option value='amazons3'>{'Amazon S3'}</option>
+                                <option value=''>{formatMessage(messages.storeDisabled)}</option>
+                                <option value='local'>{formatMessage(messages.storeLocal)}</option>
+                                <option value='amazons3'>{formatMessage(messages.storeAmazonS3)}</option>
                             </select>
                         </div>
                     </div>
@@ -176,7 +374,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='Directory'
                         >
-                            {'Local Directory Location:'}
+                            {formatMessage(messages.localTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -184,12 +382,12 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='Directory'
                                 ref='Directory'
-                                placeholder='Ex "./data/"'
+                                placeholder={formatMessage(messages.localExample)}
                                 defaultValue={this.props.config.FileSettings.Directory}
                                 onChange={this.handleChange}
                                 disabled={!enableFile}
                             />
-                            <p className='help-text'>{'Directory to which image files are written. If blank, will be set to ./data/.'}</p>
+                            <p className='help-text'>{formatMessage(messages.localDescription)}</p>
                         </div>
                     </div>
 
@@ -198,7 +396,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='AmazonS3AccessKeyId'
                         >
-                            {'Amazon S3 Access Key Id:'}
+                            {formatMessage(messages.amazonS3IdTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -206,12 +404,12 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='AmazonS3AccessKeyId'
                                 ref='AmazonS3AccessKeyId'
-                                placeholder='Ex "AKIADTOVBGERKLCBV"'
+                                placeholder={formatMessage(messages.amazonS3IdExample)}
                                 defaultValue={this.props.config.FileSettings.AmazonS3AccessKeyId}
                                 onChange={this.handleChange}
                                 disabled={!enableS3}
                             />
-                            <p className='help-text'>{'Obtain this credential from your Amazon EC2 administrator.'}</p>
+                            <p className='help-text'>{formatMessage(messages.amazonS3IdDescription)}</p>
                         </div>
                     </div>
 
@@ -220,7 +418,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='AmazonS3SecretAccessKey'
                         >
-                            {'Amazon S3 Secret Access Key:'}
+                            {formatMessage(messages.amazonS3SecretTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -228,12 +426,12 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='AmazonS3SecretAccessKey'
                                 ref='AmazonS3SecretAccessKey'
-                                placeholder='Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+                                placeholder={formatMessage(messages.amazonS3SecretExample)}
                                 defaultValue={this.props.config.FileSettings.AmazonS3SecretAccessKey}
                                 onChange={this.handleChange}
                                 disabled={!enableS3}
                             />
-                            <p className='help-text'>{'Obtain this credential from your Amazon EC2 administrator.'}</p>
+                            <p className='help-text'>{formatMessage(messages.amazonS3SecretDescription)}</p>
                         </div>
                     </div>
 
@@ -242,7 +440,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='AmazonS3Bucket'
                         >
-                            {'Amazon S3 Bucket:'}
+                            {formatMessage(messages.amazonS3BucketTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -250,12 +448,12 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='AmazonS3Bucket'
                                 ref='AmazonS3Bucket'
-                                placeholder='Ex "mattermost-media"'
+                                placeholder={formatMessage(messages.amazonS3BucketExample)}
                                 defaultValue={this.props.config.FileSettings.AmazonS3Bucket}
                                 onChange={this.handleChange}
                                 disabled={!enableS3}
                             />
-                            <p className='help-text'>{'Name you selected for your S3 bucket in AWS.'}</p>
+                            <p className='help-text'>{formatMessage(messages.amazonS3BucketDescription)}</p>
                         </div>
                     </div>
 
@@ -264,7 +462,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='AmazonS3Region'
                         >
-                            {'Amazon S3 Region:'}
+                            {formatMessage(messages.amazonS3RegionTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -272,12 +470,12 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='AmazonS3Region'
                                 ref='AmazonS3Region'
-                                placeholder='Ex "us-east-1"'
+                                placeholder={formatMessage(messages.amazonS3RegionExample)}
                                 defaultValue={this.props.config.FileSettings.AmazonS3Region}
                                 onChange={this.handleChange}
                                 disabled={!enableS3}
                             />
-                            <p className='help-text'>{'AWS region you selected for creating your S3 bucket.'}</p>
+                            <p className='help-text'>{formatMessage(messages.amazonS3RegionDescription)}</p>
                         </div>
                     </div>
 
@@ -286,7 +484,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ThumbnailWidth'
                         >
-                            {'Thumbnail Width:'}
+                            {formatMessage(messages.thumbWidthTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -294,11 +492,11 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='ThumbnailWidth'
                                 ref='ThumbnailWidth'
-                                placeholder='Ex "120"'
+                                placeholder={formatMessage(messages.thumbWidthExample)}
                                 defaultValue={this.props.config.FileSettings.ThumbnailWidth}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Width of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'}</p>
+                            <p className='help-text'>{formatMessage(messages.thumbWidthDescription)}</p>
                         </div>
                     </div>
 
@@ -307,7 +505,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ThumbnailHeight'
                         >
-                            {'Thumbnail Height:'}
+                            {formatMessage(messages.thumbHeightTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -315,11 +513,11 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='ThumbnailHeight'
                                 ref='ThumbnailHeight'
-                                placeholder='Ex "100"'
+                                placeholder={formatMessage(messages.thumbHeightExample)}
                                 defaultValue={this.props.config.FileSettings.ThumbnailHeight}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Height of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'}</p>
+                            <p className='help-text'>{formatMessage(messages.thumbHeightDescription)}</p>
                         </div>
                     </div>
 
@@ -328,7 +526,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='PreviewWidth'
                         >
-                            {'Preview Width:'}
+                            {formatMessage(messages.previewWidthTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -336,11 +534,11 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='PreviewWidth'
                                 ref='PreviewWidth'
-                                placeholder='Ex "1024"'
+                                placeholder={formatMessage(messages.previewWidthExample)}
                                 defaultValue={this.props.config.FileSettings.PreviewWidth}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Maximum width of preview image. Updating this value changes how preview images render in future, but does not change images created in the past.'}</p>
+                            <p className='help-text'>{formatMessage(messages.previewWidthDescription)}</p>
                         </div>
                     </div>
 
@@ -349,7 +547,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='PreviewHeight'
                         >
-                            {'Preview Height:'}
+                            {formatMessage(messages.previewHeightTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -357,11 +555,11 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='PreviewHeight'
                                 ref='PreviewHeight'
-                                placeholder='Ex "0"'
+                                placeholder={formatMessage(messages.previewHeightExample)}
                                 defaultValue={this.props.config.FileSettings.PreviewHeight}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Maximum height of preview image ("0": Sets to auto-size). Updating this value changes how preview images render in future, but does not change images created in the past.'}</p>
+                            <p className='help-text'>{formatMessage(messages.previewHeightDescription)}</p>
                         </div>
                     </div>
 
@@ -370,7 +568,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ProfileWidth'
                         >
-                            {'Profile Width:'}
+                            {formatMessage(messages.profileWidthTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -378,11 +576,11 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='ProfileWidth'
                                 ref='ProfileWidth'
-                                placeholder='Ex "1024"'
+                                placeholder={formatMessage(messages.profileWidthExample)}
                                 defaultValue={this.props.config.FileSettings.ProfileWidth}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Width of profile picture.'}</p>
+                            <p className='help-text'>{formatMessage(messages.profileWidthDescription)}</p>
                         </div>
                     </div>
 
@@ -391,7 +589,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ProfileHeight'
                         >
-                            {'Profile Height:'}
+                            {formatMessage(messages.profileHeightTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -399,11 +597,11 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='ProfileHeight'
                                 ref='ProfileHeight'
-                                placeholder='Ex "0"'
+                                placeholder={formatMessage(messages.profileHeightExample)}
                                 defaultValue={this.props.config.FileSettings.ProfileHeight}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Height of profile picture.'}</p>
+                            <p className='help-text'>{formatMessage(messages.profileHeightDescription)}</p>
                         </div>
                     </div>
 
@@ -412,7 +610,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnablePublicLink'
                         >
-                            {'Share Public File Link: '}
+                            {formatMessage(messages.shareTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -424,7 +622,7 @@ export default class FileSettings extends React.Component {
                                     defaultChecked={this.props.config.FileSettings.EnablePublicLink}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -434,9 +632,9 @@ export default class FileSettings extends React.Component {
                                     defaultChecked={!this.props.config.FileSettings.EnablePublicLink}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'Allow users to share public links to files and images.'}</p>
+                            <p className='help-text'>{formatMessage(messages.shareDescription)}</p>
                         </div>
                     </div>
 
@@ -445,7 +643,7 @@ export default class FileSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='PublicLinkSalt'
                         >
-                            {'Public Link Salt:'}
+                            {formatMessage(messages.publicLinkTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -453,17 +651,17 @@ export default class FileSettings extends React.Component {
                                 className='form-control'
                                 id='PublicLinkSalt'
                                 ref='PublicLinkSalt'
-                                placeholder='Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"'
+                                placeholder={formatMessage(messages.publicLinkExample)}
                                 defaultValue={this.props.config.FileSettings.PublicLinkSalt}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'32-character salt added to signing of public image links. Randomly generated on install. Click "Re-Generate" to create new salt.'}</p>
+                            <p className='help-text'>{formatMessage(messages.publicLinkDescription)}</p>
                             <div className='help-text'>
                                 <button
                                     className='btn btn-default'
                                     onClick={this.handleGenerate}
                                 >
-                                    {'Re-Generate'}
+                                    {formatMessage(messages.regenerate)}
                                 </button>
                             </div>
                         </div>
@@ -478,9 +676,9 @@ export default class FileSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.saving)}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -492,5 +690,8 @@ export default class FileSettings extends React.Component {
 }
 
 FileSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(FileSettings);

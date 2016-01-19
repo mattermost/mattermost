@@ -17,7 +17,7 @@ func TestOAuthStoreSaveApp(t *testing.T) {
 	a1.CallbackUrls = []string{"https://nowhere.com"}
 	a1.Homepage = "https://nowhere.com"
 
-	if err := (<-store.OAuth().SaveApp(&a1)).Err; err != nil {
+	if err := (<-store.OAuth().SaveApp(&a1, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -30,13 +30,13 @@ func TestOAuthStoreGetApp(t *testing.T) {
 	a1.Name = "TestApp" + model.NewId()
 	a1.CallbackUrls = []string{"https://nowhere.com"}
 	a1.Homepage = "https://nowhere.com"
-	Must(store.OAuth().SaveApp(&a1))
+	Must(store.OAuth().SaveApp(&a1, T))
 
-	if err := (<-store.OAuth().GetApp(a1.Id)).Err; err != nil {
+	if err := (<-store.OAuth().GetApp(a1.Id, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.OAuth().GetAppByUser(a1.CreatorId)).Err; err != nil {
+	if err := (<-store.OAuth().GetAppByUser(a1.CreatorId, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -49,13 +49,13 @@ func TestOAuthStoreUpdateApp(t *testing.T) {
 	a1.Name = "TestApp" + model.NewId()
 	a1.CallbackUrls = []string{"https://nowhere.com"}
 	a1.Homepage = "https://nowhere.com"
-	Must(store.OAuth().SaveApp(&a1))
+	Must(store.OAuth().SaveApp(&a1, T))
 
 	a1.CreateAt = 1
 	a1.ClientSecret = "pwd"
 	a1.CreatorId = "12345678901234567890123456"
 	a1.Name = "NewName"
-	if result := <-store.OAuth().UpdateApp(&a1); result.Err != nil {
+	if result := <-store.OAuth().UpdateApp(&a1, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		ua1 := (result.Data.([2]*model.OAuthApp)[0])
@@ -82,7 +82,7 @@ func TestOAuthStoreSaveAccessData(t *testing.T) {
 	a1.Token = model.NewId()
 	a1.RefreshToken = model.NewId()
 
-	if err := (<-store.OAuth().SaveAccessData(&a1)).Err; err != nil {
+	if err := (<-store.OAuth().SaveAccessData(&a1, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -94,9 +94,9 @@ func TestOAuthStoreGetAccessData(t *testing.T) {
 	a1.AuthCode = model.NewId()
 	a1.Token = model.NewId()
 	a1.RefreshToken = model.NewId()
-	Must(store.OAuth().SaveAccessData(&a1))
+	Must(store.OAuth().SaveAccessData(&a1, T))
 
-	if result := <-store.OAuth().GetAccessData(a1.Token); result.Err != nil {
+	if result := <-store.OAuth().GetAccessData(a1.Token, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		ra1 := result.Data.(*model.AccessData)
@@ -105,11 +105,11 @@ func TestOAuthStoreGetAccessData(t *testing.T) {
 		}
 	}
 
-	if err := (<-store.OAuth().GetAccessDataByAuthCode(a1.AuthCode)).Err; err != nil {
+	if err := (<-store.OAuth().GetAccessDataByAuthCode(a1.AuthCode, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.OAuth().GetAccessDataByAuthCode("junk")).Err; err != nil {
+	if err := (<-store.OAuth().GetAccessDataByAuthCode("junk", T)).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -121,13 +121,13 @@ func TestOAuthStoreRemoveAccessData(t *testing.T) {
 	a1.AuthCode = model.NewId()
 	a1.Token = model.NewId()
 	a1.RefreshToken = model.NewId()
-	Must(store.OAuth().SaveAccessData(&a1))
+	Must(store.OAuth().SaveAccessData(&a1, T))
 
-	if err := (<-store.OAuth().RemoveAccessData(a1.Token)).Err; err != nil {
+	if err := (<-store.OAuth().RemoveAccessData(a1.Token, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if result := <-store.OAuth().GetAccessDataByAuthCode(a1.AuthCode); result.Err != nil {
+	if result := <-store.OAuth().GetAccessDataByAuthCode(a1.AuthCode, T); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		if result.Data != nil {
@@ -144,7 +144,7 @@ func TestOAuthStoreSaveAuthData(t *testing.T) {
 	a1.UserId = model.NewId()
 	a1.Code = model.NewId()
 
-	if err := (<-store.OAuth().SaveAuthData(&a1)).Err; err != nil {
+	if err := (<-store.OAuth().SaveAuthData(&a1, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -156,9 +156,9 @@ func TestOAuthStoreGetAuthData(t *testing.T) {
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
 	a1.Code = model.NewId()
-	Must(store.OAuth().SaveAuthData(&a1))
+	Must(store.OAuth().SaveAuthData(&a1, T))
 
-	if err := (<-store.OAuth().GetAuthData(a1.Code)).Err; err != nil {
+	if err := (<-store.OAuth().GetAuthData(a1.Code, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -170,13 +170,13 @@ func TestOAuthStoreRemoveAuthData(t *testing.T) {
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
 	a1.Code = model.NewId()
-	Must(store.OAuth().SaveAuthData(&a1))
+	Must(store.OAuth().SaveAuthData(&a1, T))
 
-	if err := (<-store.OAuth().RemoveAuthData(a1.Code)).Err; err != nil {
+	if err := (<-store.OAuth().RemoveAuthData(a1.Code, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.OAuth().GetAuthData(a1.Code)).Err; err == nil {
+	if err := (<-store.OAuth().GetAuthData(a1.Code, T)).Err; err == nil {
 		t.Fatal("should have errored - auth code removed")
 	}
 }
@@ -188,9 +188,9 @@ func TestOAuthStoreRemoveAuthDataByUser(t *testing.T) {
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
 	a1.Code = model.NewId()
-	Must(store.OAuth().SaveAuthData(&a1))
+	Must(store.OAuth().SaveAuthData(&a1, T))
 
-	if err := (<-store.OAuth().PermanentDeleteAuthDataByUser(a1.UserId)).Err; err != nil {
+	if err := (<-store.OAuth().PermanentDeleteAuthDataByUser(a1.UserId, T)).Err; err != nil {
 		t.Fatal(err)
 	}
 }

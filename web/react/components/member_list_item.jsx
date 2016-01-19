@@ -1,10 +1,30 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-export default class MemberListItem extends React.Component {
+const messages = defineMessages({
+    add: {
+        id: 'member_item.add',
+        defaultMessage: ' Add'
+    },
+    makeAdmin: {
+        id: 'member_item.makeAdmin',
+        defaultMessage: 'Make Admin'
+    },
+    removeMember: {
+        id: 'member_item.removeMember',
+        defaultMessage: 'Remove Member'
+    },
+    member: {
+        id: 'member_item.member',
+        defaultMessage: 'Member'
+    }
+});
+
+class MemberListItem extends React.Component {
     constructor(props) {
         super(props);
 
@@ -25,6 +45,7 @@ export default class MemberListItem extends React.Component {
         this.props.handleMakeAdmin(this.props.member.id);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var member = this.props.member;
         var isAdmin = this.props.isAdmin;
         var isMemberAdmin = Utils.isAdmin(member.roles);
@@ -38,7 +59,7 @@ export default class MemberListItem extends React.Component {
                         className='btn btn-sm btn-primary'
                     >
                         <i className='glyphicon glyphicon-envelope'/>
-                        {' Add'}
+                        {formatMessage(messages.add)}
                     </a>
             );
         } else if (isAdmin && !isMemberAdmin && (member.id !== UserStore.getCurrentId())) {
@@ -53,7 +74,7 @@ export default class MemberListItem extends React.Component {
                                             role='menuitem'
                                             onClick={self.handleMakeAdmin}
                                         >
-                                            Make Admin
+                                            {formatMessage(messages.makeAdmin)}
                                         </a>
                                     </li>);
             }
@@ -67,7 +88,7 @@ export default class MemberListItem extends React.Component {
                                                 role='menuitem'
                                                 onClick={self.handleRemove}
                                             >
-                                                Remove Member
+                                                {formatMessage(messages.removeMember)}
                                             </a>
                                         </li>);
             }
@@ -82,7 +103,7 @@ export default class MemberListItem extends React.Component {
                                 aria-expanded='true'
                             >
                                 <span className='fa fa-pencil'></span>
-                                <span className='text-capitalize'>{member.roles || 'Member'} </span>
+                                <span className='text-capitalize'>{member.roles || formatMessage(messages.member)} </span>
                             </a>
                             <ul
                                 className='dropdown-menu member-menu'
@@ -94,7 +115,7 @@ export default class MemberListItem extends React.Component {
                         </div>
                     );
         } else {
-            invite = <div className='member-role text-capitalize'><span className='fa fa-pencil hidden'></span>{member.roles || 'Member'}</div>;
+            invite = <div className='member-role text-capitalize'><span className='fa fa-pencil hidden'></span>{member.roles || formatMessage(messages.member)}</div>;
         }
 
         return (
@@ -116,9 +137,12 @@ export default class MemberListItem extends React.Component {
 }
 
 MemberListItem.propTypes = {
+    intl: intlShape.isRequired,
     handleInvite: React.PropTypes.func,
     handleRemove: React.PropTypes.func,
     handleMakeAdmin: React.PropTypes.func,
     member: React.PropTypes.object,
     isAdmin: React.PropTypes.bool
 };
+
+export default injectIntl(MemberListItem);

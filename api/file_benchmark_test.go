@@ -46,7 +46,7 @@ func BenchmarkGetFile(b *testing.B) {
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t="+team.Id, true); downErr != nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t="+team.Id, true, T); downErr != nil {
 			b.Fatal(downErr)
 		}
 	}
@@ -70,7 +70,7 @@ func BenchmarkGetPublicLink(b *testing.B) {
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if _, downErr := Client.GetPublicLink(data); downErr != nil {
+		if _, downErr := Client.GetPublicLink(data, T); downErr != nil {
 			b.Fatal(downErr)
 		}
 	}

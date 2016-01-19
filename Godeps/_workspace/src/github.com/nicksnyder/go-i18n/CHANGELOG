@@ -1,0 +1,5 @@
+Feb 24, 2015
+- Add Korean
+
+Feb 18, 2015
+- Added ParseTranslationFileBytes so translation files may be loaded from an arbitrary serialization format, such as go-bindata.

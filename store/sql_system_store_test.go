@@ -12,9 +12,9 @@ func TestSqlSystemStore(t *testing.T) {
 	Setup()
 
 	system := &model.System{Name: model.NewId(), Value: "value"}
-	Must(store.System().Save(system))
+	Must(store.System().Save(system, T))
 
-	result := <-store.System().Get()
+	result := <-store.System().Get(T)
 	systems := result.Data.(model.StringMap)
 
 	if systems[system.Name] != system.Value {
@@ -22,9 +22,9 @@ func TestSqlSystemStore(t *testing.T) {
 	}
 
 	system.Value = "value2"
-	Must(store.System().Update(system))
+	Must(store.System().Update(system, T))
 
-	result2 := <-store.System().Get()
+	result2 := <-store.System().Get(T)
 	systems2 := result2.Data.(model.StringMap)
 
 	if systems2[system.Name] != system.Value {

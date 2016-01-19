@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import AdminSidebarHeader from './admin_sidebar_header.jsx';
 import SelectTeamModal from './select_team_modal.jsx';
 import * as Utils from '../../utils/utils.jsx';
@@ -8,7 +9,94 @@ import * as Utils from '../../utils/utils.jsx';
 const Tooltip = ReactBootstrap.Tooltip;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-export default class AdminSidebar extends React.Component {
+const messages = defineMessages({
+    loading: {
+        id: 'admin.sidebar.loading',
+        defaultMessage: 'Loading'
+    },
+    users: {
+        id: 'admin.sidebar.users',
+        defaultMessage: '- Users'
+    },
+    settings: {
+        id: 'admin.sidebar.settings',
+        defaultMessage: 'SETTINGS'
+    },
+    service: {
+        id: 'admin.sidebar.service',
+        defaultMessage: 'Service Settings'
+    },
+    team: {
+        id: 'admin.sidebar.team',
+        defaultMessage: 'Team Settings'
+    },
+    sql: {
+        id: 'admin.sidebar.sql',
+        defaultMessage: 'SQL Settings'
+    },
+    email: {
+        id: 'admin.sidebar.email',
+        defaultMessage: 'Email Settings'
+    },
+    file: {
+        id: 'admin.sidebar.file',
+        defaultMessage: 'File Settings'
+    },
+    log: {
+        id: 'admin.sidebar.log',
+        defaultMessage: 'Log Settings'
+    },
+    rateLimit: {
+        id: 'admin.sidebar.rate_limit',
+        defaultMessage: 'Rate Limit Settings'
+    },
+    privacy: {
+        id: 'admin.sidebar.privacy',
+        defaultMessage: 'Privacy Settings'
+    },
+    gitlab: {
+        id: 'admin.sidebar.gitlab',
+        defaultMessage: 'GitLab Settings'
+    },
+    teams: {
+        id: 'admin.sidebar.teams',
+        defaultMessage: 'TEAMS'
+    },
+    other: {
+        id: 'admin.sidebar.other',
+        defaultMessage: 'OTHER'
+    },
+    logs: {
+        id: 'admin.sidebar.logs',
+        defaultMessage: 'Logs'
+    },
+    statistics: {
+        id: 'admin.sidebar.statistics',
+        defaultMessage: '- Statistics'
+    },
+    rmTeamSidebar: {
+        id: 'admin.sidebar.rmTeamSidebar',
+        defaultMessage: 'Remove team from sidebar menu'
+    },
+    addTeamSidebar: {
+        id: 'admin.sidebar.addTeamSidebar',
+        defaultMessage: 'Add team to sidebar menu'
+    },
+    support: {
+        id: 'admin.sidebar.support',
+        defaultMessage: 'Legal and Support Settings'
+    },
+    ldap: {
+        id: 'admin.sidebar.ldap',
+        defaultMessage: 'LDAP Settings'
+    },
+    license: {
+        id: 'admin.sidebar.license',
+        defaultMessage: 'Edition and License'
+    }
+});
+
+class AdminSidebar extends React.Component {
     constructor(props) {
         super(props);
 
@@ -81,13 +169,14 @@ export default class AdminSidebar extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var count = '*';
-        var teams = 'Loading';
+        var teams = formatMessage(messages.loading);
         const removeTooltip = (
-            <Tooltip id='remove-team-tooltip'>{'Remove team from sidebar menu'}</Tooltip>
+            <Tooltip id='remove-team-tooltip'>{formatMessage(messages.rmTeamSidebar)}</Tooltip>
         );
         const addTeamTooltip = (
-            <Tooltip id='add-team-tooltip'>{'Add team from sidebar menu'}</Tooltip>
+            <Tooltip id='add-team-tooltip'>{formatMessage(messages.addTeamSidebar)}</Tooltip>
         );
 
         if (this.props.teams != null) {
@@ -134,7 +223,7 @@ export default class AdminSidebar extends React.Component {
                                                 className={this.isSelected('team_users', team.id)}
                                                 onClick={this.handleClick.bind(this, 'team_users', team.id)}
                                             >
-                                                {'- Users'}
+                                                {formatMessage(messages.users)}
                                             </a>
                                         </li>
                                         <li>
@@ -143,7 +232,7 @@ export default class AdminSidebar extends React.Component {
                                                 className={this.isSelected('team_analytics', team.id)}
                                                 onClick={this.handleClick.bind(this, 'team_analytics', team.id)}
                                             >
-                                                {'- Statistics'}
+                                                {formatMessage(messages.statistics)}
                                             </a>
                                         </li>
                                     </ul>
@@ -166,7 +255,7 @@ export default class AdminSidebar extends React.Component {
                             className={this.isSelected('ldap_settings')}
                             onClick={this.handleClick.bind(this, 'ldap_settings', null)}
                         >
-                            {'LDAP Settings'}
+                            {formatMessage(messages.ldap)}
                         </a>
                     </li>
                 );
@@ -179,7 +268,7 @@ export default class AdminSidebar extends React.Component {
                         className={this.isSelected('license')}
                         onClick={this.handleClick.bind(this, 'license', null)}
                     >
-                        {'Edition and License'}
+                        {formatMessage(messages.license)}
                     </a>
                 </li>
             );
@@ -196,7 +285,7 @@ export default class AdminSidebar extends React.Component {
                                     <li>
                                         <h4>
                                             <span className='icon fa fa-gear'></span>
-                                            <span>{'SETTINGS'}</span>
+                                            <span>{formatMessage(messages.settings)}</span>
                                         </h4>
                                     </li>
                                 </ul>
@@ -207,7 +296,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('service_settings')}
                                             onClick={this.handleClick.bind(this, 'service_settings', null)}
                                         >
-                                            {'Service Settings'}
+                                            {formatMessage(messages.settings)}
                                         </a>
                                     </li>
                                     <li>
@@ -216,7 +305,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('team_settings')}
                                             onClick={this.handleClick.bind(this, 'team_settings', null)}
                                         >
-                                            {'Team Settings'}
+                                            {formatMessage(messages.team)}
                                         </a>
                                     </li>
                                     <li>
@@ -225,7 +314,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('sql_settings')}
                                             onClick={this.handleClick.bind(this, 'sql_settings', null)}
                                         >
-                                            {'SQL Settings'}
+                                            {formatMessage(messages.sql)}
                                         </a>
                                     </li>
                                     <li>
@@ -234,7 +323,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('email_settings')}
                                             onClick={this.handleClick.bind(this, 'email_settings', null)}
                                         >
-                                            {'Email Settings'}
+                                            {formatMessage(messages.email)}
                                         </a>
                                     </li>
                                     <li>
@@ -243,7 +332,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('image_settings')}
                                             onClick={this.handleClick.bind(this, 'image_settings', null)}
                                         >
-                                            {'File Settings'}
+                                            {formatMessage(messages.file)}
                                         </a>
                                     </li>
                                     <li>
@@ -252,7 +341,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('log_settings')}
                                             onClick={this.handleClick.bind(this, 'log_settings', null)}
                                         >
-                                            {'Log Settings'}
+                                            {formatMessage(messages.log)}
                                         </a>
                                     </li>
                                     <li>
@@ -261,7 +350,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('rate_settings')}
                                             onClick={this.handleClick.bind(this, 'rate_settings', null)}
                                         >
-                                            {'Rate Limit Settings'}
+                                            {formatMessage(messages.rateLimit)}
                                         </a>
                                     </li>
                                     <li>
@@ -270,7 +359,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('privacy_settings')}
                                             onClick={this.handleClick.bind(this, 'privacy_settings', null)}
                                         >
-                                            {'Privacy Settings'}
+                                            {formatMessage(messages.privacy)}
                                         </a>
                                     </li>
                                     <li>
@@ -279,7 +368,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('gitlab_settings')}
                                             onClick={this.handleClick.bind(this, 'gitlab_settings', null)}
                                         >
-                                            {'GitLab Settings'}
+                                            {formatMessage(messages.gitlab)}
                                         </a>
                                     </li>
                                     {ldapSettings}
@@ -289,7 +378,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('legal_and_support_settings')}
                                             onClick={this.handleClick.bind(this, 'legal_and_support_settings', null)}
                                         >
-                                            {'Legal and Support Settings'}
+                                            {formatMessage(messages.support)}
                                         </a>
                                     </li>
                                 </ul>
@@ -297,7 +386,7 @@ export default class AdminSidebar extends React.Component {
                                      <li>
                                         <h4>
                                             <span className='icon fa fa-gear'></span>
-                                            <span>{'TEAMS (' + count + ')'}</span>
+                                            <span>{formatMessage(messages.teams) + ' (' + count + ')'}</span>
                                             <span className='menu-icon--right'>
                                                 <OverlayTrigger
                                                     delayShow={1000}
@@ -326,7 +415,7 @@ export default class AdminSidebar extends React.Component {
                                     <li>
                                         <h4>
                                             <span className='icon fa fa-gear'></span>
-                                            <span>{'OTHER'}</span>
+                                            <span>{formatMessage(messages.other)}</span>
                                         </h4>
                                     </li>
                                 </ul>
@@ -338,7 +427,7 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('logs')}
                                             onClick={this.handleClick.bind(this, 'logs', null)}
                                         >
-                                            {'Logs'}
+                                            {formatMessage(messages.logs)}
                                         </a>
                                     </li>
                                 </ul>
@@ -359,6 +448,7 @@ export default class AdminSidebar extends React.Component {
 }
 
 AdminSidebar.propTypes = {
+    intl: intlShape.isRequired,
     teams: React.PropTypes.object,
     selectedTeams: React.PropTypes.object,
     removeSelectedTeam: React.PropTypes.func,
@@ -367,3 +457,5 @@ AdminSidebar.propTypes = {
     selectedTeam: React.PropTypes.string,
     selectTab: React.PropTypes.func
 };
+
+export default injectIntl(AdminSidebar);

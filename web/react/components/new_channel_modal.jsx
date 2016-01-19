@@ -1,10 +1,86 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 var Modal = ReactBootstrap.Modal;
 
-export default class NewChannelModal extends React.Component {
+const messages = defineMessages({
+    displayNameError: {
+        id: 'channel_modal.displayNameError',
+        defaultMessage: 'This field is required'
+    },
+    group: {
+        id: 'channel_modal.group',
+        defaultMessage: 'Group'
+    },
+    privateGroup1: {
+        id: 'channel_modal.privateGroup1',
+        defaultMessage: 'Create a new private group with restricted membership. '
+    },
+    publicChannel1: {
+        id: 'channel_modal.publicChannel1',
+        defaultMessage: 'Create a public channel'
+    },
+    publicChannel2: {
+        id: 'channel_modal.publicChannel2',
+        defaultMessage: 'Create a new public channel anyone can join. '
+    },
+    privateGroup2: {
+        id: 'channel_modal.privateGroup2',
+        defaultMessage: 'Create a private group'
+    },
+    channel: {
+        id: 'channel_modal.channel',
+        defaultMessage: 'Channel'
+    },
+    modalTitle: {
+        id: 'channel_modal.modalTitle',
+        defaultMessage: 'New '
+    },
+    name: {
+        id: 'channel_modal.name',
+        defaultMessage: 'Name'
+    },
+    nameEx: {
+        id: 'channel_modal.nameEx',
+        defaultMessage: 'E.g.: "Bugs", "Marketing", "办公室恋情"'
+    },
+    edit: {
+        id: 'channel_modal.edit',
+        defaultMessage: 'Edit'
+    },
+    description: {
+        id: 'channel_modal.description',
+        defaultMessage: 'Purpose'
+    },
+    optional: {
+        id: 'channel_modal.optional',
+        defaultMessage: '(optional)'
+    },
+    purposeEx: {
+        id: 'channel_modal.purposeEx',
+        defaultMessage: 'Purpose'
+    },
+    descriptionHelp1: {
+        id: 'channel_modal.descriptionHelp1',
+        defaultMessage: 'Describe how this '
+    },
+    descriptionHelp2: {
+        id: 'channel_modal.descriptionHelp2',
+        defaultMessage: ' should be used.'
+    },
+    cancel: {
+        id: 'channel_modal.cancel',
+        defaultMessage: 'Cancel'
+    },
+    createNew: {
+        id: 'channel_modal.createNew',
+        defaultMessage: 'Create New '
+    }
+});
+
+class NewChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -25,9 +101,10 @@ export default class NewChannelModal extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         const displayName = ReactDOM.findDOMNode(this.refs.display_name).value.trim();
         if (displayName.length < 1) {
-            this.setState({displayNameError: 'This field is required'});
+            this.setState({displayNameError: formatMessage(messages.displayNameError)});
             return;
         }
 
@@ -41,6 +118,7 @@ export default class NewChannelModal extends React.Component {
         this.props.onDataChanged(newData);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var displayNameError = null;
         var serverError = null;
         var displayNameClass = 'form-group';
@@ -58,29 +136,29 @@ export default class NewChannelModal extends React.Component {
         var channelSwitchText = '';
         switch (this.props.channelType) {
         case 'P':
-            channelTerm = 'Group';
+            channelTerm = formatMessage(messages.group);
             channelSwitchText = (
                 <div className='modal-intro'>
-                    {'Create a new private group with restricted membership. '}
+                    {formatMessage(messages.privateGroup1)}
                     <a
                         href='#'
                         onClick={this.props.onTypeSwitched}
                     >
-                        {'Create a public channel'}
+                        {formatMessage(messages.publicChannel1)}
                     </a>
                 </div>
             );
             break;
         case 'O':
-            channelTerm = 'Channel';
+            channelTerm = formatMessage(messages.channel);
             channelSwitchText = (
                 <div className='modal-intro'>
-                    {'Create a new public channel anyone can join. '}
+                    {formatMessage(messages.publicChannel2)}
                     <a
                         href='#'
                         onClick={this.props.onTypeSwitched}
                     >
-                        {'Create a private group'}
+                        {formatMessage(messages.privateGroup2)}
                     </a>
                 </div>
             );
@@ -97,7 +175,7 @@ export default class NewChannelModal extends React.Component {
                     onHide={this.props.onModalDismissed}
                 >
                     <Modal.Header closeButton={true}>
-                        <Modal.Title>{'New ' + channelTerm}</Modal.Title>
+                        <Modal.Title>{formatMessage(messages.modalTitle) + channelTerm}</Modal.Title>
                     </Modal.Header>
                     <form
                         role='form'
@@ -108,14 +186,14 @@ export default class NewChannelModal extends React.Component {
                                 {channelSwitchText}
                             </div>
                             <div className={displayNameClass}>
-                                <label className='col-sm-3 form__label control-label'>{'Name'}</label>
+                                <label className='col-sm-3 form__label control-label'>{formatMessage(messages.name)}</label>
                                 <div className='col-sm-9'>
                                     <input
                                         onChange={this.handleChange}
                                         type='text'
                                         ref='display_name'
                                         className='form-control'
-                                        placeholder='E.g.: "Bugs", "Marketing", "办公室恋情"'
+                                        placeholder={formatMessage(messages.nameEx)}
                                         maxLength='22'
                                         value={this.props.channelData.displayName}
                                         autoFocus={true}
@@ -128,7 +206,7 @@ export default class NewChannelModal extends React.Component {
                                             href='#'
                                             onClick={this.props.onChangeURLPressed}
                                         >
-                                            {'Edit'}
+                                            {formatMessage(messages.edit)}
                                         </a>
                                         {')'}
                                     </p>
@@ -136,22 +214,22 @@ export default class NewChannelModal extends React.Component {
                             </div>
                             <div className='form-group less'>
                                 <div className='col-sm-3'>
-                                    <label className='form__label control-label'>{'Purpose'}</label>
-                                    <label className='form__label light'>{'(optional)'}</label>
+                                    <label className='form__label control-label'>{formatMessage(messages.description)}</label>
+                                    <label className='form__label light'>{formatMessage(messages.optional)}</label>
                                 </div>
                                 <div className='col-sm-9'>
                                     <textarea
                                         className='form-control no-resize'
                                         ref='channel_purpose'
                                         rows='4'
-                                        placeholder='Purpose'
+                                        placeholder={formatMessage(messages.purposeEx)}
                                         maxLength='128'
                                         value={this.props.channelData.purpose}
                                         onChange={this.handleChange}
                                         tabIndex='2'
                                     />
                                     <p className='input__help'>
-                                        {`Describe how this ${channelTerm} should be used.`}
+                                        {formatMessage(messages.descriptionHelp1) + channelTerm + formatMessage(messages.descriptionHelp2)}
                                     </p>
                                     {serverError}
                                 </div>
@@ -163,7 +241,7 @@ export default class NewChannelModal extends React.Component {
                                 className='btn btn-default'
                                 onClick={this.props.onModalDismissed}
                             >
-                                {'Cancel'}
+                                {formatMessage(messages.cancel)}
                             </button>
                             <button
                                 onClick={this.handleSubmit}
@@ -171,7 +249,7 @@ export default class NewChannelModal extends React.Component {
                                 className='btn btn-primary'
                                 tabIndex='3'
                             >
-                                {'Create New ' + channelTerm}
+                                {formatMessage(messages.createNew) + channelTerm}
                             </button>
                         </Modal.Footer>
                     </form>
@@ -187,6 +265,7 @@ NewChannelModal.defaultProps = {
     serverError: ''
 };
 NewChannelModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channelType: React.PropTypes.string.isRequired,
     channelData: React.PropTypes.object.isRequired,
@@ -197,3 +276,5 @@ NewChannelModal.propTypes = {
     onChangeURLPressed: React.PropTypes.func.isRequired,
     onDataChanged: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(NewChannelModal);

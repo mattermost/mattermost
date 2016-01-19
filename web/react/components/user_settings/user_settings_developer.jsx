@@ -1,11 +1,35 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
 
-export default class DeveloperTab extends React.Component {
+const messages = defineMessages({
+    register: {
+        id: 'user.settings.developer.register',
+        defaultMessage: 'Register New Application'
+    },
+    applicationsPreview: {
+        id: 'user.settings.developer.applicationsPreview',
+        defaultMessage: 'Applications (Preview)'
+    },
+    thirdParty: {
+        id: 'user.settings.developer.thirdParty',
+        defaultMessage: 'Open to register a new third-party application'
+    },
+    title: {
+        id: 'user.settings.developer.title',
+        defaultMessage: 'Developer Settings'
+    },
+    close: {
+        id: 'user.settings.developer.close',
+        defaultMessage: 'Close'
+    }
+});
+
+class DeveloperTab extends React.Component {
     constructor(props) {
         super(props);
 
@@ -18,6 +42,7 @@ export default class DeveloperTab extends React.Component {
         EventHelpers.showRegisterAppModal();
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var appSection;
         var self = this;
         if (this.props.activeSection === 'app') {
@@ -33,7 +58,7 @@ export default class DeveloperTab extends React.Component {
                             className='btn btn-sm btn-primary'
                             onClick={this.register}
                         >
-                            {'Register New Application'}
+                            {formatMessage(messages.register)}
                         </a>
                     </div>
                 </div>
@@ -41,7 +66,7 @@ export default class DeveloperTab extends React.Component {
 
             appSection = (
                 <SettingItemMax
-                    title='Applications (Preview)'
+                    title={formatMessage(messages.applicationsPreview)}
                     inputs={inputs}
                     updateSection={function updateSection(e) {
                         self.props.updateSection('');
@@ -52,8 +77,8 @@ export default class DeveloperTab extends React.Component {
         } else {
             appSection = (
                 <SettingItemMin
-                    title='Applications (Preview)'
-                    describe='Open to register a new third-party application'
+                    title={formatMessage(messages.applicationsPreview)}
+                    describe={formatMessage(messages.thirdParty)}
                     updateSection={function updateSection() {
                         self.props.updateSection('app');
                     }}
@@ -68,7 +93,7 @@ export default class DeveloperTab extends React.Component {
                         type='button'
                         className='close'
                         data-dismiss='modal'
-                        aria-label='Close'
+                        aria-label={formatMessage(messages.close)}
                         onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
@@ -81,11 +106,11 @@ export default class DeveloperTab extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Developer Settings'}
+                        {formatMessage(messages.title)}
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>{'Developer Settings'}</h3>
+                    <h3 className='tab-header'>{formatMessage(messages.title)}</h3>
                     <div className='divider-dark first'/>
                     {appSection}
                     <div className='divider-dark'/>
@@ -99,8 +124,11 @@ DeveloperTab.defaultProps = {
     activeSection: ''
 };
 DeveloperTab.propTypes = {
+    intl: intlShape.isRequired,
     activeSection: React.PropTypes.string,
     updateSection: React.PropTypes.func,
     closeModal: React.PropTypes.func.isRequired,
     collapseModal: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(DeveloperTab);

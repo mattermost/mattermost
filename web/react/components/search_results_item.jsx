@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
@@ -10,7 +11,14 @@ import * as TextFormatting from '../utils/text_formatting.jsx';
 
 import Constants from '../utils/constants.jsx';
 
-export default class SearchResultsItem extends React.Component {
+const messages = defineMessages({
+    direct: {
+        id: 'search_item.direct',
+        defaultMessage: 'Direct Message'
+    }
+});
+
+class SearchResultsItem extends React.Component {
     constructor(props) {
         super(props);
 
@@ -35,6 +43,7 @@ export default class SearchResultsItem extends React.Component {
     }
 
     render() {
+        const {formatMessage, locale} = this.props.intl;
         var channelName = '';
         var channel = ChannelStore.get(this.props.post.channel_id);
         var timestamp = UserStore.getCurrentUser().update_at;
@@ -42,7 +51,7 @@ export default class SearchResultsItem extends React.Component {
         if (channel) {
             channelName = channel.display_name;
             if (channel.type === 'D') {
-                channelName = 'Direct Message';
+                channelName = formatMessage(messages.direct);
             }
         }
 
@@ -69,7 +78,7 @@ export default class SearchResultsItem extends React.Component {
                             <li className='col__name'><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
                             <li className='col'>
                                 <time className='search-item-time'>
-                                    {utils.displayDate(this.props.post.create_at) + ' ' + utils.displayTime(this.props.post.create_at)}
+                                    {utils.displayDate(this.props.post.create_at, locale) + ' ' + utils.displayTime(this.props.post.create_at)}
                                 </time>
                             </li>
                             <li>
@@ -78,7 +87,10 @@ export default class SearchResultsItem extends React.Component {
                                     className='search-item__jump'
                                     onClick={this.handleClick}
                                 >
-                                    {'Jump'}
+                                    <FormattedHTMLMessage
+                                        id='search_item.jump'
+                                        defaultMessage='Jump'
+                                    />
                                 </a>
                             </li>
                             <li>
@@ -107,7 +119,10 @@ export default class SearchResultsItem extends React.Component {
 }
 
 SearchResultsItem.propTypes = {
+    intl: intlShape.isRequired,
     post: React.PropTypes.object,
     isMentionSearch: React.PropTypes.bool,
     term: React.PropTypes.string
 };
+
+export default injectIntl(SearchResultsItem);

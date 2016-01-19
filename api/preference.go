@@ -6,12 +6,13 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"net/http"
 )
 
 func InitPreference(r *mux.Router) {
-	l4g.Debug("Initializing preference api routes")
+	l4g.Debug(T("Initializing preference api routes"))
 
 	sr := r.PathPrefix("/preferences").Subrouter()
 	sr.Handle("/", ApiUserRequired(getAllPreferences)).Methods("GET")
@@ -21,7 +22,8 @@ func InitPreference(r *mux.Router) {
 }
 
 func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result := <-Srv.Store.Preference().GetAll(c.Session.UserId); result.Err != nil {
+	T := i18n.GetTranslations(w, r)
+	if result := <-Srv.Store.Preference().GetAll(c.Session.UserId, T); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preferences)
@@ -31,22 +33,23 @@ func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.GetTranslations(w, r)
 	preferences, err := model.PreferencesFromJson(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("savePreferences", "Unable to decode preferences from request", err.Error())
+		c.Err = model.NewAppError("savePreferences", T("Unable to decode preferences from request"), err.Error())
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	for _, preference := range preferences {
 		if c.Session.UserId != preference.UserId {
-			c.Err = model.NewAppError("savePreferences", "Unable to set preferences for other user", "session.user_id="+c.Session.UserId+", preference.user_id="+preference.UserId)
+			c.Err = model.NewAppError("savePreferences", T("Unable to set preferences for other user"), "session.user_id="+c.Session.UserId+", preference.user_id="+preference.UserId)
 			c.Err.StatusCode = http.StatusUnauthorized
 			return
 		}
 	}
 
-	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+	if result := <-Srv.Store.Preference().Save(&preferences, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -55,10 +58,11 @@ func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPreferenceCategory(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.GetTranslations(w, r)
 	params := mux.Vars(r)
 	category := params["category"]
 
-	if result := <-Srv.Store.Preference().GetCategory(c.Session.UserId, category); result.Err != nil {
+	if result := <-Srv.Store.Preference().GetCategory(c.Session.UserId, category, T); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preferences)
@@ -68,11 +72,12 @@ func getPreferenceCategory(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPreference(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.GetTranslations(w, r)
 	params := mux.Vars(r)
 	category := params["category"]
 	name := params["name"]
 
-	if result := <-Srv.Store.Preference().Get(c.Session.UserId, category, name); result.Err != nil {
+	if result := <-Srv.Store.Preference().Get(c.Session.UserId, category, name, T); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preference)

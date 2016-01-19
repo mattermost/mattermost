@@ -1,10 +1,102 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class TeamSettings extends React.Component {
+const messages = defineMessages({
+    true: {
+        id: 'admin.team.true',
+        defaultMessage: 'true'
+    },
+    false: {
+        id: 'admin.team.false',
+        defaultMessage: 'false'
+    },
+    title: {
+        id: 'admin.team.title',
+        defaultMessage: 'Team Settings'
+    },
+    siteNameTitle: {
+        id: 'admin.team.siteNameTitle',
+        defaultMessage: 'Site Name:'
+    },
+    siteNameExample: {
+        id: 'admin.team.siteNameExample',
+        defaultMessage: 'Ex "Mattermost"'
+    },
+    siteNameDescription: {
+        id: 'admin.team.siteNameDescription',
+        defaultMessage: 'Name of service shown in login screens and UI.'
+    },
+    maxUsersTitle: {
+        id: 'admin.team.maxUsersTitle',
+        defaultMessage: 'Max Users Per Team:'
+    },
+    maxUsersExample: {
+        id: 'admin.team.maxUsersExample',
+        defaultMessage: 'Ex "25"'
+    },
+    maxUsersDescription: {
+        id: 'admin.team.maxUsersDescription',
+        defaultMessage: 'Maximum total number of users per team, including both active and inactive users.'
+    },
+    teamCreationTitle: {
+        id: 'admin.team.teamCreationTitle',
+        defaultMessage: 'Enable Team Creation: '
+    },
+    teamCreationDescription: {
+        id: 'admin.team.teamCreationDescription',
+        defaultMessage: 'When false, the ability to create teams is disabled. The create team button displays error when pressed.'
+    },
+    userCreationTitle: {
+        id: 'admin.team.userCreationTitle',
+        defaultMessage: 'Enable User Creation: '
+    },
+    userCreationDescription: {
+        id: 'admin.team.userCreationDescription',
+        defaultMessage: 'When false, the ability to create accounts is disabled. The create account button displays error when pressed.'
+    },
+    restrictTitle: {
+        id: 'admin.team.restrictTitle',
+        defaultMessage: 'Restrict Creation To Domains:'
+    },
+    restrictExample: {
+        id: 'admin.team.restrictExample',
+        defaultMessage: 'Ex "corp.mattermost.com, mattermost.org"'
+    },
+    restrictDescription: {
+        id: 'admin.team.restrictDescription',
+        defaultMessage: 'Teams and user accounts can only be created from a specific domain (e.g. "mattermost.org") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").'
+    },
+    saving: {
+        id: 'admin.team.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.team.save',
+        defaultMessage: 'Save'
+    },
+    restrictNameTitle: {
+        id: 'admin.team.restrictNameTitle',
+        defaultMessage: 'Restrict Team Names: '
+    },
+    restrictNameDesc: {
+        id: 'admin.team.restrictNameDesc',
+        defaultMessage: 'When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'
+    },
+    dirTitle: {
+        id: 'admin.team.dirTitle',
+        defaultMessage: 'Enable Team Directory: '
+    },
+    dirDesc: {
+        id: 'admin.team.dirDesc',
+        defaultMessage: 'When true, teams that are configured to show in team directory will show on main page inplace of creating a new team.'
+    }
+});
+
+class TeamSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -62,6 +154,7 @@ export default class TeamSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -75,7 +168,7 @@ export default class TeamSettings extends React.Component {
         return (
             <div className='wrapper--fixed'>
 
-                <h3>{'Team Settings'}</h3>
+                <h3>{formatMessage(messages.title)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -86,7 +179,7 @@ export default class TeamSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='SiteName'
                         >
-                            {'Site Name:'}
+                            {formatMessage(messages.siteNameTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -94,11 +187,11 @@ export default class TeamSettings extends React.Component {
                                 className='form-control'
                                 id='SiteName'
                                 ref='SiteName'
-                                placeholder='Ex "Mattermost"'
+                                placeholder={formatMessage(messages.siteNameExample)}
                                 defaultValue={this.props.config.TeamSettings.SiteName}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Name of service shown in login screens and UI.'}</p>
+                            <p className='help-text'>{formatMessage(messages.siteNameDescription)}</p>
                         </div>
                     </div>
 
@@ -107,7 +200,7 @@ export default class TeamSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='MaxUsersPerTeam'
                         >
-                            {'Max Users Per Team:'}
+                            {formatMessage(messages.maxUsersTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -115,11 +208,11 @@ export default class TeamSettings extends React.Component {
                                 className='form-control'
                                 id='MaxUsersPerTeam'
                                 ref='MaxUsersPerTeam'
-                                placeholder='Ex "25"'
+                                placeholder={formatMessage(messages.maxUsersExample)}
                                 defaultValue={this.props.config.TeamSettings.MaxUsersPerTeam}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Maximum total number of users per team, including both active and inactive users.'}</p>
+                            <p className='help-text'>{formatMessage(messages.maxUsersDescription)}</p>
                         </div>
                     </div>
 
@@ -128,7 +221,7 @@ export default class TeamSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnableTeamCreation'
                         >
-                            {'Enable Team Creation: '}
+                            {formatMessage(messages.teamCreationTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -140,7 +233,7 @@ export default class TeamSettings extends React.Component {
                                     defaultChecked={this.props.config.TeamSettings.EnableTeamCreation}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -150,9 +243,9 @@ export default class TeamSettings extends React.Component {
                                     defaultChecked={!this.props.config.TeamSettings.EnableTeamCreation}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When false, the ability to create teams is disabled. The create team button displays error when pressed.'}</p>
+                            <p className='help-text'>{formatMessage(messages.teamCreationDescription)}</p>
                         </div>
                     </div>
 
@@ -161,7 +254,7 @@ export default class TeamSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnableUserCreation'
                         >
-                            {'Enable User Creation: '}
+                            {formatMessage(messages.userCreationTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -173,7 +266,7 @@ export default class TeamSettings extends React.Component {
                                     defaultChecked={this.props.config.TeamSettings.EnableUserCreation}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -183,9 +276,9 @@ export default class TeamSettings extends React.Component {
                                     defaultChecked={!this.props.config.TeamSettings.EnableUserCreation}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When false, the ability to create accounts is disabled. The create account button displays error when pressed.'}</p>
+                            <p className='help-text'>{formatMessage(messages.userCreationDescription)}</p>
                         </div>
                     </div>
 
@@ -194,7 +287,7 @@ export default class TeamSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='RestrictCreationToDomains'
                         >
-                            {'Restrict Creation To Domains:'}
+                            {formatMessage(messages.restrictTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -202,11 +295,11 @@ export default class TeamSettings extends React.Component {
                                 className='form-control'
                                 id='RestrictCreationToDomains'
                                 ref='RestrictCreationToDomains'
-                                placeholder='Ex "corp.mattermost.com, mattermost.org"'
+                                placeholder={formatMessage(messages.restrictExample)}
                                 defaultValue={this.props.config.TeamSettings.RestrictCreationToDomains}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Teams and user accounts can only be created from a specific domain (e.g. "mattermost.org") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").'}</p>
+                            <p className='help-text'>{formatMessage(messages.restrictDescription)}</p>
                         </div>
                     </div>
 
@@ -215,7 +308,7 @@ export default class TeamSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='RestrictTeamNames'
                         >
-                            {'Restrict Team Names: '}
+                            {formatMessage(messages.restrictNameTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -227,7 +320,7 @@ export default class TeamSettings extends React.Component {
                                     defaultChecked={this.props.config.TeamSettings.RestrictTeamNames}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -237,9 +330,9 @@ export default class TeamSettings extends React.Component {
                                     defaultChecked={!this.props.config.TeamSettings.RestrictTeamNames}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'}</p>
+                            <p className='help-text'>{formatMessage(messages.restrictNameDesc)}</p>
                         </div>
                     </div>
 
@@ -248,7 +341,7 @@ export default class TeamSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnableTeamListing'
                         >
-                            {'Enable Team Directory: '}
+                            {formatMessage(messages.dirTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -260,7 +353,7 @@ export default class TeamSettings extends React.Component {
                                     defaultChecked={this.props.config.TeamSettings.EnableTeamListing}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -270,9 +363,9 @@ export default class TeamSettings extends React.Component {
                                     defaultChecked={!this.props.config.TeamSettings.EnableTeamListing}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, teams that are configured to show in team directory will show on main page inplace of creating a new team.'}</p>
+                            <p className='help-text'>{formatMessage(messages.dirDesc)}</p>
                         </div>
                     </div>
 
@@ -285,9 +378,9 @@ export default class TeamSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.saving)}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -299,5 +392,8 @@ export default class TeamSettings extends React.Component {
 }
 
 TeamSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(TeamSettings);

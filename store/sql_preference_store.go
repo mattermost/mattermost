@@ -8,6 +8,7 @@ import (
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlPreferenceStore struct {
@@ -35,14 +36,14 @@ func NewSqlPreferenceStore(sqlStore *SqlStore) PreferenceStore {
 func (s SqlPreferenceStore) UpgradeSchemaIfNeeded() {
 }
 
-func (s SqlPreferenceStore) CreateIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_preferences_user_id", "Preferences", "UserId")
-	s.CreateIndexIfNotExists("idx_preferences_category", "Preferences", "Category")
-	s.CreateIndexIfNotExists("idx_preferences_name", "Preferences", "Name")
+func (s SqlPreferenceStore) CreateIndexesIfNotExists(T goi18n.TranslateFunc) {
+	s.CreateIndexIfNotExists("idx_preferences_user_id", "Preferences", "UserId", T)
+	s.CreateIndexIfNotExists("idx_preferences_category", "Preferences", "Category", T)
+	s.CreateIndexIfNotExists("idx_preferences_name", "Preferences", "Name", T)
 }
 
-func (s SqlPreferenceStore) DeleteUnusedFeatures() {
-	l4g.Debug("Deleting any unused pre-release features")
+func (s SqlPreferenceStore) DeleteUnusedFeatures(T goi18n.TranslateFunc) {
+	l4g.Debug(T("Deleting any unused pre-release features"))
 
 	sql := `DELETE
 		FROM Preferences
@@ -58,7 +59,7 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	s.GetMaster().Exec(sql, queryParams)
 }
 
-func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
+func (s SqlPreferenceStore) Save(preferences *model.Preferences, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -67,10 +68,10 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 		// wrap in a transaction so that if one fails, everything fails
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to open transaction to save preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.Save", T("Unable to open transaction"), err.Error())
 		} else {
 			for _, preference := range *preferences {
-				if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
+				if upsertResult := s.save(transaction, &preference, T); upsertResult.Err != nil {
 					result = upsertResult
 					break
 				}
@@ -79,13 +80,13 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 			if result.Err == nil {
 				if err := transaction.Commit(); err != nil {
 					// don't need to rollback here since the transaction is already closed
-					result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to commit transaction to save preferences", err.Error())
+					result.Err = model.NewAppError("SqlPreferenceStore.Save", T("Unable to commit transaction"), err.Error())
 				} else {
 					result.Data = len(*preferences)
 				}
 			} else {
 				if err := transaction.Rollback(); err != nil {
-					result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to rollback transaction to save preferences", err.Error())
+					result.Err = model.NewAppError("SqlPreferenceStore.Save", T("Unable to rollback transaction"), err.Error())
 				}
 			}
 		}
@@ -97,10 +98,10 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
+func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference, T goi18n.TranslateFunc) StoreResult {
 	result := StoreResult{}
 
-	if result.Err = preference.IsValid(); result.Err != nil {
+	if result.Err = preference.IsValid(T); result.Err != nil {
 		return result
 	}
 
@@ -120,7 +121,7 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 				(:UserId, :Category, :Name, :Value)
 			ON DUPLICATE KEY UPDATE
 				Value = :Value`, params); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.save", T("We encountered an error while updating preferences"), err.Error())
 		}
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
@@ -134,32 +135,32 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 				AND Category = :Category
 				AND Name = :Name`, params)
 		if err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.save", T("We encountered an error while updating preferences"), err.Error())
 			return result
 		}
 
 		if count == 1 {
-			s.update(transaction, preference)
+			s.update(transaction, preference, T)
 		} else {
-			s.insert(transaction, preference)
+			s.insert(transaction, preference, T)
 		}
 	} else {
-		result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences",
-			"Failed to update preference because of missing driver")
+		result.Err = model.NewAppError("SqlPreferenceStore.save", T("We encountered an error while updating preferences"),
+			T("Failed to update preference because of missing driver"))
 	}
 
 	return result
 }
 
-func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
+func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference, T goi18n.TranslateFunc) StoreResult {
 	result := StoreResult{}
 
 	if err := transaction.Insert(preference); err != nil {
 		if IsUniqueConstraintError(err.Error(), "UserId", "preferences_pkey") {
-			result.Err = model.NewAppError("SqlPreferenceStore.insert", "A preference with that user id, category, and name already exists",
+			result.Err = model.NewAppError("SqlPreferenceStore.insert", T("A preference with that user id, category, and name already exists"),
 				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error())
 		} else {
-			result.Err = model.NewAppError("SqlPreferenceStore.insert", "We couldn't save the preference",
+			result.Err = model.NewAppError("SqlPreferenceStore.insert", T("We couldn't save the preference"),
 				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error())
 		}
 	}
@@ -167,18 +168,18 @@ func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *mo
 	return result
 }
 
-func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
+func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference, T goi18n.TranslateFunc) StoreResult {
 	result := StoreResult{}
 
 	if _, err := transaction.Update(preference); err != nil {
-		result.Err = model.NewAppError("SqlPreferenceStore.update", "We couldn't update the preference",
+		result.Err = model.NewAppError("SqlPreferenceStore.update", T("We couldn't update the preference"),
 			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error())
 	}
 
 	return result
 }
 
-func (s SqlPreferenceStore) Get(userId string, category string, name string) StoreChannel {
+func (s SqlPreferenceStore) Get(userId string, category string, name string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -195,7 +196,7 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) Sto
 				UserId = :UserId
 				AND Category = :Category
 				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Get", "We encountered an error while finding preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.Get", T("We encountered an error while finding preferences"), err.Error())
 		} else {
 			result.Data = preference
 		}
@@ -207,7 +208,7 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) Sto
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreChannel {
+func (s SqlPreferenceStore) GetCategory(userId string, category string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -223,7 +224,7 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreCha
 			WHERE
 				UserId = :UserId
 				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.GetCategory", "We encountered an error while finding preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.GetCategory", T("We encountered an error while finding preferences"), err.Error())
 		} else {
 			result.Data = preferences
 		}
@@ -235,7 +236,7 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreCha
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
+func (s SqlPreferenceStore) GetAll(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -250,7 +251,7 @@ func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
 				Preferences
 			WHERE
 				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.GetAll", "We encountered an error while finding preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.GetAll", T("We encountered an error while finding preferences"), err.Error())
 		} else {
 			result.Data = preferences
 		}
@@ -262,7 +263,7 @@ func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
+func (s SqlPreferenceStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -270,7 +271,7 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
 
 		if _, err := s.GetMaster().Exec(
 			`DELETE FROM Preferences WHERE UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "We encountered an error while deleteing preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.Delete", T("We encountered an error while deleteing preferences"), err.Error())
 		}
 
 		storeChannel <- result
@@ -280,7 +281,7 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) StoreChannel {
+func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -293,7 +294,7 @@ func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) StoreChanne
 				UserId = :UserId
 				AND Category = :Category
 				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": FEATURE_TOGGLE_PREFIX + feature}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "We encountered an error while finding a pre release feature preference", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", T("We encountered an error while finding a pre release feature preference"), err.Error())
 		} else {
 			result.Data = value == "true"
 		}

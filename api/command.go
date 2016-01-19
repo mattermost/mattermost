@@ -13,11 +13,13 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
-type commandHandler func(c *Context, command *model.Command) bool
+type commandHandler func(c *Context, command *model.Command, T goi18n.TranslateFunc) bool
 
 var (
 	cmds = map[string]string{
@@ -36,17 +38,18 @@ var (
 		shrugCommand,
 		meCommand,
 	}
-	commandNotImplementedErr = model.NewAppError("checkCommand", "Command not implemented", "")
+	commandNotImplementedErr = "Command not implemented"
 )
 var echoSem chan bool
 
 func InitCommand(r *mux.Router) {
-	l4g.Debug("Initializing command api routes")
+	T := i18n.GetTranslationsBySystemLocale()
+	l4g.Debug(T("Initializing command api routes"))
 	r.Handle("/command", ApiUserRequired(command)).Methods("POST")
 }
 
 func command(c *Context, w http.ResponseWriter, r *http.Request) {
-
+	T := i18n.GetTranslations(w, r)
 	props := model.MapFromJson(r.Body)
 
 	command := &model.Command{
@@ -56,9 +59,9 @@ func command(c *Context, w http.ResponseWriter, r *http.Request) {
 		Suggestions: make([]*model.SuggestCommand, 0, 128),
 	}
 
-	checkCommand(c, command)
+	checkCommand(c, command, T)
 	if c.Err != nil {
-		if c.Err != commandNotImplementedErr {
+		if c.Err != model.NewAppError("checkCommand", T(commandNotImplementedErr), "") {
 			return
 		} else {
 			c.Err = nil
@@ -71,17 +74,17 @@ func command(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func checkCommand(c *Context, command *model.Command) bool {
+func checkCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 
 	if len(command.Command) == 0 || strings.Index(command.Command, "/") != 0 {
-		c.Err = model.NewAppError("checkCommand", "Command must start with /", "")
+		c.Err = model.NewAppError("checkCommand", T("Command must start with /"), "")
 		return false
 	}
 
 	if len(command.ChannelId) > 0 {
-		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, command.ChannelId, c.Session.UserId)
+		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, command.ChannelId, c.Session.UserId, T)
 
-		if !c.HasPermissionsToChannel(cchan, "checkCommand") {
+		if !c.HasPermissionsToChannel(cchan, "checkCommand", T) {
 			return true
 		}
 	}
@@ -98,14 +101,14 @@ func checkCommand(c *Context, command *model.Command) bool {
 			}
 		}
 		if !implemented {
-			c.Err = commandNotImplementedErr
+			c.Err = model.NewAppError("checkCommand", T(commandNotImplementedErr), "")
 			return false
 		}
 	}
 
 	for _, v := range commands {
 
-		if v(c, command) || c.Err != nil {
+		if v(c, command, T) || c.Err != nil {
 			return true
 		}
 	}
@@ -113,7 +116,7 @@ func checkCommand(c *Context, command *model.Command) bool {
 	return false
 }
 
-func logoutCommand(c *Context, command *model.Command) bool {
+func logoutCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 
 	cmd := cmds["logoutCommand"]
 
@@ -133,7 +136,7 @@ func logoutCommand(c *Context, command *model.Command) bool {
 	return false
 }
 
-func echoCommand(c *Context, command *model.Command) bool {
+func echoCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd := cmds["echoCommand"]
 	maxThreads := 100
 
@@ -160,7 +163,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 		}
 
 		if delay > 10000 {
-			c.Err = model.NewAppError("echoCommand", "Delays must be under 10000 seconds", "")
+			c.Err = model.NewAppError("echoCommand", T("Delays must be under 10000 seconds"), "")
 			return false
 		}
 
@@ -170,7 +173,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 		}
 
 		if len(echoSem) >= maxThreads {
-			c.Err = model.NewAppError("echoCommand", "High volume of echo request, cannot process request", "")
+			c.Err = model.NewAppError("echoCommand", T("High volume of echo request, cannot process request"), "")
 			return false
 		}
 
@@ -183,8 +186,8 @@ func echoCommand(c *Context, command *model.Command) bool {
 
 			time.Sleep(time.Duration(delay) * time.Second)
 
-			if _, err := CreatePost(c, post, true); err != nil {
-				l4g.Error("Unable to create /echo post, err=%v", err)
+			if _, err := CreatePost(c, post, true, T); err != nil {
+				l4g.Error(T("Unable to create /echo post, err=%v"), err)
 			}
 		}()
 
@@ -192,13 +195,13 @@ func echoCommand(c *Context, command *model.Command) bool {
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Echo back text from your account, /echo \"message\" [delay in seconds]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Echo back text from your account, /echo \"message\" [delay in seconds]")})
 	}
 
 	return false
 }
 
-func meCommand(c *Context, command *model.Command) bool {
+func meCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd := cmds["meCommand"]
 
 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
@@ -212,21 +215,21 @@ func meCommand(c *Context, command *model.Command) bool {
 		post := &model.Post{}
 		post.Message = message
 		post.ChannelId = command.ChannelId
-		if _, err := CreatePost(c, post, false); err != nil {
-			l4g.Error("Unable to create /me post post, err=%v", err)
+		if _, err := CreatePost(c, post, false, T); err != nil {
+			l4g.Error(T("Unable to create /me post post, err=%v"), err)
 			return false
 		}
 		command.Response = model.RESP_EXECUTED
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Do an action, /me [message]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Do an action, /me [message]")})
 	}
 
 	return false
 }
 
-func shrugCommand(c *Context, command *model.Command) bool {
+func shrugCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd := cmds["shrugCommand"]
 
 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
@@ -240,21 +243,21 @@ func shrugCommand(c *Context, command *model.Command) bool {
 		post := &model.Post{}
 		post.Message = message
 		post.ChannelId = command.ChannelId
-		if _, err := CreatePost(c, post, false); err != nil {
-			l4g.Error("Unable to create /shrug post post, err=%v", err)
+		if _, err := CreatePost(c, post, false, T); err != nil {
+			l4g.Error(T("Unable to create /shrug post post, err=%v"), err)
 			return false
 		}
 		command.Response = model.RESP_EXECUTED
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]")})
 	}
 
 	return false
 }
 
-func joinCommand(c *Context, command *model.Command) bool {
+func joinCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 
 	// looks for "/join channel-name"
 	cmd := cmds["joinCommand"]
@@ -269,7 +272,7 @@ func joinCommand(c *Context, command *model.Command) bool {
 			startsWith = parts[1]
 		}
 
-		if result := <-Srv.Store.Channel().GetMoreChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+		if result := <-Srv.Store.Channel().GetMoreChannels(c.Session.TeamId, c.Session.UserId, T); result.Err != nil {
 			c.Err = result.Err
 			return false
 		} else {
@@ -283,30 +286,30 @@ func joinCommand(c *Context, command *model.Command) bool {
 						return false
 					}
 
-					JoinChannel(c, v.Id, "")
+					JoinChannel(c, v.Id, "", T)
 
 					if c.Err != nil {
 						return false
 					}
 
-					command.GotoLocation = c.GetTeamURL() + "/channels/" + v.Name
+					command.GotoLocation = c.GetTeamURL(T) + "/channels/" + v.Name
 					command.Response = model.RESP_EXECUTED
 					return true
 				}
 
 				if len(startsWith) == 0 || strings.Index(v.Name, startsWith) == 0 {
-					command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd + " " + v.Name, Description: "Join the open channel"})
+					command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd + " " + v.Name, Description: T("Join the open channel")})
 				}
 			}
 		}
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Join an open channel"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Join an open channel")})
 	}
 
 	return false
 }
 
-func loadTestCommand(c *Context, command *model.Command) bool {
+func loadTestCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd := cmds["loadTestCommand"]
 
 	// This command is only available when EnableTesting is true
@@ -315,23 +318,23 @@ func loadTestCommand(c *Context, command *model.Command) bool {
 	}
 
 	if strings.Index(command.Command, cmd) == 0 {
-		if loadTestSetupCommand(c, command) {
+		if loadTestSetupCommand(c, command, T) {
 			return true
 		}
-		if loadTestUsersCommand(c, command) {
+		if loadTestUsersCommand(c, command, T) {
 			return true
 		}
-		if loadTestChannelsCommand(c, command) {
+		if loadTestChannelsCommand(c, command, T) {
 			return true
 		}
-		if loadTestPostsCommand(c, command) {
+		if loadTestPostsCommand(c, command, T) {
 			return true
 		}
-		if loadTestUrlCommand(c, command) {
+		if loadTestUrlCommand(c, command, T) {
 			return true
 		}
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Debug Load Testing"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Debug Load Testing")})
 	}
 
 	return false
@@ -371,7 +374,7 @@ func contains(items []string, token string) bool {
 	return false
 }
 
-func loadTestSetupCommand(c *Context, command *model.Command) bool {
+func loadTestSetupCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd := cmds["loadTestCommand"] + " setup"
 
 	if strings.Index(command.Command, cmd) == 0 && !command.Suggest {
@@ -415,26 +418,26 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 		client := model.NewClient(c.GetSiteURL())
 
 		if doTeams {
-			if err := CreateBasicUser(client); err != nil {
-				l4g.Error("Failed to create testing environment")
+			if err := CreateBasicUser(client, T); err != nil {
+				l4g.Error(T("Failed to create testing environment"))
 				return true
 			}
-			client.LoginByEmail(BTEST_TEAM_NAME, BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
+			client.LoginByEmail(BTEST_TEAM_NAME, BTEST_USER_EMAIL, BTEST_USER_PASSWORD, T)
 			environment, err := CreateTestEnvironmentWithTeams(
 				client,
 				utils.Range{numTeams, numTeams},
 				utils.Range{numChannels, numChannels},
 				utils.Range{numUsers, numUsers},
 				utils.Range{numPosts, numPosts},
-				doFuzz)
+				doFuzz, T)
 			if err != true {
-				l4g.Error("Failed to create testing environment")
+				l4g.Error(T("Failed to create testing environment"))
 				return true
 			} else {
-				l4g.Info("Testing environment created")
+				l4g.Info(T("Testing environment created"))
 				for i := 0; i < len(environment.Teams); i++ {
-					l4g.Info("Team Created: " + environment.Teams[i].Name)
-					l4g.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
+					l4g.Info(T("Team Created: ") + environment.Teams[i].Name)
+					l4g.Info(T("\t User to login: ") + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
 				}
 			}
 		} else {
@@ -445,19 +448,19 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 				utils.Range{numChannels, numChannels},
 				utils.Range{numUsers, numUsers},
 				utils.Range{numPosts, numPosts},
-				doFuzz)
+				doFuzz, T)
 		}
 		return true
 	} else if strings.Index(cmd, command.Command) == 0 {
 		command.AddSuggestion(&model.SuggestCommand{
 			Suggestion:  cmd,
-			Description: "Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"})
+			Description: T("Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>")})
 	}
 
 	return false
 }
 
-func loadTestUsersCommand(c *Context, command *model.Command) bool {
+func loadTestUsersCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd1 := cmds["loadTestCommand"] + " users"
 	cmd2 := cmds["loadTestCommand"] + " users fuzz"
 
@@ -475,19 +478,19 @@ func loadTestUsersCommand(c *Context, command *model.Command) bool {
 		client := model.NewClient(c.GetSiteURL())
 		userCreator := NewAutoUserCreator(client, c.Session.TeamId)
 		userCreator.Fuzzy = doFuzz
-		userCreator.CreateTestUsers(usersr)
+		userCreator.CreateTestUsers(usersr, T)
 		return true
 	} else if strings.Index(cmd1, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: "Add a specified number of random users to current team <Min Users> <Max Users>"})
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: T("Add a specified number of random users to current team <Min Users> <Max Users>")})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: T("Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>")})
 	} else if strings.Index(cmd2, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: T("Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>")})
 	}
 
 	return false
 }
 
-func loadTestChannelsCommand(c *Context, command *model.Command) bool {
+func loadTestChannelsCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd1 := cmds["loadTestCommand"] + " channels"
 	cmd2 := cmds["loadTestCommand"] + " channels fuzz"
 
@@ -509,16 +512,16 @@ func loadTestChannelsCommand(c *Context, command *model.Command) bool {
 		channelCreator.CreateTestChannels(channelsr)
 		return true
 	} else if strings.Index(cmd1, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: "Add a specified number of random channels to current team <MinChannels> <MaxChannels>"})
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: T("Add a specified number of random channels to current team <MinChannels> <MaxChannels>")})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: T("Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>")})
 	} else if strings.Index(cmd2, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: T("Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>")})
 	}
 
 	return false
 }
 
-func loadTestPostsCommand(c *Context, command *model.Command) bool {
+func loadTestPostsCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd1 := cmds["loadTestCommand"] + " posts"
 	cmd2 := cmds["loadTestCommand"] + " posts fuzz"
 
@@ -544,7 +547,7 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 		}
 
 		var usernames []string
-		if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err == nil {
+		if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId, T); result.Err == nil {
 			profileUsers := result.Data.(map[string]*model.User)
 			usernames = make([]string, len(profileUsers))
 			i := 0
@@ -568,16 +571,16 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 		}
 		return true
 	} else if strings.Index(cmd1, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"})
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: T("Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>")})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: T("Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>")})
 	} else if strings.Index(cmd2, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: T("Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>")})
 	}
 
 	return false
 }
 
-func loadTestUrlCommand(c *Context, command *model.Command) bool {
+func loadTestUrlCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 	cmd := cmds["loadTestCommand"] + " url"
 
 	if strings.Index(command.Command, cmd) == 0 && !command.Suggest {
@@ -585,7 +588,7 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 
 		parameters := strings.SplitN(command.Command, " ", 3)
 		if len(parameters) != 3 {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Command must contain a url", "")
+			c.Err = model.NewAppError("loadTestUrlCommand", T("Command must contain a url"), "")
 			return true
 		} else {
 			url = parameters[2]
@@ -602,10 +605,10 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 
 		var contents io.ReadCloser
 		if r, err := http.Get(url); err != nil {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Unable to get file", err.Error())
+			c.Err = model.NewAppError("loadTestUrlCommand", T("Unable to get file"), err.Error())
 			return false
 		} else if r.StatusCode > 400 {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Unable to get file", r.Status)
+			c.Err = model.NewAppError("loadTestUrlCommand", T("Unable to get file"), r.Status)
 			return false
 		} else {
 			contents = r.Body
@@ -617,7 +620,7 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 		for {
 			length, err := contents.Read(bytes)
 			if err != nil && err != io.EOF {
-				c.Err = model.NewAppError("loadTestUrlCommand", "Encountered error reading file", err.Error())
+				c.Err = model.NewAppError("loadTestUrlCommand", T("Encountered error reading file"), err.Error())
 				return false
 			}
 
@@ -629,8 +632,8 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 			post.Message = string(bytes[:length])
 			post.ChannelId = command.ChannelId
 
-			if _, err := CreatePost(c, post, false); err != nil {
-				l4g.Error("Unable to create post, err=%v", err)
+			if _, err := CreatePost(c, post, false, T); err != nil {
+				l4g.Error(T("Unable to create post, err=%v"), err)
 				return false
 			}
 		}
@@ -639,7 +642,7 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 
 		return true
 	} else if strings.Index(cmd, command.Command) == 0 && strings.Index(command.Command, "/loadtest posts") != 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Add a post containing the text from a given url to current channel <Url>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Add a post containing the text from a given url to current channel <Url>")})
 	}
 
 	return false

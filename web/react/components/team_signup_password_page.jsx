@@ -1,11 +1,79 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 
-export default class TeamSignupPasswordPage extends React.Component {
+const messages = defineMessages({
+    passwordError: {
+        id: 'team_signup_password.passwordError',
+        defaultMessage: 'Please enter at least 5 characters'
+    },
+    verifiedError: {
+        id: 'team_signup_password.verifiedError',
+        defaultMessage: 'Login failed because email address has not been verified'
+    },
+    yourPassword: {
+        id: 'team_signup_password.yourPassword',
+        defaultMessage: 'Your password'
+    },
+    selectPassword: {
+        id: 'team_signup_password.selectPassword',
+        defaultMessage: "Select a password that you'll use to login with your email address:"
+    },
+    email: {
+        id: 'team_signup_password.email',
+        defaultMessage: 'Email'
+    },
+    choosePwd: {
+        id: 'team_signup_password.choosePwd',
+        defaultMessage: 'Choose your password'
+    },
+    hint: {
+        id: 'team_signup_password.hint',
+        defaultMessage: 'Passwords must contain 5 to 50 characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.'
+    },
+    creating: {
+        id: 'team_signup_password.creating',
+        defaultMessage: 'Creating team...'
+    },
+    finish: {
+        id: 'team_signup_password.finish',
+        defaultMessage: 'Finish'
+    },
+    proceeding: {
+        id: 'team_signup_password.proceeding',
+        defaultMessage: 'By proceeding to create your account and use'
+    },
+    agree: {
+        id: 'team_signup_password.agree',
+        defaultMessage: 'you agree to our'
+    },
+    terms: {
+        id: 'team_signup_password.terms',
+        defaultMessage: 'Terms of Service'
+    },
+    and: {
+        id: 'team_signup_password.and',
+        defaultMessage: 'and'
+    },
+    privacy: {
+        id: 'team_signup_password.privacy',
+        defaultMessage: 'Privacy Policy'
+    },
+    dontAgree: {
+        id: 'team_signup_password.dontAgree',
+        defaultMessage: 'If you do not agree, you cannot use'
+    },
+    back: {
+        id: 'team_signup_password.back',
+        defaultMessage: 'Back to previous step'
+    }
+});
+
+class TeamSignupPasswordPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -22,9 +90,10 @@ export default class TeamSignupPasswordPage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         var password = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!password || password.length < 5) {
-            this.setState({passwordError: 'Please enter at least 5 characters'});
+            this.setState({passwordError: formatMessage(messages.passwordError)});
             return;
         }
 
@@ -52,10 +121,10 @@ export default class TeamSignupPasswordPage extends React.Component {
                         props.state.wizard = 'finished';
                         props.updateParent(props.state, true);
 
-                        window.location.href = '/' + teamSignup.team.name + '/channels/town-square';
+                        window.location.href = '/' + teamSignup.team.name + '/channels/general';
                     },
                     (err) => {
-                        if (err.message === 'Login failed because email address has not been verified') {
+                        if (err.message === formatMessage(messages.verifiedError)) {
                             window.location.href = '/verify_email?email=' + encodeURIComponent(teamSignup.team.email) + '&teamname=' + encodeURIComponent(teamSignup.team.name);
                         } else {
                             this.setState({serverError: err.message});
@@ -71,6 +140,7 @@ export default class TeamSignupPasswordPage extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         Client.track('signup', 'signup_team_07_password');
 
         var passwordError = null;
@@ -92,15 +162,15 @@ export default class TeamSignupPasswordPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2 className='margin--less'>Your password</h2>
-                    <h5 className='color--light'>Select a password that you'll use to login with your email address:</h5>
+                    <h2 className='margin--less'>{formatMessage(messages.yourPassword)}</h2>
+                    <h5 className='color--light'>{formatMessage(messages.selectPassword)}</h5>
                     <div className='inner__content margin--extra'>
-                        <h5><strong>Email</strong></h5>
+                        <h5><strong>{formatMessage(messages.email)}</strong></h5>
                         <div className='block--gray form-group'>{this.props.state.team.email}</div>
                         <div className={passwordDivStyle}>
                             <div className='row'>
                                 <div className='col-sm-11'>
-                                    <h5><strong>Choose your password</strong></h5>
+                                    <h5><strong>{formatMessage(messages.choosePwd)}</strong></h5>
                                     <input
                                         autoFocus={true}
                                         type='password'
@@ -110,7 +180,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                                         maxLength='128'
                                         spellCheck='false'
                                     />
-                                    <span className='color--light help-block'>Passwords must contain 5 to 50 characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.</span>
+                                    <span className='color--light help-block'>{formatMessage(messages.hint)}</span>
                                 </div>
                             </div>
                             {passwordError}
@@ -122,19 +192,19 @@ export default class TeamSignupPasswordPage extends React.Component {
                             type='submit'
                             className='btn btn-primary margin--extra'
                             id='finish-button'
-                            data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Creating team...'}
+                            data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.creating)}
                             onClick={this.submitNext}
                         >
-                            Finish
+                            {formatMessage(messages.finish)}
                         </button>
                     </div>
-                    <p>By proceeding to create your account and use {global.window.mm_config.SiteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {global.window.mm_config.SiteName}.</p>
+                    <p>{formatMessage(messages.proceeding)} {global.window.mm_config.SiteName}, {formatMessage(messages.agree)} <a href='/static/help/terms.html'>{formatMessage(messages.terms)}</a> {formatMessage(messages.and)} <a href='/static/help/privacy.html'>{formatMessage(messages.privacy)}</a>. {formatMessage(messages.dontAgree)} {global.window.mm_config.SiteName}.</p>
                     <div className='margin--extra'>
                         <a
                             href='#'
                             onClick={this.submitBack}
                         >
-                            Back to previous step
+                            {formatMessage(messages.back)}
                         </a>
                     </div>
                 </form>
@@ -148,7 +218,10 @@ TeamSignupPasswordPage.defaultProps = {
     hash: ''
 };
 TeamSignupPasswordPage.propTypes = {
+    intl: intlShape.isRequired,
     state: React.PropTypes.object,
     hash: React.PropTypes.string,
     updateParent: React.PropTypes.func
 };
+
+export default injectIntl(TeamSignupPasswordPage);

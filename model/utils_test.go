@@ -29,7 +29,7 @@ func TestRandomString(t *testing.T) {
 func TestAppError(t *testing.T) {
 	err := NewAppError("TestAppError", "message", "")
 	json := err.ToJson()
-	rerr := AppErrorFromJson(strings.NewReader(json))
+	rerr := AppErrorFromJson(strings.NewReader(json), T)
 	if err.Message != rerr.Message {
 		t.Fatal()
 	}

@@ -61,6 +61,10 @@
         position: relative;
         overflow: auto;
         -webkit-overflow-scrolling: touch;
+
+	  	hr.separator {
+		  margin: 10px 0;
+		}
     }
 
     .nav-pills__unread-indicator {

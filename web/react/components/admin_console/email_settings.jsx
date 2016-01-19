@@ -1,11 +1,223 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import crypto from 'crypto';
 
-export default class EmailSettings extends React.Component {
+const messages = defineMessages({
+    emailSuccess: {
+        id: 'admin.email.emailSuccess',
+        defaultMessage: 'No errors were reported while sending an email.  Please check your inbox to make sure.'
+    },
+    emailFail: {
+        id: 'admin.email.emailFail',
+        defaultMessage: 'Connection unsuccessful: '
+    },
+    emailSettings: {
+        id: 'admin.email.emailSettings',
+        defaultMessage: 'Email Settings'
+    },
+    true: {
+        id: 'admin.email.true',
+        defaultMessage: 'true'
+    },
+    false: {
+        id: 'admin.email.false',
+        defaultMessage: 'false'
+    },
+    allowSignupTitle: {
+        id: 'admin.email.allowSignupTitle',
+        defaultMessage: 'Allow Sign Up With Email: '
+    },
+    allowSignupDescription: {
+        id: 'admin.email.allowSignupDescription',
+        defaultMessage: 'When true, Mattermost allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single-sign-on service like OAuth or LDAP.'
+    },
+    notificationsTitle: {
+        id: 'admin.email.notificationsTitle',
+        defaultMessage: 'Send Email Notifications: '
+    },
+    notificationsDescription: {
+        id: 'admin.email.notificationsDescription',
+        defaultMessage: 'Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.\nSetting this to true removes the Preview Mode banner (requires logging out and logging back in after setting is changed).'
+    },
+    requireVerificationTitle: {
+        id: 'admin.email.requireVerificationTitle',
+        defaultMessage: 'Require Email Verification: '
+    },
+    requireVerificationDescription: {
+        id: 'admin.email.requireVerificationDescription',
+        defaultMessage: 'Typically set to true in production. When true, Mattermost requires email verification after account creation prior to allowing login. Developers may set this field to false so skip sending verification emails for faster development.'
+    },
+    notificationDisplayTitle: {
+        id: 'admin.email.notificationDisplayTitle',
+        defaultMessage: 'Notification Display Name:'
+    },
+    notificationDisplayExample: {
+        id: 'admin.email.notificationDisplayExample',
+        defaultMessage: 'Ex: "Mattermost Notification", "System", "No-Reply"'
+    },
+    notificationDisplayDescription: {
+        id: 'admin.email.notificationDisplayDescription',
+        defaultMessage: 'Display name on email account used when sending notification emails from Mattermost.'
+    },
+    notificationEmailTitle: {
+        id: 'admin.email.notificationEmailTitle',
+        defaultMessage: 'Notification Email Address:'
+    },
+    notificationEmailExample: {
+        id: 'admin.email.notificationEmailExample',
+        defaultMessage: 'Ex: "mattermost@yourcompany.com", "admin@yourcompany.com"'
+    },
+    notificationEmailDescription: {
+        id: 'admin.email.notificationEmailDescription',
+        defaultMessage: 'Email address displayed on email account used when sending notification emails from Mattermost.'
+    },
+    smtpUsernameTitle: {
+        id: 'admin.email.smtpUsernameTitle',
+        defaultMessage: 'SMTP Username:'
+    },
+    smtpUsernameExample: {
+        id: 'admin.email.smtpUsernameExample',
+        defaultMessage: 'Ex: "admin@yourcompany.com", "AKIADTOVBGERKLCBV"'
+    },
+    smtpUsernameDescription: {
+        id: 'admin.email.smtpUsernameDescription',
+        defaultMessage: ' Obtain this credential from administrator setting up your email server.'
+    },
+    smtpPasswordTitle: {
+        id: 'admin.email.smtpPasswordTitle',
+        defaultMessage: 'SMTP Password:'
+    },
+    smtpPasswordExample: {
+        id: 'admin.email.smtpPasswordExample',
+        defaultMessage: 'Ex: "yourpassword", "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+    },
+    smtpPasswordDescription: {
+        id: 'admin.email.smtpPasswordDescription',
+        defaultMessage: ' Obtain this credential from administrator setting up your email server.'
+    },
+    smtpServerTitle: {
+        id: 'admin.email.smtpServerTitle',
+        defaultMessage: 'SMTP Server:'
+    },
+    smtpServerExample: {
+        id: 'admin.email.smtpServerExample',
+        defaultMessage: 'Ex: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"'
+    },
+    smtpServerDescription: {
+        id: 'admin.email.smtpServerDescription',
+        defaultMessage: 'Location of SMTP email server.'
+    },
+    smtpPortTitle: {
+        id: 'admin.email.smtpPortTitle',
+        defaultMessage: 'SMTP Port:'
+    },
+    smtpPortExample: {
+        id: 'admin.email.smtpPortExample',
+        defaultMessage: 'Ex: "25", "465"'
+    },
+    smtpPortDescription: {
+        id: 'admin.email.smtpPortDescription',
+        defaultMessage: 'Port of SMTP email server.'
+    },
+    connectionSecurityTitle: {
+        id: 'admin.email.connectionSecurityTitle',
+        defaultMessage: 'Connection Security:'
+    },
+    connectionSecurityNone: {
+        id: 'admin.email.connectionSecurityNone',
+        defaultMessage: 'None'
+    },
+    connectionSecurityTls: {
+        id: 'admin.email.connectionSecurityTls',
+        defaultMessage: 'TLS (Recommended)'
+    },
+    connectionSecurityStart: {
+        id: 'admin.email.connectionSecurityStart',
+        defaultMessage: 'STARTTLS'
+    },
+    connectionSecurityNoneDescription: {
+        id: 'admin.email.connectionSecurityNoneDescription',
+        defaultMessage: 'Mattermost will send email over an unsecure connection.'
+    },
+    connectionSecurityTlsDescription: {
+        id: 'admin.email.connectionSecurityTlsDescription',
+        defaultMessage: 'Encrypts the communication between Mattermost and your email server.'
+    },
+    connectionSecurityStartDescription: {
+        id: 'admin.email.connectionSecurityStartDescription',
+        defaultMessage: 'Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.'
+    },
+    connectionSecurityTest: {
+        id: 'admin.email.connectionSecurityTest',
+        defaultMessage: 'Test Connection'
+    },
+    inviteSaltTitle: {
+        id: 'admin.email.inviteSaltTitle',
+        defaultMessage: 'Invite Salt:'
+    },
+    inviteSaltExample: {
+        id: 'admin.email.inviteSaltExample',
+        defaultMessage: 'Ex "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
+    },
+    inviteSaltDescription: {
+        id: 'admin.email.inviteSaltDescription',
+        defaultMessage: '32-character salt added to signing of email invites. Randomly generated on install. Click "Re-Generate" to create new salt.'
+    },
+    passwordSaltTitle: {
+        id: 'admin.email.passwordSaltTitle',
+        defaultMessage: 'Password Reset Salt:'
+    },
+    passwordSaltExample: {
+        id: 'admin.email.passwordSaltExample',
+        defaultMessage: 'Ex "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
+    },
+    passwordSaltDescription: {
+        id: 'admin.email.passwordSaltDescription',
+        defaultMessage: '32-character salt added to signing of password reset emails. Randomly generated on install. Click "Re-Generate" to create new salt.'
+    },
+    regenerate: {
+        id: 'admin.email.regenerate',
+        defaultMessage: 'Re-Generate'
+    },
+    saving: {
+        id: 'admin.email.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.email.save',
+        defaultMessage: 'Save'
+    },
+    pushTitle: {
+        id: 'admin.email.pushTitle',
+        defaultMessage: 'Send Push Notifications: '
+    },
+    pushDesc: {
+        id: 'admin.email.pushDesc',
+        defaultMessage: 'Typically set to true in production. When true, Mattermost attempts to send iOS and Android push notifications through the push notification server.'
+    },
+    pushServerTitle: {
+        id: 'admin.email.pushServerTitle',
+        defaultMessage: 'Push Notification Server:'
+    },
+    pushServerDesc: {
+        id: 'admin.email.pushServerDesc',
+        defaultMessage: 'Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'
+    },
+    pushServerEx: {
+        id: 'admin.email.pushServerEx',
+        defaultMessage: 'E.g.: "https://push-test.mattermost.com"'
+    },
+    testing: {
+        id: 'admin.email.testing',
+        defaultMessage: 'Testing...'
+    }
+});
+
+class EmailSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -156,6 +368,7 @@ export default class EmailSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -170,7 +383,7 @@ export default class EmailSettings extends React.Component {
         if (this.state.emailSuccess) {
             emailSuccess = (
                  <div className='alert alert-success'>
-                    <i className='fa fa-check'></i>{'No errors were reported while sending an email.  Please check your inbox to make sure.'}
+                    <i className='fa fa-check'></i>{formatMessage(messages.emailSuccess)}
                 </div>
             );
         }
@@ -179,14 +392,14 @@ export default class EmailSettings extends React.Component {
         if (this.state.emailFail) {
             emailSuccess = (
                  <div className='alert alert-warning'>
-                    <i className='fa fa-warning'></i>{'Connection unsuccessful: ' + this.state.emailFail}
+                    <i className='fa fa-warning'></i>{formatMessage(messages.emailFail) + this.state.emailFail}
                 </div>
             );
         }
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'Email Settings'}</h3>
+                <h3>{formatMessage(messages.emailSettings)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -197,7 +410,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='allowSignUpWithEmail'
                         >
-                            {'Allow Sign Up With Email: '}
+                            {formatMessage(messages.allowSignupTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -209,7 +422,7 @@ export default class EmailSettings extends React.Component {
                                     defaultChecked={this.props.config.EmailSettings.EnableSignUpWithEmail}
                                     onChange={this.handleChange.bind(this, 'allowSignUpWithEmail_true')}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -219,9 +432,9 @@ export default class EmailSettings extends React.Component {
                                     defaultChecked={!this.props.config.EmailSettings.EnableSignUpWithEmail}
                                     onChange={this.handleChange.bind(this, 'allowSignUpWithEmail_false')}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, Mattermost allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single-sign-on service like OAuth or LDAP.'}</p>
+                            <p className='help-text'>{formatMessage(messages.allowSignupDescription)}</p>
                         </div>
                     </div>
 
@@ -230,7 +443,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='sendEmailNotifications'
                         >
-                            {'Send Email Notifications: '}
+                            {formatMessage(messages.notificationsTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -242,7 +455,7 @@ export default class EmailSettings extends React.Component {
                                     defaultChecked={this.props.config.EmailSettings.SendEmailNotifications}
                                     onChange={this.handleChange.bind(this, 'sendEmailNotifications_true')}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -252,9 +465,9 @@ export default class EmailSettings extends React.Component {
                                     defaultChecked={!this.props.config.EmailSettings.SendEmailNotifications}
                                     onChange={this.handleChange.bind(this, 'sendEmailNotifications_false')}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.\nSetting this to true removes the Preview Mode banner (requires logging out and logging back in after setting is changed).'}</p>
+                            <p className='help-text'>{formatMessage(messages.notificationsDescription)}</p>
                         </div>
                     </div>
 
@@ -263,7 +476,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='requireEmailVerification'
                         >
-                            {'Require Email Verification: '}
+                            {formatMessage(messages.requireVerificationTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -276,7 +489,7 @@ export default class EmailSettings extends React.Component {
                                     onChange={this.handleChange.bind(this, 'requireEmailVerification_true')}
                                     disabled={!this.state.sendEmailNotifications}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -287,9 +500,9 @@ export default class EmailSettings extends React.Component {
                                     onChange={this.handleChange.bind(this, 'requireEmailVerification_false')}
                                     disabled={!this.state.sendEmailNotifications}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost requires email verification after account creation prior to allowing login. Developers may set this field to false so skip sending verification emails for faster development.'}</p>
+                            <p className='help-text'>{formatMessage(messages.requireVerificationDescription)}</p>
                         </div>
                     </div>
 
@@ -298,7 +511,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='feedbackName'
                         >
-                            {'Notification Display Name:'}
+                            {formatMessage(messages.notificationDisplayTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -306,12 +519,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='feedbackName'
                                 ref='feedbackName'
-                                placeholder='E.g.: "Mattermost Notification", "System", "No-Reply"'
+                                placeholder={formatMessage(messages.notificationDisplayExample)}
                                 defaultValue={this.props.config.EmailSettings.FeedbackName}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'Display name on email account used when sending notification emails from Mattermost.'}</p>
+                            <p className='help-text'>{formatMessage(messages.notificationDisplayDescription)}</p>
                         </div>
                     </div>
 
@@ -320,7 +533,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='feedbackEmail'
                         >
-                            {'Notification Email Address:'}
+                            {formatMessage(messages.notificationEmailTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -328,12 +541,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='feedbackEmail'
                                 ref='feedbackEmail'
-                                placeholder='E.g.: "mattermost@yourcompany.com", "admin@yourcompany.com"'
+                                placeholder={formatMessage(messages.notificationEmailExample)}
                                 defaultValue={this.props.config.EmailSettings.FeedbackEmail}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'Email address displayed on email account used when sending notification emails from Mattermost.'}</p>
+                            <p className='help-text'>{formatMessage(messages.notificationEmailDescription)}</p>
                         </div>
                     </div>
 
@@ -342,7 +555,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='SMTPUsername'
                         >
-                            {'SMTP Username:'}
+                            {formatMessage(messages.smtpUsernameTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -350,12 +563,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='SMTPUsername'
                                 ref='SMTPUsername'
-                                placeholder='E.g.: "admin@yourcompany.com", "AKIADTOVBGERKLCBV"'
+                                placeholder={formatMessage(messages.smtpUsernameExample)}
                                 defaultValue={this.props.config.EmailSettings.SMTPUsername}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{' Obtain this credential from administrator setting up your email server.'}</p>
+                            <p className='help-text'>{formatMessage(messages.smtpUsernameDescription)}</p>
                         </div>
                     </div>
 
@@ -364,7 +577,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='SMTPPassword'
                         >
-                            {'SMTP Password:'}
+                            {formatMessage(messages.smtpPasswordTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -372,12 +585,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='SMTPPassword'
                                 ref='SMTPPassword'
-                                placeholder='E.g.: "yourpassword", "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+                                placeholder={formatMessage(messages.smtpPasswordExample)}
                                 defaultValue={this.props.config.EmailSettings.SMTPPassword}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{' Obtain this credential from administrator setting up your email server.'}</p>
+                            <p className='help-text'>{formatMessage(messages.smtpPasswordDescription)}</p>
                         </div>
                     </div>
 
@@ -386,7 +599,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='SMTPServer'
                         >
-                            {'SMTP Server:'}
+                            {formatMessage(messages.smtpServerTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -394,12 +607,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='SMTPServer'
                                 ref='SMTPServer'
-                                placeholder='E.g.: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"'
+                                placeholder={formatMessage(messages.smtpServerExample)}
                                 defaultValue={this.props.config.EmailSettings.SMTPServer}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'Location of SMTP email server.'}</p>
+                            <p className='help-text'>{formatMessage(messages.smtpServerDescription)}</p>
                         </div>
                     </div>
 
@@ -408,7 +621,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='SMTPPort'
                         >
-                            {'SMTP Port:'}
+                            {formatMessage(messages.smtpPortTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -416,12 +629,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='SMTPPort'
                                 ref='SMTPPort'
-                                placeholder='E.g.: "25", "465"'
+                                placeholder={formatMessage(messages.smtpPortExample)}
                                 defaultValue={this.props.config.EmailSettings.SMTPPort}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'Port of SMTP email server.'}</p>
+                            <p className='help-text'>{formatMessage(messages.smtpPortDescription)}</p>
                         </div>
                     </div>
 
@@ -430,7 +643,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ConnectionSecurity'
                         >
-                            {'Connection Security:'}
+                            {formatMessage(messages.connectionSecurityTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <select
@@ -441,9 +654,9 @@ export default class EmailSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             >
-                                <option value=''>{'None'}</option>
-                                <option value='TLS'>{'TLS (Recommended)'}</option>
-                                <option value='STARTTLS'>{'STARTTLS'}</option>
+                                <option value=''>{formatMessage(messages.connectionSecurityNone)}</option>
+                                <option value='TLS'>{formatMessage(messages.connectionSecurityTls)}</option>
+                                <option value='STARTTLS'>{formatMessage(messages.connectionSecurityStart)}</option>
                             </select>
                             <div className='help-text'>
                                 <table
@@ -451,9 +664,9 @@ export default class EmailSettings extends React.Component {
                                     cellPadding='5'
                                 >
                                     <tbody>
-                                        <tr><td className='help-text'>{'None'}</td><td className='help-text'>{'Mattermost will send email over an unsecure connection.'}</td></tr>
-                                        <tr><td className='help-text'>{'TLS'}</td><td className='help-text'>{'Encrypts the communication between Mattermost and your email server.'}</td></tr>
-                                        <tr><td className='help-text'>{'STARTTLS'}</td><td className='help-text'>{'Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.'}</td></tr>
+                                        <tr><td className='help-text'>{formatMessage(messages.connectionSecurityNone)}</td><td className='help-text'>{formatMessage(messages.connectionSecurityNoneDescription)}</td></tr>
+                                        <tr><td className='help-text'>{formatMessage(messages.connectionSecurityTls)}</td><td className='help-text'>{formatMessage(messages.connectionSecurityTlsDescription)}</td></tr>
+                                        <tr><td className='help-text'>{formatMessage(messages.connectionSecurityStart)}</td><td className='help-text'>{formatMessage(messages.connectionSecurityStartDescription)}</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -463,9 +676,9 @@ export default class EmailSettings extends React.Component {
                                     onClick={this.handleTestConnection}
                                     disabled={!this.state.sendEmailNotifications}
                                     id='connection-button'
-                                    data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Testing...'}
+                                    data-loading-text={`<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ${formatMessage(messages.testing)}`}
                                 >
-                                    {'Test Connection'}
+                                    {formatMessage(messages.connectionSecurityTest)}
                                 </button>
                                 {emailSuccess}
                                 {emailFail}
@@ -478,7 +691,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='InviteSalt'
                         >
-                            {'Invite Salt:'}
+                            {formatMessage(messages.inviteSaltTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -486,19 +699,19 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='InviteSalt'
                                 ref='InviteSalt'
-                                placeholder='E.g.: "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
+                                placeholder={formatMessage(messages.inviteSaltExample)}
                                 defaultValue={this.props.config.EmailSettings.InviteSalt}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'32-character salt added to signing of email invites. Randomly generated on install. Click "Re-Generate" to create new salt.'}</p>
+                            <p className='help-text'>{formatMessage(messages.inviteSaltDescription)}</p>
                             <div className='help-text'>
                                 <button
                                     className='btn btn-default'
                                     onClick={this.handleGenerateInvite}
                                     disabled={!this.state.sendEmailNotifications}
                                 >
-                                    {'Re-Generate'}
+                                    {formatMessage(messages.regenerate)}
                                 </button>
                             </div>
                         </div>
@@ -509,7 +722,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='PasswordResetSalt'
                         >
-                            {'Password Reset Salt:'}
+                            {formatMessage(messages.passwordSaltTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -517,19 +730,19 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='PasswordResetSalt'
                                 ref='PasswordResetSalt'
-                                placeholder='E.g.: "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
+                                placeholder={formatMessage(messages.passwordSaltExample)}
                                 defaultValue={this.props.config.EmailSettings.PasswordResetSalt}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'32-character salt added to signing of password reset emails. Randomly generated on install. Click "Re-Generate" to create new salt.'}</p>
+                            <p className='help-text'>{formatMessage(messages.passwordSaltDescription)}</p>
                             <div className='help-text'>
                                 <button
                                     className='btn btn-default'
                                     onClick={this.handleGenerateReset}
                                     disabled={!this.state.sendEmailNotifications}
                                 >
-                                    {'Re-Generate'}
+                                    {formatMessage(messages.regenerate)}
                                 </button>
                             </div>
                         </div>
@@ -540,7 +753,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='sendPushNotifications'
                         >
-                            {'Send Push Notifications: '}
+                            {formatMessage(messages.pushTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -552,7 +765,7 @@ export default class EmailSettings extends React.Component {
                                     defaultChecked={this.props.config.EmailSettings.SendPushNotifications}
                                     onChange={this.handleChange.bind(this, 'sendPushNotifications_true')}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -562,9 +775,9 @@ export default class EmailSettings extends React.Component {
                                     defaultChecked={!this.props.config.EmailSettings.SendPushNotifications}
                                     onChange={this.handleChange.bind(this, 'sendPushNotifications_false')}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost attempts to send iOS and Android push notifications through the push notification server.'}</p>
+                            <p className='help-text'>{formatMessage(messages.pushDesc)}</p>
                         </div>
                     </div>
 
@@ -573,7 +786,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='PushNotificationServer'
                         >
-                            {'Push Notification Server:'}
+                            {formatMessage(messages.pushServerTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -581,12 +794,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='PushNotificationServer'
                                 ref='PushNotificationServer'
-                                placeholder='E.g.: "https://push-test.mattermost.com"'
+                                placeholder={formatMessage(messages.pushServerEx)}
                                 defaultValue={this.props.config.EmailSettings.PushNotificationServer}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendPushNotifications}
                             />
-                            <p className='help-text'>{'Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'}</p>
+                            <p className='help-text'>{formatMessage(messages.pushServerDesc)}</p>
                         </div>
                     </div>
 
@@ -599,9 +812,9 @@ export default class EmailSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.saving)}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -613,5 +826,8 @@ export default class EmailSettings extends React.Component {
 }
 
 EmailSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(EmailSettings);

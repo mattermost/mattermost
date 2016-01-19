@@ -4,9 +4,13 @@
 package utils
 
 import (
+	"github.com/mattermost/platform/i18n"
 	"testing"
 )
 
+var T = i18n.TranslateFunc
+
 func TestConfig(t *testing.T) {
-	LoadConfig("config.json")
+	T = i18n.GetTranslationsBySystemLocale()
+	LoadConfig("config.json", T)
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
 
@@ -8,7 +9,90 @@ import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
 import TeamStore from '../stores/team_store.jsx';
 
-export default class GeneralTab extends React.Component {
+const messages = defineMessages({
+    clientError1: {
+        id: 'general_tab.clientError1',
+        defaultMessage: 'This field is required'
+    },
+    clientError2: {
+        id: 'general_tab.clientError2',
+        defaultMessage: 'Please choose a new name for your team'
+    },
+    teamName: {
+        id: 'general_tab.teamName',
+        defaultMessage: 'Team Name'
+    },
+    close: {
+        id: 'general_tab.close',
+        defaultMessage: 'Close'
+    },
+    title: {
+        id: 'general_tab.title',
+        defaultMessage: 'General Settings'
+    },
+    dirDisabled: {
+        id: 'general_tab.dirDisabled',
+        defaultMessage: 'Team directory has been disabled.  Please ask a system admin to enable it.'
+    },
+    required: {
+        id: 'general_tab.required',
+        defaultMessage: 'This field is required'
+    },
+    yes: {
+        id: 'general_tab.yes',
+        defaultMessage: 'Yes'
+    },
+    no: {
+        id: 'general_tab.no',
+        defaultMessage: 'No'
+    },
+    includeDirDesc: {
+        id: 'general_tab.includeDirDesc',
+        defaultMessage: 'Including this team will display the team name from the Team Directory section of the Home Page, and provide a link to the sign-in page.'
+    },
+    includeDirTitle: {
+        id: 'general_tab.includeDirTitle',
+        defaultMessage: 'Include this team in the Team Directory'
+    },
+    openInviteDesc: {
+        id: 'general_tab.openInviteDesc',
+        defaultMessage: 'When allowed, a link to account creation will be included on the sign-in page of this team and allow any visitor to sign-up.'
+    },
+    openInviteTitle: {
+        id: 'general_tab.openInviteTitle',
+        defaultMessage: 'Allow anyone to sign-up from login page'
+    },
+    codeTitle: {
+        id: 'general_tab.codeTitle',
+        defaultMessage: 'Invite Code'
+    },
+    regenerate: {
+        id: 'general_tab.regenerate',
+        defaultMessage: 'Re-Generate'
+    },
+    codeLongDesc: {
+        id: 'general_tab.codeLongDesc',
+        defaultMessage: 'The Invite Code is used as part of the URL in the team invitation link created by **Get Team Invite Link** in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.'
+    },
+    codeDesc: {
+        id: 'general_tab.codeDesc',
+        defaultMessage: "Click 'Edit' to regenerate Invite Code."
+    },
+    teamNameInfo: {
+        id: 'general_tab.teamNameInfo',
+        defaultMessage: 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'
+    },
+    dirContact: {
+        id: 'general_tab.dirContact',
+        defaultMessage: 'Contact your system administrator to turn on the team directory on the system home page.'
+    },
+    dirOff: {
+        id: 'general_tab.dirOff',
+        defaultMessage: 'Team directory is turned off for this system.'
+    }
+});
+
+class GeneralTab extends React.Component {
     constructor(props) {
         super(props);
 
@@ -65,8 +149,10 @@ export default class GeneralTab extends React.Component {
     }
 
     handleTeamListingRadio(listing) {
+        const {formatMessage} = this.props.intl;
+
         if (global.window.mm_config.EnableTeamListing !== 'true' && listing) {
-            this.setState({clientError: 'Team directory has been disabled.  Please ask a system admin to enable it.'});
+            this.setState({clientError: formatMessage(messages.dirDisabled)});
         } else {
             this.setState({allow_team_listing: listing});
         }
@@ -115,15 +201,16 @@ export default class GeneralTab extends React.Component {
     handleNameSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         var state = {serverError: '', clientError: ''};
         let valid = true;
 
         const name = this.state.name.trim();
         if (!name) {
-            state.clientError = 'This field is required';
+            state.clientError = formatMessage(messages.clientError1);
             valid = false;
         } else if (name === this.props.team.display_name) {
-            state.clientError = 'Please choose a new name for your team';
+            state.clientError = formatMessage(messages.clientError2);
             valid = false;
         } else {
             state.clientError = '';
@@ -153,6 +240,8 @@ export default class GeneralTab extends React.Component {
     handleInviteIdSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
+
         var state = {serverError: '', clientError: ''};
         let valid = true;
 
@@ -160,7 +249,7 @@ export default class GeneralTab extends React.Component {
         if (inviteId) {
             state.clientError = '';
         } else {
-            state.clientError = 'This field is required';
+            state.clientError = formatMessage(messages.required);
             valid = false;
         }
 
@@ -250,6 +339,7 @@ export default class GeneralTab extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         let clientError = null;
         let serverError = null;
         if (this.state.clientError) {
@@ -279,7 +369,7 @@ export default class GeneralTab extends React.Component {
                                     defaultChecked={this.state.allow_team_listing}
                                     onChange={this.handleTeamListingRadio.bind(this, true)}
                                 />
-                                {'Yes'}
+                                {formatMessage(messages.yes)}
                             </label>
                             <br/>
                         </div>
@@ -292,24 +382,24 @@ export default class GeneralTab extends React.Component {
                                     defaultChecked={!this.state.allow_team_listing}
                                     onChange={this.handleTeamListingRadio.bind(this, false)}
                                 />
-                                {'No'}
+                                {formatMessage(messages.no)}
                             </label>
                             <br/>
                         </div>
-                        <div><br/>{'Including this team will display the team name from the Team Directory section of the Home Page, and provide a link to the sign-in page.'}</div>
+                        <div><br/>{formatMessage(messages.includeDirDesc)}</div>
                     </div>
                 );
             } else {
                 inputs.push(
                     <div key='userTeamListingOptions'>
-                        <div><br/>{'Contact your system administrator to turn on the team directory on the system home page.'}</div>
+                        <div><br/>{formatMessage(messages.dirContact)}</div>
                     </div>
                 );
             }
 
             teamListingSection = (
                 <SettingItemMax
-                    title='Include this team in the Team Directory'
+                    title={formatMessage(messages.includeDirTitle)}
                     inputs={inputs}
                     submit={submitHandle}
                     server_error={serverError}
@@ -322,17 +412,17 @@ export default class GeneralTab extends React.Component {
 
             if (enableTeamListing) {
                 if (this.state.allow_team_listing === true) {
-                    describe = 'Yes';
+                    describe = formatMessage(messages.yes);
                 } else {
-                    describe = 'No';
+                    describe = formatMessage(messages.no);
                 }
             } else {
-                describe = 'Team directory is turned off for this system.';
+                describe = formatMessage(messages.dirOff);
             }
 
             teamListingSection = (
                 <SettingItemMin
-                    title='Include this team in the Team Directory'
+                    title={formatMessage(messages.includeDirTitle)}
                     describe={describe}
                     updateSection={this.onUpdateTeamListingSection}
                 />
@@ -351,7 +441,7 @@ export default class GeneralTab extends React.Component {
                                 defaultChecked={this.state.allow_open_invite}
                                 onChange={this.handleOpenInviteRadio.bind(this, true)}
                             />
-                            {'Yes'}
+                            {formatMessage(messages.yes)}
                         </label>
                         <br/>
                     </div>
@@ -363,17 +453,17 @@ export default class GeneralTab extends React.Component {
                                 defaultChecked={!this.state.allow_open_invite}
                                 onChange={this.handleOpenInviteRadio.bind(this, false)}
                             />
-                            {'No'}
+                            {formatMessage(messages.no)}
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'When allowed, a link to account creation will be included on the sign-in page of this team and allow any visitor to sign-up.'}</div>
+                    <div><br/>{formatMessage(messages.openInviteDesc)}</div>
                 </div>
             ];
 
             openInviteSection = (
                 <SettingItemMax
-                    title='Allow anyone to sign-up from login page'
+                    title={formatMessage(messages.openInviteTitle)}
                     inputs={inputs}
                     submit={this.handleOpenInviteSubmit}
                     server_error={serverError}
@@ -383,14 +473,14 @@ export default class GeneralTab extends React.Component {
         } else {
             let describe = '';
             if (this.state.allow_open_invite === true) {
-                describe = 'Yes';
+                describe = formatMessage(messages.yes);
             } else {
-                describe = 'No';
+                describe = formatMessage(messages.no);
             }
 
             openInviteSection = (
                 <SettingItemMin
-                    title='Allow anyone to sign-up from login page'
+                    title={formatMessage(messages.openInviteTitle)}
                     describe={describe}
                     updateSection={this.onUpdateOpenInviteSection}
                 />
@@ -405,7 +495,7 @@ export default class GeneralTab extends React.Component {
             inputs.push(
                 <div key='teamInviteSetting'>
                     <div className='row'>
-                        <label className='col-sm-5 control-label'>{'Invite Code'}</label>
+                        <label className='col-sm-5 control-label'>{formatMessage(messages.codeTitle)}</label>
                         <div className='col-sm-7'>
                             <input
                                 className='form-control'
@@ -419,18 +509,18 @@ export default class GeneralTab extends React.Component {
                                     href='#'
                                     onClick={this.handleGenerateInviteId}
                                 >
-                                    {'Re-Generate'}
+                                    {formatMessage(messages.regenerate)}
                                 </a>
                             </div>
                         </div>
                     </div>
-                    <div className='setting-list__hint'>{'The Invite Code is used as part of the URL in the team invitation link created by **Get Team Invite Link** in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.'}</div>
+                    <div className='setting-list__hint'>{formatMessage(messages.codeLongDesc)}</div>
                 </div>
             );
 
             inviteSection = (
                 <SettingItemMax
-                    title={`Invite Code`}
+                    title={formatMessage(messages.codeTitle)}
                     inputs={inputs}
                     submit={this.handleInviteIdSubmit}
                     server_error={serverError}
@@ -441,8 +531,8 @@ export default class GeneralTab extends React.Component {
         } else {
             inviteSection = (
                 <SettingItemMin
-                    title={`Invite Code`}
-                    describe={`Click 'Edit' to regenerate Invite Code.`}
+                    title={formatMessage(messages.codeTitle)}
+                    describe={formatMessage(messages.codeDesc)}
                     updateSection={this.onUpdateInviteIdSection}
                 />
             );
@@ -453,7 +543,7 @@ export default class GeneralTab extends React.Component {
         if (this.props.activeSection === 'name') {
             const inputs = [];
 
-            let teamNameLabel = 'Team Name';
+            let teamNameLabel = formatMessage(messages.teamName);
             if (Utils.isMobile()) {
                 teamNameLabel = '';
             }
@@ -478,13 +568,13 @@ export default class GeneralTab extends React.Component {
 
             nameSection = (
                 <SettingItemMax
-                    title={`Team Name`}
+                    title={formatMessage(messages.teamName)}
                     inputs={inputs}
                     submit={this.handleNameSubmit}
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={this.onUpdateNameSection}
-                    extraInfo='Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'
+                    extraInfo={formatMessage(messages.teamNameInfo)}
                 />
             );
         } else {
@@ -492,7 +582,7 @@ export default class GeneralTab extends React.Component {
 
             nameSection = (
                 <SettingItemMin
-                    title={`Team Name`}
+                    title={formatMessage(messages.teamName)}
                     describe={describe}
                     updateSection={this.onUpdateNameSection}
                 />
@@ -506,7 +596,7 @@ export default class GeneralTab extends React.Component {
                         type='button'
                         className='close'
                         data-dismiss='modal'
-                        aria-label='Close'
+                        aria-label={formatMessage(messages.close)}
                     >
                         <span aria-hidden='true'>&times;</span>
                     </button>
@@ -515,14 +605,14 @@ export default class GeneralTab extends React.Component {
                         ref='title'
                     >
                         <i className='modal-back'></i>
-                        {'General Settings'}
+                        {formatMessage(messages.title)}
                     </h4>
                 </div>
                 <div
                     ref='wrapper'
                     className='user-settings'
                 >
-                    <h3 className='tab-header'>{'General Settings'}</h3>
+                    <h3 className='tab-header'>{formatMessage(messages.title)}</h3>
                     <div className='divider-dark first'/>
                     {nameSection}
                     <div className='divider-light'/>
@@ -539,7 +629,10 @@ export default class GeneralTab extends React.Component {
 }
 
 GeneralTab.propTypes = {
+    intl: intlShape.isRequired,
     updateSection: React.PropTypes.func.isRequired,
     team: React.PropTypes.object.isRequired,
     activeSection: React.PropTypes.string.isRequired
 };
+
+export default injectIntl(GeneralTab);

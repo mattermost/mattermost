@@ -1,11 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class FileAttachment extends React.Component {
+const messages = defineMessages({
+    download: {
+        id: 'file_attachment.download',
+        defaultMessage: 'Download'
+    }
+});
+
+class FileAttachment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -152,6 +160,7 @@ export default class FileAttachment extends React.Component {
         }
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var filename = this.props.filename;
 
         var fileInfo = utils.splitFileLocation(filename);
@@ -266,7 +275,7 @@ export default class FileAttachment extends React.Component {
                         href={fileUrl}
                         download={filenameString}
                         data-toggle='tooltip'
-                        title={'Download \"' + filenameString + '\"'}
+                        title={formatMessage(messages.download) + ' \"' + filenameString + '\"'}
                         className='post-image__name'
                     >
                         {trimmedFilename}
@@ -299,5 +308,8 @@ FileAttachment.propTypes = {
     index: React.PropTypes.number.isRequired,
 
     // handler for when the thumbnail is clicked passed the index above
-    handleImageClick: React.PropTypes.func
+    handleImageClick: React.PropTypes.func,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(FileAttachment);

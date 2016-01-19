@@ -254,6 +254,14 @@ class SuggestionStore extends EventEmitter {
             break;
         }
     }
+
+    setTranslations(translations) {
+        this.translations = translations;
+    }
+
+    getTranslations() {
+        return this.translations;
+    }
 }
 
 export default new SuggestionStore();

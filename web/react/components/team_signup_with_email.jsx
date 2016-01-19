@@ -1,10 +1,34 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 
-export default class EmailSignUpPage extends React.Component {
+const messages = defineMessages({
+    emailError: {
+        id: 'email_signup.emailError',
+        defaultMessage: 'Please enter a valid email address'
+    },
+    address: {
+        id: 'email_signup.address',
+        defaultMessage: 'Email Address'
+    },
+    signup: {
+        id: 'email_signup.signup',
+        defaultMessage: 'Sign up'
+    },
+    find: {
+        id: 'email_signup.find',
+        defaultMessage: 'Find my team'
+    },
+    createTeam: {
+        id: 'email_signup.createTeam',
+        defaultMessage: 'Create Team'
+    }
+});
+
+class EmailSignUpPage extends React.Component {
     constructor() {
         super();
 
@@ -18,9 +42,11 @@ export default class EmailSignUpPage extends React.Component {
         const state = {serverError: null};
         let isValid = true;
 
+        const {formatMessage} = this.props.intl;
+
         team.email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!team.email || !Utils.isEmail(team.email)) {
-            state.emailError = 'Please enter a valid email address';
+            state.emailError = formatMessage(messages.emailError);
             isValid = false;
         } else {
             state.emailError = null;
@@ -46,6 +72,7 @@ export default class EmailSignUpPage extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let serverError = null;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -67,7 +94,7 @@ export default class EmailSignUpPage extends React.Component {
                         type='email'
                         ref='email'
                         className='form-control'
-                        placeholder='Email Address'
+                        placeholder={formatMessage(messages.address)}
                         maxLength='128'
                         spellCheck='false'
                     />
@@ -78,12 +105,12 @@ export default class EmailSignUpPage extends React.Component {
                         className='btn btn-md btn-primary'
                         type='submit'
                     >
-                        {'Create Team'}
+                        {formatMessage(messages.createTeam)}
                     </button>
                     {serverError}
                 </div>
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{`Find my teams`}</a></span>
+                    <span><a href='/find_team'>{formatMessage(messages.find)}</a></span>
                 </div>
             </form>
         );
@@ -93,4 +120,7 @@ export default class EmailSignUpPage extends React.Component {
 EmailSignUpPage.defaultProps = {
 };
 EmailSignUpPage.propTypes = {
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(EmailSignUpPage);

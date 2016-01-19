@@ -21,50 +21,50 @@ func TestChannelMemberJson(t *testing.T) {
 func TestChannelMemberIsValid(t *testing.T) {
 	o := ChannelMember{}
 
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ChannelId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Roles = "missing"
 	o.NotifyProps = GetDefaultChannelNotifyProps()
 	o.UserId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Roles = CHANNEL_ROLE_ADMIN
 	o.NotifyProps["desktop"] = "junk"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.NotifyProps["desktop"] = "123456789012345678901"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.NotifyProps["desktop"] = CHANNEL_NOTIFY_ALL
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 
 	o.NotifyProps["mark_unread"] = "123456789012345678901"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(T); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.NotifyProps["mark_unread"] = CHANNEL_MARK_UNREAD_ALL
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 
 	o.Roles = ""
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(T); err != nil {
 		t.Fatal(err)
 	}
 }

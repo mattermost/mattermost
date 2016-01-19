@@ -2,15 +2,40 @@
 // See License.txt for license information.
 
 const Modal = ReactBootstrap.Modal;
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class ChannelInfoModal extends React.Component {
+const messages = defineMessages({
+    notFound: {
+        id: 'channel_info.notFound',
+        defaultMessage: 'No Channel Found'
+    },
+    close: {
+        id: 'channel_info.close',
+        defaultMessage: 'Close'
+    },
+    name: {
+        id: 'channel_info.name',
+        defaultMessage: 'Channel Name:'
+    },
+    handle: {
+        id: 'channel_info.handle',
+        defaultMessage: 'Channel Handle:'
+    },
+    channelId: {
+        id: 'channel_info.channelId',
+        defaultMessage: 'Channel ID:'
+    }
+});
+
+class ChannelInfoModal extends React.Component {
     render() {
+        const {formatMessage} = this.props.intl;
         let channel = this.props.channel;
         if (!channel) {
             channel = {
-                display_name: 'No Channel Found',
-                name: 'No Channel Found',
-                id: 'No Channel Found'
+                display_name: formatMessage(messages.notFound),
+                name: formatMessage(messages.notFound),
+                id: formatMessage(messages.notFound)
             };
         }
 
@@ -24,15 +49,15 @@ export default class ChannelInfoModal extends React.Component {
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
                     <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Channel Name:'}</div>
+                        <div className='col-sm-3 info__label'>{formatMessage(messages.name)}</div>
                         <div className='col-sm-9'>{channel.display_name}</div>
                     </div>
                     <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Channel Handle:'}</div>
+                        <div className='col-sm-3 info__label'>{formatMessage(messages.handle)}</div>
                         <div className='col-sm-9'>{channel.name}</div>
                     </div>
                     <div className='row'>
-                        <div className='col-sm-3 info__label'>{'Channel ID:'}</div>
+                        <div className='col-sm-3 info__label'>{formatMessage(messages.channelId)}</div>
                         <div className='col-sm-9'>{channel.id}</div>
                     </div>
                 </Modal.Body>
@@ -42,7 +67,7 @@ export default class ChannelInfoModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onHide}
                     >
-                        {'Close'}
+                        {formatMessage(messages.close)}
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -51,7 +76,10 @@ export default class ChannelInfoModal extends React.Component {
 }
 
 ChannelInfoModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
 };
+
+export default injectIntl(ChannelInfoModal);

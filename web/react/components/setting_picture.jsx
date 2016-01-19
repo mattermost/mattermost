@@ -1,7 +1,35 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class SettingPicture extends React.Component {
+const messages = defineMessages({
+    save: {
+        id: 'setting_picture.save',
+        defaultMessage: 'Save'
+    },
+    help: {
+        id: 'setting_picture.help',
+        defaultMessage: 'Upload a profile picture in either JPG or PNG format, at least '
+    },
+    helpWidth: {
+        id: 'setting_picture.helpWidth',
+        defaultMessage: 'px in width and '
+    },
+    helpHeight: {
+        id: 'setting_picture.helpHeight',
+        defaultMessage: 'px height.'
+    },
+    select: {
+        id: 'setting_picture.select',
+        defaultMessage: 'Select'
+    },
+    cancel: {
+        id: 'setting_picture.cancel',
+        defaultMessage: 'Cancel'
+    }
+});
+
+class SettingPicture extends React.Component {
     constructor(props) {
         super(props);
 
@@ -28,6 +56,7 @@ export default class SettingPicture extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var clientError = null;
         if (this.props.client_error) {
             clientError = <div className='form-group has-error'><label className='control-label'>{this.props.client_error}</label></div>;
@@ -76,10 +105,10 @@ export default class SettingPicture extends React.Component {
                 <a
                     className={confirmButtonClass}
                     onClick={this.props.submit}
-                >Save</a>
+                >{formatMessage(messages.save)}</a>
             );
         }
-        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + global.window.mm_config.ProfileWidth + 'px in width and ' + global.window.mm_config.ProfileHeight + 'px height.';
+        var helpText = formatMessage(messages.help) + global.window.mm_config.ProfileWidth + formatMessage(messages.helpWidth) + global.window.mm_config.ProfileHeight + formatMessage(messages.helpHeight);
 
         var self = this;
         return (
@@ -97,7 +126,7 @@ export default class SettingPicture extends React.Component {
                             {serverError}
                             {clientError}
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
-                                Select
+                                {formatMessage(messages.select)}
                                 <input
                                     ref='input'
                                     accept='.jpg,.png,.bmp'
@@ -110,7 +139,7 @@ export default class SettingPicture extends React.Component {
                                 className='btn btn-sm theme'
                                 href='#'
                                 onClick={self.props.updateSection}
-                            >Cancel</a>
+                            >{formatMessage(messages.cancel)}</a>
                         </li>
                     </ul>
                 </li>
@@ -120,6 +149,7 @@ export default class SettingPicture extends React.Component {
 }
 
 SettingPicture.propTypes = {
+    intl: intlShape.isRequired,
     client_error: React.PropTypes.string,
     server_error: React.PropTypes.string,
     src: React.PropTypes.string,
@@ -130,3 +160,5 @@ SettingPicture.propTypes = {
     title: React.PropTypes.string,
     pictureChange: React.PropTypes.func
 };
+
+export default injectIntl(SettingPicture);

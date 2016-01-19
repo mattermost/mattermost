@@ -12,7 +12,7 @@ import (
 func TestGetInfoForBytes(t *testing.T) {
 	fakeFile := make([]byte, 1000)
 
-	if info, err := GetInfoForBytes("file.txt", fakeFile); err != nil {
+	if info, err := GetInfoForBytes("file.txt", fakeFile, T); err != nil {
 		t.Fatal(err)
 	} else if info.Filename != "file.txt" {
 		t.Fatalf("Got incorrect filename: %v", info.Filename)
@@ -26,7 +26,7 @@ func TestGetInfoForBytes(t *testing.T) {
 		t.Fatalf("Got HasPreviewImage = true for non-image file")
 	}
 
-	if info, err := GetInfoForBytes("file.png", fakeFile); err != nil {
+	if info, err := GetInfoForBytes("file.png", fakeFile, T); err != nil {
 		t.Fatal(err)
 	} else if info.Filename != "file.png" {
 		t.Fatalf("Got incorrect filename: %v", info.Filename)
@@ -42,7 +42,7 @@ func TestGetInfoForBytes(t *testing.T) {
 
 	// base 64 encoded version of handtinywhite.gif from http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
 	gifFile, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
-	if info, err := GetInfoForBytes("handtinywhite.gif", gifFile); err != nil {
+	if info, err := GetInfoForBytes("handtinywhite.gif", gifFile, T); err != nil {
 		t.Fatal(err)
 	} else if info.Filename != "handtinywhite.gif" {
 		t.Fatalf("Got incorrect filename: %v", info.Filename)
@@ -60,7 +60,7 @@ func TestGetInfoForBytes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to load testgif.gif: %v", err.Error())
 	}
-	if info, err := GetInfoForBytes("testgif.gif", animatedGifFile); err != nil {
+	if info, err := GetInfoForBytes("testgif.gif", animatedGifFile, T); err != nil {
 		t.Fatal(err)
 	} else if info.Filename != "testgif.gif" {
 		t.Fatalf("Got incorrect filename: %v", info.Filename)
