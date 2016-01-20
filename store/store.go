@@ -88,21 +88,21 @@ type ChannelStore interface {
 }
 
 type PostStore interface {
-	Save(post *model.Post) StoreChannel
-	Update(post *model.Post, newMessage string, newHashtags string) StoreChannel
-	Get(id string) StoreChannel
-	Delete(postId string, time int64) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
-	GetPosts(channelId string, offset int, limit int) StoreChannel
-	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
-	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
-	GetPostsSince(channelId string, time int64) StoreChannel
-	GetEtag(channelId string) StoreChannel
-	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
-	GetForExport(channelId string) StoreChannel
-	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
-	AnalyticsPostCountsByDay(teamId string) StoreChannel
-	AnalyticsPostCount(teamId string) StoreChannel
+	Save(T goi18n.TranslateFunc, post *model.Post) StoreChannel
+	Update(T goi18n.TranslateFunc, post *model.Post, newMessage string, newHashtags string) StoreChannel
+	Get(T goi18n.TranslateFunc, id string) StoreChannel
+	Delete(T goi18n.TranslateFunc, postId string, time int64) StoreChannel
+	PermanentDeleteByUser(T goi18n.TranslateFunc, userId string) StoreChannel
+	GetPosts(T goi18n.TranslateFunc, channelId string, offset int, limit int) StoreChannel
+	GetPostsBefore(T goi18n.TranslateFunc, channelId string, postId string, numPosts int, offset int) StoreChannel
+	GetPostsAfter(T goi18n.TranslateFunc, channelId string, postId string, numPosts int, offset int) StoreChannel
+	GetPostsSince(T goi18n.TranslateFunc, channelId string, time int64) StoreChannel
+	GetEtag(T goi18n.TranslateFunc, channelId string) StoreChannel
+	Search(T goi18n.TranslateFunc, teamId string, userId string, params *model.SearchParams) StoreChannel
+	GetForExport(T goi18n.TranslateFunc, channelId string) StoreChannel
+	AnalyticsUserCountsWithPostsByDay(T goi18n.TranslateFunc, teamId string) StoreChannel
+	AnalyticsPostCountsByDay(T goi18n.TranslateFunc, teamId string) StoreChannel
+	AnalyticsPostCount(T goi18n.TranslateFunc, teamId string) StoreChannel
 }
 
 type UserStore interface {

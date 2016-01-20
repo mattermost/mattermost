@@ -129,7 +129,7 @@ func SlackAddUsers(T goi18n.TranslateFunc, teamId string, slackusers []SlackUser
 	return addedUsers
 }
 
-func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*model.User) {
+func SlackAddPosts(T goi18n.TranslateFunc, channel *model.Channel, posts []SlackPost, users map[string]*model.User) {
 	for _, sPost := range posts {
 		switch {
 		case sPost.Type == "message" && (sPost.SubType == "" || sPost.SubType == "file_share"):
@@ -146,7 +146,7 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 				Message:   sPost.Text,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			ImportPost(&newPost)
+			ImportPost(T, &newPost)
 		case sPost.Type == "message" && sPost.SubType == "file_comment":
 			if sPost.Comment["user"] == "" {
 				l4g.Debug("Message without user")
@@ -161,7 +161,7 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 				Message:   sPost.Comment["comment"],
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			ImportPost(&newPost)
+			ImportPost(T, &newPost)
 		case sPost.Type == "message" && sPost.SubType == "bot_message":
 			// In the future this will use the "Action Post" spec to post
 			// a message without using a username. For now we just warn that we don't handle this case
@@ -200,7 +200,7 @@ func SlackAddChannels(T goi18n.TranslateFunc, teamId string, slackchannels []Sla
 		}
 		log.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
-		SlackAddPosts(mChannel, posts[sChannel.Name], users)
+		SlackAddPosts(T, mChannel, posts[sChannel.Name], users)
 	}
 
 	return addedChannels

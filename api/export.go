@@ -192,7 +192,7 @@ func ExportChannels(T goi18n.TranslateFunc, writer ExportWriter, options *Export
 	}
 
 	for _, channel := range channels {
-		if err := ExportPosts(writer, options, channel.Id); err != nil {
+		if err := ExportPosts(T, writer, options, channel.Id); err != nil {
 			return err
 		}
 	}
@@ -200,10 +200,10 @@ func ExportChannels(T goi18n.TranslateFunc, writer ExportWriter, options *Export
 	return nil
 }
 
-func ExportPosts(writer ExportWriter, options *ExportOptions, channelId string) *model.AppError {
+func ExportPosts(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOptions, channelId string) *model.AppError {
 	// Get the posts
 	var posts []*model.Post
-	if result := <-Srv.Store.Post().GetForExport(channelId); result.Err != nil {
+	if result := <-Srv.Store.Post().GetForExport(T, channelId); result.Err != nil {
 		return result.Err
 	} else {
 		posts = result.Data.([]*model.Post)

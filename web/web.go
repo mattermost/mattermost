@@ -370,7 +370,7 @@ func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var post *model.Post
-	if result := <-api.Srv.Store.Post().Get(postId); result.Err != nil {
+	if result := <-api.Srv.Store.Post().Get(c.T, postId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

@@ -72,7 +72,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
-		pchan = Srv.Store.Post().Get(post.RootId)
+		pchan = Srv.Store.Post().Get(c.T, post.RootId)
 	}
 
 	// Verify the parent/child relationships are correct
@@ -138,7 +138,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 	}
 
 	var rpost *model.Post
-	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
+	if result := <-Srv.Store.Post().Save(c.T, post); result.Err != nil {
 		return nil, result.Err
 	} else {
 		rpost = result.Data.(*model.Post)
@@ -711,7 +711,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, post.ChannelId, c.Session.UserId)
-	pchan := Srv.Store.Post().Get(post.Id)
+	pchan := Srv.Store.Post().Get(c.T, post.Id)
 
 	if !c.HasPermissionsToChannel(cchan, "updatePost") {
 		return
@@ -745,7 +745,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hashtags, _ := model.ParseHashtags(post.Message)
 
-	if result := <-Srv.Store.Post().Update(oldPost, post.Message, hashtags); result.Err != nil {
+	if result := <-Srv.Store.Post().Update(c.T, oldPost, post.Message, hashtags); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -782,7 +782,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, id, c.Session.UserId)
-	etagChan := Srv.Store.Post().GetEtag(id)
+	etagChan := Srv.Store.Post().GetEtag(c.T, id)
 
 	if !c.HasPermissionsToChannel(cchan, "getPosts") {
 		return
@@ -794,7 +794,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pchan := Srv.Store.Post().GetPosts(id, offset, limit)
+	pchan := Srv.Store.Post().GetPosts(c.T, id, offset, limit)
 
 	if result := <-pchan; result.Err != nil {
 		c.Err = result.Err
@@ -824,7 +824,7 @@ func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, id, c.Session.UserId)
-	pchan := Srv.Store.Post().GetPostsSince(id, time)
+	pchan := Srv.Store.Post().GetPostsSince(c.T, id, time)
 
 	if !c.HasPermissionsToChannel(cchan, "getPostsSince") {
 		return
@@ -857,7 +857,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
-	pchan := Srv.Store.Post().Get(postId)
+	pchan := Srv.Store.Post().Get(c.T, postId)
 
 	if !c.HasPermissionsToChannel(cchan, "getPost") {
 		return
@@ -891,7 +891,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
+	if result := <-Srv.Store.Post().Get(c.T, postId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -933,7 +933,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
-	pchan := Srv.Store.Post().Get(postId)
+	pchan := Srv.Store.Post().Get(c.T, postId)
 
 	if result := <-pchan; result.Err != nil {
 		c.Err = result.Err
@@ -963,7 +963,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if dresult := <-Srv.Store.Post().Delete(postId, model.GetMillis()); dresult.Err != nil {
+		if dresult := <-Srv.Store.Post().Delete(c.T, postId, model.GetMillis()); dresult.Err != nil {
 			c.Err = dresult.Err
 			return
 		}
@@ -1014,7 +1014,7 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, id, c.Session.UserId)
 	// We can do better than this etag in this situation
-	etagChan := Srv.Store.Post().GetEtag(id)
+	etagChan := Srv.Store.Post().GetEtag(c.T, id)
 
 	if !c.HasPermissionsToChannel(cchan, "getPostsBeforeOrAfter") {
 		return
@@ -1027,9 +1027,9 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 
 	var pchan store.StoreChannel
 	if before {
-		pchan = Srv.Store.Post().GetPostsBefore(id, postId, numPosts, offset)
+		pchan = Srv.Store.Post().GetPostsBefore(c.T, id, postId, numPosts, offset)
 	} else {
-		pchan = Srv.Store.Post().GetPostsAfter(id, postId, numPosts, offset)
+		pchan = Srv.Store.Post().GetPostsAfter(c.T, id, postId, numPosts, offset)
 	}
 
 	if result := <-pchan; result.Err != nil {
@@ -1057,7 +1057,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, params := range paramsList {
 		// don't allow users to search for everything
 		if params.Terms != "*" {
-			channels = append(channels, Srv.Store.Post().Search(c.Session.TeamId, c.Session.UserId, params))
+			channels = append(channels, Srv.Store.Post().Search(c.T, c.Session.TeamId, c.Session.UserId, params))
 		}
 	}
 

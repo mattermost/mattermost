@@ -14,10 +14,10 @@ import (
 // some of the usual checks. (IsValid is still run)
 //
 
-func ImportPost(post *model.Post) {
+func ImportPost(T goi18n.TranslateFunc, post *model.Post) {
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
+	if result := <-Srv.Store.Post().Save(T, post); result.Err != nil {
 		l4g.Debug("Error saving post. user=" + post.UserId + ", message=" + post.Message)
 	}
 }
