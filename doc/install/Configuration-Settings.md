@@ -41,7 +41,7 @@ Set the number of days before SSO sessions expire.
 ```"SessionCacheInMinutes" : 10```
 Set the number of minutes to cache a session in memory.
 
-```"SecureWebsocketPort": 443```
+```"WebsocketSecurePort": 443```
 The port to use for secure websocket connections being initiated from the client. By default wss:// uses port 443. Some server configurations (e.g. Cloudfoundry) support wss on a different port.
 
 ```"WebsocketPort": 80```
