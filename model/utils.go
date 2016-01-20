@@ -9,13 +9,15 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
-	"github.com/pborman/uuid"
 	"io"
 	"net/mail"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
+
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"github.com/pborman/uuid"
 )
 
 type StringInterface map[string]interface{}
@@ -23,18 +25,29 @@ type StringMap map[string]string
 type StringArray []string
 type EncryptStringMap map[string]string
 
-// AppError is returned for any http response that's not in the 200 range.
 type AppError struct {
-	Message       string `json:"message"`        // Message to be display to the end user without debugging information
-	DetailedError string `json:"detailed_error"` // Internal error string to help the developer
-	RequestId     string `json:"request_id"`     // The RequestId that's also set in the header
-	StatusCode    int    `json:"status_code"`    // The http status code
-	Where         string `json:"-"`              // The function where it happened in the form of Struct.Func
-	IsOAuth       bool   `json:"is_oauth"`       // Whether the error is OAuth specific
+	Id            string                 `json:"id"`
+	Message       string                 `json:"message"`        // Message to be display to the end user without debugging information
+	DetailedError string                 `json:"detailed_error"` // Internal error string to help the developer
+	RequestId     string                 `json:"request_id"`     // The RequestId that's also set in the header
+	StatusCode    int                    `json:"status_code"`    // The http status code
+	Where         string                 `json:"-"`              // The function where it happened in the form of Struct.Func
+	IsOAuth       bool                   `json:"is_oauth"`       // Whether the error is OAuth specific
+	params        map[string]interface{} `json:"-"`
 }
 
 func (er *AppError) Error() string {
 	return er.Where + ": " + er.Message + ", " + er.DetailedError
+}
+
+func (er *AppError) Translate(T goi18n.TranslateFunc) {
+	if len(er.Message) == 0 {
+		if er.params == nil {
+			er.Message = T(er.Id)
+		} else {
+			er.Message = T(er.Id, er.params)
+		}
+	}
 }
 
 func (er *AppError) ToJson() string {
@@ -61,6 +74,17 @@ func AppErrorFromJson(data io.Reader) *AppError {
 func NewAppError(where string, message string, details string) *AppError {
 	ap := &AppError{}
 	ap.Message = message
+	ap.Where = where
+	ap.DetailedError = details
+	ap.StatusCode = 500
+	ap.IsOAuth = false
+	return ap
+}
+
+func NewLocAppError(where string, id string, params map[string]interface{}, details string) *AppError {
+	ap := &AppError{}
+	ap.Id = id
+	ap.params = params
 	ap.Where = where
 	ap.DetailedError = details
 	ap.StatusCode = 500
