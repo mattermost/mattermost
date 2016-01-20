@@ -1,0 +1,14 @@
+[
+    {
+        "id": "utils.i18n.loaded",
+        "translation": "Loaded system translations for '%v' from '%v'"
+    },
+    {
+        "id": "mattermost.current_version",
+        "translation": "Current version is %v (%v/%v/%v)"
+    },
+    {
+        "id": "api.admin.file_read_error",
+        "translation": "Error reading log file"
+    }
+]

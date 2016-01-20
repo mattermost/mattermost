@@ -370,7 +370,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 
 							// copy the context and create a mock session for posting the message
 							mockSession := model.Session{UserId: hook.CreatorId, TeamId: hook.TeamId, IsOAuth: false}
-							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL, 0}
+							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL, 0, c.T}
 
 							if text, ok := respProps["text"]; ok {
 								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {

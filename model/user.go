@@ -6,11 +6,12 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"io"
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -24,6 +25,7 @@ const (
 	USER_NOTIFY_ALL      = "all"
 	USER_NOTIFY_MENTION  = "mention"
 	USER_NOTIFY_NONE     = "none"
+	DEFAULT_LOCALE       = "en"
 )
 
 type User struct {
@@ -51,6 +53,7 @@ type User struct {
 	LastPasswordUpdate int64     `json:"last_password_update,omitempty"`
 	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
 	FailedAttempts     int       `json:"failed_attempts,omitempty"`
+	Locale             string    `json:"locale"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -130,11 +133,16 @@ func (u *User) PreSave() {
 
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
+	u.Locale = strings.ToLower(u.Locale)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
 
 	u.LastPasswordUpdate = u.CreateAt
+
+	if u.Locale == "" {
+		u.Locale = DEFAULT_LOCALE
+	}
 
 	if u.Props == nil {
 		u.Props = make(map[string]string)
@@ -153,6 +161,7 @@ func (u *User) PreSave() {
 func (u *User) PreUpdate() {
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
+	u.Locale = strings.ToLower(u.Locale)
 	u.UpdateAt = GetMillis()
 
 	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {

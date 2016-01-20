@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
@@ -29,6 +30,7 @@ type Context struct {
 	teamURL           string
 	siteURL           string
 	SessionTokenIndex int64
+	T                 goi18n.TranslateFunc
 }
 
 type Page struct {
@@ -81,10 +83,10 @@ type handler struct {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
 	l4g.Debug("%v", r.URL.Path)
 
 	c := &Context{}
+	c.T = utils.GetTranslations(w, r)
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
 
