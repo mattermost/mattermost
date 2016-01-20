@@ -846,7 +846,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var app *model.OAuthApp
-	if result := <-api.Srv.Store.OAuth().GetApp(clientId); result.Err != nil {
+	if result := <-api.Srv.Store.OAuth().GetApp(c.T, clientId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -909,10 +909,10 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectUri := r.FormValue("redirect_uri")
 
-	achan := api.Srv.Store.OAuth().GetApp(clientId)
-	tchan := api.Srv.Store.OAuth().GetAccessDataByAuthCode(code)
+	achan := api.Srv.Store.OAuth().GetApp(c.T, clientId)
+	tchan := api.Srv.Store.OAuth().GetAccessDataByAuthCode(c.T, code)
 
-	authData := api.GetAuthData(code)
+	authData := api.GetAuthData(c.T, code)
 
 	if authData == nil {
 		c.LogAudit("fail - invalid auth code")
@@ -967,7 +967,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		accessData := result.Data.(*model.AccessData)
 
 		// Revoke access token, related auth code, and session from DB as well as from cache
-		if err := api.RevokeAccessToken(accessData.Token); err != nil {
+		if err := api.RevokeAccessToken(c.T, accessData.Token); err != nil {
 			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
 		}
 
@@ -995,7 +995,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	accessData := &model.AccessData{AuthCode: authData.Code, Token: session.Token, RedirectUri: callback}
 
-	if result := <-api.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
+	if result := <-api.Srv.Store.OAuth().SaveAccessData(c.T, accessData); result.Err != nil {
 		l4g.Error(result.Err)
 		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while saving access token to database", "")
 		return

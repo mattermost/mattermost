@@ -713,7 +713,7 @@ func RevokeSessionById(c *Context, sessionId string) {
 		c.LogAudit("session_id=" + session.Id)
 
 		if session.IsOAuth {
-			RevokeAccessToken(session.Token)
+			RevokeAccessToken(c.T, session.Token)
 		} else {
 			sessionCache.Remove(session.Token)
 
@@ -734,7 +734,7 @@ func RevokeAllSession(c *Context, userId string) {
 		for _, session := range sessions {
 			c.LogAuditWithUserId(userId, "session_id="+session.Id)
 			if session.IsOAuth {
-				RevokeAccessToken(session.Token)
+				RevokeAccessToken(c.T, session.Token)
 			} else {
 				sessionCache.Remove(session.Token)
 				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
@@ -1440,7 +1440,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); result.Err != nil {
+	if result := <-Srv.Store.OAuth().PermanentDeleteAuthDataByUser(c.T, user.Id); result.Err != nil {
 		return result.Err
 	}
 

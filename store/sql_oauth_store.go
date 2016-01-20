@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"strings"
 )
 
@@ -52,7 +53,7 @@ func (as SqlOAuthStore) CreateIndexesIfNotExists() {
 	as.CreateIndexIfNotExists("idx_oauthauthdata_client_id", "OAuthAuthData", "Code")
 }
 
-func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) StoreChannel {
+func (as SqlOAuthStore) SaveApp(T goi18n.TranslateFunc, app *model.OAuthApp) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -86,7 +87,7 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
+func (as SqlOAuthStore) UpdateApp(T goi18n.TranslateFunc, app *model.OAuthApp) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -127,7 +128,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetApp(id string) StoreChannel {
+func (as SqlOAuthStore) GetApp(T goi18n.TranslateFunc, id string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -150,7 +151,7 @@ func (as SqlOAuthStore) GetApp(id string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
+func (as SqlOAuthStore) GetAppByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -172,7 +173,7 @@ func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) StoreChannel {
+func (as SqlOAuthStore) SaveAccessData(T goi18n.TranslateFunc, accessData *model.AccessData) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -198,7 +199,7 @@ func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) StoreChanne
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAccessData(token string) StoreChannel {
+func (as SqlOAuthStore) GetAccessData(T goi18n.TranslateFunc, token string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -221,7 +222,7 @@ func (as SqlOAuthStore) GetAccessData(token string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string) StoreChannel {
+func (as SqlOAuthStore) GetAccessDataByAuthCode(T goi18n.TranslateFunc, authCode string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -248,7 +249,7 @@ func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) RemoveAccessData(token string) StoreChannel {
+func (as SqlOAuthStore) RemoveAccessData(T goi18n.TranslateFunc, token string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -265,7 +266,7 @@ func (as SqlOAuthStore) RemoveAccessData(token string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) StoreChannel {
+func (as SqlOAuthStore) SaveAuthData(T goi18n.TranslateFunc, authData *model.AuthData) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -292,7 +293,7 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAuthData(code string) StoreChannel {
+func (as SqlOAuthStore) GetAuthData(T goi18n.TranslateFunc, code string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -315,7 +316,7 @@ func (as SqlOAuthStore) GetAuthData(code string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
+func (as SqlOAuthStore) RemoveAuthData(T goi18n.TranslateFunc, code string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -333,7 +334,7 @@ func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) StoreChannel {
+func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

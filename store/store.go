@@ -147,18 +147,18 @@ type AuditStore interface {
 }
 
 type OAuthStore interface {
-	SaveApp(app *model.OAuthApp) StoreChannel
-	UpdateApp(app *model.OAuthApp) StoreChannel
-	GetApp(id string) StoreChannel
-	GetAppByUser(userId string) StoreChannel
-	SaveAuthData(authData *model.AuthData) StoreChannel
-	GetAuthData(code string) StoreChannel
-	RemoveAuthData(code string) StoreChannel
-	PermanentDeleteAuthDataByUser(userId string) StoreChannel
-	SaveAccessData(accessData *model.AccessData) StoreChannel
-	GetAccessData(token string) StoreChannel
-	GetAccessDataByAuthCode(authCode string) StoreChannel
-	RemoveAccessData(token string) StoreChannel
+	SaveApp(T goi18n.TranslateFunc, app *model.OAuthApp) StoreChannel
+	UpdateApp(T goi18n.TranslateFunc, app *model.OAuthApp) StoreChannel
+	GetApp(T goi18n.TranslateFunc, id string) StoreChannel
+	GetAppByUser(T goi18n.TranslateFunc, userId string) StoreChannel
+	SaveAuthData(T goi18n.TranslateFunc, authData *model.AuthData) StoreChannel
+	GetAuthData(T goi18n.TranslateFunc, code string) StoreChannel
+	RemoveAuthData(T goi18n.TranslateFunc, code string) StoreChannel
+	PermanentDeleteAuthDataByUser(T goi18n.TranslateFunc, userId string) StoreChannel
+	SaveAccessData(T goi18n.TranslateFunc, accessData *model.AccessData) StoreChannel
+	GetAccessData(T goi18n.TranslateFunc, token string) StoreChannel
+	GetAccessDataByAuthCode(T goi18n.TranslateFunc, authCode string) StoreChannel
+	RemoveAccessData(T goi18n.TranslateFunc, token string) StoreChannel
 }
 
 type SystemStore interface {

@@ -340,7 +340,7 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("revoked_all=" + id)
 
 		if session.IsOAuth {
-			RevokeAccessToken(session.Token)
+			RevokeAccessToken(c.T, session.Token)
 		} else {
 			sessionCache.Remove(session.Token)
 
