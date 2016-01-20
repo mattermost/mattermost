@@ -692,7 +692,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 		Value:    id,
 	}
 
-	Srv.Store.Preference().Save(&model.Preferences{preference})
+	Srv.Store.Preference().Save(c.T, &model.Preferences{preference})
 
 	message := model.NewMessage(c.Session.TeamId, id, c.Session.UserId, model.ACTION_CHANNEL_VIEWED)
 	message.Add("channel_id", id)

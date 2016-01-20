@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
 	"io"
 	sqltrace "log"
 	"math/rand"
@@ -23,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
@@ -148,7 +148,7 @@ func NewSqlStore() Store {
 	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 
-	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
+	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures(utils.T)
 
 	if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 || isSchemaVersion10 {
 		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})

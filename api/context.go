@@ -233,7 +233,7 @@ func GetProtocol(r *http.Request) string {
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-Srv.Store.Audit().Save(c.T, audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -245,7 +245,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-Srv.Store.Audit().Save(c.T, audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }

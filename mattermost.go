@@ -309,7 +309,7 @@ func cmdCreateUser() {
 			user.TeamId = team.Id
 		}
 
-		_, err := api.CreateUser(team, user)
+		_, err := api.CreateUser(utils.T, team, user)
 		if err != nil {
 			if err.Message != "An account with that email already exists." {
 				l4g.Error("%v", err)

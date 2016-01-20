@@ -5,11 +5,6 @@ package api
 
 import (
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -17,6 +12,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 func InitPost(r *mux.Router) {
@@ -238,12 +240,12 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		}
 
 		if channel.Type == model.CHANNEL_DIRECT {
-			go makeDirectChannelVisible(c.Session.TeamId, post.ChannelId)
+			go makeDirectChannelVisible(c.T, c.Session.TeamId, post.ChannelId)
 		}
 	}()
 }
 
-func makeDirectChannelVisible(teamId string, channelId string) {
+func makeDirectChannelVisible(T goi18n.TranslateFunc, teamId string, channelId string) {
 	var members []model.ChannelMember
 	if result := <-Srv.Store.Channel().GetMembers(channelId); result.Err != nil {
 		l4g.Error("Failed to get channel members channel_id=%v err=%v", channelId, result.Err.Message)
@@ -261,7 +263,7 @@ func makeDirectChannelVisible(teamId string, channelId string) {
 	for i, member := range members {
 		otherUserId := members[1-i].UserId
 
-		if result := <-Srv.Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId); result.Err != nil {
+		if result := <-Srv.Store.Preference().Get(T, member.UserId, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId); result.Err != nil {
 			// create a new preference since one doesn't exist yet
 			preference := &model.Preference{
 				UserId:   member.UserId,
@@ -270,7 +272,7 @@ func makeDirectChannelVisible(teamId string, channelId string) {
 				Value:    "true",
 			}
 
-			if saveResult := <-Srv.Store.Preference().Save(&model.Preferences{*preference}); saveResult.Err != nil {
+			if saveResult := <-Srv.Store.Preference().Save(T, &model.Preferences{*preference}); saveResult.Err != nil {
 				l4g.Error("Failed to save direct channel preference user_id=%v other_user_id=%v err=%v", member.UserId, otherUserId, saveResult.Err.Message)
 			} else {
 				message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
@@ -285,7 +287,7 @@ func makeDirectChannelVisible(teamId string, channelId string) {
 				// update the existing preference to make the channel visible
 				preference.Value = "true"
 
-				if updateResult := <-Srv.Store.Preference().Save(&model.Preferences{preference}); updateResult.Err != nil {
+				if updateResult := <-Srv.Store.Preference().Save(T, &model.Preferences{preference}); updateResult.Err != nil {
 					l4g.Error("Failed to update direct channel preference user_id=%v other_user_id=%v err=%v", member.UserId, otherUserId, updateResult.Err.Message)
 				} else {
 					message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)

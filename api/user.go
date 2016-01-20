@@ -7,15 +7,6 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/disintegration/imaging"
-	"github.com/golang/freetype"
-	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/einterfaces"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
-	"github.com/mssola/user_agent"
 	"hash/fnv"
 	"image"
 	"image/color"
@@ -29,6 +20,17 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
+	"github.com/golang/freetype"
+	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
+	"github.com/mssola/user_agent"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 func InitUser(r *mux.Router) {
@@ -127,14 +129,14 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ruser, err := CreateUser(team, user)
+	ruser, err := CreateUser(c.T, team, user)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if sendWelcomeEmail {
-		sendWelcomeEmailAndForget(ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), ruser.EmailVerified)
+		sendWelcomeEmailAndForget(c.T, ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), ruser.EmailVerified)
 	}
 
 	w.Write([]byte(ruser.ToJson()))
@@ -183,7 +185,7 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 	return shouldVerifyHash
 }
 
-func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppError) {
+func CreateUser(T goi18n.TranslateFunc, team *model.Team, user *model.User) (*model.User, *model.AppError) {
 
 	channelRole := ""
 	if team.Email == user.Email {
@@ -218,7 +220,7 @@ func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppErro
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		addDirectChannelsAndForget(ruser)
+		addDirectChannelsAndForget(T, ruser)
 
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
@@ -227,7 +229,7 @@ func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppErro
 		}
 
 		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
+		if presult := <-Srv.Store.Preference().Save(T, &model.Preferences{pref}); presult.Err != nil {
 			l4g.Error("Encountered error saving tutorial preference, err=%v", presult.Err.Message)
 		}
 
@@ -292,7 +294,7 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	user.TeamId = team.Id
 	user.EmailVerified = true
 
-	ruser, err := CreateUser(team, user)
+	ruser, err := CreateUser(c.T, team, user)
 	if err != nil {
 		c.Err = err
 		return nil
@@ -306,7 +308,7 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	return ruser
 }
 
-func sendWelcomeEmailAndForget(userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool) {
+func sendWelcomeEmailAndForget(T goi18n.TranslateFunc, userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("welcome_subject")
@@ -326,7 +328,7 @@ func sendWelcomeEmailAndForget(userId, email, teamName, teamDisplayName, siteURL
 	}()
 }
 
-func addDirectChannelsAndForget(user *model.User) {
+func addDirectChannelsAndForget(T goi18n.TranslateFunc, user *model.User) {
 	go func() {
 		var profiles map[string]*model.User
 		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
@@ -359,7 +361,7 @@ func addDirectChannelsAndForget(user *model.User) {
 			}
 		}
 
-		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+		if result := <-Srv.Store.Preference().Save(T, &preferences); result.Err != nil {
 			l4g.Error("Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
 		}
 	}()
@@ -883,7 +885,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userChan := Srv.Store.User().Get(id)
-	auditChan := Srv.Store.Audit().Get(id, 20)
+	auditChan := Srv.Store.Audit().Get(c.T, id, 20)
 
 	if c.Err = (<-userChan).Err; c.Err != nil {
 		return
@@ -1450,7 +1452,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
+	if result := <-Srv.Store.Preference().PermanentDeleteByUser(c.T, user.Id); result.Err != nil {
 		return result.Err
 	}
 
@@ -1466,7 +1468,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Audit().PermanentDeleteByUser(user.Id); result.Err != nil {
+	if result := <-Srv.Store.Audit().PermanentDeleteByUser(c.T, user.Id); result.Err != nil {
 		return result.Err
 	}
 

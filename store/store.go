@@ -4,9 +4,11 @@
 package store
 
 import (
+	"time"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
-	"time"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type StoreResult struct {
@@ -139,9 +141,9 @@ type SessionStore interface {
 }
 
 type AuditStore interface {
-	Save(audit *model.Audit) StoreChannel
-	Get(user_id string, limit int) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	Save(T goi18n.TranslateFunc, audit *model.Audit) StoreChannel
+	Get(T goi18n.TranslateFunc, user_id string, limit int) StoreChannel
+	PermanentDeleteByUser(T goi18n.TranslateFunc, userId string) StoreChannel
 }
 
 type OAuthStore interface {
@@ -183,10 +185,10 @@ type WebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) StoreChannel
-	Get(userId string, category string, name string) StoreChannel
-	GetCategory(userId string, category string) StoreChannel
-	GetAll(userId string) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
-	IsFeatureEnabled(feature, userId string) StoreChannel
+	Save(T goi18n.TranslateFunc, preferences *model.Preferences) StoreChannel
+	Get(T goi18n.TranslateFunc, userId string, category string, name string) StoreChannel
+	GetCategory(T goi18n.TranslateFunc, userId string, category string) StoreChannel
+	GetAll(T goi18n.TranslateFunc, userId string) StoreChannel
+	PermanentDeleteByUser(T goi18n.TranslateFunc, userId string) StoreChannel
+	IsFeatureEnabled(T goi18n.TranslateFunc, feature, userId string) StoreChannel
 }

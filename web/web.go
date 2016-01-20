@@ -5,6 +5,12 @@ package web
 
 import (
 	"fmt"
+	"html/template"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
@@ -13,11 +19,6 @@ import (
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
 	"gopkg.in/fsnotify.v1"
-	"html/template"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 )
 
 var Templates *template.Template
@@ -241,7 +242,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if session != nil {
 		w.Header().Set(model.HEADER_TOKEN, session.Token)
 		lastViewChannelName := "town-square"
-		if lastViewResult := <-api.Srv.Store.Preference().Get(session.UserId, model.PREFERENCE_CATEGORY_LAST, model.PREFERENCE_NAME_LAST_CHANNEL); lastViewResult.Err == nil {
+		if lastViewResult := <-api.Srv.Store.Preference().Get(c.T, session.UserId, model.PREFERENCE_CATEGORY_LAST, model.PREFERENCE_NAME_LAST_CHANNEL); lastViewResult.Err == nil {
 			if lastViewChannelResult := <-api.Srv.Store.Channel().Get(lastViewResult.Data.(model.Preference).Value); lastViewChannelResult.Err == nil {
 				lastViewChannelName = lastViewChannelResult.Data.(*model.Channel).Name
 			}

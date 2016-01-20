@@ -6,16 +6,17 @@ package api
 import (
 	"bytes"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 func InitTeam(r *mux.Router) {
@@ -222,7 +223,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		teamSignup.User.TeamId = rteam.Id
 		teamSignup.User.EmailVerified = true
 
-		ruser, err := CreateUser(rteam, &teamSignup.User)
+		ruser, err := CreateUser(c.T, rteam, &teamSignup.User)
 		if err != nil {
 			c.Err = err
 			return
