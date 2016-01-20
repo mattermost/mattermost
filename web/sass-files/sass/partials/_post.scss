@@ -11,6 +11,7 @@
 	resize: none;
 	line-height:20px;
 	min-height:36px;
+	overflow-x: hidden;
 	&:focus {
 		border-color: #ccc;
 		box-shadow: none;
@@ -335,7 +336,6 @@ body.ios {
 			padding-top: 8px;
 			padding-right: 28px;
 			max-height: 162px !important;
-			overflow: auto;
 			line-height: 1.5;
 		}
 		.textarea-div {
