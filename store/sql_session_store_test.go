@@ -5,7 +5,6 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"testing"
 )
 
@@ -16,7 +15,7 @@ func TestSessionStoreSave(t *testing.T) {
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
 
-	if err := (<-store.Session().Save(utils.T, &s1)).Err; err != nil {
+	if err := (<-store.Session().Save(&s1)).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -27,20 +26,20 @@ func TestSessionGet(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	Must(store.Session().Save(utils.T, &s1))
+	Must(store.Session().Save(&s1))
 
 	s2 := model.Session{}
 	s2.UserId = s1.UserId
 	s2.TeamId = s1.TeamId
-	Must(store.Session().Save(utils.T, &s2))
+	Must(store.Session().Save(&s2))
 
 	s3 := model.Session{}
 	s3.UserId = s1.UserId
 	s3.TeamId = s1.TeamId
 	s3.ExpiresAt = 1
-	Must(store.Session().Save(utils.T, &s3))
+	Must(store.Session().Save(&s3))
 
-	if rs1 := (<-store.Session().Get(utils.T, s1.Id)); rs1.Err != nil {
+	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
 	} else {
 		if rs1.Data.(*model.Session).Id != s1.Id {
@@ -48,7 +47,7 @@ func TestSessionGet(t *testing.T) {
 		}
 	}
 
-	if rs2 := (<-store.Session().GetSessions(utils.T, s1.UserId)); rs2.Err != nil {
+	if rs2 := (<-store.Session().GetSessions(s1.UserId)); rs2.Err != nil {
 		t.Fatal(rs2.Err)
 	} else {
 		if len(rs2.Data.([]*model.Session)) != 2 {
@@ -64,9 +63,9 @@ func TestSessionRemove(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	Must(store.Session().Save(utils.T, &s1))
+	Must(store.Session().Save(&s1))
 
-	if rs1 := (<-store.Session().Get(utils.T, s1.Id)); rs1.Err != nil {
+	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
 	} else {
 		if rs1.Data.(*model.Session).Id != s1.Id {
@@ -74,9 +73,9 @@ func TestSessionRemove(t *testing.T) {
 		}
 	}
 
-	Must(store.Session().Remove(utils.T, s1.Id))
+	Must(store.Session().Remove(s1.Id))
 
-	if rs2 := (<-store.Session().Get(utils.T, s1.Id)); rs2.Err == nil {
+	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
 		t.Fatal("should have been removed")
 	}
 }
@@ -87,9 +86,9 @@ func TestSessionRemoveAll(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	Must(store.Session().Save(utils.T, &s1))
+	Must(store.Session().Save(&s1))
 
-	if rs1 := (<-store.Session().Get(utils.T, s1.Id)); rs1.Err != nil {
+	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
 	} else {
 		if rs1.Data.(*model.Session).Id != s1.Id {
@@ -97,9 +96,9 @@ func TestSessionRemoveAll(t *testing.T) {
 		}
 	}
 
-	Must(store.Session().RemoveAllSessionsForTeam(utils.T, s1.TeamId))
+	Must(store.Session().RemoveAllSessionsForTeam(s1.TeamId))
 
-	if rs2 := (<-store.Session().Get(utils.T, s1.Id)); rs2.Err == nil {
+	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
 		t.Fatal("should have been removed")
 	}
 }
@@ -110,9 +109,9 @@ func TestSessionRemoveByUser(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	Must(store.Session().Save(utils.T, &s1))
+	Must(store.Session().Save(&s1))
 
-	if rs1 := (<-store.Session().Get(utils.T, s1.Id)); rs1.Err != nil {
+	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
 	} else {
 		if rs1.Data.(*model.Session).Id != s1.Id {
@@ -120,9 +119,9 @@ func TestSessionRemoveByUser(t *testing.T) {
 		}
 	}
 
-	Must(store.Session().PermanentDeleteSessionsByUser(utils.T, s1.UserId))
+	Must(store.Session().PermanentDeleteSessionsByUser(s1.UserId))
 
-	if rs2 := (<-store.Session().Get(utils.T, s1.Id)); rs2.Err == nil {
+	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
 		t.Fatal("should have been removed")
 	}
 }
@@ -133,9 +132,9 @@ func TestSessionRemoveToken(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	Must(store.Session().Save(utils.T, &s1))
+	Must(store.Session().Save(&s1))
 
-	if rs1 := (<-store.Session().Get(utils.T, s1.Id)); rs1.Err != nil {
+	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
 	} else {
 		if rs1.Data.(*model.Session).Id != s1.Id {
@@ -143,13 +142,13 @@ func TestSessionRemoveToken(t *testing.T) {
 		}
 	}
 
-	Must(store.Session().Remove(utils.T, s1.Token))
+	Must(store.Session().Remove(s1.Token))
 
-	if rs2 := (<-store.Session().Get(utils.T, s1.Id)); rs2.Err == nil {
+	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
 		t.Fatal("should have been removed")
 	}
 
-	if rs3 := (<-store.Session().GetSessions(utils.T, s1.UserId)); rs3.Err != nil {
+	if rs3 := (<-store.Session().GetSessions(s1.UserId)); rs3.Err != nil {
 		t.Fatal(rs3.Err)
 	} else {
 		if len(rs3.Data.([]*model.Session)) != 0 {
@@ -164,13 +163,13 @@ func TestSessionStoreUpdateLastActivityAt(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	Must(store.Session().Save(utils.T, &s1))
+	Must(store.Session().Save(&s1))
 
-	if err := (<-store.Session().UpdateLastActivityAt(utils.T, s1.Id, 1234567890)).Err; err != nil {
+	if err := (<-store.Session().UpdateLastActivityAt(s1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if r1 := <-store.Session().Get(utils.T, s1.Id); r1.Err != nil {
+	if r1 := <-store.Session().Get(s1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Session).LastActivityAt != 1234567890 {

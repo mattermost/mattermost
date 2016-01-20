@@ -5,14 +5,12 @@ package api
 
 import (
 	"fmt"
-	"net/http"
-	"net/url"
-
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"net/http"
+	"net/url"
 )
 
 func InitOAuth(r *mux.Router) {
@@ -43,7 +41,7 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	app.ClientSecret = secret
 	app.CreatorId = c.Session.UserId
 
-	if result := <-Srv.Store.OAuth().SaveApp(c.T, app); result.Err != nil {
+	if result := <-Srv.Store.OAuth().SaveApp(app); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -92,7 +90,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 
 	var app *model.OAuthApp
-	if result := <-Srv.Store.OAuth().GetApp(c.T, clientId); result.Err != nil {
+	if result := <-Srv.Store.OAuth().GetApp(clientId); result.Err != nil {
 		c.Err = model.NewAppError("allowOAuth", "server_error: Error accessing the database", "")
 		return
 	} else {
@@ -114,7 +112,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	authData := &model.AuthData{UserId: c.Session.UserId, ClientId: clientId, CreateAt: model.GetMillis(), RedirectUri: redirectUri, State: state, Scope: scope}
 	authData.Code = model.HashPassword(fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, c.Session.UserId))
 
-	if result := <-Srv.Store.OAuth().SaveAuthData(c.T, authData); result.Err != nil {
+	if result := <-Srv.Store.OAuth().SaveAuthData(authData); result.Err != nil {
 		responseData["redirect"] = redirectUri + "?error=server_error&state=" + state
 		w.Write([]byte(model.MapToJson(responseData)))
 		return
@@ -127,20 +125,20 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(responseData)))
 }
 
-func RevokeAccessToken(T goi18n.TranslateFunc, token string) *model.AppError {
+func RevokeAccessToken(token string) *model.AppError {
 
-	schan := Srv.Store.Session().Remove(T, token)
+	schan := Srv.Store.Session().Remove(token)
 	sessionCache.Remove(token)
 
 	var accessData *model.AccessData
-	if result := <-Srv.Store.OAuth().GetAccessData(T, token); result.Err != nil {
+	if result := <-Srv.Store.OAuth().GetAccessData(token); result.Err != nil {
 		return model.NewAppError("RevokeAccessToken", "Error getting access token from DB before deletion", "")
 	} else {
 		accessData = result.Data.(*model.AccessData)
 	}
 
-	tchan := Srv.Store.OAuth().RemoveAccessData(T, token)
-	cchan := Srv.Store.OAuth().RemoveAuthData(T, accessData.AuthCode)
+	tchan := Srv.Store.OAuth().RemoveAccessData(token)
+	cchan := Srv.Store.OAuth().RemoveAuthData(accessData.AuthCode)
 
 	if result := <-tchan; result.Err != nil {
 		return model.NewAppError("RevokeAccessToken", "Error deleting access token from DB", "")
@@ -157,8 +155,8 @@ func RevokeAccessToken(T goi18n.TranslateFunc, token string) *model.AppError {
 	return nil
 }
 
-func GetAuthData(T goi18n.TranslateFunc, code string) *model.AuthData {
-	if result := <-Srv.Store.OAuth().GetAuthData(T, code); result.Err != nil {
+func GetAuthData(code string) *model.AuthData {
+	if result := <-Srv.Store.OAuth().GetAuthData(code); result.Err != nil {
 		l4g.Error("Couldn't find auth code for code=%s", code)
 		return nil
 	} else {

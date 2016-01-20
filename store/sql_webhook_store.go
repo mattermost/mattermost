@@ -5,7 +5,6 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlWebhookStore struct {
@@ -44,7 +43,7 @@ func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_outgoing_webhook_team_id", "OutgoingWebhooks", "TeamId")
 }
 
-func (s SqlWebhookStore) SaveIncoming(T goi18n.TranslateFunc, webhook *model.IncomingWebhook) StoreChannel {
+func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -78,7 +77,7 @@ func (s SqlWebhookStore) SaveIncoming(T goi18n.TranslateFunc, webhook *model.Inc
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncoming(T goi18n.TranslateFunc, id string) StoreChannel {
+func (s SqlWebhookStore) GetIncoming(id string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -99,7 +98,7 @@ func (s SqlWebhookStore) GetIncoming(T goi18n.TranslateFunc, id string) StoreCha
 	return storeChannel
 }
 
-func (s SqlWebhookStore) DeleteIncoming(T goi18n.TranslateFunc, webhookId string, time int64) StoreChannel {
+func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -117,7 +116,7 @@ func (s SqlWebhookStore) DeleteIncoming(T goi18n.TranslateFunc, webhookId string
 	return storeChannel
 }
 
-func (s SqlWebhookStore) PermanentDeleteIncomingByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -135,7 +134,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(T goi18n.TranslateFunc, u
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncomingByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlWebhookStore) GetIncomingByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -156,7 +155,7 @@ func (s SqlWebhookStore) GetIncomingByUser(T goi18n.TranslateFunc, userId string
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncomingByChannel(T goi18n.TranslateFunc, channelId string) StoreChannel {
+func (s SqlWebhookStore) GetIncomingByChannel(channelId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -177,7 +176,7 @@ func (s SqlWebhookStore) GetIncomingByChannel(T goi18n.TranslateFunc, channelId 
 	return storeChannel
 }
 
-func (s SqlWebhookStore) SaveOutgoing(T goi18n.TranslateFunc, webhook *model.OutgoingWebhook) StoreChannel {
+func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -211,7 +210,7 @@ func (s SqlWebhookStore) SaveOutgoing(T goi18n.TranslateFunc, webhook *model.Out
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoing(T goi18n.TranslateFunc, id string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoing(id string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -232,7 +231,7 @@ func (s SqlWebhookStore) GetOutgoing(T goi18n.TranslateFunc, id string) StoreCha
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByCreator(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingByCreator(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -253,7 +252,7 @@ func (s SqlWebhookStore) GetOutgoingByCreator(T goi18n.TranslateFunc, userId str
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByChannel(T goi18n.TranslateFunc, channelId string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -274,7 +273,7 @@ func (s SqlWebhookStore) GetOutgoingByChannel(T goi18n.TranslateFunc, channelId 
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByTeam(T goi18n.TranslateFunc, teamId string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingByTeam(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -295,7 +294,7 @@ func (s SqlWebhookStore) GetOutgoingByTeam(T goi18n.TranslateFunc, teamId string
 	return storeChannel
 }
 
-func (s SqlWebhookStore) DeleteOutgoing(T goi18n.TranslateFunc, webhookId string, time int64) StoreChannel {
+func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -313,7 +312,7 @@ func (s SqlWebhookStore) DeleteOutgoing(T goi18n.TranslateFunc, webhookId string
 	return storeChannel
 }
 
-func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -331,7 +330,7 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(T goi18n.TranslateFunc, u
 	return storeChannel
 }
 
-func (s SqlWebhookStore) UpdateOutgoing(T goi18n.TranslateFunc, hook *model.OutgoingWebhook) StoreChannel {
+func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

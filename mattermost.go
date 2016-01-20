@@ -92,14 +92,14 @@ func main() {
 }
 
 func setDiagnosticId() {
-	if result := <-api.Srv.Store.System().Get(utils.T); result.Err == nil {
+	if result := <-api.Srv.Store.System().Get(); result.Err == nil {
 		props := result.Data.(model.StringMap)
 
 		id := props[model.SYSTEM_DIAGNOSTIC_ID]
 		if len(id) == 0 {
 			id = model.NewId()
 			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-api.Srv.Store.System().Save(utils.T, systemId)
+			<-api.Srv.Store.System().Save(systemId)
 		}
 
 		utils.CfgDiagnosticId = id
@@ -110,7 +110,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 	go func() {
 		for {
 			if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
-				if result := <-api.Srv.Store.System().Get(utils.T); result.Err == nil {
+				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
 					props := result.Data.(model.StringMap)
 					lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
 					currentTime := model.GetMillis()
@@ -135,16 +135,16 @@ func runSecurityAndDiagnosticsJobAndForget() {
 
 						systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
 						if lastSecurityTime == 0 {
-							<-api.Srv.Store.System().Save(utils.T, systemSecurityLastTime)
+							<-api.Srv.Store.System().Save(systemSecurityLastTime)
 						} else {
-							<-api.Srv.Store.System().Update(utils.T, systemSecurityLastTime)
+							<-api.Srv.Store.System().Update(systemSecurityLastTime)
 						}
 
-						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(utils.T); ucr.Err == nil {
+						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
 							v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 						}
 
-						if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(utils.T); ucr.Err == nil {
+						if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(); ucr.Err == nil {
 							v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 						}
 
@@ -159,7 +159,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 						for _, bulletin := range bulletins {
 							if bulletin.AppliesToVersion == model.CurrentVersion {
 								if props["SecurityBulletin_"+bulletin.Id] == "" {
-									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(utils.T); results.Err != nil {
+									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
 										l4g.Error("Failed to get system admins for security update information from Mattermost.")
 										return
 									} else {
@@ -185,7 +185,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 									}
 
 									bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-									<-api.Srv.Store.System().Save(utils.T, bulletinSeen)
+									<-api.Srv.Store.System().Save(bulletinSeen)
 								}
 							}
 						}
@@ -301,7 +301,7 @@ func cmdCreateUser() {
 		splits := strings.Split(strings.Replace(flagEmail, "@", " ", -1), " ")
 		user.Username = splits[0]
 
-		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -309,7 +309,7 @@ func cmdCreateUser() {
 			user.TeamId = team.Id
 		}
 
-		_, err := api.CreateUser(utils.T, team, user)
+		_, err := api.CreateUser(team, user)
 		if err != nil {
 			if err.Message != "An account with that email already exists." {
 				l4g.Error("%v", err)
@@ -358,7 +358,7 @@ func cmdAssignRole() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -366,7 +366,7 @@ func cmdAssignRole() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(utils.T, team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -412,7 +412,7 @@ func cmdResetPassword() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -420,14 +420,14 @@ func cmdResetPassword() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(utils.T, team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
 			user = result.Data.(*model.User)
 		}
 
-		if result := <-api.Srv.Store.User().UpdatePassword(utils.T, user.Id, model.HashPassword(flagPassword)); result.Err != nil {
+		if result := <-api.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(flagPassword)); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		}
@@ -455,7 +455,7 @@ func cmdPermDeleteUser() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -463,7 +463,7 @@ func cmdPermDeleteUser() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(utils.T, team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -506,7 +506,7 @@ func cmdPermDeleteTeam() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
