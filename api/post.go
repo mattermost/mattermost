@@ -310,7 +310,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 			return
 		}
 
-		hchan := Srv.Store.Webhook().GetOutgoingByTeam(c.Session.TeamId)
+		hchan := Srv.Store.Webhook().GetOutgoingByTeam(c.T, c.Session.TeamId)
 
 		hooks := []*model.OutgoingWebhook{}
 

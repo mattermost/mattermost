@@ -168,20 +168,20 @@ type SystemStore interface {
 }
 
 type WebhookStore interface {
-	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncoming(id string) StoreChannel
-	GetIncomingByUser(userId string) StoreChannel
-	GetIncomingByChannel(channelId string) StoreChannel
-	DeleteIncoming(webhookId string, time int64) StoreChannel
-	PermanentDeleteIncomingByUser(userId string) StoreChannel
-	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
-	GetOutgoing(id string) StoreChannel
-	GetOutgoingByCreator(userId string) StoreChannel
-	GetOutgoingByChannel(channelId string) StoreChannel
-	GetOutgoingByTeam(teamId string) StoreChannel
-	DeleteOutgoing(webhookId string, time int64) StoreChannel
-	PermanentDeleteOutgoingByUser(userId string) StoreChannel
-	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
+	SaveIncoming(T goi18n.TranslateFunc, webhook *model.IncomingWebhook) StoreChannel
+	GetIncoming(T goi18n.TranslateFunc, id string) StoreChannel
+	GetIncomingByUser(T goi18n.TranslateFunc, userId string) StoreChannel
+	GetIncomingByChannel(T goi18n.TranslateFunc, channelId string) StoreChannel
+	DeleteIncoming(T goi18n.TranslateFunc, webhookId string, time int64) StoreChannel
+	PermanentDeleteIncomingByUser(T goi18n.TranslateFunc, userId string) StoreChannel
+	SaveOutgoing(T goi18n.TranslateFunc, webhook *model.OutgoingWebhook) StoreChannel
+	GetOutgoing(T goi18n.TranslateFunc, id string) StoreChannel
+	GetOutgoingByCreator(T goi18n.TranslateFunc, userId string) StoreChannel
+	GetOutgoingByChannel(T goi18n.TranslateFunc, channelId string) StoreChannel
+	GetOutgoingByTeam(T goi18n.TranslateFunc, teamId string) StoreChannel
+	DeleteOutgoing(T goi18n.TranslateFunc, webhookId string, time int64) StoreChannel
+	PermanentDeleteOutgoingByUser(T goi18n.TranslateFunc, userId string) StoreChannel
+	UpdateOutgoing(T goi18n.TranslateFunc, hook *model.OutgoingWebhook) StoreChannel
 }
 
 type PreferenceStore interface {

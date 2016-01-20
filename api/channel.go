@@ -593,8 +593,8 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	sc := Srv.Store.Channel().Get(id)
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
 	uc := Srv.Store.User().Get(c.Session.UserId)
-	ihc := Srv.Store.Webhook().GetIncomingByChannel(id)
-	ohc := Srv.Store.Webhook().GetOutgoingByChannel(id)
+	ihc := Srv.Store.Webhook().GetIncomingByChannel(c.T, id)
+	ohc := Srv.Store.Webhook().GetOutgoingByChannel(c.T, id)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -643,7 +643,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		now := model.GetMillis()
 		for _, hook := range incomingHooks {
 			go func() {
-				if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
+				if result := <-Srv.Store.Webhook().DeleteIncoming(c.T, hook.Id, now); result.Err != nil {
 					l4g.Error("Encountered error deleting incoming webhook, id=" + hook.Id)
 				}
 			}()
@@ -651,7 +651,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		for _, hook := range outgoingHooks {
 			go func() {
-				if result := <-Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); result.Err != nil {
+				if result := <-Srv.Store.Webhook().DeleteOutgoing(c.T, hook.Id, now); result.Err != nil {
 					l4g.Error("Encountered error deleting outgoing webhook, id=" + hook.Id)
 				}
 			}()

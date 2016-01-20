@@ -1022,7 +1022,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	hchan := api.Srv.Store.Webhook().GetIncoming(id)
+	hchan := api.Srv.Store.Webhook().GetIncoming(c.T, id)
 
 	r.ParseForm()
 
