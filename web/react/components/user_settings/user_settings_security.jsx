@@ -206,7 +206,7 @@ export default class SecurityTab extends React.Component {
                     <div>
                         <a
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + user.email}
+                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email)}
                         >
                             {'Switch to using email and password'}
                         </a>
@@ -221,7 +221,7 @@ export default class SecurityTab extends React.Component {
                     <div>
                         <a
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + user.email + '&new_type=' + Constants.GITLAB_SERVICE}
+                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&new_type=' + Constants.GITLAB_SERVICE}
                         >
                             {'Switch to using GitLab SSO'}
                         </a>
@@ -236,7 +236,7 @@ export default class SecurityTab extends React.Component {
                     <div>
                         <a
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + user.email + '&new_type=' + Constants.GOOGLE_SERVICE}
+                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&new_type=' + Constants.GOOGLE_SERVICE}
                         >
                             {'Switch to using Google SSO'}
                         </a>

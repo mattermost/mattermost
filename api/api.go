@@ -10,6 +10,9 @@ import (
 	"github.com/mattermost/platform/utils"
 	"html/template"
 	"net/http"
+
+	_ "github.com/cloudfoundry/jibber_jabber"
+	_ "github.com/nicksnyder/go-i18n/i18n"
 )
 
 var ServerTemplates *template.Template

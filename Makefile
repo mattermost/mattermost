@@ -128,6 +128,7 @@ package:
 
 	mkdir -p $(DIST_PATH)/api
 	cp -RL api/templates $(DIST_PATH)/api
+	cp -RL i18n $(DIST_PATH)
 
 	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
 	cp NOTICE.txt $(DIST_PATH)

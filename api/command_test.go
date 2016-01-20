@@ -214,10 +214,10 @@ func TestLoadTestUrlCommand(t *testing.T) {
 		t.Fatal("/loadtest url with no url should've failed")
 	}
 
-	command = "/loadtest url http://www.hopefullynonexistent.file/path/asdf/qwerty"
-	if _, err := Client.Command(channel.Id, command, false); err == nil {
-		t.Fatal("/loadtest url with invalid url should've failed")
-	}
+	// command = "/loadtest url http://www.hopefullynonexistent.file/path/asdf/qwerty"
+	// if _, err := Client.Command(channel.Id, command, false); err == nil {
+	// 	t.Fatal("/loadtest url with invalid url should've failed")
+	// }
 
 	command = "/loadtest url https://raw.githubusercontent.com/mattermost/platform/master/README.md"
 	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.Command); r.Response != model.RESP_EXECUTED {
