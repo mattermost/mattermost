@@ -130,14 +130,14 @@ type UserStore interface {
 }
 
 type SessionStore interface {
-	Save(session *model.Session) StoreChannel
-	Get(sessionIdOrToken string) StoreChannel
-	GetSessions(userId string) StoreChannel
-	Remove(sessionIdOrToken string) StoreChannel
-	RemoveAllSessionsForTeam(teamId string) StoreChannel
-	PermanentDeleteSessionsByUser(teamId string) StoreChannel
-	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
-	UpdateRoles(userId string, roles string) StoreChannel
+	Save(T goi18n.TranslateFunc, session *model.Session) StoreChannel
+	Get(T goi18n.TranslateFunc, sessionIdOrToken string) StoreChannel
+	GetSessions(T goi18n.TranslateFunc, userId string) StoreChannel
+	Remove(T goi18n.TranslateFunc, sessionIdOrToken string) StoreChannel
+	RemoveAllSessionsForTeam(T goi18n.TranslateFunc, teamId string) StoreChannel
+	PermanentDeleteSessionsByUser(T goi18n.TranslateFunc, teamId string) StoreChannel
+	UpdateLastActivityAt(T goi18n.TranslateFunc, sessionId string, time int64) StoreChannel
+	UpdateRoles(T goi18n.TranslateFunc, userId string, roles string) StoreChannel
 }
 
 type AuditStore interface {

@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"strings"
 	"testing"
 	"time"
@@ -161,7 +162,7 @@ func TestUserStoreUpdateUserAndSessionActivity(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = u1.Id
 	s1.TeamId = u1.TeamId
-	Must(store.Session().Save(&s1))
+	Must(store.Session().Save(utils.T, &s1))
 
 	if err := (<-store.User().UpdateUserAndSessionActivity(u1.Id, s1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)
@@ -175,7 +176,7 @@ func TestUserStoreUpdateUserAndSessionActivity(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.Session().Get(s1.Id); r2.Err != nil {
+	if r2 := <-store.Session().Get(utils.T, s1.Id); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if r2.Data.(*model.Session).LastActivityAt != 1234567890 {

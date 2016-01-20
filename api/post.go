@@ -626,7 +626,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 					}
 
 					if *utils.Cfg.EmailSettings.SendPushNotifications {
-						sessionChan := Srv.Store.Session().GetSessions(id)
+						sessionChan := Srv.Store.Session().GetSessions(c.T, id)
 						if result := <-sessionChan; result.Err != nil {
 							l4g.Error("Failed to retrieve sessions in notifications id=%v, err=%v", id, result.Err)
 						} else {

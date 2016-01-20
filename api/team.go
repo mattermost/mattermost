@@ -331,7 +331,7 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 	id := props["id"]
 
-	if result := <-Srv.Store.Session().Get(id); result.Err != nil {
+	if result := <-Srv.Store.Session().Get(c.T, id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -344,7 +344,7 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			sessionCache.Remove(session.Token)
 
-			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+			if result := <-Srv.Store.Session().Remove(c.T, session.Id); result.Err != nil {
 				c.Err = result.Err
 				return
 			} else {

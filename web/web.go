@@ -238,7 +238,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We still might be able to switch to this team because we've logged in before
-	_, session := api.FindMultiSessionForTeamId(r, team.Id)
+	_, session := api.FindMultiSessionForTeamId(c.T, r, team.Id)
 	if session != nil {
 		w.Header().Set(model.HEADER_TOKEN, session.Token)
 		lastViewChannelName := "town-square"
@@ -496,7 +496,7 @@ func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, 
 	// We are logged into a different team.  Lets see if we have another
 	// session in the cookie that will give us access.
 	if c.Session.TeamId != team.Id {
-		index, session := api.FindMultiSessionForTeamId(r, team.Id)
+		index, session := api.FindMultiSessionForTeamId(c.T, r, team.Id)
 		if session == nil {
 			// redirect to login
 			http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
@@ -985,7 +985,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, IsOAuth: true}
 
-	if result := <-api.Srv.Store.Session().Save(session); result.Err != nil {
+	if result := <-api.Srv.Store.Session().Save(c.T, session); result.Err != nil {
 		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while saving session to database", "")
 		return
 	} else {

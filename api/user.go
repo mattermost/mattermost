@@ -516,7 +516,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		maxAge = *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
 		// A special case where we logout of all other sessions with the same Id
-		if result := <-Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
+		if result := <-Srv.Store.Session().GetSessions(c.T, user.Id); result.Err != nil {
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusForbidden
 			return
@@ -563,7 +563,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	session.AddProp(model.SESSION_PROP_OS, os)
 	session.AddProp(model.SESSION_PROP_BROWSER, fmt.Sprintf("%v/%v", bname, bversion))
 
-	if result := <-Srv.Store.Session().Save(session); result.Err != nil {
+	if result := <-Srv.Store.Session().Save(c.T, session); result.Err != nil {
 		c.Err = result.Err
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -579,7 +579,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	seen := make(map[string]string)
 	seen[session.TeamId] = session.TeamId
 	for _, token := range tokens {
-		s := GetSession(token)
+		s := GetSession(c.T, token)
 		if s != nil && !s.IsExpired() && seen[s.TeamId] == "" {
 			multiToken += " " + token
 			seen[s.TeamId] = s.TeamId
@@ -706,7 +706,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func RevokeSessionById(c *Context, sessionId string) {
-	if result := <-Srv.Store.Session().Get(sessionId); result.Err != nil {
+	if result := <-Srv.Store.Session().Get(c.T, sessionId); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		session := result.Data.(*model.Session)
@@ -717,7 +717,7 @@ func RevokeSessionById(c *Context, sessionId string) {
 		} else {
 			sessionCache.Remove(session.Token)
 
-			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+			if result := <-Srv.Store.Session().Remove(c.T, session.Id); result.Err != nil {
 				c.Err = result.Err
 			}
 		}
@@ -725,7 +725,7 @@ func RevokeSessionById(c *Context, sessionId string) {
 }
 
 func RevokeAllSession(c *Context, userId string) {
-	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+	if result := <-Srv.Store.Session().GetSessions(c.T, userId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -737,7 +737,7 @@ func RevokeAllSession(c *Context, userId string) {
 				RevokeAccessToken(c.T, session.Token)
 			} else {
 				sessionCache.Remove(session.Token)
-				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+				if result := <-Srv.Store.Session().Remove(c.T, session.Id); result.Err != nil {
 					c.Err = result.Err
 					return
 				}
@@ -755,7 +755,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Session().GetSessions(id); result.Err != nil {
+	if result := <-Srv.Store.Session().GetSessions(c.T, id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -781,7 +781,7 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 	c.RemoveSessionCookie(w, r)
-	if result := <-Srv.Store.Session().Remove(c.Session.Id); result.Err != nil {
+	if result := <-Srv.Store.Session().Remove(c.T, c.Session.Id); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -1280,8 +1280,8 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uchan := Srv.Store.Session().UpdateRoles(user.Id, new_roles)
-	gchan := Srv.Store.Session().GetSessions(user.Id)
+	uchan := Srv.Store.Session().UpdateRoles(c.T, user.Id, new_roles)
+	gchan := Srv.Store.Session().GetSessions(c.T, user.Id)
 
 	if result := <-uchan; result.Err != nil {
 		// soft error since the user roles were still updated
@@ -1436,7 +1436,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 
 	UpdateActive(c, user, false)
 
-	if result := <-Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
+	if result := <-Srv.Store.Session().PermanentDeleteSessionsByUser(c.T, user.Id); result.Err != nil {
 		return result.Err
 	}
 

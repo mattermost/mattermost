@@ -186,7 +186,7 @@ func TestLoginWithDeviceId(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if sresult := <-Srv.Store.Session().Get(sessions[0].Id); sresult.Err == nil {
+			if sresult := <-Srv.Store.Session().Get(utils.T, sessions[0].Id); sresult.Err == nil {
 				t.Fatal("session should have been removed")
 			}
 		}

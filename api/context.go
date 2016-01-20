@@ -162,7 +162,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(token) != 0 {
-		session := GetSession(token)
+		session := GetSession(c.T, token)
 
 		if session == nil || session.IsExpired() {
 			c.RemoveSessionCookie(w, r)
@@ -515,14 +515,14 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 	RenderWebError(err, w, r)
 }
 
-func GetSession(token string) *model.Session {
+func GetSession(T goi18n.TranslateFunc, token string) *model.Session {
 	var session *model.Session
 	if ts, ok := sessionCache.Get(token); ok {
 		session = ts.(*model.Session)
 	}
 
 	if session == nil {
-		if sessionResult := <-Srv.Store.Session().Get(token); sessionResult.Err != nil {
+		if sessionResult := <-Srv.Store.Session().Get(T, token); sessionResult.Err != nil {
 			l4g.Error("Invalid session token=" + token + ", err=" + sessionResult.Err.DetailedError)
 		} else {
 			session = sessionResult.Data.(*model.Session)
@@ -551,9 +551,9 @@ func GetMultiSessionCookieTokens(r *http.Request) []string {
 	return []string{}
 }
 
-func FindMultiSessionForTeamId(r *http.Request, teamId string) (int64, *model.Session) {
+func FindMultiSessionForTeamId(T goi18n.TranslateFunc, r *http.Request, teamId string) (int64, *model.Session) {
 	for index, token := range GetMultiSessionCookieTokens(r) {
-		s := GetSession(token)
+		s := GetSession(T, token)
 		if s != nil && !s.IsExpired() && s.TeamId == teamId {
 			return int64(index), s
 		}

@@ -129,7 +129,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func RevokeAccessToken(T goi18n.TranslateFunc, token string) *model.AppError {
 
-	schan := Srv.Store.Session().Remove(token)
+	schan := Srv.Store.Session().Remove(T, token)
 	sessionCache.Remove(token)
 
 	var accessData *model.AccessData
