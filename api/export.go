@@ -6,10 +6,12 @@ package api
 import (
 	"archive/zip"
 	"encoding/json"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"io"
 	"os"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -51,19 +53,19 @@ func ExportOptionsFromJson(data io.Reader) *ExportOptions {
 	return &o
 }
 
-func ExportToFile(options *ExportOptions) (link string, err *model.AppError) {
+func ExportToFile(T goi18n.TranslateFunc, options *ExportOptions) (link string, err *model.AppError) {
 	// Open file for export
 	if file, err := openFileWriteStream(EXPORT_PATH + EXPORT_FILENAME); err != nil {
 		return "", err
 	} else {
 		defer closeFileWriteStream(file)
-		ExportToWriter(file, options)
+		ExportToWriter(T, file, options)
 	}
 
 	return "/api/v1/files/get_export", nil
 }
 
-func ExportToWriter(w io.Writer, options *ExportOptions) *model.AppError {
+func ExportToWriter(T goi18n.TranslateFunc, w io.Writer, options *ExportOptions) *model.AppError {
 	// Open a writer to write to zip file
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
@@ -78,23 +80,23 @@ func ExportToWriter(w io.Writer, options *ExportOptions) *model.AppError {
 	}
 
 	// Export Teams
-	ExportTeams(zipWriter, options)
+	ExportTeams(T, zipWriter, options)
 
 	return nil
 }
 
-func ExportTeams(writer ExportWriter, options *ExportOptions) *model.AppError {
+func ExportTeams(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOptions) *model.AppError {
 	// Get the teams
 	var teams []*model.Team
 	if len(options.TeamsToExport) == 0 {
-		if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
+		if result := <-Srv.Store.Team().GetAll(T); result.Err != nil {
 			return result.Err
 		} else {
 			teams = result.Data.([]*model.Team)
 		}
 	} else {
 		for _, teamId := range options.TeamsToExport {
-			if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+			if result := <-Srv.Store.Team().Get(T, teamId); result.Err != nil {
 				return result.Err
 			} else {
 				team := result.Data.(*model.Team)

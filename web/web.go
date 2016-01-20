@@ -167,7 +167,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if len(c.Session.UserId) == 0 {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
 
-		if result := <-api.Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetAllTeamListing(c.T); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -184,7 +184,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 		page.Render(c, w)
 	} else {
-		teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+		teamChan := api.Srv.Store.Team().Get(c.T, c.Session.TeamId)
 		userChan := api.Srv.Store.User().Get(c.Session.UserId)
 
 		var team *model.Team
@@ -229,7 +229,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	teamName := params["team"]
 
 	var team *model.Team
-	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
+	if tResult := <-api.Srv.Store.Team().GetByName(c.T, teamName); tResult.Err != nil {
 		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
@@ -305,7 +305,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	if len(id) > 0 {
 		props = make(map[string]string)
 
-		if result := <-api.Srv.Store.Team().GetByInviteId(id); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByInviteId(c.T, id); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -486,7 +486,7 @@ func joinOpenChannel(c *api.Context, w http.ResponseWriter, r *http.Request, cha
 
 func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, teamName string) *model.Team {
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+	if result := <-api.Srv.Store.Team().GetByName(c.T, teamName); result.Err != nil {
 		c.Err = result.Err
 		return nil
 	} else {
@@ -543,7 +543,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	userId := r.URL.Query().Get("uid")
 
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(name); result.Err != nil {
+	if result := <-api.Srv.Store.Team().GetByName(c.T, name); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -626,7 +626,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	teamDisplayName := "Developer/Beta"
 	var team *model.Team
-	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
+	if tResult := <-api.Srv.Store.Team().GetByName(c.T, teamName); tResult.Err != nil {
 		c.Err = tResult.Err
 		return
 	} else {
@@ -668,7 +668,7 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("h")
 
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+	if result := <-api.Srv.Store.Team().GetByName(c.T, teamName); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -716,7 +716,7 @@ func completeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURL() + "/signup/" + service + "/complete" // Remove /signup after a few releases (~1.8)
 
-	if body, team, props, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
+	if body, team, props, err := api.AuthorizeOAuthUser(c.T, service, code, state, uri); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -769,7 +769,7 @@ func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure team exists
-	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+	if result := <-api.Srv.Store.Team().GetByName(c.T, teamName); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -791,7 +791,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+	teamChan := api.Srv.Store.Team().Get(c.T, c.Session.TeamId)
 	userChan := api.Srv.Store.User().Get(c.Session.UserId)
 
 	var team *model.Team
@@ -854,7 +854,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+	if result := <-api.Srv.Store.Team().Get(c.T, c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1125,7 +1125,7 @@ func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	newType := r.URL.Query().Get("new_type")
 
 	var team *model.Team
-	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
+	if tResult := <-api.Srv.Store.Team().GetByName(c.T, teamName); tResult.Err != nil {
 		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return

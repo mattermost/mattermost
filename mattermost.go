@@ -301,7 +301,7 @@ func cmdCreateUser() {
 		splits := strings.Split(strings.Replace(flagEmail, "@", " ", -1), " ")
 		user.Username = splits[0]
 
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -358,7 +358,7 @@ func cmdAssignRole() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -412,7 +412,7 @@ func cmdResetPassword() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -455,7 +455,7 @@ func cmdPermDeleteUser() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -506,7 +506,7 @@ func cmdPermDeleteTeam() {
 		c.IpAddress = "cmd_line"
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByName(utils.T, flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {

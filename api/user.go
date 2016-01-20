@@ -84,7 +84,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var team *model.Team
 
-	if result := <-Srv.Store.Team().Get(user.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Team().Get(c.T, user.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -264,7 +264,7 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 
 	if team.Email == "" {
 		team.Email = user.Email
-		if result := <-Srv.Store.Team().Update(team); result.Err != nil {
+		if result := <-Srv.Store.Team().Update(c.T, team); result.Err != nil {
 			c.Err = result.Err
 			return nil
 		}
@@ -404,7 +404,7 @@ func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, passw
 func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, deviceId string) *model.User {
 	var team *model.Team
 
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(c.T, name); result.Err != nil {
 		c.Err = result.Err
 		return nil
 	} else {
@@ -659,7 +659,7 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamc := Srv.Store.Team().GetByName(teamName)
+	teamc := Srv.Store.Team().GetByName(c.T, teamName)
 
 	ldapInterface := einterfaces.GetLdapInterface()
 	if ldapInterface == nil {
@@ -1134,7 +1134,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		rusers := result.Data.([2]*model.User)
 
 		if rusers[0].Email != rusers[1].Email {
-			if tresult := <-Srv.Store.Team().Get(rusers[1].TeamId); tresult.Err != nil {
+			if tresult := <-Srv.Store.Team().Get(c.T, rusers[1].TeamId); tresult.Err != nil {
 				l4g.Error(tresult.Err.Message)
 			} else {
 				team := tresult.Data.(*model.Team)
@@ -1195,7 +1195,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user := result.Data.(*model.User)
 
-	tchan := Srv.Store.Team().Get(user.TeamId)
+	tchan := Srv.Store.Team().Get(c.T, user.TeamId)
 
 	if user.AuthData != "" {
 		c.LogAudit("failed - tried to update user password who was logged in through oauth")
@@ -1494,7 +1494,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(c.T, name); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1583,7 +1583,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(userId, "attempt")
 
 	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(c.T, name); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1822,7 +1822,7 @@ func GetAuthorizationCode(c *Context, service, teamName string, props map[string
 	return authUrl, nil
 }
 
-func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, map[string]string, *model.AppError) {
+func AuthorizeOAuthUser(T goi18n.TranslateFunc, service, code, state, redirectUri string) (io.ReadCloser, *model.Team, map[string]string, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
 	if sso == nil || !sso.Enable {
 		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
@@ -1847,7 +1847,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state; missing team name", "")
 	}
 
-	tchan := Srv.Store.Team().GetByName(teamName)
+	tchan := Srv.Store.Team().GetByName(T, teamName)
 
 	p := url.Values{}
 	p.Set("client_id", sso.Id)
@@ -1945,7 +1945,7 @@ func switchToSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(c.T, teamName); result.Err != nil {
 		c.LogAudit("fail - couldn't get team")
 		c.Err = result.Err
 		return
@@ -2049,7 +2049,7 @@ func switchToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(c.T, teamName); result.Err != nil {
 		c.LogAudit("fail - couldn't get team")
 		c.Err = result.Err
 		return

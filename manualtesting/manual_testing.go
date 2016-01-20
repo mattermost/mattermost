@@ -70,7 +70,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		if result := <-api.Srv.Store.Team().Save(team); result.Err != nil {
+		if result := <-api.Srv.Store.Team().Save(c.T, team); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {

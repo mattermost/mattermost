@@ -387,7 +387,7 @@ func (c *Context) setTeamURL(url string, valid bool) {
 }
 
 func (c *Context) SetTeamURLFromSession() {
-	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err == nil {
+	if result := <-Srv.Store.Team().Get(c.T, c.Session.TeamId); result.Err == nil {
 		c.setTeamURL(c.GetSiteURL()+"/"+result.Data.(*model.Team).Name, true)
 	}
 }

@@ -765,7 +765,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 	t1.Name = "a" + model.NewId() + "b"
 	t1.Email = model.NewId() + "@nowhere.com"
 	t1.Type = model.TEAM_OPEN
-	t1 = Must(store.Team().Save(t1)).(*model.Team)
+	t1 = Must(store.Team().Save(utils.T, t1)).(*model.Team)
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
@@ -825,7 +825,7 @@ func TestPostCountsByDay(t *testing.T) {
 	t1.Name = "a" + model.NewId() + "b"
 	t1.Email = model.NewId() + "@nowhere.com"
 	t1.Type = model.TEAM_OPEN
-	t1 = Must(store.Team().Save(t1)).(*model.Team)
+	t1 = Must(store.Team().Save(utils.T, t1)).(*model.Team)
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id

@@ -6,6 +6,7 @@ package store
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlTeamStore struct {
@@ -37,7 +38,7 @@ func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
 }
 
-func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
+func (s SqlTeamStore) Save(T goi18n.TranslateFunc, team *model.Team) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -76,7 +77,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
+func (s SqlTeamStore) Update(T goi18n.TranslateFunc, team *model.Team) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -117,7 +118,7 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) StoreChannel {
+func (s SqlTeamStore) UpdateDisplayName(T goi18n.TranslateFunc, name string, teamId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -137,7 +138,7 @@ func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) StoreChannel
 	return storeChannel
 }
 
-func (s SqlTeamStore) Get(id string) StoreChannel {
+func (s SqlTeamStore) Get(T goi18n.TranslateFunc, id string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -163,7 +164,7 @@ func (s SqlTeamStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
+func (s SqlTeamStore) GetByInviteId(T goi18n.TranslateFunc, inviteId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -192,7 +193,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetByName(name string) StoreChannel {
+func (s SqlTeamStore) GetByName(T goi18n.TranslateFunc, name string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -217,7 +218,7 @@ func (s SqlTeamStore) GetByName(name string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
+func (s SqlTeamStore) GetTeamsForEmail(T goi18n.TranslateFunc, email string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -243,7 +244,7 @@ func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetAll() StoreChannel {
+func (s SqlTeamStore) GetAll(T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -269,7 +270,7 @@ func (s SqlTeamStore) GetAll() StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
+func (s SqlTeamStore) GetAllTeamListing(T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -301,7 +302,7 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) PermanentDelete(teamId string) StoreChannel {
+func (s SqlTeamStore) PermanentDelete(T goi18n.TranslateFunc, teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

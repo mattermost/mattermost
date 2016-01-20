@@ -45,16 +45,16 @@ type Store interface {
 }
 
 type TeamStore interface {
-	Save(team *model.Team) StoreChannel
-	Update(team *model.Team) StoreChannel
-	UpdateDisplayName(name string, teamId string) StoreChannel
-	Get(id string) StoreChannel
-	GetByName(name string) StoreChannel
-	GetTeamsForEmail(domain string) StoreChannel
-	GetAll() StoreChannel
-	GetAllTeamListing() StoreChannel
-	GetByInviteId(inviteId string) StoreChannel
-	PermanentDelete(teamId string) StoreChannel
+	Save(T goi18n.TranslateFunc, team *model.Team) StoreChannel
+	Update(T goi18n.TranslateFunc, team *model.Team) StoreChannel
+	UpdateDisplayName(T goi18n.TranslateFunc, name string, teamId string) StoreChannel
+	Get(T goi18n.TranslateFunc, id string) StoreChannel
+	GetByName(T goi18n.TranslateFunc, name string) StoreChannel
+	GetTeamsForEmail(T goi18n.TranslateFunc, domain string) StoreChannel
+	GetAll(T goi18n.TranslateFunc) StoreChannel
+	GetAllTeamListing(T goi18n.TranslateFunc) StoreChannel
+	GetByInviteId(T goi18n.TranslateFunc, inviteId string) StoreChannel
+	PermanentDelete(T goi18n.TranslateFunc, teamId string) StoreChannel
 }
 
 type ChannelStore interface {

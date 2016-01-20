@@ -205,7 +205,7 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 
 func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks bool) {
 	go func() {
-		tchan := Srv.Store.Team().Get(c.Session.TeamId)
+		tchan := Srv.Store.Team().Get(c.T, c.Session.TeamId)
 		cchan := Srv.Store.Channel().Get(post.ChannelId)
 		uchan := Srv.Store.User().Get(post.UserId)
 

@@ -128,7 +128,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
+	if result := <-Srv.Store.Team().Save(c.T, team); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -209,7 +209,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Team().Save(&teamSignup.Team); result.Err != nil {
+	if result := <-Srv.Store.Team().Save(c.T, &teamSignup.Team); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -264,7 +264,7 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 		return nil
 	}
 
-	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
+	if result := <-Srv.Store.Team().Save(c.T, team); result.Err != nil {
 		c.Err = result.Err
 		return nil
 	} else {
@@ -313,7 +313,7 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
+	if result := <-Srv.Store.Team().GetAll(c.T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -382,7 +382,7 @@ func FindTeamByName(c *Context, name string, all string) bool {
 		return false
 	}
 
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(c.T, name); result.Err != nil {
 		return false
 	} else {
 		return true
@@ -402,7 +402,7 @@ func findTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
+	if result := <-Srv.Store.Team().GetTeamsForEmail(c.T, email); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -433,7 +433,7 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	bodyPage := NewServerTemplatePage("find_teams_body")
 	bodyPage.ClientCfg["SiteURL"] = c.GetSiteURL()
 
-	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
+	if result := <-Srv.Store.Team().GetTeamsForEmail(c.T, email); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		teams := result.Data.([]*model.Team)
@@ -461,7 +461,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tchan := Srv.Store.Team().Get(c.Session.TeamId)
+	tchan := Srv.Store.Team().Get(c.T, c.Session.TeamId)
 	uchan := Srv.Store.User().Get(c.Session.UserId)
 
 	var team *model.Team
@@ -561,7 +561,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var oldTeam *model.Team
-	if result := <-Srv.Store.Team().Get(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Team().Get(c.T, team.Id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -576,7 +576,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	oldTeam.AllowedDomains = team.AllowedDomains
 	//oldTeam.Type = team.Type
 
-	if result := <-Srv.Store.Team().Update(oldTeam); result.Err != nil {
+	if result := <-Srv.Store.Team().Update(c.T, oldTeam); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -592,7 +592,7 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 	c.LogAuditWithUserId("", fmt.Sprintf("attempt teamId=%v", team.Id))
 
 	team.DeleteAt = model.GetMillis()
-	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
+	if result := <-Srv.Store.Team().Update(c.T, team); result.Err != nil {
 		return result.Err
 	}
 
@@ -609,7 +609,7 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Team().PermanentDelete(c.T, team.Id); result.Err != nil {
 		return result.Err
 	}
 
@@ -625,7 +625,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Team().Get(c.T, c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.Team).Etag(), w, r) {
@@ -714,7 +714,7 @@ func exportTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options := ExportOptionsFromJson(r.Body)
 
-	if link, err := ExportToFile(options); err != nil {
+	if link, err := ExportToFile(c.T, options); err != nil {
 		c.Err = err
 		return
 	} else {
