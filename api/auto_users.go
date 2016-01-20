@@ -46,7 +46,7 @@ func CreateBasicUser(client *model.Client) *model.AppError {
 		if err != nil {
 			return err
 		}
-		store.Must(Srv.Store.User().VerifyEmail(utils.T, result.Data.(*model.User).Id))
+		store.Must(Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id))
 	}
 	return nil
 }
@@ -73,7 +73,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 		return nil, false
 	}
 	// We need to cheat to verify the user's email
-	store.Must(Srv.Store.User().VerifyEmail(utils.T, result.Data.(*model.User).Id))
+	store.Must(Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id))
 	return result.Data.(*model.User), true
 }
 

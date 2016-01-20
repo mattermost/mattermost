@@ -7,7 +7,6 @@ import (
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlChannelStore struct {
@@ -50,7 +49,7 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
 }
 
-func (s SqlChannelStore) Save(T goi18n.TranslateFunc, channel *model.Channel) StoreChannel {
+func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -61,7 +60,7 @@ func (s SqlChannelStore) Save(T goi18n.TranslateFunc, channel *model.Channel) St
 			if transaction, err := s.GetMaster().Begin(); err != nil {
 				result.Err = model.NewAppError("SqlChannelStore.Save", "Unable to open transaction", err.Error())
 			} else {
-				result = s.saveChannelT(T, transaction, channel)
+				result = s.saveChannelT(transaction, channel)
 				if result.Err != nil {
 					transaction.Rollback()
 				} else {
@@ -79,7 +78,7 @@ func (s SqlChannelStore) Save(T goi18n.TranslateFunc, channel *model.Channel) St
 	return storeChannel
 }
 
-func (s SqlChannelStore) SaveDirectChannel(T goi18n.TranslateFunc, directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel {
+func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -91,7 +90,7 @@ func (s SqlChannelStore) SaveDirectChannel(T goi18n.TranslateFunc, directchannel
 			if transaction, err := s.GetMaster().Begin(); err != nil {
 				result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "Unable to open transaction", err.Error())
 			} else {
-				channelResult := s.saveChannelT(T, transaction, directchannel)
+				channelResult := s.saveChannelT(transaction, directchannel)
 
 				if channelResult.Err != nil {
 					transaction.Rollback()
@@ -102,8 +101,8 @@ func (s SqlChannelStore) SaveDirectChannel(T goi18n.TranslateFunc, directchannel
 					member1.ChannelId = newChannel.Id
 					member2.ChannelId = newChannel.Id
 
-					member1Result := s.saveMemberT(T, transaction, member1, newChannel)
-					member2Result := s.saveMemberT(T, transaction, member2, newChannel)
+					member1Result := s.saveMemberT(transaction, member1, newChannel)
+					member2Result := s.saveMemberT(transaction, member2, newChannel)
 
 					if member1Result.Err != nil || member2Result.Err != nil {
 						transaction.Rollback()
@@ -133,7 +132,7 @@ func (s SqlChannelStore) SaveDirectChannel(T goi18n.TranslateFunc, directchannel
 	return storeChannel
 }
 
-func (s SqlChannelStore) saveChannelT(T goi18n.TranslateFunc, transaction *gorp.Transaction, channel *model.Channel) StoreResult {
+func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel) StoreResult {
 	result := StoreResult{}
 
 	if len(channel.Id) > 0 {
@@ -175,7 +174,7 @@ func (s SqlChannelStore) saveChannelT(T goi18n.TranslateFunc, transaction *gorp.
 	return result
 }
 
-func (s SqlChannelStore) Update(T goi18n.TranslateFunc, channel *model.Channel) StoreChannel {
+func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -215,7 +214,7 @@ func (s SqlChannelStore) Update(T goi18n.TranslateFunc, channel *model.Channel) 
 	return storeChannel
 }
 
-func (s SqlChannelStore) extraUpdated(T goi18n.TranslateFunc, channel *model.Channel) StoreChannel {
+func (s SqlChannelStore) extraUpdated(channel *model.Channel) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -243,15 +242,15 @@ func (s SqlChannelStore) extraUpdated(T goi18n.TranslateFunc, channel *model.Cha
 	return storeChannel
 }
 
-func (s SqlChannelStore) Get(T goi18n.TranslateFunc, id string) StoreChannel {
-	return s.get(T, id, false)
+func (s SqlChannelStore) Get(id string) StoreChannel {
+	return s.get(id, false)
 }
 
-func (s SqlChannelStore) GetFromMaster(T goi18n.TranslateFunc, id string) StoreChannel {
-	return s.get(T, id, true)
+func (s SqlChannelStore) GetFromMaster(id string) StoreChannel {
+	return s.get(id, true)
 }
 
-func (s SqlChannelStore) get(T goi18n.TranslateFunc, id string, master bool) StoreChannel {
+func (s SqlChannelStore) get(id string, master bool) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -279,7 +278,7 @@ func (s SqlChannelStore) get(T goi18n.TranslateFunc, id string, master bool) Sto
 	return storeChannel
 }
 
-func (s SqlChannelStore) Delete(T goi18n.TranslateFunc, channelId string, time int64) StoreChannel {
+func (s SqlChannelStore) Delete(channelId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -297,7 +296,7 @@ func (s SqlChannelStore) Delete(T goi18n.TranslateFunc, channelId string, time i
 	return storeChannel
 }
 
-func (s SqlChannelStore) PermanentDeleteByTeam(T goi18n.TranslateFunc, teamId string) StoreChannel {
+func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -319,7 +318,7 @@ type channelWithMember struct {
 	model.ChannelMember
 }
 
-func (s SqlChannelStore) GetChannels(T goi18n.TranslateFunc, teamId string, userId string) StoreChannel {
+func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -352,7 +351,7 @@ func (s SqlChannelStore) GetChannels(T goi18n.TranslateFunc, teamId string, user
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMoreChannels(T goi18n.TranslateFunc, teamId string, userId string) StoreChannel {
+func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -400,7 +399,7 @@ type channelIdWithCountAndUpdateAt struct {
 	UpdateAt      int64
 }
 
-func (s SqlChannelStore) GetChannelCounts(T goi18n.TranslateFunc, teamId string, userId string) StoreChannel {
+func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -429,7 +428,7 @@ func (s SqlChannelStore) GetChannelCounts(T goi18n.TranslateFunc, teamId string,
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetByName(T goi18n.TranslateFunc, teamId string, name string) StoreChannel {
+func (s SqlChannelStore) GetByName(teamId string, name string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -450,13 +449,13 @@ func (s SqlChannelStore) GetByName(T goi18n.TranslateFunc, teamId string, name s
 	return storeChannel
 }
 
-func (s SqlChannelStore) SaveMember(T goi18n.TranslateFunc, member *model.ChannelMember) StoreChannel {
+func (s SqlChannelStore) SaveMember(member *model.ChannelMember) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		var result StoreResult
 		// Grab the channel we are saving this member to
-		if cr := <-s.GetFromMaster(T, member.ChannelId); cr.Err != nil {
+		if cr := <-s.GetFromMaster(member.ChannelId); cr.Err != nil {
 			result.Err = cr.Err
 		} else {
 			channel := cr.Data.(*model.Channel)
@@ -464,7 +463,7 @@ func (s SqlChannelStore) SaveMember(T goi18n.TranslateFunc, member *model.Channe
 			if transaction, err := s.GetMaster().Begin(); err != nil {
 				result.Err = model.NewAppError("SqlChannelStore.SaveMember", "Unable to open transaction", err.Error())
 			} else {
-				result = s.saveMemberT(T, transaction, member, channel)
+				result = s.saveMemberT(transaction, member, channel)
 				if result.Err != nil {
 					transaction.Rollback()
 				} else {
@@ -472,7 +471,7 @@ func (s SqlChannelStore) SaveMember(T goi18n.TranslateFunc, member *model.Channe
 						result.Err = model.NewAppError("SqlChannelStore.SaveMember", "Unable to commit transaction", err.Error())
 					}
 					// If sucessfull record members have changed in channel
-					if mu := <-s.extraUpdated(T, channel); mu.Err != nil {
+					if mu := <-s.extraUpdated(channel); mu.Err != nil {
 						result.Err = mu.Err
 					}
 				}
@@ -486,7 +485,7 @@ func (s SqlChannelStore) SaveMember(T goi18n.TranslateFunc, member *model.Channe
 	return storeChannel
 }
 
-func (s SqlChannelStore) saveMemberT(T goi18n.TranslateFunc, transaction *gorp.Transaction, member *model.ChannelMember, channel *model.Channel) StoreResult {
+func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember, channel *model.Channel) StoreResult {
 	result := StoreResult{}
 
 	member.PreSave()
@@ -507,7 +506,7 @@ func (s SqlChannelStore) saveMemberT(T goi18n.TranslateFunc, transaction *gorp.T
 	return result
 }
 
-func (s SqlChannelStore) UpdateMember(T goi18n.TranslateFunc, member *model.ChannelMember) StoreChannel {
+func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -535,7 +534,7 @@ func (s SqlChannelStore) UpdateMember(T goi18n.TranslateFunc, member *model.Chan
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMembers(T goi18n.TranslateFunc, channelId string) StoreChannel {
+func (s SqlChannelStore) GetMembers(channelId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -556,7 +555,7 @@ func (s SqlChannelStore) GetMembers(T goi18n.TranslateFunc, channelId string) St
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMember(T goi18n.TranslateFunc, channelId string, userId string) StoreChannel {
+func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -577,7 +576,7 @@ func (s SqlChannelStore) GetMember(T goi18n.TranslateFunc, channelId string, use
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMemberCount(T goi18n.TranslateFunc, channelId string) StoreChannel {
+func (s SqlChannelStore) GetMemberCount(channelId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -597,7 +596,7 @@ func (s SqlChannelStore) GetMemberCount(T goi18n.TranslateFunc, channelId string
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetExtraMembers(T goi18n.TranslateFunc, channelId string, limit int) StoreChannel {
+func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -628,14 +627,14 @@ func (s SqlChannelStore) GetExtraMembers(T goi18n.TranslateFunc, channelId strin
 	return storeChannel
 }
 
-func (s SqlChannelStore) RemoveMember(T goi18n.TranslateFunc, channelId string, userId string) StoreChannel {
+func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		// Grab the channel we are saving this member to
-		if cr := <-s.Get(T, channelId); cr.Err != nil {
+		if cr := <-s.Get(channelId); cr.Err != nil {
 			result.Err = cr.Err
 		} else {
 			channel := cr.Data.(*model.Channel)
@@ -645,7 +644,7 @@ func (s SqlChannelStore) RemoveMember(T goi18n.TranslateFunc, channelId string, 
 				result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "We couldn't remove the channel member", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 			} else {
 				// If sucessfull record members have changed in channel
-				if mu := <-s.extraUpdated(T, channel); mu.Err != nil {
+				if mu := <-s.extraUpdated(channel); mu.Err != nil {
 					result.Err = mu.Err
 				}
 			}
@@ -658,7 +657,7 @@ func (s SqlChannelStore) RemoveMember(T goi18n.TranslateFunc, channelId string, 
 	return storeChannel
 }
 
-func (s SqlChannelStore) PermanentDeleteMembersByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -675,7 +674,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(T goi18n.TranslateFunc, us
 	return storeChannel
 }
 
-func (s SqlChannelStore) CheckPermissionsTo(T goi18n.TranslateFunc, teamId string, channelId string, userId string) StoreChannel {
+func (s SqlChannelStore) CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -707,7 +706,7 @@ func (s SqlChannelStore) CheckPermissionsTo(T goi18n.TranslateFunc, teamId strin
 	return storeChannel
 }
 
-func (s SqlChannelStore) CheckPermissionsToByName(T goi18n.TranslateFunc, teamId string, channelName string, userId string) StoreChannel {
+func (s SqlChannelStore) CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -739,7 +738,7 @@ func (s SqlChannelStore) CheckPermissionsToByName(T goi18n.TranslateFunc, teamId
 	return storeChannel
 }
 
-func (s SqlChannelStore) CheckOpenChannelPermissions(T goi18n.TranslateFunc, teamId string, channelId string) StoreChannel {
+func (s SqlChannelStore) CheckOpenChannelPermissions(teamId string, channelId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -768,7 +767,7 @@ func (s SqlChannelStore) CheckOpenChannelPermissions(T goi18n.TranslateFunc, tea
 	return storeChannel
 }
 
-func (s SqlChannelStore) UpdateLastViewedAt(T goi18n.TranslateFunc, channelId string, userId string) StoreChannel {
+func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -816,7 +815,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(T goi18n.TranslateFunc, channelId st
 	return storeChannel
 }
 
-func (s SqlChannelStore) IncrementMentionCount(T goi18n.TranslateFunc, channelId string, userId string) StoreChannel {
+func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -842,7 +841,7 @@ func (s SqlChannelStore) IncrementMentionCount(T goi18n.TranslateFunc, channelId
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetForExport(T goi18n.TranslateFunc, teamId string) StoreChannel {
+func (s SqlChannelStore) GetForExport(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -864,7 +863,7 @@ func (s SqlChannelStore) GetForExport(T goi18n.TranslateFunc, teamId string) Sto
 	return storeChannel
 }
 
-func (s SqlChannelStore) AnalyticsTypeCount(T goi18n.TranslateFunc, teamId string, channelType string) StoreChannel {
+func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

@@ -79,7 +79,7 @@ func checkCommand(c *Context, command *model.Command) bool {
 	}
 
 	if len(command.ChannelId) > 0 {
-		cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, command.ChannelId, c.Session.UserId)
+		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, command.ChannelId, c.Session.UserId)
 
 		if !c.HasPermissionsToChannel(cchan, "checkCommand") {
 			return true
@@ -269,7 +269,7 @@ func joinCommand(c *Context, command *model.Command) bool {
 			startsWith = parts[1]
 		}
 
-		if result := <-Srv.Store.Channel().GetMoreChannels(c.T, c.Session.TeamId, c.Session.UserId); result.Err != nil {
+		if result := <-Srv.Store.Channel().GetMoreChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
 			c.Err = result.Err
 			return false
 		} else {
@@ -544,7 +544,7 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 		}
 
 		var usernames []string
-		if result := <-Srv.Store.User().GetProfiles(c.T, c.Session.TeamId); result.Err == nil {
+		if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err == nil {
 			profileUsers := result.Data.(map[string]*model.User)
 			usernames = make([]string, len(profileUsers))
 			i := 0

@@ -5,7 +5,6 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlAuditStore struct {
@@ -35,7 +34,7 @@ func (s SqlAuditStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
 }
 
-func (s SqlAuditStore) Save(T goi18n.TranslateFunc, audit *model.Audit) StoreChannel {
+func (s SqlAuditStore) Save(audit *model.Audit) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -58,7 +57,7 @@ func (s SqlAuditStore) Save(T goi18n.TranslateFunc, audit *model.Audit) StoreCha
 	return storeChannel
 }
 
-func (s SqlAuditStore) Get(T goi18n.TranslateFunc, user_id string, limit int) StoreChannel {
+func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -88,7 +87,7 @@ func (s SqlAuditStore) Get(T goi18n.TranslateFunc, user_id string, limit int) St
 	return storeChannel
 }
 
-func (s SqlAuditStore) PermanentDeleteByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlAuditStore) PermanentDeleteByUser(userId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 

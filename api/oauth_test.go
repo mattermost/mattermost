@@ -20,7 +20,7 @@ func TestRegisterApp(t *testing.T) {
 
 	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(utils.T, ruser.Id))
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
 	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -77,7 +77,7 @@ func TestAllowOAuth(t *testing.T) {
 
 	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(utils.T, ruser.Id))
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
 	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 

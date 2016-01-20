@@ -8,7 +8,6 @@ import (
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlPreferenceStore struct {
@@ -42,7 +41,7 @@ func (s SqlPreferenceStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_preferences_name", "Preferences", "Name")
 }
 
-func (s SqlPreferenceStore) DeleteUnusedFeatures(T goi18n.TranslateFunc) {
+func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	l4g.Debug("Deleting any unused pre-release features")
 
 	sql := `DELETE
@@ -59,7 +58,7 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures(T goi18n.TranslateFunc) {
 	s.GetMaster().Exec(sql, queryParams)
 }
 
-func (s SqlPreferenceStore) Save(T goi18n.TranslateFunc, preferences *model.Preferences) StoreChannel {
+func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -71,7 +70,7 @@ func (s SqlPreferenceStore) Save(T goi18n.TranslateFunc, preferences *model.Pref
 			result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to open transaction to save preferences", err.Error())
 		} else {
 			for _, preference := range *preferences {
-				if upsertResult := s.save(T, transaction, &preference); upsertResult.Err != nil {
+				if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
 					result = upsertResult
 					break
 				}
@@ -98,7 +97,7 @@ func (s SqlPreferenceStore) Save(T goi18n.TranslateFunc, preferences *model.Pref
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) save(T goi18n.TranslateFunc, transaction *gorp.Transaction, preference *model.Preference) StoreResult {
+func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
 	result := StoreResult{}
 
 	if result.Err = preference.IsValid(); result.Err != nil {
@@ -140,9 +139,9 @@ func (s SqlPreferenceStore) save(T goi18n.TranslateFunc, transaction *gorp.Trans
 		}
 
 		if count == 1 {
-			s.update(T, transaction, preference)
+			s.update(transaction, preference)
 		} else {
-			s.insert(T, transaction, preference)
+			s.insert(transaction, preference)
 		}
 	} else {
 		result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences",
@@ -152,7 +151,7 @@ func (s SqlPreferenceStore) save(T goi18n.TranslateFunc, transaction *gorp.Trans
 	return result
 }
 
-func (s SqlPreferenceStore) insert(T goi18n.TranslateFunc, transaction *gorp.Transaction, preference *model.Preference) StoreResult {
+func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
 	result := StoreResult{}
 
 	if err := transaction.Insert(preference); err != nil {
@@ -168,7 +167,7 @@ func (s SqlPreferenceStore) insert(T goi18n.TranslateFunc, transaction *gorp.Tra
 	return result
 }
 
-func (s SqlPreferenceStore) update(T goi18n.TranslateFunc, transaction *gorp.Transaction, preference *model.Preference) StoreResult {
+func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
 	result := StoreResult{}
 
 	if _, err := transaction.Update(preference); err != nil {
@@ -179,7 +178,7 @@ func (s SqlPreferenceStore) update(T goi18n.TranslateFunc, transaction *gorp.Tra
 	return result
 }
 
-func (s SqlPreferenceStore) Get(T goi18n.TranslateFunc, userId string, category string, name string) StoreChannel {
+func (s SqlPreferenceStore) Get(userId string, category string, name string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -208,7 +207,7 @@ func (s SqlPreferenceStore) Get(T goi18n.TranslateFunc, userId string, category 
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) GetCategory(T goi18n.TranslateFunc, userId string, category string) StoreChannel {
+func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -236,7 +235,7 @@ func (s SqlPreferenceStore) GetCategory(T goi18n.TranslateFunc, userId string, c
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) GetAll(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -263,7 +262,7 @@ func (s SqlPreferenceStore) GetAll(T goi18n.TranslateFunc, userId string) StoreC
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) PermanentDeleteByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -281,7 +280,7 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(T goi18n.TranslateFunc, userId
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) IsFeatureEnabled(T goi18n.TranslateFunc, feature, userId string) StoreChannel {
+func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

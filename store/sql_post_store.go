@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlPostStore struct {
@@ -51,7 +50,7 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s SqlPostStore) Save(T goi18n.TranslateFunc, post *model.Post) StoreChannel {
+func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -98,7 +97,7 @@ func (s SqlPostStore) Save(T goi18n.TranslateFunc, post *model.Post) StoreChanne
 	return storeChannel
 }
 
-func (s SqlPostStore) Update(T goi18n.TranslateFunc, oldPost *model.Post, newMessage string, newHashtags string) StoreChannel {
+func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -143,7 +142,7 @@ func (s SqlPostStore) Update(T goi18n.TranslateFunc, oldPost *model.Post, newMes
 	return storeChannel
 }
 
-func (s SqlPostStore) Get(T goi18n.TranslateFunc, id string) StoreChannel {
+func (s SqlPostStore) Get(id string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -189,7 +188,7 @@ type etagPosts struct {
 	UpdateAt int64
 }
 
-func (s SqlPostStore) GetEtag(T goi18n.TranslateFunc, channelId string) StoreChannel {
+func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -210,7 +209,7 @@ func (s SqlPostStore) GetEtag(T goi18n.TranslateFunc, channelId string) StoreCha
 	return storeChannel
 }
 
-func (s SqlPostStore) Delete(T goi18n.TranslateFunc, postId string, time int64) StoreChannel {
+func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -228,7 +227,7 @@ func (s SqlPostStore) Delete(T goi18n.TranslateFunc, postId string, time int64) 
 	return storeChannel
 }
 
-func (s SqlPostStore) permanentDelete(T goi18n.TranslateFunc, postId string) StoreChannel {
+func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -246,7 +245,7 @@ func (s SqlPostStore) permanentDelete(T goi18n.TranslateFunc, postId string) Sto
 	return storeChannel
 }
 
-func (s SqlPostStore) permanentDeleteAllCommentByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -264,14 +263,14 @@ func (s SqlPostStore) permanentDeleteAllCommentByUser(T goi18n.TranslateFunc, us
 	return storeChannel
 }
 
-func (s SqlPostStore) PermanentDeleteByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
+func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		// First attempt to delete all the comments for a user
-		if r := <-s.permanentDeleteAllCommentByUser(T, userId); r.Err != nil {
+		if r := <-s.permanentDeleteAllCommentByUser(userId); r.Err != nil {
 			result.Err = r.Err
 			storeChannel <- result
 			close(storeChannel)
@@ -295,7 +294,7 @@ func (s SqlPostStore) PermanentDeleteByUser(T goi18n.TranslateFunc, userId strin
 				found = false
 				for _, id := range ids {
 					found = true
-					if r := <-s.permanentDelete(T, id); r.Err != nil {
+					if r := <-s.permanentDelete(id); r.Err != nil {
 						result.Err = r.Err
 						storeChannel <- result
 						close(storeChannel)
@@ -321,7 +320,7 @@ func (s SqlPostStore) PermanentDeleteByUser(T goi18n.TranslateFunc, userId strin
 	return storeChannel
 }
 
-func (s SqlPostStore) GetPosts(T goi18n.TranslateFunc, channelId string, offset int, limit int) StoreChannel {
+func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -334,8 +333,8 @@ func (s SqlPostStore) GetPosts(T goi18n.TranslateFunc, channelId string, offset 
 			return
 		}
 
-		rpc := s.getRootPosts(T, channelId, offset, limit)
-		cpc := s.getParentsPosts(T, channelId, offset, limit)
+		rpc := s.getRootPosts(channelId, offset, limit)
+		cpc := s.getParentsPosts(channelId, offset, limit)
 
 		if rpr := <-rpc; rpr.Err != nil {
 			result.Err = rpr.Err
@@ -368,7 +367,7 @@ func (s SqlPostStore) GetPosts(T goi18n.TranslateFunc, channelId string, offset 
 	return storeChannel
 }
 
-func (s SqlPostStore) GetPostsSince(T goi18n.TranslateFunc, channelId string, time int64) StoreChannel {
+func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -426,15 +425,15 @@ func (s SqlPostStore) GetPostsSince(T goi18n.TranslateFunc, channelId string, ti
 	return storeChannel
 }
 
-func (s SqlPostStore) GetPostsBefore(T goi18n.TranslateFunc, channelId string, postId string, numPosts int, offset int) StoreChannel {
-	return s.getPostsAround(T, channelId, postId, numPosts, offset, true)
+func (s SqlPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel {
+	return s.getPostsAround(channelId, postId, numPosts, offset, true)
 }
 
-func (s SqlPostStore) GetPostsAfter(T goi18n.TranslateFunc, channelId string, postId string, numPosts int, offset int) StoreChannel {
-	return s.getPostsAround(T, channelId, postId, numPosts, offset, false)
+func (s SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel {
+	return s.getPostsAround(channelId, postId, numPosts, offset, false)
 }
 
-func (s SqlPostStore) getPostsAround(T goi18n.TranslateFunc, channelId string, postId string, numPosts int, offset int, before bool) StoreChannel {
+func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -524,7 +523,7 @@ func (s SqlPostStore) getPostsAround(T goi18n.TranslateFunc, channelId string, p
 	return storeChannel
 }
 
-func (s SqlPostStore) getRootPosts(T goi18n.TranslateFunc, channelId string, offset int, limit int) StoreChannel {
+func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -545,7 +544,7 @@ func (s SqlPostStore) getRootPosts(T goi18n.TranslateFunc, channelId string, off
 	return storeChannel
 }
 
-func (s SqlPostStore) getParentsPosts(T goi18n.TranslateFunc, channelId string, offset int, limit int) StoreChannel {
+func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -601,7 +600,7 @@ var specialSearchChar = []string{
 	"@",
 }
 
-func (s SqlPostStore) Search(T goi18n.TranslateFunc, teamId string, userId string, params *model.SearchParams) StoreChannel {
+func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -766,7 +765,7 @@ func (s SqlPostStore) Search(T goi18n.TranslateFunc, teamId string, userId strin
 	return storeChannel
 }
 
-func (s SqlPostStore) GetForExport(T goi18n.TranslateFunc, channelId string) StoreChannel {
+func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -790,7 +789,7 @@ func (s SqlPostStore) GetForExport(T goi18n.TranslateFunc, channelId string) Sto
 	return storeChannel
 }
 
-func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(T goi18n.TranslateFunc, teamId string) StoreChannel {
+func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -854,7 +853,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(T goi18n.TranslateFunc, 
 	return storeChannel
 }
 
-func (s SqlPostStore) AnalyticsPostCountsByDay(T goi18n.TranslateFunc, teamId string) StoreChannel {
+func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -919,7 +918,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(T goi18n.TranslateFunc, teamId st
 	return storeChannel
 }
 
-func (s SqlPostStore) AnalyticsPostCount(T goi18n.TranslateFunc, teamId string) StoreChannel {
+func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
