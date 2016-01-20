@@ -151,7 +151,11 @@ export default class FileUpload extends React.Component {
             });
         }
 
-        document.addEventListener('paste', function handlePaste(e) {
+        document.addEventListener('paste', (e) => {
+            if (!e.clipboardData) {
+                return;
+            }
+
             var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
 
             if (textarea !== e.target && !$.contains(textarea, e.target)) {
