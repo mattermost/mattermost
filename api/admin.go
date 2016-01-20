@@ -41,7 +41,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		file, err := os.Open(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation))
 		if err != nil {
-			c.Err = model.NewAppError("getLogs", c.T("api.admin.file_read_error"), err.Error())
+			c.Err = model.NewLocAppError("getLogs", "api.admin.file_read_error", nil, err.Error())
 		}
 
 		defer file.Close()

@@ -14,6 +14,7 @@ var Client *model.Client
 func Setup() {
 	if Srv == nil {
 		utils.LoadConfig("config.json")
+		utils.InitTranslations()
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		NewServer()
 		StartServer()

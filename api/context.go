@@ -206,6 +206,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err != nil {
+		c.Err.Translate(c.T)
 		c.Err.RequestId = c.RequestId
 		c.LogError(c.Err)
 		c.Err.Where = r.URL.Path
@@ -373,7 +374,7 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) SetInvalidParam(where string, name string) {
-	c.Err = model.NewAppError(where, "Invalid "+name+" parameter", "")
+	c.Err = model.NewLocAppError(where, "api.context.invalid_param", map[string]interface{}{"Name": name}, "")
 	c.Err.StatusCode = http.StatusBadRequest
 }
 

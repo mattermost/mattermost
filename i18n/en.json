@@ -10,5 +10,9 @@
     {
         "id": "api.admin.file_read_error",
         "translation": "Error reading log file"
+    },
+    {
+        "id": "api.context.invalid_param",
+        "translation": "Invalid {{.Name}} parameter"
     }
 ]
