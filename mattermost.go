@@ -92,14 +92,14 @@ func main() {
 }
 
 func setDiagnosticId() {
-	if result := <-api.Srv.Store.System().Get(); result.Err == nil {
+	if result := <-api.Srv.Store.System().Get(utils.T); result.Err == nil {
 		props := result.Data.(model.StringMap)
 
 		id := props[model.SYSTEM_DIAGNOSTIC_ID]
 		if len(id) == 0 {
 			id = model.NewId()
 			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-api.Srv.Store.System().Save(systemId)
+			<-api.Srv.Store.System().Save(utils.T, systemId)
 		}
 
 		utils.CfgDiagnosticId = id
@@ -110,7 +110,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 	go func() {
 		for {
 			if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
-				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
+				if result := <-api.Srv.Store.System().Get(utils.T); result.Err == nil {
 					props := result.Data.(model.StringMap)
 					lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
 					currentTime := model.GetMillis()
@@ -135,9 +135,9 @@ func runSecurityAndDiagnosticsJobAndForget() {
 
 						systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
 						if lastSecurityTime == 0 {
-							<-api.Srv.Store.System().Save(systemSecurityLastTime)
+							<-api.Srv.Store.System().Save(utils.T, systemSecurityLastTime)
 						} else {
-							<-api.Srv.Store.System().Update(systemSecurityLastTime)
+							<-api.Srv.Store.System().Update(utils.T, systemSecurityLastTime)
 						}
 
 						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
@@ -185,7 +185,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 									}
 
 									bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-									<-api.Srv.Store.System().Save(bulletinSeen)
+									<-api.Srv.Store.System().Save(utils.T, bulletinSeen)
 								}
 							}
 						}

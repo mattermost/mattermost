@@ -162,9 +162,9 @@ type OAuthStore interface {
 }
 
 type SystemStore interface {
-	Save(system *model.System) StoreChannel
-	Update(system *model.System) StoreChannel
-	Get() StoreChannel
+	Save(T goi18n.TranslateFunc, system *model.System) StoreChannel
+	Update(T goi18n.TranslateFunc, system *model.System) StoreChannel
+	Get(T goi18n.TranslateFunc) StoreChannel
 }
 
 type WebhookStore interface {

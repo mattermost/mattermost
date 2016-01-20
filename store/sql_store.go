@@ -151,12 +151,12 @@ func NewSqlStore() Store {
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures(utils.T)
 
 	if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 || isSchemaVersion10 {
-		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
+		sqlStore.system.Update(utils.T, &model.System{Name: "Version", Value: model.CurrentVersion})
 		l4g.Warn("The database schema has been upgraded to version " + model.CurrentVersion)
 	}
 
 	if schemaVersion == "" {
-		sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion})
+		sqlStore.system.Save(utils.T, &model.System{Name: "Version", Value: model.CurrentVersion})
 		l4g.Info("The database schema has been set to version " + model.CurrentVersion)
 	}
 
@@ -210,12 +210,12 @@ func (ss SqlStore) GetCurrentSchemaVersion() string {
 }
 
 func (ss SqlStore) MarkSystemRanUnitTests() {
-	if result := <-ss.System().Get(); result.Err == nil {
+	if result := <-ss.System().Get(utils.T); result.Err == nil {
 		props := result.Data.(model.StringMap)
 		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
 		if len(unitTests) == 0 {
 			systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
-			<-ss.System().Save(systemTests)
+			<-ss.System().Save(utils.T, systemTests)
 		}
 	}
 }
