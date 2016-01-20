@@ -5,6 +5,12 @@ package web
 
 import (
 	"fmt"
+	"html/template"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
@@ -13,11 +19,6 @@ import (
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
 	"gopkg.in/fsnotify.v1"
-	"html/template"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 )
 
 var Templates *template.Template
@@ -166,7 +167,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if len(c.Session.UserId) == 0 {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
 
-		if result := <-api.Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetAllTeamListing(c.T); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -183,8 +184,8 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 		page.Render(c, w)
 	} else {
-		teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
-		userChan := api.Srv.Store.User().Get(c.Session.UserId)
+		teamChan := api.Srv.Store.Team().Get(c.T, c.Session.TeamId)
+		userChan := api.Srv.Store.User().Get(c.T, c.Session.UserId)
 
 		var team *model.Team
 		if tr := <-teamChan; tr.Err != nil {
@@ -228,7 +229,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	teamName := params["team"]
 
 	var team *model.Team
-	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
+	if tResult := <-api.Srv.Store.Team().GetByName(c.T, teamName); tResult.Err != nil {
 		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
@@ -237,12 +238,12 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We still might be able to switch to this team because we've logged in before
-	_, session := api.FindMultiSessionForTeamId(r, team.Id)
+	_, session := api.FindMultiSessionForTeamId(c.T, r, team.Id)
 	if session != nil {
 		w.Header().Set(model.HEADER_TOKEN, session.Token)
 		lastViewChannelName := "town-square"
-		if lastViewResult := <-api.Srv.Store.Preference().Get(session.UserId, model.PREFERENCE_CATEGORY_LAST, model.PREFERENCE_NAME_LAST_CHANNEL); lastViewResult.Err == nil {
-			if lastViewChannelResult := <-api.Srv.Store.Channel().Get(lastViewResult.Data.(model.Preference).Value); lastViewChannelResult.Err == nil {
+		if lastViewResult := <-api.Srv.Store.Preference().Get(c.T, session.UserId, model.PREFERENCE_CATEGORY_LAST, model.PREFERENCE_NAME_LAST_CHANNEL); lastViewResult.Err == nil {
+			if lastViewChannelResult := <-api.Srv.Store.Channel().Get(c.T, lastViewResult.Data.(model.Preference).Value); lastViewChannelResult.Err == nil {
 				lastViewChannelName = lastViewChannelResult.Data.(*model.Channel).Name
 			}
 		}
@@ -304,7 +305,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	if len(id) > 0 {
 		props = make(map[string]string)
 
-		if result := <-api.Srv.Store.Team().GetByInviteId(id); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByInviteId(c.T, id); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -369,7 +370,7 @@ func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var post *model.Post
-	if result := <-api.Srv.Store.Post().Get(postId); result.Err != nil {
+	if result := <-api.Srv.Store.Post().Get(c.T, postId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -378,7 +379,7 @@ func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var channel *model.Channel
-	if result := <-api.Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, post.ChannelId, c.Session.UserId); result.Err != nil {
+	if result := <-api.Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, post.ChannelId, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -388,7 +389,7 @@ func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			if result := <-api.Srv.Store.Channel().Get(post.ChannelId); result.Err != nil {
+			if result := <-api.Srv.Store.Channel().Get(c.T, post.ChannelId); result.Err != nil {
 				c.Err = result.Err
 				return
 			} else {
@@ -412,7 +413,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var channel *model.Channel
-	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
+	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.T, c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -423,7 +424,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			if result := <-api.Srv.Store.Channel().Get(channelId); result.Err != nil {
+			if result := <-api.Srv.Store.Channel().Get(c.T, channelId); result.Err != nil {
 				c.Err = result.Err
 				return
 			} else {
@@ -454,14 +455,14 @@ func autoJoinChannelName(c *api.Context, w http.ResponseWriter, r *http.Request,
 		}
 	} else {
 		// We will attempt to auto-join open channels
-		return joinOpenChannel(c, w, r, api.Srv.Store.Channel().GetByName(c.Session.TeamId, channelName))
+		return joinOpenChannel(c, w, r, api.Srv.Store.Channel().GetByName(c.T, c.Session.TeamId, channelName))
 	}
 
 	return nil
 }
 
 func autoJoinChannelId(c *api.Context, w http.ResponseWriter, r *http.Request, channelId string) *model.Channel {
-	return joinOpenChannel(c, w, r, api.Srv.Store.Channel().Get(channelId))
+	return joinOpenChannel(c, w, r, api.Srv.Store.Channel().Get(c.T, channelId))
 }
 
 func joinOpenChannel(c *api.Context, w http.ResponseWriter, r *http.Request, channel store.StoreChannel) *model.Channel {
@@ -485,7 +486,7 @@ func joinOpenChannel(c *api.Context, w http.ResponseWriter, r *http.Request, cha
 
 func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, teamName string) *model.Team {
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+	if result := <-api.Srv.Store.Team().GetByName(c.T, teamName); result.Err != nil {
 		c.Err = result.Err
 		return nil
 	} else {
@@ -495,7 +496,7 @@ func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, 
 	// We are logged into a different team.  Lets see if we have another
 	// session in the cookie that will give us access.
 	if c.Session.TeamId != team.Id {
-		index, session := api.FindMultiSessionForTeamId(r, team.Id)
+		index, session := api.FindMultiSessionForTeamId(c.T, r, team.Id)
 		if session == nil {
 			// redirect to login
 			http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
@@ -509,7 +510,7 @@ func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, 
 }
 
 func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team *model.Team, channel *model.Channel, postid string) {
-	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+	userChan := api.Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	var user *model.User
 	if ur := <-userChan; ur.Err != nil {
@@ -542,7 +543,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	userId := r.URL.Query().Get("uid")
 
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(name); result.Err != nil {
+	if result := <-api.Srv.Store.Team().GetByName(c.T, name); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -550,7 +551,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if resend == "true" {
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(c.T, team.Id, email); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -569,7 +570,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(userId) == 26 && len(hashedId) != 0 && model.ComparePassword(hashedId, userId) {
-		if c.Err = (<-api.Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
+		if c.Err = (<-api.Srv.Store.User().VerifyEmail(c.T, userId)).Err; c.Err != nil {
 			return
 		} else {
 			c.LogAudit("Email Verified")
@@ -625,7 +626,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	teamDisplayName := "Developer/Beta"
 	var team *model.Team
-	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
+	if tResult := <-api.Srv.Store.Team().GetByName(c.T, teamName); tResult.Err != nil {
 		c.Err = tResult.Err
 		return
 	} else {
@@ -667,7 +668,7 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("h")
 
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+	if result := <-api.Srv.Store.Team().GetByName(c.T, teamName); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -715,7 +716,7 @@ func completeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURL() + "/signup/" + service + "/complete" // Remove /signup after a few releases (~1.8)
 
-	if body, team, props, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
+	if body, team, props, err := api.AuthorizeOAuthUser(c.T, service, code, state, uri); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -768,7 +769,7 @@ func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure team exists
-	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+	if result := <-api.Srv.Store.Team().GetByName(c.T, teamName); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -790,8 +791,8 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
-	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+	teamChan := api.Srv.Store.Team().Get(c.T, c.Session.TeamId)
+	userChan := api.Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	var team *model.Team
 	if tr := <-teamChan; tr.Err != nil {
@@ -845,7 +846,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var app *model.OAuthApp
-	if result := <-api.Srv.Store.OAuth().GetApp(clientId); result.Err != nil {
+	if result := <-api.Srv.Store.OAuth().GetApp(c.T, clientId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -853,7 +854,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+	if result := <-api.Srv.Store.Team().Get(c.T, c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -908,10 +909,10 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectUri := r.FormValue("redirect_uri")
 
-	achan := api.Srv.Store.OAuth().GetApp(clientId)
-	tchan := api.Srv.Store.OAuth().GetAccessDataByAuthCode(code)
+	achan := api.Srv.Store.OAuth().GetApp(c.T, clientId)
+	tchan := api.Srv.Store.OAuth().GetAccessDataByAuthCode(c.T, code)
 
-	authData := api.GetAuthData(code)
+	authData := api.GetAuthData(c.T, code)
 
 	if authData == nil {
 		c.LogAudit("fail - invalid auth code")
@@ -919,7 +920,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uchan := api.Srv.Store.User().Get(authData.UserId)
+	uchan := api.Srv.Store.User().Get(c.T, authData.UserId)
 
 	if authData.IsExpired() {
 		c.LogAudit("fail - auth code expired")
@@ -966,7 +967,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		accessData := result.Data.(*model.AccessData)
 
 		// Revoke access token, related auth code, and session from DB as well as from cache
-		if err := api.RevokeAccessToken(accessData.Token); err != nil {
+		if err := api.RevokeAccessToken(c.T, accessData.Token); err != nil {
 			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
 		}
 
@@ -984,7 +985,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, IsOAuth: true}
 
-	if result := <-api.Srv.Store.Session().Save(session); result.Err != nil {
+	if result := <-api.Srv.Store.Session().Save(c.T, session); result.Err != nil {
 		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while saving session to database", "")
 		return
 	} else {
@@ -994,7 +995,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	accessData := &model.AccessData{AuthCode: authData.Code, Token: session.Token, RedirectUri: callback}
 
-	if result := <-api.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
+	if result := <-api.Srv.Store.OAuth().SaveAccessData(c.T, accessData); result.Err != nil {
 		l4g.Error(result.Err)
 		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while saving access token to database", "")
 		return
@@ -1021,7 +1022,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	hchan := api.Srv.Store.Webhook().GetIncoming(id)
+	hchan := api.Srv.Store.Webhook().GetIncoming(c.T, id)
 
 	r.ParseForm()
 
@@ -1069,7 +1070,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(channelName) != 0 {
 		if channelName[0] == '@' {
-			if result := <-api.Srv.Store.User().GetByUsername(hook.TeamId, channelName[1:]); result.Err != nil {
+			if result := <-api.Srv.Store.User().GetByUsername(c.T, hook.TeamId, channelName[1:]); result.Err != nil {
 				c.Err = model.NewAppError("incomingWebhook", "Couldn't find the user", "err="+result.Err.Message)
 				return
 			} else {
@@ -1079,9 +1080,9 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			channelName = channelName[1:]
 		}
 
-		cchan = api.Srv.Store.Channel().GetByName(hook.TeamId, channelName)
+		cchan = api.Srv.Store.Channel().GetByName(c.T, hook.TeamId, channelName)
 	} else {
-		cchan = api.Srv.Store.Channel().Get(hook.ChannelId)
+		cchan = api.Srv.Store.Channel().Get(c.T, hook.ChannelId)
 	}
 
 	overrideUsername := parsedRequest.Username
@@ -1094,7 +1095,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	pchan := api.Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
+	pchan := api.Srv.Store.Channel().CheckPermissionsTo(c.T, hook.TeamId, channel.Id, hook.UserId)
 
 	// create a mock session
 	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
@@ -1124,7 +1125,7 @@ func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	newType := r.URL.Query().Get("new_type")
 
 	var team *model.Team
-	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
+	if tResult := <-api.Srv.Store.Team().GetByName(c.T, teamName); tResult.Err != nil {
 		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
@@ -1134,7 +1135,7 @@ func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	authType := ""
 	if len(email) != 0 {
-		if uResult := <-api.Srv.Store.User().GetByEmail(team.Id, email); uResult.Err != nil {
+		if uResult := <-api.Srv.Store.User().GetByEmail(c.T, team.Id, email); uResult.Err != nil {
 			l4g.Error("Couldn't find user teamid=%v, email=%v, err=%v", team.Id, email, uResult.Err.Message)
 			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 			return

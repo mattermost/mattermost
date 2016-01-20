@@ -62,7 +62,7 @@ func TestGetAccessToken(t *testing.T) {
 
 	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Password: "pwd"}
 	ruser := ApiClient.Must(ApiClient.CreateUser(&user, "")).Data.(*model.User)
-	store.Must(api.Srv.Store.User().VerifyEmail(ruser.Id))
+	store.Must(api.Srv.Store.User().VerifyEmail(utils.T, ruser.Id))
 
 	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -191,7 +191,7 @@ func TestIncomingWebhook(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
-	store.Must(api.Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(api.Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	ApiClient.LoginByEmail(team.Name, user.Email, "pwd")
 

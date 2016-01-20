@@ -6,6 +6,7 @@ package store
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlSessionStore struct {
@@ -37,7 +38,7 @@ func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_token", "Sessions", "Token")
 }
 
-func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
+func (me SqlSessionStore) Save(T goi18n.TranslateFunc, session *model.Session) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -53,7 +54,7 @@ func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 
 		session.PreSave()
 
-		if cur := <-me.CleanUpExpiredSessions(session.UserId); cur.Err != nil {
+		if cur := <-me.CleanUpExpiredSessions(T, session.UserId); cur.Err != nil {
 			l4g.Error("Failed to cleanup sessions in Save err=%v", cur.Err)
 		}
 
@@ -70,7 +71,7 @@ func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
+func (me SqlSessionStore) Get(T goi18n.TranslateFunc, sessionIdOrToken string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -95,12 +96,12 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
+func (me SqlSessionStore) GetSessions(T goi18n.TranslateFunc, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 
-		if cur := <-me.CleanUpExpiredSessions(userId); cur.Err != nil {
+		if cur := <-me.CleanUpExpiredSessions(T, userId); cur.Err != nil {
 			l4g.Error("Failed to cleanup sessions in getSessions err=%v", cur.Err)
 		}
 
@@ -122,7 +123,7 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) Remove(sessionIdOrToken string) StoreChannel {
+func (me SqlSessionStore) Remove(T goi18n.TranslateFunc, sessionIdOrToken string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -140,7 +141,7 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) RemoveAllSessionsForTeam(teamId string) StoreChannel {
+func (me SqlSessionStore) RemoveAllSessionsForTeam(T goi18n.TranslateFunc, teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -158,7 +159,7 @@ func (me SqlSessionStore) RemoveAllSessionsForTeam(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) StoreChannel {
+func (me SqlSessionStore) PermanentDeleteSessionsByUser(T goi18n.TranslateFunc, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -176,7 +177,7 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) StoreChan
 	return storeChannel
 }
 
-func (me SqlSessionStore) CleanUpExpiredSessions(userId string) StoreChannel {
+func (me SqlSessionStore) CleanUpExpiredSessions(T goi18n.TranslateFunc, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -195,7 +196,7 @@ func (me SqlSessionStore) CleanUpExpiredSessions(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) StoreChannel {
+func (me SqlSessionStore) UpdateLastActivityAt(T goi18n.TranslateFunc, sessionId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -214,7 +215,7 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) Sto
 	return storeChannel
 }
 
-func (me SqlSessionStore) UpdateRoles(userId, roles string) StoreChannel {
+func (me SqlSessionStore) UpdateRoles(T goi18n.TranslateFunc, userId, roles string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

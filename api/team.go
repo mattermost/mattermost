@@ -6,16 +6,17 @@ package api
 import (
 	"bytes"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 func InitTeam(r *mux.Router) {
@@ -127,7 +128,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
+	if result := <-Srv.Store.Team().Save(c.T, team); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -208,7 +209,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Team().Save(&teamSignup.Team); result.Err != nil {
+	if result := <-Srv.Store.Team().Save(c.T, &teamSignup.Team); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -222,7 +223,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		teamSignup.User.TeamId = rteam.Id
 		teamSignup.User.EmailVerified = true
 
-		ruser, err := CreateUser(rteam, &teamSignup.User)
+		ruser, err := CreateUser(c.T, rteam, &teamSignup.User)
 		if err != nil {
 			c.Err = err
 			return
@@ -263,7 +264,7 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 		return nil
 	}
 
-	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
+	if result := <-Srv.Store.Team().Save(c.T, team); result.Err != nil {
 		c.Err = result.Err
 		return nil
 	} else {
@@ -312,7 +313,7 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
+	if result := <-Srv.Store.Team().GetAll(c.T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -330,7 +331,7 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 	id := props["id"]
 
-	if result := <-Srv.Store.Session().Get(id); result.Err != nil {
+	if result := <-Srv.Store.Session().Get(c.T, id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -339,11 +340,11 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("revoked_all=" + id)
 
 		if session.IsOAuth {
-			RevokeAccessToken(session.Token)
+			RevokeAccessToken(c.T, session.Token)
 		} else {
 			sessionCache.Remove(session.Token)
 
-			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+			if result := <-Srv.Store.Session().Remove(c.T, session.Id); result.Err != nil {
 				c.Err = result.Err
 				return
 			} else {
@@ -381,7 +382,7 @@ func FindTeamByName(c *Context, name string, all string) bool {
 		return false
 	}
 
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(c.T, name); result.Err != nil {
 		return false
 	} else {
 		return true
@@ -401,7 +402,7 @@ func findTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
+	if result := <-Srv.Store.Team().GetTeamsForEmail(c.T, email); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -432,7 +433,7 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	bodyPage := NewServerTemplatePage("find_teams_body")
 	bodyPage.ClientCfg["SiteURL"] = c.GetSiteURL()
 
-	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
+	if result := <-Srv.Store.Team().GetTeamsForEmail(c.T, email); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		teams := result.Data.([]*model.Team)
@@ -460,8 +461,8 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tchan := Srv.Store.Team().Get(c.Session.TeamId)
-	uchan := Srv.Store.User().Get(c.Session.UserId)
+	tchan := Srv.Store.Team().Get(c.T, c.Session.TeamId)
+	uchan := Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	var team *model.Team
 	if result := <-tchan; result.Err != nil {
@@ -481,7 +482,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var invNum int64 = 0
 	for i, invite := range invites.Invites {
-		if result := <-Srv.Store.User().GetByEmail(c.Session.TeamId, invite["email"]); result.Err == nil || result.Err.Message != store.MISSING_ACCOUNT_ERROR {
+		if result := <-Srv.Store.User().GetByEmail(c.T, c.Session.TeamId, invite["email"]); result.Err == nil || result.Err.Message != store.MISSING_ACCOUNT_ERROR {
 			invNum = int64(i)
 			c.Err = model.NewAppError("invite_members", "This person is already on your team", strconv.FormatInt(invNum, 10))
 			return
@@ -560,7 +561,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var oldTeam *model.Team
-	if result := <-Srv.Store.Team().Get(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Team().Get(c.T, team.Id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -575,7 +576,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	oldTeam.AllowedDomains = team.AllowedDomains
 	//oldTeam.Type = team.Type
 
-	if result := <-Srv.Store.Team().Update(oldTeam); result.Err != nil {
+	if result := <-Srv.Store.Team().Update(c.T, oldTeam); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -591,11 +592,11 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 	c.LogAuditWithUserId("", fmt.Sprintf("attempt teamId=%v", team.Id))
 
 	team.DeleteAt = model.GetMillis()
-	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
+	if result := <-Srv.Store.Team().Update(c.T, team); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.User().GetForExport(team.Id); result.Err != nil {
+	if result := <-Srv.Store.User().GetForExport(c.T, team.Id); result.Err != nil {
 		return result.Err
 	} else {
 		users := result.Data.([]*model.User)
@@ -604,11 +605,11 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 		}
 	}
 
-	if result := <-Srv.Store.Channel().PermanentDeleteByTeam(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Channel().PermanentDeleteByTeam(c.T, team.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Team().PermanentDelete(c.T, team.Id); result.Err != nil {
 		return result.Err
 	}
 
@@ -624,7 +625,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Team().Get(c.T, c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.Team).Etag(), w, r) {
@@ -693,7 +694,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	switch importFrom {
 	case "slack":
 		var err *model.AppError
-		if err, log = SlackImport(fileData, fileSize, c.Session.TeamId); err != nil {
+		if err, log = SlackImport(c.T, fileData, fileSize, c.Session.TeamId); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusBadRequest
 		}
@@ -713,7 +714,7 @@ func exportTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options := ExportOptionsFromJson(r.Body)
 
-	if link, err := ExportToFile(options); err != nil {
+	if link, err := ExportToFile(c.T, options); err != nil {
 		c.Err = err
 		return
 	} else {

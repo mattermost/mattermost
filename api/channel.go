@@ -5,12 +5,14 @@ package api
 
 import (
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/model"
 	"net/http"
 	"strconv"
 	"strings"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -76,7 +78,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	if result := <-Srv.Store.Channel().Save(channel); result.Err != nil {
+	if result := <-Srv.Store.Channel().Save(c.T, channel); result.Err != nil {
 		return nil, result.Err
 	} else {
 		sc := result.Data.(*model.Channel)
@@ -85,7 +87,7 @@ func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.C
 			cm := &model.ChannelMember{ChannelId: sc.Id, UserId: c.Session.UserId,
 				Roles: model.CHANNEL_ROLE_ADMIN, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
-			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
+			if cmresult := <-Srv.Store.Channel().SaveMember(c.T, cm); cmresult.Err != nil {
 				return nil, cmresult.Err
 			}
 		}
@@ -123,7 +125,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 		return nil, model.NewAppError("CreateDirectChannel", "Invalid other user id ", otherUserId)
 	}
 
-	uc := Srv.Store.User().Get(otherUserId)
+	uc := Srv.Store.User().Get(c.T, otherUserId)
 
 	channel := new(model.Channel)
 
@@ -149,7 +151,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 
-	if result := <-Srv.Store.Channel().SaveDirectChannel(channel, cm1, cm2); result.Err != nil {
+	if result := <-Srv.Store.Channel().SaveDirectChannel(c.T, channel, cm1, cm2); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Channel), nil
@@ -182,8 +184,8 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(channel.Id)
-	cmc := Srv.Store.Channel().GetMember(channel.Id, c.Session.UserId)
+	sc := Srv.Store.Channel().Get(c.T, channel.Id)
+	cmc := Srv.Store.Channel().GetMember(c.T, channel.Id, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -233,7 +235,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			oldChannel.Type = channel.Type
 		}
 
-		if ucresult := <-Srv.Store.Channel().Update(oldChannel); ucresult.Err != nil {
+		if ucresult := <-Srv.Store.Channel().Update(c.T, oldChannel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
 		} else {
@@ -258,8 +260,8 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(channelId)
-	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
+	sc := Srv.Store.Channel().Get(c.T, channelId)
+	cmc := Srv.Store.Channel().GetMember(c.T, channelId, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -277,7 +279,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannelHeader := channel.Header
 		channel.Header = channelHeader
 
-		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
+		if ucresult := <-Srv.Store.Channel().Update(c.T, channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
 		} else {
@@ -290,7 +292,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func PostUpdateChannelHeaderMessageAndForget(c *Context, channelId string, oldChannelHeader, newChannelHeader string) {
 	go func() {
-		uc := Srv.Store.User().Get(c.Session.UserId)
+		uc := Srv.Store.User().Get(c.T, c.Session.UserId)
 
 		if uresult := <-uc; uresult.Err != nil {
 			l4g.Error("Failed to retrieve user while trying to save update channel header message %v", uresult.Err)
@@ -333,8 +335,8 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(channelId)
-	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
+	sc := Srv.Store.Channel().Get(c.T, channelId)
+	cmc := Srv.Store.Channel().GetMember(c.T, channelId, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -352,7 +354,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		channel.Purpose = channelPurpose
 
-		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
+		if ucresult := <-Srv.Store.Channel().Update(c.T, channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
 		} else {
@@ -366,10 +368,10 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// user is already in the team
 
-	if result := <-Srv.Store.Channel().GetChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetChannels(c.T, c.Session.TeamId, c.Session.UserId); result.Err != nil {
 		if result.Err.Message == "No channels were found" {
 			// lets make sure the user is valid
-			if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+			if result := <-Srv.Store.User().Get(c.T, c.Session.UserId); result.Err != nil {
 				c.Err = result.Err
 				c.RemoveSessionCookie(w, r)
 				l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
@@ -391,7 +393,7 @@ func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// user is already in the team
 
-	if result := <-Srv.Store.Channel().GetMoreChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetMoreChannels(c.T, c.Session.TeamId, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), w, r) {
@@ -407,7 +409,7 @@ func getChannelCounts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// user is already in the team
 
-	if result := <-Srv.Store.Channel().GetChannelCounts(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetChannelCounts(c.T, c.Session.TeamId, c.Session.UserId); result.Err != nil {
 		c.Err = model.NewAppError("getChannelCounts", "Unable to get channel counts from the database", result.Err.Message)
 		return
 	} else if HandleEtag(result.Data.(*model.ChannelCounts).Etag(), w, r) {
@@ -437,8 +439,8 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func JoinChannel(c *Context, channelId string, role string) {
 
-	sc := Srv.Store.Channel().Get(channelId)
-	uc := Srv.Store.User().Get(c.Session.UserId)
+	sc := Srv.Store.Channel().Get(c.T, channelId)
+	uc := Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -455,7 +457,7 @@ func JoinChannel(c *Context, channelId string, role string) {
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
-			if _, err := AddUserToChannel(user, channel); err != nil {
+			if _, err := AddUserToChannel(c.T, user, channel); err != nil {
 				c.Err = err
 				return
 			}
@@ -481,7 +483,7 @@ func PostUserAddRemoveMessageAndForget(c *Context, channelId string, message str
 	}()
 }
 
-func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func AddUserToChannel(T goi18n.TranslateFunc, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
 	if channel.DeleteAt > 0 {
 		return nil, model.NewAppError("AddUserToChannel", "The channel has been archived or deleted", "")
 	}
@@ -491,7 +493,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	}
 
 	newMember := &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
-	if cmresult := <-Srv.Store.Channel().SaveMember(newMember); cmresult.Err != nil {
+	if cmresult := <-Srv.Store.Channel().SaveMember(T, newMember); cmresult.Err != nil {
 		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, cmresult.Err)
 		return nil, model.NewAppError("AddUserToChannel", "Failed to add user to channel", "")
 	}
@@ -506,29 +508,29 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	return newMember, nil
 }
 
-func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
+func JoinDefaultChannels(T goi18n.TranslateFunc, user *model.User, channelRole string) *model.AppError {
 	// We don't call JoinChannel here since c.Session is not populated on user creation
 
 	var err *model.AppError = nil
 
-	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "town-square"); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(T, user.TeamId, "town-square"); result.Err != nil {
 		err = result.Err
 	} else {
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
 			Roles: channelRole, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
-		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
+		if cmResult := <-Srv.Store.Channel().SaveMember(T, cm); cmResult.Err != nil {
 			err = cmResult.Err
 		}
 	}
 
-	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "off-topic"); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(T, user.TeamId, "off-topic"); result.Err != nil {
 		err = result.Err
 	} else {
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
 			Roles: channelRole, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
-		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
+		if cmResult := <-Srv.Store.Channel().SaveMember(T, cm); cmResult.Err != nil {
 			err = cmResult.Err
 		}
 	}
@@ -541,8 +543,8 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	sc := Srv.Store.Channel().Get(id)
-	uc := Srv.Store.User().Get(c.Session.UserId)
+	sc := Srv.Store.Channel().Get(c.T, id)
+	uc := Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -570,12 +572,12 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if cmresult := <-Srv.Store.Channel().RemoveMember(channel.Id, c.Session.UserId); cmresult.Err != nil {
+		if cmresult := <-Srv.Store.Channel().RemoveMember(c.T, channel.Id, c.Session.UserId); cmresult.Err != nil {
 			c.Err = cmresult.Err
 			return
 		}
 
-		RemoveUserFromChannel(c.Session.UserId, c.Session.UserId, channel)
+		RemoveUserFromChannel(c.T, c.Session.UserId, c.Session.UserId, channel)
 
 		PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`%v has left the channel.`, user.Username))
 
@@ -590,11 +592,11 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	sc := Srv.Store.Channel().Get(id)
-	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
-	uc := Srv.Store.User().Get(c.Session.UserId)
-	ihc := Srv.Store.Webhook().GetIncomingByChannel(id)
-	ohc := Srv.Store.Webhook().GetOutgoingByChannel(id)
+	sc := Srv.Store.Channel().Get(c.T, id)
+	scm := Srv.Store.Channel().GetMember(c.T, id, c.Session.UserId)
+	uc := Srv.Store.User().Get(c.T, c.Session.UserId)
+	ihc := Srv.Store.Webhook().GetIncomingByChannel(c.T, id)
+	ohc := Srv.Store.Webhook().GetOutgoingByChannel(c.T, id)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -643,7 +645,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		now := model.GetMillis()
 		for _, hook := range incomingHooks {
 			go func() {
-				if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
+				if result := <-Srv.Store.Webhook().DeleteIncoming(c.T, hook.Id, now); result.Err != nil {
 					l4g.Error("Encountered error deleting incoming webhook, id=" + hook.Id)
 				}
 			}()
@@ -651,13 +653,13 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		for _, hook := range outgoingHooks {
 			go func() {
-				if result := <-Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); result.Err != nil {
+				if result := <-Srv.Store.Webhook().DeleteOutgoing(c.T, hook.Id, now); result.Err != nil {
 					l4g.Error("Encountered error deleting outgoing webhook, id=" + hook.Id)
 				}
 			}()
 		}
 
-		if dresult := <-Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); dresult.Err != nil {
+		if dresult := <-Srv.Store.Channel().Delete(c.T, channel.Id, model.GetMillis()); dresult.Err != nil {
 			c.Err = dresult.Err
 			return
 		}
@@ -683,7 +685,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	Srv.Store.Channel().UpdateLastViewedAt(id, c.Session.UserId)
+	Srv.Store.Channel().UpdateLastViewedAt(c.T, id, c.Session.UserId)
 
 	preference := model.Preference{
 		UserId:   c.Session.UserId,
@@ -692,7 +694,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 		Value:    id,
 	}
 
-	Srv.Store.Preference().Save(&model.Preferences{preference})
+	Srv.Store.Preference().Save(c.T, &model.Preferences{preference})
 
 	message := model.NewMessage(c.Session.TeamId, id, c.Session.UserId, model.ACTION_CHANNEL_VIEWED)
 	message.Add("channel_id", id)
@@ -709,8 +711,8 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 
 	//pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
-	cchan := Srv.Store.Channel().Get(id)
-	cmchan := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+	cchan := Srv.Store.Channel().Get(c.T, id)
+	cmchan := Srv.Store.Channel().GetMember(c.T, id, c.Session.UserId)
 
 	if cresult := <-cchan; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -749,7 +751,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		memberLimit = int(memberLimitInt64)
 	}
 
-	sc := Srv.Store.Channel().Get(id)
+	sc := Srv.Store.Channel().Get(c.T, id)
 	var channel *model.Channel
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -763,9 +765,9 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
-	ecm := Srv.Store.Channel().GetExtraMembers(id, memberLimit)
-	ccm := Srv.Store.Channel().GetMemberCount(id)
+	scm := Srv.Store.Channel().GetMember(c.T, id, c.Session.UserId)
+	ecm := Srv.Store.Channel().GetExtraMembers(c.T, id, memberLimit)
+	ccm := Srv.Store.Channel().GetMemberCount(c.T, id)
 
 	if cmresult := <-scm; cmresult.Err != nil {
 		c.Err = cmresult.Err
@@ -814,10 +816,10 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
-	sc := Srv.Store.Channel().Get(id)
-	ouc := Srv.Store.User().Get(c.Session.UserId)
-	nuc := Srv.Store.User().Get(userId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, id, c.Session.UserId)
+	sc := Srv.Store.Channel().Get(c.T, id)
+	ouc := Srv.Store.User().Get(c.T, c.Session.UserId)
+	nuc := Srv.Store.User().Get(c.T, userId)
 
 	// Only need to be a member of the channel to add a new member
 	if !c.HasPermissionsToChannel(cchan, "addMember") {
@@ -840,7 +842,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			oUser := oresult.Data.(*model.User)
 
-			cm, err := AddUserToChannel(nUser, channel)
+			cm, err := AddUserToChannel(c.T, nUser, channel)
 			if err != nil {
 				c.Err = err
 				return
@@ -850,7 +852,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`%v added to the channel by %v`, nUser.Username, oUser.Username))
 
-			<-Srv.Store.Channel().UpdateLastViewedAt(id, oUser.Id)
+			<-Srv.Store.Channel().UpdateLastViewedAt(c.T, id, oUser.Id)
 			w.Write([]byte(cm.ToJson()))
 		}
 	}
@@ -868,8 +870,8 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(channelId)
-	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
+	sc := Srv.Store.Channel().Get(c.T, channelId)
+	cmc := Srv.Store.Channel().GetMember(c.T, channelId, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -891,7 +893,7 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
+		if err := RemoveUserFromChannel(c.T, userIdToRemove, c.Session.UserId, channel); err != nil {
 			c.Err = model.NewAppError("updateChannel", "Unable to remove user.", err.Message)
 			return
 		}
@@ -906,12 +908,12 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+func RemoveUserFromChannel(T goi18n.TranslateFunc, userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	if channel.DeleteAt > 0 {
 		return model.NewAppError("updateChannel", "The channel has been archived or deleted", "")
 	}
 
-	if cmresult := <-Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); cmresult.Err != nil {
+	if cmresult := <-Srv.Store.Channel().RemoveMember(T, channel.Id, userIdToRemove); cmresult.Err != nil {
 		return cmresult.Err
 	}
 
@@ -939,7 +941,7 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
 
 	if !c.HasPermissionsToUser(userId, "updateNotifyLevel") {
 		return
@@ -949,7 +951,7 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := <-Srv.Store.Channel().GetMember(channelId, userId)
+	result := <-Srv.Store.Channel().GetMember(c.T, channelId, userId)
 	if result.Err != nil {
 		c.Err = result.Err
 		return
@@ -966,7 +968,7 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		member.NotifyProps["desktop"] = desktop
 	}
 
-	if result := <-Srv.Store.Channel().UpdateMember(&member); result.Err != nil {
+	if result := <-Srv.Store.Channel().UpdateMember(c.T, &member); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

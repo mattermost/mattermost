@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlSystemStore struct {
@@ -29,7 +30,7 @@ func (s SqlSystemStore) UpgradeSchemaIfNeeded() {
 func (s SqlSystemStore) CreateIndexesIfNotExists() {
 }
 
-func (s SqlSystemStore) Save(system *model.System) StoreChannel {
+func (s SqlSystemStore) Save(T goi18n.TranslateFunc, system *model.System) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -47,7 +48,7 @@ func (s SqlSystemStore) Save(system *model.System) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlSystemStore) Update(system *model.System) StoreChannel {
+func (s SqlSystemStore) Update(T goi18n.TranslateFunc, system *model.System) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -65,7 +66,7 @@ func (s SqlSystemStore) Update(system *model.System) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlSystemStore) Get() StoreChannel {
+func (s SqlSystemStore) Get(T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 

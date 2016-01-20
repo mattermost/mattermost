@@ -5,9 +5,11 @@ package store
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strings"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -54,7 +56,7 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
 }
 
-func (us SqlUserStore) Save(user *model.User) StoreChannel {
+func (us SqlUserStore) Save(T goi18n.TranslateFunc, user *model.User) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -106,7 +108,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreChannel {
+func (us SqlUserStore) Update(T goi18n.TranslateFunc, user *model.User, allowActiveUpdate bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -183,7 +185,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
+func (us SqlUserStore) UpdateLastPictureUpdate(T goi18n.TranslateFunc, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -204,7 +206,7 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel {
+func (us SqlUserStore) UpdateLastPingAt(T goi18n.TranslateFunc, userId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -223,7 +225,7 @@ func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel 
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64) StoreChannel {
+func (us SqlUserStore) UpdateLastActivityAt(T goi18n.TranslateFunc, userId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -242,7 +244,7 @@ func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64) StoreChan
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel {
+func (us SqlUserStore) UpdateUserAndSessionActivity(T goi18n.TranslateFunc, userId string, sessionId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -263,7 +265,7 @@ func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId str
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChannel {
+func (us SqlUserStore) UpdatePassword(T goi18n.TranslateFunc, userId, hashedPassword string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -285,7 +287,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel {
+func (us SqlUserStore) UpdateFailedPasswordAttempts(T goi18n.TranslateFunc, userId string, attempts int) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -304,7 +306,7 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateAuthData(userId, service, authData string) StoreChannel {
+func (us SqlUserStore) UpdateAuthData(T goi18n.TranslateFunc, userId, service, authData string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -326,7 +328,7 @@ func (us SqlUserStore) UpdateAuthData(userId, service, authData string) StoreCha
 	return storeChannel
 }
 
-func (us SqlUserStore) Get(id string) StoreChannel {
+func (us SqlUserStore) Get(T goi18n.TranslateFunc, id string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -349,7 +351,7 @@ func (us SqlUserStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
+func (s SqlUserStore) GetEtagForProfiles(T goi18n.TranslateFunc, teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -369,7 +371,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
+func (us SqlUserStore) GetProfiles(T goi18n.TranslateFunc, teamId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -400,7 +402,7 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
+func (us SqlUserStore) GetSystemAdminProfiles(T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -431,7 +433,7 @@ func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
+func (us SqlUserStore) GetByEmail(T goi18n.TranslateFunc, teamId string, email string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -453,7 +455,7 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByAuth(teamId string, authData string, authService string) StoreChannel {
+func (us SqlUserStore) GetByAuth(T goi18n.TranslateFunc, teamId string, authData string, authService string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -475,7 +477,7 @@ func (us SqlUserStore) GetByAuth(teamId string, authData string, authService str
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByUsername(teamId string, username string) StoreChannel {
+func (us SqlUserStore) GetByUsername(T goi18n.TranslateFunc, teamId string, username string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -497,7 +499,7 @@ func (us SqlUserStore) GetByUsername(teamId string, username string) StoreChanne
 	return storeChannel
 }
 
-func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
+func (us SqlUserStore) VerifyEmail(T goi18n.TranslateFunc, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -516,7 +518,7 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
+func (us SqlUserStore) GetForExport(T goi18n.TranslateFunc, teamId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -543,7 +545,7 @@ func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
+func (us SqlUserStore) GetTotalUsersCount(T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -562,7 +564,7 @@ func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
+func (us SqlUserStore) GetTotalActiveUsersCount(T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -583,7 +585,7 @@ func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) PermanentDelete(userId string) StoreChannel {
+func (us SqlUserStore) PermanentDelete(T goi18n.TranslateFunc, userId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 

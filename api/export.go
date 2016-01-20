@@ -6,10 +6,12 @@ package api
 import (
 	"archive/zip"
 	"encoding/json"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"io"
 	"os"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -51,19 +53,19 @@ func ExportOptionsFromJson(data io.Reader) *ExportOptions {
 	return &o
 }
 
-func ExportToFile(options *ExportOptions) (link string, err *model.AppError) {
+func ExportToFile(T goi18n.TranslateFunc, options *ExportOptions) (link string, err *model.AppError) {
 	// Open file for export
 	if file, err := openFileWriteStream(EXPORT_PATH + EXPORT_FILENAME); err != nil {
 		return "", err
 	} else {
 		defer closeFileWriteStream(file)
-		ExportToWriter(file, options)
+		ExportToWriter(T, file, options)
 	}
 
 	return "/api/v1/files/get_export", nil
 }
 
-func ExportToWriter(w io.Writer, options *ExportOptions) *model.AppError {
+func ExportToWriter(T goi18n.TranslateFunc, w io.Writer, options *ExportOptions) *model.AppError {
 	// Open a writer to write to zip file
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
@@ -78,23 +80,23 @@ func ExportToWriter(w io.Writer, options *ExportOptions) *model.AppError {
 	}
 
 	// Export Teams
-	ExportTeams(zipWriter, options)
+	ExportTeams(T, zipWriter, options)
 
 	return nil
 }
 
-func ExportTeams(writer ExportWriter, options *ExportOptions) *model.AppError {
+func ExportTeams(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOptions) *model.AppError {
 	// Get the teams
 	var teams []*model.Team
 	if len(options.TeamsToExport) == 0 {
-		if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
+		if result := <-Srv.Store.Team().GetAll(T); result.Err != nil {
 			return result.Err
 		} else {
 			teams = result.Data.([]*model.Team)
 		}
 	} else {
 		for _, teamId := range options.TeamsToExport {
-			if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+			if result := <-Srv.Store.Team().Get(T, teamId); result.Err != nil {
 				return result.Err
 			} else {
 				team := result.Data.(*model.Team)
@@ -120,10 +122,10 @@ func ExportTeams(writer ExportWriter, options *ExportOptions) *model.AppError {
 
 	// Export the channels, local storage and users
 	for _, team := range teams {
-		if err := ExportChannels(writer, options, team.Id); err != nil {
+		if err := ExportChannels(T, writer, options, team.Id); err != nil {
 			return err
 		}
-		if err := ExportUsers(writer, options, team.Id); err != nil {
+		if err := ExportUsers(T, writer, options, team.Id); err != nil {
 			return err
 		}
 		if err := ExportLocalStorage(writer, options, team.Id); err != nil {
@@ -134,18 +136,18 @@ func ExportTeams(writer ExportWriter, options *ExportOptions) *model.AppError {
 	return nil
 }
 
-func ExportChannels(writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
+func ExportChannels(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
 	// Get the channels
 	var channels []*model.Channel
 	if len(options.ChannelsToExport) == 0 {
-		if result := <-Srv.Store.Channel().GetForExport(teamId); result.Err != nil {
+		if result := <-Srv.Store.Channel().GetForExport(T, teamId); result.Err != nil {
 			return result.Err
 		} else {
 			channels = result.Data.([]*model.Channel)
 		}
 	} else {
 		for _, channelId := range options.ChannelsToExport {
-			if result := <-Srv.Store.Channel().Get(channelId); result.Err != nil {
+			if result := <-Srv.Store.Channel().Get(T, channelId); result.Err != nil {
 				return result.Err
 			} else {
 				channel := result.Data.(*model.Channel)
@@ -156,7 +158,7 @@ func ExportChannels(writer ExportWriter, options *ExportOptions, teamId string) 
 
 	for i := range channels {
 		// Get members
-		mchan := Srv.Store.Channel().GetMembers(channels[i].Id)
+		mchan := Srv.Store.Channel().GetMembers(T, channels[i].Id)
 
 		// Sanitize
 		channels[i].PreExport()
@@ -190,7 +192,7 @@ func ExportChannels(writer ExportWriter, options *ExportOptions, teamId string) 
 	}
 
 	for _, channel := range channels {
-		if err := ExportPosts(writer, options, channel.Id); err != nil {
+		if err := ExportPosts(T, writer, options, channel.Id); err != nil {
 			return err
 		}
 	}
@@ -198,10 +200,10 @@ func ExportChannels(writer ExportWriter, options *ExportOptions, teamId string) 
 	return nil
 }
 
-func ExportPosts(writer ExportWriter, options *ExportOptions, channelId string) *model.AppError {
+func ExportPosts(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOptions, channelId string) *model.AppError {
 	// Get the posts
 	var posts []*model.Post
-	if result := <-Srv.Store.Post().GetForExport(channelId); result.Err != nil {
+	if result := <-Srv.Store.Post().GetForExport(T, channelId); result.Err != nil {
 		return result.Err
 	} else {
 		posts = result.Data.([]*model.Post)
@@ -223,10 +225,10 @@ func ExportPosts(writer ExportWriter, options *ExportOptions, channelId string) 
 	return nil
 }
 
-func ExportUsers(writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
+func ExportUsers(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
 	// Get the users
 	var users []*model.User
-	if result := <-Srv.Store.User().GetForExport(teamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetForExport(T, teamId); result.Err != nil {
 		return result.Err
 	} else {
 		users = result.Data.([]*model.User)

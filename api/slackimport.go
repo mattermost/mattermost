@@ -7,12 +7,14 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/model"
 	"io"
 	"mime/multipart"
 	"strconv"
 	"strings"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SlackChannel struct {
@@ -89,7 +91,7 @@ func SlackParsePosts(data io.Reader) []SlackPost {
 	return posts
 }
 
-func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map[string]*model.User {
+func SlackAddUsers(T goi18n.TranslateFunc, teamId string, slackusers []SlackUser, log *bytes.Buffer) map[string]*model.User {
 	// Log header
 	log.WriteString("\r\n Users Created\r\n")
 	log.WriteString("===============\r\n\r\n")
@@ -116,7 +118,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 			Password:  password,
 		}
 
-		if mUser := ImportUser(&newUser); mUser != nil {
+		if mUser := ImportUser(T, &newUser); mUser != nil {
 			addedUsers[sUser.Id] = mUser
 			log.WriteString("Email, Password: " + newUser.Email + ", " + password + "\r\n")
 		} else {
@@ -127,7 +129,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 	return addedUsers
 }
 
-func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*model.User) {
+func SlackAddPosts(T goi18n.TranslateFunc, channel *model.Channel, posts []SlackPost, users map[string]*model.User) {
 	for _, sPost := range posts {
 		switch {
 		case sPost.Type == "message" && (sPost.SubType == "" || sPost.SubType == "file_share"):
@@ -144,7 +146,7 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 				Message:   sPost.Text,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			ImportPost(&newPost)
+			ImportPost(T, &newPost)
 		case sPost.Type == "message" && sPost.SubType == "file_comment":
 			if sPost.Comment["user"] == "" {
 				l4g.Debug("Message without user")
@@ -159,7 +161,7 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 				Message:   sPost.Comment["comment"],
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			ImportPost(&newPost)
+			ImportPost(T, &newPost)
 		case sPost.Type == "message" && sPost.SubType == "bot_message":
 			// In the future this will use the "Action Post" spec to post
 			// a message without using a username. For now we just warn that we don't handle this case
@@ -170,7 +172,7 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 	}
 }
 
-func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, log *bytes.Buffer) map[string]*model.Channel {
+func SlackAddChannels(T goi18n.TranslateFunc, teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, log *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
 	log.WriteString("\r\n Channels Added \r\n")
 	log.WriteString("=================\r\n\r\n")
@@ -184,10 +186,10 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			Name:        SlackConvertChannelName(sChannel.Name),
 			Purpose:     sChannel.Topic["value"],
 		}
-		mChannel := ImportChannel(&newChannel)
+		mChannel := ImportChannel(T, &newChannel)
 		if mChannel == nil {
 			// Maybe it already exists?
-			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err != nil {
+			if result := <-Srv.Store.Channel().GetByName(T, teamId, sChannel.Name); result.Err != nil {
 				l4g.Debug("Failed to import: %s", newChannel.DisplayName)
 				log.WriteString("Failed to import: " + newChannel.DisplayName + "\r\n")
 				continue
@@ -198,13 +200,13 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 		}
 		log.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
-		SlackAddPosts(mChannel, posts[sChannel.Name], users)
+		SlackAddPosts(T, mChannel, posts[sChannel.Name], users)
 	}
 
 	return addedChannels
 }
 
-func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
+func SlackImport(T goi18n.TranslateFunc, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	zipreader, err := zip.NewReader(fileData, fileSize)
 	if err != nil || zipreader.File == nil {
 		return model.NewAppError("SlackImport", "Unable to open zip file", err.Error()), nil
@@ -240,8 +242,8 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 		}
 	}
 
-	addedUsers := SlackAddUsers(teamID, users, log)
-	SlackAddChannels(teamID, channels, posts, addedUsers, log)
+	addedUsers := SlackAddUsers(T, teamID, users, log)
+	SlackAddChannels(T, teamID, channels, posts, addedUsers, log)
 
 	log.WriteString("\r\n Notes \r\n")
 	log.WriteString("=======\r\n\r\n")

@@ -21,7 +21,7 @@ func TestSuggestRootCommands(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
@@ -70,7 +70,7 @@ func TestLogoutCommands(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
@@ -88,7 +88,7 @@ func TestJoinCommands(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
@@ -102,7 +102,7 @@ func TestJoinCommands(t *testing.T) {
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	data := make(map[string]string)
 	data["user_id"] = user2.Id
@@ -164,7 +164,7 @@ func TestEchoCommand(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
@@ -202,7 +202,7 @@ func TestLoadTestUrlCommand(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 

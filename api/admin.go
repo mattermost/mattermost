@@ -128,7 +128,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.User().Get(c.T, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -157,9 +157,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
-		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		postChan := Srv.Store.Post().AnalyticsPostCount(teamId)
+		openChan := Srv.Store.Channel().AnalyticsTypeCount(c.T, teamId, model.CHANNEL_OPEN)
+		privateChan := Srv.Store.Channel().AnalyticsTypeCount(c.T, teamId, model.CHANNEL_PRIVATE)
+		postChan := Srv.Store.Post().AnalyticsPostCount(c.T, teamId)
 
 		if r := <-openChan; r.Err != nil {
 			c.Err = r.Err
@@ -184,14 +184,14 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(rows.ToJson()))
 	} else if name == "post_counts_day" {
-		if r := <-Srv.Store.Post().AnalyticsPostCountsByDay(teamId); r.Err != nil {
+		if r := <-Srv.Store.Post().AnalyticsPostCountsByDay(c.T, teamId); r.Err != nil {
 			c.Err = r.Err
 			return
 		} else {
 			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
 		}
 	} else if name == "user_counts_with_posts_day" {
-		if r := <-Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId); r.Err != nil {
+		if r := <-Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(c.T, teamId); r.Err != nil {
 			c.Err = r.Err
 			return
 		} else {
