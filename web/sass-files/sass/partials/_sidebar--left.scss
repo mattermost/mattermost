@@ -43,7 +43,7 @@
         width: 12px;
         display: inline-block;
         svg {
-            max-height: 15px;
+            max-height: 14px;
         }
         i, path, ellipse {
             @include opacity(0.5);
