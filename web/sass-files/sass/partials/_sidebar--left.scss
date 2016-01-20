@@ -41,6 +41,7 @@
         top:1px;
         margin-right: 6px;
         width: 12px;
+        max-height: 18px;
         display: inline-block;
         i, path, ellipse {
             @include opacity(0.5);
