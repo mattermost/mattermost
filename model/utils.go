@@ -25,9 +25,8 @@ type StringMap map[string]string
 type StringArray []string
 type EncryptStringMap map[string]string
 
-// AppError is returned for any http response that's not in the 200 range.
 type AppError struct {
-	LocId         string                 `json:"loc_id"`         // Message to be display to the end user without debugging information
+	Id            string                 `json:"id"`
 	Message       string                 `json:"message"`        // Message to be display to the end user without debugging information
 	DetailedError string                 `json:"detailed_error"` // Internal error string to help the developer
 	RequestId     string                 `json:"request_id"`     // The RequestId that's also set in the header
@@ -44,9 +43,9 @@ func (er *AppError) Error() string {
 func (er *AppError) Translate(T goi18n.TranslateFunc) {
 	if len(er.Message) == 0 {
 		if er.params == nil {
-			er.Message = T(er.LocId)
+			er.Message = T(er.Id)
 		} else {
-			er.Message = T(er.LocId, er.params)
+			er.Message = T(er.Id, er.params)
 		}
 	}
 }
@@ -82,9 +81,9 @@ func NewAppError(where string, message string, details string) *AppError {
 	return ap
 }
 
-func NewLocAppError(where string, locId string, params map[string]interface{}, details string) *AppError {
+func NewLocAppError(where string, id string, params map[string]interface{}, details string) *AppError {
 	ap := &AppError{}
-	ap.LocId = locId
+	ap.Id = id
 	ap.params = params
 	ap.Where = where
 	ap.DetailedError = details
