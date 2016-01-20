@@ -50,14 +50,15 @@ func main() {
 	parseCmds()
 
 	utils.LoadConfig(flagConfigFile)
+	utils.InitTranslations()
 
 	if flagRunCmds {
 		utils.ConfigureCmdLineLog()
 	}
 
 	pwd, _ := os.Getwd()
-	l4g.Info("Current version is %v (%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
-	l4g.Info("Enterprise Enabled: %t", model.BuildEnterpriseReady)
+	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
+	l4g.Info("Enterprise Enabled: %v", model.BuildEnterpriseReady)
 	l4g.Info("Current working directory is %v", pwd)
 	l4g.Info("Loaded config file from %v", utils.FindConfigFile(flagConfigFile))
 
