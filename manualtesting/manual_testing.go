@@ -100,7 +100,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		api.Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
+		api.Srv.Store.User().VerifyEmail(c.T, result.Data.(*model.User).Id)
 		newuser := result.Data.(*model.User)
 		userID = newuser.Id
 

@@ -106,27 +106,27 @@ type PostStore interface {
 }
 
 type UserStore interface {
-	Save(user *model.User) StoreChannel
-	Update(user *model.User, allowRoleUpdate bool) StoreChannel
-	UpdateLastPictureUpdate(userId string) StoreChannel
-	UpdateLastPingAt(userId string, time int64) StoreChannel
-	UpdateLastActivityAt(userId string, time int64) StoreChannel
-	UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel
-	UpdatePassword(userId, newPassword string) StoreChannel
-	UpdateAuthData(userId, service, authData string) StoreChannel
-	Get(id string) StoreChannel
-	GetProfiles(teamId string) StoreChannel
-	GetByEmail(teamId string, email string) StoreChannel
-	GetByAuth(teamId string, authData string, authService string) StoreChannel
-	GetByUsername(teamId string, username string) StoreChannel
-	VerifyEmail(userId string) StoreChannel
-	GetEtagForProfiles(teamId string) StoreChannel
-	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
-	GetForExport(teamId string) StoreChannel
-	GetTotalUsersCount() StoreChannel
-	GetTotalActiveUsersCount() StoreChannel
-	GetSystemAdminProfiles() StoreChannel
-	PermanentDelete(userId string) StoreChannel
+	Save(T goi18n.TranslateFunc, user *model.User) StoreChannel
+	Update(T goi18n.TranslateFunc, user *model.User, allowRoleUpdate bool) StoreChannel
+	UpdateLastPictureUpdate(T goi18n.TranslateFunc, userId string) StoreChannel
+	UpdateLastPingAt(T goi18n.TranslateFunc, userId string, time int64) StoreChannel
+	UpdateLastActivityAt(T goi18n.TranslateFunc, userId string, time int64) StoreChannel
+	UpdateUserAndSessionActivity(T goi18n.TranslateFunc, userId string, sessionId string, time int64) StoreChannel
+	UpdatePassword(T goi18n.TranslateFunc, userId, newPassword string) StoreChannel
+	UpdateAuthData(T goi18n.TranslateFunc, userId, service, authData string) StoreChannel
+	Get(T goi18n.TranslateFunc, id string) StoreChannel
+	GetProfiles(T goi18n.TranslateFunc, teamId string) StoreChannel
+	GetByEmail(T goi18n.TranslateFunc, teamId string, email string) StoreChannel
+	GetByAuth(T goi18n.TranslateFunc, teamId string, authData string, authService string) StoreChannel
+	GetByUsername(T goi18n.TranslateFunc, teamId string, username string) StoreChannel
+	VerifyEmail(T goi18n.TranslateFunc, userId string) StoreChannel
+	GetEtagForProfiles(T goi18n.TranslateFunc, teamId string) StoreChannel
+	UpdateFailedPasswordAttempts(T goi18n.TranslateFunc, userId string, attempts int) StoreChannel
+	GetForExport(T goi18n.TranslateFunc, teamId string) StoreChannel
+	GetTotalUsersCount(T goi18n.TranslateFunc) StoreChannel
+	GetTotalActiveUsersCount(T goi18n.TranslateFunc) StoreChannel
+	GetSystemAdminProfiles(T goi18n.TranslateFunc) StoreChannel
+	PermanentDelete(T goi18n.TranslateFunc, userId string) StoreChannel
 }
 
 type SessionStore interface {

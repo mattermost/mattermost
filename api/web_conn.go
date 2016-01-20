@@ -30,8 +30,8 @@ type WebConn struct {
 
 func NewWebConn(ws *websocket.Conn, teamId string, userId string, sessionId string) *WebConn {
 	go func() {
-		achan := Srv.Store.User().UpdateUserAndSessionActivity(userId, sessionId, model.GetMillis())
-		pchan := Srv.Store.User().UpdateLastPingAt(userId, model.GetMillis())
+		achan := Srv.Store.User().UpdateUserAndSessionActivity(utils.T, userId, sessionId, model.GetMillis())
+		pchan := Srv.Store.User().UpdateLastPingAt(utils.T, userId, model.GetMillis())
 
 		if result := <-achan; result.Err != nil {
 			l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", userId, sessionId, result.Err)
@@ -56,7 +56,7 @@ func (c *WebConn) readPump() {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 
 		go func() {
-			if result := <-Srv.Store.User().UpdateLastPingAt(c.UserId, model.GetMillis()); result.Err != nil {
+			if result := <-Srv.Store.User().UpdateLastPingAt(utils.T, c.UserId, model.GetMillis()); result.Err != nil {
 				l4g.Error("Failed to updated LastPingAt for user_id=%v, err=%v", c.UserId, result.Err)
 			}
 		}()

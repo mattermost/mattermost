@@ -72,13 +72,13 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(utils.T, &u1))
 
 	u2 := model.User{}
 	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
 	u2.Nickname = model.NewId()
-	Must(store.User().Save(&u2))
+	Must(store.User().Save(utils.T, &u2))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
@@ -168,13 +168,13 @@ func TestChannelStoreGet(t *testing.T) {
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(utils.T, &u1))
 
 	u2 := model.User{}
 	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
 	u2.Nickname = model.NewId()
-	Must(store.User().Save(&u2))
+	Must(store.User().Save(utils.T, &u2))
 
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
@@ -313,13 +313,13 @@ func TestChannelMemberStore(t *testing.T) {
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(utils.T, &u1))
 
 	u2 := model.User{}
 	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
 	u2.Nickname = model.NewId()
-	Must(store.User().Save(&u2))
+	Must(store.User().Save(utils.T, &u2))
 
 	o1 := model.ChannelMember{}
 	o1.ChannelId = c1.Id
@@ -397,13 +397,13 @@ func TestChannelDeleteMemberStore(t *testing.T) {
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(utils.T, &u1))
 
 	u2 := model.User{}
 	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
 	u2.Nickname = model.NewId()
-	Must(store.User().Save(&u2))
+	Must(store.User().Save(utils.T, &u2))
 
 	o1 := model.ChannelMember{}
 	o1.ChannelId = c1.Id

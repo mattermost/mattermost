@@ -6,6 +6,7 @@ package api
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 	"testing"
 )
 
@@ -17,11 +18,11 @@ func TestGetAllPreferences(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user2.Id))
 
 	category := model.NewId()
 
@@ -70,7 +71,7 @@ func TestSetPreferences(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
@@ -101,7 +102,7 @@ func TestSetPreferences(t *testing.T) {
 	// not able to update as a different user
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user2.Id))
 
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
@@ -118,11 +119,11 @@ func TestGetPreferenceCategory(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user2.Id))
 
 	category := model.NewId()
 
@@ -174,7 +175,7 @@ func TestGetPreference(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 

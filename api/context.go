@@ -195,7 +195,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
 		go func() {
-			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Id, model.GetMillis())).Err; err != nil {
+			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.T, c.Session.UserId, c.Session.Id, model.GetMillis())).Err; err != nil {
 				l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", c.Session.UserId, c.Session.Id, err)
 			}
 		}()

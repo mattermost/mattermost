@@ -128,7 +128,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.User().Get(c.T, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

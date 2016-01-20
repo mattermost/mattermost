@@ -25,7 +25,7 @@ func ImportPost(T goi18n.TranslateFunc, post *model.Post) {
 func ImportUser(T goi18n.TranslateFunc, user *model.User) *model.User {
 	user.MakeNonNil()
 
-	if result := <-Srv.Store.User().Save(user); result.Err != nil {
+	if result := <-Srv.Store.User().Save(T, user); result.Err != nil {
 		l4g.Error("Error saving user. err=%v", result.Err)
 		return nil
 	} else {
@@ -35,7 +35,7 @@ func ImportUser(T goi18n.TranslateFunc, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
+		if cresult := <-Srv.Store.User().VerifyEmail(T, ruser.Id); cresult.Err != nil {
 			l4g.Error("Failed to set email verified err=%v", cresult.Err)
 		}
 

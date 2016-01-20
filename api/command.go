@@ -544,7 +544,7 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 		}
 
 		var usernames []string
-		if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err == nil {
+		if result := <-Srv.Store.User().GetProfiles(c.T, c.Session.TeamId); result.Err == nil {
 			profileUsers := result.Data.(map[string]*model.User)
 			usernames = make([]string, len(profileUsers))
 			i := 0

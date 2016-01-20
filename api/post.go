@@ -207,7 +207,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 	go func() {
 		tchan := Srv.Store.Team().Get(c.T, c.Session.TeamId)
 		cchan := Srv.Store.Channel().Get(c.T, post.ChannelId)
-		uchan := Srv.Store.User().Get(post.UserId)
+		uchan := Srv.Store.User().Get(c.T, post.UserId)
 
 		var team *model.Team
 		if result := <-tchan; result.Err != nil {
@@ -394,7 +394,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 
 	go func() {
 		// Get a list of user names (to be used as keywords) and ids for the given team
-		uchan := Srv.Store.User().GetProfiles(c.Session.TeamId)
+		uchan := Srv.Store.User().GetProfiles(c.T, c.Session.TeamId)
 		echan := Srv.Store.Channel().GetMembers(c.T, post.ChannelId)
 
 		var channelName string

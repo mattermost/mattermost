@@ -125,7 +125,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 		return nil, model.NewAppError("CreateDirectChannel", "Invalid other user id ", otherUserId)
 	}
 
-	uc := Srv.Store.User().Get(otherUserId)
+	uc := Srv.Store.User().Get(c.T, otherUserId)
 
 	channel := new(model.Channel)
 
@@ -292,7 +292,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func PostUpdateChannelHeaderMessageAndForget(c *Context, channelId string, oldChannelHeader, newChannelHeader string) {
 	go func() {
-		uc := Srv.Store.User().Get(c.Session.UserId)
+		uc := Srv.Store.User().Get(c.T, c.Session.UserId)
 
 		if uresult := <-uc; uresult.Err != nil {
 			l4g.Error("Failed to retrieve user while trying to save update channel header message %v", uresult.Err)
@@ -371,7 +371,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.Channel().GetChannels(c.T, c.Session.TeamId, c.Session.UserId); result.Err != nil {
 		if result.Err.Message == "No channels were found" {
 			// lets make sure the user is valid
-			if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+			if result := <-Srv.Store.User().Get(c.T, c.Session.UserId); result.Err != nil {
 				c.Err = result.Err
 				c.RemoveSessionCookie(w, r)
 				l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
@@ -440,7 +440,7 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 func JoinChannel(c *Context, channelId string, role string) {
 
 	sc := Srv.Store.Channel().Get(c.T, channelId)
-	uc := Srv.Store.User().Get(c.Session.UserId)
+	uc := Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -544,7 +544,7 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 
 	sc := Srv.Store.Channel().Get(c.T, id)
-	uc := Srv.Store.User().Get(c.Session.UserId)
+	uc := Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -594,7 +594,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sc := Srv.Store.Channel().Get(c.T, id)
 	scm := Srv.Store.Channel().GetMember(c.T, id, c.Session.UserId)
-	uc := Srv.Store.User().Get(c.Session.UserId)
+	uc := Srv.Store.User().Get(c.T, c.Session.UserId)
 	ihc := Srv.Store.Webhook().GetIncomingByChannel(c.T, id)
 	ohc := Srv.Store.Webhook().GetOutgoingByChannel(c.T, id)
 
@@ -818,8 +818,8 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, id, c.Session.UserId)
 	sc := Srv.Store.Channel().Get(c.T, id)
-	ouc := Srv.Store.User().Get(c.Session.UserId)
-	nuc := Srv.Store.User().Get(userId)
+	ouc := Srv.Store.User().Get(c.T, c.Session.UserId)
+	nuc := Srv.Store.User().Get(c.T, userId)
 
 	// Only need to be a member of the channel to add a new member
 	if !c.HasPermissionsToChannel(cchan, "addMember") {

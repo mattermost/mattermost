@@ -79,7 +79,7 @@ func TestCreateTeam(t *testing.T) {
 
 	user := &model.User{TeamId: rteam.Data.(*model.Team).Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
@@ -116,7 +116,7 @@ func TestFindTeamByEmail(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	if r1, err := Client.FindTeams(user.Email); err != nil {
 		t.Fatal(err)
@@ -143,7 +143,7 @@ func TestGetAllTeams(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
@@ -176,7 +176,7 @@ func TestTeamPermDelete(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user1.Id))
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
@@ -219,7 +219,7 @@ func TestFindTeamByDomain(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	if r1, err := Client.FindTeamByDomain(team.Name, false); err != nil {
 		t.Fatal(err)
@@ -259,7 +259,7 @@ func TestFindTeamByEmailSend(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	if _, err := Client.FindTeamsSendEmail(user.Email); err != nil {
@@ -284,7 +284,7 @@ func TestInviteMembers(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
@@ -313,11 +313,11 @@ func TestUpdateTeamDisplayName(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: "test@nowhere.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user.Id))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, user2.Id))
 
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
@@ -370,7 +370,7 @@ func TestGetMyTeam(t *testing.T) {
 
 	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	ruser, _ := Client.CreateUser(&user, "")
-	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
+	store.Must(Srv.Store.User().VerifyEmail(utils.T, ruser.Data.(*model.User).Id))
 
 	Client.LoginByEmail(team.Name, user.Email, user.Password)
 

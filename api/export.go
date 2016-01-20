@@ -125,7 +125,7 @@ func ExportTeams(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOpt
 		if err := ExportChannels(T, writer, options, team.Id); err != nil {
 			return err
 		}
-		if err := ExportUsers(writer, options, team.Id); err != nil {
+		if err := ExportUsers(T, writer, options, team.Id); err != nil {
 			return err
 		}
 		if err := ExportLocalStorage(writer, options, team.Id); err != nil {
@@ -225,10 +225,10 @@ func ExportPosts(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOpt
 	return nil
 }
 
-func ExportUsers(writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
+func ExportUsers(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
 	// Get the users
 	var users []*model.User
-	if result := <-Srv.Store.User().GetForExport(teamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetForExport(T, teamId); result.Err != nil {
 		return result.Err
 	} else {
 		users = result.Data.([]*model.User)

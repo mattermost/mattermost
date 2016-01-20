@@ -185,7 +185,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		page.Render(c, w)
 	} else {
 		teamChan := api.Srv.Store.Team().Get(c.T, c.Session.TeamId)
-		userChan := api.Srv.Store.User().Get(c.Session.UserId)
+		userChan := api.Srv.Store.User().Get(c.T, c.Session.UserId)
 
 		var team *model.Team
 		if tr := <-teamChan; tr.Err != nil {
@@ -510,7 +510,7 @@ func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, 
 }
 
 func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team *model.Team, channel *model.Channel, postid string) {
-	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+	userChan := api.Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	var user *model.User
 	if ur := <-userChan; ur.Err != nil {
@@ -551,7 +551,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if resend == "true" {
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(c.T, team.Id, email); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -570,7 +570,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(userId) == 26 && len(hashedId) != 0 && model.ComparePassword(hashedId, userId) {
-		if c.Err = (<-api.Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
+		if c.Err = (<-api.Srv.Store.User().VerifyEmail(c.T, userId)).Err; c.Err != nil {
 			return
 		} else {
 			c.LogAudit("Email Verified")
@@ -792,7 +792,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	teamChan := api.Srv.Store.Team().Get(c.T, c.Session.TeamId)
-	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+	userChan := api.Srv.Store.User().Get(c.T, c.Session.UserId)
 
 	var team *model.Team
 	if tr := <-teamChan; tr.Err != nil {
@@ -920,7 +920,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uchan := api.Srv.Store.User().Get(authData.UserId)
+	uchan := api.Srv.Store.User().Get(c.T, authData.UserId)
 
 	if authData.IsExpired() {
 		c.LogAudit("fail - auth code expired")
@@ -1070,7 +1070,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(channelName) != 0 {
 		if channelName[0] == '@' {
-			if result := <-api.Srv.Store.User().GetByUsername(hook.TeamId, channelName[1:]); result.Err != nil {
+			if result := <-api.Srv.Store.User().GetByUsername(c.T, hook.TeamId, channelName[1:]); result.Err != nil {
 				c.Err = model.NewAppError("incomingWebhook", "Couldn't find the user", "err="+result.Err.Message)
 				return
 			} else {
@@ -1135,7 +1135,7 @@ func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	authType := ""
 	if len(email) != 0 {
-		if uResult := <-api.Srv.Store.User().GetByEmail(team.Id, email); uResult.Err != nil {
+		if uResult := <-api.Srv.Store.User().GetByEmail(c.T, team.Id, email); uResult.Err != nil {
 			l4g.Error("Couldn't find user teamid=%v, email=%v, err=%v", team.Id, email, uResult.Err.Message)
 			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 			return

@@ -194,7 +194,7 @@ func TestTeamStoreGetForEmail(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = o1.Id
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(utils.T, &u1))
 
 	if r1 := <-store.Team().GetTeamsForEmail(utils.T, u1.Email); r1.Err != nil {
 		t.Fatal(r1.Err)

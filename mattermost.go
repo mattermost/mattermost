@@ -140,11 +140,11 @@ func runSecurityAndDiagnosticsJobAndForget() {
 							<-api.Srv.Store.System().Update(utils.T, systemSecurityLastTime)
 						}
 
-						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(utils.T); ucr.Err == nil {
 							v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 						}
 
-						if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(); ucr.Err == nil {
+						if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(utils.T); ucr.Err == nil {
 							v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 						}
 
@@ -159,7 +159,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 						for _, bulletin := range bulletins {
 							if bulletin.AppliesToVersion == model.CurrentVersion {
 								if props["SecurityBulletin_"+bulletin.Id] == "" {
-									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
+									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(utils.T); results.Err != nil {
 										l4g.Error("Failed to get system admins for security update information from Mattermost.")
 										return
 									} else {
@@ -366,7 +366,7 @@ func cmdAssignRole() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(utils.T, team.Id, flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -420,14 +420,14 @@ func cmdResetPassword() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(utils.T, team.Id, flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
 			user = result.Data.(*model.User)
 		}
 
-		if result := <-api.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(flagPassword)); result.Err != nil {
+		if result := <-api.Srv.Store.User().UpdatePassword(utils.T, user.Id, model.HashPassword(flagPassword)); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		}
@@ -463,7 +463,7 @@ func cmdPermDeleteUser() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(utils.T, team.Id, flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
