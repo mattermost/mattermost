@@ -22,8 +22,6 @@ export default class Textbox extends React.Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.resize = this.resize.bind(this);
-        this.handleFocus = this.handleFocus.bind(this);
-        this.handleBlur = this.handleBlur.bind(this);
         this.showPreview = this.showPreview.bind(this);
 
         this.state = {
@@ -121,20 +119,6 @@ export default class Textbox extends React.Component {
         }
     }
 
-    handleFocus() {
-        const elm = this.refs.message.getTextbox();
-        if (elm.title === elm.value) {
-            elm.value = '';
-        }
-    }
-
-    handleBlur() {
-        const elm = this.refs.message.getTextbox();
-        if (elm.value === '') {
-            elm.value = elm.title;
-        }
-    }
-
     showPreview(e) {
         e.preventDefault();
         e.target.blur();
@@ -184,9 +168,6 @@ export default class Textbox extends React.Component {
                     onUserInput={this.props.onUserInput}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
-                    onFocus={this.handleFocus}
-                    onBlur={this.handleBlur}
-                    onPaste={this.handlePaste}
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
                     listComponent={SuggestionList}
                     providers={this.suggestionProviders}
