@@ -605,7 +605,7 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 		}
 	}
 
-	if result := <-Srv.Store.Channel().PermanentDeleteByTeam(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Channel().PermanentDeleteByTeam(c.T, team.Id); result.Err != nil {
 		return result.Err
 	}
 
@@ -694,7 +694,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	switch importFrom {
 	case "slack":
 		var err *model.AppError
-		if err, log = SlackImport(fileData, fileSize, c.Session.TeamId); err != nil {
+		if err, log = SlackImport(c.T, fileData, fileSize, c.Session.TeamId); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusBadRequest
 		}

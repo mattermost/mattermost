@@ -655,20 +655,20 @@ func TestPostStoreSearch(t *testing.T) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "a" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = (<-store.Channel().Save(c1)).Data.(*model.Channel)
+	c1 = (<-store.Channel().Save(utils.T, c1)).Data.(*model.Channel)
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
 	m1.UserId = userId
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	Must(store.Channel().SaveMember(&m1))
+	Must(store.Channel().SaveMember(utils.T, &m1))
 
 	c2 := &model.Channel{}
 	c2.TeamId = teamId
 	c2.DisplayName = "Channel1"
 	c2.Name = "a" + model.NewId() + "b"
 	c2.Type = model.CHANNEL_OPEN
-	c2 = (<-store.Channel().Save(c2)).Data.(*model.Channel)
+	c2 = (<-store.Channel().Save(utils.T, c2)).Data.(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -772,7 +772,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "a" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = Must(store.Channel().Save(c1)).(*model.Channel)
+	c1 = Must(store.Channel().Save(utils.T, c1)).(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -832,7 +832,7 @@ func TestPostCountsByDay(t *testing.T) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "a" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = Must(store.Channel().Save(c1)).(*model.Channel)
+	c1 = Must(store.Channel().Save(utils.T, c1)).(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id

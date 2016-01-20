@@ -216,7 +216,7 @@ func CreateUser(T goi18n.TranslateFunc, team *model.Team, user *model.User) (*mo
 		ruser := result.Data.(*model.User)
 
 		// Soft error if there is an issue joining the default channels
-		if err := JoinDefaultChannels(ruser, channelRole); err != nil {
+		if err := JoinDefaultChannels(T, ruser, channelRole); err != nil {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
@@ -1456,7 +1456,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
+	if result := <-Srv.Store.Channel().PermanentDeleteMembersByUser(c.T, user.Id); result.Err != nil {
 		return result.Err
 	}
 

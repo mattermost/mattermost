@@ -41,8 +41,8 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().Get(hook.ChannelId)
-	pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, hook.ChannelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().Get(c.T, hook.ChannelId)
+	pchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, hook.ChannelId, c.Session.UserId)
 
 	hook.UserId = c.Session.UserId
 	hook.TeamId = c.Session.TeamId
@@ -145,8 +145,8 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	hook.TeamId = c.Session.TeamId
 
 	if len(hook.ChannelId) != 0 {
-		cchan := Srv.Store.Channel().Get(hook.ChannelId)
-		pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, hook.ChannelId, c.Session.UserId)
+		cchan := Srv.Store.Channel().Get(c.T, hook.ChannelId)
+		pchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, hook.ChannelId, c.Session.UserId)
 
 		var channel *model.Channel
 		if result := <-cchan; result.Err != nil {

@@ -58,33 +58,33 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel) StoreChannel
-	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
-	Update(channel *model.Channel) StoreChannel
-	Get(id string) StoreChannel
-	GetFromMaster(id string) StoreChannel
-	Delete(channelId string, time int64) StoreChannel
-	PermanentDeleteByTeam(teamId string) StoreChannel
-	GetByName(team_id string, domain string) StoreChannel
-	GetChannels(teamId string, userId string) StoreChannel
-	GetMoreChannels(teamId string, userId string) StoreChannel
-	GetChannelCounts(teamId string, userId string) StoreChannel
-	GetForExport(teamId string) StoreChannel
+	Save(T goi18n.TranslateFunc, channel *model.Channel) StoreChannel
+	SaveDirectChannel(T goi18n.TranslateFunc, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
+	Update(T goi18n.TranslateFunc, channel *model.Channel) StoreChannel
+	Get(T goi18n.TranslateFunc, id string) StoreChannel
+	GetFromMaster(T goi18n.TranslateFunc, id string) StoreChannel
+	Delete(T goi18n.TranslateFunc, channelId string, time int64) StoreChannel
+	PermanentDeleteByTeam(T goi18n.TranslateFunc, teamId string) StoreChannel
+	GetByName(T goi18n.TranslateFunc, team_id string, domain string) StoreChannel
+	GetChannels(T goi18n.TranslateFunc, teamId string, userId string) StoreChannel
+	GetMoreChannels(T goi18n.TranslateFunc, teamId string, userId string) StoreChannel
+	GetChannelCounts(T goi18n.TranslateFunc, teamId string, userId string) StoreChannel
+	GetForExport(T goi18n.TranslateFunc, teamId string) StoreChannel
 
-	SaveMember(member *model.ChannelMember) StoreChannel
-	UpdateMember(member *model.ChannelMember) StoreChannel
-	GetMembers(channelId string) StoreChannel
-	GetMember(channelId string, userId string) StoreChannel
-	GetMemberCount(channelId string) StoreChannel
-	RemoveMember(channelId string, userId string) StoreChannel
-	PermanentDeleteMembersByUser(userId string) StoreChannel
-	GetExtraMembers(channelId string, limit int) StoreChannel
-	CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel
-	CheckOpenChannelPermissions(teamId string, channelId string) StoreChannel
-	CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel
-	UpdateLastViewedAt(channelId string, userId string) StoreChannel
-	IncrementMentionCount(channelId string, userId string) StoreChannel
-	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
+	SaveMember(T goi18n.TranslateFunc, member *model.ChannelMember) StoreChannel
+	UpdateMember(T goi18n.TranslateFunc, member *model.ChannelMember) StoreChannel
+	GetMembers(T goi18n.TranslateFunc, channelId string) StoreChannel
+	GetMember(T goi18n.TranslateFunc, channelId string, userId string) StoreChannel
+	GetMemberCount(T goi18n.TranslateFunc, channelId string) StoreChannel
+	RemoveMember(T goi18n.TranslateFunc, channelId string, userId string) StoreChannel
+	PermanentDeleteMembersByUser(T goi18n.TranslateFunc, userId string) StoreChannel
+	GetExtraMembers(T goi18n.TranslateFunc, channelId string, limit int) StoreChannel
+	CheckPermissionsTo(T goi18n.TranslateFunc, teamId string, channelId string, userId string) StoreChannel
+	CheckOpenChannelPermissions(T goi18n.TranslateFunc, teamId string, channelId string) StoreChannel
+	CheckPermissionsToByName(T goi18n.TranslateFunc, teamId string, channelName string, userId string) StoreChannel
+	UpdateLastViewedAt(T goi18n.TranslateFunc, channelId string, userId string) StoreChannel
+	IncrementMentionCount(T goi18n.TranslateFunc, channelId string, userId string) StoreChannel
+	AnalyticsTypeCount(T goi18n.TranslateFunc, teamId string, channelType string) StoreChannel
 }
 
 type PostStore interface {

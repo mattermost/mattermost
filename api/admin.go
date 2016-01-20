@@ -157,8 +157,8 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
-		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		openChan := Srv.Store.Channel().AnalyticsTypeCount(c.T, teamId, model.CHANNEL_OPEN)
+		privateChan := Srv.Store.Channel().AnalyticsTypeCount(c.T, teamId, model.CHANNEL_PRIVATE)
 		postChan := Srv.Store.Post().AnalyticsPostCount(teamId)
 
 		if r := <-openChan; r.Err != nil {

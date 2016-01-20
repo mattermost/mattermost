@@ -46,7 +46,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create and save post object to channel
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, post.ChannelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, post.ChannelId, c.Session.UserId)
 
 	if !c.HasPermissionsToChannel(cchan, "createPost") {
 		return
@@ -61,7 +61,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		return
 	} else {
-		if result := <-Srv.Store.Channel().UpdateLastViewedAt(post.ChannelId, c.Session.UserId); result.Err != nil {
+		if result := <-Srv.Store.Channel().UpdateLastViewedAt(c.T, post.ChannelId, c.Session.UserId); result.Err != nil {
 			l4g.Error("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, c.Session.UserId, result.Err)
 		}
 
@@ -206,7 +206,7 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks bool) {
 	go func() {
 		tchan := Srv.Store.Team().Get(c.T, c.Session.TeamId)
-		cchan := Srv.Store.Channel().Get(post.ChannelId)
+		cchan := Srv.Store.Channel().Get(c.T, post.ChannelId)
 		uchan := Srv.Store.User().Get(post.UserId)
 
 		var team *model.Team
@@ -247,7 +247,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 
 func makeDirectChannelVisible(T goi18n.TranslateFunc, teamId string, channelId string) {
 	var members []model.ChannelMember
-	if result := <-Srv.Store.Channel().GetMembers(channelId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetMembers(T, channelId); result.Err != nil {
 		l4g.Error("Failed to get channel members channel_id=%v err=%v", channelId, result.Err.Message)
 		return
 	} else {
@@ -395,7 +395,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 	go func() {
 		// Get a list of user names (to be used as keywords) and ids for the given team
 		uchan := Srv.Store.User().GetProfiles(c.Session.TeamId)
-		echan := Srv.Store.Channel().GetMembers(post.ChannelId)
+		echan := Srv.Store.Channel().GetMembers(c.T, post.ChannelId)
 
 		var channelName string
 		var bodyText string
@@ -542,7 +542,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 				}
 
 				for id := range toEmailMap {
-					updateMentionCountAndForget(post.ChannelId, id)
+					updateMentionCountAndForget(c.T, post.ChannelId, id)
 				}
 			}
 
@@ -694,9 +694,9 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 	}()
 }
 
-func updateMentionCountAndForget(channelId, userId string) {
+func updateMentionCountAndForget(T goi18n.TranslateFunc, channelId, userId string) {
 	go func() {
-		if result := <-Srv.Store.Channel().IncrementMentionCount(channelId, userId); result.Err != nil {
+		if result := <-Srv.Store.Channel().IncrementMentionCount(T, channelId, userId); result.Err != nil {
 			l4g.Error("Failed to update mention count for user_id=%v on channel_id=%v err=%v", userId, channelId, result.Err)
 		}
 	}()
@@ -710,7 +710,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, post.ChannelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, post.ChannelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(post.Id)
 
 	if !c.HasPermissionsToChannel(cchan, "updatePost") {
@@ -781,7 +781,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, id, c.Session.UserId)
 	etagChan := Srv.Store.Post().GetEtag(id)
 
 	if !c.HasPermissionsToChannel(cchan, "getPosts") {
@@ -823,7 +823,7 @@ func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, id, c.Session.UserId)
 	pchan := Srv.Store.Post().GetPostsSince(id, time)
 
 	if !c.HasPermissionsToChannel(cchan, "getPostsSince") {
@@ -856,7 +856,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(postId)
 
 	if !c.HasPermissionsToChannel(cchan, "getPost") {
@@ -903,7 +903,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		post := list.Posts[list.Order[0]]
 
-		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, post.ChannelId, c.Session.UserId)
+		cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, post.ChannelId, c.Session.UserId)
 		if !c.HasPermissionsToChannel(cchan, "getPostById") {
 			return
 		}
@@ -932,7 +932,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(postId)
 
 	if result := <-pchan; result.Err != nil {
@@ -1012,7 +1012,7 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, id, c.Session.UserId)
 	// We can do better than this etag in this situation
 	etagChan := Srv.Store.Post().GetEtag(id)
 

@@ -6,6 +6,7 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 //
@@ -21,7 +22,7 @@ func ImportPost(post *model.Post) {
 	}
 }
 
-func ImportUser(user *model.User) *model.User {
+func ImportUser(T goi18n.TranslateFunc, user *model.User) *model.User {
 	user.MakeNonNil()
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
@@ -30,7 +31,7 @@ func ImportUser(user *model.User) *model.User {
 	} else {
 		ruser := result.Data.(*model.User)
 
-		if err := JoinDefaultChannels(ruser, ""); err != nil {
+		if err := JoinDefaultChannels(T, ruser, ""); err != nil {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
@@ -42,8 +43,8 @@ func ImportUser(user *model.User) *model.User {
 	}
 }
 
-func ImportChannel(channel *model.Channel) *model.Channel {
-	if result := <-Srv.Store.Channel().Save(channel); result.Err != nil {
+func ImportChannel(T goi18n.TranslateFunc, channel *model.Channel) *model.Channel {
+	if result := <-Srv.Store.Channel().Save(T, channel); result.Err != nil {
 		return nil
 	} else {
 		sc := result.Data.(*model.Channel)

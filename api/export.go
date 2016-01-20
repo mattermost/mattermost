@@ -122,7 +122,7 @@ func ExportTeams(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOpt
 
 	// Export the channels, local storage and users
 	for _, team := range teams {
-		if err := ExportChannels(writer, options, team.Id); err != nil {
+		if err := ExportChannels(T, writer, options, team.Id); err != nil {
 			return err
 		}
 		if err := ExportUsers(writer, options, team.Id); err != nil {
@@ -136,18 +136,18 @@ func ExportTeams(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOpt
 	return nil
 }
 
-func ExportChannels(writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
+func ExportChannels(T goi18n.TranslateFunc, writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
 	// Get the channels
 	var channels []*model.Channel
 	if len(options.ChannelsToExport) == 0 {
-		if result := <-Srv.Store.Channel().GetForExport(teamId); result.Err != nil {
+		if result := <-Srv.Store.Channel().GetForExport(T, teamId); result.Err != nil {
 			return result.Err
 		} else {
 			channels = result.Data.([]*model.Channel)
 		}
 	} else {
 		for _, channelId := range options.ChannelsToExport {
-			if result := <-Srv.Store.Channel().Get(channelId); result.Err != nil {
+			if result := <-Srv.Store.Channel().Get(T, channelId); result.Err != nil {
 				return result.Err
 			} else {
 				channel := result.Data.(*model.Channel)
@@ -158,7 +158,7 @@ func ExportChannels(writer ExportWriter, options *ExportOptions, teamId string) 
 
 	for i := range channels {
 		// Get members
-		mchan := Srv.Store.Channel().GetMembers(channels[i].Id)
+		mchan := Srv.Store.Channel().GetMembers(T, channels[i].Id)
 
 		// Sanitize
 		channels[i].PreExport()

@@ -101,7 +101,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
 
 	files := m.File["files"]
 
@@ -319,7 +319,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
 
 	path := "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 	var info *model.FileInfo
@@ -380,7 +380,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := r.URL.Query().Get("d")
 	teamId := r.URL.Query().Get("t")
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
 
 	path := ""
 	if len(teamId) == 26 {
@@ -477,7 +477,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := matches[0][2]
 	filename = matches[0][3]
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, channelId, c.Session.UserId)
 
 	newProps := make(map[string]string)
 	newProps["filename"] = filename

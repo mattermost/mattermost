@@ -243,7 +243,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_TOKEN, session.Token)
 		lastViewChannelName := "town-square"
 		if lastViewResult := <-api.Srv.Store.Preference().Get(c.T, session.UserId, model.PREFERENCE_CATEGORY_LAST, model.PREFERENCE_NAME_LAST_CHANNEL); lastViewResult.Err == nil {
-			if lastViewChannelResult := <-api.Srv.Store.Channel().Get(lastViewResult.Data.(model.Preference).Value); lastViewChannelResult.Err == nil {
+			if lastViewChannelResult := <-api.Srv.Store.Channel().Get(c.T, lastViewResult.Data.(model.Preference).Value); lastViewChannelResult.Err == nil {
 				lastViewChannelName = lastViewChannelResult.Data.(*model.Channel).Name
 			}
 		}
@@ -379,7 +379,7 @@ func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var channel *model.Channel
-	if result := <-api.Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, post.ChannelId, c.Session.UserId); result.Err != nil {
+	if result := <-api.Srv.Store.Channel().CheckPermissionsTo(c.T, c.Session.TeamId, post.ChannelId, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -389,7 +389,7 @@ func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			if result := <-api.Srv.Store.Channel().Get(post.ChannelId); result.Err != nil {
+			if result := <-api.Srv.Store.Channel().Get(c.T, post.ChannelId); result.Err != nil {
 				c.Err = result.Err
 				return
 			} else {
@@ -413,7 +413,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var channel *model.Channel
-	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
+	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.T, c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -424,7 +424,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			if result := <-api.Srv.Store.Channel().Get(channelId); result.Err != nil {
+			if result := <-api.Srv.Store.Channel().Get(c.T, channelId); result.Err != nil {
 				c.Err = result.Err
 				return
 			} else {
@@ -455,14 +455,14 @@ func autoJoinChannelName(c *api.Context, w http.ResponseWriter, r *http.Request,
 		}
 	} else {
 		// We will attempt to auto-join open channels
-		return joinOpenChannel(c, w, r, api.Srv.Store.Channel().GetByName(c.Session.TeamId, channelName))
+		return joinOpenChannel(c, w, r, api.Srv.Store.Channel().GetByName(c.T, c.Session.TeamId, channelName))
 	}
 
 	return nil
 }
 
 func autoJoinChannelId(c *api.Context, w http.ResponseWriter, r *http.Request, channelId string) *model.Channel {
-	return joinOpenChannel(c, w, r, api.Srv.Store.Channel().Get(channelId))
+	return joinOpenChannel(c, w, r, api.Srv.Store.Channel().Get(c.T, channelId))
 }
 
 func joinOpenChannel(c *api.Context, w http.ResponseWriter, r *http.Request, channel store.StoreChannel) *model.Channel {
@@ -1080,9 +1080,9 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			channelName = channelName[1:]
 		}
 
-		cchan = api.Srv.Store.Channel().GetByName(hook.TeamId, channelName)
+		cchan = api.Srv.Store.Channel().GetByName(c.T, hook.TeamId, channelName)
 	} else {
-		cchan = api.Srv.Store.Channel().Get(hook.ChannelId)
+		cchan = api.Srv.Store.Channel().Get(c.T, hook.ChannelId)
 	}
 
 	overrideUsername := parsedRequest.Username
@@ -1095,7 +1095,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	pchan := api.Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
+	pchan := api.Srv.Store.Channel().CheckPermissionsTo(c.T, hook.TeamId, channel.Id, hook.UserId)
 
 	// create a mock session
 	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}

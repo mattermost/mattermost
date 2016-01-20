@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 	"time"
 )
 
@@ -107,7 +108,7 @@ func (c *WebConn) writePump() {
 }
 
 func (c *WebConn) updateChannelAccessCache(channelId string) bool {
-	allowed := hasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.UserId))
+	allowed := hasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(utils.T, c.TeamId, channelId, c.UserId))
 	c.ChannelAccessCache[channelId] = allowed
 
 	return allowed

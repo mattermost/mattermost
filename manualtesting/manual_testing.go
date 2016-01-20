@@ -4,16 +4,18 @@
 package manualtesting
 
 import (
-	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/api"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"hash/fnv"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type TestEnvironment struct {
@@ -149,9 +151,9 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(channelname string, teamid string, userid string) (id string, err bool) {
+func getChannelID(T goi18n.TranslateFunc, channelname string, teamid string, userid string) (id string, err bool) {
 	// Grab all the channels
-	result := <-api.Srv.Store.Channel().GetChannels(teamid, userid)
+	result := <-api.Srv.Store.Channel().GetChannels(T, teamid, userid)
 	if result.Err != nil {
 		l4g.Debug("Unable to get channels")
 		return "", false
