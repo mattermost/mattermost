@@ -67,3 +67,5 @@ api/data/*
 .agignore
 .ctags
 tags
+
+model/version.go.bak
