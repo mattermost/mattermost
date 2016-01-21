@@ -196,6 +196,25 @@ export default class AdminSidebar extends React.Component {
                                     <li>
                                         <h4>
                                             <span className='icon fa fa-gear'></span>
+                                            <span>{'SITE REPORTS'}</span>
+                                        </h4>
+                                    </li>
+                                </ul>
+                                <ul className='nav nav__sub-menu padded'>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('system_analytics')}
+                                            onClick={this.handleClick.bind(this, 'system_analytics', null)}
+                                        >
+                                            {'View Statistics'}
+                                        </a>
+                                    </li>
+                                </ul>
+                                <ul className='nav nav__sub-menu'>
+                                    <li>
+                                        <h4>
+                                            <span className='icon fa fa-gear'></span>
                                             <span>{'SETTINGS'}</span>
                                         </h4>
                                     </li>

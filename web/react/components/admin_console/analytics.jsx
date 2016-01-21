@@ -94,8 +94,8 @@ export default class Analytics extends React.Component {
         var usersWithPostsByDay = (
             <div className='col-sm-12'>
                 <div className='total-count by-day'>
-                    <div className='title'>{'Total Posts'}</div>
-                    <div>{'Loading...'}</div>
+                    <div className='title'>{'Active Users With Posts'}</div>
+                    <div className='content'>{'Loading...'}</div>
                 </div>
             </div>
         );
@@ -125,98 +125,102 @@ export default class Analytics extends React.Component {
             );
         }
 
-        var recentActiveUser = (
-            <div className='recent-active-users'>
-                <div>{'Recent Active Users'}</div>
-                <div>{'Loading...'}</div>
-            </div>
-        );
-
+        let recentActiveUser;
         if (this.props.recentActiveUsers != null) {
+            let content;
+            if (this.props.recentActiveUsers.length === 0) {
+                content = 'Loading...';
+            } else {
+                content = (
+                    <table>
+                        <tbody>
+                            {
+                                this.props.recentActiveUsers.map((user) => {
+                                    const tooltip = (
+                                        <Tooltip id={'recent-user-email-tooltip-' + user.id}>
+                                            {user.email}
+                                        </Tooltip>
+                                    );
+
+                                    return (
+                                        <tr key={'recent-user-table-entry-' + user.id}>
+                                            <td>
+                                                <OverlayTrigger
+                                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                                    placement='top'
+                                                    overlay={tooltip}
+                                                >
+                                                    <time>
+                                                        {user.username}
+                                                    </time>
+                                                </OverlayTrigger>
+                                            </td>
+                                            <td>{Utils.displayDateTime(user.last_activity_at)}</td>
+                                        </tr>
+                                    );
+                                })
+                            }
+                        </tbody>
+                    </table>
+                );
+            }
             recentActiveUser = (
                 <div className='col-sm-6'>
                     <div className='total-count recent-active-users'>
                         <div className='title'>{'Recent Active Users'}</div>
                         <div className='content'>
-                            <table>
-                                <tbody>
-                                    {
-                                        this.props.recentActiveUsers.map((user) => {
-                                            const tooltip = (
-                                                <Tooltip id={'recent-user-email-tooltip-' + user.id}>
-                                                    {user.email}
-                                                </Tooltip>
-                                            );
-
-                                            return (
-                                                <tr key={'recent-user-table-entry-' + user.id}>
-                                                    <td>
-                                                        <OverlayTrigger
-                                                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                                                            placement='top'
-                                                            overlay={tooltip}
-                                                        >
-                                                            <time>
-                                                                {user.username}
-                                                            </time>
-                                                        </OverlayTrigger>
-                                                    </td>
-                                                    <td>{Utils.displayDateTime(user.last_activity_at)}</td>
-                                                </tr>
-                                            );
-                                        })
-                                    }
-                                </tbody>
-                            </table>
+                            {content}
                         </div>
                     </div>
                 </div>
             );
         }
 
-        var newUsers = (
-            <div className='recent-active-users'>
-                <div>{'Newly Created Users'}</div>
-                <div>{'Loading...'}</div>
-            </div>
-        );
-
+        let newUsers;
         if (this.props.newlyCreatedUsers != null) {
+            let content;
+            if (this.props.newlyCreatedUsers.length === 0) {
+               content = 'Loading...';
+            } else {
+                content = (
+                    <table>
+                        <tbody>
+                            {
+                                this.props.newlyCreatedUsers.map((user) => {
+                                    const tooltip = (
+                                        <Tooltip id={'new-user-email-tooltip-' + user.id}>
+                                            {user.email}
+                                        </Tooltip>
+                                    );
+
+                                    return (
+                                        <tr key={'new-user-table-entry-' + user.id}>
+                                            <td>
+                                                <OverlayTrigger
+                                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                                    placement='top'
+                                                    overlay={tooltip}
+                                                >
+                                                    <time>
+                                                        {user.username}
+                                                    </time>
+                                                </OverlayTrigger>
+                                            </td>
+                                            <td>{Utils.displayDateTime(user.create_at)}</td>
+                                        </tr>
+                                    );
+                                })
+                            }
+                        </tbody>
+                    </table>
+                );
+            }
             newUsers = (
                 <div className='col-sm-6'>
                     <div className='total-count recent-active-users'>
                         <div className='title'>{'Newly Created Users'}</div>
                         <div className='content'>
-                            <table>
-                                <tbody>
-                                    {
-                                        this.props.newlyCreatedUsers.map((user) => {
-                                            const tooltip = (
-                                                <Tooltip id={'new-user-email-tooltip-' + user.id}>
-                                                    {user.email}
-                                                </Tooltip>
-                                            );
-
-                                            return (
-                                                <tr key={'new-user-table-entry-' + user.id}>
-                                                    <td>
-                                                        <OverlayTrigger
-                                                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                                                            placement='top'
-                                                            overlay={tooltip}
-                                                        >
-                                                            <time>
-                                                                {user.username}
-                                                            </time>
-                                                        </OverlayTrigger>
-                                                    </td>
-                                                    <td>{Utils.displayDateTime(user.create_at)}</td>
-                                                </tr>
-                                            );
-                                        })
-                                    }
-                                </tbody>
-                            </table>
+                            {content}
                         </div>
                     </div>
                 </div>
@@ -250,7 +254,6 @@ export default class Analytics extends React.Component {
 
 Analytics.defaultProps = {
     title: null,
-    users: null,
     channelOpenCount: null,
     channelPrivateCount: null,
     postCount: null,
@@ -264,7 +267,6 @@ Analytics.defaultProps = {
 
 Analytics.propTypes = {
     title: React.PropTypes.string,
-    users: React.PropTypes.object,
     channelOpenCount: React.PropTypes.number,
     channelPrivateCount: React.PropTypes.number,
     postCount: React.PropTypes.number,

@@ -401,7 +401,7 @@ export function getTeamAnalytics(teamId, name, success, error) {
     });
 }
 
-export function getServerAnalytics(name, success, error) {
+export function getSystemAnalytics(name, success, error) {
     $.ajax({
         url: '/api/v1/admin/analytics/' + name,
         dataType: 'json',
@@ -409,7 +409,7 @@ export function getServerAnalytics(name, success, error) {
         type: 'GET',
         success,
         error: (xhr, status, err) => {
-            var e = handleError('getServerAnalytics', xhr, status, err);
+            var e = handleError('getSystemAnalytics', xhr, status, err);
             error(e);
         }
     });
