@@ -125,6 +125,7 @@ type UserStore interface {
 	GetTotalActiveUsersCount() StoreChannel
 	GetSystemAdminProfiles() StoreChannel
 	PermanentDelete(userId string) StoreChannel
+	AnalyticsUniqueUserCount(teamId string) StoreChannel
 }
 
 type SessionStore interface {

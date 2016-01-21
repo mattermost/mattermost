@@ -27,6 +27,7 @@ func InitAdmin(r *mux.Router) {
 	sr.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
 	sr.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
 	sr.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiAppHandler(getAnalytics)).Methods("GET")
+	sr.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiAppHandler(getAnalytics)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -153,13 +154,15 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := params["name"]
 
 	if name == "standard" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 3)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 4)
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
+		rows[3] = &model.AnalyticsRow{"unique_user_count", 0}
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
 		postChan := Srv.Store.Post().AnalyticsPostCount(teamId)
+		userChan := Srv.Store.User().AnalyticsUniqueUserCount(teamId)
 
 		if r := <-openChan; r.Err != nil {
 			c.Err = r.Err
@@ -180,6 +183,13 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			rows[2].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-userChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[3].Value = float64(r.Data.(int64))
 		}
 
 		w.Write([]byte(rows.ToJson()))
