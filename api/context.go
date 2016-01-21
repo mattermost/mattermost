@@ -31,6 +31,7 @@ type Context struct {
 	siteURL           string
 	SessionTokenIndex int64
 	T                 goi18n.TranslateFunc
+	Locale            string
 }
 
 type Page struct {
@@ -87,7 +88,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	l4g.Debug("%v", r.URL.Path)
 
 	c := &Context{}
-	c.T = utils.GetTranslations(w, r)
+	c.T, c.Locale = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
 

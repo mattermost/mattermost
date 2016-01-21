@@ -7,6 +7,8 @@ import LoginLdap from './login_ldap.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 
+var FormattedMessage = ReactIntl.FormattedMessage;
+
 export default class Login extends React.Component {
     constructor(props) {
         super(props);
@@ -86,7 +88,12 @@ export default class Login extends React.Component {
         if (emailSignup) {
             forgotPassword = (
                 <div className='form-group'>
-                    <a href={'/' + teamName + '/reset_password'}>{'I forgot my password'}</a>
+                    <a href={'/' + teamName + '/reset_password'}>
+                        <FormattedMessage
+                            id='login.forgot_password'
+                            defaultMessage='I forgot my password'
+                        />
+                    </a>
                 </div>
             );
         }
@@ -141,7 +148,13 @@ export default class Login extends React.Component {
                     {ldapLogin}
                     {userSignUp}
                     <div className='form-group margin--extra form-group--small'>
-                        <span><a href='/find_team'>{'Find your other teams'}</a></span>
+                        <span>
+                            <a href='/find_team'>
+                                <FormattedMessage
+                                    id='login.find_teams'
+                                    defaultMessage='Find your other teams'
+                                />
+                            </a></span>
                     </div>
                     {forgotPassword}
                     {teamSignUp}
