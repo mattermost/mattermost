@@ -36,18 +36,16 @@ func InitTranslations() {
 func GetTranslationsBySystemLocale() i18n.TranslateFunc {
 	locale := model.DEFAULT_LOCALE
 	if userLanguage, err := jibber_jabber.DetectLanguage(); err == nil {
-		// only set the system locale if is supported, fallback to DEFAULT_LOCALE
-		if contains(userLanguage) {
+		if _, ok := locales[userLanguage]; ok {
 			locale = userLanguage
+		} else {
+			l4g.Error("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE)
+			locale = model.DEFAULT_LOCALE
 		}
 	}
 
-	if locales[locale] == "" {
-		l4g.Error("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE)
-
-		if locales[model.DEFAULT_LOCALE] == "" {
-			panic("Failed to load system translations for '" + model.DEFAULT_LOCALE + "'")
-		}
+	if locales[model.DEFAULT_LOCALE] == "" {
+		panic("Failed to load system translations for '" + model.DEFAULT_LOCALE + "'")
 	}
 
 	translations, _ := i18n.Tfunc(locale)
@@ -140,13 +138,4 @@ func getTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.Tran
 	translations, _ = i18n.Tfunc(model.DEFAULT_LOCALE)
 	SetLocaleCookie(w, model.DEFAULT_LOCALE, 10)
 	return translations, model.DEFAULT_LOCALE
-}
-
-func contains(l string) bool {
-	for _, a := range locales {
-		if a == l {
-			return true
-		}
-	}
-	return false
 }
