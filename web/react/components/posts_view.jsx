@@ -57,7 +57,10 @@ export default class PostsView extends React.Component {
         this.setState({displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false')});
     }
     isAtBottom() {
-        return ((this.refs.postlist.scrollHeight - this.refs.postlist.scrollTop) === this.refs.postlist.clientHeight);
+        // consider the view to be at the bottom if it's within this many pixels of the bottom
+        const atBottomMargin = 10;
+
+        return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
     }
     handleScroll() {
         // HACK FOR RHS -- REMOVE WHEN RHS DIES

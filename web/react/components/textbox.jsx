@@ -22,8 +22,6 @@ export default class Textbox extends React.Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.resize = this.resize.bind(this);
-        this.handleFocus = this.handleFocus.bind(this);
-        this.handleBlur = this.handleBlur.bind(this);
         this.showPreview = this.showPreview.bind(this);
 
         this.state = {
@@ -81,51 +79,43 @@ export default class Textbox extends React.Component {
     }
 
     resize() {
-        const e = this.refs.message.getTextbox();
-        const w = ReactDOM.findDOMNode(this.refs.wrapper);
+        const textbox = this.refs.message.getTextbox();
+        const $textbox = $(textbox);
+        const $wrapper = $(ReactDOM.findDOMNode(this.refs.wrapper));
 
-        const prevHeight = $(e).height();
+        const padding = parseInt($textbox.css('padding-bottom'), 10) + parseInt($textbox.css('padding-top'), 10);
+        const borders = parseInt($textbox.css('border-bottom-width'), 10) + parseInt($textbox.css('border-top-width'), 10);
+        const maxHeight = parseInt($textbox.css('max-height'), 10) - borders;
 
-        const lht = parseInt($(e).css('lineHeight'), 10);
-        const lines = e.scrollHeight / lht;
-        let mod = 15;
+        const prevHeight = $textbox.height();
 
-        if (lines < 2.5 || this.props.messageText === '') {
-            mod = 30;
-        }
+        // set the height to auto and remove the scrollbar so we can get the actual size of the contents
+        $textbox.css('height', 'auto').css('overflow-y', 'hidden');
 
-        if (e.scrollHeight - mod < 167) {
-            $(e).css({height: 'auto', 'overflow-y': 'hidden'}).height(e.scrollHeight - mod);
-            $(w).css({height: 'auto'}).height(e.scrollHeight + 2);
-            $(w).closest('.post-body__cell').removeClass('scroll');
-            if (this.state.preview) {
-                $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'auto'}).height(e.scrollHeight - mod);
-            }
+        let height = textbox.scrollHeight - padding;
+
+        if (height + padding > maxHeight) {
+            height = maxHeight - padding;
+
+            // turn scrollbar on and move over attachment icon to compensate for that
+            $textbox.css('overflow-y', 'scroll');
+            $wrapper.closest('.post-body__cell').addClass('scroll');
         } else {
-            $(e).css({height: 'auto', 'overflow-y': 'scroll'}).height(167 - mod);
-            $(w).css({height: 'auto'}).height(163);
-            $(w).closest('.post-body__cell').addClass('scroll');
-            if (this.state.preview) {
-                $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'scroll'}).height(163);
-            }
+            $wrapper.closest('.post-body__cell').removeClass('scroll');
         }
 
-        if (prevHeight !== $(e).height() && this.props.onHeightChange) {
+        // set the textarea to be the proper height
+        $textbox.height(height);
+
+        // set the wrapper height to match the height of the textbox including padding and borders
+        $wrapper.height(height + padding + borders);
+
+        if (this.state.preview) {
+            $(ReactDOM.findDOMNode(this.refs.preview)).height(height + borders);
+        }
+
+        if (height !== prevHeight && this.props.onHeightChange) {
             this.props.onHeightChange();
-        }
-    }
-
-    handleFocus() {
-        const elm = this.refs.message.getTextbox();
-        if (elm.title === elm.value) {
-            elm.value = '';
-        }
-    }
-
-    handleBlur() {
-        const elm = this.refs.message.getTextbox();
-        if (elm.value === '') {
-            elm.value = elm.title;
         }
     }
 
@@ -178,9 +168,6 @@ export default class Textbox extends React.Component {
                     onUserInput={this.props.onUserInput}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
-                    onFocus={this.handleFocus}
-                    onBlur={this.handleBlur}
-                    onPaste={this.handlePaste}
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
                     listComponent={SuggestionList}
                     providers={this.suggestionProviders}
