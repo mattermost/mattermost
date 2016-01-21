@@ -24,6 +24,7 @@ func NewServerTemplatePage(templateName string) *ServerTemplatePage {
 		TemplateName: templateName,
 		Props:        make(map[string]string),
 		ClientCfg:    utils.ClientCfg,
+		Locale:       model.DEFAULT_LOCALE,
 	}
 }
 

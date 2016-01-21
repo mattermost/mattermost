@@ -44,7 +44,7 @@ func GetTranslationsBySystemLocale() i18n.TranslateFunc {
 		}
 	}
 
-	if locales[model.DEFAULT_LOCALE] == "" {
+	if locales[locale] == "" {
 		panic("Failed to load system translations for '" + model.DEFAULT_LOCALE + "'")
 	}
 
@@ -62,14 +62,14 @@ func SetTranslations(locale string) i18n.TranslateFunc {
 	return translations
 }
 
-func GetTranslations(w http.ResponseWriter, r *http.Request) i18n.TranslateFunc {
-	translations, _ := getTranslationsAndLocale(w, r)
-	return translations
-}
+// func GetTranslations(w http.ResponseWriter, r *http.Request) i18n.TranslateFunc {
+// 	translations, _ := getTranslationsAndLocale(w, r)
+// 	return translations
+// }
 
-func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
-	return getTranslationsAndLocale(w, r)
-}
+// func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
+// 	return getTranslationsAndLocale(w, r)
+// }
 
 func SetLocaleCookie(w http.ResponseWriter, lang string, sessionCacheInMinutes int) {
 	maxAge := (sessionCacheInMinutes * 60)
@@ -116,7 +116,7 @@ func SetLocaleCookie(w http.ResponseWriter, lang string, sessionCacheInMinutes i
 // 	})
 // }
 
-func getTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
+func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
 	var translations i18n.TranslateFunc
 	var _ error
 	localeCookie := ""
