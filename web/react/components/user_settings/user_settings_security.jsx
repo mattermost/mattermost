@@ -48,8 +48,8 @@ export default class SecurityTab extends React.Component {
             return;
         }
 
-        if (newPassword.length < 5) {
-            this.setState({passwordError: 'New passwords must be at least 5 characters', serverError: ''});
+        if (newPassword.length < Constants.MIN_PASSWORD_LENGTH) {
+            this.setState({passwordError: 'New passwords must be at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters', serverError: ''});
             return;
         }
 
@@ -337,7 +337,7 @@ export default class SecurityTab extends React.Component {
                         className='security-links theme'
                         dialogType={AccessHistoryModal}
                     >
-                        <i className='fa fa-clock-o'></i>View Access History
+                        <i className='fa fa-clock-o'></i>{'View Access History'}
                     </ToggleModalButton>
                     <b> </b>
                     <ToggleModalButton

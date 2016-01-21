@@ -453,5 +453,9 @@ export default {
             description: 'Show preview snippet of links below message'
         }
     },
-    OVERLAY_TIME_DELAY: 400
+    OVERLAY_TIME_DELAY: 400,
+    MIN_USERNAME_LENGTH: 3,
+    MAX_USERNAME_LENGTH: 15,
+    MIN_PASSWORD_LENGTH: 5,
+    MAX_PASSWORD_LENGTH: 50
 };

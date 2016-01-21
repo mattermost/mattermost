@@ -879,8 +879,8 @@ export function isValidUsername(name) {
     var error = '';
     if (!name) {
         error = 'This field is required';
-    } else if (name.length < 3 || name.length > 15) {
-        error = 'Must be between 3 and 15 characters';
+    } else if (name.length < Constants.MIN_USERNAME_LENGTH || name.length > Constants.MAX_USERNAME_LENGTH) {
+        error = 'Must be between ' + Constants.MIN_USERNAME_LENGTH + ' and ' + Constants.MAX_USERNAME_LENGTH + ' characters';
     } else if (!(/^[a-z0-9\.\-\_]+$/).test(name)) {
         error = "Must contain only letters, numbers, and the symbols '.', '-', and '_'.";
     } else if (!(/[a-z]/).test(name.charAt(0))) { //eslint-disable-line no-negated-condition
