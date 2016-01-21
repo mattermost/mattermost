@@ -1,13 +1,40 @@
 {
-  "name": "Mattermost",
-  "icons": [
-    {
-      "src": "../static/iamges/icon50x50.png",
-      "sizes": "50x50",
-      "type": "image/png"
-    }
-  ],
-  "start_url": "/",
-  "display": "standalone",
-  "orientation": "portrait"
+    "name": "Mattermost",
+    "icons": [{
+        "src": "/static/images/favicon/android-chrome-36x36.png",
+        "type": "image/png",
+        "sizes": "36x36"
+    }, {
+        "src": "/static/images/favicon/android-chrome-48x48.png",
+        "type": "image/png",
+        "sizes": "48x48"
+    }, {
+        "src": "/static/images/favicon/android-chrome-72x72.png",
+        "type": "image/png",
+        "sizes": "72x72"
+    }, {
+        "src": "/static/images/favicon/android-chrome-96x96.png",
+        "type": "image/png",
+        "sizes": "96x96"
+    }, {
+        "src": "/static/images/favicon/android-chrome-144x144.png",
+        "type": "image/png",
+        "sizes": "144x144"
+    }, {
+        "src": "/static/images/favicon/android-chrome-192x192.png",
+        "type": "image/png",
+        "sizes": "192x192"
+    }, {
+        "src": "/static/images/favicon/android-chrome-256x256.png",
+        "type": "image/png",
+        "sizes": "256x256"
+    }, {
+        "src": "/static/images/favicon/android-chrome-384x384.png",
+        "type": "image/png",
+        "sizes": "384x384"
+    }, {
+        "src": "/static/images/favicon/android-chrome-512x512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+    }]
 }
