@@ -66,7 +66,7 @@ export default class GeneralTab extends React.Component {
 
     handleTeamListingRadio(listing) {
         if (global.window.mm_config.EnableTeamListing !== 'true' && listing) {
-            this.setState({clientError: 'Team directory has been disabled.  Please ask a system admin to enable the team directory in the system console team settings.'});
+            this.setState({clientError: 'Team Directory has been disabled.  Please ask a System Admin to enable the Team Directory in the System Console team settings.'});
         } else {
             this.setState({allow_team_listing: listing});
         }
