@@ -111,6 +111,7 @@
     "OAuthSettings": {
         "Enable": false,
         "ProviderName": "",
+        "DisplayName": "",
         "Secret": "",
         "Id": "",
         "Scope": "",

@@ -247,13 +247,14 @@ export default class SecurityTab extends React.Component {
 
             let oauthOption;
             if (global.window.mm_config.EnableSignUpWithOAuth === 'true' && user.auth_service === '') {
+                var displayName = global.window.mm_config.CustomOAuthDisplayName;
                 oauthOption = (
                     <div>
                         <a
                             className='btn btn-primary'
                             href={'/' + teamName + '/claim?email=' + user.email + '&new_type=' + Constants.OAUTH_SERVICE}
                         >
-                            {'Switch to using OAuth SSO'}
+                            {'Switch to using ' + displayName}
                         </a>
                         <br/>
                     </div>

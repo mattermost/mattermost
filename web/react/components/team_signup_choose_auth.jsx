@@ -45,6 +45,7 @@ export default class ChooseAuthPage extends React.Component {
         }
 
         if (global.window.mm_config.EnableSignUpWithOAuth === 'true') {
+            var displayName = global.window.mm_config.CustomOAuthDisplayName;
             buttons.push(
                     <a
                         className='btn btn-custom-login oauth btn-full'
@@ -57,7 +58,7 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='icon' />
-                        <span>{'Create new team with OAuth Account'}</span>
+                        <span>{'Create new team with ' + displayName}</span>
                     </a>
             );
         }

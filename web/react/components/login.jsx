@@ -43,13 +43,14 @@ export default class Login extends React.Component {
         }
 
         if (global.window.mm_config.EnableSignUpWithOAuth === 'true') {
+            var displayName = global.window.mm_config.CustomOAuthDisplayName;
             loginMessage.push(
                     <a
                         className='btn btn-custom-login oauth'
                         href={'/' + teamName + '/login/oauth'}
                     >
                         <span className='icon' />
-                        <span>{'Login with OAuth'}</span>
+                        <span>{'Login with ' + displayName}</span>
                     </a>
            );
         }
