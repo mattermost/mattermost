@@ -25,7 +25,7 @@ class Root extends React.Component {
 
     componentWillMount() {
         Client.getTranslations(
-            'es',
+            this.props.map.Locale,
             (data) => {
                 this.setState({
                     translations: data,
@@ -47,7 +47,7 @@ class Root extends React.Component {
 
         return (
             <IntlProvider
-                locale='es'
+                locale={this.props.map.Locale}
                 messages={this.state.translations}
             >
                 <Login
@@ -66,6 +66,3 @@ global.window.setup_login_page = function setup(props) {
         document.getElementById('login')
     );
 };
-
-
-//locale={this.props.map.Locale}
