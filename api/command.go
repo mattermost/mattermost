@@ -36,12 +36,12 @@ var (
 		shrugCommand,
 		meCommand,
 	}
-	commandNotImplementedErr = model.NewAppError("checkCommand", "Command not implemented", "")
+	commandNotImplementedErr = model.NewLocAppError("checkCommand", "api.command.no_implemented.app_error", nil, "")
 )
 var echoSem chan bool
 
 func InitCommand(r *mux.Router) {
-	l4g.Debug("Initializing command api routes")
+	l4g.Debug(utils.T("api.command.init.debug"))
 	r.Handle("/command", ApiUserRequired(command)).Methods("POST")
 }
 
@@ -74,7 +74,7 @@ func command(c *Context, w http.ResponseWriter, r *http.Request) {
 func checkCommand(c *Context, command *model.Command) bool {
 
 	if len(command.Command) == 0 || strings.Index(command.Command, "/") != 0 {
-		c.Err = model.NewAppError("checkCommand", "Command must start with /", "")
+		c.Err = model.NewLocAppError("checkCommand", "api.command.check_command.start.app_error", nil, "")
 		return false
 	}
 
@@ -118,7 +118,7 @@ func logoutCommand(c *Context, command *model.Command) bool {
 	cmd := cmds["logoutCommand"]
 
 	if strings.Index(command.Command, cmd) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Logout"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: c.T("api.command.logout_command.description")})
 
 		if !command.Suggest {
 			command.GotoLocation = "/logout"
@@ -127,7 +127,7 @@ func logoutCommand(c *Context, command *model.Command) bool {
 		}
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Logout"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: c.T("api.command.logout_command.description")})
 	}
 
 	return false
@@ -160,7 +160,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 		}
 
 		if delay > 10000 {
-			c.Err = model.NewAppError("echoCommand", "Delays must be under 10000 seconds", "")
+			c.Err = model.NewLocAppError("echoCommand", "api.command.echo_command.under.app_error", nil, "")
 			return false
 		}
 
@@ -170,7 +170,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 		}
 
 		if len(echoSem) >= maxThreads {
-			c.Err = model.NewAppError("echoCommand", "High volume of echo request, cannot process request", "")
+			c.Err = model.NewLocAppError("echoCommand", "api.command.echo_command.high_volume.app_error", nil, "")
 			return false
 		}
 
@@ -184,7 +184,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 			time.Sleep(time.Duration(delay) * time.Second)
 
 			if _, err := CreatePost(c, post, true); err != nil {
-				l4g.Error("Unable to create /echo post, err=%v", err)
+				l4g.Error(utils.T("api.command.echo_command.create.error"), err)
 			}
 		}()
 
@@ -192,7 +192,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Echo back text from your account, /echo \"message\" [delay in seconds]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: c.T("api.command.echo_command.description")})
 	}
 
 	return false
@@ -213,14 +213,14 @@ func meCommand(c *Context, command *model.Command) bool {
 		post.Message = message
 		post.ChannelId = command.ChannelId
 		if _, err := CreatePost(c, post, false); err != nil {
-			l4g.Error("Unable to create /me post post, err=%v", err)
+			l4g.Error(utils.T("api.command.me_command.create.error"), err)
 			return false
 		}
 		command.Response = model.RESP_EXECUTED
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Do an action, /me [message]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: c.T("api.command.me_command.description")})
 	}
 
 	return false
@@ -241,14 +241,14 @@ func shrugCommand(c *Context, command *model.Command) bool {
 		post.Message = message
 		post.ChannelId = command.ChannelId
 		if _, err := CreatePost(c, post, false); err != nil {
-			l4g.Error("Unable to create /shrug post post, err=%v", err)
+			l4g.Error(utils.T("api.command.shrug_command.create.error"), err)
 			return false
 		}
 		command.Response = model.RESP_EXECUTED
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: c.T("api.command.shrug_command.description")})
 	}
 
 	return false
@@ -295,12 +295,12 @@ func joinCommand(c *Context, command *model.Command) bool {
 				}
 
 				if len(startsWith) == 0 || strings.Index(v.Name, startsWith) == 0 {
-					command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd + " " + v.Name, Description: "Join the open channel"})
+					command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd + " " + v.Name, Description: c.T("api.commmand.join_command.description")})
 				}
 			}
 		}
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Join an open channel"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: c.T("api.commmand.join_command.description")})
 	}
 
 	return false
@@ -331,7 +331,7 @@ func loadTestCommand(c *Context, command *model.Command) bool {
 			return true
 		}
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Debug Load Testing"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: c.T("api.command.load_test_command.description")})
 	}
 
 	return false
@@ -416,7 +416,7 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 
 		if doTeams {
 			if err := CreateBasicUser(client); err != nil {
-				l4g.Error("Failed to create testing environment")
+				l4g.Error(utils.T("api.command.load_test_setup_command.create.error"))
 				return true
 			}
 			client.LoginByEmail(BTEST_TEAM_NAME, BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
@@ -428,13 +428,13 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 				utils.Range{numPosts, numPosts},
 				doFuzz)
 			if err != true {
-				l4g.Error("Failed to create testing environment")
+				l4g.Error(utils.T("api.command.load_test_setup_command.create.error"))
 				return true
 			} else {
 				l4g.Info("Testing environment created")
 				for i := 0; i < len(environment.Teams); i++ {
-					l4g.Info("Team Created: " + environment.Teams[i].Name)
-					l4g.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
+					l4g.Info(utils.T("api.command.load_test_setup_command.created.info"), environment.Teams[i].Name)
+					l4g.Info(utils.T("api.command.load_test_setup_command.login.info"), environment.Environments[i].Users[0].Email, USER_PASSWORD)
 				}
 			}
 		} else {
@@ -451,7 +451,7 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 	} else if strings.Index(cmd, command.Command) == 0 {
 		command.AddSuggestion(&model.SuggestCommand{
 			Suggestion:  cmd,
-			Description: "Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"})
+			Description: c.T("api.command.load_test_setup_command.description")})
 	}
 
 	return false
@@ -478,10 +478,10 @@ func loadTestUsersCommand(c *Context, command *model.Command) bool {
 		userCreator.CreateTestUsers(usersr)
 		return true
 	} else if strings.Index(cmd1, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: "Add a specified number of random users to current team <Min Users> <Max Users>"})
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: c.T("api.command.load_test_users_command.users.description")})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: c.T("api.command.load_test_users_command.fuzz.description")})
 	} else if strings.Index(cmd2, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: c.T("api.command.load_test_users_command.fuzz.description")})
 	}
 
 	return false
@@ -509,10 +509,10 @@ func loadTestChannelsCommand(c *Context, command *model.Command) bool {
 		channelCreator.CreateTestChannels(channelsr)
 		return true
 	} else if strings.Index(cmd1, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: "Add a specified number of random channels to current team <MinChannels> <MaxChannels>"})
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: c.T("api.command.load_test_channels_command.channel.description")})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: c.T("api.command.load_test_channels_command.fuzz.description")})
 	} else if strings.Index(cmd2, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: c.T("api.command.load_test_channels_command.fuzz.description")})
 	}
 
 	return false
@@ -568,10 +568,10 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 		}
 		return true
 	} else if strings.Index(cmd1, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"})
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd1, Description: c.T("api.command.load_test_posts_command.posts.description")})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: c.T("api.command.load_test_posts_command.fuzz.description")})
 	} else if strings.Index(cmd2, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: c.T("api.command.load_test_posts_command.fuzz.description")})
 	}
 
 	return false
@@ -585,7 +585,7 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 
 		parameters := strings.SplitN(command.Command, " ", 3)
 		if len(parameters) != 3 {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Command must contain a url", "")
+			c.Err = model.NewLocAppError("loadTestUrlCommand", "api.command.load_test_url_command.url.app_error", nil, "")
 			return true
 		} else {
 			url = parameters[2]
@@ -602,10 +602,10 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 
 		var contents io.ReadCloser
 		if r, err := http.Get(url); err != nil {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Unable to get file", err.Error())
+			c.Err = model.NewLocAppError("loadTestUrlCommand", "api.command.load_test_url_command.file.app_error", nil, err.Error())
 			return false
 		} else if r.StatusCode > 400 {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Unable to get file", r.Status)
+			c.Err = model.NewLocAppError("loadTestUrlCommand", "api.command.load_test_url_command.file.app_error", nil, r.Status)
 			return false
 		} else {
 			contents = r.Body
@@ -617,7 +617,7 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 		for {
 			length, err := contents.Read(bytes)
 			if err != nil && err != io.EOF {
-				c.Err = model.NewAppError("loadTestUrlCommand", "Encountered error reading file", err.Error())
+				c.Err = model.NewLocAppError("loadTestUrlCommand", "api.command.load_test_url_command.reading.app_error", nil, err.Error())
 				return false
 			}
 
@@ -630,7 +630,7 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 			post.ChannelId = command.ChannelId
 
 			if _, err := CreatePost(c, post, false); err != nil {
-				l4g.Error("Unable to create post, err=%v", err)
+				l4g.Error(utils.T("api.command.load_test_url_command.create.error"), err)
 				return false
 			}
 		}
@@ -639,7 +639,7 @@ func loadTestUrlCommand(c *Context, command *model.Command) bool {
 
 		return true
 	} else if strings.Index(cmd, command.Command) == 0 && strings.Index(command.Command, "/loadtest posts") != 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Add a post containing the text from a given url to current channel <Url>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: c.T("api.command.load_test_url_command.description")})
 	}
 
 	return false

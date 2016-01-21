@@ -36,15 +36,16 @@ func InitTranslations() {
 func GetTranslationsBySystemLocale() i18n.TranslateFunc {
 	locale := model.DEFAULT_LOCALE
 	if userLanguage, err := jibber_jabber.DetectLanguage(); err == nil {
-		locale = userLanguage
+		if _, ok := locales[userLanguage]; ok {
+			locale = userLanguage
+		} else {
+			l4g.Error("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE)
+			locale = model.DEFAULT_LOCALE
+		}
 	}
 
-	if locales[locale] == "" {
-		l4g.Error("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE)
-
-		if locales[model.DEFAULT_LOCALE] == "" {
-			panic("Failed to load system translations for '" + model.DEFAULT_LOCALE + "'")
-		}
+	if locales[model.DEFAULT_LOCALE] == "" {
+		panic("Failed to load system translations for '" + model.DEFAULT_LOCALE + "'")
 	}
 
 	translations, _ := i18n.Tfunc(locale)
