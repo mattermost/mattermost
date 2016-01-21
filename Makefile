@@ -42,7 +42,6 @@ dist: | build-server build-client go-test package
 dist-local: | start-docker dist
 
 dist-travis: | travis-init build-container
-	sudo mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json;
 
 start-docker:
 	@echo Starting docker containers
@@ -147,6 +146,8 @@ package:
 	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
+	
+	sudo mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json || echo 'nomv'
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
