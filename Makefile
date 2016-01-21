@@ -141,6 +141,7 @@ package:
 
 	sed -i'.bak' 's|react-0.14.3.js|react-0.14.3.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|react-dom-0.14.3.js|react-dom-0.14.3.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|react-intl.js|react-intl.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|react-bootstrap-0.28.1.js|react-bootstrap-0.28.1.min.js|g' $(DIST_PATH)/web/templates/head.html
