@@ -12,7 +12,391 @@
         "translation": "Error reading log file"
     },
     {
-        "id": "api.context.invalid_param",
+        "id": "api.admin.init.debug",
+        "translation": "Initializing admin api routes"
+    },
+    {
+        "id": "api.admin.test_email.subject",
+        "translation": "Mattermost - Testing Email Settings"
+    },
+    {
+        "id": "api.admin.test_email.body",
+        "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!"
+    },
+    {
+        "id": "api.api.render.error",
+        "translation": "Error rendering template %v err=%v"
+    },
+    {
+        "id": "api.api.init.parsing_templates.debug",
+        "translation": "Parsing server templates at %v"
+    },
+    {
+        "id": "api.api.init.parsing_templates.error",
+        "translation": "Failed to parse server templates %v"
+    },
+    {
+        "id": "api.channel.init.debug",
+        "translation": "Initializing channel api routes"
+    },
+    {
+        "id": "api.channel.create_channel.direct_channel.app_error",
+        "translation": "Must use createDirectChannel api service for direct message channel creation"
+    },
+    {
+        "id": "api.channel.create_channel.invalid_character.app_error",
+        "translation": "Invalid character '__' in channel name for non-direct channel"
+    },
+    {
+        "id": "api.channel.create_direct_channel.invalid_user.app_error",
+        "translation": "Invalid other user id "
+    },
+    {
+        "id": "api.channel.create_default_channels.town_square",
+        "translation": "Town Square"
+    },
+    {
+        "id": "api.channel.create_default_channels.off_topic",
+        "translation": "Off-Topic"
+    },
+    {
+        "id": "api.channel.update_channel.permission.app_error",
+        "translation": "You do not have the appropriate permissions"
+    },
+    {
+        "id": "api.channel.update_channel.deleted.app_error",
+        "translation": "The channel has been archived or deleted"
+    },
+    {
+        "id": "api.channel.update_channel.tried.app_error",
+        "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
+    },
+    {
+        "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+        "translation": "Failed to retrieve user while trying to save update channel header message %v"
+    },
+    {
+        "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+        "translation": "%s updated the channel header to: %s"
+    },
+    {
+        "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+        "translation": "%s removed the channel header (was: %s)"
+    },
+    {
+        "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+        "translation": "%s updated the channel header from: %s to: %s"
+    },
+    {
+        "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
+        "translation": "Failed to post join/leave message %v"
+    },
+    {
+        "id": "api.channel.get_channels.error",
+        "translation": "Error in getting users profile for id=%v forcing logout"
+    },
+    {
+        "id": "api.channel.get_channel_counts.app_error",
+        "translation": "Unable to get channel counts from the database"
+    },
+    {
+        "id": "api.channel.join_channel.post_and_forget",
+        "translation": "%v has joined the channel."
+    },
+    {
+        "id": "api.channel.join_channel.permissions.app_error",
+        "translation": "You do not have the appropriate permissions"
+    },
+    {
+        "id": "api.channel.post_user_add_remove_message_and_forget.error",
+        "translation": "Failed to post join/leave message %v"
+    },
+    {
+        "id": "api.channel.add_user_to_channel.deleted.app_error",
+        "translation": "The channel has been archived or deleted"
+    },
+    {
+        "id": "api.channel.add_user_to_channel.type.app_error",
+        "translation": "Can not add user to this channel type"
+    },
+    {
+        "id": "api.channel.add_user.to.channel.failed.app_error",
+        "translation": "Failed to add user to channel"
+    },
+    {
+        "id": "api.channel.leave.direct.app_error",
+        "translation": "Cannot leave a direct message channel"
+    },
+    {
+        "id": "api.channel.leave.default.app_error",
+        "translation": "Cannot leave the default channel {{.Channel}}"
+    },
+    {
+        "id": "api.channel.leave.left",
+        "translation": "%v has left the channel."
+    },
+    {
+        "id": "api.channel.delete_channel.permissions.app_error",
+        "translation": "You do not have the appropriate permissions"
+    },
+    {
+        "id": "api.channel.delete_channel.deleted.app_error",
+        "translation": "The channel has been archived or deleted"
+    },
+    {
+        "id": "api.channel.delete_channel.cannot.app_error",
+        "translation": "Cannot delete the default channel {{.Channel}}"
+    },
+    {
+        "id": "api.channel.delete_channel.incoming_webhook.error",
+        "translation": "Encountered error deleting incoming webhook, id=%v"
+    },
+    {
+        "id": "api.channel.delete_channel.outgoing_webhook.error",
+        "translation": "Encountered error deleting outgoing webhook, id=%v"
+    },
+    {
+        "id": "api.channel.delete_channel.archived",
+        "translation": "%v has archived the channel."
+    },
+    {
+        "id": "api.channel.delete_channel.failed_post.error",
+        "translation": "Failed to post archive message %v"
+    },
+    {
+        "id": "api.channel.delete_channel.failed_send.app_error",
+        "translation": "Failed to send archive message"
+    },
+    {
+        "id": "api.channel.get_channel_extra_info.member_limit.app_error",
+        "translation": "Failed to parse member limit"
+    },
+    {
+        "id": "api.channel.get_channel_extra_info.deleted.app_error",
+        "translation": "The channel has been archived or deleted"
+    },
+    {
+        "id": "api.channel.add_member.find_user.app_error",
+        "translation": "Failed to find user to be added"
+    },
+    {
+        "id": "api.channel.add_member.find_channel.app_error",
+        "translation": "Failed to find channel"
+    },
+    {
+        "id": "api.channel.add_member.user_adding.app_error",
+        "translation": "Failed to find user doing the adding"
+    },
+    {
+        "id": "api.channel.add_member.added",
+        "translation": "%v added to the channel by %v"
+    },
+    {
+        "id": "api.channel.remove_member.permissions.app_error",
+        "translation": "You do not have the appropriate permissions "
+    },
+    {
+        "id": "api.channel.remove_member.unable.app_error",
+        "translation": "Unable to remove user."
+    },
+    {
+        "id": "api.channel.remove_user_from_channel.deleted.app_error",
+        "translation": "The channel has been archived or deleted"
+    },
+    {
+        "id": "api.command.no_implemented.app_error",
+        "translation": "Command not implemented"
+    },
+    {
+        "id": "api.command.init.debug",
+        "translation": "Initializing command api routes"
+    },
+    {
+        "id": "api.command.check_command.start.app_error",
+        "translation": "Command must start with /"
+    },
+    {
+        "id": "api.command.logout_command.description",
+        "translation": "Logout"
+    },
+    {
+        "id": "api.command.echo_command.under.app_error",
+        "translation": "Delays must be under 10000 seconds"
+    },
+    {
+        "id": "api.command.echo_command.high_volume.app_error",
+        "translation": "High volume of echo request, cannot process request"
+    },
+    {
+        "id": "api.command.echo_command.create.error",
+        "translation": "Unable to create /echo post, err=%v"
+    },
+    {
+        "id": "api.command.echo_command.description",
+        "translation": "Echo back text from your account, /echo \"message\" [delay in seconds]"
+    },
+    {
+        "id": "api.command.me_command.create.error",
+        "translation": "Unable to create /me post post, err=%v"
+    },
+    {
+        "id": "api.command.me_command.description",
+        "translation": "Do an action, /me [message]"
+    },
+    {
+        "id": "api.command.shrug_command.create.error",
+        "translation": "Unable to create /shrug post post, err=%v"
+    },
+    {
+        "id": "api.command.shrug_command.description",
+        "translation": "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"
+    },
+    {
+        "id": "api.commmand.join_command.description",
+        "translation": "Join the open channel"
+    },
+    {
+        "id": "api.command.load_test_command.description",
+        "translation": "Debug Load Testing"
+    },
+    {
+        "id": "api.command.load_test_setup_command.create.error",
+        "translation": "Failed to create testing environment"
+    },
+    {
+        "id": "api.command.load_test_setup_command.created.info",
+        "translation": "Team Created: %v"
+    },
+    {
+        "id": "api.command.load_test_setup_command.login.info",
+        "translation": "\t User to login: %v, %v"
+    },
+    {
+        "id": "api.command.load_test_setup_command.description",
+        "translation": "Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"
+    },
+    {
+        "id": "api.command.load_test_users_command.users.description",
+        "translation": "Add a specified number of random users to current team <Min Users> <Max Users>"
+    },
+    {
+        "id": "api.command.load_test_users_command.fuzz.description",
+        "translation": "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"
+    },
+    {
+        "id": "api.command.load_test_channels_command.channel.description",
+        "translation": "Add a specified number of random channels to current team <MinChannels> <MaxChannels>"
+    },
+    {
+        "id": "api.command.load_test_channels_command.fuzz.description",
+        "translation": "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"
+    },
+    {
+        "id": "api.command.load_test_posts_command.posts.description",
+        "translation": "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
+    },
+    {
+        "id": "api.command.load_test_posts_command.fuzz.description",
+        "translation": "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
+    },
+    {
+        "id": "api.command.load_test_url_command.url.app_error",
+        "translation": "Command must contain a url"
+    },
+    {
+        "id": "api.command.load_test_url_command.file.app_error",
+        "translation": "Unable to get file"
+    },
+    {
+        "id": "api.command.load_test_url_command.reading.app_error",
+        "translation": "Encountered error reading file"
+    },
+    {
+        "id": "api.command.load_test_url_command.create.error",
+        "translation": "Unable to create post, err=%v"
+    },
+    {
+        "id": "api.command.load_test_url_command.description",
+        "translation": "Add a post containing the text from a given url to current channel <Url>"
+    },
+    {
+        "id": "api.context.invalid_param.app_error",
         "translation": "Invalid {{.Name}} parameter"
+    },
+    {
+        "id": "api.context.session_expired.app_error",
+        "translation": "Invalid or expired session, please login again."
+    },
+    {
+        "id": "api.context.token_provided.app_error",
+        "translation": "Session is not OAuth but token was provided in the query string"
+    },
+    {
+        "id": "api.context.last_activity_at.error",
+        "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
+    },
+    {
+        "id": "api.context.log.error",
+        "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]"
+    },
+    {
+        "id": "api.context.permissions.app_error",
+        "translation": "You do not have the appropriate permissions"
+    },
+    {
+        "id": "api.context.system_permissions.app_error",
+        "translation": "You do not have the appropriate permissions (system)"
+    },
+    {
+        "id": "api.context.unknown.app_error",
+        "translation": "An unknown error has occured. Please contact support."
+    },
+    {
+        "id": "api.context.invalid_team_url.debug",
+        "translation": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent"
+    },
+    {
+        "id": "api.context.404.app_error",
+        "translation": "Sorry, we could not find the page."
+    },
+    {
+        "id": "api.context.invalid_token.error",
+        "translation": "Invalid session token=%v, err=%v"
+    },
+    {
+        "id": "api.export.options.create.app_error",
+        "translation": "Unable to create options file"
+    },
+    {
+        "id": "api.export.options.write.app_error",
+        "translation": "Unable to write to options file"
+    },
+    {
+        "id": "api.export.open_file.app_error",
+        "translation": "Unable to open file for export"
+    },
+    {
+        "id": "api.export.write_file.app_error",
+        "translation": "Unable to write to export file"
+    },
+    {
+        "id": "api.export.json.app_error",
+        "translation": "Unable to convert to json"
+    },
+    {
+        "id": "api.export.open.app_error",
+        "translation": "Unable to open file"
+    },
+    {
+        "id": "api.export.open_dir.app_error",
+        "translation": "Unable to open directory"
+    },
+    {
+        "id": "api.export.read_dir.app_error",
+        "translation": "Unable to read directory"
+    },
+    {
+        "id": "api.export.s3.app_error",
+        "translation": "S3 is not supported for local storage export."
     }
 ]

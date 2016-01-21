@@ -70,10 +70,10 @@ func ExportToWriter(w io.Writer, options *ExportOptions) *model.AppError {
 
 	// Write our options to file
 	if optionsFile, err := zipWriter.Create(EXPORT_OPTIONS_FILE); err != nil {
-		return model.NewAppError("ExportToWriter", "Unable to create options file", err.Error())
+		return model.NewLocAppError("ExportToWriter", "api.export.options.create.app_error", nil, err.Error())
 	} else {
 		if _, err := optionsFile.Write([]byte(options.ToJson())); err != nil {
-			return model.NewAppError("ExportToWriter", "Unable to write to options file", err.Error())
+			return model.NewLocAppError("ExportToWriter", "api.export.options.write.app_error", nil, err.Error())
 		}
 	}
 
@@ -109,10 +109,10 @@ func ExportTeams(writer ExportWriter, options *ExportOptions) *model.AppError {
 		teams[i].PreExport()
 
 		if teamFile, err := writer.Create(EXPORT_TEAMS_FOLDER + "/" + teams[i].Name + ".json"); err != nil {
-			return model.NewAppError("ExportTeams", "Unable to open file for export", err.Error())
+			return model.NewLocAppError("ExportTeams", "api.export.open_file.app_error", nil, err.Error())
 		} else {
 			if _, err := teamFile.Write([]byte(teams[i].ToJson())); err != nil {
-				return model.NewAppError("ExportTeams", "Unable to write to team export file", err.Error())
+				return model.NewLocAppError("ExportTeams", "api.export.write_file.app_error", nil, err.Error())
 			}
 		}
 
@@ -162,10 +162,10 @@ func ExportChannels(writer ExportWriter, options *ExportOptions, teamId string) 
 		channels[i].PreExport()
 
 		if channelFile, err := writer.Create(EXPORT_CHANNELS_FOLDER + "/" + channels[i].Id + ".json"); err != nil {
-			return model.NewAppError("ExportChannels", "Unable to open file for export", err.Error())
+			return model.NewLocAppError("ExportChannels", "api.export.open_file.app_error", nil, err.Error())
 		} else {
 			if _, err := channelFile.Write([]byte(channels[i].ToJson())); err != nil {
-				return model.NewAppError("ExportChannels", "Unable to write to export file", err.Error())
+				return model.NewLocAppError("ExportChannels", "api.export.write_file.app_error", nil, err.Error())
 			}
 		}
 
@@ -177,14 +177,14 @@ func ExportChannels(writer ExportWriter, options *ExportOptions, teamId string) 
 		}
 
 		if membersFile, err := writer.Create(EXPORT_CHANNELS_FOLDER + "/" + channels[i].Id + "_members.json"); err != nil {
-			return model.NewAppError("ExportChannels", "Unable to open file for export", err.Error())
+			return model.NewLocAppError("ExportChannels", "api.export.open_file.app_error", nil, err.Error())
 		} else {
 			result, err2 := json.Marshal(members)
 			if err2 != nil {
-				return model.NewAppError("ExportChannels", "Unable to convert to json", err.Error())
+				return model.NewLocAppError("ExportChannels", "api.export.json.app_error", nil, err.Error())
 			}
 			if _, err3 := membersFile.Write([]byte(result)); err3 != nil {
-				return model.NewAppError("ExportChannels", "Unable to write to export file", err.Error())
+				return model.NewLocAppError("ExportChannels", "api.export.write_file.app_error", nil, err.Error())
 			}
 		}
 	}
@@ -209,14 +209,14 @@ func ExportPosts(writer ExportWriter, options *ExportOptions, channelId string) 
 
 	// Export the posts
 	if postsFile, err := writer.Create(EXPORT_POSTS_FOLDER + "/" + channelId + "_posts.json"); err != nil {
-		return model.NewAppError("ExportPosts", "Unable to open file for export", err.Error())
+		return model.NewLocAppError("ExportPosts", "api.export.open_file.app_error", nil, err.Error())
 	} else {
 		result, err2 := json.Marshal(posts)
 		if err2 != nil {
-			return model.NewAppError("ExportPosts", "Unable to convert to json", err.Error())
+			return model.NewLocAppError("ExportPosts", "api.export.json.app_error", nil, err.Error())
 		}
 		if _, err3 := postsFile.Write([]byte(result)); err3 != nil {
-			return model.NewAppError("ExportPosts", "Unable to write to export file", err.Error())
+			return model.NewLocAppError("ExportPosts", "api.export.write_file.app_error", nil, err.Error())
 		}
 	}
 
@@ -234,14 +234,14 @@ func ExportUsers(writer ExportWriter, options *ExportOptions, teamId string) *mo
 
 	// Write the users
 	if usersFile, err := writer.Create(EXPORT_USERS_FOLDER + "/" + teamId + "_users.json"); err != nil {
-		return model.NewAppError("ExportUsers", "Unable to open file for export", err.Error())
+		return model.NewLocAppError("ExportUsers", "api.export.open_file.app_error", nil, err.Error())
 	} else {
 		result, err2 := json.Marshal(users)
 		if err2 != nil {
-			return model.NewAppError("ExportUsers", "Unable to convert to json", err.Error())
+			return model.NewLocAppError("ExportUsers", "api.export.json.app_error", nil, err.Error())
 		}
 		if _, err3 := usersFile.Write([]byte(result)); err3 != nil {
-			return model.NewAppError("ExportUsers", "Unable to write to export file", err.Error())
+			return model.NewLocAppError("ExportUsers", "api.export.write_file.app_error", nil, err.Error())
 		}
 	}
 	return nil
@@ -250,12 +250,12 @@ func ExportUsers(writer ExportWriter, options *ExportOptions, teamId string) *mo
 func copyDirToExportWriter(writer ExportWriter, inPath string, outPath string) *model.AppError {
 	dir, err := os.Open(inPath)
 	if err != nil {
-		return model.NewAppError("copyDirToExportWriter", "Unable to open directory", err.Error())
+		return model.NewLocAppError("copyDirToExportWriter", "api.export.open_dir.app_error", nil, err.Error())
 	}
 
 	fileInfoList, err := dir.Readdir(0)
 	if err != nil {
-		return model.NewAppError("copyDirToExportWriter", "Unable to read directory", err.Error())
+		return model.NewLocAppError("copyDirToExportWriter", "api.export.read_dir.app_error", nil, err.Error())
 	}
 
 	for _, fileInfo := range fileInfoList {
@@ -263,11 +263,11 @@ func copyDirToExportWriter(writer ExportWriter, inPath string, outPath string) *
 			copyDirToExportWriter(writer, inPath+"/"+fileInfo.Name(), outPath+"/"+fileInfo.Name())
 		} else {
 			if toFile, err := writer.Create(outPath + "/" + fileInfo.Name()); err != nil {
-				return model.NewAppError("copyDirToExportWriter", "Unable to open file for export", err.Error())
+				return model.NewLocAppError("copyDirToExportWriter", "api.export.open_file.app_error", nil, err.Error())
 			} else {
 				fromFile, err := os.Open(inPath + "/" + fileInfo.Name())
 				if err != nil {
-					return model.NewAppError("copyDirToExportWriter", "Unable to open file", err.Error())
+					return model.NewAppError("copyDirToExportWriter", "api.export.open.app_error", err.Error())
 				}
 				io.Copy(toFile, fromFile)
 			}
@@ -281,7 +281,7 @@ func ExportLocalStorage(writer ExportWriter, options *ExportOptions, teamId stri
 	teamDir := utils.Cfg.FileSettings.Directory + "teams/" + teamId
 
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		return model.NewAppError("ExportLocalStorage", "S3 is not supported for local storage export.", "")
+		return model.NewLocAppError("ExportLocalStorage", "api.export.s3.app_error", nil, "")
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := copyDirToExportWriter(writer, teamDir, EXPORT_LOCAL_STORAGE_FOLDER); err != nil {
 			return err

@@ -167,10 +167,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if session == nil || session.IsExpired() {
 			c.RemoveSessionCookie(w, r)
-			c.Err = model.NewAppError("ServeHTTP", "Invalid or expired session, please login again.", "token="+token)
+			c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else if !session.IsOAuth && isTokenFromQueryString {
-			c.Err = model.NewAppError("ServeHTTP", "Session is not OAuth but token was provided in the query string", "token="+token)
+			c.Err = model.NewLocAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token)
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else {
 			c.Session = *session
@@ -197,7 +197,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
 		go func() {
 			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Id, model.GetMillis())).Err; err != nil {
-				l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", c.Session.UserId, c.Session.Id, err)
+				l4g.Error(utils.T("api.context.last_activity_at.error"), c.Session.UserId, c.Session.Id, err)
 			}
 		}()
 	}
@@ -253,13 +253,13 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 }
 
 func (c *Context) LogError(err *model.AppError) {
-	l4g.Error("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
+	l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
 		c.RequestId, c.Session.UserId, c.IpAddress, err.Message, err.DetailedError)
 }
 
 func (c *Context) UserRequired() {
 	if len(c.Session.UserId) == 0 {
-		c.Err = model.NewAppError("", "Invalid or expired session, please login again.", "UserRequired")
+		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "UserRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
 	}
@@ -267,11 +267,11 @@ func (c *Context) UserRequired() {
 
 func (c *Context) SystemAdminRequired() {
 	if len(c.Session.UserId) == 0 {
-		c.Err = model.NewAppError("", "Invalid or expired session, please login again.", "SystemAdminRequired")
+		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "SystemAdminRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
 	} else if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("", "You do not have the appropriate permissions", "AdminRequired")
+		c.Err = model.NewLocAppError("", "api.context.permissions.app_error", nil, "AdminRequired")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -289,7 +289,7 @@ func (c *Context) HasPermissionsToUser(userId string, where string) bool {
 		return true
 	}
 
-	c.Err = model.NewAppError(where, "You do not have the appropriate permissions", "userId="+userId)
+	c.Err = model.NewLocAppError(where, "api.context.permissions.app_error", nil, "userId="+userId)
 	c.Err.StatusCode = http.StatusForbidden
 	return false
 }
@@ -304,7 +304,7 @@ func (c *Context) HasPermissionsToTeam(teamId string, where string) bool {
 		return true
 	}
 
-	c.Err = model.NewAppError(where, "You do not have the appropriate permissions", "userId="+c.Session.UserId+", teamId="+teamId)
+	c.Err = model.NewLocAppError(where, "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", teamId="+teamId)
 	c.Err.StatusCode = http.StatusForbidden
 	return false
 }
@@ -314,7 +314,7 @@ func (c *Context) HasPermissionsToChannel(sc store.StoreChannel, where string) b
 		c.Err = cresult.Err
 		return false
 	} else if cresult.Data.(int64) != 1 {
-		c.Err = model.NewAppError(where, "You do not have the appropriate permissions", "userId="+c.Session.UserId)
+		c.Err = model.NewLocAppError(where, "api.context.permissions.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return false
 	}
@@ -327,7 +327,7 @@ func (c *Context) HasSystemAdminPermissions(where string) bool {
 		return true
 	}
 
-	c.Err = model.NewAppError(where, "You do not have the appropriate permissions (system)", "userId="+c.Session.UserId)
+	c.Err = model.NewLocAppError(where, "api.context.system_permissions.app_error", nil, "userId="+c.Session.UserId)
 	c.Err.StatusCode = http.StatusForbidden
 	return false
 }
@@ -375,12 +375,12 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) SetInvalidParam(where string, name string) {
-	c.Err = model.NewLocAppError(where, "api.context.invalid_param", map[string]interface{}{"Name": name}, "")
+	c.Err = model.NewLocAppError(where, "api.context.invalid_param.app_error", map[string]interface{}{"Name": name}, "")
 	c.Err.StatusCode = http.StatusBadRequest
 }
 
 func (c *Context) SetUnknownError(where string, details string) {
-	c.Err = model.NewAppError(where, "An unknown error has occured. Please contact support.", details)
+	c.Err = model.NewLocAppError(where, "api.context.unknown.app_error", nil, details)
 }
 
 func (c *Context) setTeamURL(url string, valid bool) {
@@ -406,7 +406,7 @@ func (c *Context) GetTeamURL() string {
 	if !c.teamURLValid {
 		c.SetTeamURLFromSession()
 		if !c.teamURLValid {
-			l4g.Debug("TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent")
+			l4g.Debug(utils.T("api.context.invalid_team_url.debug"))
 		}
 	}
 	return c.teamURL
@@ -511,7 +511,7 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewAppError("Handle404", "Sorry, we could not find the page.", "")
+	err := model.NewLocAppError("Handle404", "api.context.404.app_error", nil, "")
 	err.StatusCode = http.StatusNotFound
 	l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
 	RenderWebError(err, w, r)
@@ -525,7 +525,7 @@ func GetSession(token string) *model.Session {
 
 	if session == nil {
 		if sessionResult := <-Srv.Store.Session().Get(token); sessionResult.Err != nil {
-			l4g.Error("Invalid session token=" + token + ", err=" + sessionResult.Err.DetailedError)
+			l4g.Error(utils.T("api.context.invalid_token.error"), token, sessionResult.Err.DetailedError)
 		} else {
 			session = sessionResult.Data.(*model.Session)
 

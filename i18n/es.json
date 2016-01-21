@@ -1,18 +1,402 @@
 [
-    {
-        "id": "utils.i18n.loaded",
-        "translation": "Loaded system translations for '%v' from '%v' spanish test!"
-    },
-    {
-        "id": "mattermost.current_version",
-        "translation": "Current version is %v (%v/%v/%v)  spanish test!"
-    },
-    {
-        "id": "api.admin.file_read_error",
-        "translation": "Error reading log file spanish test!"
-    },
-    {
-        "id": "api.context.invalid_param",
-        "translation": "Invalid {{.Name}} parameter spanish test!"
-    }
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Error leyendo el archivo de registro"
+  },
+  {
+    "id": "api.admin.init.debug",
+    "translation": "Inicializando rutas del API para la administración"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "<br/><br/><br/>Parece que tu correo electrónico para Mattermost fue configurado correctamente!"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Configuración de pruebas de correo"
+  },
+  {
+    "id": "api.api.init.parsing_templates.debug",
+    "translation": "Analizando el contenido plantillas del servidor en %v"
+  },
+  {
+    "id": "api.api.init.parsing_templates.error",
+    "translation": "Falla al analizar el contenido de las plantillas de servidor %v"
+  },
+  {
+    "id": "api.api.render.error",
+    "translation": "Error renderinzando la plantilla %v err=%v"
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v agregado al canal por %v"
+  },
+  {
+    "id": "api.channel.add_member.find_channel.app_error",
+    "translation": "Falla al encontrar el canal"
+  },
+  {
+    "id": "api.channel.add_member.find_user.app_error",
+    "translation": "Falla al encontrar el usuario a ser agregado"
+  },
+  {
+    "id": "api.channel.add_member.user_adding.app_error",
+    "translation": "Falla al encontrar el usuario mientras se agregaba"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Falla al agregar el usuario al canal"
+  },
+  {
+    "id": "api.channel.add_user_to_channel.deleted.app_error",
+    "translation": "El canal ha sido archivado o eliminado"
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "No se puede agregar al usuario a este tipo de canal"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Debe usar el servicio del api createDirectChannel para crear un mensaje directo al canal"
+  },
+  {
+    "id": "api.channel.create_channel.invalid_character.app_error",
+    "translation": "carácter '__' inválido en el nombre del canal para un canal no-directo"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Fuera de Tópico"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "General"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Id de otro usuario inválido "
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v ha archivado el canal."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "No se puede eliminar el canal predeterminado {{.Channel}}"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "El canal ha sido archivado o eliminado"
+  },
+  {
+    "id": "api.channel.delete_channel.failed_post.error",
+    "translation": "Falla al publicar archivar el mensaje %v"
+  },
+  {
+    "id": "api.channel.delete_channel.failed_send.app_error",
+    "translation": "Falla al enviar el archivo del mensaje"
+  },
+  {
+    "id": "api.channel.delete_channel.incoming_webhook.error",
+    "translation": "Encontrado un error borrando el webhook de entrada, id=%v"
+  },
+  {
+    "id": "api.channel.delete_channel.outgoing_webhook.error",
+    "translation": "Encontrado un error borrando el webhook de salida, id=%v"
+  },
+  {
+    "id": "api.channel.delete_channel.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.channel.get_channel_counts.app_error",
+    "translation": "No se puede obtener el contador del canal desde la base de datos"
+  },
+  {
+    "id": "api.channel.get_channel_extra_info.deleted.app_error",
+    "translation": "El canal ha sido archivado o eliminado"
+  },
+  {
+    "id": "api.channel.get_channel_extra_info.member_limit.app_error",
+    "translation": "Error al analizar el límite de miembros"
+  },
+  {
+    "id": "api.channel.get_channels.error",
+    "translation": "Error obteniendo el pérfil de usuario para id=%v forzando el cierre de sesión"
+  },
+  {
+    "id": "api.channel.init.debug",
+    "translation": "Inicializando rutas del API para los canales"
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v se ha unido al canal."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "No puedes abandonar el canal predeterminado {{.Channel}}"
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "No puedes dejar un mensaje directo a un canal"
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v ha abandonado el canal."
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
+    "translation": "Fallo al publicar el mensaje de unir/abandonar %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s removió el encabezado del canal (era: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "No se pudo recuperar de usuario al intentar guardar la actualización del encabezado del canal %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s actualizó el encabezado del canal de: %s a: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s actualizó el encabezado del canal a: %s"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Fallo al publicar el mensaje de unir/abandonar %v"
+  },
+  {
+    "id": "api.channel.remove_member.permissions.app_error",
+    "translation": "No tienes los permisos apropiados "
+  },
+  {
+    "id": "api.channel.remove_member.unable.app_error",
+    "translation": "No se puede remover el usuario."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.deleted.app_error",
+    "translation": "El canal ha sido archivado o eliminado"
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "El canal ha sido archivado o eliminado"
+  },
+  {
+    "id": "api.channel.update_channel.permission.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Intento de realizar una actualización inválida al canal predeterminado {{.Channel}}"
+  },
+  {
+    "id": "api.command.check_command.start.app_error",
+    "translation": "El comando debe comenzar con  /"
+  },
+  {
+    "id": "api.command.echo_command.create.error",
+    "translation": "No se puede crear /echo mensaje, err=%v"
+  },
+  {
+    "id": "api.command.echo_command.description",
+    "translation": "Echo del texto desde tu cuenta, /echo \"mensaje\" [retraso en segundos]"
+  },
+  {
+    "id": "api.command.echo_command.high_volume.app_error",
+    "translation": "Volumen alto de solicitudes echo, no se puede procesar la solicitud"
+  },
+  {
+    "id": "api.command.echo_command.under.app_error",
+    "translation": "El retraso debe ser menor a 10000 segundos"
+  },
+  {
+    "id": "api.command.init.debug",
+    "translation": "Inicializando rutas del API para los comandos"
+  },
+  {
+    "id": "api.command.load_test_channels_command.channel.description",
+    "translation": "Agrega un número específico de canales aleatorios al equipo actual <MinChannels> <MaxChannels>"
+  },
+  {
+    "id": "api.command.load_test_channels_command.fuzz.description",
+    "translation": "Agrega un número específico de canales aleatorios con el texto fuzz al equipo actual <Min Channels> <Max Channels>"
+  },
+  {
+    "id": "api.command.load_test_command.description",
+    "translation": "Depurar pruebas de carga"
+  },
+  {
+    "id": "api.command.load_test_posts_command.fuzz.description",
+    "translation": "Agrega algunos mensajes aleatorios con el texto fuzz al canal actual <Min Mensajes> <Max Mensajes> <Min Images> <Max Imágenes>"
+  },
+  {
+    "id": "api.command.load_test_posts_command.posts.description",
+    "translation": "Agrega algunos mensajes aleatorios al canal actual <Min Mensajes> <Max Mensajes> <Min Images> <Max Imágenes>"
+  },
+  {
+    "id": "api.command.load_test_setup_command.create.error",
+    "translation": "Falla al crear el entorno de pruebas"
+  },
+  {
+    "id": "api.command.load_test_setup_command.created.info",
+    "translation": "Equipo Creado: %v"
+  },
+  {
+    "id": "api.command.load_test_setup_command.description",
+    "translation": "Crea un entorno de prueba para el equipo actual. [equipos] [fuzz] <Cant Canales> <Cant Usuarios> <Num Mensajes>"
+  },
+  {
+    "id": "api.command.load_test_setup_command.login.info",
+    "translation": "\t Usuario que inicia sesión: %v, %v"
+  },
+  {
+    "id": "api.command.load_test_url_command.create.error",
+    "translation": "No se pudo crear el mensaje, err=%v"
+  },
+  {
+    "id": "api.command.load_test_url_command.description",
+    "translation": "Agraga un mensaje que contiene el texto de un url dado al canal actual <Url>"
+  },
+  {
+    "id": "api.command.load_test_url_command.file.app_error",
+    "translation": "No se puede obtener el archivo"
+  },
+  {
+    "id": "api.command.load_test_url_command.reading.app_error",
+    "translation": "Se encontró un error leyendo el archivo"
+  },
+  {
+    "id": "api.command.load_test_url_command.url.app_error",
+    "translation": "El comando debe contener un url"
+  },
+  {
+    "id": "api.command.load_test_users_command.fuzz.description",
+    "translation": "Agraga un número específico de usuarios aleatorios con el texto fuzz al equipo actual <Min Users> <Max Users>"
+  },
+  {
+    "id": "api.command.load_test_users_command.users.description",
+    "translation": "Agrega un número específico de usuarios aleatorios al equipo actual <Min Users> <Max Users>"
+  },
+  {
+    "id": "api.command.logout_command.description",
+    "translation": "Cerrar sesión"
+  },
+  {
+    "id": "api.command.me_command.create.error",
+    "translation": "No se pudo crear el mensaje /me mensaje, err=%v"
+  },
+  {
+    "id": "api.command.me_command.description",
+    "translation": "Realiza una acción, /me [mensaje]"
+  },
+  {
+    "id": "api.command.no_implemented.app_error",
+    "translation": "Comando no implementado"
+  },
+  {
+    "id": "api.command.shrug_command.create.error",
+    "translation": "No se pudo crear el mensaje /shrug mensaje, err=%v"
+  },
+  {
+    "id": "api.command.shrug_command.description",
+    "translation": "Agrega ¯\\_(ツ)_/¯ a tu mensaje, /shrug [mensaje]"
+  },
+  {
+    "id": "api.commmand.join_command.description",
+    "translation": "Unirme al canal abierto"
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "Lo sentimos, pero no pudimos encontrar la página."
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "Parámetro {{.Name}} inválido"
+  },
+  {
+    "id": "api.context.invalid_team_url.debug",
+    "translation": "El URL de Equipo fue accesado de forma inválida. El URL del Equipo no debe ser utilizado en funciones del API o aquellas funciones que son independientes del equipo"
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "Token=%v de sesión inválido, err=%v"
+  },
+  {
+    "id": "api.context.last_activity_at.error",
+    "translation": "Falla al actualizar LastActivityAt para user_id=%v and session_id=%v, err=%v"
+  },
+  {
+    "id": "api.context.log.error",
+    "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [detalles: %v]"
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "Sesión inválida o expirada, por favor inicia sesión otra vez."
+  },
+  {
+    "id": "api.context.system_permissions.app_error",
+    "translation": "No tienes los permisos apropiados (admin de sistema)"
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "La sesión no es de tipo OAuth pero existe un token en el query string"
+  },
+  {
+    "id": "api.context.unknown.app_error",
+    "translation": "Ocurrió un error inesperado. Por favor contacta a soporte."
+  },
+  {
+    "id": "api.export.json.app_error",
+    "translation": "No se puede convertir a JSON"
+  },
+  {
+    "id": "api.export.open.app_error",
+    "translation": "No se puede abrir el archivo"
+  },
+  {
+    "id": "api.export.open_dir.app_error",
+    "translation": "No se puede abrir el directorio"
+  },
+  {
+    "id": "api.export.open_file.app_error",
+    "translation": "No se puede abrir el archivo a exportar"
+  },
+  {
+    "id": "api.export.options.create.app_error",
+    "translation": "No se puede crear el archivo de opciones"
+  },
+  {
+    "id": "api.export.options.write.app_error",
+    "translation": "No se puede escribir al archivo de opciones"
+  },
+  {
+    "id": "api.export.read_dir.app_error",
+    "translation": "No se puede leer el directorio"
+  },
+  {
+    "id": "api.export.s3.app_error",
+    "translation": "S3 no está soportado para exportar al almacenamiento local."
+  },
+  {
+    "id": "api.export.write_file.app_error",
+    "translation": "No se puede escribir al archivo a exportar"
+  },
+  {
+    "id": "mattermost.current_version",
+    "translation": "La versión actual es %v (%v/%v/%v)"
+  },
+  {
+    "id": "utils.i18n.loaded",
+    "translation": "Cargada traducciones del sistema para '%v' desde '%v'"
+  }
 ]
