@@ -32,7 +32,13 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	props := make(map[string]string)
 	props["Title"] = title
-	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg, ClientLicense: utils.ClientLicense}
+	return &HtmlTemplatePage{
+		TemplateName:  templateName,
+		Props:         props,
+		ClientCfg:     utils.ClientCfg,
+		ClientLicense: utils.ClientLicense,
+		Locale:        model.DEFAULT_LOCALE,
+	}
 }
 
 func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
@@ -42,6 +48,7 @@ func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
 
 	if me.User != nil {
 		me.User.Sanitize(map[string]bool{})
+		me.Locale = me.User.Locale
 	}
 
 	me.SessionTokenIndex = c.SessionTokenIndex

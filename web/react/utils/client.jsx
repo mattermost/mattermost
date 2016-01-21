@@ -60,6 +60,18 @@ function handleError(methodName, xhr, status, err) {
     return e;
 }
 
+export function getTranslations(locale, success, error) {
+    $.ajax({
+        url: '/static/i18n/' + locale + '.json',
+        dataType: 'json',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getTranslations', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function createTeamFromSignup(teamSignup, success, error) {
     $.ajax({
         url: '/api/v1/teams/create_from_signup',

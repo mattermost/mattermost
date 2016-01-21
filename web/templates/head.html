@@ -42,6 +42,9 @@
 
     <script src="/static/js/react-0.14.3.js"></script>
     <script src="/static/js/react-dom-0.14.3.js"></script>
+    <script src="/static/js/react-intl-2.0.0-beta-2/react-intl.js"></script>
+    <script src="/static/js/react-intl-2.0.0-beta-2/locale-data/en.js"></script>
+    <script src="/static/js/react-intl-2.0.0-beta-2/locale-data/es.js"></script>
     <script src="/static/js/jquery-2.1.4.js"></script>
     <script src="/static/js/bootstrap-3.3.5.js"></script>
     <script src="/static/js/bootstrap-colorpicker.min.js"></script>
@@ -60,6 +63,7 @@
         window.mm_team = {{ .Team }};
         window.mm_user = {{ .User }};
         window.mm_channel = {{ .Channel }};
+        window.mm_locale = {{ .Locale }};
 
         if ({{.SessionTokenIndex}} >= 0) {
             window.mm_session_token_index = {{.SessionTokenIndex}};

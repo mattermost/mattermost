@@ -43,6 +43,7 @@ type Page struct {
 	Channel           *model.Channel
 	PostID            string
 	SessionTokenIndex int64
+	Locale            string
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
