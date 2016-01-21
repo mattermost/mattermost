@@ -147,7 +147,9 @@ package:
 	sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
 
-	mv $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json
+	if [ "$(TRAVIS_DB)" != "" ]; then \
+		mv $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json; \
+	fi
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
