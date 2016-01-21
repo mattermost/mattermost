@@ -16,7 +16,7 @@ addons:
   hosts:
   - 127.0.0.1 dockerhost
 after_success:
-    - cd dist && curl -F "pr_number=$TRAVIS_PULL_REQUEST" -F "file=@mattermost.tar.gz" mattermod.mattermost.com:8087/upload_pr_build
+    - cd dist && curl -F "pr_number=$TRAVIS_PULL_REQUEST" -F "file=@mattermost.tar.gz" mattermod.mattermost.com:8087/upload_pr_build && cd ..
 before_deploy:
     - sudo rm -rf dist/mattermost
     - sudo chown `whoami` dist/mattermost.tar.gz
