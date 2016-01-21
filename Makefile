@@ -118,6 +118,8 @@ package:
 	mkdir -p $(DIST_PATH)/web/static/js
 	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
 	cp -L web/static/js/*.min.js.map $(DIST_PATH)/web/static/js/
+	cp -RL web/static/js/react-intl-2.0.0-beta-2 $(DIST_PATH)/web/static/js/	
+	cp -RL web/static/i18n $(DIST_PATH)/web/static
 	cp -RL web/static/config $(DIST_PATH)/web/static
 	cp -RL web/static/css $(DIST_PATH)/web/static
 	cp -RL web/static/fonts $(DIST_PATH)/web/static

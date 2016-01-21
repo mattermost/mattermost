@@ -5,8 +5,6 @@ import * as Client from '../utils/client.jsx';
 import Login from '../components/login.jsx';
 
 var IntlProvider = ReactIntl.IntlProvider;
-ReactIntl.addLocaleData(ReactIntlLocaleData.en);
-ReactIntl.addLocaleData(ReactIntlLocaleData.es);
 
 class Root extends React.Component {
     constructor() {

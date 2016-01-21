@@ -51,6 +51,7 @@ func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
 		me.Locale = me.User.Locale
 	}
 
+	me.Props["Locale"] = me.Locale
 	me.SessionTokenIndex = c.SessionTokenIndex
 
 	if err := Templates.ExecuteTemplate(w, me.TemplateName, me); err != nil {
