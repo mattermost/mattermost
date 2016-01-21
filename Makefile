@@ -42,7 +42,7 @@ dist: | build-server build-client go-test package
 dist-local: | start-docker dist
 
 dist-travis: | travis-init build-container
-	mv $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json;
+	mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json;
 
 start-docker:
 	@echo Starting docker containers
