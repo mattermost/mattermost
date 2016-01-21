@@ -183,6 +183,7 @@ body.ios {
 		position: absolute;
 		top: 50%;
 		left: 50%;
+		pointer-events: none;
 	}
 
 	.overlay__files {
