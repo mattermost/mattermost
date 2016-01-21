@@ -1101,6 +1101,17 @@ export function getFileName(path) {
     return split[split.length - 1];
 }
 
+// Gets the websocket port to use. Configurable on the server.
+export function getWebsocketPort(protocol) {
+    if ((/^wss:/).test(protocol)) { // wss://
+        return ':' + global.window.mm_config.WebsocketSecurePort;
+    }
+    if ((/^ws:/).test(protocol)) {
+        return ':' + global.window.mm_config.WebsocketPort;
+    }
+    return '';
+}
+
 export function getSessionIndex() {
     if (global.window.mm_session_token_index >= 0) {
         return 'session_token_index=' + global.window.mm_session_token_index;

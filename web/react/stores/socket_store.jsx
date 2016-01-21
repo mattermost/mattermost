@@ -49,7 +49,7 @@ class SocketStoreClass extends EventEmitter {
                 protocol = 'wss://';
             }
 
-            var connUrl = protocol + location.host + '/api/v1/websocket?' + Utils.getSessionIndex();
+            var connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + '/api/v1/websocket?' + Utils.getSessionIndex();
 
             if (this.failCount === 0) {
                 console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console

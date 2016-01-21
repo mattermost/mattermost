@@ -40,6 +40,8 @@ type ServiceSettings struct {
 	SessionLengthMobileInDays  *int
 	SessionLengthSSOInDays     *int
 	SessionCacheInMinutes      *int
+	WebsocketSecurePort        *int
+	WebsocketPort              *int
 }
 
 type SSOSettings struct {
@@ -329,6 +331,14 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.SessionCacheInMinutes == nil {
 		o.ServiceSettings.SessionCacheInMinutes = new(int)
 		*o.ServiceSettings.SessionCacheInMinutes = 10
+	}
+	if o.ServiceSettings.WebsocketPort == nil {
+		o.ServiceSettings.WebsocketPort = new(int)
+		*o.ServiceSettings.WebsocketPort = 80
+	}
+	if o.ServiceSettings.WebsocketSecurePort == nil {
+		o.ServiceSettings.WebsocketSecurePort = new(int)
+		*o.ServiceSettings.WebsocketSecurePort = 443
 	}
 }
 
