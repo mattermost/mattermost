@@ -17,7 +17,7 @@ import (
 )
 
 func InitAdmin(r *mux.Router) {
-	l4g.Debug("Initializing admin api routes")
+	l4g.Debug(utils.T("api.admin.init.debug"))
 
 	sr := r.PathPrefix("/admin").Subrouter()
 	sr.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
@@ -132,7 +132,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if err := utils.SendMailUsingConfig(result.Data.(*model.User).Email, "Mattermost - Testing Email Settings", "<br/><br/><br/>It appears your Mattermost email is setup correctly!", cfg); err != nil {
+		if err := utils.SendMailUsingConfig(result.Data.(*model.User).Email, c.T("api.admin.test_email.subject"), c.T("api.admin.test_email.body"), cfg); err != nil {
 			c.Err = err
 			return
 		}
