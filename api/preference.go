@@ -7,11 +7,12 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"net/http"
 )
 
 func InitPreference(r *mux.Router) {
-	l4g.Debug("Initializing preference api routes")
+	l4g.Debug(utils.T("api.preference.init.debug"))
 
 	sr := r.PathPrefix("/preferences").Subrouter()
 	sr.Handle("/", ApiUserRequired(getAllPreferences)).Methods("GET")
@@ -33,14 +34,16 @@ func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	preferences, err := model.PreferencesFromJson(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("savePreferences", "Unable to decode preferences from request", err.Error())
+		c.Err = model.NewLocAppError("savePreferences", "api.preference.save_preferences.decode.app_error", nil, err.Error())
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	for _, preference := range preferences {
 		if c.Session.UserId != preference.UserId {
-			c.Err = model.NewAppError("savePreferences", "Unable to set preferences for other user", "session.user_id="+c.Session.UserId+", preference.user_id="+preference.UserId)
+			c.Err = model.NewLocAppError("savePreferences", "api.preference.save_preferences.set.app_error", nil,
+				c.T("api.preference.save_preferences.set_details.app_error",
+					map[string]interface{}{"SessionUserId": c.Session.UserId, "PreferenceUserId": preference.UserId}))
 			c.Err.StatusCode = http.StatusUnauthorized
 			return
 		}

@@ -14,7 +14,7 @@ import (
 )
 
 func InitOAuth(r *mux.Router) {
-	l4g.Debug("Initializing oauth api routes")
+	l4g.Debug(utils.T("api.oauth.init.debug"))
 
 	sr := r.PathPrefix("/oauth").Subrouter()
 
@@ -24,7 +24,7 @@ func InitOAuth(r *mux.Router) {
 
 func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
-		c.Err = model.NewAppError("registerOAuthApp", "The system admin has turned off OAuth service providing.", "")
+		c.Err = model.NewLocAppError("registerOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -58,7 +58,7 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
-		c.Err = model.NewAppError("allowOAuth", "The system admin has turned off OAuth service providing.", "")
+		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.turn_off.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -70,19 +70,19 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	responseType := r.URL.Query().Get("response_type")
 	if len(responseType) == 0 {
-		c.Err = model.NewAppError("allowOAuth", "invalid_request: Bad response_type", "")
+		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_response.app_error", nil, "")
 		return
 	}
 
 	clientId := r.URL.Query().Get("client_id")
 	if len(clientId) != 26 {
-		c.Err = model.NewAppError("allowOAuth", "invalid_request: Bad client_id", "")
+		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_client.app_error", nil, "")
 		return
 	}
 
 	redirectUri := r.URL.Query().Get("redirect_uri")
 	if len(redirectUri) == 0 {
-		c.Err = model.NewAppError("allowOAuth", "invalid_request: Missing or bad redirect_uri", "")
+		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.bad_redirect.app_error", nil, "")
 		return
 	}
 
@@ -91,7 +91,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var app *model.OAuthApp
 	if result := <-Srv.Store.OAuth().GetApp(clientId); result.Err != nil {
-		c.Err = model.NewAppError("allowOAuth", "server_error: Error accessing the database", "")
+		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.database.app_error", nil, "")
 		return
 	} else {
 		app = result.Data.(*model.OAuthApp)
@@ -99,7 +99,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !app.IsValidRedirectURL(redirectUri) {
 		c.LogAudit("fail - redirect_uri did not match registered callback")
-		c.Err = model.NewAppError("allowOAuth", "invalid_request: Supplied redirect_uri did not match registered callback_url", "")
+		c.Err = model.NewLocAppError("allowOAuth", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "")
 		return
 	}
 
@@ -132,7 +132,7 @@ func RevokeAccessToken(token string) *model.AppError {
 
 	var accessData *model.AccessData
 	if result := <-Srv.Store.OAuth().GetAccessData(token); result.Err != nil {
-		return model.NewAppError("RevokeAccessToken", "Error getting access token from DB before deletion", "")
+		return model.NewLocAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "")
 	} else {
 		accessData = result.Data.(*model.AccessData)
 	}
@@ -141,15 +141,15 @@ func RevokeAccessToken(token string) *model.AppError {
 	cchan := Srv.Store.OAuth().RemoveAuthData(accessData.AuthCode)
 
 	if result := <-tchan; result.Err != nil {
-		return model.NewAppError("RevokeAccessToken", "Error deleting access token from DB", "")
+		return model.NewLocAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, "")
 	}
 
 	if result := <-cchan; result.Err != nil {
-		return model.NewAppError("RevokeAccessToken", "Error deleting authorization code from DB", "")
+		return model.NewLocAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_code.app_error", nil, "")
 	}
 
 	if result := <-schan; result.Err != nil {
-		return model.NewAppError("RevokeAccessToken", "Error deleting session from DB", "")
+		return model.NewLocAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, "")
 	}
 
 	return nil
@@ -157,7 +157,7 @@ func RevokeAccessToken(token string) *model.AppError {
 
 func GetAuthData(code string) *model.AuthData {
 	if result := <-Srv.Store.OAuth().GetAuthData(code); result.Err != nil {
-		l4g.Error("Couldn't find auth code for code=%s", code)
+		l4g.Error(utils.T("api.oauth.get_auth_data.find.error"), code)
 		return nil
 	} else {
 		return result.Data.(*model.AuthData)

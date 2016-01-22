@@ -57,6 +57,15 @@ func GetTranslationsBySystemLocale() i18n.TranslateFunc {
 	return translations
 }
 
+func GetUserTranslations(locale string) i18n.TranslateFunc {
+	if _, ok := locales[locale]; !ok {
+		locale = model.DEFAULT_LOCALE
+	}
+
+	translations, _ := i18n.Tfunc(locale)
+	return translations
+}
+
 func SetTranslations(locale string) i18n.TranslateFunc {
 	translations, _ := i18n.Tfunc(locale)
 	return translations
