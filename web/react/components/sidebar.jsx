@@ -506,9 +506,9 @@ export default class Sidebar extends React.Component {
         link.rel = 'shortcut icon';
         link.id = 'favicon';
         if (this.badgesActive) {
-            link.href = '/static/images/redfavicon.ico';
+            link.href = '/static/images/favicon/redfavicon-16x16.png';
         } else {
-            link.href = '/static/images/favicon.ico';
+            link.href = '/static/images/favicon/favicon-16x16.png';
         }
         var head = document.getElementsByTagName('head')[0];
         var oldLink = document.getElementById('favicon');
