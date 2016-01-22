@@ -152,6 +152,10 @@ export default class TeamAnalytics extends React.Component {
 
                 var recentActive = [];
                 for (let i = 0; i < usersList.length; i++) {
+                    if (usersList[i].last_activity_at == null) {
+                        continue;
+                    }
+
                     recentActive.push(usersList[i]);
                     if (i > 19) {
                         break;

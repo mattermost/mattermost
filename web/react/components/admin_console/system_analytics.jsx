@@ -142,7 +142,7 @@ export default class SystemAnalytics extends React.Component {
         return (
             <div>
                 <Analytics
-                    title={'the system'}
+                    title={'the System'}
                     channelOpenCount={this.state.channel_open_count}
                     channelPrivateCount={this.state.channel_private_count}
                     postCount={this.state.post_count}
