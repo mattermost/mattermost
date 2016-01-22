@@ -5,6 +5,7 @@ import {savePreferences} from '../../utils/client.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from '../../utils/constants.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import PreferenceStore from '../../stores/preference_store.jsx';
 import ManageLanguages from './manage_languages.jsx';
 import * as Utils from '../../utils/utils.jsx';
@@ -294,44 +295,46 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
-        if (this.props.activeSection === 'languages') {
-            var inputs = [];
-            inputs.push(
-                <ManageLanguages
-                    user={this.props.user}
-                    key='languages-ui'
-                />
-            );
+        if (Utils.isFeatureEnabled(PreReleaseFeatures.LOC_PREVIEW)) {
+            if (this.props.activeSection === 'languages') {
+                var inputs = [];
+                inputs.push(
+                    <ManageLanguages
+                        user={this.props.user}
+                        key='languages-ui'
+                    />
+                );
 
-            languagesSection = (
-                <SettingItemMax
-                    title={'Language'}
-                    width='medium'
-                    inputs={inputs}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
-            var locale = 'English';
-            Utils.languages().forEach((l) => {
-                if (l.value === this.props.user.locale) {
-                    locale = l.name;
-                }
-            });
+                languagesSection = (
+                    <SettingItemMax
+                        title={'Language'}
+                        width='medium'
+                        inputs={inputs}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                );
+            } else {
+                var locale = 'English';
+                Utils.languages().forEach((l) => {
+                    if (l.value === this.props.user.locale) {
+                        locale = l.name;
+                    }
+                });
 
-            languagesSection = (
-                <SettingItemMin
-                    title={'Language'}
-                    width='medium'
-                    describe={locale}
-                    updateSection={() => {
-                        this.updateSection('languages');
-                    }}
-                />
-            );
+                languagesSection = (
+                    <SettingItemMin
+                        title={'Language'}
+                        width='medium'
+                        describe={locale}
+                        updateSection={() => {
+                            this.updateSection('languages');
+                        }}
+                    />
+                );
+            }
         }
 
         return (
@@ -367,7 +370,6 @@ export default class UserSettingsDisplay extends React.Component {
                     {nameFormatSection}
                     <div className='divider-dark'/>
                     {languagesSection}
-                    <div className='divider-dark'/>
                 </div>
             </div>
         );
