@@ -46,7 +46,7 @@ export default class AdminController extends React.Component {
             config: AdminStore.getConfig(),
             teams: AdminStore.getAllTeams(),
             selectedTeams,
-            selected: props.tab || 'service_settings',
+            selected: props.tab || 'system_analytics',
             selectedTeam: props.teamId || null
         };
 
