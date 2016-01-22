@@ -180,7 +180,7 @@ export default class Analytics extends React.Component {
         if (this.props.newlyCreatedUsers != null) {
             let content;
             if (this.props.newlyCreatedUsers.length === 0) {
-               content = 'Loading...';
+                content = 'Loading...';
             } else {
                 content = (
                     <table>
@@ -230,6 +230,7 @@ export default class Analytics extends React.Component {
         return (
             <div className='wrapper--fixed team_statistics'>
                 <h3>{'Statistics for ' + this.props.title}</h3>
+                {serverError}
                 <div className='row'>
                     {totalCount}
                     {postCount}
@@ -250,7 +251,6 @@ export default class Analytics extends React.Component {
         );
     }
 }
-
 
 Analytics.defaultProps = {
     title: null,

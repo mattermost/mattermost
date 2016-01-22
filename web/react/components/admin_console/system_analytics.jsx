@@ -124,7 +124,7 @@ export default class SystemAnalytics extends React.Component {
         );
     }
 
-    componentWillReceiveProps(newProps) {
+    componentWillReceiveProps() {
         this.setState({
             serverError: null,
             channel_open_count: null,

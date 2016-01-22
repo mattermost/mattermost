@@ -434,8 +434,17 @@ func (c *Client) TestEmail(config *Config) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetAnalytics(teamId, name string) (*Result, *AppError) {
+func (c *Client) GetTeamAnalytics(teamId, name string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/analytics/"+teamId+"/"+name, "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), AnalyticsRowsFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetSystemAnalytics(name string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/admin/analytics/"+name, "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
