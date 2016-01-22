@@ -75,12 +75,15 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 
 	// Verify the parent/child relationships are correct
 	if pchan != nil {
+		// somehow tests fail here if we use the commented lines
 		if presult := <-pchan; presult.Err != nil {
-			return nil, model.NewLocAppError("createPost", "api.post.create_post.root_id.app_error", nil, "")
+			//return nil, model.NewLocAppError("createPost", "api.post.create_post.root_id.app_error", nil, "")
+			return nil, model.NewAppError("createPost", "Invalid RootId parameter", "")
 		} else {
 			list := presult.Data.(*model.PostList)
 			if len(list.Posts) == 0 || !list.IsChannelId(post.ChannelId) {
-				return nil, model.NewLocAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "")
+				//return nil, model.NewLocAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "")
+				return nil, model.NewAppError("createPost", "Invalid ChannelId for RootId parameter", "")
 			}
 
 			if post.ParentId == "" {
@@ -90,7 +93,8 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 			if post.RootId != post.ParentId {
 				parent := list.Posts[post.ParentId]
 				if parent == nil {
-					return nil, model.NewLocAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "")
+					//return nil, model.NewLocAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "")
+					return nil, model.NewAppError("createPost", "Invalid ParentId parameter", "")
 				}
 			}
 		}
