@@ -805,9 +805,13 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			    FROM
 			        Posts, Channels
 			    WHERE
-			        Posts.ChannelId = Channels.Id
-			            AND Channels.TeamId = :TeamId
-			            AND Posts.CreateAt <= :EndTime
+			        Posts.ChannelId = Channels.Id`
+
+		if len(teamId) > 0 {
+			query += " AND Channels.TeamId = :TeamId"
+		}
+
+		query += ` AND Posts.CreateAt <= :EndTime
 			    ORDER BY Name DESC) AS t1
 			GROUP BY Name
 			ORDER BY Name DESC
@@ -824,9 +828,13 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 				    FROM
 				        Posts, Channels
 				    WHERE
-				        Posts.ChannelId = Channels.Id
-				            AND Channels.TeamId = :TeamId
-				            AND Posts.CreateAt <= :EndTime
+				        Posts.ChannelId = Channels.Id`
+
+			if len(teamId) > 0 {
+				query += " AND Channels.TeamId = :TeamId"
+			}
+
+			query += ` AND Posts.CreateAt <= :EndTime
 				    ORDER BY Name DESC) AS t1
 				GROUP BY Name
 				ORDER BY Name DESC
@@ -869,9 +877,13 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 			    FROM
 			        Posts, Channels
 			    WHERE
-			        Posts.ChannelId = Channels.Id
-			            AND Channels.TeamId = :TeamId
-			            AND Posts.CreateAt <= :EndTime
+			        Posts.ChannelId = Channels.Id`
+
+		if len(teamId) > 0 {
+			query += " AND Channels.TeamId = :TeamId"
+		}
+
+		query += ` AND Posts.CreateAt <= :EndTime
 			            AND Posts.CreateAt >= :StartTime) AS t1
 			GROUP BY Name
 			ORDER BY Name DESC
@@ -888,9 +900,13 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 				    FROM
 				        Posts, Channels
 				    WHERE
-				        Posts.ChannelId = Channels.Id
-				            AND Channels.TeamId = :TeamId
-				            AND Posts.CreateAt <= :EndTime
+				        Posts.ChannelId = Channels.Id`
+
+			if len(teamId) > 0 {
+				query += " AND Channels.TeamId = :TeamId"
+			}
+
+			query += ` AND Posts.CreateAt <= :EndTime
 				            AND Posts.CreateAt >= :StartTime) AS t1
 				GROUP BY Name
 				ORDER BY Name DESC
@@ -924,16 +940,20 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		v, err := s.GetReplica().SelectInt(
+		query :=
 			`SELECT 
 			    COUNT(Posts.Id) AS Value
 			FROM
 			    Posts,
 			    Channels
 			WHERE
-			    Posts.ChannelId = Channels.Id
-			        AND Channels.TeamId = :TeamId`,
-			map[string]interface{}{"TeamId": teamId})
+			    Posts.ChannelId = Channels.Id`
+
+		if len(teamId) > 0 {
+			query += " AND Channels.TeamId = :TeamId"
+		}
+
+		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCount", "We couldn't get post counts", err.Error())
 		} else {

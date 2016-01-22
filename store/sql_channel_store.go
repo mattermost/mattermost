@@ -869,15 +869,13 @@ func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) S
 	go func() {
 		result := StoreResult{}
 
-		v, err := s.GetReplica().SelectInt(
-			`SELECT 
-			    COUNT(Id) AS Value
-			FROM
-			    Channels
-			WHERE
-			    TeamId = :TeamId
-			        AND Type = :ChannelType`,
-			map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
+		query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType"
+
+		if len(teamId) > 0 {
+			query += " AND TeamId = :TeamId"
+		}
+
+		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.AnalyticsTypeCount", "We couldn't get channel type counts", err.Error())
 		} else {

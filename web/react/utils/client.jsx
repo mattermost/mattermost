@@ -399,7 +399,7 @@ export function getConfig(success, error) {
     });
 }
 
-export function getAnalytics(teamId, name, success, error) {
+export function getTeamAnalytics(teamId, name, success, error) {
     $.ajax({
         url: '/api/v1/admin/analytics/' + teamId + '/' + name,
         dataType: 'json',
@@ -407,7 +407,21 @@ export function getAnalytics(teamId, name, success, error) {
         type: 'GET',
         success,
         error: (xhr, status, err) => {
-            var e = handleError('getAnalytics', xhr, status, err);
+            var e = handleError('getTeamAnalytics', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function getSystemAnalytics(name, success, error) {
+    $.ajax({
+        url: '/api/v1/admin/analytics/' + name,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('getSystemAnalytics', xhr, status, err);
             error(e);
         }
     });

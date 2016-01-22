@@ -151,7 +151,7 @@ func TestEmailTest(t *testing.T) {
 	}
 }
 
-func TestGetAnalyticsStandard(t *testing.T) {
+func TestGetTeamAnalyticsStandard(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -169,7 +169,7 @@ func TestGetAnalyticsStandard(t *testing.T) {
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
-	if _, err := Client.GetAnalytics(team.Id, "standard"); err == nil {
+	if _, err := Client.GetTeamAnalytics(team.Id, "standard"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
@@ -180,7 +180,7 @@ func TestGetAnalyticsStandard(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
-	if result, err := Client.GetAnalytics(team.Id, "standard"); err != nil {
+	if result, err := Client.GetTeamAnalytics(team.Id, "standard"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)
@@ -214,6 +214,62 @@ func TestGetAnalyticsStandard(t *testing.T) {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
+
+		if rows[3].Name != "unique_user_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[3].Value != 1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
+
+	if result, err := Client.GetSystemAnalytics("standard"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Name != "channel_open_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[0].Value < 2 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Name != "channel_private_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Value == 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[2].Name != "post_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[2].Value == 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[3].Name != "unique_user_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[3].Value == 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
 	}
 }
 
@@ -239,7 +295,7 @@ func TestGetPostCount(t *testing.T) {
 	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
 		map[string]interface{}{"ChannelId": channel1.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
-	if _, err := Client.GetAnalytics(team.Id, "post_counts_day"); err == nil {
+	if _, err := Client.GetTeamAnalytics(team.Id, "post_counts_day"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
@@ -250,7 +306,7 @@ func TestGetPostCount(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
-	if result, err := Client.GetAnalytics(team.Id, "post_counts_day"); err != nil {
+	if result, err := Client.GetTeamAnalytics(team.Id, "post_counts_day"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)
@@ -284,7 +340,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
 		map[string]interface{}{"ChannelId": channel1.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
-	if _, err := Client.GetAnalytics(team.Id, "user_counts_with_posts_day"); err == nil {
+	if _, err := Client.GetTeamAnalytics(team.Id, "user_counts_with_posts_day"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
@@ -295,7 +351,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
-	if result, err := Client.GetAnalytics(team.Id, "user_counts_with_posts_day"); err != nil {
+	if result, err := Client.GetTeamAnalytics(team.Id, "user_counts_with_posts_day"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)

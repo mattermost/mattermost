@@ -55,6 +55,7 @@ func LoadLicense() {
 	if success, licenseStr := ValidateLicense(buf.Bytes()); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		SetLicense(license)
+		return
 	}
 
 	l4g.Warn("No valid enterprise license found")
@@ -105,7 +106,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 	}
 
 	// remove null terminator
-	if decoded[len(decoded)-1] == byte(0) {
+	for decoded[len(decoded)-1] == byte(0) {
 		decoded = decoded[:len(decoded)-1]
 	}
 

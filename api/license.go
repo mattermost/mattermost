@@ -5,6 +5,7 @@ package api
 
 import (
 	"bytes"
+	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
@@ -62,6 +63,18 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var license *model.License
 	if success, licenseStr := utils.ValidateLicense(data); success {
 		license = model.LicenseFromJson(strings.NewReader(licenseStr))
+
+		if result := <-Srv.Store.User().AnalyticsUniqueUserCount(""); result.Err != nil {
+			c.Err = model.NewAppError("addLicense", "Unable to count total unique users.", fmt.Sprintf("err=%v", result.Err.Error()))
+			return
+		} else {
+			uniqueUserCount := result.Data.(int64)
+
+			if uniqueUserCount > int64(*license.Features.Users) {
+				c.Err = model.NewAppError("addLicense", fmt.Sprintf("This license only supports %d users, when your system has %d unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics.", *license.Features.Users, uniqueUserCount), "")
+				return
+			}
+		}
 
 		if ok := utils.SetLicense(license); !ok {
 			c.LogAudit("failed - expired or non-started license")

@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import AdminSidebar from './admin_sidebar.jsx';
@@ -23,6 +23,7 @@ import TeamUsersTab from './team_users.jsx';
 import TeamAnalyticsTab from './team_analytics.jsx';
 import LdapSettingsTab from './ldap_settings.jsx';
 import LicenseSettingsTab from './license_settings.jsx';
+import SystemAnalyticsTab from './system_analytics.jsx';
 
 export default class AdminController extends React.Component {
     constructor(props) {
@@ -45,7 +46,7 @@ export default class AdminController extends React.Component {
             config: AdminStore.getConfig(),
             teams: AdminStore.getAllTeams(),
             selectedTeams,
-            selected: props.tab || 'service_settings',
+            selected: props.tab || 'system_analytics',
             selectedTeam: props.teamId || null
         };
 
@@ -165,6 +166,8 @@ export default class AdminController extends React.Component {
                 if (this.state.teams) {
                     tab = <TeamAnalyticsTab team={this.state.teams[this.state.selectedTeam]} />;
                 }
+            } else if (this.state.selected === 'system_analytics') {
+                tab = <SystemAnalyticsTab />;
             }
         }
 
