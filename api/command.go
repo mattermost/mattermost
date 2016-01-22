@@ -36,7 +36,7 @@ func GetCommandProvidersProvider(name string) CommandProvider {
 }
 
 func InitCommand(r *mux.Router) {
-	l4g.Debug("Initializing command api routes")
+	l4g.Debug(utils.T("api.command.init.debug"))
 
 	sr := r.PathPrefix("/commands").Subrouter()
 
@@ -87,7 +87,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelId := strings.TrimSpace(props["channelId"])
 
 	if len(command) <= 1 || strings.Index(command, "/") != 0 {
-		c.Err = model.NewAppError("command", "Command must start with /", "")
+		c.Err = model.NewLocAppError("executeCommand", "api.command.check_command.start.app_error", nil, "")
 		return
 	}
 

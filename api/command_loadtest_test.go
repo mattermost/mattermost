@@ -190,8 +190,9 @@ func TestLoadTestUrlCommands(t *testing.T) {
 		t.Fatal("/loadtest url with no url should've failed")
 	}
 
-	command = "/loadtest url http://www.hopefullynonexistent.file/path/asdf/qwerty"
+	command = "/loadtest url http://missingfiletonwhere/path/asdf/qwerty"
 	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Unable to get file" {
+		t.Log(r.Text)
 		t.Fatal("/loadtest url with invalid url should've failed")
 	}
 
