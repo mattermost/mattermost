@@ -6,6 +6,7 @@ import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from '../../utils/constants.jsx';
 import PreferenceStore from '../../stores/preference_store.jsx';
+import ManageLanguages from './manage_languages.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
 function getDisplayStateFromStores() {
@@ -78,6 +79,7 @@ export default class UserSettingsDisplay extends React.Component {
         let clockSection;
         let nameFormatSection;
         let fontSection;
+        let languagesSection;
 
         if (this.props.activeSection === 'clock') {
             const clockFormat = [false, false];
@@ -292,6 +294,46 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
+        if (this.props.activeSection === 'languages') {
+            var inputs = [];
+            inputs.push(
+                <ManageLanguages
+                    user={this.props.user}
+                    key='languages-ui'
+                />
+            );
+
+            languagesSection = (
+                <SettingItemMax
+                    title={'Language'}
+                    width='medium'
+                    inputs={inputs}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            var locale = 'English';
+            Utils.languages().forEach((l) => {
+                if (l.value === this.props.user.locale) {
+                    locale = l.name;
+                }
+            });
+
+            languagesSection = (
+                <SettingItemMin
+                    title={'Language'}
+                    width='medium'
+                    describe={locale}
+                    updateSection={() => {
+                        this.updateSection('languages');
+                    }}
+                />
+            );
+        }
+
         return (
             <div>
                 <div className='modal-header'>
@@ -323,6 +365,8 @@ export default class UserSettingsDisplay extends React.Component {
                     {clockSection}
                     <div className='divider-dark'/>
                     {nameFormatSection}
+                    <div className='divider-dark'/>
+                    {languagesSection}
                     <div className='divider-dark'/>
                 </div>
             </div>
