@@ -879,8 +879,8 @@ export function isValidUsername(name) {
     var error = '';
     if (!name) {
         error = 'This field is required';
-    } else if (name.length < 3 || name.length > 15) {
-        error = 'Must be between 3 and 15 characters';
+    } else if (name.length < Constants.MIN_USERNAME_LENGTH || name.length > Constants.MAX_USERNAME_LENGTH) {
+        error = 'Must be between ' + Constants.MIN_USERNAME_LENGTH + ' and ' + Constants.MAX_USERNAME_LENGTH + ' characters';
     } else if (!(/^[a-z0-9\.\-\_]+$/).test(name)) {
         error = "Must contain only letters, numbers, and the symbols '.', '-', and '_'.";
     } else if (!(/[a-z]/).test(name.charAt(0))) { //eslint-disable-line no-negated-condition
@@ -1091,14 +1091,26 @@ export function fileSizeToString(bytes) {
 }
 
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
-export function getFileUrl(filename) {
-    return getWindowLocationOrigin() + '/api/v1/files/get' + filename + '?' + getSessionIndex();
+export function getFileUrl(filename, isDownload) {
+    const downloadParam = isDownload ? '&download=1' : '';
+    return getWindowLocationOrigin() + '/api/v1/files/get' + filename + '?' + getSessionIndex() + downloadParam;
 }
 
 // Gets the name of a file (including extension) from a given url or file path.
 export function getFileName(path) {
     var split = path.split('/');
     return split[split.length - 1];
+}
+
+// Gets the websocket port to use. Configurable on the server.
+export function getWebsocketPort(protocol) {
+    if ((/^wss:/).test(protocol)) { // wss://
+        return ':' + global.window.mm_config.WebsocketSecurePort;
+    }
+    if ((/^ws:/).test(protocol)) {
+        return ':' + global.window.mm_config.WebsocketPort;
+    }
+    return '';
 }
 
 export function getSessionIndex() {
@@ -1309,6 +1321,10 @@ export function fillArray(value, length) {
 // Checks if a data transfer contains files not text, folders, etc..
 // Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
 export function isFileTransfer(files) {
+    if (isBrowserIE()) {
+        return files.types != null && files.types.contains('Files');
+    }
+
     return files.types != null && (files.types.indexOf ? files.types.indexOf('Files') !== -1 : files.types.contains('application/x-moz-file'));
 }
 
@@ -1323,4 +1339,19 @@ export function clearFileInput(elm) {
     } catch (e) {
         // Do nothing
     }
+}
+
+export function languages() {
+    return (
+        [
+            {
+                value: 'en',
+                name: 'English'
+            },
+            {
+                value: 'es',
+                name: 'Español'
+            }
+        ]
+    );
 }

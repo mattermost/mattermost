@@ -88,7 +88,7 @@ and
 
 ## Emojis
 
-Emoji provided free by [Emoji One](http://emojione.com/). Check out a full list of emojis [here](http://http://emoji.codes/).
+Emoji provided free by [Emoji One](http://emojione.com/). Check out a full list of emojis [here](http://emoji.codes/).
 
 ```
 :smile: :+1: :sheep:

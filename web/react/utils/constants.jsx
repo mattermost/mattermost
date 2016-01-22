@@ -451,7 +451,15 @@ export default {
         EMBED_PREVIEW: {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
+        },
+        LOC_PREVIEW: {
+            label: 'loc_preview',
+            description: 'Show user language in display settings'
         }
     },
-    OVERLAY_TIME_DELAY: 400
+    OVERLAY_TIME_DELAY: 400,
+    MIN_USERNAME_LENGTH: 3,
+    MAX_USERNAME_LENGTH: 15,
+    MIN_PASSWORD_LENGTH: 5,
+    MAX_PASSWORD_LENGTH: 50
 };

@@ -10,6 +10,9 @@ import (
 	"github.com/mattermost/platform/utils"
 	"html/template"
 	"net/http"
+
+	_ "github.com/cloudfoundry/jibber_jabber"
+	_ "github.com/nicksnyder/go-i18n/i18n"
 )
 
 var ServerTemplates *template.Template
@@ -21,13 +24,14 @@ func NewServerTemplatePage(templateName string) *ServerTemplatePage {
 		TemplateName: templateName,
 		Props:        make(map[string]string),
 		ClientCfg:    utils.ClientCfg,
+		Locale:       model.DEFAULT_LOCALE,
 	}
 }
 
 func (me *ServerTemplatePage) Render() string {
 	var text bytes.Buffer
 	if err := ServerTemplates.ExecuteTemplate(&text, me.TemplateName, me); err != nil {
-		l4g.Error("Error rendering template %v err=%v", me.TemplateName, err)
+		l4g.Error(utils.T("api.api.render.error"), me.TemplateName, err)
 	}
 
 	return text.String()
@@ -49,10 +53,10 @@ func InitApi() {
 	InitLicense(r)
 
 	templatesDir := utils.FindDir("api/templates")
-	l4g.Debug("Parsing server templates at %v", templatesDir)
+	l4g.Debug(utils.T("api.api.init.parsing_templates.debug"), templatesDir)
 	var err error
 	if ServerTemplates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
-		l4g.Error("Failed to parse server templates %v", err)
+		l4g.Error(utils.T("api.api.init.parsing_templates.error"), err)
 	}
 }
 

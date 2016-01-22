@@ -211,7 +211,7 @@ export default class ViewImageModal extends React.Component {
         }
 
         const filename = this.props.filenames[this.state.imgId];
-        const fileUrl = Utils.getFileUrl(filename);
+        const fileUrl = Utils.getFileUrl(filename, true);
 
         var content;
         if (this.state.loaded[this.state.imgId]) {
@@ -377,6 +377,7 @@ function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
         <a
             href={fileUrl}
             target='_blank'
+            download={true}
         >
             <img
                 style={{maxHeight}}

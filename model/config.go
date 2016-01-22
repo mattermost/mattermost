@@ -42,6 +42,8 @@ type ServiceSettings struct {
 	SessionLengthMobileInDays   *int
 	SessionLengthSSOInDays      *int
 	SessionCacheInMinutes       *int
+	WebsocketSecurePort         *int
+	WebsocketPort               *int
 }
 
 type SSOSettings struct {
@@ -341,6 +343,16 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableOnlyAdminIntegrations == nil {
 		o.ServiceSettings.EnableOnlyAdminIntegrations = new(bool)
 		*o.ServiceSettings.EnableOnlyAdminIntegrations = true
+	}
+
+	if o.ServiceSettings.WebsocketPort == nil {
+		o.ServiceSettings.WebsocketPort = new(int)
+		*o.ServiceSettings.WebsocketPort = 80
+	}
+
+	if o.ServiceSettings.WebsocketSecurePort == nil {
+		o.ServiceSettings.WebsocketSecurePort = new(int)
+		*o.ServiceSettings.WebsocketSecurePort = 443
 	}
 }
 

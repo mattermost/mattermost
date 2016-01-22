@@ -5,6 +5,7 @@ import * as Utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 import UserStore from '../stores/user_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
+import Constants from '../utils/constants.jsx';
 
 export default class SignupUserComplete extends React.Component {
     constructor(props) {
@@ -51,7 +52,7 @@ export default class SignupUserComplete extends React.Component {
             return;
         } else if (usernameError) {
             this.setState({
-                nameError: 'Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\' and \'_\'.',
+                nameError: 'Username must begin with a letter, and contain between ' + Constants.MIN_USERNAME_LENGTH + ' to ' + Constants.MAX_USERNAME_LENGTH + ' lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\' and \'_\'.',
                 emailError: '',
                 passwordError: '',
                 serverError: ''
@@ -60,8 +61,8 @@ export default class SignupUserComplete extends React.Component {
         }
 
         const providedPassword = ReactDOM.findDOMNode(this.refs.password).value.trim();
-        if (!providedPassword || providedPassword.length < 5) {
-            this.setState({nameError: '', emailError: '', passwordError: 'Please enter at least 5 characters', serverError: ''});
+        if (!providedPassword || providedPassword.length < Constants.MIN_PASSWORD_LENGTH) {
+            this.setState({nameError: '', emailError: '', passwordError: 'Please enter at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters', serverError: ''});
             return;
         }
 
@@ -111,7 +112,7 @@ export default class SignupUserComplete extends React.Component {
         client.track('signup', 'signup_user_01_welcome');
 
         if (this.state.wizard === 'finished') {
-            return <div>You've already completed the signup process for this invitation or this invitation has expired.</div>;
+            return <div>{"You've already completed the signup process for this invitation or this invitation has expired."}</div>;
         }
 
         // set up error labels
@@ -123,9 +124,11 @@ export default class SignupUserComplete extends React.Component {
         }
 
         var nameError = null;
+        var nameHelpText = <span className='help-block'>{'Username must begin with a letter, and contain between ' + Constants.MIN_USERNAME_LENGTH + ' to ' + Constants.MAX_USERNAME_LENGTH + " lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'"}</span>;
         var nameDivStyle = 'form-group';
         if (this.state.nameError) {
             nameError = <label className='control-label'>{this.state.nameError}</label>;
+            nameHelpText = '';
             nameDivStyle += ' has-error';
         }
 
@@ -148,7 +151,7 @@ export default class SignupUserComplete extends React.Component {
         // set up the email entry and hide it if an email was provided
         var yourEmailIs = '';
         if (this.state.user.email) {
-            yourEmailIs = <span>Your email address is <strong>{this.state.user.email}</strong>. You'll use this address to sign in to {global.window.mm_config.SiteName}.</span>;
+            yourEmailIs = <span>{'Your email address is '}<strong>{this.state.user.email}</strong>{". You'll use this address to sign in to " + global.window.mm_config.SiteName + '.'}</span>;
         }
 
         var emailContainerStyle = 'margin--extra';
@@ -158,7 +161,7 @@ export default class SignupUserComplete extends React.Component {
 
         var email = (
             <div className={emailContainerStyle}>
-                <h5><strong>What's your email address?</strong></h5>
+                <h5><strong>{"What's your email address?"}</strong></h5>
                 <div className={emailDivStyle}>
                     <input
                         type='email'
@@ -208,7 +211,7 @@ export default class SignupUserComplete extends React.Component {
                         {email}
                         {yourEmailIs}
                         <div className='margin--extra'>
-                            <h5><strong>Choose your username</strong></h5>
+                            <h5><strong>{'Choose your username'}</strong></h5>
                             <div className={nameDivStyle}>
                                 <input
                                     type='text'
@@ -219,11 +222,11 @@ export default class SignupUserComplete extends React.Component {
                                     spellCheck='false'
                                 />
                                 {nameError}
-                                <span className='help-block'>Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'</span>
+                                {nameHelpText}
                             </div>
                         </div>
                         <div className='margin--extra'>
-                            <h5><strong>Choose your password</strong></h5>
+                            <h5><strong>{'Choose your password'}</strong></h5>
                             <div className={passwordDivStyle}>
                             <input
                                 type='password'
@@ -243,7 +246,7 @@ export default class SignupUserComplete extends React.Component {
                             onClick={this.handleSubmit}
                             className='btn-primary btn'
                         >
-                            Create Account
+                            {'Create Account'}
                         </button>
                     </p>
                 </div>
@@ -255,7 +258,7 @@ export default class SignupUserComplete extends React.Component {
                 <div>
                     {signupMessage}
                     <div className='or__container'>
-                        <span>or</span>
+                        <span>{'or'}</span>
                     </div>
                 </div>
             );
@@ -268,10 +271,10 @@ export default class SignupUserComplete extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h5 className='margin--less'>Welcome to:</h5>
+                    <h5 className='margin--less'>{'Welcome to:'}</h5>
                     <h2 className='signup-team__name'>{this.props.teamDisplayName}</h2>
-                    <h2 className='signup-team__subdomain'>on {global.window.mm_config.SiteName}</h2>
-                    <h4 className='color--light'>Let's create your account</h4>
+                    <h2 className='signup-team__subdomain'>{'on ' + global.window.mm_config.SiteName}</h2>
+                    <h4 className='color--light'>{"Let's create your account"}</h4>
                     {signupMessage}
                     {emailSignup}
                     {serverError}

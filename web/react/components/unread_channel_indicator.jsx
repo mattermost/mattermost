@@ -10,7 +10,7 @@ export default class UnreadChannelIndicator extends React.Component {
     render() {
         let displayValue = 'none';
         if (this.props.show) {
-            displayValue = 'initial';
+            displayValue = 'block';
         }
         return (
             <div

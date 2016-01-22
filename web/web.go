@@ -24,7 +24,7 @@ var Templates *template.Template
 
 type HtmlTemplatePage api.Page
 
-func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
+func NewHtmlTemplatePage(templateName string, title string, locale string) *HtmlTemplatePage {
 
 	if len(title) > 0 {
 		title = utils.Cfg.TeamSettings.SiteName + " - " + title
@@ -32,7 +32,13 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	props := make(map[string]string)
 	props["Title"] = title
-	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg, ClientLicense: utils.ClientLicense}
+	return &HtmlTemplatePage{
+		TemplateName:  templateName,
+		Props:         props,
+		ClientCfg:     utils.ClientCfg,
+		ClientLicense: utils.ClientLicense,
+		Locale:        locale,
+	}
 }
 
 func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
@@ -42,8 +48,10 @@ func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
 
 	if me.User != nil {
 		me.User.Sanitize(map[string]bool{})
+		me.Locale = me.User.Locale
 	}
 
+	me.Props["Locale"] = me.Locale
 	me.SessionTokenIndex = c.SessionTokenIndex
 
 	if err := Templates.ExecuteTemplate(w, me.TemplateName, me); err != nil {
@@ -164,7 +172,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(c.Session.UserId) == 0 {
-		page := NewHtmlTemplatePage("signup_team", "Signup")
+		page := NewHtmlTemplatePage("signup_team", "Signup", c.Locale)
 
 		if result := <-api.Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
 			c.Err = result.Err
@@ -203,7 +211,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			user = ur.Data.(*model.User)
 		}
 
-		page := NewHtmlTemplatePage("home", "Home")
+		page := NewHtmlTemplatePage("home", "Home", c.Locale)
 		page.Team = team
 		page.User = user
 		page.Render(c, w)
@@ -216,7 +224,7 @@ func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage("signup_team", "Signup")
+	page := NewHtmlTemplatePage("signup_team", "Signup", c.Locale)
 	page.Render(c, w)
 }
 
@@ -251,7 +259,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage("login", "Login")
+	page := NewHtmlTemplatePage("login", "Login", c.Locale)
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
 
@@ -265,7 +273,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 func signupTeamConfirm(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 
-	page := NewHtmlTemplatePage("signup_team_confirm", "Signup Email Sent")
+	page := NewHtmlTemplatePage("signup_team_confirm", "Signup Email Sent", c.Locale)
 	page.Props["Email"] = email
 	page.Render(c, w)
 }
@@ -287,7 +295,7 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	page := NewHtmlTemplatePage("signup_team_complete", "Complete Team Sign Up")
+	page := NewHtmlTemplatePage("signup_team_complete", "Complete Team Sign Up", c.Locale)
 	page.Props["Email"] = props["email"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
@@ -337,7 +345,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	page := NewHtmlTemplatePage("signup_user_complete", "Complete User Sign Up")
+	page := NewHtmlTemplatePage("signup_user_complete", "Complete User Sign Up", c.Locale)
 	page.Props["Email"] = props["email"]
 	page.Props["TeamDisplayName"] = props["display_name"]
 	page.Props["TeamName"] = props["name"]
@@ -521,7 +529,7 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 		user = ur.Data.(*model.User)
 	}
 
-	page := NewHtmlTemplatePage("channel", "")
+	page := NewHtmlTemplatePage("channel", "", c.Locale)
 	page.Props["Title"] = channel.DisplayName + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["ChannelName"] = channel.Name
@@ -578,7 +586,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	page := NewHtmlTemplatePage("verify", "Email Verified")
+	page := NewHtmlTemplatePage("verify", "Email Verified", c.Locale)
 	page.Props["TeamURL"] = c.GetTeamURLFromTeam(team)
 	page.Props["UserEmail"] = email
 	page.Props["ResendSuccess"] = resendSuccess
@@ -586,7 +594,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func findTeam(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	page := NewHtmlTemplatePage("find_team", "Find Team")
+	page := NewHtmlTemplatePage("find_team", "Find Team", c.Locale)
 	page.Render(c, w)
 }
 
@@ -594,7 +602,7 @@ func docs(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	doc := params["doc"]
 
-	page := NewHtmlTemplatePage("docs", "Documentation")
+	page := NewHtmlTemplatePage("docs", "Documentation", c.Locale)
 	page.Props["Site"] = doc
 	page.Render(c, w)
 }
@@ -636,7 +644,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		teamDisplayName = team.DisplayName
 	}
 
-	page := NewHtmlTemplatePage("password_reset", "")
+	page := NewHtmlTemplatePage("password_reset", "", c.Locale)
 	page.Props["Title"] = "Reset Password " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = teamDisplayName
 	page.Props["TeamName"] = teamName
@@ -814,7 +822,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	activeTab := params["tab"]
 	teamId := params["team"]
 
-	page := NewHtmlTemplatePage("admin_console", "Admin Console")
+	page := NewHtmlTemplatePage("admin_console", "Admin Console", c.Locale)
 	page.User = user
 	page.Team = team
 	page.Props["ActiveTab"] = activeTab
@@ -860,7 +868,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		team = result.Data.(*model.Team)
 	}
 
-	page := NewHtmlTemplatePage("authorize", "Authorize Application")
+	page := NewHtmlTemplatePage("authorize", "Authorize Application", c.Locale)
 	page.Props["TeamName"] = team.Name
 	page.Props["AppName"] = app.Name
 	page.Props["ResponseType"] = responseType
@@ -1158,7 +1166,7 @@ func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	page := NewHtmlTemplatePage("claim_account", "Claim Account")
+	page := NewHtmlTemplatePage("claim_account", "Claim Account", c.Locale)
 	page.Props["Email"] = email
 	page.Props["CurrentType"] = authType
 	page.Props["NewType"] = newType

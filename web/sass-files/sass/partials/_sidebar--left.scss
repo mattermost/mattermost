@@ -42,6 +42,9 @@
         margin-right: 6px;
         width: 12px;
         display: inline-block;
+        svg {
+            max-height: 14px;
+        }
         i, path, ellipse {
             @include opacity(0.5);
             &.online--icon, &.away--icon {

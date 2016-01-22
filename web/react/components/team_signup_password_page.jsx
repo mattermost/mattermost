@@ -4,6 +4,7 @@
 import * as Client from '../utils/client.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import UserStore from '../stores/user_store.jsx';
+import Constants from '../utils/constants.jsx';
 
 export default class TeamSignupPasswordPage extends React.Component {
     constructor(props) {
@@ -23,8 +24,8 @@ export default class TeamSignupPasswordPage extends React.Component {
         e.preventDefault();
 
         var password = ReactDOM.findDOMNode(this.refs.password).value.trim();
-        if (!password || password.length < 5) {
-            this.setState({passwordError: 'Please enter at least 5 characters'});
+        if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
+            this.setState({passwordError: 'Please enter at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters'});
             return;
         }
 
@@ -92,15 +93,15 @@ export default class TeamSignupPasswordPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2 className='margin--less'>Your password</h2>
-                    <h5 className='color--light'>Select a password that you'll use to login with your email address:</h5>
+                    <h2 className='margin--less'>{'Your password'}</h2>
+                    <h5 className='color--light'>{"Select a password that you'll use to login with your email address:"}</h5>
                     <div className='inner__content margin--extra'>
-                        <h5><strong>Email</strong></h5>
+                        <h5><strong>{'Email'}</strong></h5>
                         <div className='block--gray form-group'>{this.props.state.team.email}</div>
                         <div className={passwordDivStyle}>
                             <div className='row'>
                                 <div className='col-sm-11'>
-                                    <h5><strong>Choose your password</strong></h5>
+                                    <h5><strong>{'Choose your password'}</strong></h5>
                                     <input
                                         autoFocus={true}
                                         type='password'
@@ -110,7 +111,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                                         maxLength='128'
                                         spellCheck='false'
                                     />
-                                    <span className='color--light help-block'>Passwords must contain 5 to 50 characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.</span>
+                                    <span className='color--light help-block'>{'Passwords must contain ' + Constants.MIN_PASSWORD_LENGTH + ' to ' + Constants.MAX_PASSWORD_LENGTH + ' characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.'}</span>
                                 </div>
                             </div>
                             {passwordError}
@@ -125,7 +126,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                             data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Creating team...'}
                             onClick={this.submitNext}
                         >
-                            Finish
+                            {'Finish'}
                         </button>
                     </div>
                     <p>By proceeding to create your account and use {global.window.mm_config.SiteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {global.window.mm_config.SiteName}.</p>
@@ -134,7 +135,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                             href='#'
                             onClick={this.submitBack}
                         >
-                            Back to previous step
+                            {'Back to previous step'}
                         </a>
                     </div>
                 </form>

@@ -22,6 +22,8 @@
             "React": false,
             "ReactDOM": false,
             "ReactBootstrap": false,
+            "ReactIntl": false,
+            "ReactIntlLocaleData": false,
             "Chart": false,
             "katex": false
         },

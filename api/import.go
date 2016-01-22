@@ -6,6 +6,7 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 //
@@ -17,7 +18,7 @@ func ImportPost(post *model.Post) {
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
-		l4g.Debug("Error saving post. user=" + post.UserId + ", message=" + post.Message)
+		l4g.Debug(utils.T("api.import.import_post.saving.debug"), post.UserId, post.Message)
 	}
 }
 
@@ -25,17 +26,17 @@ func ImportUser(user *model.User) *model.User {
 	user.MakeNonNil()
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
-		l4g.Error("Error saving user. err=%v", result.Err)
+		l4g.Error(utils.T("api.import.import_user.saving.error"), result.Err)
 		return nil
 	} else {
 		ruser := result.Data.(*model.User)
 
 		if err := JoinDefaultChannels(ruser, ""); err != nil {
-			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
+			l4g.Error(utils.T("api.import.import_user.joining_default.error"), ruser.Id, ruser.TeamId, err)
 		}
 
 		if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
-			l4g.Error("Failed to set email verified err=%v", cresult.Err)
+			l4g.Error(utils.T("api.import.import_user.set_email.error"), cresult.Err)
 		}
 
 		return ruser

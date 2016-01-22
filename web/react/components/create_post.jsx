@@ -186,7 +186,7 @@ export default class CreatePost extends React.Component {
             (err) => {
                 const state = {};
 
-                if (err.message === 'Invalid RootId parameter') {
+                if (err.id === 'api.post.create_post.root_id.app_error') {
                     if ($('#post_deleted').length > 0) {
                         $('#post_deleted').modal('show');
                     }

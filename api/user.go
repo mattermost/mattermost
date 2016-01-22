@@ -32,7 +32,7 @@ import (
 )
 
 func InitUser(r *mux.Router) {
-	l4g.Debug("Initializing user api routes")
+	l4g.Debug(utils.T("api.user.init.debug"))
 
 	sr := r.PathPrefix("/users").Subrouter()
 	sr.Handle("/create", ApiAppHandler(createUser)).Methods("POST")
@@ -64,7 +64,7 @@ func InitUser(r *mux.Router) {
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
-		c.Err = model.NewAppError("signupTeam", "User sign-up with email is disabled.", "")
+		c.Err = model.NewLocAppError("signupTeam", "api.user.create_user.signup_email_disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -98,18 +98,18 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		props := model.MapFromJson(strings.NewReader(data))
 
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
-			c.Err = model.NewAppError("createUser", "The signup link does not appear to be valid", "")
+			c.Err = model.NewLocAppError("createUser", "api.user.create_user.signup_link_invalid.app_error", nil, "")
 			return
 		}
 
 		t, err := strconv.ParseInt(props["time"], 10, 64)
 		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-			c.Err = model.NewAppError("createUser", "The signup link has expired", "")
+			c.Err = model.NewLocAppError("createUser", "api.user.create_user.signup_link_expired.app_error", nil, "")
 			return
 		}
 
 		if user.TeamId != props["id"] {
-			c.Err = model.NewAppError("createUser", "Invalid team name", data)
+			c.Err = model.NewLocAppError("createUser", "api.user.create_user.team_name.app_error", nil, data)
 			return
 		}
 
@@ -123,7 +123,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
-		c.Err = model.NewAppError("createUser", "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.", "")
+		c.Err = model.NewLocAppError("createUser", "api.user.create_user.accepted_domain.app_error", nil, "")
 		return
 	}
 
@@ -208,27 +208,27 @@ func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppErro
 	user.MakeNonNil()
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
-		l4g.Error("Couldn't save the user err=%v", result.Err)
+		l4g.Error(utils.T("api.user.create_user.save.error"), result.Err)
 		return nil, result.Err
 	} else {
 		ruser := result.Data.(*model.User)
 
 		// Soft error if there is an issue joining the default channels
 		if err := JoinDefaultChannels(ruser, channelRole); err != nil {
-			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
+			l4g.Error(utils.T("api.user.create_user.joining.error"), ruser.Id, ruser.TeamId, err)
 		}
 
 		addDirectChannelsAndForget(ruser)
 
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
-				l4g.Error("Failed to set email verified err=%v", cresult.Err)
+				l4g.Error(utils.T("api.user.create_user.verified.error"), cresult.Err)
 			}
 		}
 
 		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
 		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
-			l4g.Error("Encountered error saving tutorial preference, err=%v", presult.Err.Message)
+			l4g.Error(utils.T("api.user.create_user.tutorial.error"), presult.Err.Message)
 		}
 
 		ruser.Sanitize(map[string]bool{})
@@ -246,14 +246,14 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	var user *model.User
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
-		c.Err = model.NewAppError("CreateOAuthUser", service+" oauth not avlailable on this server", "")
+		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.not_available.app_error", map[string]interface{}{"Service": service}, "")
 		return nil
 	} else {
 		user = provider.GetUserFromJson(userData)
 	}
 
 	if user == nil {
-		c.Err = model.NewAppError("CreateOAuthUser", "Could not create user out of "+service+" user object", "")
+		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, "")
 		return nil
 	}
 
@@ -280,12 +280,14 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	}
 
 	if result := <-suchan; result.Err == nil {
-		c.Err = model.NewAppError("signupCompleteOAuth", "This "+service+" account has already been used to sign up for team "+team.DisplayName, "email="+user.Email)
+		c.Err = model.NewLocAppError("signupCompleteOAuth", "api.user.create_oauth_user.already_used.app_error",
+			map[string]interface{}{"Service": service, "DisplayName": team.DisplayName}, "email="+user.Email)
 		return nil
 	}
 
 	if result := <-euchan; result.Err == nil {
-		c.Err = model.NewAppError("signupCompleteOAuth", "Team "+team.DisplayName+" already has a user with the email address attached to your "+service+" account", "email="+user.Email)
+		c.Err = model.NewLocAppError("signupCompleteOAuth", "api.user.create_oauth_user.already_attached.app_error",
+			map[string]interface{}{"Service": service, "DisplayName": team.DisplayName}, "email="+user.Email)
 		return nil
 	}
 
@@ -321,7 +323,7 @@ func sendWelcomeEmailAndForget(userId, email, teamName, teamDisplayName, siteURL
 		}
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error("Failed to send welcome email successfully err=%v", err)
+			l4g.Error(utils.T("api.user.send_welcome_email_and_forget.failed.error"), err)
 		}
 	}()
 }
@@ -330,7 +332,7 @@ func addDirectChannelsAndForget(user *model.User) {
 	go func() {
 		var profiles map[string]*model.User
 		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
-			l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
+			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, user.TeamId, result.Err.Error())
 			return
 		} else {
 			profiles = result.Data.(map[string]*model.User)
@@ -360,7 +362,7 @@ func addDirectChannelsAndForget(user *model.User) {
 		}
 
 		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
-			l4g.Error("Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
+			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, user.TeamId, result.Err.Error())
 		}
 	}()
 }
@@ -379,7 +381,7 @@ func SendVerifyEmailAndForget(userId, userEmail, teamName, teamDisplayName, site
 		bodyPage.Props["VerifyUrl"] = link
 
 		if err := utils.SendMail(userEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error("Failed to send verification email successfully err=%v", err)
+			l4g.Error(utils.T("api.user.send_verify_email_and_forget.failed.error"), err)
 		}
 	}()
 }
@@ -417,7 +419,8 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 		user := result.Data.(*model.User)
 
 		if len(user.AuthData) != 0 {
-			c.Err = model.NewAppError("LoginByEmail", "Please sign in using "+user.AuthService, "")
+			c.Err = model.NewLocAppError("LoginByEmail", "api.user.login_by_email.sign_in.app_error",
+				map[string]interface{}{"AuthService": user.AuthService}, "")
 			return nil
 		}
 
@@ -434,14 +437,16 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	authData := ""
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
-		c.Err = model.NewAppError("LoginByOAuth", service+" oauth not avlailable on this server", "")
+		c.Err = model.NewLocAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
+			map[string]interface{}{"Service": service}, "")
 		return nil
 	} else {
 		authData = provider.GetAuthDataFromJson(userData)
 	}
 
 	if len(authData) == 0 {
-		c.Err = model.NewAppError("LoginByOAuth", "Could not parse auth data out of "+service+" user object", "")
+		c.Err = model.NewLocAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+			map[string]interface{}{"Service": service}, "")
 		return nil
 	}
 
@@ -459,7 +464,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 func checkUserLoginAttempts(c *Context, user *model.User) bool {
 	if user.FailedAttempts >= utils.Cfg.ServiceSettings.MaximumLoginAttempts {
 		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = model.NewAppError("checkUserLoginAttempts", "Your account is locked because of too many failed password attempts. Please reset your password.", "user_id="+user.Id)
+		c.Err = model.NewLocAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return false
 	}
@@ -471,7 +476,7 @@ func checkUserPassword(c *Context, user *model.User, password string) bool {
 
 	if !model.ComparePassword(user.Password, password) {
 		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = model.NewAppError("checkUserPassword", "Login failed because of invalid password", "user_id="+user.Id)
+		c.Err = model.NewLocAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 
 		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
@@ -494,13 +499,13 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	c.LogAuditWithUserId(user.Id, "attempt")
 
 	if !user.EmailVerified && utils.Cfg.EmailSettings.RequireEmailVerification {
-		c.Err = model.NewAppError("Login", "Login failed because email address has not been verified", "user_id="+user.Id)
+		c.Err = model.NewLocAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if user.DeleteAt > 0 {
-		c.Err = model.NewAppError("Login", "Login failed because your account has been set to inactive.  Please contact an administrator.", "user_id="+user.Id)
+		c.Err = model.NewLocAppError("Login", "api.user.login.inactive.app_error", nil, "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -522,7 +527,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 			sessions := result.Data.([]*model.Session)
 			for _, session := range sessions {
 				if session.DeviceId == deviceId {
-					l4g.Debug("Revoking sessionId=" + session.Id + " for userId=" + user.Id + " re-login with same device Id")
+					l4g.Debug(utils.T("api.user.login.revoking.app_error"), session.Id, user.Id)
 					RevokeSessionById(c, session.Id)
 					if c.Err != nil {
 						c.LogError(c.Err)
@@ -604,7 +609,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	if len(props["password"]) == 0 {
-		c.Err = model.NewAppError("login", "Password field must not be blank", "")
+		c.Err = model.NewLocAppError("login", "api.user.login.blank_pwd.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -615,7 +620,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
 		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
 	} else {
-		c.Err = model.NewAppError("login", "Either user id or team name and user email must be provided", "")
+		c.Err = model.NewLocAppError("login", "api.user.login.not_provided.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -634,7 +639,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*utils.Cfg.LdapSettings.Enable {
-		c.Err = model.NewAppError("loginLdap", "LDAP not enabled on this server", "")
+		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -646,13 +651,13 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamName := props["teamName"]
 
 	if len(password) == 0 {
-		c.Err = model.NewAppError("loginLdap", "Password field must not be blank", "")
+		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.blank_pwd.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if len(id) == 0 {
-		c.Err = model.NewAppError("loginLdap", "Need an ID", "")
+		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.need_id.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -661,7 +666,7 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ldapInterface := einterfaces.GetLdapInterface()
 	if ldapInterface == nil {
-		c.Err = model.NewAppError("loginLdap", "LDAP not available on this server", "")
+		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.not_available.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -794,7 +799,7 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		c.RemoveSessionCookie(w, r)
-		l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
+		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 		return
 	} else if HandleEtag(result.Data.(*model.User).Etag(), w, r) {
 		return
@@ -947,11 +952,11 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 
 	fontBytes, err := ioutil.ReadFile(utils.FindDir("web/static/fonts") + utils.Cfg.FileSettings.InitialFont)
 	if err != nil {
-		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
+		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
 	}
 	font, err := freetype.ParseFont(fontBytes)
 	if err != nil {
-		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
+		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
 	}
 
 	width := int(utils.Cfg.FileSettings.ProfileWidth)
@@ -972,13 +977,13 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	pt := freetype.Pt(width/6, height*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
-		return nil, model.NewAppError("createProfileImage", "Could not add user initial to default profile picture", err.Error())
+		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error())
 	}
 
 	buf := new(bytes.Buffer)
 
 	if imgErr := png.Encode(buf, dstImg); imgErr != nil {
-		return nil, model.NewAppError("createProfileImage", "Could not encode default profile image", imgErr.Error())
+		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.encode.app_error", nil, imgErr.Error())
 	} else {
 		return buf.Bytes(), nil
 	}
@@ -1033,13 +1038,13 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("uploadProfileImage", "Unable to upload file. Image storage is not configured.", "")
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
 	if err := r.ParseMultipartForm(10000000); err != nil {
-		c.Err = model.NewAppError("uploadProfileImage", "Could not parse multipart form", "")
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "")
 		return
 	}
 
@@ -1047,13 +1052,13 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageArray, ok := m.File["image"]
 	if !ok {
-		c.Err = model.NewAppError("uploadProfileImage", "No file under 'image' in request", "")
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	if len(imageArray) <= 0 {
-		c.Err = model.NewAppError("uploadProfileImage", "Empty array under 'image' in request", "")
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -1063,17 +1068,17 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	file, err := imageData.Open()
 	defer file.Close()
 	if err != nil {
-		c.Err = model.NewAppError("uploadProfileImage", "Could not open image file", err.Error())
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error())
 		return
 	}
 
 	// Decode image config first to check dimensions before loading the whole thing into memory later on
 	config, _, err := image.DecodeConfig(file)
 	if err != nil {
-		c.Err = model.NewAppError("uploadProfileFile", "Could not decode profile image config.", err.Error())
+		c.Err = model.NewLocAppError("uploadProfileFile", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error())
 		return
 	} else if config.Width*config.Height > MaxImageSize {
-		c.Err = model.NewAppError("uploadProfileFile", "Unable to upload profile image. File is too large.", err.Error())
+		c.Err = model.NewLocAppError("uploadProfileFile", "api.user.upload_profile_user.too_large.app_error", nil, err.Error())
 		return
 	}
 
@@ -1082,7 +1087,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {
-		c.Err = model.NewAppError("uploadProfileImage", "Could not decode profile image", err.Error())
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error())
 		return
 	}
 
@@ -1092,7 +1097,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)
 	if err != nil {
-		c.Err = model.NewAppError("uploadProfileImage", "Could not encode profile image", err.Error())
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error())
 		return
 	}
 
@@ -1173,7 +1178,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userId != c.Session.UserId {
-		c.Err = model.NewAppError("updatePassword", "Update password failed because context user_id did not match props user_id", "")
+		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.context.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1186,7 +1191,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result.Data == nil {
-		c.Err = model.NewAppError("updatePassword", "Update password failed because we couldn't find a valid account", "")
+		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -1197,19 +1202,19 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if user.AuthData != "" {
 		c.LogAudit("failed - tried to update user password who was logged in through oauth")
-		c.Err = model.NewAppError("updatePassword", "Update password failed because the user is logged in through an OAuth service", "auth_service="+user.AuthService)
+		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if !model.ComparePassword(user.Password, currentPassword) {
-		c.Err = model.NewAppError("updatePassword", "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again.", "")
+		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if uresult := <-Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(newPassword)); uresult.Err != nil {
-		c.Err = model.NewAppError("updatePassword", "Update password failed", uresult.Err.Error())
+		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.failed.app_error", nil, uresult.Err.Error())
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	} else {
@@ -1219,7 +1224,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 			l4g.Error(tresult.Err.Message)
 		} else {
 			team := tresult.Data.(*model.Team)
-			sendPasswordChangeEmailAndForget(user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL(), "using the settings menu")
+			sendPasswordChangeEmailAndForget(user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL(), c.T("api.user.update_password.menu"))
 		}
 
 		data := make(map[string]string)
@@ -1244,7 +1249,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("updateRoles", "The system admin role can only be set by another system admin", "")
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1262,13 +1267,13 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.IsTeamAdmin() {
-		c.Err = model.NewAppError("updateRoles", "You do not have the appropriate permissions", "userId="+user_id)
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.permissions.app_error", nil, "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("updateRoles", "The system admin role can only by modified by another system admin", "")
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_mod.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1320,7 +1325,7 @@ func UpdateRoles(c *Context, user *model.User, roles string) *model.User {
 				}
 
 				if activeAdmins <= 0 {
-					c.Err = model.NewAppError("updateRoles", "There must be at least one active admin", "")
+					c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.one_admin.app_error", nil, "")
 					return nil
 				}
 			}
@@ -1365,7 +1370,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.IsTeamAdmin() {
-		c.Err = model.NewAppError("updateActive", "You do not have the appropriate permissions", "userId="+user_id)
+		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1385,7 +1390,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			if activeAdmins <= 0 {
-				c.Err = model.NewAppError("updateRoles", "There must be at least one active admin", "userId="+user_id)
+				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.one_admin.app_error", nil, "userId="+user_id)
 				return
 			}
 		}
@@ -1424,12 +1429,12 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 }
 
 func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
-	l4g.Warn("Attempting to permanently delete account %v id=%v", user.Email, user.Id)
+	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
 	c.Path = "/users/permanent_delete"
 	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt userId=%v", user.Id))
 	c.LogAuditWithUserId("", fmt.Sprintf("attempt userId=%v", user.Id))
 	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) {
-		l4g.Warn("You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", user.Email)
+		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
 	}
 
 	UpdateActive(c, user, false)
@@ -1474,7 +1479,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	l4g.Warn("Permanently deleted account %v id=%v", user.Email, user.Id)
+	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
 	c.LogAuditWithUserId("", fmt.Sprintf("success userId=%v", user.Id))
 
 	return nil
@@ -1505,14 +1510,14 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var user *model.User
 	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
-		c.Err = model.NewAppError("sendPasswordReset", "We couldn’t find an account with that address.", "email="+email+" team_id="+team.Id)
+		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.find.app_error", nil, "email="+email+" team_id="+team.Id)
 		return
 	} else {
 		user = result.Data.(*model.User)
 	}
 
 	if len(user.AuthData) != 0 {
-		c.Err = model.NewAppError("sendPasswordReset", "Cannot reset password for SSO accounts", "userId="+user.Id+", teamId="+team.Id)
+		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id+", teamId="+team.Id)
 		return
 	}
 
@@ -1532,7 +1537,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	bodyPage.Props["ResetUrl"] = link
 
 	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-		c.Err = model.NewAppError("sendPasswordReset", "Failed to send password reset email successfully", "err="+err.Message)
+		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
 		return
 	}
 
@@ -1601,25 +1606,25 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(user.AuthData) != 0 {
-		c.Err = model.NewAppError("resetPassword", "Cannot reset password for SSO accounts", "userId="+user.Id+", teamId="+team.Id)
+		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id+", teamId="+team.Id)
 		return
 	}
 
 	if user.TeamId != team.Id {
-		c.Err = model.NewAppError("resetPassword", "Trying to reset password for user on wrong team.", "userId="+user.Id+", teamId="+team.Id)
+		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.wrong_team.app_error", nil, "userId="+user.Id+", teamId="+team.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if !c.IsSystemAdmin() {
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", props["data"], utils.Cfg.EmailSettings.PasswordResetSalt)) {
-			c.Err = model.NewAppError("resetPassword", "The reset password link does not appear to be valid", "")
+			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, "")
 			return
 		}
 
 		t, err := strconv.ParseInt(timeStr, 10, 64)
 		if err != nil || model.GetMillis()-t > 1000*60*60 { // one hour
-			c.Err = model.NewAppError("resetPassword", "The reset link has expired", "")
+			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
 			return
 		}
 	}
@@ -1650,7 +1655,7 @@ func sendPasswordChangeEmailAndForget(email, teamDisplayName, teamURL, siteURL, 
 		bodyPage.Props["Method"] = method
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error("Failed to send update password email successfully err=%v", err)
+			l4g.Error(utils.T("api.user.send_password_change_email_and_forget.error"), err)
 		}
 
 	}()
@@ -1669,7 +1674,7 @@ func sendEmailChangeEmailAndForget(oldEmail, newEmail, teamDisplayName, teamURL,
 		bodyPage.Props["NewEmail"] = newEmail
 
 		if err := utils.SendMail(oldEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error("Failed to send email change notification email successfully err=%v", err)
+			l4g.Error(utils.T("api.user.send_email_change_email_and_forget.error"), err)
 		}
 
 	}()
@@ -1689,7 +1694,7 @@ func SendEmailChangeVerifyEmailAndForget(userId, newUserEmail, teamName, teamDis
 		bodyPage.Props["VerifyUrl"] = link
 
 		if err := utils.SendMail(newUserEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error("Failed to send email change verification email successfully err=%v", err)
+			l4g.Error(utils.T("api.user.send_email_change_verify_email_and_forget.error"), err)
 		}
 	}()
 }
@@ -1798,7 +1803,7 @@ func GetAuthorizationCode(c *Context, service, teamName string, props map[string
 
 	sso := utils.Cfg.GetSSOService(service)
 	if sso != nil && !sso.Enable {
-		return "", model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
+		return "", model.NewLocAppError("GetAuthorizationCode", "api.user.get_authorization_code.unsupported.app_error", nil, "service="+service)
 	}
 
 	clientId := sso.Id
@@ -1827,12 +1832,12 @@ func GetAuthorizationCode(c *Context, service, teamName string, props map[string
 func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, map[string]string, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
 	if sso == nil || !sso.Enable {
-		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
+		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service)
 	}
 
 	stateStr := ""
 	if b, err := b64.StdEncoding.DecodeString(state); err != nil {
-		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", err.Error())
+		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error())
 	} else {
 		stateStr = string(b)
 	}
@@ -1840,13 +1845,13 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
 	if !model.ComparePassword(stateProps["hash"], sso.Id) {
-		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
+		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "")
 	}
 
 	ok := true
 	teamName := ""
 	if teamName, ok = stateProps["team"]; !ok {
-		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state; missing team name", "")
+		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state_team.app_error", nil, "")
 	}
 
 	tchan := Srv.Store.Team().GetByName(teamName)
@@ -1866,20 +1871,20 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	var ar *model.AccessResponse
 	if resp, err := client.Do(req); err != nil {
-		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request failed", err.Error())
+		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
 		if ar == nil {
-			return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Bad response from token request", "")
+			return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "")
 		}
 	}
 
 	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
-		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Bad token type", "token_type="+ar.TokenType)
+		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType)
 	}
 
 	if len(ar.AccessToken) == 0 {
-		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Missing access token", "")
+		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "")
 	}
 
 	p = url.Values{}
@@ -1891,7 +1896,8 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
 	if resp, err := client.Do(req); err != nil {
-		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request to "+service+" failed", err.Error())
+		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error",
+			map[string]interface{}{"Service": service}, err.Error())
 	} else {
 		if result := <-tchan; result.Err != nil {
 			return nil, nil, nil, result.Err
@@ -1990,19 +1996,21 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 	authData := ""
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
-		c.Err = model.NewAppError("CompleteClaimWithOAuth", service+" oauth not avlailable on this server", "")
+		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
+			map[string]interface{}{"Service": service}, "")
 		return
 	} else {
 		authData = provider.GetAuthDataFromJson(userData)
 	}
 
 	if len(authData) == 0 {
-		c.Err = model.NewAppError("CompleteClaimWithOAuth", "Could not parse auth data out of "+service+" user object", "")
+		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
+			map[string]interface{}{"Service": service}, "")
 		return
 	}
 
 	if len(email) == 0 {
-		c.Err = model.NewAppError("CompleteClaimWithOAuth", "Blank email", "")
+		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.blank_email.app_error", nil, "")
 		return
 	}
 
@@ -2070,7 +2078,7 @@ func switchToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if user.Id != c.Session.UserId {
 		c.LogAudit("fail - user ids didn't match")
-		c.Err = model.NewAppError("switchToEmail", "Update password failed because context user_id did not match provided user's id", "")
+		c.Err = model.NewLocAppError("switchToEmail", "api.user.switch_to_email.context.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -2108,7 +2116,7 @@ func sendSignInChangeEmailAndForget(email, teamDisplayName, teamURL, siteURL, me
 		bodyPage.Props["Method"] = method
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error("Failed to send update password email successfully err=%v", err)
+			l4g.Error(utils.T("api.user.send_sign_in_change_email_and_forget.error"), err)
 		}
 
 	}()

@@ -15,7 +15,7 @@ import (
 )
 
 func InitLicense(r *mux.Router) {
-	l4g.Debug("Initializing license api routes")
+	l4g.Debug(utils.T("api.license.init.debug"))
 
 	sr := r.PathPrefix("/license").Subrouter()
 	sr.Handle("/add", ApiAdminSystemRequired(addLicense)).Methods("POST")
@@ -34,13 +34,13 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileArray, ok := m.File["license"]
 	if !ok {
-		c.Err = model.NewAppError("addLicense", "No file under 'license' in request", "")
+		c.Err = model.NewLocAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	if len(fileArray) <= 0 {
-		c.Err = model.NewAppError("addLicense", "Empty array under 'license' in request", "")
+		c.Err = model.NewLocAppError("addLicense", "api.license.add_license.array.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -50,7 +50,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	file, err := fileData.Open()
 	defer file.Close()
 	if err != nil {
-		c.Err = model.NewAppError("addLicense", "Could not open license file", err.Error())
+		c.Err = model.NewLocAppError("addLicense", "api.license.add_license.open.app_error", nil, err.Error())
 		return
 	}
 
@@ -65,19 +65,19 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if ok := utils.SetLicense(license); !ok {
 			c.LogAudit("failed - expired or non-started license")
-			c.Err = model.NewAppError("addLicense", "License is either expired or has not yet started.", "")
+			c.Err = model.NewLocAppError("addLicense", "api.license.add_license.expired.app_error", nil, "")
 			return
 		}
 
 		if err := writeFileLocally(data, utils.LicenseLocation()); err != nil {
 			c.LogAudit("failed - could not save license file")
-			c.Err = model.NewAppError("addLicense", "License did not save properly.", "path="+utils.LicenseLocation())
+			c.Err = model.NewLocAppError("addLicense", "api.license.add_license.save.app_error", nil, "path="+utils.LicenseLocation())
 			utils.RemoveLicense()
 			return
 		}
 	} else {
 		c.LogAudit("failed - invalid license")
-		c.Err = model.NewAppError("addLicense", "Invalid license file.", "")
+		c.Err = model.NewLocAppError("addLicense", "api.license.add_license.invalid.app_error", nil, "")
 		return
 	}
 
@@ -90,7 +90,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if ok := utils.RemoveLicense(); !ok {
 		c.LogAudit("failed - could not remove license file")
-		c.Err = model.NewAppError("removeLicense", "License did not remove properly.", "")
+		c.Err = model.NewLocAppError("removeLicense", "api.license.remove_license.remove.app_error", nil, "")
 		return
 	}
 

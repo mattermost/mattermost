@@ -118,6 +118,9 @@ package:
 	mkdir -p $(DIST_PATH)/web/static/js
 	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
 	cp -L web/static/js/*.min.js.map $(DIST_PATH)/web/static/js/
+	cp -RL web/static/js/intl-1.0.0 $(DIST_PATH)/web/static/js/
+	cp -RL web/static/js/react-intl-2.0.0-beta-2 $(DIST_PATH)/web/static/js/
+	cp -RL web/static/i18n $(DIST_PATH)/web/static
 	cp -RL web/static/config $(DIST_PATH)/web/static
 	cp -RL web/static/css $(DIST_PATH)/web/static
 	cp -RL web/static/fonts $(DIST_PATH)/web/static
@@ -128,6 +131,7 @@ package:
 
 	mkdir -p $(DIST_PATH)/api
 	cp -RL api/templates $(DIST_PATH)/api
+	cp -RL i18n $(DIST_PATH)
 
 	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
 	cp NOTICE.txt $(DIST_PATH)
@@ -138,6 +142,8 @@ package:
 
 	sed -i'.bak' 's|react-0.14.3.js|react-0.14.3.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|react-dom-0.14.3.js|react-dom-0.14.3.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|Intl.js|Intl.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|react-intl.js|react-intl.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|react-bootstrap-0.28.1.js|react-bootstrap-0.28.1.min.js|g' $(DIST_PATH)/web/templates/head.html
@@ -145,6 +151,8 @@ package:
 	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
+	
+	sudo mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json || echo 'nomv'
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
@@ -179,7 +187,7 @@ travis-init:
 
 	if [ "$(TRAVIS_DB)" = "postgres" ]; then \
 		sed -i'.bak' 's|mysql|postgres|g' config/config.json; \
-		sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable\&connect_timeout=10|g' config/config.json; \
+		sed -i'.bak2' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable\&connect_timeout=10|g' config/config.json; \
 	fi
 
 	if [ "$(TRAVIS_DB)" = "mysql" ]; then \

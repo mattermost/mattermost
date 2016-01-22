@@ -17,7 +17,7 @@ import (
 )
 
 func InitAdmin(r *mux.Router) {
-	l4g.Debug("Initializing admin api routes")
+	l4g.Debug(utils.T("api.admin.init.debug"))
 
 	sr := r.PathPrefix("/admin").Subrouter()
 	sr.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
@@ -41,7 +41,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		file, err := os.Open(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation))
 		if err != nil {
-			c.Err = model.NewAppError("getLogs", "Error reading log file", err.Error())
+			c.Err = model.NewLocAppError("getLogs", "api.admin.file_read_error", nil, err.Error())
 		}
 
 		defer file.Close()
@@ -132,7 +132,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if err := utils.SendMailUsingConfig(result.Data.(*model.User).Email, "Mattermost - Testing Email Settings", "<br/><br/><br/>It appears your Mattermost email is setup correctly!", cfg); err != nil {
+		if err := utils.SendMailUsingConfig(result.Data.(*model.User).Email, c.T("api.admin.test_email.subject"), c.T("api.admin.test_email.body"), cfg); err != nil {
 			c.Err = err
 			return
 		}

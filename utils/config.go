@@ -225,5 +225,8 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
 
+	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
+	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
+
 	return props
 }

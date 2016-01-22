@@ -22,6 +22,7 @@ var URL string
 func Setup() {
 	if api.Srv == nil {
 		utils.LoadConfig("config.json")
+		utils.InitTranslations()
 		api.NewServer()
 		api.StartServer()
 		api.InitApi()
@@ -45,7 +46,7 @@ func TestStatic(t *testing.T) {
 	// add a short delay to make sure the server is ready to receive requests
 	time.Sleep(1 * time.Second)
 
-	resp, err := http.Get(URL + "/static/images/favicon.ico")
+	resp, err := http.Get(URL + "/static/images/favicon/favicon-16x16.png")
 
 	if err != nil {
 		t.Fatalf("got error while trying to get static files %v", err)
