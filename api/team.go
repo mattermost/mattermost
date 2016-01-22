@@ -19,7 +19,7 @@ import (
 )
 
 func InitTeam(r *mux.Router) {
-	l4g.Debug("Initializing team api routes")
+	l4g.Debug(utils.T("api.team.init.debug"))
 
 	sr := r.PathPrefix("/teams").Subrouter()
 	sr.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
@@ -40,7 +40,7 @@ func InitTeam(r *mux.Router) {
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
-		c.Err = model.NewAppError("signupTeam", "Team sign-up with email is disabled.", "")
+		c.Err = model.NewLocAppError("signupTeam", "api.team.signup_team.email_disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -147,7 +147,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
-		c.Err = model.NewAppError("createTeamFromSignup", "Team sign-up with email is disabled.", "")
+		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.email_disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -188,13 +188,13 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamSignup.User.Password = password
 
 	if !model.ComparePassword(teamSignup.Hash, fmt.Sprintf("%v:%v", teamSignup.Data, utils.Cfg.EmailSettings.InviteSalt)) {
-		c.Err = model.NewAppError("createTeamFromSignup", "The signup link does not appear to be valid", "")
+		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.invalid_link.app_error", nil, "")
 		return
 	}
 
 	t, err := strconv.ParseInt(props["time"], 10, 64)
 	if err != nil || model.GetMillis()-t > 1000*60*60 { // one hour
-		c.Err = model.NewAppError("createTeamFromSignup", "The signup link has expired", "")
+		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.expired_link.app_error", nil, "")
 		return
 	}
 
@@ -204,7 +204,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if found {
-		c.Err = model.NewAppError("createTeamFromSignup", "This URL is unavailable. Please try another.", "d="+teamSignup.Team.Name)
+		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.unavailable.app_error", nil, "d="+teamSignup.Team.Name)
 		return
 	}
 
@@ -249,7 +249,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func CreateTeam(c *Context, team *model.Team) *model.Team {
 	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
-		c.Err = model.NewAppError("createTeam", "Team sign-up with email is disabled.", "")
+		c.Err = model.NewLocAppError("createTeam", "api.team.create_team.email_disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return nil
 	}
@@ -283,7 +283,7 @@ func isTeamCreationAllowed(c *Context, email string) bool {
 	email = strings.ToLower(email)
 
 	if !utils.Cfg.TeamSettings.EnableTeamCreation {
-		c.Err = model.NewAppError("isTeamCreationAllowed", "Team creation has been disabled. Please ask your systems administrator for details.", "")
+		c.Err = model.NewLocAppError("isTeamCreationAllowed", "api.team.is_team_creation_allowed.disabled.app_error", nil, "")
 		return false
 	}
 
@@ -300,7 +300,7 @@ func isTeamCreationAllowed(c *Context, email string) bool {
 	}
 
 	if len(utils.Cfg.TeamSettings.RestrictCreationToDomains) > 0 && !matched {
-		c.Err = model.NewAppError("isTeamCreationAllowed", "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details.", "")
+		c.Err = model.NewLocAppError("isTeamCreationAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "")
 		return false
 	}
 
@@ -445,7 +445,7 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		bodyPage.Props = props
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error("An error occured while sending an email in emailTeams err=%v", err)
+			l4g.Error(utils.T("api.team.email_teams.sending.error"), err)
 		}
 
 		w.Write([]byte(model.MapToJson(m)))
@@ -455,7 +455,7 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	invites := model.InvitesFromJson(r.Body)
 	if len(invites.Invites) == 0 {
-		c.Err = model.NewAppError("Team.InviteMembers", "No one to invite.", "")
+		c.Err = model.NewLocAppError("Team.InviteMembers", "api.team.invite_members.no_one.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -483,7 +483,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	for i, invite := range invites.Invites {
 		if result := <-Srv.Store.User().GetByEmail(c.Session.TeamId, invite["email"]); result.Err == nil || result.Err.Message != store.MISSING_ACCOUNT_ERROR {
 			invNum = int64(i)
-			c.Err = model.NewAppError("invite_members", "This person is already on your team", strconv.FormatInt(invNum, 10))
+			c.Err = model.NewLocAppError("invite_members", "api.team.invite_members.already.app_error", nil, strconv.FormatInt(invNum, 10))
 			return
 		}
 	}
@@ -506,9 +506,9 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 
 			senderRole := ""
 			if c.IsTeamAdmin() {
-				senderRole = "administrator"
+				senderRole = c.T("api.team.invite_members.admin")
 			} else {
-				senderRole = "member"
+				senderRole = c.T("api.team.invite_members.member")
 			}
 
 			subjectPage := NewServerTemplatePage("invite_subject")
@@ -532,11 +532,11 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
 
 			if !utils.Cfg.EmailSettings.SendEmailNotifications {
-				l4g.Info("sending invitation to %v %v", invite, bodyPage.Props["Link"])
+				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
 			}
 
 			if err := utils.SendMail(invite, subjectPage.Render(), bodyPage.Render()); err != nil {
-				l4g.Error("Failed to send invite email successfully err=%v", err)
+				l4g.Error(utils.T("api.team.invite_members.send.error"), err)
 			}
 		}
 	}
@@ -554,7 +554,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	team.Id = c.Session.TeamId
 
 	if !c.IsTeamAdmin() {
-		c.Err = model.NewAppError("updateTeam", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
+		c.Err = model.NewLocAppError("updateTeam", "api.team.update_team.permissions.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -586,7 +586,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
-	l4g.Warn("Attempting to permanently delete team %v id=%v", team.Name, team.Id)
+	l4g.Warn(utils.T("api.team.permanent_delete_team.attempting.warn"), team.Name, team.Id)
 	c.Path = "/teams/permanent_delete"
 	c.LogAuditWithUserId("", fmt.Sprintf("attempt teamId=%v", team.Id))
 
@@ -612,7 +612,7 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 		return result.Err
 	}
 
-	l4g.Warn("Permanently deleted team %v id=%v", team.Name, team.Id)
+	l4g.Warn(utils.T("api.team.permanent_delete_team.deleted.warn"), team.Name, team.Id)
 	c.LogAuditWithUserId("", fmt.Sprintf("success teamId=%v", team.Id))
 
 	return nil
@@ -639,13 +639,13 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.HasPermissionsToTeam(c.Session.TeamId, "import") || !c.IsTeamAdmin() {
-		c.Err = model.NewAppError("importTeam", "Only a team admin can import data.", "userId="+c.Session.UserId)
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.admin.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if err := r.ParseMultipartForm(10000000); err != nil {
-		c.Err = model.NewAppError("importTeam", "Could not parse multipart form", err.Error())
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error())
 		return
 	}
 
@@ -654,27 +654,27 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileSizeStr, ok := r.MultipartForm.Value["filesize"]
 	if !ok {
-		c.Err = model.NewAppError("importTeam", "Filesize unavilable", "")
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.unavailable.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	fileSize, err := strconv.ParseInt(fileSizeStr[0], 10, 64)
 	if err != nil {
-		c.Err = model.NewAppError("importTeam", "Filesize not an integer", "")
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.integer.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	fileInfoArray, ok := r.MultipartForm.File["file"]
 	if !ok {
-		c.Err = model.NewAppError("importTeam", "No file under 'file' in request", "")
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.no_file.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	if len(fileInfoArray) <= 0 {
-		c.Err = model.NewAppError("importTeam", "Empty array under 'file' in request", "")
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.array.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -684,7 +684,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	fileData, err := fileInfo.Open()
 	defer fileData.Close()
 	if err != nil {
-		c.Err = model.NewAppError("importTeam", "Could not open file", err.Error())
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.open.app_error", nil, err.Error())
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -706,7 +706,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func exportTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin() {
-		c.Err = model.NewAppError("exportTeam", "Only a team admin can export data.", "userId="+c.Session.UserId)
+		c.Err = model.NewLocAppError("exportTeam", "api.team.export_team.admin.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}

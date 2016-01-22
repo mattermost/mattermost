@@ -267,7 +267,7 @@ func copyDirToExportWriter(writer ExportWriter, inPath string, outPath string) *
 			} else {
 				fromFile, err := os.Open(inPath + "/" + fileInfo.Name())
 				if err != nil {
-					return model.NewAppError("copyDirToExportWriter", "api.export.open.app_error", err.Error())
+					return model.NewLocAppError("copyDirToExportWriter", "api.export.open.app_error", nil, err.Error())
 				}
 				io.Copy(toFile, fromFile)
 			}

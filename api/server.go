@@ -25,7 +25,7 @@ var Srv *Server
 
 func NewServer() {
 
-	l4g.Info("Server is initializing...")
+	l4g.Info(utils.T("api.server.new_server.init.info"))
 
 	Srv = &Server{}
 	Srv.Store = store.NewSqlStore()
@@ -35,13 +35,13 @@ func NewServer() {
 }
 
 func StartServer() {
-	l4g.Info("Starting Server...")
-	l4g.Info("Server is listening on " + utils.Cfg.ServiceSettings.ListenAddress)
+	l4g.Info(utils.T("api.server.start_server.starting.info"))
+	l4g.Info(utils.T("api.server.start_server.listening.info"), utils.Cfg.ServiceSettings.ListenAddress)
 
 	var handler http.Handler = Srv.Router
 
 	if utils.Cfg.RateLimitSettings.EnableRateLimiter {
-		l4g.Info("RateLimiter is enabled")
+		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
 		vary := throttled.VaryBy{}
 
@@ -53,7 +53,7 @@ func StartServer() {
 			vary.Headers = strings.Fields(utils.Cfg.RateLimitSettings.VaryByHeader)
 
 			if utils.Cfg.RateLimitSettings.VaryByRemoteAddr {
-				l4g.Warn("RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr")
+				l4g.Warn(utils.T("api.server.start_server.rate.warn"))
 				vary.RemoteAddr = false
 			}
 		}
@@ -71,20 +71,20 @@ func StartServer() {
 	go func() {
 		err := manners.ListenAndServe(utils.Cfg.ServiceSettings.ListenAddress, handler)
 		if err != nil {
-			l4g.Critical("Error starting server, err:%v", err)
+			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
 			time.Sleep(time.Second)
-			panic("Error starting server " + err.Error())
+			panic(utils.T("api.server.start_server.starting.panic") + err.Error())
 		}
 	}()
 }
 
 func StopServer() {
 
-	l4g.Info("Stopping Server...")
+	l4g.Info(utils.T("api.server.stop_server.stopping.info"))
 
 	manners.Close()
 	Srv.Store.Close()
 	hub.Stop()
 
-	l4g.Info("Server stopped")
+	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 }

@@ -392,6 +392,934 @@
     "translation": "No se puede escribir al archivo a exportar"
   },
   {
+    "id": "api.file.file_upload.exceeds",
+    "translation": "El archivo excede el tamaño máximo para una imagen."
+  },
+  {
+    "id": "api.file.get_export.retrieve.app_error",
+    "translation": "No se puede recuperar el archivo exportado. Por favor vuelve a exportarlo"
+  },
+  {
+    "id": "api.file.get_export.team_admin.app_error",
+    "translation": "Sólo un administrador del equipo puede recuperar la data exportada."
+  },
+  {
+    "id": "api.file.get_file.not_found.app_error",
+    "translation": "No se encontró el archivo."
+  },
+  {
+    "id": "api.file.get_file.public_expired.app_error",
+    "translation": "El enlace público ha expirado"
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "El enlace público parece ser inválido"
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "Los enlaces públicos han sido deshabilitados"
+  },
+  {
+    "id": "api.file.handle_images_forget.decode.error",
+    "translation": "No se puede decodificar la imagen channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.encode_jpeg.error",
+    "translation": "No se puede codificar la imagen como jpeg channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.encode_preview.error",
+    "translation": "No se puede codificar la imagen de muestra como jpg channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.upload_preview.error",
+    "translation": "No se puede subir la vista previa channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.upload_thumb.error",
+    "translation": "No se puede subir la miniatura channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.init.debug",
+    "translation": "Inicializando rutas del API para los archivos"
+  },
+  {
+    "id": "api.file.open_file_write_stream.configured.app_error",
+    "translation": "El almacenamiento de archivos no ha sido configurado apropiadamente. Por favor configuralo ya sea para S3 o para almacenamiento en el servidor local."
+  },
+  {
+    "id": "api.file.open_file_write_stream.creating_dir.app_error",
+    "translation": "Se encontró un error al crear el directorio para el nuevo archivo"
+  },
+  {
+    "id": "api.file.open_file_write_stream.local_server.app_error",
+    "translation": "Se encontró un error al escribir en el almacenamiento del servidor local"
+  },
+  {
+    "id": "api.file.open_file_write_stream.s3.app_error",
+    "translation": "S3 no está soportado."
+  },
+  {
+    "id": "api.file.read_file.configured.app_error",
+    "translation": "El almacenamiento de archivos no ha sido configurado apropiadamente. Por favor configuralo ya sea para S3 o para almacenamiento en el servidor local."
+  },
+  {
+    "id": "api.file.read_file.get.app_error",
+    "translation": "No se puede obtener el archivo desde el S3"
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "Se encontró un error al leer desde el almacenamiento del servidor local"
+  },
+  {
+    "id": "api.file.upload_file.image.app_error",
+    "translation": "No se puede subir el archivo de la imagen."
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "No se pudo subir la imagen. El archivo es demasiado grande."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "No se puede subir el archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
+    "id": "api.file.upload_file.too_large.app_error",
+    "translation": "No se pudo subir el archivo. El archivo es demasiado grande."
+  },
+  {
+    "id": "api.file.write_file.configured.app_error",
+    "translation": "El almacenamiento de archivos no ha sido configurado apropiadamente. Por favor configuralo ya sea para S3 o para almacenamiento en el servidor local."
+  },
+  {
+    "id": "api.file.write_file.s3.app_error",
+    "translation": "Se encontró un error al escribir al S3"
+  },
+  {
+    "id": "api.file.write_file_locally.create_dir.app_error",
+    "translation": "Se encontró un error al crear el directorio para el nuevo archivo"
+  },
+  {
+    "id": "api.file.write_file_locally.writing.app_error",
+    "translation": "Se encontró un error al escribir en el almacenamiento del servidor local"
+  },
+  {
+    "id": "api.import.import_post.saving.debug",
+    "translation": "Error guardando el mensaje. user=%v, message=%v"
+  },
+  {
+    "id": "api.import.import_user.joining_default.error",
+    "translation": "Se encontró un problema al unirse a los canales predeterminados user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.import.import_user.saving.error",
+    "translation": "Error guardando el usuario. err=%v"
+  },
+  {
+    "id": "api.import.import_user.set_email.error",
+    "translation": "Falla al asignar el correo como verificado err=%v"
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Arreglo vacío bajo 'license' en la solicitud"
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "La licencia ya expiró o todavía no ha comenzado."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "Archivo de licencia inválido."
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "No hay un archivo bajo 'license' en la solicitud"
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "No se pudo abrir el archivo de la licencia"
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "La licencia no fue guardada correctamente."
+  },
+  {
+    "id": "api.license.init.debug",
+    "translation": "Inicializando rutas del API para las licencias"
+  },
+  {
+    "id": "api.license.remove_license.remove.app_error",
+    "translation": "La licencia no fue removida correctamente."
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_client.app_error",
+    "translation": "invalid_request: Mal client_id"
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_redirect.app_error",
+    "translation": "invalid_request: Falta o está malo el redirect_uri"
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_response.app_error",
+    "translation": "invalid_request: Mal response_type"
+  },
+  {
+    "id": "api.oauth.allow_oauth.database.app_error",
+    "translation": "server_error: Error accesando la base de datos"
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "invalid_request: El redirect_uri suministrado no coincide con el callback_url registrado"
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "El administrador de sistema ha desactivado el servicio de autenticación por OAuth."
+  },
+  {
+    "id": "api.oauth.get_auth_data.find.error",
+    "translation": "No se encontró el auth code para el código=%s"
+  },
+  {
+    "id": "api.oauth.init.debug",
+    "translation": "Inicializando rutas del API para el OAuth"
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "El administrador de sistema ha desactivado el servicio de autenticación por OAuth."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_code.app_error",
+    "translation": "Error eliminando el código de authorización desde la DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "Error eliminando la sesión desde la DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "Error eliminando el token de acceso desde la DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "Error obteniendo el token de acceso desde la BD antes de ser eliminado"
+  },
+  {
+    "id": "api.post.create_post.bad_filename.error",
+    "translation": "Nombre errado de archivo descartado, archivo=%v"
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "Canal inválido para el parámetro RootId"
+  },
+  {
+    "id": "api.post.create_post.last_viewed.error",
+    "translation": "Se encontró un error al actualizar la última vista, channel_id=%s, user_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.create_post.parent_id.app_error",
+    "translation": "Parámetro ParentId inválido"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "Parámetro RootId inválido"
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "Error creando el mensaje"
+  },
+  {
+    "id": "api.post.delete_post.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.post.get_post.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.channel.error",
+    "translation": "Se encontró un error obteniendo el canal, channel_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.team.error",
+    "translation": "Se encontró un error obteniendo el equipo, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.user.error",
+    "translation": "Se encontró un error obteniendo el usuario, user_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.create_post.error",
+    "translation": "Falla al crear la respuesta del mensaje, err=%v"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.event_post.error",
+    "translation": "Fallo el Evento POST, err=%s"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.getting.error",
+    "translation": "Se encontró un error obteniendo los webhooks por equipo, err=%v"
+  },
+  {
+    "id": "api.post.init.debug",
+    "translation": "Inicializando rutas del API para los mensajes"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.get_2_members.error",
+    "translation": "Falla al obtener 2 miembros para un canal directo channel_id=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.get_members.error",
+    "translation": "Falla al obtener los miembros del canal channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.save_pref.error",
+    "translation": "Falla al guardar las preferencias del canal directo user_id=%v other_user_id=%v err=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.update_pref.error",
+    "translation": "Falla al actualizar las preferencias del canal directo user_id=%v other_user_id=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.members.error",
+    "translation": "Falla al obtener los miembros del canal channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.mention_body",
+    "translation": "Tienes una mención nueva."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.mention_subject",
+    "translation": "Nueva Mención"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.message_body",
+    "translation": "Tienes un mensaje nuevo."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.message_subject",
+    "translation": "Nuevo Mensaje Directo"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_mention",
+    "translation": " te mencionó en "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": " te envió un mensaje directo"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_notification.debug",
+    "translation": "Enviando notificaciones push a %v con el mensaje '%v'"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_notification.error",
+    "translation": "Falló el envio de la notificación push notificationid=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.retrive_profiles.error",
+    "translation": "Falla al recuperar los perfiles de usuario team_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.send.error",
+    "translation": "Falla al enviar el correo con la mención satisfactoriamente email=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.sent",
+    "translation": "{{.Prefix}} {{.Filenames}} enviado"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.sessions.error",
+    "translation": "Falla al recuperar las sesiones en las notificaciones id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.user_id.error",
+    "translation": "El user_id del Mensaje no fue retornado por GetProfiles user_id=%v"
+  },
+  {
+    "id": "api.post.update_mention_count_and_forget.update_error",
+    "translation": "Falla al actualizar el contador de mensiones para user_id=%v on channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "No pudimos encontrar el mensaje o comentario para actualizarlo."
+  },
+  {
+    "id": "api.post.update_post.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "Already delted id={{.PostId}}"
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "No se puede obtener el mensaje"
+  },
+  {
+    "id": "api.preference.init.debug",
+    "translation": "Inicializando las rutas de preferencias del API"
+  },
+  {
+    "id": "api.preference.save_preferences.decode.app_error",
+    "translation": "No se puede decodificar las preferencias desde la solicitud"
+  },
+  {
+    "id": "api.preference.save_preferences.set.app_error",
+    "translation": "No se puede asignar las preferencias para otro usuario"
+  },
+  {
+    "id": "api.preference.save_preferences.set_details.app_error",
+    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
+  },
+  {
+    "id": "api.server.new_server.init.info",
+    "translation": "Inicializando el Servidor..."
+  },
+  {
+    "id": "api.server.start_server.listening.info",
+    "translation": "El servidor está escuchando en %v"
+  },
+  {
+    "id": "api.server.start_server.rate.info",
+    "translation": "Límite de velocidad está habilitado"
+  },
+  {
+    "id": "api.server.start_server.rate.warn",
+    "translation": "La configuración del límite de velocidad no ha sido configurado apropiadamente utilizando VaryByHeader y deshabilitado VaryByRemoteAddr"
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "Error arrancando el servidor, err:%v"
+  },
+  {
+    "id": "api.server.start_server.starting.info",
+    "translation": "Arrancando el Servidor..."
+  },
+  {
+    "id": "api.server.start_server.starting.panic",
+    "translation": "Error arrancando el servidor "
+  },
+  {
+    "id": "api.server.stop_server.stopped.info",
+    "translation": "Servidor detenido"
+  },
+  {
+    "id": "api.server.stop_server.stopping.info",
+    "translation": "Deteniendo el Servidor..."
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\r\n Canales agregados \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "Falla al importar: {{.DisplayName}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed.debug",
+    "translation": "Falla al importar: %s"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "Unificado al canal existente: {{.DisplayName}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.bot.warn",
+    "translation": "Mensajes del Bot de Slack no han sido importados todavía"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
+    "translation": "Mensaje sin usuario"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.unsupported.warn",
+    "translation": "Tipo de mensaje no soportado: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
+    "translation": "El usuario: %v no existe!"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.without_user.debug",
+    "translation": "Mensaje sin usuario"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\r\n Usuarios creados\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "Correo electrónico, Contraseña: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "No se pudo importar el usuario: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_timestamp.bad.warn",
+    "translation": "Se ha detectado la marca del tiempo errada"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "Mattermost Registros de importación de Slack\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "- Algunos mensajes puede que no hayan sido importados porque no son soportados por esta herramienta.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- mensajes realizadados por el bot de Slack actualmente no son soportados.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\r\n Notas \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "No se pudo abrir: {{.Filename}}"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "No se puede abrir el archivo comprimido"
+  },
+  {
+    "id": "api.team.create_team.email_disabled.app_error",
+    "translation": "El registro a equipos por correo electrónico está deshabilitado."
+  },
+  {
+    "id": "api.team.create_team_from_signup.email_disabled.app_error",
+    "translation": "El registro a equipos por correo electrónico está deshabilitado."
+  },
+  {
+    "id": "api.team.create_team_from_signup.expired_link.app_error",
+    "translation": "El enlace de registro ha expirado"
+  },
+  {
+    "id": "api.team.create_team_from_signup.invalid_link.app_error",
+    "translation": "El enlace de registro parece ser inválido"
+  },
+  {
+    "id": "api.team.create_team_from_signup.unavailable.app_error",
+    "translation": "Este URL no está disponible. Por favor, prueba con otra."
+  },
+  {
+    "id": "api.team.email_teams.sending.error",
+    "translation": "Ocurrió un error al enviar un correo en emailTeams err=%v"
+  },
+  {
+    "id": "api.team.export_team.admin.app_error",
+    "translation": "Sólo un administrador del equipo puede exportar data."
+  },
+  {
+    "id": "api.team.import_team.admin.app_error",
+    "translation": "Sólo un administrador del equipo puede importar data."
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Solicitud con matriz vacia en 'archivo'"
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "El tamaño del archivo no es un entero"
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "No hay un archivo bajo la solicitud de 'archivo'"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "No se pudo abrir el archivo"
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "No se pudo analizar el contenido del formulario multiparte"
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "El tamaño del archivo no está disponible"
+  },
+  {
+    "id": "api.team.init.debug",
+    "translation": "Inicializando rutas del API para los Equipos"
+  },
+  {
+    "id": "api.team.invite_members.admin",
+    "translation": "administrador"
+  },
+  {
+    "id": "api.team.invite_members.already.app_error",
+    "translation": "Esta persona ya se encuentra en tu equipo"
+  },
+  {
+    "id": "api.team.invite_members.member",
+    "translation": "miembro"
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "Nadie a quien invitar."
+  },
+  {
+    "id": "api.team.invite_members.send.error",
+    "translation": "Falla al enviar el correo de invitación satisfactoriamente err=%v"
+  },
+  {
+    "id": "api.team.invite_members.sending.info",
+    "translation": "enviando invtaciones a %v %v"
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "La creación de Equipos ha sido deshabilitada. Por favor pregunta a tu administrador de sistema por detalles."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.domain.app_error",
+    "translation": "El correo electrónico debe ser de un dominio específico (e.j. @ejemplo.com). Por favor pidele más detalles tu administrador de sistemas."
+  },
+  {
+    "id": "api.team.permanent_delete_team.attempting.warn",
+    "translation": "Intentando eliminar permanentemente al equipo %v id=%v"
+  },
+  {
+    "id": "api.team.permanent_delete_team.deleted.warn",
+    "translation": "Equipo eliminado permanentemente %v id=%v"
+  },
+  {
+    "id": "api.team.signup_team.email_disabled.app_error",
+    "translation": "El registro a equipos por correo electrónico está deshabilitado."
+  },
+  {
+    "id": "api.team.update_team.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "Falla al agragar las preferencias del canal directo para el usuario user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "Respuesta errada desde la consulta del token"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "Tipo de token errado"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "Estado inválido"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state_team.app_error",
+    "translation": "Estado inválido. falta nombre del equipo"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "Token de acceso ausente"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "La solicitud del token a {{.Service}} falló"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "Falló la solicitud del Token"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "Proveedor de servicios de OAuth no es compatible"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "Tu cuenta ha sido bloqueada debido a demasiados intentos fallidos. Por favor, restablece tu contraseña."
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "El inicio de sesión falló porque la contraseña es inválida"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Correo electrónico en blanco"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "No se pudo obtener la data de autorización del objeto de {{.Service}}"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
+    "translation": "OAuth para {{.Service}} no está disponible en este servidor"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "El Equipo {{.DisplayName}} ya tiene un usuario con esta dirección de correo asociada a tu cuenta de {{.Service}}"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_used.app_error",
+    "translation": "Esta cuenta de {{.Service}} ya fue utilizada para registrarse en el equipo {{.DisplayName}}"
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "No se pudo crear el usuario basandose en el objeto de {{.Service}}"
+  },
+  {
+    "id": "api.user.create_oauth_user.not_available.app_error",
+    "translation": "OAuth para {{.Service}} no está disponible en este servidor"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "No se pudo crear la letra para la imagen del pérfil perdeterminada"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "No se pudo codificar la imagen del pérfil predeterminada"
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "No se pudo asignar la inicial del usuario como imagen del pérfil predeterminada"
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "El correo electrónico provisto no pertenece a un dominio permitido. Por favor contacta a un administrador o registrate con un correo electrónico diferente."
+  },
+  {
+    "id": "api.user.create_user.joining.error",
+    "translation": "Se encontró un problema al unirse a los canales predeterminados user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.save.error",
+    "translation": "No se pudo guardar el usuario err=%v"
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "Registro de usuarios por correo electrónico está deshabilitado."
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "El enlace de registro ha expirado"
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "El enlace de registro parece ser inválido"
+  },
+  {
+    "id": "api.user.create_user.team_name.app_error",
+    "translation": "Nombre del equipo inválido"
+  },
+  {
+    "id": "api.user.create_user.tutorial.error",
+    "translation": "Se encontró un error al guardar las preferencias del tutorial, err=%v"
+  },
+  {
+    "id": "api.user.create_user.verified.error",
+    "translation": "Falla al asignar el correo como verificado err=%v"
+  },
+  {
+    "id": "api.user.get_authorization_code.unsupported.app_error",
+    "translation": "Proveedor de servicios de OAuth no es compatible"
+  },
+  {
+    "id": "api.user.get_me.getting.error",
+    "translation": "Error obteniendo el pérfil de usuario para id=%v forzando el cierre de sesión"
+  },
+  {
+    "id": "api.user.init.debug",
+    "translation": "Inicializando rutas del API para los Usuarios"
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "El campo de contraseña no debe quedar en blanco"
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "El inicio de sesión falló porque tu cuenta ha sido desactivada. Por favor contacta a un administrador."
+  },
+  {
+    "id": "api.user.login.not_provided.app_error",
+    "translation": "Ya sea el id de usuario o el nombre del equipo y la dirección de correo del usuario deben ser suministradas"
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "El inicio de sesión falló porque la dirección de correo electrónico no ha sido verificada"
+  },
+  {
+    "id": "api.user.login.revoking.app_error",
+    "translation": "Revocando sessionId=%v para el userId=%v vuelve a iniciar la sesión el el mismo dispositivo"
+  },
+  {
+    "id": "api.user.login_by_email.sign_in.app_error",
+    "translation": "Por favor inicia sesión usando {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "OAuth para {{.Service}} no está disponible en este servidor"
+  },
+  {
+    "id": "api.user.login_by_oauth.parse.app_error",
+    "translation": "No se pudo obtener la data de autorización del objeto de {{.Service}}"
+  },
+  {
+    "id": "api.user.login_ldap.blank_pwd.app_error",
+    "translation": "El campo de contraseña no debe quedar en blanco"
+  },
+  {
+    "id": "api.user.login_ldap.disabled.app_error",
+    "translation": "LDAP no está habilitado en este servidor"
+  },
+  {
+    "id": "api.user.login_ldap.need_id.app_error",
+    "translation": "Se necesita un ID"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "LDAP no está disponible en este servidor"
+  },
+  {
+    "id": "api.user.permanent_delete_user.attempting.warn",
+    "translation": "Intentando eliminar permanentemente la cuenta %v id=%v"
+  },
+  {
+    "id": "api.user.permanent_delete_user.deleted.warn",
+    "translation": "La cuenta %v ha sido eliminada permanentemente id=%v"
+  },
+  {
+    "id": "api.user.permanent_delete_user.system_admin.warn",
+    "translation": "Estas eliminando a %v que es un administrador de sistema.  Es posible que necesites asignar otra cuenta como administrador de sistema utilizando las herramientas de linea de comando."
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "El enlace para restablecer la contraseña parece ser inválido"
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "El enlace para restablecer la contraseña ha expirado"
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "No se puede restablecer la contraseña para cuentas SSO"
+  },
+  {
+    "id": "api.user.reset_password.wrong_team.app_error",
+    "translation": "Intentando restablecer la contraseña para el usuario en el equipo equivocado."
+  },
+  {
+    "id": "api.user.send_email_change_email_and_forget.error",
+    "translation": "Falla al enviar la notificación por correo electrónico del cambio de correo err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "Error al enviar correo electrónico de verificación de cambio de correo electrónico con éxito err=%v"
+  },
+  {
+    "id": "api.user.send_password_change_email_and_forget.error",
+    "translation": "Falla al enviar el correo del cambio de contraseña satisfactorio err=%v"
+  },
+  {
+    "id": "api.user.send_password_reset.find.app_error",
+    "translation": "No pudimos encontrar una cuenta con esa dirección."
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "Falla al enviar el correo para restablecer la contraseña satisfactorio"
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "No se puede restablecer la contraseña para cuentas SSO"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "Falla al enviar el correo del cambio de contraseña satisfactorio err=%v"
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "Falla al enviar el correo con la verificación éxitosa del correo electrónico err=%v"
+  },
+  {
+    "id": "api.user.send_welcome_email_and_forget.failed.error",
+    "translation": "Falla al enviar el correo de bienvenida err=%v"
+  },
+  {
+    "id": "api.user.switch_to_email.context.app_error",
+    "translation": "La actualización de la contraseña falló porque el user_id del contexto no coincide con el id de usuario provisto"
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "La actualización de la contraseña falló debido a que el user_id del contexto no coincide con el user_id de los props"
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "Falló al actualizar la contraseña"
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "La \"Contraseña actual\" que ingresaste es incorrecta. Por favor revisa que tengas en Bloq Mayus apagado e intenta de nuevo."
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "utilizando la opción del menú"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "La actualización de la contraseña falló debido a que el usuario está vinculado a un proveedor de OAuth"
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "La actualización de la contraseña falló debido a que no encontramos una cuenta válida"
+  },
+  {
+    "id": "api.user.update_roles.one_admin.app_error",
+    "translation": "Debe haber al menos un administrador activo"
+  },
+  {
+    "id": "api.user.update_roles.permissions.app_error",
+    "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.user.update_roles.system_admin_mod.app_error",
+    "translation": "El rol de administrador de sistema sólo puede ser modificado por otro administrador de sistema"
+  },
+  {
+    "id": "api.user.update_roles.system_admin_set.app_error",
+    "translation": "El rol de adminsitrador de sistema sólo puede ser asignado por otro administrador de sistema"
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Solicitud con matriz vacia en 'imagen'"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "No se pudo decodificar la imagen del pérfil"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode_config.app_error",
+    "translation": "No se pudo decodificar la configuración de la imagen del perfil."
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "No se pudo codificar la imagen del pérfil"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "No hay un archivo bajo la solicitud de 'imagen'"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "No se pudo abrir el archivo de imagen"
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "No se pudo analizar el contenido del formulario multiparte"
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "No se puede subir el archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "No se pudo actualizar la imagen del perfil. El archivo es muy grande."
+  },
+  {
     "id": "mattermost.current_version",
     "translation": "La versión actual es %v (%v/%v/%v)"
   },
