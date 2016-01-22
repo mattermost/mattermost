@@ -11,7 +11,6 @@ import DeveloperTab from './user_settings_developer.jsx';
 import IntegrationsTab from './user_settings_integrations.jsx';
 import DisplayTab from './user_settings_display.jsx';
 import AdvancedTab from './user_settings_advanced.jsx';
-import LanguagesTab from './user_settings_language.jsx';
 
 export default class UserSettings extends React.Component {
     constructor(props) {
