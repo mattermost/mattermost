@@ -75,7 +75,16 @@
         if ({{.SessionTokenIndex}} >= 0) {
             window.mm_session_token_index = {{.SessionTokenIndex}};
             $.ajaxSetup({
-                headers: { 'X-MM-TokenIndex': mm_session_token_index }
+                headers: {
+                    'X-MM-TokenIndex': mm_session_token_index,
+                    'Accept-Language': mm_locale
+                } 
+            });
+        } else {
+            $.ajaxSetup({
+                headers: {
+                    'Accept-Language': mm_locale
+                } 
             });
         }
 
