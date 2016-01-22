@@ -129,7 +129,7 @@ export default class CreateComment extends React.Component {
             function handlePostError(err) {
                 let state = {};
 
-                if (err.message === 'Invalid RootId parameter') {
+                if (err.id === 'api.post.create_post.root_id.app_error') {
                     PostStore.removePendingPost(post.channel_id, post.pending_post_id);
 
                     if ($('#post_deleted').length > 0) {
