@@ -1340,3 +1340,18 @@ export function clearFileInput(elm) {
         // Do nothing
     }
 }
+
+export function languages() {
+    return (
+        [
+            {
+                value: 'en',
+                name: 'English'
+            },
+            {
+                value: 'es',
+                name: 'Español'
+            }
+        ]
+    );
+}

@@ -451,6 +451,10 @@ export default {
         EMBED_PREVIEW: {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
+        },
+        LOC_PREVIEW: {
+            label: 'loc_preview',
+            description: 'Show user language in display settings'
         }
     },
     OVERLAY_TIME_DELAY: 400,

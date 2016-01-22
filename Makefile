@@ -118,7 +118,8 @@ package:
 	mkdir -p $(DIST_PATH)/web/static/js
 	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
 	cp -L web/static/js/*.min.js.map $(DIST_PATH)/web/static/js/
-	cp -RL web/static/js/react-intl-2.0.0-beta-2 $(DIST_PATH)/web/static/js/	
+	cp -RL web/static/js/intl-1.0.0 $(DIST_PATH)/web/static/js/
+	cp -RL web/static/js/react-intl-2.0.0-beta-2 $(DIST_PATH)/web/static/js/
 	cp -RL web/static/i18n $(DIST_PATH)/web/static
 	cp -RL web/static/config $(DIST_PATH)/web/static
 	cp -RL web/static/css $(DIST_PATH)/web/static
@@ -141,6 +142,7 @@ package:
 
 	sed -i'.bak' 's|react-0.14.3.js|react-0.14.3.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|react-dom-0.14.3.js|react-dom-0.14.3.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|Intl.js|Intl.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|react-intl.js|react-intl.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
