@@ -68,7 +68,7 @@ func SetTranslations(locale string) i18n.TranslateFunc {
 }
 
 func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
-	headerLocale = strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
+	headerLocale := strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
 	if locales[headerLocale] != "" {
 		translations, _ := i18n.Tfunc(locale)
 		return translations, headerLocale
