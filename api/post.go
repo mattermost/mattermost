@@ -53,7 +53,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if rp, err := CreatePost(c, post, true); err != nil {
 		c.Err = err
 
-		if strings.Contains(c.Err.Message, "parameter") {
+		if c.Err.Id == "api.post.create_post.root_id.app_error" ||
+			c.Err.Id == "api.post.create_post.channel_root_id.app_error" ||
+			c.Err.Id == "api.post.create_post.parent_id.app_error" {
 			c.Err.StatusCode = http.StatusBadRequest
 		}
 
@@ -75,15 +77,12 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 
 	// Verify the parent/child relationships are correct
 	if pchan != nil {
-		// somehow tests fail here if we use the commented lines
 		if presult := <-pchan; presult.Err != nil {
-			//return nil, model.NewLocAppError("createPost", "api.post.create_post.root_id.app_error", nil, "")
-			return nil, model.NewAppError("createPost", "Invalid RootId parameter", "")
+			return nil, model.NewLocAppError("createPost", "api.post.create_post.root_id.app_error", nil, "")
 		} else {
 			list := presult.Data.(*model.PostList)
 			if len(list.Posts) == 0 || !list.IsChannelId(post.ChannelId) {
-				//return nil, model.NewLocAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "")
-				return nil, model.NewAppError("createPost", "Invalid ChannelId for RootId parameter", "")
+				return nil, model.NewLocAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "")
 			}
 
 			if post.ParentId == "" {
@@ -93,8 +92,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 			if post.RootId != post.ParentId {
 				parent := list.Posts[post.ParentId]
 				if parent == nil {
-					//return nil, model.NewLocAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "")
-					return nil, model.NewAppError("createPost", "Invalid ParentId parameter", "")
+					return nil, model.NewLocAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "")
 				}
 			}
 		}
