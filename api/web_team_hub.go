@@ -6,6 +6,7 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type TeamHub struct {
@@ -65,7 +66,7 @@ func (h *TeamHub) Start() {
 			case s := <-h.stop:
 				if s {
 
-					l4g.Debug("team hub stopping for teamId=%v", h.teamId)
+					l4g.Debug(utils.T("api.web_team_hun.start.debug"), h.teamId)
 
 					for webCon := range h.connections {
 						webCon.WebSocket.Close()

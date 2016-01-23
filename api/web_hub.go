@@ -6,6 +6,7 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type Hub struct {
@@ -86,7 +87,7 @@ func (h *Hub) Start() {
 					nh.broadcast <- msg
 				}
 			case s := <-h.stop:
-				l4g.Debug("stopping %v connections", s)
+				l4g.Debug(utils.T("api.web_hub.start.stopping.debug"), s)
 				for _, v := range h.teamHubs {
 					v.Stop()
 				}

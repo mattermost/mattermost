@@ -8,11 +8,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"net/http"
 )
 
 func InitWebSocket(r *mux.Router) {
-	l4g.Debug("Initializing web socket api routes")
+	l4g.Debug(utils.T("api.web_socket.init.debug"))
 	r.Handle("/websocket", ApiUserRequired(connect)).Methods("GET")
 	hub.Start()
 }
@@ -28,8 +29,8 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		l4g.Error("websocket connect err: %v", err)
-		c.Err = model.NewAppError("connect", "Failed to upgrade websocket connection", "")
+		l4g.Error(utils.T("api.web_socket.connect.error"), err)
+		c.Err = model.NewLocAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, "")
 		return
 	}
 
