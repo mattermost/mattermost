@@ -5,6 +5,8 @@ import SuggestionStore from '../../stores/suggestion_store.jsx';
 import UserStore from '../../stores/user_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
+const MaxUserSuggestions = 40;
+
 class AtMentionSuggestion extends React.Component {
     render() {
         const {item, isSelection, onClick} = this.props;
@@ -77,6 +79,10 @@ export default class AtMentionProvider {
 
                 if (user.username.startsWith(usernamePrefix)) {
                     filtered.push(user);
+                }
+
+                if (filtered.length >= MaxUserSuggestions) {
+                    break;
                 }
             }
 
