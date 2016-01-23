@@ -750,3 +750,109 @@ func TestChannelStoreIncrementMentionCount(t *testing.T) {
 		t.Fatal("failed to update")
 	}
 }
+
+func TestGetMemberCount(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	c1 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel1",
+		Name:        "a" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	Must(store.Channel().Save(&c1))
+
+	c2 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel2",
+		Name:        "a" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	Must(store.Channel().Save(&c2))
+
+	t.Logf("c1.Id = %v", c1.Id)
+
+	u1 := model.User{
+		TeamId:   teamId,
+		Email:    model.NewId(),
+		DeleteAt: 0,
+	}
+	Must(store.User().Save(&u1))
+
+	m1 := model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	Must(store.Channel().SaveMember(&m1))
+
+	if result := <-store.Channel().GetMemberCount(c1.Id); result.Err != nil {
+		t.Fatal("failed to get member count: %v", result.Err)
+	} else if result.Data.(int64) != 1 {
+		t.Fatal("got incorrect member count %v", result.Data)
+	}
+
+	u2 := model.User{
+		TeamId:   teamId,
+		Email:    model.NewId(),
+		DeleteAt: 0,
+	}
+	Must(store.User().Save(&u2))
+
+	m2 := model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	Must(store.Channel().SaveMember(&m2))
+
+	if result := <-store.Channel().GetMemberCount(c1.Id); result.Err != nil {
+		t.Fatal("failed to get member count: %v", result.Err)
+	} else if result.Data.(int64) != 2 {
+		t.Fatal("got incorrect member count %v", result.Data)
+	}
+
+	// make sure members of other channels aren't counted
+	u3 := model.User{
+		TeamId:   teamId,
+		Email:    model.NewId(),
+		DeleteAt: 0,
+	}
+	Must(store.User().Save(&u3))
+
+	m3 := model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	Must(store.Channel().SaveMember(&m3))
+
+	if result := <-store.Channel().GetMemberCount(c1.Id); result.Err != nil {
+		t.Fatal("failed to get member count: %v", result.Err)
+	} else if result.Data.(int64) != 2 {
+		t.Fatal("got incorrect member count %v", result.Data)
+	}
+
+	// make sure inactive users aren't counted
+	u4 := model.User{
+		TeamId:   teamId,
+		Email:    model.NewId(),
+		DeleteAt: 10000,
+	}
+	Must(store.User().Save(&u4))
+
+	m4 := model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	Must(store.Channel().SaveMember(&m4))
+
+	if result := <-store.Channel().GetMemberCount(c1.Id); result.Err != nil {
+		t.Fatal("failed to get member count: %v", result.Err)
+	} else if result.Data.(int64) != 2 {
+		t.Fatal("got incorrect member count %v", result.Data)
+	}
+}
