@@ -1,7 +1,51 @@
 [
   {
-    "id": "",
-    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+    "id": "April",
+    "translation": "Abril"
+  },
+  {
+    "id": "August",
+    "translation": "Agosto"
+  },
+  {
+    "id": "December",
+    "translation": "Diciembre"
+  },
+  {
+    "id": "February",
+    "translation": "Febrero"
+  },
+  {
+    "id": "January",
+    "translation": "Enero"
+  },
+  {
+    "id": "July",
+    "translation": "Julio"
+  },
+  {
+    "id": "June",
+    "translation": "Junio"
+  },
+  {
+    "id": "March",
+    "translation": "Marzo"
+  },
+  {
+    "id": "May",
+    "translation": "Mayo"
+  },
+  {
+    "id": "November",
+    "translation": "Noviembre"
+  },
+  {
+    "id": "October",
+    "translation": "Octubre"
+  },
+  {
+    "id": "September",
+    "translation": "Septiembre"
   },
   {
     "id": "api.admin.file_read_error",
@@ -996,6 +1040,198 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
+    "id": "api.templates.email_change_body.info",
+    "translation": "Tu dirección de correo electrónico para {{.TeamDisplayName}} ha sido cambiada por {{.NewEmail}}.<br>Si este cambio no fue realizado por ti, por favor contacta un administrador de sistema."
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "Haz actualizado tu correo electrónico"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "Tu dirección de correo para {{.TeamDisplayName}} ha cambiado"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Confirmar Correo"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "Para terminar de actualizar tu dirección de correo para {{.TeamDisplayName}}, por favor pincha en botón de abajo para confirmar que está es la dirección correcta."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "Haz actualizado tu correo electrónico"
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "Verificación de la nueva dirección de correo electrónico para {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "Para cambiar tus preferencias de notificaciones, inicia sesión en tu equipo y dirigete a Configurar Cuenta > Notificaciones."
+  },
+  {
+    "id": "api.templates.email_info",
+    "translation": "Si tienes alguna pregunta, escribenos en cualquier momento a: <a href=\"mailto:{{.FeedbackEmail}}\" style=\"text-decoration: none; color:#2389D7;\">{{.FeedbackEmail}}</a>.<br>Los mejores deseos,<br>El Equipo {{.SiteName}}<br>"
+  },
+  {
+    "id": "api.templates.error.link",
+    "translation": "Volver al sitio del equipo"
+  },
+  {
+    "id": "api.templates.error.title",
+    "translation": "Necesitamos de tu ayuda en {{ .SiteName }}:"
+  },
+  {
+    "id": "api.templates.find_teams_body.found",
+    "translation": "Haz solicitado encontrar los equipos a los que tienes asociado tu correo electrónico y encontramos los siguientes:"
+  },
+  {
+    "id": "api.templates.find_teams_body.not_found",
+    "translation": "No hemos podido encontrar ningún equipo asociado al correo electrónico suministrado."
+  },
+  {
+    "id": "api.templates.find_teams_body.title",
+    "translation": "Tus Equipos"
+  },
+  {
+    "id": "api.templates.find_teams_subject",
+    "translation": "Tus equipos de {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Unirme al Equipo"
+  },
+  {
+    "id": "api.templates.invite_body.extra_info",
+    "translation": "Mattermost te permite compartir mensajes y archivos de tu Computador o teléfono, incluyendo busquedas instantáneas. Una vez que te hayas unido a <strong>{{.TeamDisplayName}}</strong>, Podrás iniciar sesión en tu nuevo equipo y utilizar todas las características en cualquier momento desde la dirección web:<br/><br/><a href=\"{{.TeamURL}}\">{{.TeamURL}}</a>"
+  },
+  {
+    "id": "api.templates.invite_body.info",
+    "translation": "<strong>{{.SenderName}}</strong> {{.SenderStatus}} del equipo <strong>{{.TeamDisplayName}}</strong>, te ha invitado a unirte."
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "Haz sido invitado"
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "{{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} en {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "Tu contraseña ha sido cambiada para {{.TeamDisplayName}} en {{ .TeamURL }} por el método de {{.Method}}.<br>Si este cambio no fue realizado por ti, por favor contacta a un administrador del sistema."
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "Haz cambiado tu contraseña"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "Tu contraseña ha sido cambiada para {{.TeamDisplayName}} en {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Ir al Canal"
+  },
+  {
+    "id": "api.templates.post_body.info",
+    "translation": "Canal: {{.ChannelName}}<br>{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.templates.post_subject",
+    "translation": "{{.SubjectText}} en {{.TeamDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Restablecer Contraseña"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Para cambiar tu contraseña, pincha el botón \"Restablecer Contraseña\" que se encuentra abajo.<br>Si no fue tu intención restablecer tu contraseña, por favor ignora este correo y tu contraseña seguirá siendo la misma."
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Haz solicitado restablecer tu contraseña"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "Restablece tu contraseña"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "correo electrónico y contraseña"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Haz actualizado el método con el que inicias sesión"
+  },
+  {
+    "id": "api.templates.signup_team_body.button",
+    "translation": "Configura tu equipo"
+  },
+  {
+    "id": "api.templates.signup_team_body.info",
+    "translation": "{{ .SiteName }} es el lugar para todas las comunicaciones de tu equipo, con capacidades de búsqueda y disponible desde cualquier parte.<br>Podrás aprovechar al máximo {{ .SiteName }} cuando tu equipo esté en constante comunicación--Traigamoslos a bordo."
+  },
+  {
+    "id": "api.templates.signup_team_body.title",
+    "translation": "¡Gracias por haber creado un equipo!"
+  },
+  {
+    "id": "api.templates.signup_team_subject",
+    "translation": "Configuración del equipo en {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.singin_change_email.body.info",
+    "translation": "Haz actualizado el método con el que inicias sesión en {{.TeamURL}} para el equipo {{.TeamDisplayName}} por {{.Method}}.<br>Si este cambio no fue realizado por ti, por favor contacta a un administrador del sistema."
+  },
+  {
+    "id": "api.templates.singin_change_email.subject",
+    "translation": "Cambio del método de inicio de sesión para {{.TeamDisplayName}} en {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Confirmar Correo"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Por favor verifica tu correo electrónico al pinchar el botón de abajo."
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Te haz unido al equipo {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{ .TeamDisplayName }} {{ .SiteName }}] Correo de Verificación"
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Confirmar Correo"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Por favor verifica tu correo electrónico al pinchar el botón de abajo."
+  },
+  {
+    "id": "api.templates.welcome_body.info2",
+    "translation": "Puedes iniciar sesión en tu nuevo equipo desde la dirección web:"
+  },
+  {
+    "id": "api.templates.welcome_body.info3",
+    "translation": "Mattermost te permite compartir mensajes y archivos desde un computador o teléfono desde donde te encuentres."
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Te haz unido al equipo {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "Te haz unido a {{ .TeamDisplayName }}"
+  },
+  {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "Falla al agragar las preferencias del canal directo para el usuario user_id=%s, team_id=%s, err=%v"
   },
@@ -1196,6 +1432,10 @@
     "translation": "El enlace para restablecer la contraseña ha expirado"
   },
   {
+    "id": "api.user.reset_password.method",
+    "translation": "utilizando el enlace para restablecer contraseña"
+  },
+  {
     "id": "api.user.reset_password.sso.app_error",
     "translation": "No se puede restablecer la contraseña para cuentas SSO"
   },
@@ -1329,7 +1569,7 @@
   },
   {
     "id": "api.web_conn.new_web_conn.last_ping.error",
-    "translation": "Failed to update LastPingAt for user_id=%v, err=%v"
+    "translation": "Falla al actualizar LastPingAt para el user_id=%v, err=%v"
   },
   {
     "id": "api.web_hub.start.stopping.debug",
@@ -1350,6 +1590,10 @@
   {
     "id": "api.web_team_hun.start.debug",
     "translation": "deteniendo el hub de equipo para teamId=%v"
+  },
+  {
+    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",

@@ -1,9 +1,7 @@
 {{define "email_info"}}
 
 <td style="color: #999; padding-top: 20px; line-height: 25px; font-size: 13px;">
-    Any questions at all, mail us any time: <a href="mailto:{{.ClientCfg.FeedbackEmail}}" style="text-decoration: none; color:#2389D7;">{{.ClientCfg.FeedbackEmail}}</a>.<br>
-    Best wishes,<br>
-    The {{.ClientCfg.SiteName}} Team<br>
+    {{.Html.EmailInfo}}
 </td>
 
 {{end}}
