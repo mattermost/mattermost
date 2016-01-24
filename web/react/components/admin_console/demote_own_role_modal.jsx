@@ -1,10 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as AsyncClient from '../../utils/async_client.jsx';
 import * as Client from '../../utils/client.jsx';
 const Modal = ReactBootstrap.Modal;
-import * as Utils from '../../utils/utils.jsx';
 
 export default class DemoteOwnRoleModal extends React.Component {
     constructor(props) {
@@ -23,7 +21,6 @@ export default class DemoteOwnRoleModal extends React.Component {
             user_id: this.props.user.id,
             new_roles: this.props.role
         };
-        console.log(JSON.stringify(data));
 
         Client.updateRoles(data,
             () => {
@@ -45,7 +42,7 @@ export default class DemoteOwnRoleModal extends React.Component {
         let serverError = null;
 
         if (this.state.serverError) {
-            serverError = <div className="has-error"><label className="has-error control-label">{this.state.serverError}</label></div>
+            serverError = <div className='has-error'><label className='has-error control-label'>{this.state.serverError}</label></div>
         }
 
         return (
