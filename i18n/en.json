@@ -1,1406 +1,1650 @@
 [
-    {
-        "id": "api.admin.file_read_error",
-        "translation": "Error reading log file"
-    },
-    {
-        "id": "api.admin.init.debug",
-        "translation": "Initializing admin api routes"
-    },
-    {
-        "id": "api.admin.test_email.body",
-        "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!"
-    },
-    {
-        "id": "api.admin.test_email.subject",
-        "translation": "Mattermost - Testing Email Settings"
-    },
-    {
-        "id": "api.api.init.parsing_templates.debug",
-        "translation": "Parsing server templates at %v"
-    },
-    {
-        "id": "api.api.init.parsing_templates.error",
-        "translation": "Failed to parse server templates %v"
-    },
-    {
-        "id": "api.api.render.error",
-        "translation": "Error rendering template %v err=%v"
-    },
-    {
-        "id": "api.channel.add_member.added",
-        "translation": "%v added to the channel by %v"
-    },
-    {
-        "id": "api.channel.add_member.find_channel.app_error",
-        "translation": "Failed to find channel"
-    },
-    {
-        "id": "api.channel.add_member.find_user.app_error",
-        "translation": "Failed to find user to be added"
-    },
-    {
-        "id": "api.channel.add_member.user_adding.app_error",
-        "translation": "Failed to find user doing the adding"
-    },
-    {
-        "id": "api.channel.add_user.to.channel.failed.app_error",
-        "translation": "Failed to add user to channel"
-    },
-    {
-        "id": "api.channel.add_user_to_channel.deleted.app_error",
-        "translation": "The channel has been archived or deleted"
-    },
-    {
-        "id": "api.channel.add_user_to_channel.type.app_error",
-        "translation": "Can not add user to this channel type"
-    },
-    {
-        "id": "api.channel.create_channel.direct_channel.app_error",
-        "translation": "Must use createDirectChannel api service for direct message channel creation"
-    },
-    {
-        "id": "api.channel.create_channel.invalid_character.app_error",
-        "translation": "Invalid character '__' in channel name for non-direct channel"
-    },
-    {
-        "id": "api.channel.create_default_channels.off_topic",
-        "translation": "Off-Topic"
-    },
-    {
-        "id": "api.channel.create_default_channels.town_square",
-        "translation": "Town Square"
-    },
-    {
-        "id": "api.channel.create_direct_channel.invalid_user.app_error",
-        "translation": "Invalid other user id "
-    },
-    {
-        "id": "api.channel.delete_channel.archived",
-        "translation": "%v has archived the channel."
-    },
-    {
-        "id": "api.channel.delete_channel.cannot.app_error",
-        "translation": "Cannot delete the default channel {{.Channel}}"
-    },
-    {
-        "id": "api.channel.delete_channel.deleted.app_error",
-        "translation": "The channel has been archived or deleted"
-    },
-    {
-        "id": "api.channel.delete_channel.failed_post.error",
-        "translation": "Failed to post archive message %v"
-    },
-    {
-        "id": "api.channel.delete_channel.failed_send.app_error",
-        "translation": "Failed to send archive message"
-    },
-    {
-        "id": "api.channel.delete_channel.incoming_webhook.error",
-        "translation": "Encountered error deleting incoming webhook, id=%v"
-    },
-    {
-        "id": "api.channel.delete_channel.outgoing_webhook.error",
-        "translation": "Encountered error deleting outgoing webhook, id=%v"
-    },
-    {
-        "id": "api.channel.delete_channel.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.channel.get_channel_counts.app_error",
-        "translation": "Unable to get channel counts from the database"
-    },
-    {
-        "id": "api.channel.get_channel_extra_info.deleted.app_error",
-        "translation": "The channel has been archived or deleted"
-    },
-    {
-        "id": "api.channel.get_channel_extra_info.member_limit.app_error",
-        "translation": "Failed to parse member limit"
-    },
-    {
-        "id": "api.channel.get_channels.error",
-        "translation": "Error in getting users profile for id=%v forcing logout"
-    },
-    {
-        "id": "api.channel.init.debug",
-        "translation": "Initializing channel api routes"
-    },
-    {
-        "id": "api.channel.join_channel.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.channel.join_channel.post_and_forget",
-        "translation": "%v has joined the channel."
-    },
-    {
-        "id": "api.channel.leave.default.app_error",
-        "translation": "Cannot leave the default channel {{.Channel}}"
-    },
-    {
-        "id": "api.channel.leave.direct.app_error",
-        "translation": "Cannot leave a direct message channel"
-    },
-    {
-        "id": "api.channel.leave.left",
-        "translation": "%v has left the channel."
-    },
-    {
-        "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-        "translation": "Failed to post join/leave message %v"
-    },
-    {
-        "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-        "translation": "%s removed the channel header (was: %s)"
-    },
-    {
-        "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-        "translation": "Failed to retrieve user while trying to save update channel header message %v"
-    },
-    {
-        "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-        "translation": "%s updated the channel header from: %s to: %s"
-    },
-    {
-        "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-        "translation": "%s updated the channel header to: %s"
-    },
-    {
-        "id": "api.channel.post_user_add_remove_message_and_forget.error",
-        "translation": "Failed to post join/leave message %v"
-    },
-    {
-        "id": "api.channel.remove_member.permissions.app_error",
-        "translation": "You do not have the appropriate permissions "
-    },
-    {
-        "id": "api.channel.remove_member.unable.app_error",
-        "translation": "Unable to remove user."
-    },
-    {
-        "id": "api.channel.remove_user_from_channel.deleted.app_error",
-        "translation": "The channel has been archived or deleted"
-    },
-    {
-        "id": "api.channel.update_channel.deleted.app_error",
-        "translation": "The channel has been archived or deleted"
-    },
-    {
-        "id": "api.channel.update_channel.permission.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.channel.update_channel.tried.app_error",
-        "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
-    },
-    {
-        "id": "api.command.check_command.start.app_error",
-        "translation": "Command must start with /"
-    },
-    {
-        "id": "api.command.echo_command.create.error",
-        "translation": "Unable to create /echo post, err=%v"
-    },
-    {
-        "id": "api.command.echo_command.description",
-        "translation": "Echo back text from your account, /echo \"message\" [delay in seconds]"
-    },
-    {
-        "id": "api.command.echo_command.high_volume.app_error",
-        "translation": "High volume of echo request, cannot process request"
-    },
-    {
-        "id": "api.command.echo_command.under.app_error",
-        "translation": "Delays must be under 10000 seconds"
-    },
-    {
-        "id": "api.command.init.debug",
-        "translation": "Initializing command api routes"
-    },
-    {
-        "id": "api.command.load_test_channels_command.channel.description",
-        "translation": "Add a specified number of random channels to current team <MinChannels> <MaxChannels>"
-    },
-    {
-        "id": "api.command.load_test_channels_command.fuzz.description",
-        "translation": "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"
-    },
-    {
-        "id": "api.command.load_test_command.description",
-        "translation": "Debug Load Testing"
-    },
-    {
-        "id": "api.command.load_test_posts_command.fuzz.description",
-        "translation": "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
-    },
-    {
-        "id": "api.command.load_test_posts_command.posts.description",
-        "translation": "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
-    },
-    {
-        "id": "api.command.load_test_setup_command.create.error",
-        "translation": "Failed to create testing environment"
-    },
-    {
-        "id": "api.command.load_test_setup_command.created.info",
-        "translation": "Team Created: %v"
-    },
-    {
-        "id": "api.command.load_test_setup_command.description",
-        "translation": "Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"
-    },
-    {
-        "id": "api.command.load_test_setup_command.login.info",
-        "translation": "\t User to login: %v, %v"
-    },
-    {
-        "id": "api.command.load_test_url_command.create.error",
-        "translation": "Unable to create post, err=%v"
-    },
-    {
-        "id": "api.command.load_test_url_command.description",
-        "translation": "Add a post containing the text from a given url to current channel <Url>"
-    },
-    {
-        "id": "api.command.load_test_url_command.file.app_error",
-        "translation": "Unable to get file"
-    },
-    {
-        "id": "api.command.load_test_url_command.reading.app_error",
-        "translation": "Encountered error reading file"
-    },
-    {
-        "id": "api.command.load_test_url_command.url.app_error",
-        "translation": "Command must contain a url"
-    },
-    {
-        "id": "api.command.load_test_users_command.fuzz.description",
-        "translation": "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"
-    },
-    {
-        "id": "api.command.load_test_users_command.users.description",
-        "translation": "Add a specified number of random users to current team <Min Users> <Max Users>"
-    },
-    {
-        "id": "api.command.logout_command.description",
-        "translation": "Logout"
-    },
-    {
-        "id": "api.command.me_command.create.error",
-        "translation": "Unable to create /me post post, err=%v"
-    },
-    {
-        "id": "api.command.me_command.description",
-        "translation": "Do an action, /me [message]"
-    },
-    {
-        "id": "api.command.no_implemented.app_error",
-        "translation": "Command not implemented"
-    },
-    {
-        "id": "api.command.shrug_command.create.error",
-        "translation": "Unable to create /shrug post post, err=%v"
-    },
-    {
-        "id": "api.command.shrug_command.description",
-        "translation": "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"
-    },
-    {
-        "id": "api.commmand.join_command.description",
-        "translation": "Join the open channel"
-    },
-    {
-        "id": "api.context.404.app_error",
-        "translation": "Sorry, we could not find the page."
-    },
-    {
-        "id": "api.context.invalid_param.app_error",
-        "translation": "Invalid {{.Name}} parameter"
-    },
-    {
-        "id": "api.context.invalid_team_url.debug",
-        "translation": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent"
-    },
-    {
-        "id": "api.context.invalid_token.error",
-        "translation": "Invalid session token=%v, err=%v"
-    },
-    {
-        "id": "api.context.last_activity_at.error",
-        "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
-    },
-    {
-        "id": "api.context.log.error",
-        "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]"
-    },
-    {
-        "id": "api.context.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.context.session_expired.app_error",
-        "translation": "Invalid or expired session, please login again."
-    },
-    {
-        "id": "api.context.system_permissions.app_error",
-        "translation": "You do not have the appropriate permissions (system)"
-    },
-    {
-        "id": "api.context.token_provided.app_error",
-        "translation": "Session is not OAuth but token was provided in the query string"
-    },
-    {
-        "id": "api.context.unknown.app_error",
-        "translation": "An unknown error has occured. Please contact support."
-    },
-    {
-        "id": "api.export.json.app_error",
-        "translation": "Unable to convert to json"
-    },
-    {
-        "id": "api.export.open.app_error",
-        "translation": "Unable to open file"
-    },
-    {
-        "id": "api.export.open_dir.app_error",
-        "translation": "Unable to open directory"
-    },
-    {
-        "id": "api.export.open_file.app_error",
-        "translation": "Unable to open file for export"
-    },
-    {
-        "id": "api.export.options.create.app_error",
-        "translation": "Unable to create options file"
-    },
-    {
-        "id": "api.export.options.write.app_error",
-        "translation": "Unable to write to options file"
-    },
-    {
-        "id": "api.export.read_dir.app_error",
-        "translation": "Unable to read directory"
-    },
-    {
-        "id": "api.export.s3.app_error",
-        "translation": "S3 is not supported for local storage export."
-    },
-    {
-        "id": "api.export.write_file.app_error",
-        "translation": "Unable to write to export file"
-    },
-    {
-        "id": "api.file.file_upload.exceeds",
-        "translation": "File exceeds max image size."
-    },
-    {
-        "id": "api.file.get_export.retrieve.app_error",
-        "translation": "Unable to retrieve exported file. Please re-export"
-    },
-    {
-        "id": "api.file.get_export.team_admin.app_error",
-        "translation": "Only a team admin can retrieve exported data."
-    },
-    {
-        "id": "api.file.get_file.not_found.app_error",
-        "translation": "Could not find file."
-    },
-    {
-        "id": "api.file.get_file.public_expired.app_error",
-        "translation": "The public link has expired"
-    },
-    {
-        "id": "api.file.get_file.public_invalid.app_error",
-        "translation": "The public link does not appear to be valid"
-    },
-    {
-        "id": "api.file.get_public_link.disabled.app_error",
-        "translation": "Public links have been disabled"
-    },
-    {
-        "id": "api.file.handle_images_forget.decode.error",
-        "translation": "Unable to decode image channelId=%v userId=%v filename=%v err=%v"
-    },
-    {
-        "id": "api.file.handle_images_forget.encode_jpeg.error",
-        "translation": "Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v"
-    },
-    {
-        "id": "api.file.handle_images_forget.encode_preview.error",
-        "translation": "Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v"
-    },
-    {
-        "id": "api.file.handle_images_forget.upload_preview.error",
-        "translation": "Unable to upload preview channelId=%v userId=%v filename=%v err=%v"
-    },
-    {
-        "id": "api.file.handle_images_forget.upload_thumb.error",
-        "translation": "Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v"
-    },
-    {
-        "id": "api.file.init.debug",
-        "translation": "Initializing file api routes"
-    },
-    {
-        "id": "api.file.open_file_write_stream.configured.app_error",
-        "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-    },
-    {
-        "id": "api.file.open_file_write_stream.creating_dir.app_error",
-        "translation": "Encountered an error creating the directory for the new file"
-    },
-    {
-        "id": "api.file.open_file_write_stream.local_server.app_error",
-        "translation": "Encountered an error writing to local server storage"
-    },
-    {
-        "id": "api.file.open_file_write_stream.s3.app_error",
-        "translation": "S3 is not supported."
-    },
-    {
-        "id": "api.file.read_file.configured.app_error",
-        "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-    },
-    {
-        "id": "api.file.read_file.get.app_error",
-        "translation": "Unable to get file from S3"
-    },
-    {
-        "id": "api.file.read_file.reading_local.app_error",
-        "translation": "Encountered an error reading from local server storage"
-    },
-    {
-        "id": "api.file.upload_file.image.app_error",
-        "translation": "Unable to upload image file."
-    },
-    {
-        "id": "api.file.upload_file.large_image.app_error",
-        "translation": "Unable to upload image file. File is too large."
-    },
-    {
-        "id": "api.file.upload_file.storage.app_error",
-        "translation": "Unable to upload file. Image storage is not configured."
-    },
-    {
-        "id": "api.file.upload_file.too_large.app_error",
-        "translation": "Unable to upload file. File is too large."
-    },
-    {
-        "id": "api.file.write_file.configured.app_error",
-        "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-    },
-    {
-        "id": "api.file.write_file.s3.app_error",
-        "translation": "Encountered an error writing to S3"
-    },
-    {
-        "id": "api.file.write_file_locally.create_dir.app_error",
-        "translation": "Encountered an error creating the directory for the new file"
-    },
-    {
-        "id": "api.file.write_file_locally.writing.app_error",
-        "translation": "Encountered an error writing to local server storage"
-    },
-    {
-        "id": "api.import.import_post.saving.debug",
-        "translation": "Error saving post. user=%v, message=%v"
-    },
-    {
-        "id": "api.import.import_user.joining_default.error",
-        "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
-    },
-    {
-        "id": "api.import.import_user.saving.error",
-        "translation": "Error saving user. err=%v"
-    },
-    {
-        "id": "api.import.import_user.set_email.error",
-        "translation": "Failed to set email verified err=%v"
-    },
-    {
-        "id": "api.license.add_license.array.app_error",
-        "translation": "Empty array under 'license' in request"
-    },
-    {
-        "id": "api.license.add_license.expired.app_error",
-        "translation": "License is either expired or has not yet started."
-    },
-    {
-        "id": "api.license.add_license.invalid.app_error",
-        "translation": "Invalid license file."
-    },
-    {
-        "id": "api.license.add_license.no_file.app_error",
-        "translation": "No file under 'license' in request"
-    },
-    {
-        "id": "api.license.add_license.open.app_error",
-        "translation": "Could not open license file"
-    },
-    {
-        "id": "api.license.add_license.save.app_error",
-        "translation": "License did not save properly."
-    },
-    {
-        "id": "api.license.init.debug",
-        "translation": "Initializing license api routes"
-    },
-    {
-        "id": "api.license.remove_license.remove.app_error",
-        "translation": "License did not remove properly."
-    },
-    {
-        "id": "api.oauth.allow_oauth.bad_client.app_error",
-        "translation": "invalid_request: Bad client_id"
-    },
-    {
-        "id": "api.oauth.allow_oauth.bad_redirect.app_error",
-        "translation": "invalid_request: Missing or bad redirect_uri"
-    },
-    {
-        "id": "api.oauth.allow_oauth.bad_response.app_error",
-        "translation": "invalid_request: Bad response_type"
-    },
-    {
-        "id": "api.oauth.allow_oauth.database.app_error",
-        "translation": "server_error: Error accessing the database"
-    },
-    {
-        "id": "api.oauth.allow_oauth.redirect_callback.app_error",
-        "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url"
-    },
-    {
-        "id": "api.oauth.allow_oauth.turn_off.app_error",
-        "translation": "The system admin has turned off OAuth service providing."
-    },
-    {
-        "id": "api.oauth.get_auth_data.find.error",
-        "translation": "Couldn't find auth code for code=%s"
-    },
-    {
-        "id": "api.oauth.init.debug",
-        "translation": "Initializing oauth api routes"
-    },
-    {
-        "id": "api.oauth.register_oauth_app.turn_off.app_error",
-        "translation": "The system admin has turned off OAuth service providing."
-    },
-    {
-        "id": "api.oauth.revoke_access_token.del_code.app_error",
-        "translation": "Error deleting authorization code from DB"
-    },
-    {
-        "id": "api.oauth.revoke_access_token.del_session.app_error",
-        "translation": "Error deleting session from DB"
-    },
-    {
-        "id": "api.oauth.revoke_access_token.del_token.app_error",
-        "translation": "Error deleting access token from DB"
-    },
-    {
-        "id": "api.oauth.revoke_access_token.get.app_error",
-        "translation": "Error getting access token from DB before deletion"
-    },
-    {
-        "id": "api.post.create_post.bad_filename.error",
-        "translation": "Bad filename discarded, filename=%v"
-    },
-    {
-        "id": "api.post.create_post.channel_root_id.app_error",
-        "translation": "Invalid ChannelId for RootId parameter"
-    },
-    {
-        "id": "api.post.create_post.last_viewed.error",
-        "translation": "Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v"
-    },
-    {
-        "id": "api.post.create_post.parent_id.app_error",
-        "translation": "Invalid ParentId parameter"
-    },
-    {
-        "id": "api.post.create_post.root_id.app_error",
-        "translation": "Invalid RootId parameter"
-    },
-    {
-        "id": "api.post.create_webhook_post.creating.app_error",
-        "translation": "Error creating post"
-    },
-    {
-        "id": "api.post.delete_post.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.post.get_post.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.post.handle_post_events_and_forget.channel.error",
-        "translation": "Encountered error getting channel, channel_id=%s, err=%v"
-    },
-    {
-        "id": "api.post.handle_post_events_and_forget.team.error",
-        "translation": "Encountered error getting team, team_id=%s, err=%v"
-    },
-    {
-        "id": "api.post.handle_post_events_and_forget.user.error",
-        "translation": "Encountered error getting user, user_id=%s, err=%v"
-    },
-    {
-        "id": "api.post.handle_webhook_events_and_forget.create_post.error",
-        "translation": "Failed to create response post, err=%v"
-    },
-    {
-        "id": "api.post.handle_webhook_events_and_forget.event_post.error",
-        "translation": "Event POST failed, err=%s"
-    },
-    {
-        "id": "api.post.handle_webhook_events_and_forget.getting.error",
-        "translation": "Encountered error getting webhooks by team, err=%v"
-    },
-    {
-        "id": "api.post.init.debug",
-        "translation": "Initializing post api routes"
-    },
-    {
-        "id": "api.post.make_direct_channel_visible.get_2_members.error",
-        "translation": "Failed to get 2 members for a direct channel channel_id=%v"
-    },
-    {
-        "id": "api.post.make_direct_channel_visible.get_members.error",
-        "translation": "Failed to get channel members channel_id=%v err=%v"
-    },
-    {
-        "id": "api.post.make_direct_channel_visible.save_pref.error",
-        "translation": "Failed to save direct channel preference user_id=%v other_user_id=%v err=%v"
-    },
-    {
-        "id": "api.post.make_direct_channel_visible.update_pref.error",
-        "translation": "Failed to update direct channel preference user_id=%v other_user_id=%v err=%v"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.members.error",
-        "translation": "Failed to get channel members channel_id=%v err=%v"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.mention_body",
-        "translation": "You have one new mention."
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.mention_subject",
-        "translation": "New Mention"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.message_body",
-        "translation": "You have one new message."
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.message_subject",
-        "translation": "New Direct Message"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.push_mention",
-        "translation": " mentioned you in "
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.push_message",
-        "translation": " sent you a direct message"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.push_notification.debug",
-        "translation": "Sending push notification to %v wi msg of '%v'"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.push_notification.error",
-        "translation": "Failed to send push notificationid=%v, err=%v"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.retrive_profiles.error",
-        "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.send.error",
-        "translation": "Failed to send mention email successfully email=%v err=%v"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.sent",
-        "translation": "{{.Prefix}} {{.Filenames}} sent"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.sessions.error",
-        "translation": "Failed to retrieve sessions in notifications id=%v, err=%v"
-    },
-    {
-        "id": "api.post.send_notifications_and_forget.user_id.error",
-        "translation": "Post user_id not returned by GetProfiles user_id=%v"
-    },
-    {
-        "id": "api.post.update_mention_count_and_forget.update_error",
-        "translation": "Failed to update mention count for user_id=%v on channel_id=%v err=%v"
-    },
-    {
-        "id": "api.post.update_post.find.app_error",
-        "translation": "We couldn't find the existing post or comment to update."
-    },
-    {
-        "id": "api.post.update_post.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.post.update_post.permissions_details.app_error",
-        "translation": "Already delted id={{.PostId}}"
-    },
-    {
-        "id": "api.post_get_post_by_id.get.app_error",
-        "translation": "Unable to get post"
-    },
-    {
-        "id": "api.preference.init.debug",
-        "translation": "Initializing preference api routes"
-    },
-    {
-        "id": "api.preference.save_preferences.decode.app_error",
-        "translation": "Unable to decode preferences from request"
-    },
-    {
-        "id": "api.preference.save_preferences.set.app_error",
-        "translation": "Unable to set preferences for other user"
-    },
-    {
-        "id": "api.preference.save_preferences.set_details.app_error",
-        "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-    },
-    {
-        "id": "api.server.new_server.init.info",
-        "translation": "Server is initializing..."
-    },
-    {
-        "id": "api.server.start_server.listening.info",
-        "translation": "Server is listening on %v"
-    },
-    {
-        "id": "api.server.start_server.rate.info",
-        "translation": "RateLimiter is enabled"
-    },
-    {
-        "id": "api.server.start_server.rate.warn",
-        "translation": "RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr"
-    },
-    {
-        "id": "api.server.start_server.starting.critical",
-        "translation": "Error starting server, err:%v"
-    },
-    {
-        "id": "api.server.start_server.starting.info",
-        "translation": "Starting Server..."
-    },
-    {
-        "id": "api.server.start_server.starting.panic",
-        "translation": "Error starting server "
-    },
-    {
-        "id": "api.server.stop_server.stopped.info",
-        "translation": "Server stopped"
-    },
-    {
-        "id": "api.server.stop_server.stopping.info",
-        "translation": "Stopping Server..."
-    },
-    {
-        "id": "api.slackimport.slack_add_channels.added",
-        "translation": "\r\n Channels Added \r\n"
-    },
-    {
-        "id": "api.slackimport.slack_add_channels.import_failed",
-        "translation": "Failed to import: {{.DisplayName}}\r\n"
-    },
-    {
-        "id": "api.slackimport.slack_add_channels.import_failed.debug",
-        "translation": "Failed to import: %s"
-    },
-    {
-        "id": "api.slackimport.slack_add_channels.merge",
-        "translation": "Merged with existing channel: {{.DisplayName}}\r\n"
-    },
-    {
-        "id": "api.slackimport.slack_add_posts.bot.warn",
-        "translation": "Slack bot posts are not imported yet"
-    },
-    {
-        "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-        "translation": "Message without user"
-    },
-    {
-        "id": "api.slackimport.slack_add_posts.unsupported.warn",
-        "translation": "Unsupported post type: %v, %v"
-    },
-    {
-        "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-        "translation": "User: %v does not exist!"
-    },
-    {
-        "id": "api.slackimport.slack_add_posts.without_user.debug",
-        "translation": "Message without user"
-    },
-    {
-        "id": "api.slackimport.slack_add_users.created",
-        "translation": "\r\n Users Created\r\n"
-    },
-    {
-        "id": "api.slackimport.slack_add_users.email_pwd",
-        "translation": "Email, Password: {{.Email}}, {{.Password}}\r\n"
-    },
-    {
-        "id": "api.slackimport.slack_add_users.unable_import",
-        "translation": "Unable to import user: {{.Username}}\r\n"
-    },
-    {
-        "id": "api.slackimport.slack_convert_timestamp.bad.warn",
-        "translation": "Bad timestamp detected"
-    },
-    {
-        "id": "api.slackimport.slack_import.log",
-        "translation": "Mattermost Slack Import Log\r\n"
-    },
-    {
-        "id": "api.slackimport.slack_import.note1",
-        "translation": "- Some posts may not have been imported because they where not supported by this importer.\r\n"
-    },
-    {
-        "id": "api.slackimport.slack_import.note2",
-        "translation": "- Slack bot posts are currently not supported.\r\n"
-    },
-    {
-        "id": "api.slackimport.slack_import.notes",
-        "translation": "\r\n Notes \r\n"
-    },
-    {
-        "id": "api.slackimport.slack_import.open.app_error",
-        "translation": "Unable to open: {{.Filename}}"
-    },
-    {
-        "id": "api.slackimport.slack_import.zip.app_error",
-        "translation": "Unable to open zip file"
-    },
-    {
-        "id": "api.team.create_team.email_disabled.app_error",
-        "translation": "Team sign-up with email is disabled."
-    },
-    {
-        "id": "api.team.create_team_from_signup.email_disabled.app_error",
-        "translation": "Team sign-up with email is disabled."
-    },
-    {
-        "id": "api.team.create_team_from_signup.expired_link.app_error",
-        "translation": "The signup link has expired"
-    },
-    {
-        "id": "api.team.create_team_from_signup.invalid_link.app_error",
-        "translation": "The signup link does not appear to be valid"
-    },
-    {
-        "id": "api.team.create_team_from_signup.unavailable.app_error",
-        "translation": "This URL is unavailable. Please try another."
-    },
-    {
-        "id": "api.team.email_teams.sending.error",
-        "translation": "An error occured while sending an email in emailTeams err=%v"
-    },
-    {
-        "id": "api.team.export_team.admin.app_error",
-        "translation": "Only a team admin can export data."
-    },
-    {
-        "id": "api.team.import_team.admin.app_error",
-        "translation": "Only a team admin can import data."
-    },
-    {
-        "id": "api.team.import_team.array.app_error",
-        "translation": "Empty array under 'file' in request"
-    },
-    {
-        "id": "api.team.import_team.integer.app_error",
-        "translation": "Filesize not an integer"
-    },
-    {
-        "id": "api.team.import_team.no_file.app_error",
-        "translation": "No file under 'file' in request"
-    },
-    {
-        "id": "api.team.import_team.open.app_error",
-        "translation": "Could not open file"
-    },
-    {
-        "id": "api.team.import_team.parse.app_error",
-        "translation": "Could not parse multipart form"
-    },
-    {
-        "id": "api.team.import_team.unavailable.app_error",
-        "translation": "Filesize unavilable"
-    },
-    {
-        "id": "api.team.init.debug",
-        "translation": "Initializing team api routes"
-    },
-    {
-        "id": "api.team.invite_members.admin",
-        "translation": "administrator"
-    },
-    {
-        "id": "api.team.invite_members.already.app_error",
-        "translation": "This person is already on your team"
-    },
-    {
-        "id": "api.team.invite_members.member",
-        "translation": "member"
-    },
-    {
-        "id": "api.team.invite_members.no_one.app_error",
-        "translation": "No one to invite."
-    },
-    {
-        "id": "api.team.invite_members.send.error",
-        "translation": "Failed to send invite email successfully err=%v"
-    },
-    {
-        "id": "api.team.invite_members.sending.info",
-        "translation": "sending invitation to %v %v"
-    },
-    {
-        "id": "api.team.is_team_creation_allowed.disabled.app_error",
-        "translation": "Team creation has been disabled. Please ask your systems administrator for details."
-    },
-    {
-        "id": "api.team.is_team_creation_allowed.domain.app_error",
-        "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
-    },
-    {
-        "id": "api.team.permanent_delete_team.attempting.warn",
-        "translation": "Attempting to permanently delete team %v id=%v"
-    },
-    {
-        "id": "api.team.permanent_delete_team.deleted.warn",
-        "translation": "Permanently deleted team %v id=%v"
-    },
-    {
-        "id": "api.team.signup_team.email_disabled.app_error",
-        "translation": "Team sign-up with email is disabled."
-    },
-    {
-        "id": "api.team.update_team.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.user.add_direct_channels_and_forget.failed.error",
-        "translation": "Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v"
-    },
-    {
-        "id": "api.user.authorize_oauth_user.bad_response.app_error",
-        "translation": "Bad response from token request"
-    },
-    {
-        "id": "api.user.authorize_oauth_user.bad_token.app_error",
-        "translation": "Bad token type"
-    },
-    {
-        "id": "api.user.authorize_oauth_user.invalid_state.app_error",
-        "translation": "Invalid state"
-    },
-    {
-        "id": "api.user.authorize_oauth_user.invalid_state_team.app_error",
-        "translation": "Invalid state; missing team name"
-    },
-    {
-        "id": "api.user.authorize_oauth_user.missing.app_error",
-        "translation": "Missing access token"
-    },
-    {
-        "id": "api.user.authorize_oauth_user.service.app_error",
-        "translation": "Token request to {{.Service}} failed"
-    },
-    {
-        "id": "api.user.authorize_oauth_user.token_failed.app_error",
-        "translation": "Token request failed"
-    },
-    {
-        "id": "api.user.authorize_oauth_user.unsupported.app_error",
-        "translation": "Unsupported OAuth service provider"
-    },
-    {
-        "id": "api.user.check_user_login_attempts.too_many.app_error",
-        "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
-    },
-    {
-        "id": "api.user.check_user_password.invalid.app_error",
-        "translation": "Login failed because of invalid password"
-    },
-    {
-        "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Blank email"
-    },
-    {
-        "id": "api.user.complete_switch_with_oauth.parse.app_error",
-        "translation": "Could not parse auth data out of {{.Service}} user object"
-    },
-    {
-        "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-        "translation": "{{.Service}} oauth not available on this server"
-    },
-    {
-        "id": "api.user.create_oauth_user.already_attached.app_error",
-        "translation": "Team {{.DisplayName}} already has a user with the email address attached to your {{.Service}} account"
-    },
-    {
-        "id": "api.user.create_oauth_user.already_used.app_error",
-        "translation": "This {{.Service}} account has already been used to sign up for team {{.DisplayName}}"
-    },
-    {
-        "id": "api.user.create_oauth_user.create.app_error",
-        "translation": "Could not create user out of {{.Service}} user object"
-    },
-    {
-        "id": "api.user.create_oauth_user.not_available.app_error",
-        "translation": "{{.Service}} oauth not avlailable on this server"
-    },
-    {
-        "id": "api.user.create_profile_image.default_font.app_error",
-        "translation": "Could not create default profile image font"
-    },
-    {
-        "id": "api.user.create_profile_image.encode.app_error",
-        "translation": "Could not encode default profile image"
-    },
-    {
-        "id": "api.user.create_profile_image.initial.app_error",
-        "translation": "Could not add user initial to default profile picture"
-    },
-    {
-        "id": "api.user.create_user.accepted_domain.app_error",
-        "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
-    },
-    {
-        "id": "api.user.create_user.joining.error",
-        "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
-    },
-    {
-        "id": "api.user.create_user.save.error",
-        "translation": "Couldn't save the user err=%v"
-    },
-    {
-        "id": "api.user.create_user.signup_email_disabled.app_error",
-        "translation": "User sign-up with email is disabled."
-    },
-    {
-        "id": "api.user.create_user.signup_link_expired.app_error",
-        "translation": "The signup link has expired"
-    },
-    {
-        "id": "api.user.create_user.signup_link_invalid.app_error",
-        "translation": "The signup link does not appear to be valid"
-    },
-    {
-        "id": "api.user.create_user.team_name.app_error",
-        "translation": "Invalid team name"
-    },
-    {
-        "id": "api.user.create_user.tutorial.error",
-        "translation": "Encountered error saving tutorial preference, err=%v"
-    },
-    {
-        "id": "api.user.create_user.verified.error",
-        "translation": "Failed to set email verified err=%v"
-    },
-    {
-        "id": "api.user.get_authorization_code.unsupported.app_error",
-        "translation": "Unsupported OAuth service provider"
-    },
-    {
-        "id": "api.user.get_me.getting.error",
-        "translation": "Error in getting users profile for id=%v forcing logout"
-    },
-    {
-        "id": "api.user.init.debug",
-        "translation": "Initializing user api routes"
-    },
-    {
-        "id": "api.user.login.blank_pwd.app_error",
-        "translation": "Password field must not be blank"
-    },
-    {
-        "id": "api.user.login.inactive.app_error",
-        "translation": "Login failed because your account has been set to inactive.  Please contact an administrator."
-    },
-    {
-        "id": "api.user.login.not_provided.app_error",
-        "translation": "Either user id or team name and user email must be provided"
-    },
-    {
-        "id": "api.user.login.not_verified.app_error",
-        "translation": "Login failed because email address has not been verified"
-    },
-    {
-        "id": "api.user.login.revoking.app_error",
-        "translation": "Revoking sessionId=%v for userId=%v re-login with same device Id"
-    },
-    {
-        "id": "api.user.login_by_email.sign_in.app_error",
-        "translation": "Please sign in using {{.AuthService}}"
-    },
-    {
-        "id": "api.user.login_by_oauth.not_available.app_error",
-        "translation": "{{.Service}} oauth not avlailable on this server"
-    },
-    {
-        "id": "api.user.login_by_oauth.parse.app_error",
-        "translation": "Could not parse auth data out of {{.Service}} user object"
-    },
-    {
-        "id": "api.user.login_ldap.blank_pwd.app_error",
-        "translation": "Password field must not be blank"
-    },
-    {
-        "id": "api.user.login_ldap.disabled.app_error",
-        "translation": "LDAP not enabled on this server"
-    },
-    {
-        "id": "api.user.login_ldap.need_id.app_error",
-        "translation": "Need an ID"
-    },
-    {
-        "id": "api.user.login_ldap.not_available.app_error",
-        "translation": "LDAP not available on this server"
-    },
-    {
-        "id": "api.user.permanent_delete_user.attempting.warn",
-        "translation": "Attempting to permanently delete account %v id=%v"
-    },
-    {
-        "id": "api.user.permanent_delete_user.deleted.warn",
-        "translation": "Permanently deleted account %v id=%v"
-    },
-    {
-        "id": "api.user.permanent_delete_user.system_admin.warn",
-        "translation": "You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools."
-    },
-    {
-        "id": "api.user.reset_password.invalid_link.app_error",
-        "translation": "The reset password link does not appear to be valid"
-    },
-    {
-        "id": "api.user.reset_password.link_expired.app_error",
-        "translation": "The reset link has expired"
-    },
-    {
-        "id": "api.user.reset_password.sso.app_error",
-        "translation": "Cannot reset password for SSO accounts"
-    },
-    {
-        "id": "api.user.reset_password.wrong_team.app_error",
-        "translation": "Trying to reset password for user on wrong team."
-    },
-    {
-        "id": "api.user.send_email_change_email_and_forget.error",
-        "translation": "Failed to send email change notification email successfully err=%v"
-    },
-    {
-        "id": "api.user.send_email_change_verify_email_and_forget.error",
-        "translation": "Failed to send email change verification email successfully err=%v"
-    },
-    {
-        "id": "api.user.send_password_change_email_and_forget.error",
-        "translation": "Failed to send update password email successfully err=%v"
-    },
-    {
-        "id": "api.user.send_password_reset.find.app_error",
-        "translation": "We couldn’t find an account with that address."
-    },
-    {
-        "id": "api.user.send_password_reset.send.app_error",
-        "translation": "Failed to send password reset email successfully"
-    },
-    {
-        "id": "api.user.send_password_reset.sso.app_error",
-        "translation": "Cannot reset password for SSO accounts"
-    },
-    {
-        "id": "api.user.send_sign_in_change_email_and_forget.error",
-        "translation": "Failed to send update password email successfully err=%v"
-    },
-    {
-        "id": "api.user.send_verify_email_and_forget.failed.error",
-        "translation": "Failed to send verification email successfully err=%v"
-    },
-    {
-        "id": "api.user.send_welcome_email_and_forget.failed.error",
-        "translation": "Failed to send welcome email successfully err=%v"
-    },
-    {
-        "id": "api.user.switch_to_email.context.app_error",
-        "translation": "Update password failed because context user_id did not match provided user's id"
-    },
-    {
-        "id": "api.user.update_active.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.user.update_password.context.app_error",
-        "translation": "Update password failed because context user_id did not match props user_id"
-    },
-    {
-        "id": "api.user.update_password.failed.app_error",
-        "translation": "Update password failed"
-    },
-    {
-        "id": "api.user.update_password.incorrect.app_error",
-        "translation": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again."
-    },
-    {
-        "id": "api.user.update_password.menu",
-        "translation": "using the settings menu"
-    },
-    {
-        "id": "api.user.update_password.oauth.app_error",
-        "translation": "Update password failed because the user is logged in through an OAuth service"
-    },
-    {
-        "id": "api.user.update_password.valid_account.app_error",
-        "translation": "Update password failed because we couldn't find a valid account"
-    },
-    {
-        "id": "api.user.update_roles.one_admin.app_error",
-        "translation": "There must be at least one active admin"
-    },
-    {
-        "id": "api.user.update_roles.permissions.app_error",
-        "translation": "You do not have the appropriate permissions"
-    },
-    {
-        "id": "api.user.update_roles.system_admin_mod.app_error",
-        "translation": "The system admin role can only by modified by another system admin"
-    },
-    {
-        "id": "api.user.update_roles.system_admin_set.app_error",
-        "translation": "The system admin role can only be set by another system admin"
-    },
-    {
-        "id": "api.user.upload_profile_user.array.app_error",
-        "translation": "Empty array under 'image' in request"
-    },
-    {
-        "id": "api.user.upload_profile_user.decode.app_error",
-        "translation": "Could not decode profile image"
-    },
-    {
-        "id": "api.user.upload_profile_user.decode_config.app_error",
-        "translation": "Could not decode profile image config."
-    },
-    {
-        "id": "api.user.upload_profile_user.encode.app_error",
-        "translation": "Could not encode profile image"
-    },
-    {
-        "id": "api.user.upload_profile_user.no_file.app_error",
-        "translation": "No file under 'image' in request"
-    },
-    {
-        "id": "api.user.upload_profile_user.open.app_error",
-        "translation": "Could not open image file"
-    },
-    {
-        "id": "api.user.upload_profile_user.parse.app_error",
-        "translation": "Could not parse multipart form"
-    },
-    {
-        "id": "api.user.upload_profile_user.storage.app_error",
-        "translation": "Unable to upload file. Image storage is not configured."
-    },
-    {
-        "id": "api.user.upload_profile_user.too_large.app_error",
-        "translation": "Unable to upload profile image. File is too large."
-    },
-    {
-        "id": "mattermost.current_version",
-        "translation": "Current version is %v (%v/%v/%v)"
-    },
-    {
-        "id": "utils.i18n.loaded",
-        "translation": "Loaded system translations for '%v' from '%v'"
-    },
-    {
-        "id": "api.web_conn.new_web_conn.last_activity.error",
-        "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
-    },
-    {
-        "id": "api.web_conn.new_web_conn.last_ping.error",
-        "translation": "Failed to update LastPingAt for user_id=%v, err=%v"
-    },
-    {
-        "id": "api.web_hub.start.stopping.debug",
-        "translation": "stopping %v connections"
-    },
-    {
-        "id": "api.web_socket.init.debug",
-        "translation": "Initializing web socket api routes"
-    },
-    {
-        "id": "api.web_socket.connect.error",
-        "translation": "websocket connect err: %v"
-    },
-    {
-        "id": "api.web_socket.connect.upgrade.app_error",
-        "translation": "Failed to upgrade websocket connection"
-    },
-    {
-        "id": "api.web_team_hun.start.debug",
-        "translation": "team hub stopping for teamId=%v"
-    },
-    {
-        "id": "api.webhook.init.debug",
-        "translation": "Initializing webhook api routes"
-    },
-    {
-        "id": "",
-        "translation": "Incoming webhooks have been disabled by the system admin."
-    },
-    {
-        "id": "api.webhook.delete_incoming.disabled.app_errror",
-        "translation": "Incoming webhooks have been disabled by the system admin."
-    },
-    {
-        "id": "api.webhook.delete_incoming.permissions.app_errror",
-        "translation": "Inappropriate permissions to delete incoming webhook"
-    },
-    {
-        "id": "api.webhook.get_incoming.disabled.app_error",
-        "translation": "Incoming webhooks have been disabled by the system admin."
-    },
-    {
-        "id": "api.webhook.create_outgoing.disabled.app_error",
-        "translation": "Outgoing webhooks have been disabled by the system admin."
-    },
-    {
-        "id": "api.webhook.create_outgoing.triggers.app_error",
-        "translation": "Either trigger_words or channel_id must be set"
-    },
-    {
-        "id": "api.webhook.get_outgoing.disabled.app_error",
-        "translation": "Outgoing webhooks have been disabled by the system admin."
-    },
-    {
-        "id": "api.webhook.delete_outgoing.disabled.app_error",
-        "translation": "Outgoing webhooks have been disabled by the system admin."
-    },
-    {
-        "id": "api.webhook.delete_outgoing.permissions.app_error",
-        "translation": "Inappropriate permissions to delete outcoming webhook"
-    },
-    {
-        "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-        "translation": "Outgoing webhooks have been disabled by the system admin."
-    },
-    {
-        "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-        "translation": "Inappropriate permissions to regenerate outcoming webhook token"
-    }
+  {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "December",
+    "translation": "December"
+  },
+  {
+    "id": "February",
+    "translation": "February"
+  },
+  {
+    "id": "January",
+    "translation": "January"
+  },
+  {
+    "id": "July",
+    "translation": "July"
+  },
+  {
+    "id": "June",
+    "translation": "June"
+  },
+  {
+    "id": "March",
+    "translation": "March"
+  },
+  {
+    "id": "May",
+    "translation": "May"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "October",
+    "translation": "October"
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Error reading log file"
+  },
+  {
+    "id": "api.admin.init.debug",
+    "translation": "Initializing admin api routes"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Testing Email Settings"
+  },
+  {
+    "id": "api.api.init.parsing_templates.debug",
+    "translation": "Parsing server templates at %v"
+  },
+  {
+    "id": "api.api.init.parsing_templates.error",
+    "translation": "Failed to parse server templates %v"
+  },
+  {
+    "id": "api.api.render.error",
+    "translation": "Error rendering template %v err=%v"
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v added to the channel by %v"
+  },
+  {
+    "id": "api.channel.add_member.find_channel.app_error",
+    "translation": "Failed to find channel"
+  },
+  {
+    "id": "api.channel.add_member.find_user.app_error",
+    "translation": "Failed to find user to be added"
+  },
+  {
+    "id": "api.channel.add_member.user_adding.app_error",
+    "translation": "Failed to find user doing the adding"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Failed to add user to channel"
+  },
+  {
+    "id": "api.channel.add_user_to_channel.deleted.app_error",
+    "translation": "The channel has been archived or deleted"
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Can not add user to this channel type"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "Must use createDirectChannel api service for direct message channel creation"
+  },
+  {
+    "id": "api.channel.create_channel.invalid_character.app_error",
+    "translation": "Invalid character '__' in channel name for non-direct channel"
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "Off-Topic"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "Town Square"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "Invalid other user id "
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v has archived the channel."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "Cannot delete the default channel {{.Channel}}"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "The channel has been archived or deleted"
+  },
+  {
+    "id": "api.channel.delete_channel.failed_post.error",
+    "translation": "Failed to post archive message %v"
+  },
+  {
+    "id": "api.channel.delete_channel.failed_send.app_error",
+    "translation": "Failed to send archive message"
+  },
+  {
+    "id": "api.channel.delete_channel.incoming_webhook.error",
+    "translation": "Encountered error deleting incoming webhook, id=%v"
+  },
+  {
+    "id": "api.channel.delete_channel.outgoing_webhook.error",
+    "translation": "Encountered error deleting outgoing webhook, id=%v"
+  },
+  {
+    "id": "api.channel.delete_channel.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.channel.get_channel_counts.app_error",
+    "translation": "Unable to get channel counts from the database"
+  },
+  {
+    "id": "api.channel.get_channel_extra_info.deleted.app_error",
+    "translation": "The channel has been archived or deleted"
+  },
+  {
+    "id": "api.channel.get_channel_extra_info.member_limit.app_error",
+    "translation": "Failed to parse member limit"
+  },
+  {
+    "id": "api.channel.get_channels.error",
+    "translation": "Error in getting users profile for id=%v forcing logout"
+  },
+  {
+    "id": "api.channel.init.debug",
+    "translation": "Initializing channel api routes"
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v has joined the channel."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Cannot leave the default channel {{.Channel}}"
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Cannot leave a direct message channel"
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v has left the channel."
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
+    "translation": "Failed to post join/leave message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s removed the channel header (was: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Failed to retrieve user while trying to save update channel header message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s updated the channel header from: %s to: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s updated the channel header to: %s"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Failed to post join/leave message %v"
+  },
+  {
+    "id": "api.channel.remove_member.permissions.app_error",
+    "translation": "You do not have the appropriate permissions "
+  },
+  {
+    "id": "api.channel.remove_member.unable.app_error",
+    "translation": "Unable to remove user."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.deleted.app_error",
+    "translation": "The channel has been archived or deleted"
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "The channel has been archived or deleted"
+  },
+  {
+    "id": "api.channel.update_channel.permission.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
+  },
+  {
+    "id": "api.command.check_command.start.app_error",
+    "translation": "Command must start with /"
+  },
+  {
+    "id": "api.command.echo_command.create.error",
+    "translation": "Unable to create /echo post, err=%v"
+  },
+  {
+    "id": "api.command.echo_command.description",
+    "translation": "Echo back text from your account, /echo \"message\" [delay in seconds]"
+  },
+  {
+    "id": "api.command.echo_command.high_volume.app_error",
+    "translation": "High volume of echo request, cannot process request"
+  },
+  {
+    "id": "api.command.echo_command.under.app_error",
+    "translation": "Delays must be under 10000 seconds"
+  },
+  {
+    "id": "api.command.init.debug",
+    "translation": "Initializing command api routes"
+  },
+  {
+    "id": "api.command.load_test_channels_command.channel.description",
+    "translation": "Add a specified number of random channels to current team <MinChannels> <MaxChannels>"
+  },
+  {
+    "id": "api.command.load_test_channels_command.fuzz.description",
+    "translation": "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"
+  },
+  {
+    "id": "api.command.load_test_command.description",
+    "translation": "Debug Load Testing"
+  },
+  {
+    "id": "api.command.load_test_posts_command.fuzz.description",
+    "translation": "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
+  },
+  {
+    "id": "api.command.load_test_posts_command.posts.description",
+    "translation": "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
+  },
+  {
+    "id": "api.command.load_test_setup_command.create.error",
+    "translation": "Failed to create testing environment"
+  },
+  {
+    "id": "api.command.load_test_setup_command.created.info",
+    "translation": "Team Created: %v"
+  },
+  {
+    "id": "api.command.load_test_setup_command.description",
+    "translation": "Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"
+  },
+  {
+    "id": "api.command.load_test_setup_command.login.info",
+    "translation": "\t User to login: %v, %v"
+  },
+  {
+    "id": "api.command.load_test_url_command.create.error",
+    "translation": "Unable to create post, err=%v"
+  },
+  {
+    "id": "api.command.load_test_url_command.description",
+    "translation": "Add a post containing the text from a given url to current channel <Url>"
+  },
+  {
+    "id": "api.command.load_test_url_command.file.app_error",
+    "translation": "Unable to get file"
+  },
+  {
+    "id": "api.command.load_test_url_command.reading.app_error",
+    "translation": "Encountered error reading file"
+  },
+  {
+    "id": "api.command.load_test_url_command.url.app_error",
+    "translation": "Command must contain a url"
+  },
+  {
+    "id": "api.command.load_test_users_command.fuzz.description",
+    "translation": "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"
+  },
+  {
+    "id": "api.command.load_test_users_command.users.description",
+    "translation": "Add a specified number of random users to current team <Min Users> <Max Users>"
+  },
+  {
+    "id": "api.command.logout_command.description",
+    "translation": "Logout"
+  },
+  {
+    "id": "api.command.me_command.create.error",
+    "translation": "Unable to create /me post post, err=%v"
+  },
+  {
+    "id": "api.command.me_command.description",
+    "translation": "Do an action, /me [message]"
+  },
+  {
+    "id": "api.command.no_implemented.app_error",
+    "translation": "Command not implemented"
+  },
+  {
+    "id": "api.command.shrug_command.create.error",
+    "translation": "Unable to create /shrug post post, err=%v"
+  },
+  {
+    "id": "api.command.shrug_command.description",
+    "translation": "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"
+  },
+  {
+    "id": "api.commmand.join_command.description",
+    "translation": "Join the open channel"
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "Sorry, we could not find the page."
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "api.context.invalid_team_url.debug",
+    "translation": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent"
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "Invalid session token=%v, err=%v"
+  },
+  {
+    "id": "api.context.last_activity_at.error",
+    "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
+  },
+  {
+    "id": "api.context.log.error",
+    "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]"
+  },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "Invalid or expired session, please login again."
+  },
+  {
+    "id": "api.context.system_permissions.app_error",
+    "translation": "You do not have the appropriate permissions (system)"
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "Session is not OAuth but token was provided in the query string"
+  },
+  {
+    "id": "api.context.unknown.app_error",
+    "translation": "An unknown error has occured. Please contact support."
+  },
+  {
+    "id": "api.export.json.app_error",
+    "translation": "Unable to convert to json"
+  },
+  {
+    "id": "api.export.open.app_error",
+    "translation": "Unable to open file"
+  },
+  {
+    "id": "api.export.open_dir.app_error",
+    "translation": "Unable to open directory"
+  },
+  {
+    "id": "api.export.open_file.app_error",
+    "translation": "Unable to open file for export"
+  },
+  {
+    "id": "api.export.options.create.app_error",
+    "translation": "Unable to create options file"
+  },
+  {
+    "id": "api.export.options.write.app_error",
+    "translation": "Unable to write to options file"
+  },
+  {
+    "id": "api.export.read_dir.app_error",
+    "translation": "Unable to read directory"
+  },
+  {
+    "id": "api.export.s3.app_error",
+    "translation": "S3 is not supported for local storage export."
+  },
+  {
+    "id": "api.export.write_file.app_error",
+    "translation": "Unable to write to export file"
+  },
+  {
+    "id": "api.file.file_upload.exceeds",
+    "translation": "File exceeds max image size."
+  },
+  {
+    "id": "api.file.get_export.retrieve.app_error",
+    "translation": "Unable to retrieve exported file. Please re-export"
+  },
+  {
+    "id": "api.file.get_export.team_admin.app_error",
+    "translation": "Only a team admin can retrieve exported data."
+  },
+  {
+    "id": "api.file.get_file.not_found.app_error",
+    "translation": "Could not find file."
+  },
+  {
+    "id": "api.file.get_file.public_expired.app_error",
+    "translation": "The public link has expired"
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "The public link does not appear to be valid"
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "Public links have been disabled"
+  },
+  {
+    "id": "api.file.handle_images_forget.decode.error",
+    "translation": "Unable to decode image channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.encode_jpeg.error",
+    "translation": "Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.encode_preview.error",
+    "translation": "Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.upload_preview.error",
+    "translation": "Unable to upload preview channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.upload_thumb.error",
+    "translation": "Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.init.debug",
+    "translation": "Initializing file api routes"
+  },
+  {
+    "id": "api.file.open_file_write_stream.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.open_file_write_stream.creating_dir.app_error",
+    "translation": "Encountered an error creating the directory for the new file"
+  },
+  {
+    "id": "api.file.open_file_write_stream.local_server.app_error",
+    "translation": "Encountered an error writing to local server storage"
+  },
+  {
+    "id": "api.file.open_file_write_stream.s3.app_error",
+    "translation": "S3 is not supported."
+  },
+  {
+    "id": "api.file.read_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.read_file.get.app_error",
+    "translation": "Unable to get file from S3"
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "Encountered an error reading from local server storage"
+  },
+  {
+    "id": "api.file.upload_file.image.app_error",
+    "translation": "Unable to upload image file."
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "Unable to upload image file. File is too large."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Unable to upload file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.upload_file.too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
+    "id": "api.file.write_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.write_file.s3.app_error",
+    "translation": "Encountered an error writing to S3"
+  },
+  {
+    "id": "api.file.write_file_locally.create_dir.app_error",
+    "translation": "Encountered an error creating the directory for the new file"
+  },
+  {
+    "id": "api.file.write_file_locally.writing.app_error",
+    "translation": "Encountered an error writing to local server storage"
+  },
+  {
+    "id": "api.import.import_post.saving.debug",
+    "translation": "Error saving post. user=%v, message=%v"
+  },
+  {
+    "id": "api.import.import_user.joining_default.error",
+    "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.import.import_user.saving.error",
+    "translation": "Error saving user. err=%v"
+  },
+  {
+    "id": "api.import.import_user.set_email.error",
+    "translation": "Failed to set email verified err=%v"
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "Empty array under 'license' in request"
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "License is either expired or has not yet started."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "Invalid license file."
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "No file under 'license' in request"
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "Could not open license file"
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "License did not save properly."
+  },
+  {
+    "id": "api.license.init.debug",
+    "translation": "Initializing license api routes"
+  },
+  {
+    "id": "api.license.remove_license.remove.app_error",
+    "translation": "License did not remove properly."
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_client.app_error",
+    "translation": "invalid_request: Bad client_id"
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_redirect.app_error",
+    "translation": "invalid_request: Missing or bad redirect_uri"
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_response.app_error",
+    "translation": "invalid_request: Bad response_type"
+  },
+  {
+    "id": "api.oauth.allow_oauth.database.app_error",
+    "translation": "server_error: Error accessing the database"
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url"
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "The system admin has turned off OAuth service providing."
+  },
+  {
+    "id": "api.oauth.get_auth_data.find.error",
+    "translation": "Couldn't find auth code for code=%s"
+  },
+  {
+    "id": "api.oauth.init.debug",
+    "translation": "Initializing oauth api routes"
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "The system admin has turned off OAuth service providing."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_code.app_error",
+    "translation": "Error deleting authorization code from DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "Error deleting session from DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "Error deleting access token from DB"
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "Error getting access token from DB before deletion"
+  },
+  {
+    "id": "api.post.create_post.bad_filename.error",
+    "translation": "Bad filename discarded, filename=%v"
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "Invalid ChannelId for RootId parameter"
+  },
+  {
+    "id": "api.post.create_post.last_viewed.error",
+    "translation": "Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.create_post.parent_id.app_error",
+    "translation": "Invalid ParentId parameter"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "Invalid RootId parameter"
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "Error creating post"
+  },
+  {
+    "id": "api.post.delete_post.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.post.get_post.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.channel.error",
+    "translation": "Encountered error getting channel, channel_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.team.error",
+    "translation": "Encountered error getting team, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.user.error",
+    "translation": "Encountered error getting user, user_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.create_post.error",
+    "translation": "Failed to create response post, err=%v"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.event_post.error",
+    "translation": "Event POST failed, err=%s"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.getting.error",
+    "translation": "Encountered error getting webhooks by team, err=%v"
+  },
+  {
+    "id": "api.post.init.debug",
+    "translation": "Initializing post api routes"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.get_2_members.error",
+    "translation": "Failed to get 2 members for a direct channel channel_id=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.get_members.error",
+    "translation": "Failed to get channel members channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.save_pref.error",
+    "translation": "Failed to save direct channel preference user_id=%v other_user_id=%v err=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.update_pref.error",
+    "translation": "Failed to update direct channel preference user_id=%v other_user_id=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.members.error",
+    "translation": "Failed to get channel members channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.mention_body",
+    "translation": "You have one new mention."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.mention_subject",
+    "translation": "New Mention"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.message_body",
+    "translation": "You have one new message."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.message_subject",
+    "translation": "New Direct Message"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_mention",
+    "translation": " mentioned you in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": " sent you a direct message"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_notification.debug",
+    "translation": "Sending push notification to %v wi msg of '%v'"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_notification.error",
+    "translation": "Failed to send push notificationid=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.retrive_profiles.error",
+    "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.send.error",
+    "translation": "Failed to send mention email successfully email=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.sent",
+    "translation": "{{.Prefix}} {{.Filenames}} sent"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.sessions.error",
+    "translation": "Failed to retrieve sessions in notifications id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.user_id.error",
+    "translation": "Post user_id not returned by GetProfiles user_id=%v"
+  },
+  {
+    "id": "api.post.update_mention_count_and_forget.update_error",
+    "translation": "Failed to update mention count for user_id=%v on channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "We couldn't find the existing post or comment to update."
+  },
+  {
+    "id": "api.post.update_post.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "Already delted id={{.PostId}}"
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "Unable to get post"
+  },
+  {
+    "id": "api.preference.init.debug",
+    "translation": "Initializing preference api routes"
+  },
+  {
+    "id": "api.preference.save_preferences.decode.app_error",
+    "translation": "Unable to decode preferences from request"
+  },
+  {
+    "id": "api.preference.save_preferences.set.app_error",
+    "translation": "Unable to set preferences for other user"
+  },
+  {
+    "id": "api.preference.save_preferences.set_details.app_error",
+    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
+  },
+  {
+    "id": "api.server.new_server.init.info",
+    "translation": "Server is initializing..."
+  },
+  {
+    "id": "api.server.start_server.listening.info",
+    "translation": "Server is listening on %v"
+  },
+  {
+    "id": "api.server.start_server.rate.info",
+    "translation": "RateLimiter is enabled"
+  },
+  {
+    "id": "api.server.start_server.rate.warn",
+    "translation": "RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr"
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "Error starting server, err:%v"
+  },
+  {
+    "id": "api.server.start_server.starting.info",
+    "translation": "Starting Server..."
+  },
+  {
+    "id": "api.server.start_server.starting.panic",
+    "translation": "Error starting server "
+  },
+  {
+    "id": "api.server.stop_server.stopped.info",
+    "translation": "Server stopped"
+  },
+  {
+    "id": "api.server.stop_server.stopping.info",
+    "translation": "Stopping Server..."
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\r\n Channels Added \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "Failed to import: {{.DisplayName}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed.debug",
+    "translation": "Failed to import: %s"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "Merged with existing channel: {{.DisplayName}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.bot.warn",
+    "translation": "Slack bot posts are not imported yet"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
+    "translation": "Message without user"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.unsupported.warn",
+    "translation": "Unsupported post type: %v, %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
+    "translation": "User: %v does not exist!"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.without_user.debug",
+    "translation": "Message without user"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\r\n Users Created\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "Email, Password: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "Unable to import user: {{.Username}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_timestamp.bad.warn",
+    "translation": "Bad timestamp detected"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "Mattermost Slack Import Log\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "- Some posts may not have been imported because they where not supported by this importer.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- Slack bot posts are currently not supported.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\r\n Notes \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "Unable to open: {{.Filename}}"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "Unable to open zip file"
+  },
+  {
+    "id": "api.team.create_team.email_disabled.app_error",
+    "translation": "Team sign-up with email is disabled."
+  },
+  {
+    "id": "api.team.create_team_from_signup.email_disabled.app_error",
+    "translation": "Team sign-up with email is disabled."
+  },
+  {
+    "id": "api.team.create_team_from_signup.expired_link.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "api.team.create_team_from_signup.invalid_link.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "api.team.create_team_from_signup.unavailable.app_error",
+    "translation": "This URL is unavailable. Please try another."
+  },
+  {
+    "id": "api.team.email_teams.sending.error",
+    "translation": "An error occured while sending an email in emailTeams err=%v"
+  },
+  {
+    "id": "api.team.export_team.admin.app_error",
+    "translation": "Only a team admin can export data."
+  },
+  {
+    "id": "api.team.import_team.admin.app_error",
+    "translation": "Only a team admin can import data."
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "Empty array under 'file' in request"
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "Filesize not an integer"
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "No file under 'file' in request"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "Could not open file"
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "Could not parse multipart form"
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "Filesize unavilable"
+  },
+  {
+    "id": "api.team.init.debug",
+    "translation": "Initializing team api routes"
+  },
+  {
+    "id": "api.team.invite_members.admin",
+    "translation": "administrator"
+  },
+  {
+    "id": "api.team.invite_members.already.app_error",
+    "translation": "This person is already on your team"
+  },
+  {
+    "id": "api.team.invite_members.member",
+    "translation": "member"
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "No one to invite."
+  },
+  {
+    "id": "api.team.invite_members.send.error",
+    "translation": "Failed to send invite email successfully err=%v"
+  },
+  {
+    "id": "api.team.invite_members.sending.info",
+    "translation": "sending invitation to %v %v"
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "Team creation has been disabled. Please ask your systems administrator for details."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.domain.app_error",
+    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
+  },
+  {
+    "id": "api.team.permanent_delete_team.attempting.warn",
+    "translation": "Attempting to permanently delete team %v id=%v"
+  },
+  {
+    "id": "api.team.permanent_delete_team.deleted.warn",
+    "translation": "Permanently deleted team %v id=%v"
+  },
+  {
+    "id": "api.team.signup_team.email_disabled.app_error",
+    "translation": "Team sign-up with email is disabled."
+  },
+  {
+    "id": "api.team.update_team.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.templates.email_change_body.info",
+    "translation": "You email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "You updated your email"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "Your email address has changed for {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Verify Email"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "To finish updating your email address for {{.TeamDisplayName}}, please click the link below to confirm this is the right address."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "You updated your email"
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "Verify new email address for {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+  },
+  {
+    "id": "api.templates.email_info",
+    "translation": "Any questions at all, mail us any time: <a href='mailto:{{.FeedbackEmail}}' style='text-decoration: none; color:#2389D7;'>{{.FeedbackEmail}}</a>.<br>Best wishes,<br>The {{.SiteName}} Team<br>"
+  },
+  {
+    "id": "api.templates.error.link",
+    "translation": "Go back to team site"
+  },
+  {
+    "id": "api.templates.error.title",
+    "translation": "{{ .SiteName }} needs your help:"
+  },
+  {
+    "id": "api.templates.find_teams_body.found",
+    "translation": "Your request to find teams associated with your email found the following:"
+  },
+  {
+    "id": "api.templates.find_teams_body.not_found",
+    "translation": "We could not find any teams for the given email."
+  },
+  {
+    "id": "api.templates.find_teams_body.title",
+    "translation": "Finding teams"
+  },
+  {
+    "id": "api.templates.find_teams_subject",
+    "translation": "Your {{ .SiteName }} Teams"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Join Team"
+  },
+  {
+    "id": "api.templates.invite_body.extra_info",
+    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>{{.TeamDisplayName}}</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+  },
+  {
+    "id": "api.templates.invite_body.info",
+    "translation": "The team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, has invited you to join <strong>{{.TeamDisplayName}}</strong>."
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "You've been invited"
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "You updated your password"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Go To Channel"
+  },
+  {
+    "id": "api.templates.post_body.info",
+    "translation": "CHANNEL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "api.templates.post_subject",
+    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Reset Password"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same."
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "You requested a password reset"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "Reset your password"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "email and password"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "You updated your sign-in method"
+  },
+  {
+    "id": "api.templates.signup_team_body.button",
+    "translation": "Set up your team"
+  },
+  {
+    "id": "api.templates.signup_team_body.info",
+    "translation": "{{ .SiteName }} is one place for all your team communication, searchable and available anywhere.<br>You'll get more out of {{ .SiteName }} when your team is in constant communication--let's get them on board."
+  },
+  {
+    "id": "api.templates.signup_team_body.title",
+    "translation": "Thanks for creating a team!"
+  },
+  {
+    "id": "api.templates.signup_team_subject",
+    "translation": "{{ .SiteName }} Team Setup"
+  },
+  {
+    "id": "api.templates.singin_change_email.body.info",
+    "translation": "You updated your sign-in method for {{.TeamDisplayName}} on {{ .TeamURL }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.singin_change_email.subject",
+    "translation": "You updated your sign-in method for {{.TeamDisplayName}} on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Verify Email"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Please verify your email address by clicking below."
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "You've joined the {{ .TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{ .TeamDisplayName }} {{ .SiteName }}] Email Verification"
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Verify Email"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Please verify your email address by clicking below."
+  },
+  {
+    "id": "api.templates.welcome_body.info2",
+    "translation": "You can sign-in to your new team from the web address:"
+  },
+  {
+    "id": "api.templates.welcome_body.info3",
+    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "You've joined the {{ .TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "You joined {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "Bad response from token request"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "Bad token type"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "Invalid state"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state_team.app_error",
+    "translation": "Invalid state; missing team name"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "Missing access token"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "Token request to {{.Service}} failed"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "Token request failed"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "Unsupported OAuth service provider"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "Login failed because of invalid password"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Blank email"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "Could not parse auth data out of {{.Service}} user object"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
+    "translation": "{{.Service}} oauth not available on this server"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "Team {{.DisplayName}} already has a user with the email address attached to your {{.Service}} account"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_used.app_error",
+    "translation": "This {{.Service}} account has already been used to sign up for team {{.DisplayName}}"
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "Could not create user out of {{.Service}} user object"
+  },
+  {
+    "id": "api.user.create_oauth_user.not_available.app_error",
+    "translation": "{{.Service}} oauth not avlailable on this server"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "Could not create default profile image font"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "Could not encode default profile image"
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "Could not add user initial to default profile picture"
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.create_user.joining.error",
+    "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.save.error",
+    "translation": "Couldn't save the user err=%v"
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "User sign-up with email is disabled."
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "api.user.create_user.team_name.app_error",
+    "translation": "Invalid team name"
+  },
+  {
+    "id": "api.user.create_user.tutorial.error",
+    "translation": "Encountered error saving tutorial preference, err=%v"
+  },
+  {
+    "id": "api.user.create_user.verified.error",
+    "translation": "Failed to set email verified err=%v"
+  },
+  {
+    "id": "api.user.get_authorization_code.unsupported.app_error",
+    "translation": "Unsupported OAuth service provider"
+  },
+  {
+    "id": "api.user.get_me.getting.error",
+    "translation": "Error in getting users profile for id=%v forcing logout"
+  },
+  {
+    "id": "api.user.init.debug",
+    "translation": "Initializing user api routes"
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "Password field must not be blank"
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "Login failed because your account has been set to inactive.  Please contact an administrator."
+  },
+  {
+    "id": "api.user.login.not_provided.app_error",
+    "translation": "Either user id or team name and user email must be provided"
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "Login failed because email address has not been verified"
+  },
+  {
+    "id": "api.user.login.revoking.app_error",
+    "translation": "Revoking sessionId=%v for userId=%v re-login with same device Id"
+  },
+  {
+    "id": "api.user.login_by_email.sign_in.app_error",
+    "translation": "Please sign in using {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "{{.Service}} oauth not avlailable on this server"
+  },
+  {
+    "id": "api.user.login_by_oauth.parse.app_error",
+    "translation": "Could not parse auth data out of {{.Service}} user object"
+  },
+  {
+    "id": "api.user.login_ldap.blank_pwd.app_error",
+    "translation": "Password field must not be blank"
+  },
+  {
+    "id": "api.user.login_ldap.disabled.app_error",
+    "translation": "LDAP not enabled on this server"
+  },
+  {
+    "id": "api.user.login_ldap.need_id.app_error",
+    "translation": "Need an ID"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "LDAP not available on this server"
+  },
+  {
+    "id": "api.user.permanent_delete_user.attempting.warn",
+    "translation": "Attempting to permanently delete account %v id=%v"
+  },
+  {
+    "id": "api.user.permanent_delete_user.deleted.warn",
+    "translation": "Permanently deleted account %v id=%v"
+  },
+  {
+    "id": "api.user.permanent_delete_user.system_admin.warn",
+    "translation": "You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools."
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "The reset password link does not appear to be valid"
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "The reset link has expired"
+  },
+  {
+    "id": "api.user.reset_password.method",
+    "translation": "using a reset password link"
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "Cannot reset password for SSO accounts"
+  },
+  {
+    "id": "api.user.reset_password.wrong_team.app_error",
+    "translation": "Trying to reset password for user on wrong team."
+  },
+  {
+    "id": "api.user.send_email_change_email_and_forget.error",
+    "translation": "Failed to send email change notification email successfully err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "Failed to send email change verification email successfully err=%v"
+  },
+  {
+    "id": "api.user.send_password_change_email_and_forget.error",
+    "translation": "Failed to send update password email successfully err=%v"
+  },
+  {
+    "id": "api.user.send_password_reset.find.app_error",
+    "translation": "We couldn’t find an account with that address."
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "Failed to send password reset email successfully"
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "Cannot reset password for SSO accounts"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "Failed to send update password email successfully err=%v"
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "Failed to send verification email successfully err=%v"
+  },
+  {
+    "id": "api.user.send_welcome_email_and_forget.failed.error",
+    "translation": "Failed to send welcome email successfully err=%v"
+  },
+  {
+    "id": "api.user.switch_to_email.context.app_error",
+    "translation": "Update password failed because context user_id did not match provided user's id"
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "Update password failed because context user_id did not match props user_id"
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "Update password failed"
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again."
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "using the settings menu"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "Update password failed because the user is logged in through an OAuth service"
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "Update password failed because we couldn't find a valid account"
+  },
+  {
+    "id": "api.user.update_roles.one_admin.app_error",
+    "translation": "There must be at least one active admin"
+  },
+  {
+    "id": "api.user.update_roles.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.user.update_roles.system_admin_mod.app_error",
+    "translation": "The system admin role can only by modified by another system admin"
+  },
+  {
+    "id": "api.user.update_roles.system_admin_set.app_error",
+    "translation": "The system admin role can only be set by another system admin"
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "Empty array under 'image' in request"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "Could not decode profile image"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode_config.app_error",
+    "translation": "Could not decode profile image config."
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "Could not encode profile image"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "No file under 'image' in request"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "Could not open image file"
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "Could not parse multipart form"
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "Unable to upload file. Image storage is not configured."
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "Unable to upload profile image. File is too large."
+  },
+  {
+    "id": "api.web_conn.new_web_conn.last_activity.error",
+    "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_conn.new_web_conn.last_ping.error",
+    "translation": "Failed to update LastPingAt for user_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_hub.start.stopping.debug",
+    "translation": "stopping %v connections"
+  },
+  {
+    "id": "api.web_socket.connect.error",
+    "translation": "websocket connect err: %v"
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "Failed to upgrade websocket connection"
+  },
+  {
+    "id": "api.web_socket.init.debug",
+    "translation": "Initializing web socket api routes"
+  },
+  {
+    "id": "api.web_team_hun.start.debug",
+    "translation": "team hub stopping for teamId=%v"
+  },
+  {
+    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.create_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Either trigger_words or channel_id must be set"
+  },
+  {
+    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "translation": "Inappropriate permissions to delete incoming webhook"
+  },
+  {
+    "id": "api.webhook.delete_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.delete_outgoing.permissions.app_error",
+    "translation": "Inappropriate permissions to delete outcoming webhook"
+  },
+  {
+    "id": "api.webhook.get_incoming.disabled.app_error",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.get_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.init.debug",
+    "translation": "Initializing webhook api routes"
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "Inappropriate permissions to regenerate outcoming webhook token"
+  },
+  {
+    "id": "mattermost.current_version",
+    "translation": "Current version is %v (%v/%v/%v)"
+  },
+  {
+    "id": "utils.i18n.loaded",
+    "translation": "Loaded system translations for '%v' from '%v'"
+  }
 ]

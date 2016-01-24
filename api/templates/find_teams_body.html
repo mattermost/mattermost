@@ -17,14 +17,14 @@
                                     <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
-                                                <h2 style="font-weight: normal; margin-top: 10px;">Finding teams</h2>
-                                                <p>{{ if .Props }}
-                                                        Your request to find teams associated with your email found the following:<br>
-                                                        {{range $index, $element := .Props}}
+                                                <h2 style="font-weight: normal; margin-top: 10px;">{{.Props.Title}}</h2>
+                                                <p>{{ if .Extra }}
+                                                        {{.Props.Found}}<br>
+                                                        {{range $index, $element := .Extra}}
                                                             <a href="{{ $element }}" style="text-decoration: none; color:#2389D7;">{{ $index }}</a><br>
                                                         {{ end }}
                                                     {{ else }}
-                                                        We could not find any teams for the given email.
+                                                        {{.Props.NotFound}}
                                                     {{ end }}
                                                 </p>
                                             </td>

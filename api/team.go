@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -57,10 +58,16 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subjectPage := NewServerTemplatePage("signup_team_subject")
-	subjectPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage := NewServerTemplatePage("signup_team_body")
+	subjectPage := NewServerTemplatePage("signup_team_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.signup_team_subject",
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+
+	bodyPage := NewServerTemplatePage("signup_team_body", c.Locale)
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
+	bodyPage.Props["Title"] = c.T("api.templates.signup_team_body.title")
+	bodyPage.Props["Button"] = c.T("api.templates.signup_team_body.button")
+	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.signup_team_body.button",
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]}))
 
 	props := make(map[string]string)
 	props["email"] = email
@@ -427,10 +434,16 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subjectPage := NewServerTemplatePage("find_teams_subject")
-	subjectPage.ClientCfg["SiteURL"] = c.GetSiteURL()
-	bodyPage := NewServerTemplatePage("find_teams_body")
-	bodyPage.ClientCfg["SiteURL"] = c.GetSiteURL()
+	siteURL := c.GetSiteURL()
+	subjectPage := NewServerTemplatePage("find_teams_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.find_teams_subject",
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+
+	bodyPage := NewServerTemplatePage("find_teams_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = c.T("api.templates.find_teams_body.title")
+	bodyPage.Props["Found"] = c.T("api.templates.find_teams_body.found")
+	bodyPage.Props["NotFound"] = c.T("api.templates.find_teams_body.not_found")
 
 	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
 		c.Err = result.Err
@@ -442,7 +455,7 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		for _, team := range teams {
 			props[team.Name] = c.GetTeamURLFromTeam(team)
 		}
-		bodyPage.Props = props
+		bodyPage.Extra = props
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error(utils.T("api.team.email_teams.sending.error"), err)
@@ -511,16 +524,19 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 				senderRole = c.T("api.team.invite_members.member")
 			}
 
-			subjectPage := NewServerTemplatePage("invite_subject")
-			subjectPage.Props["SenderName"] = sender
-			subjectPage.Props["TeamDisplayName"] = team.DisplayName
+			subjectPage := NewServerTemplatePage("invite_subject", c.Locale)
+			subjectPage.Props["Subject"] = c.T("api.templates.invite_subject",
+				map[string]interface{}{"SenderName": sender, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
 
-			bodyPage := NewServerTemplatePage("invite_body")
+			bodyPage := NewServerTemplatePage("invite_body", c.Locale)
 			bodyPage.Props["SiteURL"] = c.GetSiteURL()
-			bodyPage.Props["TeamURL"] = c.GetTeamURL()
-			bodyPage.Props["TeamDisplayName"] = team.DisplayName
-			bodyPage.Props["SenderName"] = sender
-			bodyPage.Props["SenderStatus"] = senderRole
+			bodyPage.Props["Title"] = c.T("api.templates.invite_body.title")
+			bodyPage.Html["Info"] = template.HTML(c.T("api.templates.invite_body.info",
+				map[string]interface{}{"SenderStatus": senderRole, "SenderName": sender, "TeamDisplayName": team.DisplayName}))
+			bodyPage.Props["Button"] = c.T("api.templates.invite_body.button")
+			bodyPage.Html["ExtraInfo"] = template.HTML(c.T("api.templates.invite_body.extra_info",
+				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": c.GetTeamURL()}))
+
 			props := make(map[string]string)
 			props["email"] = invite
 			props["id"] = team.Id
