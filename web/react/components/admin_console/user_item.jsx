@@ -3,6 +3,8 @@
 
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
+import UserStore from '../../stores/user_store.jsx';
+import DemoteOwnRoleModal from './demote_own_role_modal.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -16,25 +18,38 @@ export default class UserItem extends React.Component {
         this.handleMakeAdmin = this.handleMakeAdmin.bind(this);
         this.handleMakeSystemAdmin = this.handleMakeSystemAdmin.bind(this);
         this.handleResetPassword = this.handleResetPassword.bind(this);
+        this.doDemote = this.doDemote.bind(this);
+        this.doDemoteSubmit = this.doDemoteSubmit.bind(this);
+        this.doDemoteDismiss = this.doDemoteDismiss.bind(this);
 
-        this.state = {};
+        this.state = {
+            serverError: null,
+            showDemoteModal: false,
+            user: null,
+            role: null
+        };
     }
 
     handleMakeMember(e) {
         e.preventDefault();
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: ''
-        };
+        var me = UserStore.getCurrentUser();
+        if (this.props.user.id === me.id) {
+            this.doDemote(this.props.user, '');
+        } else {
+            const data = {
+                user_id: this.props.user.id,
+                new_roles: ''
+            };
 
-        Client.updateRoles(data,
-            () => {
-                this.props.refreshProfiles();
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
+            Client.updateRoles(data,
+                () => {
+                    this.props.refreshProfiles();
+                },
+                (err) => {
+                    this.setState({serverError: err.message});
+                }
+            );
+        }
     }
 
     handleMakeActive(e) {
@@ -63,19 +78,24 @@ export default class UserItem extends React.Component {
 
     handleMakeAdmin(e) {
         e.preventDefault();
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: 'admin'
-        };
+        var me = UserStore.getCurrentUser();
+        if (this.props.user.id === me.id) {
+            this.doDemote(this.props.user, 'admin');
+        } else {
+            const data = {
+                user_id: this.props.user.id,
+                new_roles: 'admin'
+            };
 
-        Client.updateRoles(data,
-            () => {
-                this.props.refreshProfiles();
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
+            Client.updateRoles(data,
+                () => {
+                    this.props.refreshProfiles();
+                },
+                (err) => {
+                    this.setState({serverError: err.message});
+                }
+            );
+        }
     }
 
     handleMakeSystemAdmin(e) {
@@ -98,6 +118,33 @@ export default class UserItem extends React.Component {
     handleResetPassword(e) {
         e.preventDefault();
         this.props.doPasswordReset(this.props.user);
+    }
+
+    doDemote(user, role) {
+        this.setState({
+            serverError: this.state.serverError,
+            showDemoteModal: true,
+            user,
+            role
+        });
+    }
+
+    doDemoteDismiss() {
+        this.setState({
+            serverError: this.state.serverError,
+            showDemoteModal: false,
+            user: null,
+            role: null
+        });
+    }
+
+    doDemoteSubmit() {
+        this.setState({
+            serverError: this.state.serverError,
+            showDemoteModal: false,
+            user: null,
+            role: null
+        });
     }
 
     render() {
@@ -247,6 +294,19 @@ export default class UserItem extends React.Component {
                 </li>
             );
         }
+        var me = UserStore.getCurrentUser();
+        let makeDemoteModal = null;
+        if (this.props.user.id === me.id) {
+            makeDemoteModal = (
+                <DemoteOwnRoleModal
+                    user={this.state.user}
+                    role={this.state.role}
+                    show={this.state.showDemoteModal}
+                    onModalSubmit={this.doDemoteSubmit}
+                    onModalDismissed={this.doDemoteDismiss}
+                />
+            );
+        }
 
         return (
             <tr>
@@ -293,6 +353,7 @@ export default class UserItem extends React.Component {
                             </li>
                         </ul>
                     </div>
+                    {makeDemoteModal}
                     {serverError}
                 </td>
             </tr>
