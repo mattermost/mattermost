@@ -42,7 +42,7 @@ export default class DemoteOwnRoleModal extends React.Component {
         let serverError = null;
 
         if (this.state.serverError) {
-            serverError = <div className='has-error'><label className='has-error control-label'>{this.state.serverError}</label></div>
+            serverError = <div className='has-error'><label className='has-error control-label'>{this.state.serverError}</label></div>;
         }
 
         return (
