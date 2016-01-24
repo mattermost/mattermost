@@ -1,5 +1,9 @@
 [
   {
+    "id": "",
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error leyendo el archivo de registro"
   },
@@ -1318,6 +1322,78 @@
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
     "translation": "No se pudo actualizar la imagen del perfil. El archivo es muy grande."
+  },
+  {
+    "id": "api.web_conn.new_web_conn.last_activity.error",
+    "translation": "Falla al actualizar LastActivityAt para user_id=%v and session_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_conn.new_web_conn.last_ping.error",
+    "translation": "Failed to update LastPingAt for user_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_hub.start.stopping.debug",
+    "translation": "deteniendo todas las conexiones"
+  },
+  {
+    "id": "api.web_socket.connect.error",
+    "translation": "conexión al websocket err: %v"
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "Falla al actualizar la conexión del websocket"
+  },
+  {
+    "id": "api.web_socket.init.debug",
+    "translation": "Inicializando rutas del API para los web socket"
+  },
+  {
+    "id": "api.web_team_hun.start.debug",
+    "translation": "deteniendo el hub de equipo para teamId=%v"
+  },
+  {
+    "id": "api.webhook.create_outgoing.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Debe establecerse palabras gatilladoras o un channel_id"
+  },
+  {
+    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "translation": "Permisos inapropiados para eliminar un webhook entrante"
+  },
+  {
+    "id": "api.webhook.delete_outgoing.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.delete_outgoing.permissions.app_error",
+    "translation": "Permisos inapropiados para eliminar el webhook saliente"
+  },
+  {
+    "id": "api.webhook.get_incoming.disabled.app_error",
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.get_outgoing.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.init.debug",
+    "translation": "Inicializando rutas del API para los Webhooks"
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
   },
   {
     "id": "mattermost.current_version",

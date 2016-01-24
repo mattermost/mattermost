@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 	"time"
 )
 
@@ -33,11 +34,11 @@ func NewWebConn(ws *websocket.Conn, teamId string, userId string, sessionId stri
 		pchan := Srv.Store.User().UpdateLastPingAt(userId, model.GetMillis())
 
 		if result := <-achan; result.Err != nil {
-			l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", userId, sessionId, result.Err)
+			l4g.Error(utils.T("api.web_conn.new_web_conn.last_activity.error"), userId, sessionId, result.Err)
 		}
 
 		if result := <-pchan; result.Err != nil {
-			l4g.Error("Failed to updated LastPingAt for user_id=%v, err=%v", userId, result.Err)
+			l4g.Error(utils.T("api.web_conn.new_web_conn.last_ping.error"), userId, result.Err)
 		}
 	}()
 
@@ -56,7 +57,7 @@ func (c *WebConn) readPump() {
 
 		go func() {
 			if result := <-Srv.Store.User().UpdateLastPingAt(c.UserId, model.GetMillis()); result.Err != nil {
-				l4g.Error("Failed to updated LastPingAt for user_id=%v, err=%v", c.UserId, result.Err)
+				l4g.Error(utils.T("api.web_conn.new_web_conn.last_ping.error"), c.UserId, result.Err)
 			}
 		}()
 
