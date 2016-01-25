@@ -12,6 +12,7 @@ var ActionTypes = Constants.ActionTypes;
 import * as Client from './client.jsx';
 import * as AsyncClient from './async_client.jsx';
 import * as client from './client.jsx';
+import * as ServiceWorker from './sw.jsx';
 import Autolinker from 'autolinker';
 
 export function isEmail(email) {
@@ -150,18 +151,30 @@ export function notifyMe(title, body, channel) {
             }
 
             if (permission === 'granted') {
-                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
-                notification.onclick = function onClick() {
-                    window.focus();
-                    if (channel) {
-                        switchChannel(channel);
-                    } else {
-                        window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+                try {
+                    var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
+                    notification.onclick = function onClick() {
+                        window.focus();
+                        if (channel) {
+                            switchChannel(channel);
+                        } else {
+                            window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+                        }
+                    };
+                    setTimeout(function closeNotificationOnTimeout() {
+                        notification.close();
+                    }, 5000);
+                } catch (e) {
+                    if (e instanceof TypeError && 'serviceWorker' in navigator) {
+                        ServiceWorker.getRegistration().then((reg) => {
+                            reg.showNotification(title, {
+                                body: body,
+                                tag: TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name,
+                                icon: '/static/images/icon50x50.png'
+                            });
+                        });
                     }
-                };
-                setTimeout(function closeNotificationOnTimeout() {
-                    notification.close();
-                }, 5000);
+                }
             }
         });
     }

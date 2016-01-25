@@ -121,6 +121,7 @@ package:
 	cp -RL web/static/js/intl-1.0.0 $(DIST_PATH)/web/static/js/
 	cp -RL web/static/js/react-intl-2.0.0-beta-2 $(DIST_PATH)/web/static/js/
 	cp -RL web/static/i18n $(DIST_PATH)/web/static
+	cp -L web/static/js/sw.js $(DIST_PATH)/web/static/js/
 	cp -RL web/static/config $(DIST_PATH)/web/static
 	cp -RL web/static/css $(DIST_PATH)/web/static
 	cp -RL web/static/fonts $(DIST_PATH)/web/static

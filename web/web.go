@@ -66,6 +66,15 @@ func InitWeb() {
 
 	staticDir := utils.FindDir("web/static")
 	l4g.Debug("Using static directory at %v", staticDir)
+
+	gcmSenderId := utils.Cfg.EmailSettings.GcmSenderId
+	if gcmSenderId != nil {
+		manifestFileName := staticDir + "config/manifest.json"
+		if err := utils.UpdateGcmSenderId(manifestFileName, *gcmSenderId); err != nil {
+			l4g.Error("Error while updating gcm sender id", err)
+		}
+	}
+
 	mainrouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
 
 	mainrouter.Handle("/", api.AppHandlerIndependent(root)).Methods("GET")

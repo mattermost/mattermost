@@ -110,6 +110,9 @@ type EmailSettings struct {
 	PasswordResetSalt        string
 	SendPushNotifications    *bool
 	PushNotificationServer   *string
+	SendWebPushNotifications *bool
+	GcmKey                   *string
+	GcmSenderId              *string
 }
 
 type RateLimitSettings struct {

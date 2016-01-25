@@ -23,6 +23,7 @@ import PreferenceStore from '../stores/preference_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as ServiceWorker from '../utils/sw.jsx';
 
 import Constants from '../utils/constants.jsx';
 
@@ -120,6 +121,8 @@ function setupChannelPage(props, team, channel) {
         ErrorStore.storeLastError({message: 'Preview Mode: Email notifications have not been configured'});
         ErrorStore.emitChange();
     }
+
+    ServiceWorker.registerForWebpush();
 }
 
 global.window.setup_channel_page = setupChannelPage;
