@@ -20,11 +20,7 @@ import InviteMemberModal from '../components/invite_member_modal.jsx';
 
 import PreferenceStore from '../stores/preference_store.jsx';
 
-import * as Utils from '../utils/utils.jsx';
-import * as AsyncClient from '../utils/async_client.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
-
-import Constants from '../utils/constants.jsx';
 
 var IntlProvider = ReactIntl.IntlProvider;
 
@@ -92,21 +88,14 @@ class Root extends React.Component {
     }
 }
 
-function onPreferenceChange() {
-    const selectedFont = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT);
-    Utils.applyFont(selectedFont);
-    PreferenceStore.removeChangeListener(onPreferenceChange);
-}
-
-global.window.setup_channel_page = function setup(props, team, channel) {
+global.window.setup_channel_page = function setup(props, team, channel, preferences) {
     if (props.PostId === '') {
         EventHelpers.emitChannelClickEvent(channel);
     } else {
         EventHelpers.emitPostFocusEvent(props.PostId);
     }
 
-    PreferenceStore.addChangeListener(onPreferenceChange);
-    AsyncClient.getAllPreferences();
+    PreferenceStore.setPreferences(preferences);
 
     ReactDOM.render(
         <Root map={props} />,
