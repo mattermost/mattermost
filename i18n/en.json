@@ -1672,8 +1672,48 @@
     "translation": "Unable to get channels"
   },
   {
+    "id": "mattermost.bulletin.subject",
+    "translation": "Mattermost Security Bulletin"
+  },
+  {
+    "id": "mattermost.config_file",
+    "translation": "Loaded config file from %v"
+  },
+  {
     "id": "mattermost.current_version",
     "translation": "Current version is %v (%v/%v/%v)"
+  },
+  {
+    "id": "mattermost.entreprise_enabled",
+    "translation": "Enterprise Enabled: %v"
+  },
+  {
+    "id": "mattermost.security_bulletin.error",
+    "translation": "Failed to get security bulletin details"
+  },
+  {
+    "id": "mattermost.security_bulletin_read.error",
+    "translation": "Failed to read security bulletin details"
+  },
+  {
+    "id": "mattermost.security_checks.debug",
+    "translation": "Checking for security update from Mattermost"
+  },
+  {
+    "id": "mattermost.security_info.error",
+    "translation": "Failed to get security update information from Mattermost."
+  },
+  {
+    "id": "mattermost.send_bulletin.info",
+    "translation": "Sending security bulletin for %v to %v"
+  },
+  {
+    "id": "mattermost.system_admins.error",
+    "translation": "Failed to get system admins for security update information from Mattermost."
+  },
+  {
+    "id": "mattermost.working_dir",
+    "translation": "Current working directory is %v"
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -3094,5 +3134,245 @@
   {
     "id": "utils.mail.test.configured.error",
     "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v"
+  },
+  {
+    "id": "web.admin_console.title",
+    "translation": "Admin Console"
+  },
+  {
+    "id": "web.authorize_oauth.disabled.app_error",
+    "translation": "The system admin has turned off OAuth service providing."
+  },
+  {
+    "id": "web.authorize_oauth.missing.app_error",
+    "translation": "Missing one or more of response_type, client_id, or redirect_uri"
+  },
+  {
+    "id": "web.authorize_oauth.title",
+    "translation": "Authorize Application"
+  },
+  {
+    "id": "web.check_browser_compatibility.app_error",
+    "translation": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 11 or higher, FireFox 14 or higher, Safari 9 or higher"
+  },
+  {
+    "id": "web.claim_account.team.error",
+    "translation": "Couldn't find team name=%v, err=%v"
+  },
+  {
+    "id": "web.claim_account.title",
+    "translation": "Claim Account"
+  },
+  {
+    "id": "web.claim_account.user.error",
+    "translation": "Couldn't find user teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.create_dir.error",
+    "translation": "Failed to create directory watcher %v"
+  },
+  {
+    "id": "web.dir_fail.error",
+    "translation": "Failed in directory watcher %v"
+  },
+  {
+    "id": "web.do_load_channel.error",
+    "translation": "Error in getting users profile for id=%v forcing logout"
+  },
+  {
+    "id": "web.doc.title",
+    "translation": "Documentation"
+  },
+  {
+    "id": "web.email_verified.title",
+    "translation": "Email Verified"
+  },
+  {
+    "id": "web.find_team.title",
+    "translation": "Find Team"
+  },
+  {
+    "id": "web.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Bad client_id"
+  },
+  {
+    "id": "web.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Missing client_secret"
+  },
+  {
+    "id": "web.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: Bad grant_type"
+  },
+  {
+    "id": "web.get_access_token.credentials.app_error",
+    "translation": "invalid_client: Invalid client credentials"
+  },
+  {
+    "id": "web.get_access_token.disabled.app_error",
+    "translation": "The system admin has turned off OAuth service providing."
+  },
+  {
+    "id": "web.get_access_token.exchanged.app_error",
+    "translation": "invalid_grant: Authorization code already exchanged for an access token"
+  },
+  {
+    "id": "web.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant: Invalid or expired authorization code"
+  },
+  {
+    "id": "web.get_access_token.internal.app_error",
+    "translation": "server_error: Encountered internal server error while accessing database"
+  },
+  {
+    "id": "web.get_access_token.internal_saving.app_error",
+    "translation": "server_error: Encountered internal server error while saving access token to database"
+  },
+  {
+    "id": "web.get_access_token.internal_session.app_error",
+    "translation": "server_error: Encountered internal server error while saving session to database"
+  },
+  {
+    "id": "web.get_access_token.internal_user.app_error",
+    "translation": "server_error: Encountered internal server error while pulling user from database"
+  },
+  {
+    "id": "web.get_access_token.missing_code.app_error",
+    "translation": "invalid_request: Missing code"
+  },
+  {
+    "id": "web.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri"
+  },
+  {
+    "id": "web.get_access_token.revoking.error",
+    "translation": "Encountered an error revoking an access token, err="
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "Couldn't find the channel"
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "Invalid webhook"
+  },
+  {
+    "id": "web.incoming_webhook.parse.app_error",
+    "translation": "Unable to parse incoming data"
+  },
+  {
+    "id": "web.incoming_webhook.permissions.app_error",
+    "translation": "Inappropriate channel permissions"
+  },
+  {
+    "id": "web.incoming_webhook.text.app_error",
+    "translation": "No text specified"
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Couldn't find the user"
+  },
+  {
+    "id": "web.init.debug",
+    "translation": "Initializing web routes"
+  },
+  {
+    "id": "web.login.error",
+    "translation": "Couldn't find team name=%v, err=%v"
+  },
+  {
+    "id": "web.login.login_title",
+    "translation": "Login"
+  },
+  {
+    "id": "web.login_with_oauth.invalid_team.app_error",
+    "translation": "Invalid team name"
+  },
+  {
+    "id": "web.parsing_templates.debug",
+    "translation": "Parsing templates at %v"
+  },
+  {
+    "id": "web.parsing_templates.error",
+    "translation": "Failed to parse templates %v"
+  },
+  {
+    "id": "web.post_permalink.app_error",
+    "translation": "Invalid Post ID"
+  },
+  {
+    "id": "web.reparse_templates.info",
+    "translation": "Re-parsing templates because of modified file %v"
+  },
+  {
+    "id": "web.reset_password.expired_link.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "web.reset_password.invalid_link.app_error",
+    "translation": "The reset link does not appear to be valid"
+  },
+  {
+    "id": "web.root.home_title",
+    "translation": "Home"
+  },
+  {
+    "id": "web.root.singup_title",
+    "translation": "Signup"
+  },
+  {
+    "id": "web.signup_team_complete.invalid_link.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "web.signup_team_complete.link_expired.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "web.signup_team_complete.title",
+    "translation": "Complete Team Sign Up"
+  },
+  {
+    "id": "web.signup_team_confirm.title",
+    "translation": "Signup Email Sent"
+  },
+  {
+    "id": "web.signup_user_complete.link_expired.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "web.signup_user_complete.link_invalid.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "web.signup_user_complete.no_invites.app_error",
+    "translation": "The team type doesn't allow open invites"
+  },
+  {
+    "id": "web.signup_user_complete.title",
+    "translation": "Complete User Sign Up"
+  },
+  {
+    "id": "web.singup_with_oauth.disabled.app_error",
+    "translation": "User sign-up is disabled."
+  },
+  {
+    "id": "web.singup_with_oauth.expired_link.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "web.singup_with_oauth.invalid_link.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "web.singup_with_oauth.invalid_team.app_error",
+    "translation": "Invalid team name"
+  },
+  {
+    "id": "web.watcher_fail.error",
+    "translation": "Failed to add directory to watcher %v"
   }
 ]
