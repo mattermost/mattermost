@@ -345,87 +345,87 @@ func (o *Config) SetDefaults() {
 func (o *Config) IsValid() *AppError {
 
 	if o.ServiceSettings.MaximumLoginAttempts <= 0 {
-		return NewAppError("Config.IsValid", "Invalid maximum login attempts for service settings.  Must be a positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "")
 	}
 
 	if len(o.ServiceSettings.ListenAddress) == 0 {
-		return NewAppError("Config.IsValid", "Invalid listen address for service settings Must be set.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
 	}
 
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
-		return NewAppError("Config.IsValid", "Invalid maximum users per team for team settings.  Must be a positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
-		return NewAppError("Config.IsValid", "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "")
 	}
 
 	if !(o.SqlSettings.DriverName == DATABASE_DRIVER_MYSQL || o.SqlSettings.DriverName == DATABASE_DRIVER_POSTGRES) {
-		return NewAppError("Config.IsValid", "Invalid driver name for SQL settings.  Must be 'mysql' or 'postgres'", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_driver.app_error", nil, "")
 	}
 
 	if o.SqlSettings.MaxIdleConns <= 0 {
-		return NewAppError("Config.IsValid", "Invalid maximum idle connection for SQL settings.  Must be a positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_idle.app_error", nil, "")
 	}
 
 	if len(o.SqlSettings.DataSource) == 0 {
-		return NewAppError("Config.IsValid", "Invalid data source for SQL settings.  Must be set.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_data_src.app_error", nil, "")
 	}
 
 	if o.SqlSettings.MaxOpenConns <= 0 {
-		return NewAppError("Config.IsValid", "Invalid maximum open connection for SQL settings.  Must be a positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "")
 	}
 
 	if !(o.FileSettings.DriverName == IMAGE_DRIVER_LOCAL || o.FileSettings.DriverName == IMAGE_DRIVER_S3) {
-		return NewAppError("Config.IsValid", "Invalid driver name for file settings.  Must be 'local' or 'amazons3'", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "")
 	}
 
 	if o.FileSettings.PreviewHeight < 0 {
-		return NewAppError("Config.IsValid", "Invalid preview height for file settings.  Must be a zero or positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_preview_height.app_error", nil, "")
 	}
 
 	if o.FileSettings.PreviewWidth <= 0 {
-		return NewAppError("Config.IsValid", "Invalid preview width for file settings.  Must be a positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_preview_width.app_error", nil, "")
 	}
 
 	if o.FileSettings.ProfileHeight <= 0 {
-		return NewAppError("Config.IsValid", "Invalid profile height for file settings.  Must be a positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_profile_height.app_error", nil, "")
 	}
 
 	if o.FileSettings.ProfileWidth <= 0 {
-		return NewAppError("Config.IsValid", "Invalid profile width for file settings.  Must be a positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_profile_width.app_error", nil, "")
 	}
 
 	if o.FileSettings.ThumbnailHeight <= 0 {
-		return NewAppError("Config.IsValid", "Invalid thumbnail height for file settings.  Must be a positive number.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_thumb_height.app_error", nil, "")
 	}
 
-	if o.FileSettings.ThumbnailHeight <= 0 {
-		return NewAppError("Config.IsValid", "Invalid thumbnail width for file settings.  Must be a positive number.", "")
+	if o.FileSettings.ThumbnailWidth <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_thumb_width.app_error", nil, "")
 	}
 
 	if len(o.FileSettings.PublicLinkSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid public link salt for file settings.  Must be 32 chars or more.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "")
 	}
 
 	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
-		return NewAppError("Config.IsValid", "Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "")
 	}
 
 	if len(o.EmailSettings.InviteSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid invite salt for email settings.  Must be 32 chars or more.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "")
 	}
 
 	if len(o.EmailSettings.PasswordResetSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid password reset salt for email settings.  Must be 32 chars or more.", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_reset_salt.app_error", nil, "")
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {
-		return NewAppError("Config.IsValid", "Invalid memory store size for rate limit settings.  Must be a positive number", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.rate_mem.app_error", nil, "")
 	}
 
 	if o.RateLimitSettings.PerSec <= 0 {
-		return NewAppError("Config.IsValid", "Invalid per sec for rate limit settings.  Must be a positive number", "")
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.rate_sec.app_error", nil, "")
 	}
 
 	return nil

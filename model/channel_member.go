@@ -53,27 +53,29 @@ func ChannelMemberFromJson(data io.Reader) *ChannelMember {
 func (o *ChannelMember) IsValid() *AppError {
 
 	if len(o.ChannelId) != 26 {
-		return NewAppError("ChannelMember.IsValid", "Invalid channel id", "")
+		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_id.app_error", nil, "")
 	}
 
 	if len(o.UserId) != 26 {
-		return NewAppError("ChannelMember.IsValid", "Invalid user id", "")
+		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.user_id.app_error", nil, "")
 	}
 
 	for _, role := range strings.Split(o.Roles, " ") {
 		if !(role == "" || role == CHANNEL_ROLE_ADMIN) {
-			return NewAppError("ChannelMember.IsValid", "Invalid role", "role="+role)
+			return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.role.app_error", nil, "role="+role)
 		}
 	}
 
 	notifyLevel := o.NotifyProps["desktop"]
 	if len(notifyLevel) > 20 || !IsChannelNotifyLevelValid(notifyLevel) {
-		return NewAppError("ChannelMember.IsValid", "Invalid notify level", "notify_level="+notifyLevel)
+		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_level.app_error",
+			nil, "notify_level="+notifyLevel)
 	}
 
 	markUnreadLevel := o.NotifyProps["mark_unread"]
 	if len(markUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(markUnreadLevel) {
-		return NewAppError("ChannelMember.IsValid", "Invalid mark unread level", "mark_unread_level="+markUnreadLevel)
+		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.unread_level.app_error",
+			nil, "mark_unread_level="+markUnreadLevel)
 	}
 
 	return nil
