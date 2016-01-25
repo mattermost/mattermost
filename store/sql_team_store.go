@@ -44,8 +44,8 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 		result := StoreResult{}
 
 		if len(team.Id) > 0 {
-			result.Err = model.NewAppError("SqlTeamStore.Save",
-				"Must call update for exisiting team", "id="+team.Id)
+			result.Err = model.NewLocAppError("SqlTeamStore.Save",
+				"store.sql_team.save.existing.app_error", nil, "id="+team.Id)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -61,9 +61,9 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 
 		if err := s.GetMaster().Insert(team); err != nil {
 			if IsUniqueConstraintError(err.Error(), "Name", "teams_name_key") {
-				result.Err = model.NewAppError("SqlTeamStore.Save", "A team with that domain already exists", "id="+team.Id+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error())
 			} else {
-				result.Err = model.NewAppError("SqlTeamStore.Save", "We couldn't save the team", "id="+team.Id+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlTeamStore.Save", "store.sql_team.save.app_error", nil, "id="+team.Id+", "+err.Error())
 			}
 		} else {
 			result.Data = team
@@ -92,9 +92,9 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 		}
 
 		if oldResult, err := s.GetMaster().Get(model.Team{}, team.Id); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Update", "We encountered an error finding the team", "id="+team.Id+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.Update", "store.sql_team.update.finding.app_error", nil, "id="+team.Id+", "+err.Error())
 		} else if oldResult == nil {
-			result.Err = model.NewAppError("SqlTeamStore.Update", "We couldn't find the existing team to update", "id="+team.Id)
+			result.Err = model.NewLocAppError("SqlTeamStore.Update", "store.sql_team.update.find.app_error", nil, "id="+team.Id)
 		} else {
 			oldTeam := oldResult.(*model.Team)
 			team.CreateAt = oldTeam.CreateAt
@@ -102,9 +102,9 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 			team.Name = oldTeam.Name
 
 			if count, err := s.GetMaster().Update(team); err != nil {
-				result.Err = model.NewAppError("SqlTeamStore.Update", "We encountered an error updating the team", "id="+team.Id+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error())
 			} else if count != 1 {
-				result.Err = model.NewAppError("SqlTeamStore.Update", "We couldn't update the team", "id="+team.Id)
+				result.Err = model.NewLocAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id)
 			} else {
 				result.Data = team
 			}
@@ -125,7 +125,7 @@ func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) StoreChannel
 		result := StoreResult{}
 
 		if _, err := s.GetMaster().Exec("UPDATE Teams SET DisplayName = :Name WHERE Id = :Id", map[string]interface{}{"Name": name, "Id": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.UpdateName", "We couldn't update the team name", "team_id="+teamId)
+			result.Err = model.NewLocAppError("SqlTeamStore.UpdateName", "store.sql_team.update_display_name.app_error", nil, "team_id="+teamId)
 		} else {
 			result.Data = teamId
 		}
@@ -144,9 +144,9 @@ func (s SqlTeamStore) Get(id string) StoreChannel {
 		result := StoreResult{}
 
 		if obj, err := s.GetReplica().Get(model.Team{}, id); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Get", "We encountered an error finding the team", "id="+id+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.Get", "store.sql_team.get.finding.app_error", nil, "id="+id+", "+err.Error())
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlTeamStore.Get", "We couldn't find the existing team", "id="+id)
+			result.Err = model.NewLocAppError("SqlTeamStore.Get", "store.sql_team.get.find.app_error", nil, "id="+id)
 		} else {
 			team := obj.(*model.Team)
 			if len(team.InviteId) == 0 {
@@ -172,7 +172,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
 		team := model.Team{}
 
 		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Id = :InviteId OR InviteId = :InviteId", map[string]interface{}{"InviteId": inviteId}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "We couldn't find the existing team", "inviteId="+inviteId+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.finding.app_error", nil, "inviteId="+inviteId+", "+err.Error())
 		}
 
 		if len(team.InviteId) == 0 {
@@ -180,7 +180,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
 		}
 
 		if len(inviteId) == 0 || team.InviteId != inviteId {
-			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "We couldn't find the existing team", "inviteId="+inviteId)
+			result.Err = model.NewLocAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.find.app_error", nil, "inviteId="+inviteId)
 		}
 
 		result.Data = &team
@@ -201,7 +201,7 @@ func (s SqlTeamStore) GetByName(name string) StoreChannel {
 		team := model.Team{}
 
 		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetByName", "We couldn't find the existing team", "name="+name+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error())
 		}
 
 		if len(team.InviteId) == 0 {
@@ -225,7 +225,7 @@ func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, Users WHERE Teams.Id = Users.TeamId AND Users.Email = :Email", map[string]interface{}{"Email": email}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetTeamsForEmail", "We encountered a problem when looking up teams", "email="+email+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetTeamsForEmail", "store.sql_team.get_teams_for_email.app_error", nil, "email="+email+", "+err.Error())
 		}
 
 		for _, team := range data {
@@ -251,7 +251,7 @@ func (s SqlTeamStore) GetAll() StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams"); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "We could not get all teams", err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error())
 		}
 
 		for _, team := range data {
@@ -283,7 +283,7 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, query); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "We could not get all teams", err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
 		}
 
 		for _, team := range data {
@@ -308,7 +308,7 @@ func (s SqlTeamStore) PermanentDelete(teamId string) StoreChannel {
 		result := StoreResult{}
 
 		if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Delete", "We couldn't delete the existing team", "teamId="+teamId+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.Delete", "store.sql_team.permanent_delete.app_error", nil, "teamId="+teamId+", "+err.Error())
 		}
 
 		storeChannel <- result

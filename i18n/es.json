@@ -2156,6 +2156,846 @@
     "translation": "no se puede decodificar"
   },
   {
+    "id": "store.sql.check_index.critical",
+    "translation": "Falla al revisar el indice %v"
+  },
+  {
+    "id": "store.sql.closing.info",
+    "translation": "Cerrando SqlStore"
+  },
+  {
+    "id": "store.sql.column_exists.critical",
+    "translation": "Falla al revisar si la columna existe %v"
+  },
+  {
+    "id": "store.sql.column_exists_missing_driver.critical",
+    "translation": "Falla al revisar si la columna existe porque el controlador no se encuentra"
+  },
+  {
+    "id": "store.sql.convert_encrypt_string_map",
+    "translation": "Desde BD: No se puede convertir EncryptStringMap a *string"
+  },
+  {
+    "id": "store.sql.convert_string_array",
+    "translation": "Desde BD: No se puede convertir StringArray a *string"
+  },
+  {
+    "id": "store.sql.convert_string_interface",
+    "translation": "Desde BD: No se puede convertir StringInterface a *string"
+  },
+  {
+    "id": "store.sql.convert_string_map",
+    "translation": "Desde BD: No se puede convertir StringMap a *string"
+  },
+  {
+    "id": "store.sql.create_column.critical",
+    "translation": "Falla al crear la columna %v"
+  },
+  {
+    "id": "store.sql.create_column_missing_driver.critical",
+    "translation": "Falla al crear la columna porque el controlador no se encuentra"
+  },
+  {
+    "id": "store.sql.create_index.critical",
+    "translation": "Falla al crear el indice %v"
+  },
+  {
+    "id": "store.sql.create_index_missing_driver.critical",
+    "translation": "Falla al crear el indice porque el controlador no se encuentra"
+  },
+  {
+    "id": "store.sql.creating_tables.critical",
+    "translation": "Error creando las tablas de la base de datos: %v"
+  },
+  {
+    "id": "store.sql.dialect_driver.critical",
+    "translation": "Falla al crear el controlador de base de datos especificado"
+  },
+  {
+    "id": "store.sql.dialect_driver.panic",
+    "translation": "Failed to create dialect specific driver %v"
+  },
+  {
+    "id": "store.sql.drop_column.critical",
+    "translation": "Falla al borrar la columna %v"
+  },
+  {
+    "id": "store.sql.incorrect_mac",
+    "translation": "MAC incorrecto para el ciphertext dado"
+  },
+  {
+    "id": "store.sql.open_conn.critical",
+    "translation": "Falla al abrir una conexión sql a err:%v"
+  },
+  {
+    "id": "store.sql.open_conn.panic",
+    "translation": "Failed to open sql connection %v"
+  },
+  {
+    "id": "store.sql.ping.critical",
+    "translation": "Falla al hacer ping a la base de datos err:%v"
+  },
+  {
+    "id": "store.sql.pinging.info",
+    "translation": "Verificando conexión con la base de datos sql %v"
+  },
+  {
+    "id": "store.sql.rename_column.critical",
+    "translation": "Falla al renombrar la columna %v"
+  },
+  {
+    "id": "store.sql.schema_out_of_date.warn",
+    "translation": "La versión del esquema de la base de datos %v parece estar desactualizada"
+  },
+  {
+    "id": "store.sql.schema_set.info",
+    "translation": "El esquema de la base de datos ha sido asignado a la versión %v"
+  },
+  {
+    "id": "store.sql.schema_upgrade_attempt.warn",
+    "translation": "Intentando actualizar el esquema de la base de datos a la versión %v"
+  },
+  {
+    "id": "store.sql.schema_version.critical",
+    "translation": "La version del esquema de la base de datos %v no puede ser actualizada.  No debes saltarte ninguna versión anterior."
+  },
+  {
+    "id": "store.sql.short_ciphertext",
+    "translation": "ciphertext corto"
+  },
+  {
+    "id": "store.sql.table_column_type.critical",
+    "translation": "Falla al obtener el tipo de dato de la columna %s de la tabla %s: %v"
+  },
+  {
+    "id": "store.sql.table_exists.critical",
+    "translation": "Falla al revisar si la tabla existe %v"
+  },
+  {
+    "id": "store.sql.too_short_ciphertext",
+    "translation": "ciphertext muy corto"
+  },
+  {
+    "id": "store.sql.upgraded.warn",
+    "translation": "El esquema de la base de datos ha sido actualizado a la versión %v"
+  },
+  {
+    "id": "store.sql_audit.get.finding.app_error",
+    "translation": "Encontramos un error al buscar las auditorias"
+  },
+  {
+    "id": "store.sql_audit.get.limit.app_error",
+    "translation": "Límite de paginación excedido"
+  },
+  {
+    "id": "store.sql_audit.permanent_delete_by_user.app_error",
+    "translation": "Encontramos un error al eliminar los audits"
+  },
+  {
+    "id": "store.sql_audit.save.saving.app_error",
+    "translation": "Encontramos un error guardando la auditoria"
+  },
+  {
+    "id": "store.sql_channel.analytics_type_count.app_error",
+    "translation": "No pudimos obtener la cantidad de canales de este tipo"
+  },
+  {
+    "id": "store.sql_channel.check_open_channel_permissions.app_error",
+    "translation": "No pudimos revisar los permisos"
+  },
+  {
+    "id": "store.sql_channel.check_permissions.app_error",
+    "translation": "No pudimos revisar los permisos"
+  },
+  {
+    "id": "store.sql_channel.check_permissions_by_name.app_error",
+    "translation": "No pudimos revisar los permisos"
+  },
+  {
+    "id": "store.sql_channel.delete.channel.app_error",
+    "translation": "No pudimos eliminar el canal"
+  },
+  {
+    "id": "store.sql_channel.extra_updated.app_error",
+    "translation": "Problema actualizando el último momento de actualización de los miembros"
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "No pudimos encontrar el canal"
+  },
+  {
+    "id": "store.sql_channel.get.find.app_error",
+    "translation": "Encontramos un error buscando el canal"
+  },
+  {
+    "id": "store.sql_channel.get_by_name.existing.app_error",
+    "translation": "No pudimos encontrar el canal"
+  },
+  {
+    "id": "store.sql_channel.get_channel_counts.get.app_error",
+    "translation": "No pudimos obtener la cantidad de canales"
+  },
+  {
+    "id": "store.sql_channel.get_channels.get.app_error",
+    "translation": "No pudimos obtener los canales"
+  },
+  {
+    "id": "store.sql_channel.get_channels.not_found.app_error",
+    "translation": "No se encontró ningún canal"
+  },
+  {
+    "id": "store.sql_channel.get_extra_members.app_error",
+    "translation": "No pudimos obtener información extra de los miembros del canal"
+  },
+  {
+    "id": "store.sql_channel.get_for_export.app_error",
+    "translation": "No pudimos obtener todos los canales"
+  },
+  {
+    "id": "store.sql_channel.get_member.app_error",
+    "translation": "No pudimos obtener el miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.get_member_count.app_error",
+    "translation": "No pudimos obtener la cantidad de miembros del canal"
+  },
+  {
+    "id": "store.sql_channel.get_members.app_error",
+    "translation": "No pudimos obtener los miembros del canal"
+  },
+  {
+    "id": "store.sql_channel.get_more_channels.get.app_error",
+    "translation": "No pudimos obtener los canales"
+  },
+  {
+    "id": "store.sql_channel.increment_mention_count.app_error",
+    "translation": "No pudimos incrementar la cantidad de menciones"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.app_error",
+    "translation": "No pudimos eliminar los canales"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
+    "translation": "No pudimos remover al miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.remove_member.app_error",
+    "translation": "No pudimos remover al miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.save.commit_transaction.app_error",
+    "translation": "No se puede perpetrar la transacción"
+  },
+  {
+    "id": "store.sql_channel.save.direct_channel.app_error",
+    "translation": "Utiliza SaveDirectChannel para crear un canal directo"
+  },
+  {
+    "id": "store.sql_channel.save.open_transaction.app_error",
+    "translation": "No se puede abrir la transacción"
+  },
+  {
+    "id": "store.sql_channel.save_channel.current_count.app_error",
+    "translation": "Falla obteniendo la cantidad de canales actual"
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "Debe llamarse a actualizar para un canal existente"
+  },
+  {
+    "id": "store.sql_channel.save_channel.exists.app_error",
+    "translation": "Un canal con este URL ya existe"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "Se ha alcanzado el límite de canales permitidos."
+  },
+  {
+    "id": "store.sql_channel.save_channel.previously.app_error",
+    "translation": "Un canal con este URL fue creado previamente"
+  },
+  {
+    "id": "store.sql_channel.save_channel.save.app_error",
+    "translation": "No pudimos guardar el canal"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.add_members.app_error",
+    "translation": "No se pueden agregar miembros a un canal directo"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.commit.app_error",
+    "translation": "No se puede perpetrar la transacción"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
+    "translation": "No es un canal directo, se intentó crear con SaveDirectChannel"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
+    "translation": "No se puede abrir la transacción"
+  },
+  {
+    "id": "store.sql_channel.save_member.commit_transaction.app_error",
+    "translation": "No se puede perpetrar la transacción"
+  },
+  {
+    "id": "store.sql_channel.save_member.exists.app_error",
+    "translation": "Un miembro del canal con este id ya existe"
+  },
+  {
+    "id": "store.sql_channel.save_member.open_transaction.app_error",
+    "translation": "No se puede abrir la transacción"
+  },
+  {
+    "id": "store.sql_channel.save_member.save.app_error",
+    "translation": "No pudimos guardar el miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.update.app_error",
+    "translation": "No pudimos actualizar el canal"
+  },
+  {
+    "id": "store.sql_channel.update.exists.app_error",
+    "translation": "Un canal con este identificador ya existe"
+  },
+  {
+    "id": "store.sql_channel.update.previously.app_error",
+    "translation": "Un canal con este identificador fue creado previamente"
+  },
+  {
+    "id": "store.sql_channel.update.updating.app_error",
+    "translation": "Encontramos un error actualizando el canal"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at.app_error",
+    "translation": "No pudimos actualizar el tiempo de la última vista"
+  },
+  {
+    "id": "store.sql_channel.update_member.app_error",
+    "translation": "Encontramos un error actualizando el miembro del canal"
+  },
+  {
+    "id": "store.sql_oauth.get_access_data.app_error",
+    "translation": "Encontramos un error buscando el token de acceso"
+  },
+  {
+    "id": "store.sql_oauth.get_access_data_by_code.app_error",
+    "translation": "Encontramos un error buscando el token de acceso"
+  },
+  {
+    "id": "store.sql_oauth.get_app.find.app_error",
+    "translation": "No pudimos encontrar la app"
+  },
+  {
+    "id": "store.sql_oauth.get_app.finding.app_error",
+    "translation": "Encontramos un error buscando la app"
+  },
+  {
+    "id": "store.sql_oauth.get_app_by_user.find.app_error",
+    "translation": "No pudimos encontrar ninguna app"
+  },
+  {
+    "id": "store.sql_oauth.get_auth_data.find.app_error",
+    "translation": "No pudimos encontrar el código de autorización"
+  },
+  {
+    "id": "store.sql_oauth.get_auth_data.finding.app_error",
+    "translation": "Encontramos un error buscando el código de autorización"
+  },
+  {
+    "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
+    "translation": "No pudimos remover el código de autorización"
+  },
+  {
+    "id": "store.sql_oauth.remove_access_data.app_error",
+    "translation": "No pudimos remover el token de acceso"
+  },
+  {
+    "id": "store.sql_oauth.remove_auth_data.app_error",
+    "translation": "No pudimos remover el código de autorización"
+  },
+  {
+    "id": "store.sql_oauth.save_access_data.app_error",
+    "translation": "No pudimos guardar el token de acceso."
+  },
+  {
+    "id": "store.sql_oauth.save_app.existing.app_error",
+    "translation": "Se debe ejecutar actualizar para una app existente"
+  },
+  {
+    "id": "store.sql_oauth.save_app.save.app_error",
+    "translation": "No pudimos guardar el app."
+  },
+  {
+    "id": "store.sql_oauth.save_auth_data.app_error",
+    "translation": "No pudimos guardar el código de autorización."
+  },
+  {
+    "id": "store.sql_oauth.update_app.find.app_error",
+    "translation": "No pudimos encontrar una app para actualizar"
+  },
+  {
+    "id": "store.sql_oauth.update_app.finding.app_error",
+    "translation": "Encontramos un error buscando la app"
+  },
+  {
+    "id": "store.sql_oauth.update_app.update.app_error",
+    "translation": "No pudimos actualizar la app"
+  },
+  {
+    "id": "store.sql_oauth.update_app.updating.app_error",
+    "translation": "Encontramos un error actualizando la app"
+  },
+  {
+    "id": "store.sql_post.analytics_posts_count.app_error",
+    "translation": "No pudimos obtener la cantidad de mensajes"
+  },
+  {
+    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
+    "translation": "No pudimos obtener la cantidad de mensajes por día"
+  },
+  {
+    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "No pudimos obtener la cantidad de usuarios con mensajes"
+  },
+  {
+    "id": "store.sql_post.delete.app_error",
+    "translation": "No pudimos eliminar el mensaje"
+  },
+  {
+    "id": "store.sql_post.get.app_error",
+    "translation": "No pudimos obtener el mensaje"
+  },
+  {
+    "id": "store.sql_post.get_for_export.app_error",
+    "translation": "No pudimos obtener los mensajes para el canal"
+  },
+  {
+    "id": "store.sql_post.get_parents_posts.app_error",
+    "translation": "No pudimos obtener los mensajes padres del canal"
+  },
+  {
+    "id": "store.sql_post.get_posts.app_error",
+    "translation": "Límite de paginación excedido"
+  },
+  {
+    "id": "store.sql_post.get_posts_around.get.app_error",
+    "translation": "No pudimos obtener los mensajes para el canal"
+  },
+  {
+    "id": "store.sql_post.get_posts_around.get_parent.app_error",
+    "translation": "No pudimos obtener los mensajes padres del canal"
+  },
+  {
+    "id": "store.sql_post.get_posts_since.app_error",
+    "translation": "No pudimos obtener los mensajes para el canal"
+  },
+  {
+    "id": "store.sql_post.get_root_posts.app_error",
+    "translation": "No pudimos obtener los mensajes para el canal"
+  },
+  {
+    "id": "store.sql_post.permanent_delete.app_error",
+    "translation": "No pudimos eliminar el mensaje"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
+    "translation": "No pudimos eliminar los comentarios para el usuario"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_user.app_error",
+    "translation": "No pudimos seleccionar los mensajes a borrar para el usuario"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
+    "translation": "No pudimos seleccionar todos los mensajes a eliminar por el usuario (son demasiados), por favor ejecuta de nuevo"
+  },
+  {
+    "id": "store.sql_post.save.app_error",
+    "translation": "No pudimos guardar el Mensaje"
+  },
+  {
+    "id": "store.sql_post.save.existing.app_error",
+    "translation": "No puedes actualizar el Mensaje"
+  },
+  {
+    "id": "store.sql_post.search.app_error",
+    "translation": "Encontramos un error mientras buscabamos los mensajes"
+  },
+  {
+    "id": "store.sql_post.update.app_error",
+    "translation": "No pudimos actualizar el Mensaje"
+  },
+  {
+    "id": "store.sql_preference.delete_unused_features.debug",
+    "translation": "Eliminando las características de pre-release"
+  },
+  {
+    "id": "store.sql_preference.get.app_error",
+    "translation": "Encontramos un error mientras buscabamos las preferencias"
+  },
+  {
+    "id": "store.sql_preference.get_all.app_error",
+    "translation": "Encontramos un error mientras buscabamos las preferencias"
+  },
+  {
+    "id": "store.sql_preference.get_category.app_error",
+    "translation": "Encontramos un error mientras buscabamos las preferencias"
+  },
+  {
+    "id": "store.sql_preference.insert.exists.app_error",
+    "translation": "La preferencia para ese usuario, categoria y nombre ya existe"
+  },
+  {
+    "id": "store.sql_preference.insert.save.app_error",
+    "translation": "No pudimos guardar la preferencia"
+  },
+  {
+    "id": "store.sql_preference.is_feature_enabled.app_error",
+    "translation": "Encontramos un error mientras buscabamos las preferencias de las características de pre-lanzamiento"
+  },
+  {
+    "id": "store.sql_preference.permanent_delete_by_user.app_error",
+    "translation": "Encontramos un error mientras eliminabamos las preferencias"
+  },
+  {
+    "id": "store.sql_preference.save.commit_transaction.app_error",
+    "translation": "No se pudo hacer commit de la transacción para guardar las preferencias"
+  },
+  {
+    "id": "store.sql_preference.save.missing_driver.app_error",
+    "translation": "Encontramos un error mientras actualizabamos las preferencias"
+  },
+  {
+    "id": "store.sql_preference.save.open_transaction.app_error",
+    "translation": "No se pudo abrir la transacción para guardar las preferencias"
+  },
+  {
+    "id": "store.sql_preference.save.rollback_transaction.app_error",
+    "translation": "No se pudo deshacer la transaccion para guardar las preferencias"
+  },
+  {
+    "id": "store.sql_preference.save.updating.app_error",
+    "translation": "Encontramos un error mientras actualizabamos las preferencias"
+  },
+  {
+    "id": "store.sql_preference.update.app_error",
+    "translation": "No pudimos actualizar la preferencia"
+  },
+  {
+    "id": "store.sql_session.cleanup_expired_sessions.app_error",
+    "translation": "Encontramos un error mientras se eliminaban las sesiones expiradas del usuario"
+  },
+  {
+    "id": "store.sql_session.get.app_error",
+    "translation": "Encontramos un error buscando las sesiones"
+  },
+  {
+    "id": "store.sql_session.get_sessions.app_error",
+    "translation": "Encontramos un error mientras buscabamos las sesiones de usuario"
+  },
+  {
+    "id": "store.sql_session.get_sessions.error",
+    "translation": "Falla al limpiar las sesiones en getSessions err=%v"
+  },
+  {
+    "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
+    "translation": "No pudimos remover todas las sesiones del usuario"
+  },
+  {
+    "id": "store.sql_session.remove.app_error",
+    "translation": "No pudimos remover la sesión"
+  },
+  {
+    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
+    "translation": "No pudimos remover todas las sesiones para el equipo"
+  },
+  {
+    "id": "store.sql_session.save.app_error",
+    "translation": "No pudimos guardar la sesión"
+  },
+  {
+    "id": "store.sql_session.save.cleanup.error",
+    "translation": "Falla al limpiar las sesiones mientras se Guardaba err=%v"
+  },
+  {
+    "id": "store.sql_session.save.existing.app_error",
+    "translation": "No se puede actualizar la sesión"
+  },
+  {
+    "id": "store.sql_session.update_last_activity.app_error",
+    "translation": "No pudimos actualizar el campo last_activity_at"
+  },
+  {
+    "id": "store.sql_session.update_roles.app_error",
+    "translation": "No pudimos actualizar los roles"
+  },
+  {
+    "id": "store.sql_system.get.app_error",
+    "translation": "Encontramos un error buscando las propiedades del sistema"
+  },
+  {
+    "id": "store.sql_system.save.app_error",
+    "translation": "Entrontramos un error mientras se guardaban las propiedades del sistema"
+  },
+  {
+    "id": "store.sql_system.update.app_error",
+    "translation": "Encontramos un error actualizando las propiedades del sistema"
+  },
+  {
+    "id": "store.sql_team.get.find.app_error",
+    "translation": "No encontramos el equipo al que perteneces"
+  },
+  {
+    "id": "store.sql_team.get.finding.app_error",
+    "translation": "Encontramos un error buscando el equipo"
+  },
+  {
+    "id": "store.sql_team.get_all.app_error",
+    "translation": "No pudimos obtener todos los equipos"
+  },
+  {
+    "id": "store.sql_team.get_all_team_listing.app_error",
+    "translation": "No pudimos obtener todos los equipos"
+  },
+  {
+    "id": "store.sql_team.get_by_invite_id.find.app_error",
+    "translation": "No encontramos el equipo al que perteneces"
+  },
+  {
+    "id": "store.sql_team.get_by_invite_id.finding.app_error",
+    "translation": "No encontramos el equipo al que perteneces"
+  },
+  {
+    "id": "store.sql_team.get_by_name.app_error",
+    "translation": "No encontramos el equipo al que perteneces"
+  },
+  {
+    "id": "store.sql_team.get_teams_for_email.app_error",
+    "translation": "Encontramos un problema cuando buscabamos los equipos"
+  },
+  {
+    "id": "store.sql_team.permanent_delete.app_error",
+    "translation": "No pudimos eliminar el equipo"
+  },
+  {
+    "id": "store.sql_team.save.app_error",
+    "translation": "No pudimos guardar el equipo"
+  },
+  {
+    "id": "store.sql_team.save.domain_exists.app_error",
+    "translation": "Ya existe un equipo con ese dominio"
+  },
+  {
+    "id": "store.sql_team.save.existing.app_error",
+    "translation": "Debe ejecturase actualizar para un equipo existente"
+  },
+  {
+    "id": "store.sql_team.update.app_error",
+    "translation": "No pudimos actualizar el equipo"
+  },
+  {
+    "id": "store.sql_team.update.find.app_error",
+    "translation": "No pudimos encontrar el equipo a actualizar"
+  },
+  {
+    "id": "store.sql_team.update.finding.app_error",
+    "translation": "Encontramos un error buscando el equipo"
+  },
+  {
+    "id": "store.sql_team.update.updating.app_error",
+    "translation": "Encontramos un error actualizando el equipo"
+  },
+  {
+    "id": "store.sql_team.update_display_name.app_error",
+    "translation": "No pudimos actualizar el nombre del equipo"
+  },
+  {
+    "id": "store.sql_user.analytics_unique_user_count.app_error",
+    "translation": "No se pudo obtener el conteo de usuarios unicos"
+  },
+  {
+    "id": "store.sql_user.get.app_error",
+    "translation": "Encontramos un error buscando la cuenta"
+  },
+  {
+    "id": "store.sql_user.get_by_auth.app_error",
+    "translation": "No pudimos encontrar una cuenta existente que coincida con tu tipo de autenticación para este equipo. Es posible que necesites una invitación por aprte del dueño del equipo para unirte."
+  },
+  {
+    "id": "store.sql_user.get_by_username.app_error",
+    "translation": "No pudimos encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por aprte del dueño del equipo para unirte."
+  },
+  {
+    "id": "store.sql_user.get_for_export.app_error",
+    "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
+  },
+  {
+    "id": "store.sql_user.get_profiles.app_error",
+    "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
+  },
+  {
+    "id": "store.sql_user.get_sysadmin_profiles.app_error",
+    "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
+  },
+  {
+    "id": "store.sql_user.get_total_active_users_count.app_error",
+    "translation": "No pudimos contar los usuarios"
+  },
+  {
+    "id": "store.sql_user.get_total_users_count.app_error",
+    "translation": "No pudimos contar los usuarios"
+  },
+  {
+    "id": "store.sql_user.missing_account.const",
+    "translation": "No pudimos encontrar una cuenta existente que coincida con tu dirección de correo electrónico para este equipo. Es posible que necesites una invitación del dueño del equipo para poder unirte."
+  },
+  {
+    "id": "store.sql_user.permanent_delete.app_error",
+    "translation": "No pudimos eliminar la cuenta"
+  },
+  {
+    "id": "store.sql_user.save.app_error",
+    "translation": "No pudimos guardar la cuenta."
+  },
+  {
+    "id": "store.sql_user.save.email_exists.app_error",
+    "translation": "Ya existe una cuenta con ese correo electrónico."
+  },
+  {
+    "id": "store.sql_user.save.existing.app_error",
+    "translation": "Debe ejecutarse actualizar para un usuario existente"
+  },
+  {
+    "id": "store.sql_user.save.max_accounts.app_error",
+    "translation": "Este equipo ha alcanzado el número máximo de cuentas permitidas. Contacta a un administrador de sistema para que asigne un límite mayor."
+  },
+  {
+    "id": "store.sql_user.save.member_count.app_error",
+    "translation": "Falla obteniendo la cantidad de miembros del equipo actual"
+  },
+  {
+    "id": "store.sql_user.save.username_exists.app_error",
+    "translation": "Una cuenta con ese nombre de usuario ya existe."
+  },
+  {
+    "id": "store.sql_user.update.app_error",
+    "translation": "No pudimos realizar la actualización de los datos de la cuenta"
+  },
+  {
+    "id": "store.sql_user.update.email_taken.app_error",
+    "translation": "Este correo electrónico ya está siendo utilizado. Por favor escoge otro."
+  },
+  {
+    "id": "store.sql_user.update.find.app_error",
+    "translation": "No pudimos encontrar la cuenta a actualizar"
+  },
+  {
+    "id": "store.sql_user.update.finding.app_error",
+    "translation": "Encontramos un error buscando la cuenta"
+  },
+  {
+    "id": "store.sql_user.update.updating.app_error",
+    "translation": "Encontramos un error actualizando la cuenta"
+  },
+  {
+    "id": "store.sql_user.update.username_taken.app_error",
+    "translation": "Este nombre de usuario ya está siendo utiizado. Por favor selecciona otro."
+  },
+  {
+    "id": "store.sql_user.update_auth_data.app_error",
+    "translation": "No pudimos actualizar la data de autorización"
+  },
+  {
+    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
+    "translation": "No pudimos actualizar el campo failed_attempts"
+  },
+  {
+    "id": "store.sql_user.update_last_activity.app_error",
+    "translation": "No pudimos actualizar el campo last_activity_at"
+  },
+  {
+    "id": "store.sql_user.update_last_picture_update.app_error",
+    "translation": "No pudimos actualizar el campo update_at"
+  },
+  {
+    "id": "store.sql_user.update_last_ping.app_error",
+    "translation": "No pudimos actualizar el campo last_ping_at"
+  },
+  {
+    "id": "store.sql_user.update_password.app_error",
+    "translation": "No pudimos actualizar la contraseña del usuario"
+  },
+  {
+    "id": "store.sql_user.verify_email.app_error",
+    "translation": "No se puede actualizar el campo de verificar correo"
+  },
+  {
+    "id": "store.sql_webhooks.delete_incoming.app_error",
+    "translation": "No pudimos eliminar el webhook"
+  },
+  {
+    "id": "store.sql_webhooks.delete_outgoing.app_error",
+    "translation": "No pudimos eliminar el webhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming.app_error",
+    "translation": "No pudimos obtener el webhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
+    "translation": "No pudimos obtener los webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming_by_user.app_error",
+    "translation": "No pudimos obtener el webhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing.app_error",
+    "translation": "No pudimos obtener el webhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
+    "translation": "No pudimos obtener los webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing_by_creator.app_error",
+    "translation": "No pudimos obtener los webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
+    "translation": "No pudimos obtener los webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "No pudimos eliminar el webhook"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "No pudimos eliminar el webhook"
+  },
+  {
+    "id": "store.sql_webhooks.save_incoming.app_error",
+    "translation": "No pudimos guardar el Webhook de Entrada"
+  },
+  {
+    "id": "store.sql_webhooks.save_incoming.existing.app_error",
+    "translation": "No puedes sobreescribir un Webhook de Entrada existente"
+  },
+  {
+    "id": "store.sql_webhooks.save_outgoing.app_error",
+    "translation": "No pudimos guardar el Webhook de Salida"
+  },
+  {
+    "id": "store.sql_webhooks.save_outgoing.override.app_error",
+    "translation": "No puedes sobreescribir un Webhook de Salida existente"
+  },
+  {
+    "id": "store.sql_webhooks.update_outgoing.app_error",
+    "translation": "No pudimos actualizar el webhook"
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Error decifrando la configuración del archivo={{.Filename}}, err={{.Error}}"
   },
