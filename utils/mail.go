@@ -34,12 +34,12 @@ func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 
 		conn, err = tls.Dial("tcp", config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort, tlsconfig)
 		if err != nil {
-			return nil, model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
+			return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error())
 		}
 	} else {
 		conn, err = net.Dial("tcp", config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 		if err != nil {
-			return nil, model.NewAppError("SendMail", "Failed to open connection", err.Error())
+			return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error())
 		}
 	}
 
@@ -49,15 +49,15 @@ func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
 	c, err := smtp.NewClient(conn, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if err != nil {
-		l4g.Error("Failed to open a connection to SMTP server %v", err)
-		return nil, model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
+		l4g.Error(T("utils.mail.new_client.open.error"), err)
+		return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error())
 	}
 	// GO does not support plain auth over a non encrypted connection.
 	// so if not tls then no auth
 	auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		if err = c.Auth(auth); err != nil {
-			return nil, model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
+			return nil, model.NewLocAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error())
 		}
 	} else if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_STARTTLS {
 		tlsconfig := &tls.Config{
@@ -66,7 +66,7 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		}
 		c.StartTLS(tlsconfig)
 		if err = c.Auth(auth); err != nil {
-			return nil, model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
+			return nil, model.NewLocAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error())
 		}
 	}
 	return c, nil
@@ -79,14 +79,14 @@ func TestConnection(config *model.Config) {
 
 	conn, err1 := connectToSMTPServer(config)
 	if err1 != nil {
-		l4g.Error("SMTP server settings do not appear to be configured properly err=%v details=%v", err1.Message, err1.DetailedError)
+		l4g.Error(T("utils.mail.test.configured.error"), err1.Message, err1.DetailedError)
 		return
 	}
 	defer conn.Close()
 
 	c, err2 := newSMTPClient(conn, config)
 	if err2 != nil {
-		l4g.Error("SMTP connection settings do not appear to be configured properly err=%v details=%v", err2.Message, err2.DetailedError)
+		l4g.Error(T("utils.mail.test.configured.error"), err2.Message, err2.DetailedError)
 		return
 	}
 	defer c.Quit()
@@ -102,7 +102,7 @@ func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.
 		return nil
 	}
 
-	l4g.Debug("sending mail to " + to + " with subject of '" + subject + "'")
+	l4g.Debug(T("utils.mail.send_mail.sending.debug"), to, subject)
 
 	fromMail := mail.Address{config.EmailSettings.FeedbackName, config.EmailSettings.FeedbackEmail}
 	toMail := mail.Address{"", to}
@@ -136,26 +136,26 @@ func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.
 	defer c.Close()
 
 	if err := c.Mail(fromMail.Address); err != nil {
-		return model.NewAppError("SendMail", "Failed to add from email address", err.Error())
+		return model.NewLocAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error())
 	}
 
 	if err := c.Rcpt(toMail.Address); err != nil {
-		return model.NewAppError("SendMail", "Failed to add to email address", err.Error())
+		return model.NewLocAppError("SendMail", "utils.mail.send_mail.to_address.app_error", nil, err.Error())
 	}
 
 	w, err := c.Data()
 	if err != nil {
-		return model.NewAppError("SendMail", "Failed to add email messsage data", err.Error())
+		return model.NewLocAppError("SendMail", "utils.mail.send_mail.msg_data.app_error", nil, err.Error())
 	}
 
 	_, err = w.Write([]byte(message))
 	if err != nil {
-		return model.NewAppError("SendMail", "Failed to write email message", err.Error())
+		return model.NewLocAppError("SendMail", "utils.mail.send_mail.msg.app_error", nil, err.Error())
 	}
 
 	err = w.Close()
 	if err != nil {
-		return model.NewAppError("SendMail", "Failed to close connection to SMTP server", err.Error())
+		return model.NewLocAppError("SendMail", "utils.mail.send_mail.close.app_error", nil, err.Error())
 	}
 
 	return nil

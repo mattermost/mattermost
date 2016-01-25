@@ -17,13 +17,13 @@
                                     <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
-                                                <h2 style="font-weight: normal; margin-top: 10px;">You've been invited</h2>
-                                                <p>The team {{.Props.SenderStatus}} <strong>{{.Props.SenderName}}</strong>, has invited you to join <strong>{{.Props.TeamDisplayName}}</strong>.</p>
+                                                <h2 style="font-weight: normal; margin-top: 10px;">{{.Props.Title}}</h2>
+                                                <p>{{.Html.Info}}</p>
                                                 <p style="margin: 30px 0 15px">
-                                                    <a href="{{.Props.Link}}" style="background: #2389D7; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 200px; padding: 15px 25px; font-size: 14px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">Join Team</a>
+                                                    <a href="{{.Props.Link}}" style="background: #2389D7; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 200px; padding: 15px 25px; font-size: 14px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">{{.Props.Button}}</a>
                                                 </p>
                                                 <br/>
-                                                <p>Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>{{.Props.TeamDisplayName}}</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href="{{.Props.TeamURL}}">{{.Props.TeamURL}}</a></p>
+                                                <p>{{.Html.ExtraInfo}}</p>
                                             </td>
                                         </tr>
                                         <tr>

@@ -565,9 +565,9 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			user := result.Data.(*model.User)
 
 			if user.LastActivityAt > 0 {
-				api.SendEmailChangeVerifyEmailAndForget(user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+				api.SendEmailChangeVerifyEmailAndForget(c, user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 			} else {
-				api.SendVerifyEmailAndForget(user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+				api.SendVerifyEmailAndForget(c, user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 			}
 
 			newAddress := strings.Replace(r.URL.String(), "&resend=true", "&resend_success=true", -1)

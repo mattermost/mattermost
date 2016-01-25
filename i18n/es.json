@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "Abril"
+  },
+  {
+    "id": "August",
+    "translation": "Agosto"
+  },
+  {
+    "id": "December",
+    "translation": "Diciembre"
+  },
+  {
+    "id": "February",
+    "translation": "Febrero"
+  },
+  {
+    "id": "January",
+    "translation": "Enero"
+  },
+  {
+    "id": "July",
+    "translation": "Julio"
+  },
+  {
+    "id": "June",
+    "translation": "Junio"
+  },
+  {
+    "id": "March",
+    "translation": "Marzo"
+  },
+  {
+    "id": "May",
+    "translation": "Mayo"
+  },
+  {
+    "id": "November",
+    "translation": "Noviembre"
+  },
+  {
+    "id": "October",
+    "translation": "Octubre"
+  },
+  {
+    "id": "September",
+    "translation": "Septiembre"
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error leyendo el archivo de registro"
   },
@@ -749,7 +797,7 @@
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "Already delted id={{.PostId}}"
+    "translation": "Ya fué elminado el id={{.PostId}}"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -992,6 +1040,198 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
+    "id": "api.templates.email_change_body.info",
+    "translation": "Tu dirección de correo electrónico para {{.TeamDisplayName}} ha sido cambiada por {{.NewEmail}}.<br>Si este cambio no fue realizado por ti, por favor contacta un administrador de sistema."
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "Haz actualizado tu correo electrónico"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "Tu dirección de correo para {{.TeamDisplayName}} ha cambiado"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Confirmar Correo"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "Para terminar de actualizar tu dirección de correo para {{.TeamDisplayName}}, por favor pincha en botón de abajo para confirmar que está es la dirección correcta."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "Haz actualizado tu correo electrónico"
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "Verificación de la nueva dirección de correo electrónico para {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "Para cambiar tus preferencias de notificaciones, inicia sesión en tu equipo y dirigete a Configurar Cuenta > Notificaciones."
+  },
+  {
+    "id": "api.templates.email_info",
+    "translation": "Si tienes alguna pregunta, escribenos en cualquier momento a: <a href=\"mailto:{{.FeedbackEmail}}\" style=\"text-decoration: none; color:#2389D7;\">{{.FeedbackEmail}}</a>.<br>Los mejores deseos,<br>El Equipo {{.SiteName}}<br>"
+  },
+  {
+    "id": "api.templates.error.link",
+    "translation": "Volver al sitio del equipo"
+  },
+  {
+    "id": "api.templates.error.title",
+    "translation": "Necesitamos de tu ayuda en {{ .SiteName }}:"
+  },
+  {
+    "id": "api.templates.find_teams_body.found",
+    "translation": "Haz solicitado encontrar los equipos a los que tienes asociado tu correo electrónico y encontramos los siguientes:"
+  },
+  {
+    "id": "api.templates.find_teams_body.not_found",
+    "translation": "No hemos podido encontrar ningún equipo asociado al correo electrónico suministrado."
+  },
+  {
+    "id": "api.templates.find_teams_body.title",
+    "translation": "Tus Equipos"
+  },
+  {
+    "id": "api.templates.find_teams_subject",
+    "translation": "Tus equipos de {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Unirme al Equipo"
+  },
+  {
+    "id": "api.templates.invite_body.extra_info",
+    "translation": "Mattermost te permite compartir mensajes y archivos de tu Computador o teléfono, incluyendo busquedas instantáneas. Una vez que te hayas unido a <strong>{{.TeamDisplayName}}</strong>, Podrás iniciar sesión en tu nuevo equipo y utilizar todas las características en cualquier momento desde la dirección web:<br/><br/><a href=\"{{.TeamURL}}\">{{.TeamURL}}</a>"
+  },
+  {
+    "id": "api.templates.invite_body.info",
+    "translation": "<strong>{{.SenderName}}</strong> {{.SenderStatus}} del equipo <strong>{{.TeamDisplayName}}</strong>, te ha invitado a unirte."
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "Haz sido invitado"
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "{{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} en {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "Tu contraseña ha sido cambiada para {{.TeamDisplayName}} en {{ .TeamURL }} por el método de {{.Method}}.<br>Si este cambio no fue realizado por ti, por favor contacta a un administrador del sistema."
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "Haz cambiado tu contraseña"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "Tu contraseña ha sido cambiada para {{.TeamDisplayName}} en {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Ir al Canal"
+  },
+  {
+    "id": "api.templates.post_body.info",
+    "translation": "Canal: {{.ChannelName}}<br>{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.templates.post_subject",
+    "translation": "{{.SubjectText}} en {{.TeamDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Restablecer Contraseña"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Para cambiar tu contraseña, pincha el botón \"Restablecer Contraseña\" que se encuentra abajo.<br>Si no fue tu intención restablecer tu contraseña, por favor ignora este correo y tu contraseña seguirá siendo la misma."
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Haz solicitado restablecer tu contraseña"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "Restablece tu contraseña"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "correo electrónico y contraseña"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Haz actualizado el método con el que inicias sesión"
+  },
+  {
+    "id": "api.templates.signup_team_body.button",
+    "translation": "Configura tu equipo"
+  },
+  {
+    "id": "api.templates.signup_team_body.info",
+    "translation": "{{ .SiteName }} es el lugar para todas las comunicaciones de tu equipo, con capacidades de búsqueda y disponible desde cualquier parte.<br>Podrás aprovechar al máximo {{ .SiteName }} cuando tu equipo esté en constante comunicación--Traigamoslos a bordo."
+  },
+  {
+    "id": "api.templates.signup_team_body.title",
+    "translation": "¡Gracias por haber creado un equipo!"
+  },
+  {
+    "id": "api.templates.signup_team_subject",
+    "translation": "Configuración del equipo en {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.singin_change_email.body.info",
+    "translation": "Haz actualizado el método con el que inicias sesión en {{.TeamURL}} para el equipo {{.TeamDisplayName}} por {{.Method}}.<br>Si este cambio no fue realizado por ti, por favor contacta a un administrador del sistema."
+  },
+  {
+    "id": "api.templates.singin_change_email.subject",
+    "translation": "Cambio del método de inicio de sesión para {{.TeamDisplayName}} en {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Confirmar Correo"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Por favor verifica tu correo electrónico al pinchar el botón de abajo."
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Te haz unido al equipo {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{ .TeamDisplayName }} {{ .SiteName }}] Correo de Verificación"
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Confirmar Correo"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Por favor verifica tu correo electrónico al pinchar el botón de abajo."
+  },
+  {
+    "id": "api.templates.welcome_body.info2",
+    "translation": "Puedes iniciar sesión en tu nuevo equipo desde la dirección web:"
+  },
+  {
+    "id": "api.templates.welcome_body.info3",
+    "translation": "Mattermost te permite compartir mensajes y archivos desde un computador o teléfono desde donde te encuentres."
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Te haz unido al equipo {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "Te haz unido a {{ .TeamDisplayName }}"
+  },
+  {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "Falla al agragar las preferencias del canal directo para el usuario user_id=%s, team_id=%s, err=%v"
   },
@@ -1192,6 +1432,10 @@
     "translation": "El enlace para restablecer la contraseña ha expirado"
   },
   {
+    "id": "api.user.reset_password.method",
+    "translation": "utilizando el enlace para restablecer contraseña"
+  },
+  {
     "id": "api.user.reset_password.sso.app_error",
     "translation": "No se puede restablecer la contraseña para cuentas SSO"
   },
@@ -1320,11 +1564,695 @@
     "translation": "No se pudo actualizar la imagen del perfil. El archivo es muy grande."
   },
   {
+    "id": "api.web_conn.new_web_conn.last_activity.error",
+    "translation": "Falla al actualizar LastActivityAt para user_id=%v and session_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_conn.new_web_conn.last_ping.error",
+    "translation": "Falla al actualizar LastPingAt para el user_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_hub.start.stopping.debug",
+    "translation": "deteniendo todas las conexiones"
+  },
+  {
+    "id": "api.web_socket.connect.error",
+    "translation": "conexión al websocket err: %v"
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "Falla al actualizar la conexión del websocket"
+  },
+  {
+    "id": "api.web_socket.init.debug",
+    "translation": "Inicializando rutas del API para los web socket"
+  },
+  {
+    "id": "api.web_team_hun.start.debug",
+    "translation": "deteniendo el hub de equipo para teamId=%v"
+  },
+  {
+    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.create_outgoing.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Debe establecerse palabras gatilladoras o un channel_id"
+  },
+  {
+    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "translation": "Permisos inapropiados para eliminar un webhook entrante"
+  },
+  {
+    "id": "api.webhook.delete_outgoing.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.delete_outgoing.permissions.app_error",
+    "translation": "Permisos inapropiados para eliminar el webhook saliente"
+  },
+  {
+    "id": "api.webhook.get_incoming.disabled.app_error",
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.get_outgoing.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.init.debug",
+    "translation": "Inicializando rutas del API para los Webhooks"
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
+  },
+  {
+    "id": "manaultesting.get_channel_id.no_found.debug",
+    "translation": "No pudimos encontrar el canal: %v, búsqueda realizada con estas posibilidades %v"
+  },
+  {
+    "id": "manaultesting.get_channel_id.unable.debug",
+    "translation": "No se pudo obtener los canales"
+  },
+  {
+    "id": "manaultesting.manual_test.create.info",
+    "translation": "Creando usuario y equipo"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "No se pudo analizar el URL"
+  },
+  {
+    "id": "manaultesting.manual_test.setup.info",
+    "translation": "Configurando para pruebas manuales..."
+  },
+  {
+    "id": "manaultesting.manual_test.uid.debug",
+    "translation": "No hay un uid en el url"
+  },
+  {
+    "id": "manaultesting.test_autolink.info",
+    "translation": "Prueba Manual de Enlaces Automáticos"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "No se pudo obtener los canales"
+  },
+  {
     "id": "mattermost.current_version",
     "translation": "La versión actual es %v (%v/%v/%v)"
   },
   {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "Token de acceso inválido"
+  },
+  {
+    "id": "model.access.is_valid.auth_code.app_error",
+    "translation": "Código de autenticación inválido"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "URI de redireccionamiento inválido"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "Token de refrescamiento inválido"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "Código de autorización inválido"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "Id de cliente inválido"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "Se debe asignar el tiempo de Expiración"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "URI de redireccionamiento inválido"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "Alcance inválido"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "Estado inválido"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "Usuario id inválido"
+  },
+  {
+    "id": "model.channel.is_valid.2_or_more.app_error",
+    "translation": "Debe tener 2 o más caracteres alfanuméricos en minúscula"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "Id del creador inválido"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "Nombre a mostrar inválido"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "Encabezado inválido"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Nombre inválido"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "Propósito inválido"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "Tipo inválido"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "Update debe ser un tiempo válido"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "Channel id inválido"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "Nivel de notificación inválido"
+  },
+  {
+    "id": "model.channel_member.is_valid.role.app_error",
+    "translation": "Rol inválido"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "Nivel de marca para no leidos inválido"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "User id inválido"
+  },
+  {
+    "id": "model.client.connecting.app_error",
+    "translation": "Encontramos un error mientras conectabamos al servidor"
+  },
+  {
+    "id": "model.client.login.app_error",
+    "translation": "Token de autenticación no coincidió"
+  },
+  {
+    "id": "model.config.is_valid.email_reset_salt.app_error",
+    "translation": "Salt para restablecer contraseñas en la configuración de correos es inválido.  Debe ser de 32 caracteres o más."
+  },
+  {
+    "id": "model.config.is_valid.email_salt.app_error",
+    "translation": "Salt para crear invitaciones en la configuración de correos es inválido.  Debe ser de 32 caracteres o más."
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "Configuración inválida de seguridad en la configuración de correos.  Debe ser '', 'TLS', o 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.encrypt_sql.app_error",
+    "translation": "Llave de cifrado rest para las configuraciones de SQL inválida.  Debe ser de 32 caracteres o más."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "Nombre de controlador para la configuración de archivos es inválido.  Debe ser 'local' o 'amazons3'"
+  },
+  {
+    "id": "model.config.is_valid.file_preview_height.app_error",
+    "translation": "La altura para la previsualización es inválido en la configuración de archivos.  Debe ser cero o un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.file_preview_width.app_error",
+    "translation": "El ancho para la previsualización es inválido en la configuración de archivos.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.file_profile_height.app_error",
+    "translation": "La altura para la imagen de perfil es inválido en la configuración de archivos.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.file_profile_width.app_error",
+    "translation": "El ancho para la imagen de perfil es inválido en la configuración de archivos.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "Salt para crear enlaces públicos en la configuración a archivos es inválido.  Debe ser de 32 caracteres o más."
+  },
+  {
+    "id": "model.config.is_valid.file_thumb_height.app_error",
+    "translation": "La altura para la imagen de miniatura es inválido en la configuración de archivos.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.file_thumb_width.app_error",
+    "translation": "El ancho para la imagen de miniatura es inválido en la configuración de archivos.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "Dirección dónde se escuchará el servicio en la configuracón del servicio debe ser asignada."
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "Número inválido de máximos intentos de inició de sesión en la configuración del servicio.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "Número inválido del máximo de usuarios por equipo en la configuración de equipo.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "Tamaño del almacen de memoria inválido en la configuración de límites de velocidad.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "Por segundo es inválido en la configuración de límites de velocidad.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "Fuente de datos no válido para la configuración de SQL.  Debe ser asignado."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "Nombre del controlador no válido para la configuración de SQL.  Debe ser 'mysql' o 'postgres'"
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "Inválido máxima de conexión inactiva para la configuración de SQL.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "Inválida cantidad de conexiones abiertas para la configuración de SQL.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.file_info.get.gif.app_error",
+    "translation": "No se pudo decodificar el gif."
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "Channel id inválido"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "Id del Equipo inválido"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "Update debe ser un tiempo válido"
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "Id del Usuario inválido"
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "Id de la App inválido"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "Callback urls inválido"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "Llave secreta del Cliente no es válida"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "Id del credor no es válido"
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "Descripción inválida"
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "Página principal inválida"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "Nombre inválido"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "Update debe ser un tiempo válido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.callback.app_error",
+    "translation": "Callback urls inválido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "Id del Canal inválido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "Id del Equipo inválido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "Token inválido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "Update debe ser un tiempo válido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "Callback URLs inválido. Cada uno debe ser un URL válido y que comience con http:// o https://"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "Id del Usuario inválido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.words.app_error",
+    "translation": "Palabras gatilladoras inválidas"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "Id del Canal inválido"
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Nombre de archivos no válidos"
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": "Hashtags inválidos"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "Mensaje no es válido"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "Id Original inválido"
+  },
+  {
+    "id": "model.post.is_valid.parent_id.app_error",
+    "translation": "Id del padre no es válido"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "Props inválidos"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "Id de la raíz no es válido"
+  },
+  {
+    "id": "model.post.is_valid.root_parent.app_error",
+    "translation": "Id de la raíz no es válido, debe ser asignado si el Id del padre fue asignado"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "Tipo inválido"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "Update debe ser un tiempo válido"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "Id del Usuario inválido"
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "Categoría inválida"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "Id del Usuario inválido"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "Nombre inválido"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "El valor es muy largo"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "Nombre tiene que ser de 4 o más caracteres alfanuméricos en minúsculas"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "Inválido nombre de la empresa"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "Dominios permitidos no válidos"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "Correo electrónico inválido"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "Nombre inválido"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "Este URL no está disponible. Por favor, prueba con otro."
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "Tipo inválido"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "Update debe ser un tiempo válido"
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "Identificador del URL es inválido"
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Data de auth es inválida"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Usuario inválido, no pueden ser asignados auth data y la contraseña al mismo tiempo"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Usuario inválido, auth data debe ser asignado con un tipo de auth"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Correo electrónico inválido"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Nombre inválido"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Id del Usuario inválido"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Apellido no es válido"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Sobrenombre no es válido"
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "Contraseña inválida"
+  },
+  {
+    "id": "model.user.is_valid.team_id.app_error",
+    "translation": "Id del Equipo inválido"
+  },
+  {
+    "id": "model.user.is_valid.theme.app_error",
+    "translation": "Tema inválido"
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Update debe ser un tiempo válido"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Nombre de usuario inválido"
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "no se puede decodificar"
+  },
+  {
+    "id": "utils.config.load_config.decoding.panic",
+    "translation": "Error decifrando la configuración del archivo={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.getting.panic",
+    "translation": "Error obteniendo la iformación de configuración del archivo={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.opening.panic",
+    "translation": "Error abriendo la configuración del archivo={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.validating.panic",
+    "translation": "Error validando la configuración del archivo={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.save_config.saving.app_error",
+    "translation": "Ocurrió un error mientras se guardaba el archivo en {{.Filename}}"
+  },
+  {
     "id": "utils.i18n.loaded",
     "translation": "Cargada traducciones del sistema para '%v' desde '%v'"
+  },
+  {
+    "id": "utils.iru.with_evict",
+    "translation": "Debe proporcionar un tamaño positivo"
+  },
+  {
+    "id": "utils.license.load_license.invalid.warn",
+    "translation": "No se encontró una licencia enterprise válida"
+  },
+  {
+    "id": "utils.license.load_license.open_find.warn",
+    "translation": "No pudimos encontrar/abrir el achivo de licencia"
+  },
+  {
+    "id": "utils.license.remove_license.unable.error",
+    "translation": "No se pudo remover el archivo de la licencia, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.decode.error",
+    "translation": "Encontramos un error decodificando la licencia, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.invalid.error",
+    "translation": "Firma inválida, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.not_long.error",
+    "translation": "La licencia firmada no es suficientemente larga"
+  },
+  {
+    "id": "utils.license.validate_license.signing.error",
+    "translation": "Encontramos un error al firmar la licencia, err=%v"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open.app_error",
+    "translation": "Falla al abrir conexión"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open_tls.app_error",
+    "translation": "Falla al abrir una conexión TLS"
+  },
+  {
+    "id": "utils.mail.new_client.auth.app_error",
+    "translation": "Falla autenticando contra el servidor SMTP"
+  },
+  {
+    "id": "utils.mail.new_client.open.error",
+    "translation": "Falla al abrir la conexión al servidor SMTP %v"
+  },
+  {
+    "id": "utils.mail.send_mail.close.app_error",
+    "translation": "Falla al cerrar la conexión al servidor SMTP"
+  },
+  {
+    "id": "utils.mail.send_mail.from_address.app_error",
+    "translation": "Falla al agregar el correo electrónico desde"
+  },
+  {
+    "id": "utils.mail.send_mail.msg.app_error",
+    "translation": "Falla al escribir el mensaje del correo electrónico"
+  },
+  {
+    "id": "utils.mail.send_mail.msg_data.app_error",
+    "translation": "Falla al agregar la data al mensaje del correo electrónico"
+  },
+  {
+    "id": "utils.mail.send_mail.sending.debug",
+    "translation": "enviano correo electrónico a %v con el asunto '%v'"
+  },
+  {
+    "id": "utils.mail.send_mail.to_address.app_error",
+    "translation": "Falla al agregar el correo electrónico para"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "El servidor SMTP parece no estar configurado apropiadamente err=%v details=%v"
   }
 ]

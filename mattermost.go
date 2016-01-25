@@ -66,7 +66,9 @@ func main() {
 	api.InitApi()
 	web.InitWeb()
 
-	utils.LoadLicense()
+	if model.BuildEnterpriseReady == "true" {
+		utils.LoadLicense()
+	}
 
 	if flagRunCmds {
 		runCmds()

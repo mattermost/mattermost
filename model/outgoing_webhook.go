@@ -65,44 +65,44 @@ func OutgoingWebhookListFromJson(data io.Reader) []*OutgoingWebhook {
 func (o *OutgoingWebhook) IsValid() *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid Id", "")
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.id.app_error", nil, "")
 	}
 
 	if len(o.Token) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid token", "")
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.token.app_error", nil, "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("OutgoingWebhook.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.create_at.app_error", nil, "id="+o.Id)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("OutgoingWebhook.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.update_at.app_error", nil, "id="+o.Id)
 	}
 
 	if len(o.CreatorId) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid user id", "")
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.user_id.app_error", nil, "")
 	}
 
 	if len(o.ChannelId) != 0 && len(o.ChannelId) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid channel id", "")
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.channel_id.app_error", nil, "")
 	}
 
 	if len(o.TeamId) != 26 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid team id", "")
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.team_id.app_error", nil, "")
 	}
 
 	if len(fmt.Sprintf("%s", o.TriggerWords)) > 1024 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid trigger words", "")
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.words.app_error", nil, "")
 	}
 
 	if len(o.CallbackURLs) == 0 || len(fmt.Sprintf("%s", o.CallbackURLs)) > 1024 {
-		return NewAppError("OutgoingWebhook.IsValid", "Invalid callback urls", "")
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.callback.app_error", nil, "")
 	}
 
 	for _, callback := range o.CallbackURLs {
 		if !IsValidHttpUrl(callback) {
-			return NewAppError("OutgoingWebhook.IsValid", "Invalid callback URLs. Each must be a valid URL and start with http:// or https://", "")
+			return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.url.app_error", nil, "")
 		}
 	}
 

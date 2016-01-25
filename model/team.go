@@ -104,51 +104,51 @@ func (o *Team) Etag() string {
 func (o *Team) IsValid(restrictTeamNames bool) *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("Team.IsValid", "Invalid Id", "")
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.id.app_error", nil, "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("Team.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.create_at.app_error", nil, "id="+o.Id)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("Team.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.update_at.app_error", nil, "id="+o.Id)
 	}
 
 	if len(o.Email) > 128 {
-		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id)
 	}
 
 	if len(o.Email) > 0 && !IsValidEmail(o.Email) {
-		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > 64 {
-		return NewAppError("Team.IsValid", "Invalid name", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.name.app_error", nil, "id="+o.Id)
 	}
 
 	if len(o.Name) > 64 {
-		return NewAppError("Team.IsValid", "Invalid URL Identifier", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.url.app_error", nil, "id="+o.Id)
 	}
 
 	if restrictTeamNames && IsReservedTeamName(o.Name) {
-		return NewAppError("Team.IsValid", "This URL is unavailable. Please try another.", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.reserved.app_error", nil, "id="+o.Id)
 	}
 
 	if !IsValidTeamName(o.Name) {
-		return NewAppError("Team.IsValid", "Name must be 4 or more lowercase alphanumeric characters", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.characters.app_error", nil, "id="+o.Id)
 	}
 
 	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {
-		return NewAppError("Team.IsValid", "Invalid type", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id)
 	}
 
 	if len(o.CompanyName) > 64 {
-		return NewAppError("Team.IsValid", "Invalid company name", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.company.app_error", nil, "id="+o.Id)
 	}
 
 	if len(o.AllowedDomains) > 500 {
-		return NewAppError("Team.IsValid", "Invalid allowed domains", "id="+o.Id)
+		return NewLocAppError("Team.IsValid", "model.team.is_valid.domains.app_error", nil, "id="+o.Id)
 	}
 
 	return nil

@@ -67,11 +67,7 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	if err == nil {
 		return &er
 	} else {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(data)
-		s := buf.String()
-
-		return NewAppError("AppErrorFromJson", "could not decode", err.Error()+" "+s)
+		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, err.Error())
 	}
 }
 

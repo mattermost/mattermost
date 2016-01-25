@@ -6,6 +6,7 @@ package manualtesting
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 const LINK_POST_TEXT = `
@@ -20,10 +21,10 @@ https://medium.com/@slackhq/11-useful-tips-for-getting-the-most-of-slack-5dfb3d1
 `
 
 func testAutoLink(env TestEnvironment) *model.AppError {
-	l4g.Info("Manual Auto Link Test")
+	l4g.Info(utils.T("manaultesting.test_autolink.info"))
 	channelID, err := getChannelID(model.DEFAULT_CHANNEL, env.CreatedTeamId, env.CreatedUserId)
 	if err != true {
-		return model.NewAppError("/manualtest", "Unable to get channels", "")
+		return model.NewLocAppError("/manualtest", "manaultesting.test_autolink.unable.app_error", nil, "")
 	}
 
 	post := &model.Post{

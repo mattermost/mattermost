@@ -12,7 +12,7 @@ import (
 )
 
 func InitWebhook(r *mux.Router) {
-	l4g.Debug("Initializing webhook api routes")
+	l4g.Debug(utils.T("api.webhook.init.debug"))
 
 	sr := r.PathPrefix("/hooks").Subrouter()
 	sr.Handle("/incoming/create", ApiUserRequired(createIncomingHook)).Methods("POST")
@@ -27,7 +27,7 @@ func InitWebhook(r *mux.Router) {
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("createIncomingHook", "Incoming webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("createIncomingHook", "api.webhook.create_incoming.disabled.app_errror", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -82,7 +82,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("deleteIncomingHook", "Incoming webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("deleteIncomingHook", "api.webhook.delete_incoming.disabled.app_errror", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -111,7 +111,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		if c.Session.UserId != result.Data.(*model.IncomingWebhook).UserId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate permissions")
-			c.Err = model.NewAppError("deleteIncomingHook", "Inappropriate permissions to delete incoming webhook", "user_id="+c.Session.UserId)
+			c.Err = model.NewLocAppError("deleteIncomingHook", "api.webhook.delete_incoming.permissions.app_errror", nil, "user_id="+c.Session.UserId)
 			return
 		}
 	}
@@ -127,7 +127,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("getIncomingHooks", "Incoming webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("getIncomingHooks", "api.webhook.get_incoming.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -151,7 +151,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
-		c.Err = model.NewAppError("createOutgoingHook", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -199,7 +199,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else if len(hook.TriggerWords) == 0 {
-		c.Err = model.NewAppError("createOutgoingHook", "Either trigger_words or channel_id must be set", "")
+		c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.triggers.app_error", nil, "")
 		return
 	}
 
@@ -215,7 +215,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
-		c.Err = model.NewAppError("getOutgoingHooks", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("getOutgoingHooks", "api.webhook.get_outgoing.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -239,7 +239,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("deleteOutgoingHook", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("deleteOutgoingHook", "api.webhook.delete_outgoing.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -268,7 +268,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		if c.Session.UserId != result.Data.(*model.OutgoingWebhook).CreatorId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate permissions")
-			c.Err = model.NewAppError("deleteOutgoingHook", "Inappropriate permissions to delete outcoming webhook", "user_id="+c.Session.UserId)
+			c.Err = model.NewLocAppError("deleteOutgoingHook", "api.webhook.delete_outgoing.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
 		}
 	}
@@ -284,7 +284,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("regenOutgoingHookToken", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.webhook.regen_outgoing_token.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -316,7 +316,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 
 		if c.Session.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate permissions")
-			c.Err = model.NewAppError("regenOutgoingHookToken", "Inappropriate permissions to regenerate outcoming webhook token", "user_id="+c.Session.UserId)
+			c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.webhook.regen_outgoing_token.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
 		}
 	}

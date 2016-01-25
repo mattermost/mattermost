@@ -600,3 +600,30 @@ func (us SqlUserStore) PermanentDelete(userId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query := "SELECT COUNT(DISTINCT Email) FROM Users"
+
+		if len(teamId) > 0 {
+			query += " WHERE TeamId = :TeamId"
+		}
+
+		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlUserStore.AnalyticsUniqueUserCount", "We couldn't get the unique user count", err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

@@ -47,19 +47,19 @@ func PreferenceFromJson(data io.Reader) *Preference {
 
 func (o *Preference) IsValid() *AppError {
 	if len(o.UserId) != 26 {
-		return NewAppError("Preference.IsValid", "Invalid user id", "user_id="+o.UserId)
+		return NewLocAppError("Preference.IsValid", "model.preference.is_valid.id.app_error", nil, "user_id="+o.UserId)
 	}
 
 	if len(o.Category) == 0 || len(o.Category) > 32 {
-		return NewAppError("Preference.IsValid", "Invalid category", "category="+o.Category)
+		return NewLocAppError("Preference.IsValid", "model.preference.is_valid.category.app_error", nil, "category="+o.Category)
 	}
 
 	if len(o.Name) == 0 || len(o.Name) > 32 {
-		return NewAppError("Preference.IsValid", "Invalid name", "name="+o.Name)
+		return NewLocAppError("Preference.IsValid", "model.preference.is_valid.name.app_error", nil, "name="+o.Name)
 	}
 
 	if utf8.RuneCountInString(o.Value) > 128 {
-		return NewAppError("Preference.IsValid", "Value is too long", "value="+o.Value)
+		return NewLocAppError("Preference.IsValid", "model.preference.is_valid.value.app_error", nil, "value="+o.Value)
 	}
 
 	return nil

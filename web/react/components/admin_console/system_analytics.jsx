@@ -4,7 +4,7 @@
 import Analytics from './analytics.jsx';
 import * as Client from '../../utils/client.jsx';
 
-export default class TeamAnalytics extends React.Component {
+export default class SystemAnalytics extends React.Component {
     constructor(props) {
         super(props);
 
@@ -25,12 +25,11 @@ export default class TeamAnalytics extends React.Component {
     }
 
     componentDidMount() {
-        this.getData(this.props.team.id);
+        this.getData();
     }
 
-    getData(teamId) { // should be moved to an action creator eventually
-        Client.getTeamAnalytics(
-            teamId,
+    getData() { // should be moved to an action creator eventually
+        Client.getSystemAnalytics(
             'standard',
             (data) => {
                 for (var index in data) {
@@ -56,8 +55,7 @@ export default class TeamAnalytics extends React.Component {
             }
         );
 
-        Client.getTeamAnalytics(
-            teamId,
+        Client.getSystemAnalytics(
             'post_counts_day',
             (data) => {
                 data.reverse();
@@ -91,8 +89,7 @@ export default class TeamAnalytics extends React.Component {
             }
         );
 
-        Client.getTeamAnalytics(
-            teamId,
+        Client.getSystemAnalytics(
             'user_counts_with_posts_day',
             (data) => {
                 data.reverse();
@@ -125,103 +122,32 @@ export default class TeamAnalytics extends React.Component {
                 this.setState({serverError: err.message});
             }
         );
-
-        Client.getProfilesForTeam(
-            teamId,
-            (users) => {
-                this.setState({users});
-
-                var usersList = [];
-                for (var id in users) {
-                    if (users.hasOwnProperty(id)) {
-                        usersList.push(users[id]);
-                    }
-                }
-
-                usersList.sort((a, b) => {
-                    if (a.last_activity_at < b.last_activity_at) {
-                        return 1;
-                    }
-
-                    if (a.last_activity_at > b.last_activity_at) {
-                        return -1;
-                    }
-
-                    return 0;
-                });
-
-                var recentActive = [];
-                for (let i = 0; i < usersList.length; i++) {
-                    if (usersList[i].last_activity_at == null) {
-                        continue;
-                    }
-
-                    recentActive.push(usersList[i]);
-                    if (i > 19) {
-                        break;
-                    }
-                }
-
-                this.setState({recent_active_users: recentActive});
-
-                usersList.sort((a, b) => {
-                    if (a.create_at < b.create_at) {
-                        return 1;
-                    }
-
-                    if (a.create_at > b.create_at) {
-                        return -1;
-                    }
-
-                    return 0;
-                });
-
-                var newlyCreated = [];
-                for (let i = 0; i < usersList.length; i++) {
-                    newlyCreated.push(usersList[i]);
-                    if (i > 19) {
-                        break;
-                    }
-                }
-
-                this.setState({newly_created_users: newlyCreated});
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
     }
 
-    componentWillReceiveProps(newProps) {
+    componentWillReceiveProps() {
         this.setState({
-            users: null,
             serverError: null,
             channel_open_count: null,
             channel_private_count: null,
             post_count: null,
             post_counts_day: null,
             user_counts_with_posts_day: null,
-            recent_active_users: null,
-            newly_created_users: null,
             unique_user_count: null
         });
 
-        this.getData(newProps.team.id);
+        this.getData();
     }
 
     render() {
         return (
             <div>
                 <Analytics
-                    title={this.props.team.name}
-                    users={this.state.users}
+                    title={'the System'}
                     channelOpenCount={this.state.channel_open_count}
                     channelPrivateCount={this.state.channel_private_count}
                     postCount={this.state.post_count}
                     postCountsDay={this.state.post_counts_day}
                     userCountsWithPostsDay={this.state.user_counts_with_posts_day}
-                    recentActiveUsers={this.state.recent_active_users}
-                    newlyCreatedUsers={this.state.newly_created_users}
                     uniqueUserCount={this.state.unique_user_count}
                     serverError={this.state.serverError}
                 />
@@ -230,6 +156,6 @@ export default class TeamAnalytics extends React.Component {
     }
 }
 
-TeamAnalytics.propTypes = {
+SystemAnalytics.propTypes = {
     team: React.PropTypes.object
 };

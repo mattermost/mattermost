@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "December",
+    "translation": "December"
+  },
+  {
+    "id": "February",
+    "translation": "February"
+  },
+  {
+    "id": "January",
+    "translation": "January"
+  },
+  {
+    "id": "July",
+    "translation": "July"
+  },
+  {
+    "id": "June",
+    "translation": "June"
+  },
+  {
+    "id": "March",
+    "translation": "March"
+  },
+  {
+    "id": "May",
+    "translation": "May"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "October",
+    "translation": "October"
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error reading log file"
   },
@@ -749,7 +797,7 @@
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "Already delted id={{.PostId}}"
+    "translation": "Already deleted id={{.PostId}}"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -992,6 +1040,198 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.templates.email_change_body.info",
+    "translation": "You email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "You updated your email"
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "Your email address has changed for {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "Verify Email"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "To finish updating your email address for {{.TeamDisplayName}}, please click the link below to confirm this is the right address."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "You updated your email"
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "Verify new email address for {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+  },
+  {
+    "id": "api.templates.email_info",
+    "translation": "Any questions at all, mail us any time: <a href='mailto:{{.FeedbackEmail}}' style='text-decoration: none; color:#2389D7;'>{{.FeedbackEmail}}</a>.<br>Best wishes,<br>The {{.SiteName}} Team<br>"
+  },
+  {
+    "id": "api.templates.error.link",
+    "translation": "Go back to team site"
+  },
+  {
+    "id": "api.templates.error.title",
+    "translation": "{{ .SiteName }} needs your help:"
+  },
+  {
+    "id": "api.templates.find_teams_body.found",
+    "translation": "Your request to find teams associated with your email found the following:"
+  },
+  {
+    "id": "api.templates.find_teams_body.not_found",
+    "translation": "We could not find any teams for the given email."
+  },
+  {
+    "id": "api.templates.find_teams_body.title",
+    "translation": "Finding teams"
+  },
+  {
+    "id": "api.templates.find_teams_subject",
+    "translation": "Your {{ .SiteName }} Teams"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "Join Team"
+  },
+  {
+    "id": "api.templates.invite_body.extra_info",
+    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>{{.TeamDisplayName}}</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+  },
+  {
+    "id": "api.templates.invite_body.info",
+    "translation": "The team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, has invited you to join <strong>{{.TeamDisplayName}}</strong>."
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "You've been invited"
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "You updated your password"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "Go To Channel"
+  },
+  {
+    "id": "api.templates.post_body.info",
+    "translation": "CHANNEL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "api.templates.post_subject",
+    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Reset Password"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same."
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "You requested a password reset"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "Reset your password"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "email and password"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "You updated your sign-in method"
+  },
+  {
+    "id": "api.templates.signup_team_body.button",
+    "translation": "Set up your team"
+  },
+  {
+    "id": "api.templates.signup_team_body.info",
+    "translation": "{{ .SiteName }} is one place for all your team communication, searchable and available anywhere.<br>You'll get more out of {{ .SiteName }} when your team is in constant communication--let's get them on board."
+  },
+  {
+    "id": "api.templates.signup_team_body.title",
+    "translation": "Thanks for creating a team!"
+  },
+  {
+    "id": "api.templates.signup_team_subject",
+    "translation": "{{ .SiteName }} Team Setup"
+  },
+  {
+    "id": "api.templates.singin_change_email.body.info",
+    "translation": "You updated your sign-in method for {{.TeamDisplayName}} on {{ .TeamURL }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.singin_change_email.subject",
+    "translation": "You updated your sign-in method for {{.TeamDisplayName}} on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "Verify Email"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "Please verify your email address by clicking below."
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "You've joined the {{ .TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{ .TeamDisplayName }} {{ .SiteName }}] Email Verification"
+  },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "Verify Email"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "Please verify your email address by clicking below."
+  },
+  {
+    "id": "api.templates.welcome_body.info2",
+    "translation": "You can sign-in to your new team from the web address:"
+  },
+  {
+    "id": "api.templates.welcome_body.info3",
+    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "You've joined the {{ .TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "You joined {{ .TeamDisplayName }}"
+  },
+  {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v"
   },
@@ -1192,6 +1432,10 @@
     "translation": "The reset link has expired"
   },
   {
+    "id": "api.user.reset_password.method",
+    "translation": "using a reset password link"
+  },
+  {
     "id": "api.user.reset_password.sso.app_error",
     "translation": "Cannot reset password for SSO accounts"
   },
@@ -1320,11 +1564,695 @@
     "translation": "Unable to upload profile image. File is too large."
   },
   {
+    "id": "api.web_conn.new_web_conn.last_activity.error",
+    "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_conn.new_web_conn.last_ping.error",
+    "translation": "Failed to update LastPingAt for user_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_hub.start.stopping.debug",
+    "translation": "stopping %v connections"
+  },
+  {
+    "id": "api.web_socket.connect.error",
+    "translation": "websocket connect err: %v"
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "Failed to upgrade websocket connection"
+  },
+  {
+    "id": "api.web_socket.init.debug",
+    "translation": "Initializing web socket api routes"
+  },
+  {
+    "id": "api.web_team_hun.start.debug",
+    "translation": "team hub stopping for teamId=%v"
+  },
+  {
+    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.create_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "Either trigger_words or channel_id must be set"
+  },
+  {
+    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "translation": "Inappropriate permissions to delete incoming webhook"
+  },
+  {
+    "id": "api.webhook.delete_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.delete_outgoing.permissions.app_error",
+    "translation": "Inappropriate permissions to delete outcoming webhook"
+  },
+  {
+    "id": "api.webhook.get_incoming.disabled.app_error",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.get_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.init.debug",
+    "translation": "Initializing webhook api routes"
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "Inappropriate permissions to regenerate outcoming webhook token"
+  },
+  {
+    "id": "manaultesting.get_channel_id.no_found.debug",
+    "translation": "Could not find channel: %v, %v possibilites searched"
+  },
+  {
+    "id": "manaultesting.get_channel_id.unable.debug",
+    "translation": "Unable to get channels"
+  },
+  {
+    "id": "manaultesting.manual_test.create.info",
+    "translation": "Creating user and team"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "Unable to parse URL"
+  },
+  {
+    "id": "manaultesting.manual_test.setup.info",
+    "translation": "Setting up for manual test..."
+  },
+  {
+    "id": "manaultesting.manual_test.uid.debug",
+    "translation": "No uid in url"
+  },
+  {
+    "id": "manaultesting.test_autolink.info",
+    "translation": "Manual Auto Link Test"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "Unable to get channels"
+  },
+  {
     "id": "mattermost.current_version",
     "translation": "Current version is %v (%v/%v/%v)"
   },
   {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "Invalid access token"
+  },
+  {
+    "id": "model.access.is_valid.auth_code.app_error",
+    "translation": "Invalid auth code"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "Invalid redirect uri"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "Invalid refresh token"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "Invalid authorization code"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "Invalid client id"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "Expires in must be set"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "Invalid redirect uri"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "Invalid scope"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "Invalid state"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.channel.is_valid.2_or_more.app_error",
+    "translation": "Name must be 2 or more lowercase alphanumeric characters"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "Invalid creator id"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "Invalid display name"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "Invalid header"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid name"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "Invalid purpose"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "Invalid type"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "Invalid notify level"
+  },
+  {
+    "id": "model.channel_member.is_valid.role.app_error",
+    "translation": "Invalid role"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "Invalid mark unread level"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.client.connecting.app_error",
+    "translation": "We encountered an error while connecting to the server"
+  },
+  {
+    "id": "model.client.login.app_error",
+    "translation": "Authentication tokens didn't match"
+  },
+  {
+    "id": "model.config.is_valid.email_reset_salt.app_error",
+    "translation": "Invalid password reset salt for email settings.  Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.email_salt.app_error",
+    "translation": "Invalid invite salt for email settings.  Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.encrypt_sql.app_error",
+    "translation": "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "Invalid driver name for file settings.  Must be 'local' or 'amazons3'"
+  },
+  {
+    "id": "model.config.is_valid.file_preview_height.app_error",
+    "translation": "Invalid preview height for file settings.  Must be a zero or positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_preview_width.app_error",
+    "translation": "Invalid preview width for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_profile_height.app_error",
+    "translation": "Invalid profile height for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_profile_width.app_error",
+    "translation": "Invalid profile width for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "Invalid public link salt for file settings.  Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.file_thumb_height.app_error",
+    "translation": "Invalid thumbnail height for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_thumb_width.app_error",
+    "translation": "Invalid thumbnail width for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "Invalid listen address for service settings Must be set."
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "Invalid maximum login attempts for service settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "Invalid memory store size for rate limit settings.  Must be a positive number"
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "Invalid per sec for rate limit settings.  Must be a positive number"
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "Invalid data source for SQL settings.  Must be set."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "Invalid driver name for SQL settings.  Must be 'mysql' or 'postgres'"
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.file_info.get.gif.app_error",
+    "translation": "Could not decode gif."
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "Invalid app id"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "Invalid callback urls"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "Invalid client secret"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "Invalid creator id"
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "Invalid homepage"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "Invalid name"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.callback.app_error",
+    "translation": "Invalid callback urls"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "Invalid token"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "Invalid callback URLs. Each must be a valid URL and start with http:// or https://"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.words.app_error",
+    "translation": "Invalid trigger words"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Invalid filenames"
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": "Invalid hashtags"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "Invalid message"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "Invalid original id"
+  },
+  {
+    "id": "model.post.is_valid.parent_id.app_error",
+    "translation": "Invalid parent id"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "Invalid props"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "Invalid root id"
+  },
+  {
+    "id": "model.post.is_valid.root_parent.app_error",
+    "translation": "Invalid root id must be set if parent id set"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "Invalid type"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "Invalid category"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "Invalid name"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "Value is too long"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "Name must be 4 or more lowercase alphanumeric characters"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "Invalid company name"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "Invalid allowed domains"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "Invalid email"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "Invalid name"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "This URL is unavailable. Please try another."
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "Invalid type"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "Invalid URL Identifier"
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Invalid auth data"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Invalid user, password and auth data cannot both be set"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Invalid user, auth data must be set with auth type"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Invalid email"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Invalid first name"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Invalid last name"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Invalid nickname"
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "Invalid password"
+  },
+  {
+    "id": "model.user.is_valid.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.user.is_valid.theme.app_error",
+    "translation": "Invalid theme"
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Invalid username"
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "could not decode"
+  },
+  {
+    "id": "utils.config.load_config.decoding.panic",
+    "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.getting.panic",
+    "translation": "Error getting config info file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.opening.panic",
+    "translation": "Error opening config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.validating.panic",
+    "translation": "Error validating config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.save_config.saving.app_error",
+    "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
     "id": "utils.i18n.loaded",
     "translation": "Loaded system translations for '%v' from '%v'"
+  },
+  {
+    "id": "utils.iru.with_evict",
+    "translation": "Must provide a positive size"
+  },
+  {
+    "id": "utils.license.load_license.invalid.warn",
+    "translation": "No valid enterprise license found"
+  },
+  {
+    "id": "utils.license.load_license.open_find.warn",
+    "translation": "Unable to open/find license file"
+  },
+  {
+    "id": "utils.license.remove_license.unable.error",
+    "translation": "Unable to remove license file, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.decode.error",
+    "translation": "Encountered error decoding license, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.invalid.error",
+    "translation": "Invalid signature, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.not_long.error",
+    "translation": "Signed license not long enough"
+  },
+  {
+    "id": "utils.license.validate_license.signing.error",
+    "translation": "Encountered error signing license, err=%v"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open.app_error",
+    "translation": "Failed to open connection"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open_tls.app_error",
+    "translation": "Failed to open TLS connection"
+  },
+  {
+    "id": "utils.mail.new_client.auth.app_error",
+    "translation": "Failed to authenticate on SMTP server"
+  },
+  {
+    "id": "utils.mail.new_client.open.error",
+    "translation": "Failed to open a connection to SMTP server %v"
+  },
+  {
+    "id": "utils.mail.send_mail.close.app_error",
+    "translation": "Failed to close connection to SMTP server"
+  },
+  {
+    "id": "utils.mail.send_mail.from_address.app_error",
+    "translation": "Failed to add from email address"
+  },
+  {
+    "id": "utils.mail.send_mail.msg.app_error",
+    "translation": "Failed to write email message"
+  },
+  {
+    "id": "utils.mail.send_mail.msg_data.app_error",
+    "translation": "Failed to add email messsage data"
+  },
+  {
+    "id": "utils.mail.send_mail.sending.debug",
+    "translation": "sending mail to %v with subject of '%v'"
+  },
+  {
+    "id": "utils.mail.send_mail.to_address.app_error",
+    "translation": "Failed to add to email address"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v"
   }
 ]

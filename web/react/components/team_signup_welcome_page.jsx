@@ -59,7 +59,13 @@ export default class TeamSignupWelcomePage extends React.Component {
                 }
             }.bind(this),
             function error(err) {
-                this.setState({serverError: err.message});
+                let errorMsg = err.message;
+
+                if (err.detailed_error.indexOf('Invalid RCPT TO address provided') >= 0) {
+                    errorMsg = 'Please enter a valid email address';
+                }
+
+                this.setState({emailError: '', serverError: errorMsg});
             }.bind(this)
         );
     }

@@ -44,7 +44,7 @@ NxpC+5KFhU+xSeeklNqwCgnlOyZ7qSTxmdJHb+60SwuYnnGIYzLJhY4LYDr4J+KR
 func LoadLicense() {
 	file, err := os.Open(LicenseLocation())
 	if err != nil {
-		l4g.Warn("Unable to open/find license file")
+		l4g.Warn(T("utils.license.load_license.open_find.warn"))
 		return
 	}
 	defer file.Close()
@@ -55,9 +55,10 @@ func LoadLicense() {
 	if success, licenseStr := ValidateLicense(buf.Bytes()); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		SetLicense(license)
+		return
 	}
 
-	l4g.Warn("No valid enterprise license found")
+	l4g.Warn(T("utils.license.load_license.invalid.warn"))
 }
 
 func SetLicense(license *model.License) bool {
@@ -83,7 +84,7 @@ func RemoveLicense() bool {
 	ClientLicense = getClientLicense(License)
 
 	if err := os.Remove(LicenseLocation()); err != nil {
-		l4g.Error("Unable to remove license file, err=%v", err.Error())
+		l4g.Error(T("utils.license.remove_license.unable.error"), err.Error())
 		return false
 	}
 
@@ -95,17 +96,17 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
-		l4g.Error("Encountered error decoding license, err=%v", err.Error())
+		l4g.Error(T("utils.license.validate_license.decode.error"), err.Error())
 		return false, ""
 	}
 
 	if len(decoded) <= 256 {
-		l4g.Error("Signed license not long enough")
+		l4g.Error(T("utils.license.validate_license.not_long.error"))
 		return false, ""
 	}
 
 	// remove null terminator
-	if decoded[len(decoded)-1] == byte(0) {
+	for decoded[len(decoded)-1] == byte(0) {
 		decoded = decoded[:len(decoded)-1]
 	}
 
@@ -116,7 +117,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		l4g.Error("Encountered error signing license, err=%v", err.Error())
+		l4g.Error(T("utils.license.validate_license.signing.error"), err.Error())
 		return false, ""
 	}
 
@@ -128,7 +129,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, d, signature)
 	if err != nil {
-		l4g.Error("Invalid signature, err=%v", err.Error())
+		l4g.Error(T("utils.license.validate_license.invalid.error"), err.Error())
 		return false, ""
 	}
 

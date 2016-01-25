@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"html/template"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -593,28 +594,26 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 						channelName = channel.DisplayName
 					}
 
-					subjectPage := NewServerTemplatePage("post_subject")
-					subjectPage.Props["SiteURL"] = c.GetSiteURL()
-					subjectPage.Props["TeamDisplayName"] = team.DisplayName
-					subjectPage.Props["SubjectText"] = subjectText
-					subjectPage.Props["Month"] = tm.Month().String()[:3]
-					subjectPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
-					subjectPage.Props["Year"] = fmt.Sprintf("%d", tm.Year())
+					month := userLocale(tm.Month().String())
+					day := fmt.Sprintf("%d", tm.Day())
+					year := fmt.Sprintf("%d", tm.Year())
+					zone, _ := tm.Zone()
 
-					bodyPage := NewServerTemplatePage("post_body")
+					subjectPage := NewServerTemplatePage("post_subject", c.Locale)
+					subjectPage.Props["Subject"] = userLocale("api.templates.post_subject",
+						map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
+							"Month": month[:3], "Day": day, "Year": year})
+
+					bodyPage := NewServerTemplatePage("post_body", c.Locale)
 					bodyPage.Props["SiteURL"] = c.GetSiteURL()
-					bodyPage.Props["Nickname"] = profileMap[id].FirstName
-					bodyPage.Props["TeamDisplayName"] = team.DisplayName
-					bodyPage.Props["ChannelName"] = channelName
-					bodyPage.Props["BodyText"] = bodyText
-					bodyPage.Props["SenderName"] = senderName
-					bodyPage.Props["Hour"] = fmt.Sprintf("%02d", tm.Hour())
-					bodyPage.Props["Minute"] = fmt.Sprintf("%02d", tm.Minute())
-					bodyPage.Props["Month"] = tm.Month().String()[:3]
-					bodyPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
-					bodyPage.Props["TimeZone"], _ = tm.Zone()
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 					bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
+					bodyPage.Props["BodyText"] = bodyText
+					bodyPage.Props["Button"] = userLocale("api.templates.post_body.button")
+					bodyPage.Html["Info"] = template.HTML(userLocale("api.templates.post_body.info",
+						map[string]interface{}{"ChannelName": channelName, "SenderName": senderName,
+							"Hour": fmt.Sprintf("%02d", tm.Hour()), "Minute": fmt.Sprintf("%02d", tm.Minute()),
+							"TimeZone": zone, "Month": month, "Day": day}))
 
 					// attempt to fill in a message body if the post doesn't have any text
 					if len(strings.TrimSpace(bodyPage.Props["PostMessage"])) == 0 && len(post.Filenames) > 0 {

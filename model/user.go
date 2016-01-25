@@ -61,59 +61,59 @@ type User struct {
 func (u *User) IsValid() *AppError {
 
 	if len(u.Id) != 26 {
-		return NewAppError("User.IsValid", "Invalid user id", "")
+		return NewLocAppError("User.IsValid", "model.user.is_valid.id.app_error", nil, "")
 	}
 
 	if u.CreateAt == 0 {
-		return NewAppError("User.IsValid", "Create at must be a valid time", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.create_at.app_error", nil, "user_id="+u.Id)
 	}
 
 	if u.UpdateAt == 0 {
-		return NewAppError("User.IsValid", "Update at must be a valid time", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.update_at.app_error", nil, "user_id="+u.Id)
 	}
 
 	if len(u.TeamId) != 26 {
-		return NewAppError("User.IsValid", "Invalid team id", "")
+		return NewLocAppError("User.IsValid", "model.user.is_valid.team_id.app_error", nil, "")
 	}
 
 	if !IsValidUsername(u.Username) {
-		return NewAppError("User.IsValid", "Invalid username", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.username.app_error", nil, "user_id="+u.Id)
 	}
 
 	if len(u.Email) > 128 || len(u.Email) == 0 {
-		return NewAppError("User.IsValid", "Invalid email", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.email.app_error", nil, "user_id="+u.Id)
 	}
 
 	if utf8.RuneCountInString(u.Nickname) > 64 {
-		return NewAppError("User.IsValid", "Invalid nickname", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id)
 	}
 
 	if utf8.RuneCountInString(u.FirstName) > 64 {
-		return NewAppError("User.IsValid", "Invalid first name", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.first_name.app_error", nil, "user_id="+u.Id)
 	}
 
 	if utf8.RuneCountInString(u.LastName) > 64 {
-		return NewAppError("User.IsValid", "Invalid last name", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id)
 	}
 
 	if len(u.Password) > 128 {
-		return NewAppError("User.IsValid", "Invalid password", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.pwd.app_error", nil, "user_id="+u.Id)
 	}
 
 	if len(u.AuthData) > 128 {
-		return NewAppError("User.IsValid", "Invalid auth data", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id)
 	}
 
 	if len(u.AuthData) > 0 && len(u.AuthService) == 0 {
-		return NewAppError("User.IsValid", "Invalid user, auth data must be set with auth type", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id)
 	}
 
 	if len(u.Password) > 0 && len(u.AuthData) > 0 {
-		return NewAppError("User.IsValid", "Invalid user, password and auth data cannot both be set", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id)
 	}
 
 	if len(u.ThemeProps) > 2000 {
-		return NewAppError("User.IsValid", "Invalid theme", "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.theme.app_error", nil, "user_id="+u.Id)
 	}
 
 	return nil
@@ -236,7 +236,6 @@ func (u *User) Sanitize(options map[string]bool) {
 }
 
 func (u *User) ClearNonProfileFields() {
-	u.CreateAt = 0
 	u.UpdateAt = 0
 	u.Password = ""
 	u.AuthData = ""
