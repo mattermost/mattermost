@@ -23,7 +23,7 @@ export default class DeletePostModal extends React.Component {
         this.selectedList = null;
 
         this.state = {
-            show: true,
+            show: false,
             post: null,
             commentCount: 0,
             error: ''
@@ -38,6 +38,14 @@ export default class DeletePostModal extends React.Component {
     componentWillUnmount() {
         PostStore.removeSelectedPostChangeListener(this.onListenerChange);
         ModalStore.removeModalListener(ActionTypes.TOGGLE_DELETE_POST_MODAL, this.handleToggle);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.show && !prevState.show) {
+            setTimeout(() => {
+                $(ReactDOM.findDOMNode(this.refs.deletePostBtn)).focus();
+            }, 0);
+        }
     }
 
     handleDelete() {
@@ -149,10 +157,10 @@ export default class DeletePostModal extends React.Component {
                         {'Cancel'}
                     </button>
                     <button
+                        ref='deletePostBtn'
                         type='button'
                         className='btn btn-danger'
                         onClick={this.handleDelete}
-                        autoFocus='autofocus'
                     >
                         {'Delete'}
                     </button>
