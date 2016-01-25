@@ -80,7 +80,7 @@ export default class SearchResults extends React.Component {
 
         var ctls = null;
 
-        if (!searchTerm && noResults) {
+        if (!searchTerm && noResults && !this.props.isStarredSearch) {
             ctls = (
                 <div className='sidebar--right__subheader'>
                     <ul>
@@ -93,6 +93,16 @@ export default class SearchResults extends React.Component {
                     </ul>
                 </div>
             );
+        } else if (this.props.isStarredSearch && noResults) {
+            ctls =
+                (
+                    <div className='sidebar--right__subheader'>
+                        <h4>{'NO STARRED POSTS'}</h4>
+                        <ul>
+                            <li>{'You haven\'t starred any posts yet'}</li>
+                        </ul>
+                    </div>
+                );
         } else if (noResults) {
             ctls =
             (
@@ -122,7 +132,10 @@ export default class SearchResults extends React.Component {
             <div className='sidebar--right__content'>
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
-                    <SearchResultsHeader isMentionSearch={this.props.isMentionSearch} />
+                    <SearchResultsHeader
+                        isMentionSearch={this.props.isMentionSearch}
+                        isStarredSearch={this.props.isStarredSearch}
+                    />
                     <div
                         id='search-items-container'
                         className='search-items-container'
@@ -136,5 +149,6 @@ export default class SearchResults extends React.Component {
 }
 
 SearchResults.propTypes = {
-    isMentionSearch: React.PropTypes.bool
+    isMentionSearch: React.PropTypes.bool,
+    isStarredSearch: React.PropTypes.bool
 };

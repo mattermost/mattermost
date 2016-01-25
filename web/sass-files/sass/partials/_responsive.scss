@@ -133,16 +133,19 @@
         }
 
         &.same--root {
-
             &.same--user {
 
-                .post__time {
+                .post__time, .starred-item {
                     display: none;
                 }
 
             }
 
         }
+
+        .starred-item {
+		    visibility: visible;
+	    }
 
         .post__img {
             width: 40px;

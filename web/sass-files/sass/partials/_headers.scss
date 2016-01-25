@@ -53,6 +53,16 @@
 		}
 	}
 
+	.starred-item {
+		margin: 2px 1em 0 0;
+		cursor: pointer;
+		visibility: hidden;
+		float: left;
+	}
+
+	&:hover .starred-item, .starred-item--active {
+		visibility: visible;
+	}
 }
 
 .channel-intro {
@@ -309,6 +319,11 @@
 		}
 		&:focus {
 			color: inherit;
+		}
+
+		&.channel-header__links__starred-items {
+			position: relative;
+			top: 2px;
 		}
 	}
 }

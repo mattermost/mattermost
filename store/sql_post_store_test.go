@@ -62,6 +62,43 @@ func TestPostStoreGet(t *testing.T) {
 	}
 }
 
+func TestPostStoreGetByIds(t *testing.T) {
+	Setup()
+
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "a" + model.NewId() + "b"
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+
+	o2 := &model.Post{}
+	o2.ChannelId = model.NewId()
+	o2.UserId = model.NewId()
+	o2.Message = "c" + model.NewId() + "d"
+	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
+
+	o3 := &model.Post{}
+	o3.ChannelId = model.NewId()
+	o3.UserId = model.NewId()
+	o3.Message = "e" + model.NewId() + "f"
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+
+	if r1 := <-store.Post().GetByIds([]string{o1.Id, o2.Id, "something"}); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		result := r1.Data.(*model.PostList)
+		if len(result.Posts) != 2 {
+			t.Fatalf("returned too many posts in GetByIds %v=%v", 2, len(result.Posts))
+		} else {
+			for postId := range result.Posts {
+				if !(postId == o1.Id || postId == o2.Id) {
+					t.Fatal("Invalid posts returned in GetByIds")
+				}
+			}
+		}
+	}
+}
+
 func TestPostStoreUpdate(t *testing.T) {
 	Setup()
 

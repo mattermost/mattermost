@@ -12,6 +12,7 @@ import ChannelMembersModal from './channel_members_modal.jsx';
 import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
+import StarredItem from './starred_item.jsx';
 
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
@@ -37,6 +38,7 @@ export default class ChannelHeader extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleLeave = this.handleLeave.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
+        this.searchStarred = this.searchStarred.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -118,6 +120,28 @@ export default class ChannelHeader extends React.Component {
             is_mention_search: true
         });
     }
+    searchStarred(e) {
+        e.preventDefault();
+
+        Client.getStarredPosts(
+            (data) => {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_SEARCH,
+                    results: data,
+                    is_mention_search: false,
+                    is_starred_search: true
+                });
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_SEARCH_TERM,
+                    term: '',
+                    do_search: false,
+                    is_mention_search: false,
+                    is_starred_search: true
+                });
+            },
+            () => {}
+        );
+    }
     render() {
         if (this.state.channel === null) {
             return null;
@@ -125,6 +149,7 @@ export default class ChannelHeader extends React.Component {
 
         const channel = this.state.channel;
         const recentMentionsTooltip = <Tooltip id='recentMentionsTooltip'>{'Recent Mentions'}</Tooltip>;
+        const starredPostsTooltip = <Tooltip id='recentMentionsTooltip'>{'Starred Posts'}</Tooltip>;
         const popoverContent = (
             <Popover
                 id='hader-popover'
@@ -343,7 +368,9 @@ export default class ChannelHeader extends React.Component {
                                             data-toggle='dropdown'
                                             aria-expanded='true'
                                         >
-                                            <strong className='heading'>{channelTitle} </strong>
+                                            <strong className='heading'>
+                                                {channelTitle}
+                                            </strong>
                                             <span className='glyphicon glyphicon-chevron-down header-dropdown__icon' />
                                         </a>
                                         <ul
@@ -354,6 +381,10 @@ export default class ChannelHeader extends React.Component {
                                             {dropdownContents}
                                         </ul>
                                     </div>
+                                    <StarredItem
+                                        id={channel.id}
+                                        type={Constants.Preferences.STARRED_CHANNELS}
+                                    />
                                     <OverlayTrigger
                                         trigger={['hover', 'focus']}
                                         placement='bottom'
@@ -389,6 +420,24 @@ export default class ChannelHeader extends React.Component {
                                             onClick={this.searchMentions}
                                         >
                                             {'@'}
+                                        </a>
+                                    </OverlayTrigger>
+                                </div>
+                            </th>
+                            <th>
+                                <div className='dropdown channel-header__links'>
+                                    <OverlayTrigger
+                                        delayShow={400}
+                                        placement='bottom'
+                                        overlay={starredPostsTooltip}
+                                    >
+                                        <a
+                                            href='#'
+                                            type='button'
+                                            onClick={this.searchStarred}
+                                            className='channel-header__links__starred-items'
+                                        >
+                                            <i className='fa fa-star' />
                                         </a>
                                     </OverlayTrigger>
                                 </div>

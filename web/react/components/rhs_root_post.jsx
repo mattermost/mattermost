@@ -8,6 +8,7 @@ import * as TextFormatting from '../utils/text_formatting.jsx';
 import * as utils from '../utils/utils.jsx';
 import * as Emoji from '../utils/emoticons.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
+import StarredItem from './starred_item.jsx';
 import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
@@ -207,6 +208,12 @@ export default class RhsRootPost extends React.Component {
                                 <time className='post__time'>
                                     {utils.displayCommentDateTime(post.create_at)}
                                 </time>
+                            </li>
+                            <li>
+                                <StarredItem
+                                    id={post.id}
+                                    type={Constants.Preferences.STARRED_POSTS}
+                                />
                             </li>
                             <li className='col col__reply'>
                                 <div>
