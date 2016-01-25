@@ -32,12 +32,12 @@ func InitManualTesting() {
 
 func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	// Let the world know
-	l4g.Info("Setting up for manual test...")
+	l4g.Info(utils.T("manaultesting.manual_test.setup.info"))
 
 	// URL Parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
-		c.Err = model.NewAppError("/manual", "Unable to parse URL", "")
+		c.Err = model.NewLocAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "")
 		return
 	}
 
@@ -49,7 +49,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		hash := hasher.Sum32()
 		rand.Seed(int64(hash))
 	} else {
-		l4g.Debug("No uid in url")
+		l4g.Debug(utils.T("manaultesting.manual_test.uid.debug"))
 	}
 
 	// Create a client for tests to use
@@ -61,7 +61,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	var teamID string
 	var userID string
 	if ok1 && ok2 {
-		l4g.Info("Creating user and team")
+		l4g.Info(utils.T("manaultesting.manual_test.create.info"))
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
@@ -153,7 +153,7 @@ func getChannelID(channelname string, teamid string, userid string) (id string, 
 	// Grab all the channels
 	result := <-api.Srv.Store.Channel().GetChannels(teamid, userid)
 	if result.Err != nil {
-		l4g.Debug("Unable to get channels")
+		l4g.Debug(utils.T("manaultesting.get_channel_id.unable.debug"))
 		return "", false
 	}
 
@@ -164,6 +164,6 @@ func getChannelID(channelname string, teamid string, userid string) (id string, 
 			return channel.Id, true
 		}
 	}
-	l4g.Debug("Could not find channel: " + channelname + ", " + strconv.Itoa(len(data.Channels)) + " possibilites searched")
+	l4g.Debug(utils.T("manaultesting.get_channel_id.no_found.debug"), channelname, strconv.Itoa(len(data.Channels)))
 	return "", false
 }

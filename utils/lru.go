@@ -38,7 +38,7 @@ func NewLru(size int) *Cache {
 
 func NewLruWithEvict(size int, onEvicted func(key interface{}, value interface{})) (*Cache, error) {
 	if size <= 0 {
-		return nil, errors.New("Must provide a positive size")
+		return nil, errors.New(T("utils.iru.with_evict"))
 	}
 	c := &Cache{
 		size:      size,

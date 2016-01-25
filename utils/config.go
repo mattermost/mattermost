@@ -118,12 +118,14 @@ func GetLogFileLocation(fileLocation string) string {
 func SaveConfig(fileName string, config *model.Config) *model.AppError {
 	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {
-		return model.NewAppError("SaveConfig", "An error occurred while saving the file to "+fileName, err.Error())
+		return model.NewLocAppError("SaveConfig", "utils.config.save_config.saving.app_error",
+			map[string]interface{}{"Filename": fileName}, err.Error())
 	}
 
 	err = ioutil.WriteFile(fileName, b, 0644)
 	if err != nil {
-		return model.NewAppError("SaveConfig", "An error occurred while saving the file to "+fileName, err.Error())
+		return model.NewLocAppError("SaveConfig", "utils.config.save_config.saving.app_error",
+			map[string]interface{}{"Filename": fileName}, err.Error())
 	}
 
 	return nil
@@ -138,18 +140,21 @@ func LoadConfig(fileName string) {
 
 	file, err := os.Open(fileName)
 	if err != nil {
-		panic("Error opening config file=" + fileName + ", err=" + err.Error())
+		panic(T("utils.config.load_config.opening.panic",
+			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
 	}
 
 	decoder := json.NewDecoder(file)
 	config := model.Config{}
 	err = decoder.Decode(&config)
 	if err != nil {
-		panic("Error decoding config file=" + fileName + ", err=" + err.Error())
+		panic(T("utils.config.load_config.decoding.panic",
+			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
 	}
 
 	if info, err := file.Stat(); err != nil {
-		panic("Error getting config info file=" + fileName + ", err=" + err.Error())
+		panic(T("utils.config.load_config.getting.panic",
+			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
 	} else {
 		CfgLastModified = info.ModTime().Unix()
 		CfgFileName = fileName
@@ -158,7 +163,8 @@ func LoadConfig(fileName string) {
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		panic("Error validating config file=" + fileName + ", err=" + err.Message)
+		panic(T("utils.config.load_config.validating.panic",
+			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
 	}
 
 	configureLog(&config.LogSettings)
