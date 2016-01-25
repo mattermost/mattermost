@@ -64,43 +64,43 @@ func (o *Channel) ExtraEtag(memberLimit int) string {
 func (o *Channel) IsValid() *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("Channel.IsValid", "Invalid Id", "")
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("Channel.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.create_at.app_error", nil, "id="+o.Id)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("Channel.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.DisplayName) > 64 {
-		return NewAppError("Channel.IsValid", "Invalid display name", "id="+o.Id)
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+o.Id)
 	}
 
 	if len(o.Name) > 64 {
-		return NewAppError("Channel.IsValid", "Invalid name", "id="+o.Id)
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "id="+o.Id)
 	}
 
 	if !IsValidChannelIdentifier(o.Name) {
-		return NewAppError("Channel.IsValid", "Name must be 2 or more lowercase alphanumeric characters", "id="+o.Id)
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+o.Id)
 	}
 
 	if !(o.Type == CHANNEL_OPEN || o.Type == CHANNEL_PRIVATE || o.Type == CHANNEL_DIRECT) {
-		return NewAppError("Channel.IsValid", "Invalid type", "id="+o.Id)
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.Header) > 1024 {
-		return NewAppError("Channel.IsValid", "Invalid header", "id="+o.Id)
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.header.app_error", nil, "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.Purpose) > 128 {
-		return NewAppError("Channel.IsValid", "Invalid purpose", "id="+o.Id)
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.purpose.app_error", nil, "id="+o.Id)
 	}
 
 	if len(o.CreatorId) > 26 {
-		return NewAppError("Channel.IsValid", "Invalid creator id", "")
+		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "")
 	}
 
 	return nil

@@ -1676,6 +1676,486 @@
     "translation": "Current version is %v (%v/%v/%v)"
   },
   {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "Invalid access token"
+  },
+  {
+    "id": "model.access.is_valid.auth_code.app_error",
+    "translation": "Invalid auth code"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "Invalid redirect uri"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "Invalid refresh token"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "Invalid authorization code"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "Invalid client id"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "Expires in must be set"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "Invalid redirect uri"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "Invalid scope"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "Invalid state"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.channel.is_valid.2_or_more.app_error",
+    "translation": "Name must be 2 or more lowercase alphanumeric characters"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "Invalid creator id"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "Invalid display name"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "Invalid header"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid name"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "Invalid purpose"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "Invalid type"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "Invalid notify level"
+  },
+  {
+    "id": "model.channel_member.is_valid.role.app_error",
+    "translation": "Invalid role"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "Invalid mark unread level"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.client.connecting.app_error",
+    "translation": "We encountered an error while connecting to the server"
+  },
+  {
+    "id": "model.client.login.app_error",
+    "translation": "Authentication tokens didn't match"
+  },
+  {
+    "id": "model.config.is_valid.email_reset_salt.app_error",
+    "translation": "Invalid password reset salt for email settings.  Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.email_salt.app_error",
+    "translation": "Invalid invite salt for email settings.  Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.encrypt_sql.app_error",
+    "translation": "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "Invalid driver name for file settings.  Must be 'local' or 'amazons3'"
+  },
+  {
+    "id": "model.config.is_valid.file_preview_height.app_error",
+    "translation": "Invalid preview height for file settings.  Must be a zero or positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_preview_width.app_error",
+    "translation": "Invalid preview width for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_profile_height.app_error",
+    "translation": "Invalid profile height for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_profile_width.app_error",
+    "translation": "Invalid profile width for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "Invalid public link salt for file settings.  Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.file_thumb_height.app_error",
+    "translation": "Invalid thumbnail height for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.file_thumb_width.app_error",
+    "translation": "Invalid thumbnail width for file settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "Invalid listen address for service settings Must be set."
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "Invalid maximum login attempts for service settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "Invalid memory store size for rate limit settings.  Must be a positive number"
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "Invalid per sec for rate limit settings.  Must be a positive number"
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "Invalid data source for SQL settings.  Must be set."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "Invalid driver name for SQL settings.  Must be 'mysql' or 'postgres'"
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.file_info.get.gif.app_error",
+    "translation": "Could not decode gif."
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "Invalid app id"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "Invalid callback urls"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "Invalid client secret"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "Invalid creator id"
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "Invalid homepage"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "Invalid name"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.callback.app_error",
+    "translation": "Invalid callback urls"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "Invalid token"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "Invalid callback URLs. Each must be a valid URL and start with http:// or https://"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.words.app_error",
+    "translation": "Invalid trigger words"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "Invalid filenames"
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": "Invalid hashtags"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "Invalid message"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "Invalid original id"
+  },
+  {
+    "id": "model.post.is_valid.parent_id.app_error",
+    "translation": "Invalid parent id"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "Invalid props"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "Invalid root id"
+  },
+  {
+    "id": "model.post.is_valid.root_parent.app_error",
+    "translation": "Invalid root id must be set if parent id set"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "Invalid type"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "Invalid category"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "Invalid name"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "Value is too long"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "Name must be 4 or more lowercase alphanumeric characters"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "Invalid company name"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "Invalid allowed domains"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "Invalid email"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "Invalid name"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "This URL is unavailable. Please try another."
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "Invalid type"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "Invalid URL Identifier"
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Invalid auth data"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Invalid user, password and auth data cannot both be set"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Invalid user, auth data must be set with auth type"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Invalid email"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Invalid first name"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Invalid last name"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Invalid nickname"
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "Invalid password"
+  },
+  {
+    "id": "model.user.is_valid.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.user.is_valid.theme.app_error",
+    "translation": "Invalid theme"
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Invalid username"
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "could not decode"
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
   },

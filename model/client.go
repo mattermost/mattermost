@@ -56,7 +56,7 @@ func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppErro
 	rq.Header.Set("Content-Type", contentType)
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewAppError(url, "We encountered an error while connecting to the server", err.Error())
+		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
@@ -72,7 +72,7 @@ func (c *Client) DoApiPost(url string, data string) (*http.Response, *AppError) 
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewAppError(url, "We encountered an error while connecting to the server", err.Error())
+		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
@@ -92,7 +92,7 @@ func (c *Client) DoApiGet(url string, data string, etag string) (*http.Response,
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewAppError(url, "We encountered an error while connecting to the server", err.Error())
+		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode >= 300 {
@@ -298,7 +298,7 @@ func (c *Client) login(m map[string]string) (*Result, *AppError) {
 		sessionToken := getCookie(SESSION_COOKIE_TOKEN, r)
 
 		if c.AuthToken != sessionToken.Value {
-			NewAppError("/users/login", "Authentication tokens didn't match", "")
+			NewLocAppError("/users/login", "model.client.login.app_error", nil, "")
 		}
 
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -699,7 +699,7 @@ func (c *Client) UploadFile(url string, data []byte, contentType string) (*Resul
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewAppError(url, "We encountered an error while connecting to the server", err.Error())
+		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
@@ -721,7 +721,7 @@ func (c *Client) GetFile(url string, isFullUrl bool) (*Result, *AppError) {
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewAppError(url, "We encountered an error while connecting to the server", err.Error())
+		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
@@ -739,7 +739,7 @@ func (c *Client) GetFileInfo(url string) (*Result, *AppError) {
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewAppError(url, "We encountered an error while connecting to the server", err.Error())
+		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {

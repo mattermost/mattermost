@@ -34,39 +34,39 @@ type OAuthApp struct {
 func (a *OAuthApp) IsValid() *AppError {
 
 	if len(a.Id) != 26 {
-		return NewAppError("OAuthApp.IsValid", "Invalid app id", "")
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.app_id.app_error", nil, "")
 	}
 
 	if a.CreateAt == 0 {
-		return NewAppError("OAuthApp.IsValid", "Create at must be a valid time", "app_id="+a.Id)
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.create_at.app_error", nil, "app_id="+a.Id)
 	}
 
 	if a.UpdateAt == 0 {
-		return NewAppError("OAuthApp.IsValid", "Update at must be a valid time", "app_id="+a.Id)
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.update_at.app_error", nil, "app_id="+a.Id)
 	}
 
 	if len(a.CreatorId) != 26 {
-		return NewAppError("OAuthApp.IsValid", "Invalid creator id", "app_id="+a.Id)
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.creator_id.app_error", nil, "app_id="+a.Id)
 	}
 
 	if len(a.ClientSecret) == 0 || len(a.ClientSecret) > 128 {
-		return NewAppError("OAuthApp.IsValid", "Invalid client secret", "app_id="+a.Id)
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.client_secret.app_error", nil, "app_id="+a.Id)
 	}
 
 	if len(a.Name) == 0 || len(a.Name) > 64 {
-		return NewAppError("OAuthApp.IsValid", "Invalid name", "app_id="+a.Id)
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.name.app_error", nil, "app_id="+a.Id)
 	}
 
 	if len(a.CallbackUrls) == 0 || len(fmt.Sprintf("%s", a.CallbackUrls)) > 1024 {
-		return NewAppError("OAuthApp.IsValid", "Invalid callback urls", "app_id="+a.Id)
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.callback.app_error", nil, "app_id="+a.Id)
 	}
 
 	if len(a.Homepage) == 0 || len(a.Homepage) > 256 {
-		return NewAppError("OAuthApp.IsValid", "Invalid homepage", "app_id="+a.Id)
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id)
 	}
 
 	if utf8.RuneCountInString(a.Description) > 512 {
-		return NewAppError("OAuthApp.IsValid", "Invalid description", "app_id="+a.Id)
+		return NewLocAppError("OAuthApp.IsValid", "model.oauth.is_valid.description.app_error", nil, "app_id="+a.Id)
 	}
 
 	return nil

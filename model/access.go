@@ -34,19 +34,19 @@ type AccessResponse struct {
 func (ad *AccessData) IsValid() *AppError {
 
 	if len(ad.AuthCode) == 0 || len(ad.AuthCode) > 128 {
-		return NewAppError("AccessData.IsValid", "Invalid auth code", "")
+		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.auth_code.app_error", nil, "")
 	}
 
 	if len(ad.Token) != 26 {
-		return NewAppError("AccessData.IsValid", "Invalid access token", "")
+		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.access_token.app_error", nil, "")
 	}
 
 	if len(ad.RefreshToken) > 26 {
-		return NewAppError("AccessData.IsValid", "Invalid refresh token", "")
+		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.refresh_token.app_error", nil, "")
 	}
 
 	if len(ad.RedirectUri) > 256 {
-		return NewAppError("AccessData.IsValid", "Invalid redirect uri", "")
+		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.redirect_uri.app_error", nil, "")
 	}
 
 	return nil

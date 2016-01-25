@@ -29,35 +29,35 @@ type AuthData struct {
 func (ad *AuthData) IsValid() *AppError {
 
 	if len(ad.ClientId) != 26 {
-		return NewAppError("AuthData.IsValid", "Invalid client id", "")
+		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "")
 	}
 
 	if len(ad.UserId) != 26 {
-		return NewAppError("AuthData.IsValid", "Invalid user id", "")
+		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.user_id.app_error", nil, "")
 	}
 
 	if len(ad.Code) == 0 || len(ad.Code) > 128 {
-		return NewAppError("AuthData.IsValid", "Invalid authorization code", "client_id="+ad.ClientId)
+		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.auth_code.app_error", nil, "client_id="+ad.ClientId)
 	}
 
 	if ad.ExpiresIn == 0 {
-		return NewAppError("AuthData.IsValid", "Expires in must be set", "")
+		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.expires.app_error", nil, "")
 	}
 
 	if ad.CreateAt <= 0 {
-		return NewAppError("AuthData.IsValid", "Create at must be a valid time", "client_id="+ad.ClientId)
+		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.create_at.app_error", nil, "client_id="+ad.ClientId)
 	}
 
 	if len(ad.RedirectUri) > 256 {
-		return NewAppError("AuthData.IsValid", "Invalid redirect uri", "client_id="+ad.ClientId)
+		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ad.ClientId)
 	}
 
 	if len(ad.State) > 128 {
-		return NewAppError("AuthData.IsValid", "Invalid state", "client_id="+ad.ClientId)
+		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.state.app_error", nil, "client_id="+ad.ClientId)
 	}
 
 	if len(ad.Scope) > 128 {
-		return NewAppError("AuthData.IsValid", "Invalid scope", "client_id="+ad.ClientId)
+		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.scope.app_error", nil, "client_id="+ad.ClientId)
 	}
 
 	return nil

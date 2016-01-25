@@ -36,7 +36,7 @@ func GetInfoForBytes(filename string, data []byte) (*FileInfo, *AppError) {
 	if mimeType == "image/gif" {
 		// just show the gif itself instead of a preview image for animated gifs
 		if gifImage, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
-			return nil, NewAppError("GetInfoForBytes", "Could not decode gif.", "filename="+filename)
+			return nil, NewLocAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "filename="+filename)
 		} else {
 			hasPreviewImage = len(gifImage.Image) == 1
 		}
