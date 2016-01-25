@@ -16,6 +16,7 @@ var store Store
 func Setup() {
 	if store == nil {
 		utils.LoadConfig("config.json")
+		utils.InitTranslations()
 		store = NewSqlStore()
 
 		store.MarkSystemRanUnitTests()

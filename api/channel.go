@@ -368,7 +368,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	// user is already in the team
 
 	if result := <-Srv.Store.Channel().GetChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
-		if result.Err.Message == "No channels were found" { // store translation dependant
+		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
 			// lets make sure the user is valid
 			if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 				c.Err = result.Err

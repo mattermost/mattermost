@@ -57,8 +57,8 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 		result := StoreResult{}
 
 		if len(post.Id) > 0 {
-			result.Err = model.NewAppError("SqlPostStore.Save",
-				"You cannot update an existing Post", "id="+post.Id)
+			result.Err = model.NewLocAppError("SqlPostStore.Save",
+				"store.sql_post.save.existing.app_error", nil, "id="+post.Id)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -72,7 +72,7 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(post); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "We couldn't save the Post", "id="+post.Id+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+err.Error())
 		} else {
 			time := model.GetMillis()
 
@@ -120,7 +120,7 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 		}
 
 		if _, err := s.GetMaster().Update(&editPost); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Update", "We couldn't update the Post", "id="+editPost.Id+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+editPost.Id+", "+err.Error())
 		} else {
 			time := model.GetMillis()
 			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": editPost.ChannelId})
@@ -152,7 +152,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "We couldn't get the post", "id="+id+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error())
 		}
 
 		pl.AddPost(&post)
@@ -167,7 +167,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		var posts []*model.Post
 		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "We couldn't get the post", "root_id="+rootId+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error())
 		} else {
 			for _, p := range posts {
 				pl.AddPost(p)
@@ -217,7 +217,7 @@ func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 
 		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "ParentId": postId, "RootId": postId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Delete", "We couldn't delete the post", "id="+postId+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -235,7 +235,7 @@ func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 
 		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"Id": postId, "ParentId": postId, "RootId": postId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Delete", "We couldn't delete the post", "id="+postId+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.Delete", "store.sql_post.permanent_delete.app_error", nil, "id="+postId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -253,7 +253,7 @@ func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChanne
 
 		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.permanentDeleteAllCommentByUser", "We couldn't delete the comments for user", "userId="+userId+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.permanentDeleteAllCommentByUser", "store.sql_post.permanent_delete_all_comments_by_user.app_error", nil, "userId="+userId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -286,7 +286,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 			var ids []string
 			_, err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = :UserId LIMIT 1000", map[string]interface{}{"UserId": userId})
 			if err != nil {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.select", "We couldn't select the posts to delete for the user", "userId="+userId+", err="+err.Error())
+				result.Err = model.NewLocAppError("SqlPostStore.PermanentDeleteByUser.select", "store.sql_post.permanent_delete_by_user.app_error", nil, "userId="+userId+", err="+err.Error())
 				storeChannel <- result
 				close(storeChannel)
 				return
@@ -306,7 +306,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 			// This is a fail safe, give up if more than 10K messages
 			count = count + 1
 			if count >= 10 {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.toolarge", "We couldn't select the posts to delete for the user (too many), please re-run", "userId="+userId)
+				result.Err = model.NewLocAppError("SqlPostStore.PermanentDeleteByUser.toolarge", "store.sql_post.permanent_delete_by_user.too_many.app_error", nil, "userId="+userId)
 				storeChannel <- result
 				close(storeChannel)
 				return
@@ -327,7 +327,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreCha
 		result := StoreResult{}
 
 		if limit > 1000 {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "Limit exceeded for paging", "channelId="+channelId)
+			result.Err = model.NewLocAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -403,7 +403,7 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
 			map[string]interface{}{"ChannelId": channelId, "Time": time})
 
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostsSince", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+channelId+err.Error())
 		} else {
 
 			list := &model.PostList{Order: make([]string, 0, len(posts))}
@@ -488,9 +488,9 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "NumPosts": numPosts, "Offset": offset})
 
 		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "We couldn't get the posts for the channel", "channelId="+channelId+err1.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err1.Error())
 		} else if err2 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "We couldn't get the parent posts for the channel", "channelId="+channelId+err2.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err2.Error())
 		} else {
 
 			list := &model.PostList{Order: make([]string, 0, len(posts))}
@@ -532,7 +532,7 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) Stor
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error())
 		} else {
 			result.Data = posts
 		}
@@ -577,7 +577,7 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 			ORDER BY CreateAt`,
 			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "We couldn't get the parent post for the channel", "channelId="+channelId+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+err.Error())
 		} else {
 			result.Data = posts
 		}
@@ -733,7 +733,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 
 		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Search", "We encountered an error while searching for posts", "teamId="+teamId+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.Search", "store.sql_post.search.app_error", nil, "teamId="+teamId+", err="+err.Error())
 		}
 
 		list := &model.PostList{Order: make([]string, 0, len(posts))}
@@ -777,7 +777,7 @@ func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
 			"SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0",
 			map[string]interface{}{"ChannelId": channelId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetForExport", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetForExport", "store.sql_post.get_for_export.app_error", nil, "channelId="+channelId+err.Error())
 		} else {
 			result.Data = posts
 		}
@@ -849,7 +849,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			query,
 			map[string]interface{}{"TeamId": teamId, "EndTime": end})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "We couldn't get user counts with posts", err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "store.sql_post.analytics_user_counts_posts_by_day.app_error", nil, err.Error())
 		} else {
 			result.Data = rows
 		}
@@ -922,7 +922,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 			query,
 			map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "We couldn't get post counts by day", err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error())
 		} else {
 			result.Data = rows
 		}
@@ -955,7 +955,7 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
 
 		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCount", "We couldn't get post counts", err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.AnalyticsPostCount", "store.sql_post.analytics_posts_count.app_error", nil, err.Error())
 		} else {
 			result.Data = v
 		}
