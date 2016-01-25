@@ -13,6 +13,14 @@ import (
 
 func TestCreateIncomingHook(t *testing.T) {
 	Setup()
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -21,6 +29,10 @@ func TestCreateIncomingHook(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -76,6 +88,14 @@ func TestCreateIncomingHook(t *testing.T) {
 
 func TestListIncomingHooks(t *testing.T) {
 	Setup()
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -84,6 +104,10 @@ func TestListIncomingHooks(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -114,6 +138,14 @@ func TestListIncomingHooks(t *testing.T) {
 
 func TestDeleteIncomingHook(t *testing.T) {
 	Setup()
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -122,6 +154,10 @@ func TestDeleteIncomingHook(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -154,6 +190,14 @@ func TestDeleteIncomingHook(t *testing.T) {
 
 func TestCreateOutgoingHook(t *testing.T) {
 	Setup()
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -162,6 +206,10 @@ func TestCreateOutgoingHook(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -217,6 +265,14 @@ func TestCreateOutgoingHook(t *testing.T) {
 
 func TestListOutgoingHooks(t *testing.T) {
 	Setup()
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -225,6 +281,10 @@ func TestListOutgoingHooks(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -255,6 +315,14 @@ func TestListOutgoingHooks(t *testing.T) {
 
 func TestDeleteOutgoingHook(t *testing.T) {
 	Setup()
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -263,6 +331,10 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -295,6 +367,14 @@ func TestDeleteOutgoingHook(t *testing.T) {
 
 func TestRegenOutgoingHookToken(t *testing.T) {
 	Setup()
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -303,6 +383,10 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
