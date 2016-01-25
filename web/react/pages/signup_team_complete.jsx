@@ -2,16 +2,65 @@
 // See License.txt for license information.
 
 import SignupTeamComplete from '../components/signup_team_complete.jsx';
+import * as Client from '../utils/client.jsx';
 
-function setupSignupTeamCompletePage(props) {
-    ReactDOM.render(
-        <SignupTeamComplete
-            email={props.Email}
-            hash={props.Hash}
-            data={props.Data}
-        />,
-        document.getElementById('signup-team-complete')
-    );
+var IntlProvider = ReactIntl.IntlProvider;
+
+class Root extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            translations: null,
+            loaded: false
+        };
+    }
+
+    static propTypes() {
+        return {
+            map: React.PropTypes.object.isRequired
+        };
+    }
+
+    componentWillMount() {
+        Client.getTranslations(
+            this.props.map.Locale,
+            (data) => {
+                this.setState({
+                    translations: data,
+                    loaded: true
+                });
+            },
+            () => {
+                this.setState({
+                    loaded: true
+                });
+            }
+        );
+    }
+
+    render() {
+        if (!this.state.loaded) {
+            return <div></div>;
+        }
+
+        return (
+            <IntlProvider
+                locale={this.props.map.Locale}
+                messages={this.state.translations}
+            >
+                <SignupTeamComplete
+                    email={this.props.map.Email}
+                    hash={this.props.map.Hash}
+                    data={this.props.map.Data}
+                />
+            </IntlProvider>
+        );
+    }
 }
 
-global.window.setup_signup_team_complete_page = setupSignupTeamCompletePage;
+global.window.setup_signup_team_complete_page = function setup(props) {
+    ReactDOM.render(
+        <Root map={props} />,
+        document.getElementById('signup-team-complete')
+    );
+};
