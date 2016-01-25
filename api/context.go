@@ -5,6 +5,7 @@ package api
 
 import (
 	"fmt"
+	"html/template"
 	"net"
 	"net/http"
 	"net/url"
@@ -37,6 +38,8 @@ type Context struct {
 type Page struct {
 	TemplateName      string
 	Props             map[string]string
+	Extra             map[string]string
+	Html              map[string]template.HTML
 	ClientCfg         map[string]string
 	ClientLicense     map[string]string
 	User              *model.User
@@ -506,6 +509,10 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	} else {
 		props["SiteURL"] = GetProtocol(r) + "://" + r.Host
 	}
+
+	T, _ := utils.GetTranslationsAndLocale(w, r)
+	props["Title"] = T("api.templates.error.title", map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+	props["Link"] = T("api.templates.error.link")
 
 	w.WriteHeader(err.StatusCode)
 	ServerTemplates.ExecuteTemplate(w, "error.html", Page{Props: props, ClientCfg: utils.ClientCfg})

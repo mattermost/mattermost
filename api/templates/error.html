@@ -22,9 +22,9 @@
 	<div class="container-fluid">
 		<div class="error__container">
 			<div class="error__icon"><i class="fa fa-exclamation-triangle"></i></div>
-			<h2>{{ .ClientCfg.SiteName }} needs your help:</h2>
+			<h2>{{.Props.Title}}</h2>
 			<p>{{ .Props.Message }}</p>
-			<a href="{{.Props.SiteURL}}">Go back to team site</a>
+			<a href="{{.Props.SiteURL}}">{{.Props.Link}}</a>
 		</div>
 	</div>
 </body>
