@@ -19,7 +19,7 @@ func TestGetInfoForBytes(t *testing.T) {
 	} else if info.Size != 1000 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.Extension != "txt" {
-		t.Fatalf("Git incorrect file extension: %v", info.Extension)
+		t.Fatalf("Got incorrect file extension: %v", info.Extension)
 	} else if info.MimeType != "text/plain; charset=utf-8" {
 		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
 	} else if info.HasPreviewImage {
@@ -33,7 +33,7 @@ func TestGetInfoForBytes(t *testing.T) {
 	} else if info.Size != 1000 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.Extension != "png" {
-		t.Fatalf("Git incorrect file extension: %v", info.Extension)
+		t.Fatalf("Got incorrect file extension: %v", info.Extension)
 	} else if info.MimeType != "image/png" {
 		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
 	} else if !info.HasPreviewImage {
@@ -49,7 +49,7 @@ func TestGetInfoForBytes(t *testing.T) {
 	} else if info.Size != 35 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.Extension != "gif" {
-		t.Fatalf("Git incorrect file extension: %v", info.Extension)
+		t.Fatalf("Got incorrect file extension: %v", info.Extension)
 	} else if info.MimeType != "image/gif" {
 		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
 	} else if !info.HasPreviewImage {
@@ -67,10 +67,24 @@ func TestGetInfoForBytes(t *testing.T) {
 	} else if info.Size != 38689 {
 		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if info.Extension != "gif" {
-		t.Fatalf("Git incorrect file extension: %v", info.Extension)
+		t.Fatalf("Got incorrect file extension: %v", info.Extension)
 	} else if info.MimeType != "image/gif" {
 		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
 	} else if info.HasPreviewImage {
 		t.Fatalf("Got HasPreviewImage = true for animated gif")
+	}
+
+	if info, err := GetInfoForBytes("filewithoutextension", fakeFile); err != nil {
+		t.Fatal(err)
+	} else if info.Filename != "filewithoutextension" {
+		t.Fatalf("Got incorrect filename: %v", info.Filename)
+	} else if info.Size != 1000 {
+		t.Fatalf("Got incorrect size: %v", info.Size)
+	} else if info.Extension != "" {
+		t.Fatalf("Got incorrect file extension: %v", info.Extension)
+	} else if info.MimeType != "" {
+		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
+	} else if info.HasPreviewImage {
+		t.Fatalf("Got HasPreviewImage = true for non-image file")
 	}
 }

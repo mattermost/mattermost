@@ -32,6 +32,11 @@ func GetInfoForBytes(filename string, data []byte) (*FileInfo, *AppError) {
 		mimeType = mime.TypeByExtension(extension)
 	}
 
+	if extension != "" && extension[0] == '.' {
+		// the client expects a file extension without the leading period
+		extension = extension[1:]
+	}
+
 	hasPreviewImage := isImage
 	if mimeType == "image/gif" {
 		// just show the gif itself instead of a preview image for animated gifs
@@ -45,7 +50,7 @@ func GetInfoForBytes(filename string, data []byte) (*FileInfo, *AppError) {
 	return &FileInfo{
 		Filename:        filename,
 		Size:            size,
-		Extension:       extension[1:],
+		Extension:       extension,
 		MimeType:        mimeType,
 		HasPreviewImage: hasPreviewImage,
 	}, nil
