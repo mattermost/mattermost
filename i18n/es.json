@@ -797,7 +797,7 @@
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "Already delted id={{.PostId}}"
+    "translation": "Ya fué elminado el id={{.PostId}}"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1640,11 +1640,139 @@
     "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
   },
   {
+    "id": "manaultesting.get_channel_id.no_found.debug",
+    "translation": "No pudimos encontrar el canal: %v, búsqueda realizada con estas posibilidades %v"
+  },
+  {
+    "id": "manaultesting.get_channel_id.unable.debug",
+    "translation": "No se pudo obtener los canales"
+  },
+  {
+    "id": "manaultesting.manual_test.create.info",
+    "translation": "Creando usuario y equipo"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "No se pudo analizar el URL"
+  },
+  {
+    "id": "manaultesting.manual_test.setup.info",
+    "translation": "Configurando para pruebas manuales..."
+  },
+  {
+    "id": "manaultesting.manual_test.uid.debug",
+    "translation": "No hay un uid en el url"
+  },
+  {
+    "id": "manaultesting.test_autolink.info",
+    "translation": "Prueba Manual de Enlaces Automáticos"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "No se pudo obtener los canales"
+  },
+  {
     "id": "mattermost.current_version",
     "translation": "La versión actual es %v (%v/%v/%v)"
   },
   {
+    "id": "utils.config.load_config.decoding.panic",
+    "translation": "Error decifrando la configuración del archivo={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.getting.panic",
+    "translation": "Error obteniendo la iformación de configuración del archivo={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.opening.panic",
+    "translation": "Error abriendo la configuración del archivo={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.validating.panic",
+    "translation": "Error validando la configuración del archivo={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.save_config.saving.app_error",
+    "translation": "Ocurrió un error mientras se guardaba el archivo en {{.Filename}}"
+  },
+  {
     "id": "utils.i18n.loaded",
     "translation": "Cargada traducciones del sistema para '%v' desde '%v'"
+  },
+  {
+    "id": "utils.iru.with_evict",
+    "translation": "Debe proporcionar un tamaño positivo"
+  },
+  {
+    "id": "utils.license.load_license.invalid.warn",
+    "translation": "No se encontró una licencia enterprise válida"
+  },
+  {
+    "id": "utils.license.load_license.open_find.warn",
+    "translation": "No pudimos encontrar/abrir el achivo de licencia"
+  },
+  {
+    "id": "utils.license.remove_license.unable.error",
+    "translation": "No se pudo remover el archivo de la licencia, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.decode.error",
+    "translation": "Encontramos un error decodificando la licencia, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.invalid.error",
+    "translation": "Firma inválida, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.not_long.error",
+    "translation": "La licencia firmada no es suficientemente larga"
+  },
+  {
+    "id": "utils.license.validate_license.signing.error",
+    "translation": "Encontramos un error al firmar la licencia, err=%v"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open.app_error",
+    "translation": "Falla al abrir conexión"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open_tls.app_error",
+    "translation": "Falla al abrir una conexión TLS"
+  },
+  {
+    "id": "utils.mail.new_client.auth.app_error",
+    "translation": "Falla autenticando contra el servidor SMTP"
+  },
+  {
+    "id": "utils.mail.new_client.open.error",
+    "translation": "Falla al abrir la conexión al servidor SMTP %v"
+  },
+  {
+    "id": "utils.mail.send_mail.close.app_error",
+    "translation": "Falla al cerrar la conexión al servidor SMTP"
+  },
+  {
+    "id": "utils.mail.send_mail.from_address.app_error",
+    "translation": "Falla al agregar el correo electrónico desde"
+  },
+  {
+    "id": "utils.mail.send_mail.msg.app_error",
+    "translation": "Falla al escribir el mensaje del correo electrónico"
+  },
+  {
+    "id": "utils.mail.send_mail.msg_data.app_error",
+    "translation": "Falla al agregar la data al mensaje del correo electrónico"
+  },
+  {
+    "id": "utils.mail.send_mail.sending.debug",
+    "translation": "enviano correo electrónico a %v con el asunto '%v'"
+  },
+  {
+    "id": "utils.mail.send_mail.to_address.app_error",
+    "translation": "Falla al agregar el correo electrónico para"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "El servidor SMTP parece no estar configurado apropiadamente err=%v details=%v"
   }
 ]

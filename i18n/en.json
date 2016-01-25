@@ -797,7 +797,7 @@
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "Already delted id={{.PostId}}"
+    "translation": "Already deleted id={{.PostId}}"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1640,11 +1640,139 @@
     "translation": "Inappropriate permissions to regenerate outcoming webhook token"
   },
   {
+    "id": "manaultesting.get_channel_id.no_found.debug",
+    "translation": "Could not find channel: %v, %v possibilites searched"
+  },
+  {
+    "id": "manaultesting.get_channel_id.unable.debug",
+    "translation": "Unable to get channels"
+  },
+  {
+    "id": "manaultesting.manual_test.create.info",
+    "translation": "Creating user and team"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "Unable to parse URL"
+  },
+  {
+    "id": "manaultesting.manual_test.setup.info",
+    "translation": "Setting up for manual test..."
+  },
+  {
+    "id": "manaultesting.manual_test.uid.debug",
+    "translation": "No uid in url"
+  },
+  {
+    "id": "manaultesting.test_autolink.info",
+    "translation": "Manual Auto Link Test"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "Unable to get channels"
+  },
+  {
     "id": "mattermost.current_version",
     "translation": "Current version is %v (%v/%v/%v)"
   },
   {
+    "id": "utils.config.load_config.decoding.panic",
+    "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.getting.panic",
+    "translation": "Error getting config info file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.opening.panic",
+    "translation": "Error opening config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.load_config.validating.panic",
+    "translation": "Error validating config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "utils.config.save_config.saving.app_error",
+    "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
     "id": "utils.i18n.loaded",
     "translation": "Loaded system translations for '%v' from '%v'"
+  },
+  {
+    "id": "utils.iru.with_evict",
+    "translation": "Must provide a positive size"
+  },
+  {
+    "id": "utils.license.load_license.invalid.warn",
+    "translation": "No valid enterprise license found"
+  },
+  {
+    "id": "utils.license.load_license.open_find.warn",
+    "translation": "Unable to open/find license file"
+  },
+  {
+    "id": "utils.license.remove_license.unable.error",
+    "translation": "Unable to remove license file, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.decode.error",
+    "translation": "Encountered error decoding license, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.invalid.error",
+    "translation": "Invalid signature, err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.not_long.error",
+    "translation": "Signed license not long enough"
+  },
+  {
+    "id": "utils.license.validate_license.signing.error",
+    "translation": "Encountered error signing license, err=%v"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open.app_error",
+    "translation": "Failed to open connection"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open_tls.app_error",
+    "translation": "Failed to open TLS connection"
+  },
+  {
+    "id": "utils.mail.new_client.auth.app_error",
+    "translation": "Failed to authenticate on SMTP server"
+  },
+  {
+    "id": "utils.mail.new_client.open.error",
+    "translation": "Failed to open a connection to SMTP server %v"
+  },
+  {
+    "id": "utils.mail.send_mail.close.app_error",
+    "translation": "Failed to close connection to SMTP server"
+  },
+  {
+    "id": "utils.mail.send_mail.from_address.app_error",
+    "translation": "Failed to add from email address"
+  },
+  {
+    "id": "utils.mail.send_mail.msg.app_error",
+    "translation": "Failed to write email message"
+  },
+  {
+    "id": "utils.mail.send_mail.msg_data.app_error",
+    "translation": "Failed to add email messsage data"
+  },
+  {
+    "id": "utils.mail.send_mail.sending.debug",
+    "translation": "sending mail to %v with subject of '%v'"
+  },
+  {
+    "id": "utils.mail.send_mail.to_address.app_error",
+    "translation": "Failed to add to email address"
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v"
   }
 ]
