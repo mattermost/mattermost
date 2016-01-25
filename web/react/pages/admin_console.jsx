@@ -4,25 +4,68 @@
 import ErrorBar from '../components/error_bar.jsx';
 import SelectTeamModal from '../components/admin_console/select_team_modal.jsx';
 import AdminController from '../components/admin_console/admin_controller.jsx';
+import * as Client from '../utils/client.jsx';
 
-export function setupAdminConsolePage(props) {
-    ReactDOM.render(
-        <AdminController
-            tab={props.ActiveTab}
-            teamId={props.TeamId}
-        />,
-        document.getElementById('admin_controller')
-    );
+var IntlProvider = ReactIntl.IntlProvider;
 
-    ReactDOM.render(
-        <SelectTeamModal />,
-        document.getElementById('select_team_modal')
-    );
+class Root extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            translations: null,
+            loaded: false
+        };
+    }
 
-    ReactDOM.render(
-        <ErrorBar/>,
-        document.getElementById('error_bar')
-    );
+    static propTypes() {
+        return {
+            map: React.PropTypes.object.isRequired
+        };
+    }
+
+    componentWillMount() {
+        Client.getTranslations(
+            this.props.map.Locale,
+            (data) => {
+                this.setState({
+                    translations: data,
+                    loaded: true
+                });
+            },
+            () => {
+                this.setState({
+                    loaded: true
+                });
+            }
+        );
+    }
+
+    render() {
+        if (!this.state.loaded) {
+            return <div></div>;
+        }
+
+        return (
+            <IntlProvider
+                locale={this.props.map.Locale}
+                messages={this.state.translations}
+            >
+                <div>
+                    <ErrorBar/>
+                    <AdminController
+                        tab={this.props.map.ActiveTab}
+                        teamId={this.props.map.TeamId}
+                    />
+                    <SelectTeamModal />
+                </div>
+            </IntlProvider>
+        );
+    }
 }
 
-global.window.setup_admin_console_page = setupAdminConsolePage;
+global.window.setup_admin_console_page = function setup(props) {
+    ReactDOM.render(
+        <Root map={props} />,
+        document.getElementById('admin_controller')
+    );
+};
