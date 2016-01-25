@@ -12,6 +12,9 @@ echo configuring mysql
 # SQL!!!
 set -e
 
+sed -i 's/%MYSQL_USER/'${MYSQL_USER}'/' /config_docker.json
+sed -i 's/%MYSQL_PASSWORD/'${MYSQL_PASSWORD}'/' /config_docker.json
+
 get_option () {
 	local section=$1
 	local option=$2
