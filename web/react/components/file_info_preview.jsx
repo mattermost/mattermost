@@ -5,10 +5,15 @@ import * as Utils from '../utils/utils.jsx';
 
 export default function FileInfoPreview({filename, fileUrl, fileInfo}) {
     // non-image files include a section providing details about the file
-    let infoString = 'File type ' + fileInfo.extension.toUpperCase();
-    if (fileInfo.size > 0) {
-        infoString += ', Size ' + Utils.fileSizeToString(fileInfo.size);
+    const infoParts = [];
+
+    if (fileInfo.extension !== '') {
+        infoParts.push('File type ' + fileInfo.extension.toUpperCase());
     }
+
+    infoParts.push('Size ' + Utils.fileSizeToString(fileInfo.size));
+
+    const infoString = infoParts.join(', ');
 
     const name = decodeURIComponent(Utils.getFileName(filename));
 
