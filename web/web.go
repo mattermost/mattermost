@@ -518,6 +518,7 @@ func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, 
 
 func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team *model.Team, channel *model.Channel, postid string) {
 	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+	prefChan := api.Srv.Store.Preference().GetAll(c.Session.UserId)
 
 	var user *model.User
 	if ur := <-userChan; ur.Err != nil {
@@ -529,6 +530,13 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 		user = ur.Data.(*model.User)
 	}
 
+	var preferences model.Preferences
+	if result := <-prefChan; result.Err != nil {
+		l4g.Error("Error in getting preferences for id=%v", c.Session.UserId)
+	} else {
+		preferences = result.Data.(model.Preferences)
+	}
+
 	page := NewHtmlTemplatePage("channel", "", c.Locale)
 	page.Props["Title"] = channel.DisplayName + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
@@ -538,6 +546,7 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 	page.Team = team
 	page.User = user
 	page.Channel = channel
+	page.Preferences = &preferences
 	page.Render(c, w)
 }
 

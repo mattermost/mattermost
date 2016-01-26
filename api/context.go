@@ -45,6 +45,7 @@ type Page struct {
 	User              *model.User
 	Team              *model.Team
 	Channel           *model.Channel
+	Preferences       *model.Preferences
 	PostID            string
 	SessionTokenIndex int64
 	Locale            string
