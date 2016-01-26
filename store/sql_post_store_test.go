@@ -676,6 +676,13 @@ func TestPostStoreSearch(t *testing.T) {
 	o1.Message = "corey mattermost new york"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
+	o1a := &model.Post{}
+	o1a.ChannelId = c1.Id
+	o1a.UserId = model.NewId()
+	o1a.Message = "corey mattermost new york"
+	o1a.Type = model.POST_JOIN_LEAVE
+	o1a = (<-store.Post().Save(o1a)).Data.(*model.Post)
+
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
 	o2.UserId = model.NewId()
