@@ -62,11 +62,14 @@
     <style id="antiClickjack">body{display:none !important;}</style>
 
     <script>
-        if ('ReactIntl' in window && 'ReactIntlLocaleData' in window) {
-            Object.keys(ReactIntlLocaleData).forEach((lang) => {
-                ReactIntl.addLocaleData(ReactIntlLocaleData[lang]);
-            });
-        }
+        // if ('ReactIntl' in window && 'ReactIntlLocaleData' in window) {
+        //     Object.keys(ReactIntlLocaleData).forEach((lang) => {
+        //         ReactIntl.addLocaleData(ReactIntlLocaleData[lang]);
+        //     });
+        // }
+
+        ReactIntl.addLocaleData(ReactIntlLocaleData.en);
+        ReactIntl.addLocaleData(ReactIntlLocaleData.es);
 
         window.mm_config = {{ .ClientCfg }};
         window.mm_license = {{ .ClientLicense }};
