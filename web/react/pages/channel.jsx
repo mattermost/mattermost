@@ -4,7 +4,6 @@
 import ChannelView from '../components/channel_view.jsx';
 import ChannelLoader from '../components/channel_loader.jsx';
 import ErrorBar from '../components/error_bar.jsx';
-import ErrorStore from '../stores/error_store.jsx';
 import * as Client from '../utils/client.jsx';
 
 import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
