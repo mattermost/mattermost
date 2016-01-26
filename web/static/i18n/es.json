@@ -1,4 +1,5 @@
 {
   "login.find_teams": "Find your other teams (spanish!)",
-  "login.forgot_password": "I forgot my password (spanish!)"
+  "login.forgot_password": "I forgot my password (spanish!)",
+  "error_bar.preview_mode": "Preview Mode: Email notifications have not been configured (spanish!)"
 }

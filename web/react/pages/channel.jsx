@@ -4,7 +4,6 @@
 import ChannelView from '../components/channel_view.jsx';
 import ChannelLoader from '../components/channel_loader.jsx';
 import ErrorBar from '../components/error_bar.jsx';
-import ErrorStore from '../stores/error_store.jsx';
 import * as Client from '../utils/client.jsx';
 
 import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
@@ -113,9 +112,4 @@ global.window.setup_channel_page = function setup(props, team, channel) {
         <Root map={props} />,
         document.getElementById('channel_view')
     );
-
-    if (global.window.mm_config.SendEmailNotifications === 'false') {
-        ErrorStore.storeLastError({message: 'Preview Mode: Email notifications have not been configured'});
-        ErrorStore.emitChange();
-    }
 };
