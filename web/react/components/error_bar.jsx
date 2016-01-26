@@ -53,7 +53,8 @@ export default class ErrorBar extends React.Component {
                 {
                     id: 'error_bar.preview_mode',
                     defaultMessage: 'Preview Mode: Email notifications have not been configured'
-                })});
+                }
+            )});
             this.onErrorChange();
         }
     }
