@@ -315,7 +315,7 @@ export default class UserItem extends React.Component {
                 <ConfirmModal
                     show={this.state.showDemoteModal}
                     title='Confirm demotion from System Admin role'
-                    message={[`If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you'll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.`,<br/>,<br/>,`./platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"`,serverError]}
+                    message={[`If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you'll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.`, React.createElement('br'), React.createElement('br'), `./platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"`, serverError]}
                     confirm_button='Confirm Demotion'
                     onConfirm={this.handleDemoteSubmit}
                     onCancel={this.handleDemoteCancel}
@@ -378,6 +378,7 @@ export default class UserItem extends React.Component {
 
 UserItem.propTypes = {
     user: React.PropTypes.object.isRequired,
+    role: React.PropTypes.string,
     refreshProfiles: React.PropTypes.func.isRequired,
     doPasswordReset: React.PropTypes.func.isRequired
 };
