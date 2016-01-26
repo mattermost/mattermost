@@ -62,8 +62,11 @@
     <style id="antiClickjack">body{display:none !important;}</style>
 
     <script>
-        ReactIntl.addLocaleData(ReactIntlLocaleData.en);
-        ReactIntl.addLocaleData(ReactIntlLocaleData.es);
+        if ('ReactIntl' in window && 'ReactIntlLocaleData' in window) {
+            Object.keys(ReactIntlLocaleData).forEach((lang) => {
+                ReactIntl.addLocaleData(ReactIntlLocaleData[lang]);
+            });
+        }
 
         window.mm_config = {{ .ClientCfg }};
         window.mm_license = {{ .ClientLicense }};

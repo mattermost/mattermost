@@ -113,9 +113,4 @@ global.window.setup_channel_page = function setup(props, team, channel) {
         <Root map={props} />,
         document.getElementById('channel_view')
     );
-
-    if (global.window.mm_config.SendEmailNotifications === 'false') {
-        ErrorStore.storeLastError({message: 'Preview Mode: Email notifications have not been configured'});
-        ErrorStore.emitChange();
-    }
 };

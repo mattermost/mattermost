@@ -3,6 +3,17 @@
 
 import ErrorStore from '../stores/error_store.jsx';
 
+var intlShape = ReactIntl.intlShape;
+var injectIntl = ReactIntl.injectIntl;
+var defineMessages = ReactIntl.defineMessages;
+
+const messages = defineMessages({
+    previewMode: {
+        id: 'error_bar.preview_mode',
+        defaultMessage: 'Preview Mode: Email notifications have not been configured'
+    }
+});
+
 export default class ErrorBar extends React.Component {
     constructor() {
         super();
@@ -11,6 +22,12 @@ export default class ErrorBar extends React.Component {
         this.handleClose = this.handleClose.bind(this);
 
         this.state = ErrorStore.getLastError();
+    }
+
+    static propTypes() {
+        return {
+            intl: intlShape.isRequired
+        };
     }
 
     isValidError(s) {
@@ -39,6 +56,14 @@ export default class ErrorBar extends React.Component {
         }
 
         return false;
+    }
+
+    componentWillMount() {
+        const {formatMessage} = this.props.intl;
+        if (global.window.mm_config.SendEmailNotifications === 'false') {
+            ErrorStore.storeLastError({message: formatMessage(messages.previewMode)});
+            this.onErrorChange();
+        }
     }
 
     componentDidMount() {
@@ -86,3 +111,5 @@ export default class ErrorBar extends React.Component {
         );
     }
 }
+
+export default injectIntl(ErrorBar);
