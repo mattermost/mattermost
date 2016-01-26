@@ -18,8 +18,6 @@ import RegisterAppModal from '../components/register_app_modal.jsx';
 import ImportThemeModal from '../components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from '../components/invite_member_modal.jsx';
 
-import PreferenceStore from '../stores/preference_store.jsx';
-
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 var IntlProvider = ReactIntl.IntlProvider;
@@ -88,14 +86,12 @@ class Root extends React.Component {
     }
 }
 
-global.window.setup_channel_page = function setup(props, team, channel, preferences) {
+global.window.setup_channel_page = function setup(props, team, channel) {
     if (props.PostId === '') {
         EventHelpers.emitChannelClickEvent(channel);
     } else {
         EventHelpers.emitPostFocusEvent(props.PostId);
     }
-
-    PreferenceStore.setPreferences(preferences);
 
     ReactDOM.render(
         <Root map={props} />,

@@ -6,7 +6,7 @@
 <body>
   <div id="channel_view" class='channel-view'></div>
 <script>
-  window.setup_channel_page({{ .Props }}, {{ .Team }}, {{ .Channel }}, {{ .Preferences }});
+  window.setup_channel_page({{ .Props }}, {{ .Team }}, {{ .Channel }});
   $('body').tooltip( {selector: '[data-toggle=tooltip]'} );
   var modals = $('.modal-body').not('.edit-modal-body');
   if($(window).height() > 1200){

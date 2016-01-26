@@ -74,6 +74,11 @@
         window.mm_user = {{ .User }};
         window.mm_channel = {{ .Channel }};
         window.mm_locale = {{ .Locale }};
+        window.mm_preferences = {{ .Preferences }};
+
+        $(function() {
+            PreferenceStore.setPreferences(window.mm_preferences);
+        });
 
         if ({{.SessionTokenIndex}} >= 0) {
             window.mm_session_token_index = {{.SessionTokenIndex}};
