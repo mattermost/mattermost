@@ -4,7 +4,7 @@
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 import UserStore from '../../stores/user_store.jsx';
-import DemoteOwnRoleModal from './demote_own_role_modal.jsx';
+import ConfirmModal from '../confirm_modal.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -18,9 +18,9 @@ export default class UserItem extends React.Component {
         this.handleMakeAdmin = this.handleMakeAdmin.bind(this);
         this.handleMakeSystemAdmin = this.handleMakeSystemAdmin.bind(this);
         this.handleResetPassword = this.handleResetPassword.bind(this);
-        this.doDemote = this.doDemote.bind(this);
-        this.doDemoteSubmit = this.doDemoteSubmit.bind(this);
-        this.doDemoteDismiss = this.doDemoteDismiss.bind(this);
+        this.handleDemote = this.handleDemote.bind(this);
+        this.handleDemoteSubmit = this.handleDemoteSubmit.bind(this);
+        this.handleDemoteCancel = this.handleDemoteCancel.bind(this);
 
         this.state = {
             serverError: null,
@@ -34,7 +34,7 @@ export default class UserItem extends React.Component {
         e.preventDefault();
         var me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.doDemote(this.props.user, '');
+            this.handleDemote(this.props.user, '');
         } else {
             const data = {
                 user_id: this.props.user.id,
@@ -80,7 +80,7 @@ export default class UserItem extends React.Component {
         e.preventDefault();
         var me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
-            this.doDemote(this.props.user, 'admin');
+            this.handleDemote(this.props.user, 'admin');
         } else {
             const data = {
                 user_id: this.props.user.id,
@@ -120,7 +120,7 @@ export default class UserItem extends React.Component {
         this.props.doPasswordReset(this.props.user);
     }
 
-    doDemote(user, role) {
+    handleDemote(user, role) {
         this.setState({
             serverError: this.state.serverError,
             showDemoteModal: true,
@@ -129,22 +129,36 @@ export default class UserItem extends React.Component {
         });
     }
 
-    doDemoteDismiss() {
+    handleDemoteCancel() {
         this.setState({
-            serverError: this.state.serverError,
+            serverError: null,
             showDemoteModal: false,
             user: null,
             role: null
         });
     }
 
-    doDemoteSubmit() {
-        this.setState({
-            serverError: this.state.serverError,
-            showDemoteModal: false,
-            user: null,
-            role: null
-        });
+    handleDemoteSubmit() {
+        const data = {
+            user_id: this.props.user.id,
+            new_roles: this.props.role
+        };
+
+        Client.updateRoles(data,
+            () => {
+                this.setState({
+                    serverError: null,
+                    showDemoteModal: false,
+                    user: null,
+                    role: null
+                });
+            },
+            (err) => {
+                this.setState({
+                    serverError: err.message
+                });
+            }
+        );
     }
 
     render() {
@@ -298,12 +312,13 @@ export default class UserItem extends React.Component {
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
             makeDemoteModal = (
-                <DemoteOwnRoleModal
-                    user={this.state.user}
-                    role={this.state.role}
+                <ConfirmModal
                     show={this.state.showDemoteModal}
-                    onModalSubmit={this.doDemoteSubmit}
-                    onModalDismissed={this.doDemoteDismiss}
+                    title='Confirm demotion from System Admin role'
+                    message={[`If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you'll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.`,<br/>,<br/>,`./platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"`,serverError]}
+                    confirm_button='Confirm Demotion'
+                    onConfirm={this.handleDemoteSubmit}
+                    onCancel={this.handleDemoteCancel}
                 />
             );
         }
