@@ -3,6 +3,16 @@
 
 import ErrorStore from '../stores/error_store.jsx';
 
+// import mm-intl is required for the tool to be able to extract the messages
+import {defineMessages} from 'mm-intl';
+
+var messages = defineMessages({
+    preview: {
+        id: 'error_bar.preview_mode',
+        defaultMessage: 'Preview Mode: Email notifications have not been configured'
+    }
+});
+
 export default class ErrorBar extends React.Component {
     constructor() {
         super();
@@ -49,12 +59,7 @@ export default class ErrorBar extends React.Component {
 
     componentWillMount() {
         if (global.window.mm_config.SendEmailNotifications === 'false') {
-            ErrorStore.storeLastError({message: this.props.intl.formatMessage(
-                {
-                    id: 'error_bar.preview_mode',
-                    defaultMessage: 'Preview Mode: Email notifications have not been configured'
-                }
-            )});
+            ErrorStore.storeLastError({message: this.props.intl.formatMessage(messages.preview)});
             this.onErrorChange();
         }
     }

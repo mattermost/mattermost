@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 var Modal = ReactBootstrap.Modal;
 
 export default class SelectTeamModal extends React.Component {
@@ -45,7 +47,12 @@ export default class SelectTeamModal extends React.Component {
                 onHide={this.doCancel}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Select Team'}</Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='admin.select_team.selectTeam'
+                            defaultMessage='Select Team'
+                        />
+                    </Modal.Title>
                 </Modal.Header>
                 <form
                     role='form'
@@ -70,7 +77,10 @@ export default class SelectTeamModal extends React.Component {
                             className='btn btn-default'
                             onClick={this.doCancel}
                         >
-                            {'Close'}
+                            <FormattedMessage
+                                id='admin.select_team.close'
+                                defaultMessage='Close'
+                            />
                         </button>
                         <button
                             onClick={this.doSubmit}
@@ -78,7 +88,10 @@ export default class SelectTeamModal extends React.Component {
                             className='btn btn-primary'
                             tabIndex='2'
                         >
-                            {'Select'}
+                            <FormattedMessage
+                                id='admin.select_team.select'
+                                defaultMessage='Select'
+                            />
                         </button>
                     </Modal.Footer>
                 </form>
