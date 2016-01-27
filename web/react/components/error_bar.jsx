@@ -82,6 +82,7 @@ export default class ErrorBar extends React.Component {
             e.preventDefault();
         }
 
+        ErrorStore.clearLastError();
         this.setState({message: null});
     }
 

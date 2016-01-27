@@ -46,6 +46,10 @@ class ErrorStoreClass extends EventEmitter {
     storeLastError(error) {
         BrowserStore.setItem('last_error', error);
     }
+
+    clearLastError() {
+        BrowserStore.removeItem('last_error');
+    }
 }
 
 var ErrorStore = new ErrorStoreClass();
