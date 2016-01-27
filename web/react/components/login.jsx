@@ -115,7 +115,7 @@ export default class Login extends React.Component {
         }
 
         let teamSignUp = null;
-        if (global.window.mm_config.EnableTeamCreation === 'true') {
+        if (global.window.mm_config.EnableTeamCreation === 'true' && !Utils.isMobileApp()) {
             teamSignUp = (
                 <div className='margin--extra'>
                     <a
