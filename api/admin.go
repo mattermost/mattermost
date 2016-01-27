@@ -73,7 +73,9 @@ func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if lvl == "ERROR" {
-		err := model.NewAppError("client", msg, "")
+		err := &model.AppError{}
+		err.Message = msg
+		err.Where = "client"
 		c.LogError(err)
 	}
 

@@ -1157,7 +1157,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	path := "teams/" + c.Session.TeamId + "/users/" + c.Session.UserId + "/profile.png"
 
 	if err := writeFile(buf.Bytes(), path); err != nil {
-		c.Err = model.NewAppError("uploadProfileImage", "Couldn't upload profile image", "")
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
 		return
 	}
 

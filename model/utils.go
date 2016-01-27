@@ -71,16 +71,6 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	}
 }
 
-func NewAppError(where string, message string, details string) *AppError {
-	ap := &AppError{}
-	ap.Message = message
-	ap.Where = where
-	ap.DetailedError = details
-	ap.StatusCode = 500
-	ap.IsOAuth = false
-	return ap
-}
-
 func NewLocAppError(where string, id string, params map[string]interface{}, details string) *AppError {
 	ap := &AppError{}
 	ap.Id = id
