@@ -115,7 +115,7 @@ export default class Login extends React.Component {
         }
 
         let teamSignUp = null;
-        if (global.window.mm_config.EnableTeamCreation === 'true') {
+        if (global.window.mm_config.EnableTeamCreation === 'true' && !Utils.isMobileApp()) {
             teamSignUp = (
                 <div className='margin--extra'>
                     <a
@@ -137,6 +137,21 @@ export default class Login extends React.Component {
             );
         }
 
+        let findTeams = null;
+        if (!Utils.isMobileApp()) {
+            findTeams = (
+                <div className='form-group margin--extra form-group--small'>
+                    <span>
+                        <a href='/find_team'>
+                            <FormattedMessage
+                                id='login.find_teams'
+                                defaultMessage='Find your other teams'
+                            />
+                        </a></span>
+                </div>
+            );
+        }
+
         return (
             <div className='signup-team__container'>
                 <h5 className='margin--less'>{'Sign in to:'}</h5>
@@ -147,15 +162,7 @@ export default class Login extends React.Component {
                     {emailSignup}
                     {ldapLogin}
                     {userSignUp}
-                    <div className='form-group margin--extra form-group--small'>
-                        <span>
-                            <a href='/find_team'>
-                                <FormattedMessage
-                                    id='login.find_teams'
-                                    defaultMessage='Find your other teams'
-                                />
-                            </a></span>
-                    </div>
+                    {findTeams}
                     {forgotPassword}
                     {teamSignUp}
             </div>
