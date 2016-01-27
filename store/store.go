@@ -137,7 +137,7 @@ type SessionStore interface {
 	PermanentDeleteSessionsByUser(teamId string) StoreChannel
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
-	UpdateDeviceId(sessionIdOrToken string, deviceId string) StoreChannel
+	UpdateDeviceId(id string, deviceId string) StoreChannel
 }
 
 type AuditStore interface {

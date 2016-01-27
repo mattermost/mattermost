@@ -103,7 +103,7 @@ export default class ActivityLogModal extends React.Component {
             } else if (currentSession.device_id.indexOf('apple:') === 0) {
                 devicePicture = 'fa fa-apple';
                 devicePlatform = 'iPhone Native App';
-            } else if (currentSession.device_id.indexOf('Android:') === 0) {
+            } else if (currentSession.device_id.indexOf('android:') === 0) {
                 devicePlatform = 'Android Native App';
                 devicePicture = 'fa fa-android';
             } else if (currentSession.props.platform === 'Macintosh' ||
