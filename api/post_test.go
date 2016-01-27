@@ -613,7 +613,10 @@ func TestSearchPostsFromUser(t *testing.T) {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 
-	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " in:" + channel1.Name)).Data.(*model.PostList); len(result.Order) != 0 {
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "hullo"}
+	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
+
+	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " in:" + channel1.Name)).Data.(*model.PostList); len(result.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 
@@ -628,11 +631,11 @@ func TestSearchPostsFromUser(t *testing.T) {
 	// wait for the join/leave messages to be created for user3 since they're done asynchronously
 	time.Sleep(100 * time.Millisecond)
 
-	if result := Client.Must(Client.SearchPosts("from: " + user2.Username)).Data.(*model.PostList); len(result.Order) != 1 {
+	if result := Client.Must(Client.SearchPosts("from: " + user2.Username)).Data.(*model.PostList); len(result.Order) != 2 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 
-	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " from: " + user3.Username)).Data.(*model.PostList); len(result.Order) != 1 {
+	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " from: " + user3.Username)).Data.(*model.PostList); len(result.Order) != 2 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 
@@ -640,7 +643,10 @@ func TestSearchPostsFromUser(t *testing.T) {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 
-	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " from: " + user3.Username + " in:" + channel2.Name + " joined")).Data.(*model.PostList); len(result.Order) != 0 {
+	post4 := &model.Post{ChannelId: channel2.Id, Message: "coconut"}
+	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
+
+	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " from: " + user3.Username + " in:" + channel2.Name + " coconut")).Data.(*model.PostList); len(result.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 }
