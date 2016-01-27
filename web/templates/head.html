@@ -86,13 +86,13 @@
                 headers: {
                     'X-MM-TokenIndex': mm_session_token_index,
                     'Accept-Language': mm_locale
-                } 
+                }
             });
         } else {
             $.ajaxSetup({
                 headers: {
                     'Accept-Language': mm_locale
-                } 
+                }
             });
         }
 
@@ -116,7 +116,7 @@
                     }
 
                     console.log('detected login from a different tab');
-                    window.location.href = '/' + window.mm_team.name;
+                    location.reload();
                 }
             });
         });
