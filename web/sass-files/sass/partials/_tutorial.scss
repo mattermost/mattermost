@@ -146,6 +146,7 @@
 
     &.tip-overlay--sidebar {
         left: 0;
+        @include opacity(0.8);
         top: -9px;
     }
 
