@@ -642,6 +642,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 				Posts
 			WHERE
 				DeleteAt = 0
+				AND Type NOT LIKE '` + model.POST_SYSTEM_MESSAGE_PREFIX + `%'
 				POST_FILTER
 				AND ChannelId IN (
 					SELECT
