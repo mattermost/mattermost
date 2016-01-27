@@ -33,7 +33,7 @@ export default class UserItem extends React.Component {
 
     handleMakeMember(e) {
         e.preventDefault();
-        let me = UserStore.getCurrentUser();
+        const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, '');
         } else {
@@ -79,7 +79,7 @@ export default class UserItem extends React.Component {
 
     handleMakeAdmin(e) {
         e.preventDefault();
-        let me = UserStore.getCurrentUser();
+        const me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, 'admin');
         } else {
@@ -154,7 +154,7 @@ export default class UserItem extends React.Component {
                     role: null
                 });
 
-                let teamUrl = TeamStore.getCurrentTeamUrl();
+                const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {
                     window.location.href = teamUrl;
                 } else {
@@ -316,7 +316,7 @@ export default class UserItem extends React.Component {
                 </li>
             );
         }
-        let me = UserStore.getCurrentUser();
+        const me = UserStore.getCurrentUser();
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
             makeDemoteModal = (
