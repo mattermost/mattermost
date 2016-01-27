@@ -4,6 +4,8 @@
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class UserItem extends React.Component {
     constructor(props) {
         super(props);
@@ -109,12 +111,27 @@ export default class UserItem extends React.Component {
         }
 
         const user = this.props.user;
-        let currentRoles = 'Member';
+        let currentRoles = (
+            <FormattedMessage
+                id='admin.user_item.member'
+                defaultMessage='Member'
+            />
+        );
         if (user.roles.length > 0) {
             if (Utils.isSystemAdmin(user.roles)) {
-                currentRoles = 'System Admin';
+                currentRoles = (
+                    <FormattedMessage
+                        id='admin.user_item.sysAdmin'
+                        defaultMessage='System Admin'
+                    />
+                );
             } else if (Utils.isAdmin(user.roles)) {
-                currentRoles = 'Team Admin';
+                currentRoles = (
+                    <FormattedMessage
+                        id='admin.user_item.teamAdmin'
+                        defaultMessage='Team Admin'
+                    />
+                );
             } else {
                 currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
             }
@@ -128,7 +145,12 @@ export default class UserItem extends React.Component {
         let showMakeNotActive = user.roles !== 'system_admin';
 
         if (user.delete_at > 0) {
-            currentRoles = 'Inactive';
+            currentRoles = (
+                <FormattedMessage
+                    id='admin.user_item.inactive'
+                    defaultMessage='Inactive'
+                />
+            );
             showMakeMember = false;
             showMakeAdmin = false;
             showMakeSystemAdmin = false;
@@ -145,7 +167,10 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeSystemAdmin}
                     >
-                        {'Make System Admin'}
+                        <FormattedMessage
+                            id='admin.user_item.makeSysAdmin'
+                            defaultMessage='Make System Admin'
+                        />
                     </a>
                 </li>
             );
@@ -160,7 +185,10 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeAdmin}
                     >
-                        {'Make Team Admin'}
+                        <FormattedMessage
+                            id='admin.user_item.makeTeamAdmin'
+                            defaultMessage='Make Team Admin'
+                        />
                     </a>
                 </li>
             );
@@ -175,7 +203,10 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeMember}
                     >
-                        {'Make Member'}
+                        <FormattedMessage
+                            id='admin.user_item.makeMember'
+                            defaultMessage='Make Member'
+                        />
                     </a>
                 </li>
             );
@@ -190,7 +221,10 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeActive}
                     >
-                        {'Make Active'}
+                        <FormattedMessage
+                            id='admin.user_item.makeActive'
+                            defaultMessage='Make Active'
+                        />
                     </a>
                 </li>
             );
@@ -205,7 +239,10 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeNotActive}
                     >
-                        {'Make Inactive'}
+                        <FormattedMessage
+                            id='admin.user_item.makeInactive'
+                            defaultMessage='Make Inactive'
+                        />
                     </a>
                 </li>
             );
@@ -248,7 +285,10 @@ export default class UserItem extends React.Component {
                                     href='#'
                                     onClick={this.handleResetPassword}
                                 >
-                                    {'Reset Password'}
+                                    <FormattedMessage
+                                        id='admin.user_item.resetPwd'
+                                        defaultMessage='Reset Password'
+                                    />
                                 </a>
                             </li>
                         </ul>

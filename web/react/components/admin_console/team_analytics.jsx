@@ -4,7 +4,20 @@
 import Analytics from './analytics.jsx';
 import * as Client from '../../utils/client.jsx';
 
-export default class TeamAnalytics extends React.Component {
+import {injectIntl, intlShape, defineMessages} from 'mm-intl';
+
+const labels = defineMessages({
+    totalPosts: {
+        id: 'admin.team_analytics.totalPosts',
+        defaultMessage: 'Total Posts'
+    },
+    activeUsers: {
+        id: 'admin.team_analytics.activeUsers',
+        defaultMessage: 'Active Users With Posts'
+    }
+});
+
+class TeamAnalytics extends React.Component {
     constructor(props) {
         super(props);
 
@@ -29,6 +42,7 @@ export default class TeamAnalytics extends React.Component {
     }
 
     getData(teamId) { // should be moved to an action creator eventually
+        const {formatMessage} = this.props.intl;
         Client.getTeamAnalytics(
             teamId,
             'standard',
@@ -65,7 +79,7 @@ export default class TeamAnalytics extends React.Component {
                 var chartData = {
                     labels: [],
                     datasets: [{
-                        label: 'Total Posts',
+                        label: formatMessage(labels.totalPosts),
                         fillColor: 'rgba(151,187,205,0.2)',
                         strokeColor: 'rgba(151,187,205,1)',
                         pointColor: 'rgba(151,187,205,1)',
@@ -100,7 +114,7 @@ export default class TeamAnalytics extends React.Component {
                 var chartData = {
                     labels: [],
                     datasets: [{
-                        label: 'Active Users With Posts',
+                        label: formatMessage(labels.activeUsers),
                         fillColor: 'rgba(151,187,205,0.2)',
                         strokeColor: 'rgba(151,187,205,1)',
                         pointColor: 'rgba(151,187,205,1)',
@@ -231,5 +245,8 @@ export default class TeamAnalytics extends React.Component {
 }
 
 TeamAnalytics.propTypes = {
+    intl: intlShape.isRequired,
     team: React.PropTypes.object
 };
+
+export default injectIntl(TeamAnalytics);

@@ -5,7 +5,16 @@ import * as Client from '../../utils/client.jsx';
 import Constants from '../../utils/constants.jsx';
 var Modal = ReactBootstrap.Modal;
 
-export default class ResetPasswordModal extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+var holders = defineMessages({
+    submit: {
+        id: 'admin.reset_password.submit',
+        defaultMessage: 'Please enter at least {chars} characters.'
+    }
+});
+
+class ResetPasswordModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -22,7 +31,7 @@ export default class ResetPasswordModal extends React.Component {
         var password = ReactDOM.findDOMNode(this.refs.password).value;
 
         if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({serverError: 'Please enter at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters.'});
+            this.setState({serverError: this.props.intl.formatMessage(holders.submit, {chars: Constants.MIN_PASSWORD_LENGTH})});
             return;
         }
 
@@ -67,7 +76,12 @@ export default class ResetPasswordModal extends React.Component {
                 onHide={this.doCancel}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Reset Password'}</Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='admin.reset_password.title'
+                            defaultMessage='Reset Password'
+                        />
+                    </Modal.Title>
                 </Modal.Header>
                 <form
                     role='form'
@@ -82,7 +96,10 @@ export default class ResetPasswordModal extends React.Component {
                                         title='New Password'
                                         className='input-group-addon'
                                     >
-                                        {'New Password'}
+                                        <FormattedMessage
+                                            id='admin.reset_password.newPassword'
+                                            defaultMessage='New Password'
+                                        />
                                     </span>
                                     <input
                                         type='password'
@@ -103,7 +120,10 @@ export default class ResetPasswordModal extends React.Component {
                             className='btn btn-default'
                             onClick={this.doCancel}
                         >
-                            {'Close'}
+                            <FormattedMessage
+                                id='admin.reset_password.close'
+                                defaultMessage='Close'
+                            />
                         </button>
                         <button
                             onClick={this.doSubmit}
@@ -111,7 +131,10 @@ export default class ResetPasswordModal extends React.Component {
                             className='btn btn-primary'
                             tabIndex='2'
                         >
-                            {'Select'}
+                            <FormattedMessage
+                                id='admin.reset_password.select'
+                                defaultMessage='Select'
+                            />
                         </button>
                     </Modal.Footer>
                 </form>
@@ -125,9 +148,12 @@ ResetPasswordModal.defaultProps = {
 };
 
 ResetPasswordModal.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     team: React.PropTypes.object,
     show: React.PropTypes.bool.isRequired,
     onModalSubmit: React.PropTypes.func,
     onModalDismissed: React.PropTypes.func
 };
+
+export default injectIntl(ResetPasswordModal);

@@ -6,6 +6,8 @@ import LoadingScreen from '../loading_screen.jsx';
 import UserItem from './user_item.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class UserList extends React.Component {
     constructor(props) {
         super(props);
@@ -122,7 +124,15 @@ export default class UserList extends React.Component {
         if (this.state.users == null) {
             return (
                 <div className='wrapper--fixed'>
-                    <h3>{'Users for ' + this.props.team.name}</h3>
+                    <h3>
+                        <FormattedMessage
+                            id='admin.userList.title'
+                            defaultMessage='Users for {team}'
+                            values={{
+                                team: this.props.team.name
+                            }}
+                        />
+                    </h3>
                     {serverError}
                     <LoadingScreen />
                 </div>
@@ -141,7 +151,16 @@ export default class UserList extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'Users for ' + this.props.team.name + ' (' + this.state.users.length + ')'}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='admin.userList.title2'
+                        defaultMessage='Users for {team} ({count})'
+                        values={{
+                            team: this.props.team.name,
+                            count: this.state.users.length
+                        }}
+                    />
+                </h3>
                 {serverError}
                 <form
                     className='form-horizontal'

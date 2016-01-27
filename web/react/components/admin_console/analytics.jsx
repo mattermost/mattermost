@@ -8,6 +8,8 @@ import LineChart from './line_chart.jsx';
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class Analytics extends React.Component {
     constructor(props) {
         super(props);
@@ -21,11 +23,23 @@ export default class Analytics extends React.Component {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.props.serverError}</label></div>;
         }
 
+        let loading = (
+            <FormattedMessage
+                id='admin.analytics.loading'
+                defaultMessage='Loading...'
+            />
+        );
+
         var totalCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Total Users'}<i className='fa fa-users'/></div>
-                    <div className='content'>{this.props.uniqueUserCount == null ? 'Loading...' : this.props.uniqueUserCount}</div>
+                    <div className='title'>
+                        <FormattedMessage
+                            id='admin.analytics.totalUsers'
+                            defaultMessage='Total Users'
+                        />
+                        <i className='fa fa-users'/></div>
+                    <div className='content'>{this.props.uniqueUserCount == null ? loading : this.props.uniqueUserCount}</div>
                 </div>
             </div>
         );
@@ -33,8 +47,13 @@ export default class Analytics extends React.Component {
         var openChannelCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Public Channels'}<i className='fa fa-globe'/></div>
-                    <div className='content'>{this.props.channelOpenCount == null ? 'Loading...' : this.props.channelOpenCount}</div>
+                    <div className='title'>
+                        <FormattedMessage
+                            id='admin.analytics.publicChannels'
+                            defaultMessage='Public Channels'
+                        />
+                        <i className='fa fa-globe'/></div>
+                    <div className='content'>{this.props.channelOpenCount == null ? loading : this.props.channelOpenCount}</div>
                 </div>
             </div>
         );
@@ -42,8 +61,13 @@ export default class Analytics extends React.Component {
         var openPrivateCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Private Groups'}<i className='fa fa-lock'/></div>
-                    <div className='content'>{this.props.channelPrivateCount == null ? 'Loading...' : this.props.channelPrivateCount}</div>
+                    <div className='title'>
+                        <FormattedMessage
+                            id='admin.analytics.privateGroups'
+                            defaultMessage='Private Groups'
+                        />
+                        <i className='fa fa-lock'/></div>
+                    <div className='content'>{this.props.channelPrivateCount == null ? loading : this.props.channelPrivateCount}</div>
                 </div>
             </div>
         );
@@ -51,8 +75,13 @@ export default class Analytics extends React.Component {
         var postCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Total Posts'}<i className='fa fa-comment'/></div>
-                    <div className='content'>{this.props.postCount == null ? 'Loading...' : this.props.postCount}</div>
+                    <div className='title'>
+                        <FormattedMessage
+                            id='admin.analytics.totalPosts'
+                            defaultMessage='Total Posts'
+                        />
+                        <i className='fa fa-comment'/></div>
+                    <div className='content'>{this.props.postCount == null ? loading : this.props.postCount}</div>
                 </div>
             </div>
         );
@@ -60,8 +89,13 @@ export default class Analytics extends React.Component {
         var postCountsByDay = (
             <div className='col-sm-12'>
                 <div className='total-count by-day'>
-                    <div className='title'>{'Total Posts'}</div>
-                    <div className='content'>{'Loading...'}</div>
+                    <div className='title'>
+                        <FormattedMessage
+                            id='admin.analytics.totalPosts'
+                            defaultMessage='Total Posts'
+                        />
+                    </div>
+                    <div className='content'>{loading}</div>
                 </div>
             </div>
         );
@@ -69,7 +103,12 @@ export default class Analytics extends React.Component {
         if (this.props.postCountsDay != null) {
             let content;
             if (this.props.postCountsDay.labels.length === 0) {
-                content = 'Not enough data for a meaningful representation.';
+                content = (
+                    <FormattedMessage
+                        id='admin.analytics.meaningful'
+                        defaultMessage='Not enough data for a meaningful representation.'
+                    />
+                );
             } else {
                 content = (
                     <LineChart
@@ -82,7 +121,12 @@ export default class Analytics extends React.Component {
             postCountsByDay = (
                 <div className='col-sm-12'>
                     <div className='total-count by-day'>
-                        <div className='title'>{'Total Posts'}</div>
+                        <div className='title'>
+                            <FormattedMessage
+                                id='admin.analytics.totalPosts'
+                                defaultMessage='Total Posts'
+                            />
+                        </div>
                         <div className='content'>
                             {content}
                         </div>
@@ -94,8 +138,13 @@ export default class Analytics extends React.Component {
         var usersWithPostsByDay = (
             <div className='col-sm-12'>
                 <div className='total-count by-day'>
-                    <div className='title'>{'Active Users With Posts'}</div>
-                    <div className='content'>{'Loading...'}</div>
+                    <div className='title'>
+                        <FormattedMessage
+                            id='admin.analytics.activeUsers'
+                            defaultMessage='Active Users With Posts'
+                        />
+                    </div>
+                    <div className='content'>{loading}</div>
                 </div>
             </div>
         );
@@ -103,7 +152,12 @@ export default class Analytics extends React.Component {
         if (this.props.userCountsWithPostsDay != null) {
             let content;
             if (this.props.userCountsWithPostsDay.labels.length === 0) {
-                content = 'Not enough data for a meaningful representation.';
+                content = (
+                    <FormattedMessage
+                        id='admin.analytics.meaningful'
+                        defaultMessage='Not enough data for a meaningful representation.'
+                    />
+                );
             } else {
                 content = (
                     <LineChart
@@ -116,7 +170,12 @@ export default class Analytics extends React.Component {
             usersWithPostsByDay = (
                 <div className='col-sm-12'>
                     <div className='total-count by-day'>
-                        <div className='title'>{'Active Users With Posts'}</div>
+                        <div className='title'>
+                            <FormattedMessage
+                                id='admin.analytics.activeUsers'
+                                defaultMessage='Active Users With Posts'
+                            />
+                        </div>
                         <div className='content'>
                             {content}
                         </div>
@@ -129,7 +188,7 @@ export default class Analytics extends React.Component {
         if (this.props.recentActiveUsers != null) {
             let content;
             if (this.props.recentActiveUsers.length === 0) {
-                content = 'Loading...';
+                content = loading;
             } else {
                 content = (
                     <table>
@@ -167,7 +226,12 @@ export default class Analytics extends React.Component {
             recentActiveUser = (
                 <div className='col-sm-6'>
                     <div className='total-count recent-active-users'>
-                        <div className='title'>{'Recent Active Users'}</div>
+                        <div className='title'>
+                            <FormattedMessage
+                                id='admin.analytics.recentActive'
+                                defaultMessage='Recent Active Users'
+                            />
+                        </div>
                         <div className='content'>
                             {content}
                         </div>
@@ -180,7 +244,7 @@ export default class Analytics extends React.Component {
         if (this.props.newlyCreatedUsers != null) {
             let content;
             if (this.props.newlyCreatedUsers.length === 0) {
-                content = 'Loading...';
+                content = loading;
             } else {
                 content = (
                     <table>
@@ -218,7 +282,12 @@ export default class Analytics extends React.Component {
             newUsers = (
                 <div className='col-sm-6'>
                     <div className='total-count recent-active-users'>
-                        <div className='title'>{'Newly Created Users'}</div>
+                        <div className='title'>
+                            <FormattedMessage
+                                id='admin.analytics.newlyCreated'
+                                defaultMessage='Newly Created Users'
+                            />
+                        </div>
                         <div className='content'>
                             {content}
                         </div>
@@ -229,7 +298,15 @@ export default class Analytics extends React.Component {
 
         return (
             <div className='wrapper--fixed team_statistics'>
-                <h3>{'Statistics for ' + this.props.title}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='admin.analytics.title'
+                        defaultMessage='Statistics for {title}'
+                        values={{
+                            title: this.props.title
+                        }}
+                    />
+                </h3>
                 {serverError}
                 <div className='row'>
                     {totalCount}
