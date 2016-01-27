@@ -580,6 +580,10 @@
     "translation": "Archivo de licencia inválido."
   },
   {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "No se pudo obtener el número total de usuarios únicos."
+  },
+  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No hay un archivo bajo 'license' en la solicitud"
   },
@@ -590,6 +594,10 @@
   {
     "id": "api.license.add_license.save.app_error",
     "translation": "La licencia no fue guardada correctamente."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "Esta licencia sólo soporta {{.Users}} usuarios, cuando tu sistema tiene {{.Count}} usuarios únicos. Los usuarios únicos se cuentan por direcciónes de correo electrónico distintas. Puedes ver el totoal de usuarios en REPORTES DEL SITIO -> Ver Estadísticas."
   },
   {
     "id": "api.license.init.debug",
@@ -1562,6 +1570,10 @@
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
     "translation": "No se pudo actualizar la imagen del perfil. El archivo es muy grande."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "No se pudo subir la imagen del perfil"
   },
   {
     "id": "api.web_conn.new_web_conn.last_activity.error",
@@ -2762,6 +2774,10 @@
   {
     "id": "store.sql_session.save.existing.app_error",
     "translation": "No se puede actualizar la sesión"
+  },
+  {
+    "id": "store.sql_session.update_device_id.app_error",
+    "translation": "No pudimos actualizar el id del dispositivo"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
