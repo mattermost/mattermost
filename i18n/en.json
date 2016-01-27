@@ -588,6 +588,14 @@
     "translation": "Could not open license file"
   },
   {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "Unable to count total unique users."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
+  },
+  {
     "id": "api.license.add_license.save.app_error",
     "translation": "License did not save properly."
   },
@@ -1542,6 +1550,10 @@
   {
     "id": "api.user.upload_profile_user.encode.app_error",
     "translation": "Could not encode profile image"
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "Couldn't upload profile image"
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",

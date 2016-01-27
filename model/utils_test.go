@@ -27,7 +27,7 @@ func TestRandomString(t *testing.T) {
 }
 
 func TestAppError(t *testing.T) {
-	err := NewAppError("TestAppError", "message", "")
+	err := NewLocAppError("TestAppError", "message", nil, "")
 	json := err.ToJson()
 	rerr := AppErrorFromJson(strings.NewReader(json))
 	if err.Message != rerr.Message {
