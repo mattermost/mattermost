@@ -451,6 +451,8 @@ class PostStoreClass extends EventEmitter {
         post.filenames = [];
 
         posts[post.id] = post;
+
+        this.makePostsInfo(post.channel_id);
         this.postsInfo[post.channel_id].deletedPosts = posts;
     }
 
@@ -610,7 +612,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.CLICK_CHANNEL:
         PostStore.clearFocusedPost();
         PostStore.clearChannelVisibility(action.id, true);
-        PostStore.clearUnseenDeletedPosts(action.id);
+        PostStore.clearUnseenDeletedPosts(action.prev);
         break;
     case ActionTypes.CREATE_POST:
         PostStore.storePendingPost(action.post);
