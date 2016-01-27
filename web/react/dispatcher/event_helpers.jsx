@@ -19,7 +19,8 @@ export function emitChannelClickEvent(channel) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
         name: channel.name,
-        id: channel.id
+        id: channel.id,
+        prev: ChannelStore.getCurrentId()
     });
 }
 
