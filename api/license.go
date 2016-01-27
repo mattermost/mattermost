@@ -5,7 +5,6 @@ package api
 
 import (
 	"bytes"
-	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
@@ -65,13 +64,13 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		license = model.LicenseFromJson(strings.NewReader(licenseStr))
 
 		if result := <-Srv.Store.User().AnalyticsUniqueUserCount(""); result.Err != nil {
-			c.Err = model.NewLocAppError("addLicense", api.license.add_license.invalid_count.app_error, nil, result.Err.Error())
+			c.Err = model.NewLocAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, result.Err.Error())
 			return
 		} else {
 			uniqueUserCount := result.Data.(int64)
 
 			if uniqueUserCount > int64(*license.Features.Users) {
-				c.Err = model.NewAppError("addLicense", api.license.add_license.unique_users.app_error, map[string]interface{}{"Users": *license.Features.Users, "Count": uniqueUserCount})
+				c.Err = model.NewLocAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]interface{}{"Users": *license.Features.Users, "Count": uniqueUserCount}, "")
 				return
 			}
 		}
