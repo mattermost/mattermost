@@ -157,6 +157,28 @@ func TestSessionRemoveToken(t *testing.T) {
 	}
 }
 
+func TestSessionUpdateDeviceId(t *testing.T) {
+	Setup()
+
+	s1 := model.Session{}
+	s1.UserId = model.NewId()
+	s1.TeamId = model.NewId()
+	Must(store.Session().Save(&s1))
+
+	if rs1 := (<-store.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890")); rs1.Err != nil {
+		t.Fatal(rs1.Err)
+	}
+
+	s2 := model.Session{}
+	s2.UserId = model.NewId()
+	s2.TeamId = model.NewId()
+	Must(store.Session().Save(&s2))
+
+	if rs2 := (<-store.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890")); rs2.Err != nil {
+		t.Fatal(rs2.Err)
+	}
+}
+
 func TestSessionStoreUpdateLastActivityAt(t *testing.T) {
 	Setup()
 

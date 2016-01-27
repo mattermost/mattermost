@@ -2772,6 +2772,10 @@
     "translation": "We couldn't update the roles"
   },
   {
+    "id": "store.sql_session.update_device_id.app_error",
+    "translation": "We couldn't update the device id"
+  },
+  {
     "id": "store.sql_system.get.app_error",
     "translation": "We encountered an error finding the system properties"
   },
