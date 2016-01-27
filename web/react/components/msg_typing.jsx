@@ -25,9 +25,17 @@ export default class MsgTyping extends React.Component {
         SocketStore.addChangeListener(this.onChange);
     }
 
-    componentWillReceiveProps(newProps) {
-        if (this.props.channelId !== newProps.channelId) {
-            this.updateTypingText();
+    componentWillReceiveProps(nextProps) {
+        if (this.props.channelId !== nextProps.channelId) {
+            for (const u in this.typingUsers) {
+                if (!this.typingUsers.hasOwnProperty(u)) {
+                    continue;
+                }
+
+                clearTimeout(this.typingUsers[u]);
+            }
+            this.typingUsers = {};
+            this.setState({text: ''});
         }
     }
 
