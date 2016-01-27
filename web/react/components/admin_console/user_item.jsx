@@ -5,6 +5,7 @@ import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 import UserStore from '../../stores/user_store.jsx';
 import ConfirmModal from '../confirm_modal.jsx';
+import TeamStore from '../../stores/team_store.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -32,7 +33,7 @@ export default class UserItem extends React.Component {
 
     handleMakeMember(e) {
         e.preventDefault();
-        var me = UserStore.getCurrentUser();
+        let me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, '');
         } else {
@@ -78,7 +79,7 @@ export default class UserItem extends React.Component {
 
     handleMakeAdmin(e) {
         e.preventDefault();
-        var me = UserStore.getCurrentUser();
+        let me = UserStore.getCurrentUser();
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, 'admin');
         } else {
@@ -141,7 +142,7 @@ export default class UserItem extends React.Component {
     handleDemoteSubmit() {
         const data = {
             user_id: this.props.user.id,
-            new_roles: this.props.role
+            new_roles: this.state.role
         };
 
         Client.updateRoles(data,
@@ -152,6 +153,13 @@ export default class UserItem extends React.Component {
                     user: null,
                     role: null
                 });
+
+                let teamUrl = TeamStore.getCurrentTeamUrl();
+                if (teamUrl) {
+                    window.location.href = teamUrl;
+                } else {
+                    window.location.href = '/';
+                }
             },
             (err) => {
                 this.setState({
@@ -308,7 +316,7 @@ export default class UserItem extends React.Component {
                 </li>
             );
         }
-        var me = UserStore.getCurrentUser();
+        let me = UserStore.getCurrentUser();
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
             makeDemoteModal = (
@@ -378,7 +386,6 @@ export default class UserItem extends React.Component {
 
 UserItem.propTypes = {
     user: React.PropTypes.object.isRequired,
-    role: React.PropTypes.string,
     refreshProfiles: React.PropTypes.func.isRequired,
     doPasswordReset: React.PropTypes.func.isRequired
 };
