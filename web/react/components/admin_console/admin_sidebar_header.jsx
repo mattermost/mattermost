@@ -5,6 +5,8 @@ import AdminNavbarDropdown from './admin_navbar_dropdown.jsx';
 import UserStore from '../../stores/user_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class SidebarHeader extends React.Component {
     constructor(props) {
         super(props);
@@ -51,7 +53,12 @@ export default class SidebarHeader extends React.Component {
                     {profilePicture}
                     <div className='header__info'>
                         <div className='user__name'>{'@' + me.username}</div>
-                        <div className='team__name'>{'System Console'}</div>
+                        <div className='team__name'>
+                            <FormattedMessage
+                                id='admin.sidebarHeader.systemConsole'
+                                defaultMessage='System Console'
+                            />
+                        </div>
                     </div>
                 </a>
                 <AdminNavbarDropdown ref='dropdown' />

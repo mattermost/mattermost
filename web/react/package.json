@@ -8,6 +8,7 @@
     "highlight.js": "8.9.1",
     "keymirror": "0.1.1",
     "marked": "mattermost/marked#cb85e5cc81bc7937dbb73c3c53d9532b1b97e3ca",
+    "mm-intl": "^1.0.0",
     "object-assign": "4.0.1",
     "twemoji": "1.4.1"
   },

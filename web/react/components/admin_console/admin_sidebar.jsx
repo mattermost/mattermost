@@ -5,6 +5,8 @@ import AdminSidebarHeader from './admin_sidebar_header.jsx';
 import SelectTeamModal from './select_team_modal.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 const Tooltip = ReactBootstrap.Tooltip;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
@@ -82,12 +84,27 @@ export default class AdminSidebar extends React.Component {
 
     render() {
         var count = '*';
-        var teams = 'Loading';
+        var teams = (
+            <FormattedMessage
+                id='admin.sidebar.loading'
+                defaultMessage='Loading'
+            />
+        );
         const removeTooltip = (
-            <Tooltip id='remove-team-tooltip'>{'Remove team from sidebar menu'}</Tooltip>
+            <Tooltip id='remove-team-tooltip'>
+                <FormattedMessage
+                    id='admin.sidebar.rmTeamSidebar'
+                    defaultMessage='Remove team from sidebar menu'
+                />
+            </Tooltip>
         );
         const addTeamTooltip = (
-            <Tooltip id='add-team-tooltip'>{'Add team from sidebar menu'}</Tooltip>
+            <Tooltip id='add-team-tooltip'>
+                <FormattedMessage
+                    id='admin.sidebar.addTeamSidebar'
+                    defaultMessage='Add team from sidebar menu'
+                />
+            </Tooltip>
         );
 
         if (this.props.teams != null) {
@@ -134,7 +151,10 @@ export default class AdminSidebar extends React.Component {
                                                 className={this.isSelected('team_users', team.id)}
                                                 onClick={this.handleClick.bind(this, 'team_users', team.id)}
                                             >
-                                                {'- Users'}
+                                                <FormattedMessage
+                                                    id='admin.sidebar.users'
+                                                    defaultMessage='- Users'
+                                                />
                                             </a>
                                         </li>
                                         <li>
@@ -143,7 +163,10 @@ export default class AdminSidebar extends React.Component {
                                                 className={this.isSelected('team_analytics', team.id)}
                                                 onClick={this.handleClick.bind(this, 'team_analytics', team.id)}
                                             >
-                                                {'- Statistics'}
+                                                <FormattedMessage
+                                                    id='admin.sidebar.statistics'
+                                                    defaultMessage='- Statistics'
+                                                />
                                             </a>
                                         </li>
                                     </ul>
@@ -166,7 +189,10 @@ export default class AdminSidebar extends React.Component {
                             className={this.isSelected('ldap_settings')}
                             onClick={this.handleClick.bind(this, 'ldap_settings', null)}
                         >
-                            {'LDAP Settings'}
+                            <FormattedMessage
+                                id='admin.sidebar.ldap'
+                                defaultMessage='LDAP Settings'
+                            />
                         </a>
                     </li>
                 );
@@ -179,7 +205,10 @@ export default class AdminSidebar extends React.Component {
                         className={this.isSelected('license')}
                         onClick={this.handleClick.bind(this, 'license', null)}
                     >
-                        {'Edition and License'}
+                        <FormattedMessage
+                            id='admin.sidebar.license'
+                            defaultMessage='Edition and License'
+                        />
                     </a>
                 </li>
             );
@@ -196,7 +225,12 @@ export default class AdminSidebar extends React.Component {
                                     <li>
                                         <h4>
                                             <span className='icon fa fa-gear'></span>
-                                            <span>{'SITE REPORTS'}</span>
+                                            <span>
+                                                <FormattedMessage
+                                                    id='admin.sidebar.reports'
+                                                    defaultMessage='SITE REPORTS'
+                                                />
+                                            </span>
                                         </h4>
                                     </li>
                                 </ul>
@@ -207,7 +241,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('system_analytics')}
                                             onClick={this.handleClick.bind(this, 'system_analytics', null)}
                                         >
-                                            {'View Statistics'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.view_statistics'
+                                                defaultMessage='View Statistics'
+                                            />
                                         </a>
                                     </li>
                                 </ul>
@@ -215,7 +252,12 @@ export default class AdminSidebar extends React.Component {
                                     <li>
                                         <h4>
                                             <span className='icon fa fa-gear'></span>
-                                            <span>{'SETTINGS'}</span>
+                                            <span>
+                                                <FormattedMessage
+                                                    id='admin.sidebar.settings'
+                                                    defaultMessage='SETTINGS'
+                                                />
+                                            </span>
                                         </h4>
                                     </li>
                                 </ul>
@@ -226,7 +268,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('service_settings')}
                                             onClick={this.handleClick.bind(this, 'service_settings', null)}
                                         >
-                                            {'Service Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.service'
+                                                defaultMessage='Service Settings'
+                                            />
                                         </a>
                                     </li>
                                     <li>
@@ -235,7 +280,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('team_settings')}
                                             onClick={this.handleClick.bind(this, 'team_settings', null)}
                                         >
-                                            {'Team Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.team'
+                                                defaultMessage='Team Settings'
+                                            />
                                         </a>
                                     </li>
                                     <li>
@@ -244,7 +292,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('sql_settings')}
                                             onClick={this.handleClick.bind(this, 'sql_settings', null)}
                                         >
-                                            {'SQL Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.sql'
+                                                defaultMessage='SQL Settings'
+                                            />
                                         </a>
                                     </li>
                                     <li>
@@ -253,7 +304,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('email_settings')}
                                             onClick={this.handleClick.bind(this, 'email_settings', null)}
                                         >
-                                            {'Email Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.email'
+                                                defaultMessage='Email Settings'
+                                            />
                                         </a>
                                     </li>
                                     <li>
@@ -262,7 +316,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('image_settings')}
                                             onClick={this.handleClick.bind(this, 'image_settings', null)}
                                         >
-                                            {'File Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.file'
+                                                defaultMessage='File Settings'
+                                            />
                                         </a>
                                     </li>
                                     <li>
@@ -271,7 +328,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('log_settings')}
                                             onClick={this.handleClick.bind(this, 'log_settings', null)}
                                         >
-                                            {'Log Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.log'
+                                                defaultMessage='Log Settings'
+                                            />
                                         </a>
                                     </li>
                                     <li>
@@ -280,7 +340,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('rate_settings')}
                                             onClick={this.handleClick.bind(this, 'rate_settings', null)}
                                         >
-                                            {'Rate Limit Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.rate_limit'
+                                                defaultMessage='Rate Limit Settings'
+                                            />
                                         </a>
                                     </li>
                                     <li>
@@ -289,7 +352,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('privacy_settings')}
                                             onClick={this.handleClick.bind(this, 'privacy_settings', null)}
                                         >
-                                            {'Privacy Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.privacy'
+                                                defaultMessage='Privacy Settings'
+                                            />
                                         </a>
                                     </li>
                                     <li>
@@ -298,7 +364,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('gitlab_settings')}
                                             onClick={this.handleClick.bind(this, 'gitlab_settings', null)}
                                         >
-                                            {'GitLab Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.gitlab'
+                                                defaultMessage='GitLab Settings'
+                                            />
                                         </a>
                                     </li>
                                     {ldapSettings}
@@ -308,7 +377,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('legal_and_support_settings')}
                                             onClick={this.handleClick.bind(this, 'legal_and_support_settings', null)}
                                         >
-                                            {'Legal and Support Settings'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.support'
+                                                defaultMessage='Legal and Support Settings'
+                                            />
                                         </a>
                                     </li>
                                 </ul>
@@ -316,7 +388,15 @@ export default class AdminSidebar extends React.Component {
                                      <li>
                                         <h4>
                                             <span className='icon fa fa-gear'></span>
-                                            <span>{'TEAMS (' + count + ')'}</span>
+                                            <span>
+                                                <FormattedMessage
+                                                    id='admin.sidebar.teams'
+                                                    defaultMessage='TEAMS ({count})'
+                                                    values={{
+                                                        count: count
+                                                    }}
+                                                />
+                                            </span>
                                             <span className='menu-icon--right'>
                                                 <OverlayTrigger
                                                     delayShow={1000}
@@ -345,7 +425,12 @@ export default class AdminSidebar extends React.Component {
                                     <li>
                                         <h4>
                                             <span className='icon fa fa-gear'></span>
-                                            <span>{'OTHER'}</span>
+                                            <span>
+                                                <FormattedMessage
+                                                    id='admin.sidebar.other'
+                                                    defaultMessage='OTHER'
+                                                />
+                                            </span>
                                         </h4>
                                     </li>
                                 </ul>
@@ -357,7 +442,10 @@ export default class AdminSidebar extends React.Component {
                                             className={this.isSelected('logs')}
                                             onClick={this.handleClick.bind(this, 'logs', null)}
                                         >
-                                            {'Logs'}
+                                            <FormattedMessage
+                                                id='admin.sidebar.logs'
+                                                defaultMessage='Logs'
+                                            />
                                         </a>
                                     </li>
                                 </ul>
