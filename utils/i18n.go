@@ -44,7 +44,7 @@ func GetTranslationsBySystemLocale() i18n.TranslateFunc {
 		panic("Failed to load system translations for '" + model.DEFAULT_LOCALE + "'")
 	}
 
-	translations, _ := i18n.Tfunc(locale)
+	translations, _ := TfuncWithFallback(locale)
 	if translations == nil {
 		panic("Failed to load system translations")
 	}
@@ -58,22 +58,32 @@ func GetUserTranslations(locale string) i18n.TranslateFunc {
 		locale = model.DEFAULT_LOCALE
 	}
 
-	translations, _ := i18n.Tfunc(locale)
+	translations, _ := TfuncWithFallback(locale)
 	return translations
 }
 
 func SetTranslations(locale string) i18n.TranslateFunc {
-	translations, _ := i18n.Tfunc(locale)
+	translations, _ := TfuncWithFallback(locale)
 	return translations
 }
 
 func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
 	headerLocale := strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
 	if locales[headerLocale] != "" {
-		translations, _ := i18n.Tfunc(headerLocale)
+		translations, _ := TfuncWithFallback(headerLocale)
 		return translations, headerLocale
 	}
 
-	translations, _ := i18n.Tfunc(model.DEFAULT_LOCALE)
+	translations, _ := TfuncWithFallback(model.DEFAULT_LOCALE)
 	return translations, model.DEFAULT_LOCALE
+}
+
+func TfuncWithFallback(pref string, prefs ...string) TranslateFunc {
+	t := i18n.MustTfunc(pref, prefs...)
+	return func(translationID string, args ...interface{}) string {
+		if translated := t(translationID, args...); translated != translationID {
+			return translated
+		}
+		return i18n.MustTfunc("en", args...)
+	}
 }
