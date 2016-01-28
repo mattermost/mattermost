@@ -22,6 +22,11 @@ export default class NewChannelModal extends React.Component {
             });
         }
     }
+    componentDidMount() {
+        if (Utils.isBrowserIE()) {
+            $('body').addClass('browser--IE');
+        }
+    }
     handleSubmit(e) {
         e.preventDefault();
 
