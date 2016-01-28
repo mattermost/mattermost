@@ -24,8 +24,14 @@ export default class PostInfo extends React.Component {
     }
     createReplyLink() {
         if (this.props.allowReply === 'true') {
+            var hideReply = '';
+
+            if (this.props.commentCount >= 1) {
+                hideReply = ' post__reply--hide';
+            }
+
             return (
-                <div className='post__reply'>
+                <div className={'post__reply' + hideReply}>
                     <a
                         onClick={this.props.handleCommentClick}
                         href='#'
