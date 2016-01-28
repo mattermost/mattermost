@@ -5,6 +5,8 @@ import SuggestionStore from '../../stores/suggestion_store.jsx';
 import UserStore from '../../stores/user_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 const MaxUserSuggestions = 40;
 
 class AtMentionSuggestion extends React.Component {
@@ -16,11 +18,21 @@ class AtMentionSuggestion extends React.Component {
         let icon;
         if (item.username === 'all') {
             username = 'all';
-            description = 'Notifies everyone in the team';
+            description = (
+                <FormattedMessage
+                    id='suggestion.mention.all'
+                    defaultMessage='Notifies everyone in the team'
+                />
+            );
             icon = <i className='mention-img fa fa-users fa-2x' />;
         } else if (item.username === 'channel') {
             username = 'channel';
-            description = 'Notifies everyone in the channel';
+            description = (
+                <FormattedMessage
+                    id='suggestion.mention.channel'
+                    defaultMessage='Notifies everyone in the channel'
+                />
+            );
             icon = <i className='mention-img fa fa-users fa-2x' />;
         } else {
             username = item.username;

@@ -4,6 +4,8 @@
 import EmailToSSO from './email_to_sso.jsx';
 import SSOToEmail from './sso_to_email.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class ClaimAccount extends React.Component {
     constructor(props) {
         super(props);
@@ -13,7 +15,14 @@ export default class ClaimAccount extends React.Component {
     render() {
         let content;
         if (this.props.email === '') {
-            content = <p>{'No email specified.'}</p>;
+            content = (
+                <p>
+                    <FormattedMessage
+                        id='claim.account.noEmail'
+                        defaultMessage='No email specified'
+                    />
+                </p>
+            );
         } else if (this.props.currentType === '' && this.props.newType !== '') {
             content = (
                 <EmailToSSO
