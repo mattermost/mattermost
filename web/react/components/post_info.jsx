@@ -22,6 +22,26 @@ export default class PostInfo extends React.Component {
 
         this.handlePermalinkCopy = this.handlePermalinkCopy.bind(this);
     }
+    createReplyLink() {
+        if (this.props.allowReply === 'true') {
+            var hideReply = '';
+
+            if (this.props.commentCount >= 1) {
+                hideReply = ' post__reply--hide';
+            }
+
+            return (
+                <div className={'post__reply' + hideReply}>
+                    <a
+                        onClick={this.props.handleCommentClick}
+                        href='#'
+                    >
+                        <span dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}/>
+                    </a>
+                </div>
+            );
+        }
+    }
     createDropdown() {
         var post = this.props.post;
         var isOwner = UserStore.getCurrentId() === post.user_id;
@@ -40,23 +60,6 @@ export default class PostInfo extends React.Component {
         var dataComments = 0;
         if (type === 'Post') {
             dataComments = this.props.commentCount;
-        }
-
-        if (this.props.allowReply === 'true') {
-            dropdownContents.push(
-                <li
-                    key='replyLink'
-                    role='presentation'
-                >
-                    <a
-                        className='link__reply theme'
-                        href='#'
-                        onClick={this.props.handleCommentClick}
-                    >
-                        {'Reply'}
-                    </a>
-                </li>
-            );
         }
 
         dropdownContents.push(
@@ -181,6 +184,7 @@ export default class PostInfo extends React.Component {
         }
 
         var dropdown = this.createDropdown();
+        var replyLink = this.createReplyLink();
 
         const permalink = TeamStore.getCurrentTeamUrl() + '/pl/' + post.id;
         const copyButtonText = this.state.copiedLink ? (<div>{'Copy '}<i className='fa fa-check'/></div>) : 'Copy';
@@ -223,6 +227,7 @@ export default class PostInfo extends React.Component {
                     />
                 </li>
                 <li className='col col__reply'>
+                    {replyLink}
                     <div
                         className='dropdown'
                         ref='dotMenu'

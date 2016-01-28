@@ -78,21 +78,15 @@
 
             &:hover {
                 background: transparent;
+            }
 
-                .comment-icon__container {
-                    visibility: hidden;
-
-                    &.icon--show {
-                        visibility: visible;
-                    }
-
-                }
-
+            .comment-icon__container {
+                visibility: hidden;
             }
 
         }
 
-        .dropdown {
+        .dropdown, .post__reply {
             visibility: visible;
         }
 
@@ -124,7 +118,33 @@
 
     .post {
 
+        .post__body {
+            width: calc(100% - 75px);
+        }
+
+        .post__reply {
+            margin-right: 20px;
+            float: right;
+
+            svg {
+                top: 1px;
+            }
+
+        }
+
+        &.other--root .post__reply {
+
+            &.post__reply--hide {
+                visibility: hidden;
+            }
+
+        }
+
         .post__header {
+
+            .col__reply {
+                width: 65px;
+            }
 
             .col__name {
                 pointer-events: none;
