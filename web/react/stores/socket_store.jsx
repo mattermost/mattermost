@@ -176,6 +176,7 @@ function handleNewPostEvent(msg) {
             mentions = JSON.parse(msg.props.mentions);
         }
 
+        const channelType = msgProps.channel_type;
         const channel = ChannelStore.get(msg.channel_id);
         const user = UserStore.getCurrentUser();
         const member = ChannelStore.getMember(msg.channel_id);
@@ -187,7 +188,7 @@ function handleNewPostEvent(msg) {
 
         if (notifyLevel === 'none') {
             return;
-        } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channel.type !== 'D') {
+        } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channelType !== Constants.DM_CHANNEL) {
             return;
         }
 

@@ -698,6 +698,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 
 		message := model.NewMessage(c.Session.TeamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
 		message.Add("post", post.ToJson())
+		message.Add("channel_type", channel.Type)
 
 		if len(post.Filenames) != 0 {
 			message.Add("otherFile", "true")
