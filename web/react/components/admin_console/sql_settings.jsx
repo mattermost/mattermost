@@ -5,7 +5,32 @@ import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import crypto from 'crypto';
 
-export default class SqlSettings extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    warning: {
+        id: 'admin.sql.warning',
+        defaultMessage: 'Warning: re-generating this salt may cause some columns in the database to return empty results.'
+    },
+    maxConnectionsExample: {
+        id: 'admin.sql.maxConnectionsExample',
+        defaultMessage: 'Ex "10"'
+    },
+    maxOpenExample: {
+        id: 'admin.sql.maxOpenExample',
+        defaultMessage: 'Ex "10"'
+    },
+    keyExample: {
+        id: 'admin.sql.keyExample',
+        defaultMessage: 'Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"'
+    },
+    saving: {
+        id: 'admin.sql.saving',
+        defaultMessage: 'Saving Config...'
+    }
+});
+
+class SqlSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -74,7 +99,7 @@ export default class SqlSettings extends React.Component {
     handleGenerate(e) {
         e.preventDefault();
 
-        var cfm = global.window.confirm('Warning: re-generating this salt may cause some columns in the database to return empty results.');
+        var cfm = global.window.confirm(this.props.intl.formatMessage(holders.warning));
         if (cfm === false) {
             return;
         }
@@ -85,6 +110,7 @@ export default class SqlSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -111,12 +137,27 @@ export default class SqlSettings extends React.Component {
 
                 <div className='banner'>
                     <div className='banner__content'>
-                        <h4 className='banner__heading'>{'Note:'}</h4>
-                        <p>{'Changing properties in this section will require a server restart before taking effect.'}</p>
+                        <h4 className='banner__heading'>
+                            <FormattedMessage
+                                id='admin.sql.noteTitle'
+                                defaultMessage='Note:'
+                            />
+                        </h4>
+                        <p>
+                            <FormattedMessage
+                                id='admin.sql.noteDescription'
+                                defaultMessage='Changing properties in this section will require a server restart before taking effect.'
+                            />
+                        </p>
                     </div>
                 </div>
 
-                <h3>{'SQL Settings'}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='admin.sql.title'
+                        defaultMessage='SQL Settings'
+                    />
+                </h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -127,7 +168,10 @@ export default class SqlSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='DriverName'
                         >
-                            {'Driver Name:'}
+                            <FormattedMessage
+                                id='admin.sql.driverName'
+                                defaultMessage='Driver Name:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <p className='help-text'>{this.props.config.SqlSettings.DriverName}</p>
@@ -139,7 +183,10 @@ export default class SqlSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='DataSource'
                         >
-                            {'Data Source:'}
+                            <FormattedMessage
+                                id='admin.sql.dataSource'
+                                defaultMessage='Data Source:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <p className='help-text'>{dataSource}</p>
@@ -151,7 +198,10 @@ export default class SqlSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='DataSourceReplicas'
                         >
-                            {'Data Source Replicas:'}
+                            <FormattedMessage
+                                id='admin.sql.replicas'
+                                defaultMessage='Data Source Replicas:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <p className='help-text'>{dataSourceReplicas}</p>
@@ -163,7 +213,10 @@ export default class SqlSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='MaxIdleConns'
                         >
-                            {'Maximum Idle Connections:'}
+                            <FormattedMessage
+                                id='admin.sql.maxConnectionsTitle'
+                                defaultMessage='Maximum Idle Connections:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -171,11 +224,16 @@ export default class SqlSettings extends React.Component {
                                 className='form-control'
                                 id='MaxIdleConns'
                                 ref='MaxIdleConns'
-                                placeholder='Ex "10"'
+                                placeholder={formatMessage(holders.maxConnectionsExample)}
                                 defaultValue={this.props.config.SqlSettings.MaxIdleConns}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Maximum number of idle connections held open to the database.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.sql.maxConnectionsDescription'
+                                    defaultMessage='Maximum number of idle connections held open to the database.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -184,7 +242,10 @@ export default class SqlSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='MaxOpenConns'
                         >
-                            {'Maximum Open Connections:'}
+                            <FormattedMessage
+                                id='admin.sql.maxOpenTitle'
+                                defaultMessage='Maximum Open Connections:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -192,11 +253,16 @@ export default class SqlSettings extends React.Component {
                                 className='form-control'
                                 id='MaxOpenConns'
                                 ref='MaxOpenConns'
-                                placeholder='Ex "10"'
+                                placeholder={formatMessage(holders.maxOpenExample)}
                                 defaultValue={this.props.config.SqlSettings.MaxOpenConns}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Maximum number of open connections held open to the database.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.sql.maxOpenDescription'
+                                    defaultMessage='Maximum number of open connections held open to the database.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -205,7 +271,10 @@ export default class SqlSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='AtRestEncryptKey'
                         >
-                            {'At Rest Encrypt Key:'}
+                            <FormattedMessage
+                                id='admin.sql.keyTitle'
+                                defaultMessage='At Rest Encrypt Key:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -213,17 +282,25 @@ export default class SqlSettings extends React.Component {
                                 className='form-control'
                                 id='AtRestEncryptKey'
                                 ref='AtRestEncryptKey'
-                                placeholder='Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"'
+                                placeholder={formatMessage(holders.keyExample)}
                                 defaultValue={this.props.config.SqlSettings.AtRestEncryptKey}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'32-character salt available to encrypt and decrypt sensitive fields in database.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.sql.keyDescription'
+                                    defaultMessage='32-character salt available to encrypt and decrypt sensitive fields in database.'
+                                />
+                            </p>
                             <div className='help-text'>
                                 <button
                                     className='btn btn-default'
                                     onClick={this.handleGenerate}
                                 >
-                                    {'Re-Generate'}
+                                    <FormattedMessage
+                                        id='admin.sql.regenerate'
+                                        defaultMessage='Re-Generate'
+                                    />
                                 </button>
                             </div>
                         </div>
@@ -234,7 +311,10 @@ export default class SqlSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='Trace'
                         >
-                            {'Trace: '}
+                            <FormattedMessage
+                                id='admin.sql.traceTitle'
+                                defaultMessage='Trace: '
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -246,7 +326,10 @@ export default class SqlSettings extends React.Component {
                                     defaultChecked={this.props.config.SqlSettings.Trace}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    <FormattedMessage
+                                        id='admin.sql.true'
+                                        defaultMessage='true'
+                                    />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -256,9 +339,17 @@ export default class SqlSettings extends React.Component {
                                     defaultChecked={!this.props.config.SqlSettings.Trace}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    <FormattedMessage
+                                        id='admin.sql.false'
+                                        defaultMessage='false'
+                                    />
                             </label>
-                            <p className='help-text'>{'(Development Mode) When true, executing SQL statements are written to the log.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.sql.traceDescription'
+                                    defaultMessage='(Development Mode) When true, executing SQL statements are written to the log.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -271,9 +362,12 @@ export default class SqlSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(holders.saving)}
                             >
-                                {'Save'}
+                                <FormattedMessage
+                                    id='admin.sql.save'
+                                    defaultMessage='Save'
+                                />
                             </button>
                         </div>
                     </div>
@@ -285,5 +379,8 @@ export default class SqlSettings extends React.Component {
 }
 
 SqlSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(SqlSettings);

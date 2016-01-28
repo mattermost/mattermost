@@ -255,7 +255,7 @@ nuke: | clean clean-docker
 
 	touch $@
 
-.prepare-jsx:
+.prepare-jsx: web/react/package.json
 	@echo Preparation for compiling jsx code
 
 	cd web/react/ && npm install

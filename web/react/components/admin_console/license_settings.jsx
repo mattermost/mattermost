@@ -4,7 +4,20 @@
 import * as Utils from '../../utils/utils.jsx';
 import * as Client from '../../utils/client.jsx';
 
-export default class LicenseSettings extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    removing: {
+        id: 'admin.license.removing',
+        defaultMessage: 'Removing License...'
+    },
+    uploading: {
+        id: 'admin.license.uploading',
+        defaultMessage: 'Uploading License...'
+    }
+});
+
+class LicenseSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -88,41 +101,26 @@ export default class LicenseSettings extends React.Component {
         let licenseKey;
 
         if (global.window.mm_license.IsLicensed === 'true') {
-            edition = 'Mattermost Enterprise Edition. Designed for enterprise-scale communication.';
+            edition = (
+                <FormattedMessage
+                    id='admin.license.enterpriseEdition'
+                    defaultMessage='Mattermost Enterprise Edition. Designed for enterprise-scale communication.'
+                />
+            );
             licenseType = (
-                <div>
-                    <p>
-                        {'This compiled release of Mattermost platform is provided under a '}
-                        <a
-                            href='http://mattermost.com'
-                            target='_blank'
-                        >
-                            {'commercial license'}
-                        </a>
-                        {' from Mattermost, Inc. based on your subscription level and is subject to the '}
-                        <a
-                            href={global.window.mm_config.TermsOfServiceLink}
-                            target='_blank'
-                        >
-                            {'Terms of Service.'}
-                       </a>
-                    </p>
-                    <p>{'Your subscription details are as follows:'}</p>
-                    {'Name: ' + global.window.mm_license.Name}
-                    <br/>
-                    {'Company or organization name: ' + global.window.mm_license.Company}
-                    <br/>
-                    {'Number of users: ' + global.window.mm_license.Users}
-                    <br/>
-                    {`License issued: ${Utils.displayDate(parseInt(global.window.mm_license.IssuedAt, 10))} ${Utils.displayTime(parseInt(global.window.mm_license.IssuedAt, 10), true)}`}
-                    <br/>
-                    {'Start date of license: ' + Utils.displayDate(parseInt(global.window.mm_license.StartsAt, 10))}
-                    <br/>
-                    {'Expiry date of license: ' + Utils.displayDate(parseInt(global.window.mm_license.ExpiresAt, 10))}
-                    <br/>
-                    {'LDAP: ' + global.window.mm_license.LDAP}
-                    <br/>
-                </div>
+                <FormattedHTMLMessage
+                    id='admin.license.entrepriseType'
+                    defaultMessage='<div><p>This compiled release of Mattermost platform is provided under a <a href="http://mattermost.com" target="_blank">commercial license</a>
+                    from Mattermost, Inc. based on your subscription level and is subject to the <a href="{terms}" target="_blank">Terms of Service.</a></p>
+                    <p>Your subscription details are as follows:</p>
+                    Name: {name}<br />
+                    Company or organization name: {company}<br/>
+                    Number of users: {users}<br/>
+                    License issued: {issued}<br/>
+                    Start date of license: {start}<br/>
+                    Expiry date of license: {expires}<br/>
+                    LDAP: {ldap}<br/></div>'
+                />
             );
 
             licenseKey = (
@@ -131,32 +129,39 @@ export default class LicenseSettings extends React.Component {
                         className='btn btn-danger'
                         onClick={this.handleRemove}
                         id='remove-button'
-                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Removing License...'}
+                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + this.props.intl.formatMessage(holders.removing)}
                     >
-                        {'Remove Enterprise License and Downgrade Server'}
+                        <FormattedMessage
+                            id='admin.license.keyRemove'
+                            defaultMessage='Remove Enterprise License and Downgrade Server'
+                        />
                     </button>
                     <br/>
                     <br/>
                     <p className='help-text'>
-                        {'If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start, '}
-                        <a
-                            href='http://mattermost.com'
-                            target='_blank'
-                        >
-                            {'disable all Enterprise Edition features on this server'}
-                        </a>
-                        {'. This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.'}
+                        <FormattedHTMLMessage
+                            id='admin.licence.keyMigration'
+                            defaultMessage='If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start,
+                            <a href="http://mattermost.com" target="_blank">disable all Enterprise Edition features on this server</a>.
+                            This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.'
+                        />
                     </p>
                 </div>
             );
         } else {
-            edition = 'Mattermost Team Edition. Designed for teams from 5 to 50 users.';
+            edition = (
+                <FormattedMessage
+                    id='admin.license.teamEdition'
+                    defaultMessage='Mattermost Team Edition. Designed for teams from 5 to 50 users.'
+                />
+            );
 
             licenseType = (
-                <span>
-                    <p>{'This compiled release of Mattermost platform is offered under an MIT license.'}</p>
-                    <p>{'See MIT-COMPILED-LICENSE.txt in your root install directory for details. See NOTICES.txt for information about open source software used in this system.'}</p>
-                </span>
+                <FormattedHTMLMessage
+                    id='admin.license.teamType'
+                    defaultMessage='<span><p>This compiled release of Mattermost platform is offered under an MIT license.</p>
+                    <p>See MIT-COMPILED-LICENSE.txt in your root install directory for details. See NOTICES.txt for information about open source software used in this system.</p></span>'
+                />
             );
 
             licenseKey = (
@@ -173,23 +178,23 @@ export default class LicenseSettings extends React.Component {
                         disabled={!this.state.fileSelected}
                         onClick={this.handleSubmit}
                         id='upload-button'
-                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Uploading License...'}
+                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + this.props.intl.formatMessage(holders.uploading)}
                     >
-                        {'Upload'}
+                        <FormattedMessage
+                            id='admin.license.upload'
+                            defaultMessage='Upload'
+                        />
                     </button>
                     <br/>
                     <br/>
                     <br/>
                     {serverError}
                     <p className='help-text'>
-                        {'Upload a license key for Mattermost Enterprise Edition to upgrade this server. '}
-                        <a
-                            href='http://mattermost.com'
-                            target='_blank'
-                        >
-                            {'Visit us online'}
-                        </a>
-                        {' to learn more about the benefits of Enterprise Edition or to purchase a key.'}
+                        <FormattedHTMLMessage
+                            id='admin.license.uploadDesc'
+                            defaultMessage='Upload a license key for Mattermost Enterprise Edition to upgrade this server. <a href="http://mattermost.com" target="_blank">Visit us online</a>
+                             to learn more about the benefits of Enterprise Edition or to purchase a key.'
+                        />
                     </p>
                 </div>
             );
@@ -197,7 +202,12 @@ export default class LicenseSettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'Edition and License'}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='admin.license.title'
+                        defaultMessage='Edition and License'
+                    />
+                </h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -206,7 +216,10 @@ export default class LicenseSettings extends React.Component {
                         <label
                             className='control-label col-sm-4'
                         >
-                            {'Edition: '}
+                            <FormattedMessage
+                                id='admin.license.edition'
+                                defaultMessage='Edition: '
+                            />
                         </label>
                         <div className='col-sm-8'>
                             {edition}
@@ -216,7 +229,10 @@ export default class LicenseSettings extends React.Component {
                         <label
                             className='control-label col-sm-4'
                         >
-                            {'License: '}
+                            <FormattedMessage
+                                id='admin.license.type'
+                                defaultMessage='License: '
+                            />
                         </label>
                         <div className='col-sm-8'>
                             {licenseType}
@@ -226,7 +242,10 @@ export default class LicenseSettings extends React.Component {
                         <label
                             className='control-label col-sm-4'
                         >
-                            {'License Key: '}
+                            <FormattedMessage
+                                id='admin.license.key'
+                                defaultMessage='License Key: '
+                            />
                         </label>
                         {licenseKey}
                     </div>
@@ -235,3 +254,9 @@ export default class LicenseSettings extends React.Component {
         );
     }
 }
+
+LicenseSettings.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(LicenseSettings);

@@ -9,6 +9,9 @@ import * as Utils from '../../utils/utils.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
 import Constants from '../../utils/constants.jsx';
+
+import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
 const Preferences = Constants.Preferences;
 
 const NUM_SCREENS = 3;
@@ -61,10 +64,13 @@ export default class TutorialIntroScreens extends React.Component {
 
         return (
             <div>
-                <h3>{'Welcome to:'}</h3>
-                <h1>{'Mattermost'}</h1>
-                <p>{'Your team communication all in one place, instantly searchable and available anywhere.'}</p>
-                <p>{'Keep your team connected to help them achieve what matters most.'}</p>
+                <FormattedHTMLMessage
+                    id='tutorial_intro.screenOne'
+                    defaultMessage='<h3>Welcome to:</h3>
+                    <h1>Mattermost</h1>
+                    <p>Your team communication all in one place, instantly searchable and available anywhere</p>
+                    <p>Keep your team connected to help them achieve what matters most.</p>'
+                />
                 {circles}
             </div>
         );
@@ -74,9 +80,12 @@ export default class TutorialIntroScreens extends React.Component {
 
         return (
             <div>
-                <h3>{'How Mattermost works:'}</h3>
-                <p>{'Communication happens in public discussion channels, private groups and direct messages.'}</p>
-                <p>{'Everything is archived and searchable from any web-enabled desktop, laptop or phone.'}</p>
+                <FormattedHTMLMessage
+                    id='tutorial_intro.screenTwo'
+                    defaultMessage='<h3>How Mattermost works:</h3>
+                    <p>Communication happens in public discussion channels, private groups and direct messages.</p>
+                    <p>Everything is archived and searchable from any web-enabled desktop, laptop or phone.</p>'
+                />
                 {circles}
             </div>
         );
@@ -92,7 +101,10 @@ export default class TutorialIntroScreens extends React.Component {
                     data-toggle='modal'
                     data-target='#invite_member'
                 >
-                    {'Invite teammates'}
+                    <FormattedMessage
+                        id='tutorial_intro.invite'
+                        defaultMessage='Invite teammates'
+                    />
                 </a>
             );
         } else {
@@ -105,7 +117,10 @@ export default class TutorialIntroScreens extends React.Component {
                     data-title='Team Invite'
                     data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + team.id}
                 >
-                    {'Invite teammates'}
+                    <FormattedMessage
+                        id='tutorial_intro.teamInvite'
+                        defaultMessage='Team Invite'
+                    />
                 </a>
             );
         }
@@ -116,7 +131,10 @@ export default class TutorialIntroScreens extends React.Component {
         if (global.window.mm_config.SupportEmail) {
             supportInfo = (
                 <p>
-                    {'Need anything, just email us at '}
+                    <FormattedMessage
+                        id='tutorial_intro.support'
+                        defaultMessage='Need anything, just email us at '
+                    />
                     <a
                         href={'mailto:' + global.window.mm_config.SupportEmail}
                         target='_blank'
@@ -130,13 +148,24 @@ export default class TutorialIntroScreens extends React.Component {
 
         return (
             <div>
-                <h3>{'You’re all set'}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='tutorial_intro.allSet'
+                        defaultMessage='You’re all set'
+                    />
+                </h3>
                 <p>
                     {inviteModalLink}
-                    {' when you’re ready.'}
+                    <FormattedMessage
+                        id='tutorial_intro.whenReady'
+                        defaultMessage=' when you’re ready.'
+                    />
                 </p>
                 {supportInfo}
-                {'Click “Next” to enter Town Square. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'}
+                <FormattedMessage
+                    id='tutorial_intro.end'
+                    defaultMessage='Click “Next” to enter Town Square. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'
+                />
                 {circles}
             </div>
         );
@@ -186,14 +215,20 @@ export default class TutorialIntroScreens extends React.Component {
                                 tabIndex='1'
                                 onClick={this.handleNext}
                             >
-                                {'Next'}
+                                <FormattedMessage
+                                    id='tutorial_intro.next'
+                                    defaultMessage='Next'
+                                />
                             </button>
                             <a
                                 className='tutorial-skip'
                                 href='#'
                                 onClick={this.skipTutorial}
                             >
-                                {'Skip tutorial'}
+                                <FormattedMessage
+                                    id='tutorial_intro.skip'
+                                    defaultMessage='Skip tutorial'
+                                />
                             </a>
                         </div>
                     </div>
