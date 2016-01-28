@@ -3,6 +3,8 @@
 
 import * as Client from '../utils/client.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class Authorize extends React.Component {
     constructor(props) {
         super(props);
@@ -35,25 +37,55 @@ export default class Authorize extends React.Component {
         return (
             <div className='authorize-box'>
                 <div className='authorize-inner'>
-                    <h3>{'An application would like to connect to your '}{this.props.teamName}{' account'}</h3>
-                    <label>{'The app '}{this.props.appName}{' would like the ability to access and modify your basic information.'}</label>
+                    <h3>
+                        <FormattedMessage
+                            id='authorize.title'
+                            defaultMessage='An application would like to connect to your {teamName} account'
+                            values={{
+                                teamName: this.props.teamName
+                            }}
+                        />
+                    </h3>
+                    <label>
+                        <FormattedMessage
+                            id='authorize.app'
+                            defaultMessage='The app {appName} would like the ability to access and modify your basic information.'
+                            values={{
+                                appName: this.props.appName
+                            }}
+                        />
+                    </label>
                     <br/>
                     <br/>
-                    <label>{'Allow '}{this.props.appName}{' access?'}</label>
+                    <label>
+                        <FormattedMessage
+                            id='authorize.access'
+                            defaultMessage='Allow {appName} access?'
+                            values={{
+                                appName: this.props.appName
+                            }}
+                        />
+                    </label>
                     <br/>
                     <button
                         type='submit'
                         className='btn authorize-btn'
                         onClick={this.handleDeny}
                     >
-                        {'Deny'}
+                        <FormattedMessage
+                            id='authorize.deny'
+                            defaultMessage='Deny'
+                        />
                     </button>
                     <button
                         type='submit'
                         className='btn btn-primary authorize-btn'
                         onClick={this.handleAllow}
                     >
-                        {'Allow'}
+                        <FormattedMessage
+                            id='authorize.allow'
+                            defaultMessage='Allow'
+                        />
                     </button>
                 </div>
             </div>

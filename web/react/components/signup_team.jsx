@@ -6,6 +6,8 @@ import EmailSignUpPage from './team_signup_with_email.jsx';
 import SSOSignupPage from './team_signup_with_sso.jsx';
 import Constants from '../utils/constants.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class TeamSignUp extends React.Component {
     constructor(props) {
         super(props);
@@ -43,12 +45,24 @@ export default class TeamSignUp extends React.Component {
         if (global.window.mm_config.EnableTeamListing === 'true') {
             if (this.props.teams.length === 0) {
                 if (global.window.mm_config.EnableTeamCreation !== 'true') {
-                    teamListing = (<div>{'There are no teams include in the Team Directory and team creation has been disabled.'}</div>);
+                    teamListing = (
+                        <div>
+                            <FormattedMessage
+                                id='signup_team.noTeams'
+                                defaultMessage='There are no teams include in the Team Directory and team creation has been disabled.'
+                            />
+                        </div>
+                    );
                 }
             } else {
                 teamListing = (
                     <div>
-                        <h4>{'Choose a Team'}</h4>
+                        <h4>
+                            <FormattedMessage
+                                id='signup_team.choose'
+                                defaultMessage='Choose a Team'
+                            />
+                        </h4>
                         <div className='signup-team-all'>
                             {
                                 this.props.teams.map((team) => {
@@ -71,7 +85,12 @@ export default class TeamSignUp extends React.Component {
                                 })
                             }
                         </div>
-                        <h4>{'Or Create a Team'}</h4>
+                        <h4>
+                            <FormattedMessage
+                                id='signup_team.createTeam'
+                                defaultMessage='Or Create a Team'
+                            />
+                        </h4>
                     </div>
                 );
             }
@@ -79,7 +98,14 @@ export default class TeamSignUp extends React.Component {
 
         if (global.window.mm_config.EnableTeamCreation !== 'true') {
             if (teamListing == null) {
-                return (<div>{'Team creation has been disabled.  Please contact an administrator for access.'}</div>);
+                return (
+                    <div>
+                        <FormattedMessage
+                            id='signup_team.disabled'
+                            defaultMessage='Team creation has been disabled.  Please contact an administrator for access.'
+                        />
+                    </div>
+                );
             }
 
             return (
@@ -122,7 +148,14 @@ export default class TeamSignUp extends React.Component {
                 </div>
             );
         } else if (this.state.page === 'none') {
-            return (<div>{'No team creation method has been enabled.  Please contact an administrator for access.'}</div>);
+            return (
+                <div>
+                    <FormattedMessage
+                        id='signup_team.none'
+                        defaultMessage='No team creation method has been enabled.  Please contact an administrator for access.'
+                    />
+                </div>
+            );
         }
     }
 }

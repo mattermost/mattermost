@@ -60,7 +60,7 @@ global.window.setup_signup_team_page = function setup(props) {
 
     for (var prop in props) {
         if (props.hasOwnProperty(prop)) {
-            if (prop !== 'Title') {
+            if (prop !== 'Title' && prop !== 'Locale' && prop !== 'Info') {
                 teams.push({name: prop, display_name: props[prop]});
             }
         }

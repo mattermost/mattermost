@@ -7,7 +7,7 @@ import LoginLdap from './login_ldap.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 
-var FormattedMessage = ReactIntl.FormattedMessage;
+import {FormattedMessage} from 'mm-intl';
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -24,10 +24,16 @@ export default class Login extends React.Component {
             loginMessage.push(
                     <a
                         className='btn btn-custom-login gitlab'
+                        key='gitlab'
                         href={'/' + teamName + '/login/gitlab'}
                     >
                         <span className='icon' />
-                        <span>{'with GitLab'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='login.gitlab'
+                                defaultMessage='with GitLab'
+                            />
+                        </span>
                     </a>
            );
         }
@@ -36,10 +42,16 @@ export default class Login extends React.Component {
             loginMessage.push(
                     <a
                         className='btn btn-custom-login google'
+                        key='google'
                         href={'/' + teamName + '/login/google'}
                     >
                         <span className='icon' />
-                        <span>{'with Google Apps'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='login.google'
+                                defaultMessage='with Google Apps'
+                            />
+                        </span>
                     </a>
            );
         }
@@ -49,9 +61,19 @@ export default class Login extends React.Component {
         if (extraParam) {
             let msg;
             if (extraParam === Constants.SIGNIN_CHANGE) {
-                msg = ' Sign-in method changed successfully';
+                msg = (
+                    <FormattedMessage
+                        id='login.changed'
+                        defaultMessage=' Sign-in method changed successfully'
+                    />
+                );
             } else if (extraParam === Constants.SIGNIN_VERIFIED) {
-                msg = ' Email Verified';
+                msg = (
+                    <FormattedMessage
+                        id='login.verified'
+                        defaultMessage=' Email Verified'
+                    />
+                );
             }
 
             if (msg != null) {
@@ -78,7 +100,12 @@ export default class Login extends React.Component {
                 <div>
                     {loginMessage}
                     <div className='or__container'>
-                        <span>{'or'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='login.or'
+                                defaultMessage='or'
+                            />
+                        </span>
                     </div>
                 </div>
             );
@@ -90,7 +117,7 @@ export default class Login extends React.Component {
                 <div className='form-group'>
                     <a href={'/' + teamName + '/reset_password'}>
                         <FormattedMessage
-                            id='login.forgot_password'
+                            id='login.forgot'
                             defaultMessage='I forgot my password'
                         />
                     </a>
@@ -102,12 +129,19 @@ export default class Login extends React.Component {
         if (this.props.inviteId) {
             userSignUp = (
                 <div>
-                    <span>{`Don't have an account? `}
+                    <span>
+                        <FormattedMessage
+                            id='login.noAccount'
+                            defaultMessage="Don't have an account? "
+                        />
                         <a
                             href={'/signup_user_complete/?id=' + this.props.inviteId}
                             className='signup-team-login'
                         >
-                            {'Create one now'}
+                            <FormattedMessage
+                                id='login.create'
+                                defaultMessage='Create one now'
+                            />
                         </a>
                     </span>
                 </div>
@@ -122,7 +156,10 @@ export default class Login extends React.Component {
                         href='/'
                         className='signup-team-login'
                     >
-                        {'Create a new team'}
+                        <FormattedMessage
+                            id='login.createTeam'
+                            defaultMessage='Create a new team'
+                        />
                     </a>
                 </div>
             );
@@ -144,7 +181,7 @@ export default class Login extends React.Component {
                     <span>
                         <a href='/find_team'>
                             <FormattedMessage
-                                id='login.find_teams'
+                                id='login.find'
                                 defaultMessage='Find your other teams'
                             />
                         </a></span>
@@ -154,9 +191,22 @@ export default class Login extends React.Component {
 
         return (
             <div className='signup-team__container'>
-                <h5 className='margin--less'>{'Sign in to:'}</h5>
+                <h5 className='margin--less'>
+                    <FormattedMessage
+                        id='login.signTo'
+                        defaultMessage='Sign in to:'
+                    />
+                </h5>
                 <h2 className='signup-team__name'>{teamDisplayName}</h2>
-                <h2 className='signup-team__subdomain'>{'on '}{global.window.mm_config.SiteName}</h2>
+                <h2 className='signup-team__subdomain'>
+                    <FormattedMessage
+                        id='login.on'
+                        defaultMessage='on {siteName}'
+                        values={{
+                            siteName: global.window.mm_config.SiteName
+                        }}
+                    />
+                </h2>
                     {extraBox}
                     {loginMessage}
                     {emailSignup}

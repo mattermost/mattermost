@@ -5,7 +5,24 @@ import * as utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class SSOSignUpPage extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    team_error: {
+        id: 'sso_signup.team_error',
+        defaultMessage: 'Please enter a team name'
+    },
+    length_error: {
+        id: 'sso_signup.length_error',
+        defaultMessage: 'Name must be 3 or more characters up to a maximum of 15'
+    },
+    teamName: {
+        id: 'sso_signup.teamName',
+        defaultMessage: 'Enter name of new team'
+    }
+});
+
+class SSOSignUpPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -16,6 +33,7 @@ export default class SSOSignUpPage extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
+        const {formatMessage} = this.props.intl;
         var team = {};
         var state = this.state;
         state.nameError = null;
@@ -24,13 +42,13 @@ export default class SSOSignUpPage extends React.Component {
         team.display_name = this.state.name;
 
         if (!team.display_name) {
-            state.nameError = 'Please enter a team name';
+            state.nameError = formatMessage(holders.team_error);
             this.setState(state);
             return;
         }
 
         if (team.display_name.length <= 2) {
-            state.nameError = 'Name must be 3 or more characters up to a maximum of 15';
+            state.nameError = formatMessage(holders.length_error);
             this.setState(state);
             return;
         }
@@ -80,24 +98,36 @@ export default class SSOSignUpPage extends React.Component {
             button = (
                 <a
                     className='btn btn-custom-login gitlab btn-full'
+                    key='gitlab'
                     href='#'
                     onClick={this.handleSubmit}
                     disabled={disabled}
                 >
                     <span className='icon'/>
-                    <span>{'Create team with GitLab Account'}</span>
+                    <span>
+                        <FormattedMessage
+                            id='sso_signup.gitlab'
+                            defaultMessage='Create team with GitLab Account'
+                        />
+                    </span>
                 </a>
             );
         } else if (this.props.service === Constants.GOOGLE_SERVICE) {
             button = (
                 <a
                     className='btn btn-custom-login google btn-full'
+                    key='google'
                     href='#'
                     onClick={this.handleSubmit}
                     disabled={disabled}
                 >
                     <span className='icon'/>
-                    <span>{'Create team with Google Apps Account'}</span>
+                    <span>
+                        <FormattedMessage
+                            id='sso_signup.google'
+                            defaultMessage='Create team with Google Apps Account'
+                        />
+                    </span>
                 </a>
             );
         }
@@ -113,7 +143,7 @@ export default class SSOSignUpPage extends React.Component {
                         type='text'
                         ref='teamname'
                         className='form-control'
-                        placeholder='Enter name of new team'
+                        placeholder={this.props.intl.formatMessage(holders.teamName)}
                         maxLength='128'
                         onChange={this.nameChange}
                         spellCheck='false'
@@ -125,7 +155,12 @@ export default class SSOSignUpPage extends React.Component {
                     {serverError}
                 </div>
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{'Find my teams'}</a></span>
+                    <span><a href='/find_team'>
+                        <FormattedMessage
+                            id='sso_signup.find'
+                            defaultMessage='Find my teams'
+                        />
+                    </a></span>
                 </div>
             </form>
         );
@@ -136,5 +171,8 @@ SSOSignUpPage.defaultProps = {
     service: ''
 };
 SSOSignUpPage.propTypes = {
+    intl: intlShape.isRequired,
     service: React.PropTypes.string
 };
+
+export default injectIntl(SSOSignUpPage);

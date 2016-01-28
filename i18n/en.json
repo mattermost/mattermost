@@ -580,6 +580,10 @@
     "translation": "Invalid license file."
   },
   {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "Unable to count total unique users."
+  },
+  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request"
   },
@@ -588,16 +592,12 @@
     "translation": "Could not open license file"
   },
   {
-    "id": "api.license.add_license.invalid_count.app_error",
-    "translation": "Unable to count total unique users."
+    "id": "api.license.add_license.save.app_error",
+    "translation": "License did not save properly."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
-  },
-  {
-    "id": "api.license.add_license.save.app_error",
-    "translation": "License did not save properly."
   },
   {
     "id": "api.license.init.debug",
@@ -1552,10 +1552,6 @@
     "translation": "Could not encode profile image"
   },
   {
-    "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": "Couldn't upload profile image"
-  },
-  {
     "id": "api.user.upload_profile_user.no_file.app_error",
     "translation": "No file under 'image' in request"
   },
@@ -1574,6 +1570,10 @@
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
     "translation": "Unable to upload profile image. File is too large."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "Couldn't upload profile image"
   },
   {
     "id": "api.web_conn.new_web_conn.last_activity.error",
@@ -2776,16 +2776,16 @@
     "translation": "Cannot update existing session"
   },
   {
+    "id": "store.sql_session.update_device_id.app_error",
+    "translation": "We couldn't update the device id"
+  },
+  {
     "id": "store.sql_session.update_last_activity.app_error",
     "translation": "We couldn't update the last_activity_at"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "We couldn't update the roles"
-  },
-  {
-    "id": "store.sql_session.update_device_id.app_error",
-    "translation": "We couldn't update the device id"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -3334,6 +3334,10 @@
   {
     "id": "web.root.home_title",
     "translation": "Home"
+  },
+  {
+    "id": "web.root.singup_info",
+    "translation": "All team communication in one place, searchable and accessible anywhere"
   },
   {
     "id": "web.root.singup_title",

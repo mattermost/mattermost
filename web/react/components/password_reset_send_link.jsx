@@ -4,7 +4,28 @@
 import * as Utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 
-export default class PasswordResetSendLink extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    error: {
+        id: 'password_send.error',
+        defaultMessage: 'Please enter a valid email address.'
+    },
+    link: {
+        id: 'password_send.link',
+        defaultMessage: '<p>A password reset link has been sent to <b>{email}</b> for your <b>{teamDisplayName}</b> team on {hostname}.</p>'
+    },
+    checkInbox: {
+        id: 'password_send.checkInbox',
+        defaultMessage: 'Please check your inbox.'
+    },
+    email: {
+        id: 'password_send.email',
+        defaultMessage: 'Email'
+    }
+});
+
+class PasswordResetSendLink extends React.Component {
     constructor(props) {
         super(props);
 
@@ -15,10 +36,11 @@ export default class PasswordResetSendLink extends React.Component {
     handleSendLink(e) {
         e.preventDefault();
         var state = {};
+        const {formatMessage} = this.props.intl;
 
         var email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!email || !Utils.isEmail(email)) {
-            state.error = 'Please enter a valid email address.';
+            state.error = formatMessage(holders.error);
             this.setState(state);
             return;
         }
@@ -32,7 +54,7 @@ export default class PasswordResetSendLink extends React.Component {
 
         client.sendPasswordReset(data,
              function passwordResetSent() {
-                 this.setState({error: null, updateText: <p>A password reset link has been sent to <b>{email}</b> for your <b>{this.props.teamDisplayName}</b> team on {window.location.hostname}.</p>, moreUpdateText: 'Please check your inbox.'});
+                 this.setState({error: null, updateText: formatMessage(holders.link, {email: email, teamDisplayName: this.props.teamDisplayName, hostname: window.location.hostname}), moreUpdateText: formatMessage(holders.checkInbox)});
                  $(ReactDOM.findDOMNode(this.refs.reset_form)).hide();
              }.bind(this),
              function passwordResetFailedToSend(err) {
@@ -43,7 +65,12 @@ export default class PasswordResetSendLink extends React.Component {
     render() {
         var updateText = null;
         if (this.state.updateText) {
-            updateText = <div className='reset-form alert alert-success'>{this.state.updateText}{this.state.moreUpdateText}</div>;
+            updateText = (
+                <div className='reset-form alert alert-success'
+                    dangerouslySetInnerHTML={{__html: this.state.updateText + this.state.moreUpdateText}}
+                >
+                </div>
+            );
         }
 
         var error = null;
@@ -56,23 +83,37 @@ export default class PasswordResetSendLink extends React.Component {
             formClass += ' has-error';
         }
 
+        const {formatMessage} = this.props.intl;
         return (
             <div className='col-sm-12'>
                 <div className='signup-team__container'>
-                    <h3>Password Reset</h3>
+                    <h3>
+                        <FormattedMessage
+                            id='password_send.title'
+                            defaultMessage='Password Reset'
+                        />
+                    </h3>
                     {updateText}
                     <form
                         onSubmit={this.handleSendLink}
                         ref='reset_form'
                     >
-                        <p>{'To reset your password, enter the email address you used to sign up for ' + this.props.teamDisplayName + '.'}</p>
+                        <p>
+                            <FormattedMessage
+                                id='password_send.description'
+                                defaultMessage='To reset your password, enter the email address you used to sign up for {teamName}.'
+                                values={{
+                                    teamName: this.props.teamDisplayName
+                                }}
+                            />
+                        </p>
                         <div className={formClass}>
                             <input
                                 type='email'
                                 className='form-control'
                                 name='email'
                                 ref='email'
-                                placeholder='Email'
+                                placeholder={formatMessage(holders.email)}
                                 spellCheck='false'
                             />
                         </div>
@@ -81,7 +122,10 @@ export default class PasswordResetSendLink extends React.Component {
                             type='submit'
                             className='btn btn-primary'
                         >
-                            Reset my password
+                            <FormattedMessage
+                                id='password_send.reset'
+                                defaultMessage='Reset my password'
+                            />
                         </button>
                     </form>
                 </div>
@@ -95,6 +139,9 @@ PasswordResetSendLink.defaultProps = {
     teamDisplayName: ''
 };
 PasswordResetSendLink.propTypes = {
+    intl: intlShape.isRequired,
     teamName: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string
 };
+
+export default injectIntl(PasswordResetSendLink);

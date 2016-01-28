@@ -13,7 +13,7 @@ export default class Docs extends React.Component {
         const errorState = {text: '## 404'};
 
         if (props.site) {
-            $.get('/static/help/' + props.site + '.md').then((response) => {
+            $.get(`/static/help/${props.site}_${global.window.mm_locale}.md`).then((response) => {
                 this.setState({text: response});
             }, () => {
                 this.setState(errorState);
