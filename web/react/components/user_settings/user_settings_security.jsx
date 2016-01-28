@@ -245,12 +245,30 @@ export default class SecurityTab extends React.Component {
                 );
             }
 
+            let oauthOption;
+            if (global.window.mm_config.EnableSignUpWithOAuth === 'true' && user.auth_service === '') {
+                var displayName = global.window.mm_config.CustomOAuthDisplayName;
+                oauthOption = (
+                    <div>
+                        <a
+                            className='btn btn-primary'
+                            href={'/' + teamName + '/claim?email=' + user.email + '&new_type=' + Constants.OAUTH_SERVICE}
+                        >
+                            {'Switch to using ' + displayName}
+                        </a>
+                        <br/>
+                    </div>
+                );
+            }
+
             inputs.push(
                 <div key='userSignInOption'>
                    {emailOption}
                    {gitlabOption}
                    <br/>
                    {googleOption}
+                   <br/>
+                   {oauthOption}
                 </div>
             );
 
@@ -280,6 +298,8 @@ export default class SecurityTab extends React.Component {
         let describe = 'Email and Password';
         if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
             describe = 'GitLab SSO';
+        } else if (this.props.user.auth_service === Constants.OAUTH_SERVICE) {
+            describe = 'OAuth SSO';
         }
 
         return (
@@ -297,6 +317,7 @@ export default class SecurityTab extends React.Component {
         let numMethods = 0;
         numMethods = global.window.mm_config.EnableSignUpWithGitLab === 'true' ? numMethods + 1 : numMethods;
         numMethods = global.window.mm_config.EnableSignUpWithGoogle === 'true' ? numMethods + 1 : numMethods;
+        numMethods = global.window.mm_config.EnableSignUpWithOAuth === 'true' ? numMethods + 1 : numMethods;
 
         if (global.window.mm_config.EnableSignUpWithEmail && numMethods > 0) {
             signInSection = this.createSignInSection();

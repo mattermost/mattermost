@@ -370,6 +370,15 @@ export default class AdminSidebar extends React.Component {
                                             />
                                         </a>
                                     </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('oauth_settings')}
+                                            onClick={this.handleClick.bind(this, 'oauth_settings', null)}
+                                        >
+                                            {'OAuth Settings'}
+                                        </a>
+                                    </li>
                                     {ldapSettings}
                                     <li>
                                         <a

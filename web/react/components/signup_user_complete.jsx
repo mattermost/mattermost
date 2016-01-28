@@ -203,6 +203,19 @@ export default class SignupUserComplete extends React.Component {
            );
         }
 
+        if (global.window.mm_config.EnableSignUpWithOAuth === 'true') {
+            var displayName = global.window.mm_config.CustomOAuthDisplayName;
+            signupMessage.push(
+                <a
+                    className='btn btn-custom-login oauth'
+                    href={'/' + this.props.teamName + '/signup/oauth' + window.location.search}
+                >
+                    <span className='icon' />
+                    <span>{'Login with ' + displayName}</span>
+                </a>
+           );
+        }
+
         var emailSignup;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (

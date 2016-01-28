@@ -197,6 +197,15 @@
                     background-image: url("../images/gitlabLogo.png");
                 }
             }
+            &.oauth {
+                background: #43bb34;
+                &:hover {
+                    background: darken(#43bb44, 10%);
+                }
+                span {
+                    vertical-align: middle;
+                }
+            }
             &.google {
                 background: #dd4b39;
                 &:hover {

@@ -107,5 +107,43 @@
         "AuthEndpoint": "",
         "TokenEndpoint": "",
         "UserApiEndpoint": ""
+    },
+    "OAuthSettings": {
+        "Enable": false,
+        "ProviderName": "",
+        "DisplayName": "",
+        "Secret": "",
+        "Id": "",
+        "Scope": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": "",
+        "UsernameField": "",
+        "EmailField": "",
+        "AuthDataField": ""
+    },
+    "GoogleSettings": {
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
+    },
+    "LdapSettings": {
+        "Enable": false,
+        "LdapServer": null,
+        "LdapPort": 389,
+        "BaseDN": null,
+        "BindUsername": null,
+        "BindPassword": null,
+        "FirstNameAttribute": null,
+        "LastNameAttribute": null,
+        "EmailAttribute": null,
+        "UsernameAttribute": null,
+        "IdAttribute": null,
+        "QueryTimeout": 60
     }
 }
+

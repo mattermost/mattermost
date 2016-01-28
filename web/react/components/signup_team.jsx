@@ -28,6 +28,8 @@ export default class TeamSignUp extends React.Component {
             this.state = {page: 'email'};
         } else if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             this.state = {page: 'gitlab'};
+        } else if (global.window.mm_config.EnableSignUpWithOAuth === 'true') {
+            this.state = {page: 'oauth'};
         } else {
             this.state = {page: 'none'};
         }
@@ -119,6 +121,13 @@ export default class TeamSignUp extends React.Component {
                 <div>
                     {teamListing}
                     <SSOSignupPage service={Constants.GOOGLE_SERVICE} />
+                </div>
+            );
+        } else if (this.state.page === 'oauth') {
+            return (
+                <div>
+                    {teamListing}
+                    <SSOSignupPage service={Constants.OAUTH_SERVICE} />
                 </div>
             );
         } else if (this.state.page === 'none') {

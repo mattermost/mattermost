@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/platform/web"
 
 	// Plugins
+	_ "github.com/mattermost/platform/model/custom_oauth"
 	_ "github.com/mattermost/platform/model/gitlab"
 
 	// Enterprise Deps
