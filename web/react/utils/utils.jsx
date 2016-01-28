@@ -714,7 +714,7 @@ export function applyTheme(theme) {
 
     if (theme.linkColor) {
         changeCss('a, a:focus, a:hover, .btn, .btn:focus, .btn:hover', 'color:' + theme.linkColor, 1);
-        changeCss('.post .comment-icon__container', 'fill:' + theme.linkColor, 1);
+        changeCss('.post .comment-icon__container, .post .post__reply', 'fill:' + theme.linkColor, 1);
     }
 
     if (theme.buttonBg) {
