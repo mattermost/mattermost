@@ -5,6 +5,8 @@ import AdminStore from '../../stores/admin_store.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class Logs extends React.Component {
     constructor(props) {
         super(props);
@@ -73,13 +75,21 @@ export default class Logs extends React.Component {
 
         return (
             <div className='panel'>
-                <h3>{'Server Logs'}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='admin.logs.title'
+                        defaultMessage='Server Logs'
+                    />
+                </h3>
                 <button
                     type='submit'
                     className='btn btn-primary'
                     onClick={this.reload}
                 >
-                    {'Reload'}
+                    <FormattedMessage
+                        id='admin.logs.reload'
+                        defaultMessage='Reload'
+                    />
                 </button>
                 <div className='log__panel'>
                     {content}
