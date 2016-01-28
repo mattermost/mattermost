@@ -66,11 +66,9 @@ export default class CenterPanel extends React.Component {
             createPost = (
                 <div
                     id='archive-link-home'
+                    onClick={handleClick}
                 >
-                    <a
-                        href=''
-                        onClick={handleClick}
-                    >
+                    <a href=''>
                         {'You are viewing the Archives. Click here to jump to recent messages. '}
                         {<i className='fa fa-arrow-down'></i>}
                     </a>
