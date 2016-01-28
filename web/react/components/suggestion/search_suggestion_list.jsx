@@ -3,7 +3,8 @@
 
 import Constants from '../../utils/constants.jsx';
 import SuggestionList from './suggestion_list.jsx';
-import * as Utils from '../../utils/utils.jsx';
+
+import {FormattedMessage} from 'mm-intl';
 
 export default class SearchSuggestionList extends SuggestionList {
     componentDidUpdate(prevProps, prevState) {
@@ -19,9 +20,19 @@ export default class SearchSuggestionList extends SuggestionList {
     renderChannelDivider(type) {
         let text;
         if (type === Constants.OPEN_CHANNEL) {
-            text = 'Public ' + Utils.getChannelTerm(type) + 's';
+            text = (
+                <FormattedMessage
+                    id='suggestion.search.public'
+                    defaultMessage='Public Channels'
+                />
+            );
         } else {
-            text = 'Private ' + Utils.getChannelTerm(type) + 's';
+            text = (
+                <FormattedMessage
+                    id='suggestion.search.private'
+                    defaultMessage='Public Groups'
+                />
+            );
         }
 
         return (
