@@ -10,6 +10,11 @@
 .modal {
 	width: 100%;
 	color: #333;
+	body.browser--IE & {
+		.modal-dialog {
+			@include translateY(0);
+		}
+	}
 	&.image_modal {
 		.modal-backdrop.in {
 			@include opacity(0.7);
