@@ -759,8 +759,16 @@ body.ios {
 		display: inline-block;
 		visibility: hidden;
 
+		&:focus {
+			outline: none;
+		}
+
 		&.icon--visible {
 			visibility: visible;
+		}
+
+		svg {
+			width: 17px;
 		}
 
 		.comment-icon {
