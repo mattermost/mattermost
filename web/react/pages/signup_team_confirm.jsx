@@ -1,6 +1,3 @@
-/**
- * Created by enahum on 1/29/16.
- */
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
