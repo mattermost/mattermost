@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class ChooseAuthPage extends React.Component {
     constructor(props) {
         super(props);
@@ -12,6 +14,7 @@ export default class ChooseAuthPage extends React.Component {
             buttons.push(
                     <a
                         className='btn btn-custom-login gitlab btn-full'
+                        key='gitlab'
                         href='#'
                         onClick={
                             function clickGit(e) {
@@ -21,7 +24,12 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='icon' />
-                        <span>{'Create new team with GitLab Account'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='choose_auth_page.gitlabCreate'
+                                defaultMessage='Create new team with GitLab Account'
+                            />
+                        </span>
                     </a>
             );
         }
@@ -30,6 +38,7 @@ export default class ChooseAuthPage extends React.Component {
             buttons.push(
                     <a
                         className='btn btn-custom-login google btn-full'
+                        key='google'
                         href='#'
                         onClick={
                             (e) => {
@@ -39,7 +48,12 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='icon' />
-                        <span>{'Create new team with Google Apps Account'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='choose_auth_page.googleCreate'
+                                defaultMessage='Create new team with Google Apps Account'
+                            />
+                        </span>
                     </a>
             );
         }
@@ -48,6 +62,7 @@ export default class ChooseAuthPage extends React.Component {
             buttons.push(
                     <a
                         className='btn btn-custom-login email btn-full'
+                        key='email'
                         href='#'
                         onClick={
                             function clickEmail(e) {
@@ -57,20 +72,37 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='fa fa-envelope' />
-                        <span>{'Create new team with email address'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='choose_auth_page.emailCreate'
+                                defaultMessage='Create new team with email address'
+                            />
+                        </span>
                     </a>
             );
         }
 
         if (buttons.length === 0) {
-            buttons = <span>{'No sign-up methods configured, please contact your system administrator.'}</span>;
+            buttons = (
+                <span>
+                    <FormattedMessage
+                        id='choose_auth_page.noSignup'
+                        defaultMessage='No sign-up methods configured, please contact your system administrator.'
+                    />
+                </span>
+            );
         }
 
         return (
             <div>
                 {buttons}
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{'Find my teams'}</a></span>
+                    <span><a href='/find_team'>
+                        <FormattedMessage
+                            id='choose_auth_page.find'
+                            defaultMessage='Find my teams'
+                        />
+                    </a></span>
                 </div>
             </div>
         );

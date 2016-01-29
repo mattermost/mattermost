@@ -3336,6 +3336,10 @@
     "translation": "Inicio"
   },
   {
+    "id": "web.root.singup_info",
+    "translation": "Todas las comunicaciones del equipo en un sólo lugar, con búsquedas y accesible desde cualquier parte"
+  },
+  {
     "id": "web.root.singup_title",
     "translation": "Registrar"
   },

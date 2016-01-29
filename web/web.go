@@ -173,6 +173,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(c.Session.UserId) == 0 {
 		page := NewHtmlTemplatePage("signup_team", c.T("web.root.singup_title"), c.Locale)
+		page.Props["Info"] = c.T("web.root.singup_info")
 
 		if result := <-api.Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
 			c.Err = result.Err
@@ -611,8 +612,17 @@ func docs(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	doc := params["doc"]
 
+	var user *model.User
+	if len(c.Session.UserId) != 0 {
+		userChan := api.Srv.Store.User().Get(c.Session.UserId)
+		if userChan := <-userChan; userChan.Err == nil {
+			user = userChan.Data.(*model.User)
+		}
+	}
+
 	page := NewHtmlTemplatePage("docs", c.T("web.doc.title"), c.Locale)
 	page.Props["Site"] = doc
+	page.User = user
 	page.Render(c, w)
 }
 
