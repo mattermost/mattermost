@@ -3204,6 +3204,22 @@
     "translation": "Find Team"
   },
   {
+    "id": "web.footer.about",
+    "translation": "About"
+  },
+  {
+    "id": "web.footer.help",
+    "translation": "Help"
+  },
+  {
+    "id": "web.footer.privacy",
+    "translation": "Privacy"
+  },
+  {
+    "id": "web.footer.terms",
+    "translation": "Terms"
+  },
+  {
     "id": "web.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Bad client_id"
   },

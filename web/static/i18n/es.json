@@ -484,6 +484,8 @@
   "signup_team.noTeams": "No hay equipos en el Directorio de Equipos y la creación de equipos ha sido deshabilitada.",
   "signup_team.none": "No se ha habilitado ningún método para creación de equipos.  Por favor contacta a un administrador de sistema para solicitar acceso.",
   "signup_team_complete.completed": "Ya haz completado el proceso de entrada para esta invitación, o esta invitación ya ha expirado.",
+  "signup_team_confirm.checkEmail": "Por favor revisa tu correo electrónico: <strong>{email}</strong><br />Se ha enviado un correo con un enlace para configurar tu equipo",
+  "signup_team_confirm.title": "Registro Completado",
   "signup_user_completed.choosePwd": "Escoge tu contraseña",
   "signup_user_completed.chooseUser": "Escoge tu nombre de usuario",
   "signup_user_completed.create": "Crea una Cuenta",
