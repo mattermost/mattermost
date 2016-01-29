@@ -7,7 +7,22 @@ import UserStore from '../../stores/user_store.jsx';
 import ConfirmModal from '../confirm_modal.jsx';
 import TeamStore from '../../stores/team_store.jsx';
 
-import {FormattedMessage} from 'mm-intl';
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+var messages = defineMessages({
+    confirmDemoteRoleTitle: {
+        id: 'admin.user_item.confirmDemoteRoleTitle',
+        defaultMessage: 'Confirm demotion from System Admin role'
+    },
+    confirmDemotion: {
+        id: 'admin.user_item.confirmDemotion',
+        defaultMessage: 'Confirm Demotion'
+    },
+    confirmDemoteDescription: {
+        id: 'admin.user_item.confirmDemoteDescription',
+        defaultMessage: 'If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you\'ll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.'
+    }
+});
 
 export default class UserItem extends React.Component {
     constructor(props) {
@@ -322,9 +337,9 @@ export default class UserItem extends React.Component {
             makeDemoteModal = (
                 <ConfirmModal
                     show={this.state.showDemoteModal}
-                    title='Confirm demotion from System Admin role'
-                    message={[`If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you'll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.`, React.createElement('br'), React.createElement('br'), `./platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"`, serverError]}
-                    confirm_button='Confirm Demotion'
+                    title={this.props.intl.formatMessage(messages.confirmDemoteRoleTitle)}
+                    message={[this.props.intl.formatMessage(messages.confirmDemoteDescription), React.createElement('br'), React.createElement('br'), './platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"', serverError]}
+                    confirm_button={this.props.intl.formatMessage(messages.confirmDemotion)}
                     onConfirm={this.handleDemoteSubmit}
                     onCancel={this.handleDemoteCancel}
                 />
@@ -385,7 +400,10 @@ export default class UserItem extends React.Component {
 }
 
 UserItem.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object.isRequired,
     refreshProfiles: React.PropTypes.func.isRequired,
     doPasswordReset: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(UserItem);
