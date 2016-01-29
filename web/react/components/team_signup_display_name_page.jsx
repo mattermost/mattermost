@@ -4,7 +4,20 @@
 import * as utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 
-export default class TeamSignupDisplayNamePage extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    required: {
+        id: 'team_signup_display_name.required',
+        defaultMessage: 'This field is required'
+    },
+    charLength: {
+        id: 'team_signup_display_name.charLength',
+        defaultMessage: 'Name must be 4 or more characters up to a maximum of 15'
+    }
+});
+
+class TeamSignupDisplayNamePage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -21,12 +34,13 @@ export default class TeamSignupDisplayNamePage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         var displayName = ReactDOM.findDOMNode(this.refs.name).value.trim();
         if (!displayName) {
-            this.setState({nameError: 'This field is required'});
+            this.setState({nameError: formatMessage(holders.required)});
             return;
         } else if (displayName.length < 4 || displayName.length > 15) {
-            this.setState({nameError: 'Name must be 4 or more characters up to a maximum of 15'});
+            this.setState({nameError: formatMessage(holders.charLength)});
             return;
         }
 
@@ -56,7 +70,12 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2>{'Team Name'}</h2>
+                    <h2>
+                        <FormattedMessage
+                            id='team_signup_display_name.teamName'
+                            defaultMessage='Team Name'
+                        />
+                    </h2>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-9'>
@@ -76,21 +95,30 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                         {nameError}
                     </div>
                     <div>
-                        {'Name your team in any language. Your team name shows in menus and headings.'}
+                        <FormattedMessage
+                            id='team_signup_display_name.nameHelp'
+                            defaultMessage='Name your team in any language. Your team name shows in menus and headings.'
+                        />
                     </div>
                     <button
                         type='submit'
                         className='btn btn-primary margin--extra'
                         onClick={this.submitNext}
                     >
-                        Next<i className='glyphicon glyphicon-chevron-right'></i>
+                        <FormattedMessage
+                            id='team_signup_display_name.next'
+                            defaultMessage='Next'
+                        /><i className='glyphicon glyphicon-chevron-right'></i>
                     </button>
                     <div className='margin--extra'>
                         <a
                             href='#'
                             onClick={this.submitBack}
                         >
-                            Back to previous step
+                            <FormattedMessage
+                                id='team_signup_display_name.back'
+                                defaultMessage='Back to previous step'
+                            />
                         </a>
                     </div>
                 </form>
@@ -100,6 +128,9 @@ export default class TeamSignupDisplayNamePage extends React.Component {
 }
 
 TeamSignupDisplayNamePage.propTypes = {
+    intl: intlShape.isRequired,
     state: React.PropTypes.object,
     updateParent: React.PropTypes.func
 };
+
+export default injectIntl(TeamSignupDisplayNamePage);

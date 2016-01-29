@@ -6,7 +6,20 @@ import BrowserStore from '../stores/browser_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class TeamSignupPasswordPage extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    passwordError: {
+        id: 'team_signup_password.passwordError',
+        defaultMessage: 'Please enter at least {chars} characters'
+    },
+    creating: {
+        id: 'team_signup_password.creating',
+        defaultMessage: 'Creating team...'
+    }
+});
+
+class TeamSignupPasswordPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -25,7 +38,7 @@ export default class TeamSignupPasswordPage extends React.Component {
 
         var password = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({passwordError: 'Please enter at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters'});
+            this.setState({passwordError: this.props.intl.formatMessage(holders.passwordError, {chars: Constants.MIN_PASSWORD_LENGTH})});
             return;
         }
 
@@ -56,7 +69,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                         window.location.href = '/' + teamSignup.team.name + '/channels/town-square';
                     },
                     (err) => {
-                        if (err.message === 'Login failed because email address has not been verified') {
+                        if (err.id === 'api.user.login.not_verified.app_error') {
                             window.location.href = '/verify_email?email=' + encodeURIComponent(teamSignup.team.email) + '&teamname=' + encodeURIComponent(teamSignup.team.name);
                         } else {
                             this.setState({serverError: err.message});
@@ -93,15 +106,35 @@ export default class TeamSignupPasswordPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2 className='margin--less'>{'Your password'}</h2>
-                    <h5 className='color--light'>{"Select a password that you'll use to login with your email address:"}</h5>
+                    <h2 className='margin--less'>
+                        <FormattedMessage
+                            id='team_signup_password.yourPassword'
+                            defaultMessage='Your password'
+                        />
+                    </h2>
+                    <h5 className='color--light'>
+                        <FormattedMessage
+                            id='team_signup_password.selectPassword'
+                            defaultMessage="Select a password that you'll use to login with your email address:"
+                        />
+                    </h5>
                     <div className='inner__content margin--extra'>
-                        <h5><strong>{'Email'}</strong></h5>
+                        <h5><strong>
+                            <FormattedMessage
+                                id='team_signup_password.email'
+                                defaultMessage='Email'
+                            />
+                        </strong></h5>
                         <div className='block--gray form-group'>{this.props.state.team.email}</div>
                         <div className={passwordDivStyle}>
                             <div className='row'>
                                 <div className='col-sm-11'>
-                                    <h5><strong>{'Choose your password'}</strong></h5>
+                                    <h5><strong>
+                                        <FormattedMessage
+                                            id='team_signup_password.choosePwd'
+                                            defaultMessage='Choose your password'
+                                        />
+                                    </strong></h5>
                                     <input
                                         autoFocus={true}
                                         type='password'
@@ -111,7 +144,16 @@ export default class TeamSignupPasswordPage extends React.Component {
                                         maxLength='128'
                                         spellCheck='false'
                                     />
-                                    <span className='color--light help-block'>{'Passwords must contain ' + Constants.MIN_PASSWORD_LENGTH + ' to ' + Constants.MAX_PASSWORD_LENGTH + ' characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.'}</span>
+                                    <span className='color--light help-block'>
+                                        <FormattedMessage
+                                            id='team_signup_password.hint'
+                                            defaultMessage='Passwords must contain {min} to {max} characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.'
+                                            values={{
+                                                min: Constants.MIN_PASSWORD_LENGTH,
+                                                max: Constants.MAX_PASSWORD_LENGTH
+                                            }}
+                                        />
+                                    </span>
                                 </div>
                             </div>
                             {passwordError}
@@ -123,19 +165,33 @@ export default class TeamSignupPasswordPage extends React.Component {
                             type='submit'
                             className='btn btn-primary margin--extra'
                             id='finish-button'
-                            data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Creating team...'}
+                            data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + this.props.intl.formatMessage(holders.creating)}
                             onClick={this.submitNext}
                         >
-                            {'Finish'}
+                            <FormattedMessage
+                                id='team_signup_password.finish'
+                                defaultMessage='Finish'
+                            />
                         </button>
                     </div>
-                    <p>By proceeding to create your account and use {global.window.mm_config.SiteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {global.window.mm_config.SiteName}.</p>
+                    <p>
+                        <FormattedHTMLMessage
+                            id='team_signup_password.agreement'
+                            defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
+                            values={{
+                                siteName: global.window.mm_config.SiteName
+                            }}
+                        />
+                    </p>
                     <div className='margin--extra'>
                         <a
                             href='#'
                             onClick={this.submitBack}
                         >
-                            {'Back to previous step'}
+                            <FormattedMessage
+                                id='team_signup_password.back'
+                                defaultMessage='Back to previous step'
+                            />
                         </a>
                     </div>
                 </form>
@@ -149,7 +205,10 @@ TeamSignupPasswordPage.defaultProps = {
     hash: ''
 };
 TeamSignupPasswordPage.propTypes = {
+    intl: intlShape.isRequired,
     state: React.PropTypes.object,
     hash: React.PropTypes.string,
     updateParent: React.PropTypes.func
 };
+
+export default injectIntl(TeamSignupPasswordPage);
