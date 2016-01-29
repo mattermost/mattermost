@@ -54,6 +54,11 @@ func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
 	me.Props["Locale"] = me.Locale
 	me.SessionTokenIndex = c.SessionTokenIndex
 
+	me.ClientCfg["FooterHelp"] = c.T("web.footer.help")
+	me.ClientCfg["FooterTerms"] = c.T("web.footer.terms")
+	me.ClientCfg["FooterPrivacy"] = c.T("web.footer.privacy")
+	me.ClientCfg["FooterAbout"] = c.T("web.footer.about")
+
 	if err := Templates.ExecuteTemplate(w, me.TemplateName, me); err != nil {
 		c.SetUnknownError(me.TemplateName, err.Error())
 	}

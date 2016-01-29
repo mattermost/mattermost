@@ -7,11 +7,7 @@
         <div class="inner__wrap">
             <div class="row content">
                 <div class="col-sm-12">
-                    <div class="signup-team__container">
-                        <h3>Sign up Complete</h3>
-                        <p>Please check your email: {{ .Props.Email }}<br>
-                        Your email contains a link to set up your team</p>
-                    </div>
+                    <div id="signup-team-confirm"></div>
                 </div>
             </div>
             <div class="row footer">
@@ -19,6 +15,9 @@
             </div>
         </div>
     </div>
+    <script>
+window.setup_signup_team_confirm_page({{ .Props }});
+    </script>
 </body>
 </html>
 {{end}}

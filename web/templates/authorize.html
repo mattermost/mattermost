@@ -2,24 +2,10 @@
 <html>
 {{template "head" . }}
 <body>
-    <div class="container-fluid">
-        <div class="oauth-prompt">
-            <div class="prompt__heading">
-                <div class="prompt__app-icon">
-                    <img src="/static/images/icon50x50.png" width="50" height="50" alt="">
-                </div>
-                <div class="text">An application would like to connect to your {{.Props.TeamName}} account.</div>
-            </div>
-            <p>The app <strong>{{.Props.AppName}}</strong> would like the ability to access Mattermost on your behalf.</p>
-            <h2 class="prompt__allow">Allow <strong>{{.Props.AppName}}</strong> access?</h2>
-            <div class="prompt__buttons">
-                <input type="button" class="btn btn-link" value="Deny">
-                <input type="button" class="btn btn-primary" value="Allow">
-            </div>
-        </div>
+    <div id="authorize">
     </div>
     <script>
-        window.setup_authorize_page('{{.Props}}');
+        window.setup_authorize_page({{.Props}});
     </script>
 </body>
 </html>
