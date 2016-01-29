@@ -73,25 +73,13 @@ func NewSqlStore() Store {
 	}
 
 	schemaVersion := sqlStore.GetCurrentSchemaVersion()
-	isSchemaVersion07 := false // REMOVE AFTER 1.2 SHIP see PLT-828
-	isSchemaVersion10 := false // REMOVE AFTER 1.2 SHIP see PLT-828
 
 	// If the version is already set then we are potentially in an 'upgrade needed' state
 	if schemaVersion != "" {
 		// Check to see if it's the most current database schema version
 		if !model.IsCurrentVersion(schemaVersion) {
 			// If we are upgrading from the previous version then print a warning and continue
-
-			// Special case
-			if schemaVersion == "0.7.1" || schemaVersion == "0.7.0" {
-				isSchemaVersion07 = true
-			}
-
-			if schemaVersion == "1.0.0" {
-				isSchemaVersion10 = true
-			}
-
-			if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 || isSchemaVersion10 {
+			if model.IsPreviousVersionsSupported(schemaVersion) {
 				l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), schemaVersion)
 				l4g.Warn(utils.T("store.sql.schema_upgrade_attempt.warn"), model.CurrentVersion)
 			} else {
@@ -100,13 +88,6 @@ func NewSqlStore() Store {
 				time.Sleep(time.Second)
 				panic(fmt.Sprintf(utils.T("store.sql.schema_version.critical"), schemaVersion))
 			}
-		}
-	}
-
-	// REMOVE AFTER 1.2 SHIP see PLT-828
-	if sqlStore.DoesTableExist("Sessions") {
-		if sqlStore.DoesColumnExist("Sessions", "AltId") {
-			sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
 		}
 	}
 
@@ -150,7 +131,7 @@ func NewSqlStore() Store {
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
-	if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 || isSchemaVersion10 {
+	if model.IsPreviousVersionsSupported(schemaVersion) {
 		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
 		l4g.Warn(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
 	}

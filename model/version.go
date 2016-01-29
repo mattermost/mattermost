@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -29,6 +30,22 @@ var BuildNumber = "_BUILD_NUMBER_"
 var BuildDate = "_BUILD_DATE_"
 var BuildHash = "_BUILD_HASH_"
 var BuildEnterpriseReady = "_BUILD_ENTERPRISE_READY_"
+var versionsWithoutHotFixes []string
+
+func init() {
+	versionsWithoutHotFixes = make([]string, 0, len(versions))
+	seen := make(map[string]string)
+
+	for _, version := range versions {
+		maj, min, _ := SplitVersion(version)
+		verStr := fmt.Sprintf("%v.%v.0", maj, min)
+
+		if seen[verStr] == "" {
+			versionsWithoutHotFixes = append(versionsWithoutHotFixes, verStr)
+			seen[verStr] = verStr
+		}
+	}
+}
 
 func SplitVersion(version string) (int64, int64, int64) {
 	parts := strings.Split(version, ".")
@@ -52,25 +69,17 @@ func SplitVersion(version string) (int64, int64, int64) {
 	return major, minor, patch
 }
 
-func GetPreviousVersion(currentVersion string) (int64, int64) {
-	currentIndex := -1
-	currentMajor, currentMinor, _ := SplitVersion(currentVersion)
+func GetPreviousVersion(version string) string {
+	verMajor, verMinor, _ := SplitVersion(version)
+	verStr := fmt.Sprintf("%v.%v.0", verMajor, verMinor)
 
-	for index, version := range versions {
-		major, minor, _ := SplitVersion(version)
-
-		if currentMajor == major && currentMinor == minor {
-			currentIndex = index
-		}
-
-		if currentIndex >= 0 {
-			if currentMajor != major || currentMinor != minor {
-				return major, minor
-			}
+	for index, v := range versionsWithoutHotFixes {
+		if v == verStr && len(versionsWithoutHotFixes) > index+1 {
+			return versionsWithoutHotFixes[index+1]
 		}
 	}
 
-	return 0, 0
+	return ""
 }
 
 func IsOfficalBuild() bool {
@@ -88,13 +97,24 @@ func IsCurrentVersion(versionToCheck string) bool {
 	}
 }
 
-func IsPreviousVersion(versionToCheck string) bool {
+func IsPreviousVersionsSupported(versionToCheck string) bool {
 	toCheckMajor, toCheckMinor, _ := SplitVersion(versionToCheck)
-	prevMajor, prevMinor := GetPreviousVersion(CurrentVersion)
+	versionToCheckStr := fmt.Sprintf("%v.%v.0", toCheckMajor, toCheckMinor)
 
-	if toCheckMajor == prevMajor && toCheckMinor == prevMinor {
+	// Current Supported
+	if versionsWithoutHotFixes[0] == versionToCheckStr {
 		return true
-	} else {
-		return false
 	}
+
+	// Current - 1 Supported
+	if versionsWithoutHotFixes[1] == versionToCheckStr {
+		return true
+	}
+
+	// Current - 2 Supported
+	if versionsWithoutHotFixes[2] == versionToCheckStr {
+		return true
+	}
+
+	return false
 }

@@ -36,20 +36,28 @@ func TestSplitVersion(t *testing.T) {
 }
 
 func TestGetPreviousVersion(t *testing.T) {
-	if major, minor := GetPreviousVersion("1.0.0"); major != 0 || minor != 7 {
-		t.Fatal(major, minor)
+	if GetPreviousVersion("1.3.0") != "1.2.0" {
+		t.Fatal()
 	}
 
-	if major, minor := GetPreviousVersion("0.7.0"); major != 0 || minor != 6 {
-		t.Fatal(major, minor)
+	if GetPreviousVersion("1.2.1") != "1.1.0" {
+		t.Fatal()
 	}
 
-	if major, minor := GetPreviousVersion("0.7.1"); major != 0 || minor != 6 {
-		t.Fatal(major, minor)
+	if GetPreviousVersion("1.1.0") != "1.0.0" {
+		t.Fatal()
 	}
 
-	if major, minor := GetPreviousVersion("0.7111.1"); major != 0 || minor != 0 {
-		t.Fatal(major, minor)
+	if GetPreviousVersion("1.0.0") != "0.7.0" {
+		t.Fatal()
+	}
+
+	if GetPreviousVersion("0.7.1") != "0.6.0" {
+		t.Fatal()
+	}
+
+	if GetPreviousVersion("0.5.0") != "" {
+		t.Fatal()
 	}
 }
 
@@ -69,6 +77,34 @@ func TestIsCurrentVersion(t *testing.T) {
 	}
 
 	if IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major+1, minor, patch)) {
+		t.Fatal()
+	}
+}
+
+func TestIsPreviousVersionsSupported(t *testing.T) {
+
+	// 1.4.0 CURRENT RELEASED VERSION
+	if !IsPreviousVersionsSupported(versions[0]) {
+		t.Fatal()
+	}
+
+	// 1.3.0
+	if !IsPreviousVersionsSupported(versions[1]) {
+		t.Fatal()
+	}
+
+	// 1.2.1
+	if !IsPreviousVersionsSupported(versions[2]) {
+		t.Fatal()
+	}
+
+	// 1.2.0
+	if !IsPreviousVersionsSupported(versions[3]) {
+		t.Fatal()
+	}
+
+	// 1.1.0 NOT SUPPORTED
+	if IsPreviousVersionsSupported(versions[4]) {
 		t.Fatal()
 	}
 }

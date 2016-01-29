@@ -46,7 +46,8 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
-	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE) // Added After 1.4
+	// ADDED for 1.5 REMOVE for 1.8
+	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
