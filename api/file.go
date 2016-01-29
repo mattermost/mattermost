@@ -398,13 +398,6 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewLocAppError("getFile", "api.file.get_file.public_invalid.app_error", nil, "")
 			return
 		}
-		props := model.MapFromJson(strings.NewReader(data))
-
-		t, err := strconv.ParseInt(props["time"], 10, 64)
-		if err != nil || model.GetMillis()-t > 1000*60*60*24*7 { // one week
-			c.Err = model.NewLocAppError("getFile", "api.file.get_file.public_expired.app_error", nil, "")
-			return
-		}
 	} else if !c.HasPermissionsToChannel(cchan, "getFile") {
 		return
 	}
@@ -484,7 +477,6 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	newProps := make(map[string]string)
 	newProps["filename"] = filename
-	newProps["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 	data := model.MapToJson(newProps)
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt))

@@ -456,10 +456,6 @@
     "translation": "Could not find file."
   },
   {
-    "id": "api.file.get_file.public_expired.app_error",
-    "translation": "The public link has expired"
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid"
   },
