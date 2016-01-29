@@ -3328,10 +3328,6 @@
     "translation": "The password reset link has expired"
   },
   {
-    "id": "web.reset_password.expired_link.app_error.link_text",
-    "translation": "Go to Password Reset page"
-  },
-  {
     "id": "web.reset_password.invalid_link.app_error",
     "translation": "The reset link does not appear to be valid"
   },
