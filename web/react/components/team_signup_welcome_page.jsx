@@ -5,7 +5,24 @@ import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 
-export default class TeamSignupWelcomePage extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    storageError: {
+        id: 'team_signup_welcome.storageError',
+        defaultMessage: 'This service requires local storage to be enabled. Please enable it or exit private browsing.'
+    },
+    validEmailError: {
+        id: 'team_signup_welcome.validEmailError',
+        defaultMessage: 'Please enter a valid email address'
+    },
+    address: {
+        id: 'team_signup_welcome.address',
+        defaultMessage: 'Email Address'
+    }
+});
+
+class TeamSignupWelcomePage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -20,7 +37,7 @@ export default class TeamSignupWelcomePage extends React.Component {
     }
     submitNext(e) {
         if (!BrowserStore.isLocalStorageSupported()) {
-            this.setState({storageError: 'This service requires local storage to be enabled. Please enable it or exit private browsing.'});
+            this.setState({storageError: this.props.intl.formatMessage(holders.storageError)});
             return;
         }
         e.preventDefault();
@@ -34,15 +51,16 @@ export default class TeamSignupWelcomePage extends React.Component {
     handleDiffSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         var state = {useDiff: true, serverError: ''};
 
         var email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!email || !Utils.isEmail(email)) {
-            state.emailError = 'Please enter a valid email address';
+            state.emailError = formatMessage(holders.validEmailError);
             this.setState(state);
             return;
         } else if (!BrowserStore.isLocalStorageSupported()) {
-            state.emailError = 'This service requires local storage to be enabled. Please enable it or exit private browsing.';
+            state.emailError = formatMessage(holders.storageError);
             this.setState(state);
             return;
         }
@@ -62,7 +80,7 @@ export default class TeamSignupWelcomePage extends React.Component {
                 let errorMsg = err.message;
 
                 if (err.detailed_error.indexOf('Invalid RCPT TO address provided') >= 0) {
-                    errorMsg = 'Please enter a valid email address';
+                    errorMsg = formatMessage(holders.validEmailError);
                 }
 
                 this.setState({emailError: '', serverError: errorMsg});
@@ -114,18 +132,35 @@ export default class TeamSignupWelcomePage extends React.Component {
                     className='signup-team-logo'
                     src='/static/images/logo.png'
                 />
-                <h3 className='sub-heading'>Welcome to:</h3>
+                <h3 className='sub-heading'>
+                    <FormattedMessage
+                        id='team_signup_welcome.welcome'
+                        defaultMessage='Welcome to:'
+                    />
+                </h3>
                 <h1 className='margin--top-none'>{global.window.mm_config.SiteName}</h1>
-                <p className='margin--less'>Let's set up your new team</p>
+                <p className='margin--less'>
+                    <FormattedMessage
+                        id='team_signup_welcome.lets'
+                        defaultMessage="Let's set up your new team"
+                    />
+                </p>
                 <div>
-                    Please confirm your email address:<br />
+                    <FormattedMessage
+                        id='team_signup_welcome.confirm'
+                        defaultMessage='Please confirm your email address:'
+                    />
+                    <br />
                     <div className='inner__content'>
                         <div className='block--gray'>{this.props.state.team.email}</div>
                     </div>
                 </div>
                 <p className='margin--extra color--light'>
-                    Your account will administer the new team site. <br />
-                    You can add other administrators later.
+                    <FormattedHTMLMessage
+                        id='team_signup_welcome.admin'
+                        defaultMessage='Your account will administer the new team site. <br />
+                        You can add other administrators later.'
+                    />
                 </p>
                 <div className='form-group'>
                     <button
@@ -134,7 +169,10 @@ export default class TeamSignupWelcomePage extends React.Component {
                         onClick={this.submitNext}
                     >
                         <i className='glyphicon glyphicon-ok'></i>
-                        Yes, this address is correct
+                        <FormattedMessage
+                            id='team_signup_welcome.yes'
+                            defaultMessage='Yes, this address is correct'
+                        />
                     </button>
                     {storageError}
                 </div>
@@ -147,7 +185,7 @@ export default class TeamSignupWelcomePage extends React.Component {
                                     type='email'
                                     ref='email'
                                     className='form-control'
-                                    placeholder='Email Address'
+                                    placeholder={this.props.intl.formatMessage(holders.address)}
                                     maxLength='128'
                                     spellCheck='false'
                                 />
@@ -161,7 +199,10 @@ export default class TeamSignupWelcomePage extends React.Component {
                         type='button'
                         onClick={this.handleDiffSubmit}
                     >
-                        Use this instead
+                        <FormattedMessage
+                            id='team_signup_welcome.instead'
+                            defaultMessage='Use this instead'
+                        />
                     </button>
                 </div>
                 <a
@@ -169,7 +210,10 @@ export default class TeamSignupWelcomePage extends React.Component {
                     onClick={this.handleDiffEmail}
                     className={differentEmailLinkClass}
                 >
-                    Use a different email
+                    <FormattedMessage
+                        id='team_signup_welcome.different'
+                        defaultMessage='Use a different email'
+                    />
                 </a>
             </div>
         );
@@ -180,6 +224,9 @@ TeamSignupWelcomePage.defaultProps = {
     state: {}
 };
 TeamSignupWelcomePage.propTypes = {
+    intl: intlShape.isRequired,
     updateParent: React.PropTypes.func.isRequired,
     state: React.PropTypes.object
 };
+
+export default injectIntl(TeamSignupWelcomePage);

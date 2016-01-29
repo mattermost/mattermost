@@ -7,7 +7,32 @@ import UserStore from '../stores/user_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class SignupUserComplete extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    required: {
+        id: 'signup_user_completed.required',
+        defaultMessage: 'This field is required'
+    },
+    validEmail: {
+        id: 'signup_user_completed.validEmail',
+        defaultMessage: 'Please enter a valid email address'
+    },
+    reserved: {
+        id: 'signup_user_completed.reserved',
+        defaultMessage: 'This username is reserved, please choose a new one.'
+    },
+    usernameLength: {
+        id: 'signup_user_completed.usernameLength',
+        defaultMessage: 'Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\' and \'_\'.'
+    },
+    passwordLength: {
+        id: 'signup_user_completed.passwordLength',
+        defaultMessage: 'Please enter at least {min} characters'
+    }
+});
+
+class SignupUserComplete extends React.Component {
     constructor(props) {
         super(props);
 
@@ -29,30 +54,31 @@ export default class SignupUserComplete extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         const providedEmail = ReactDOM.findDOMNode(this.refs.email).value.trim();
         if (!providedEmail) {
-            this.setState({nameError: '', emailError: 'This field is required', passwordError: ''});
+            this.setState({nameError: '', emailError: formatMessage(holders.required), passwordError: ''});
             return;
         }
 
         if (!Utils.isEmail(providedEmail)) {
-            this.setState({nameError: '', emailError: 'Please enter a valid email address', passwordError: ''});
+            this.setState({nameError: '', emailError: formatMessage(holders.validEmail), passwordError: ''});
             return;
         }
 
         const providedUsername = ReactDOM.findDOMNode(this.refs.name).value.trim().toLowerCase();
         if (!providedUsername) {
-            this.setState({nameError: 'This field is required', emailError: '', passwordError: '', serverError: ''});
+            this.setState({nameError: formatMessage(holders.required), emailError: '', passwordError: '', serverError: ''});
             return;
         }
 
         const usernameError = Utils.isValidUsername(providedUsername);
         if (usernameError === 'Cannot use a reserved word as a username.') {
-            this.setState({nameError: 'This username is reserved, please choose a new one.', emailError: '', passwordError: '', serverError: ''});
+            this.setState({nameError: formatMessage(holders.reserved), emailError: '', passwordError: '', serverError: ''});
             return;
         } else if (usernameError) {
             this.setState({
-                nameError: 'Username must begin with a letter, and contain between ' + Constants.MIN_USERNAME_LENGTH + ' to ' + Constants.MAX_USERNAME_LENGTH + ' lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\' and \'_\'.',
+                nameError: formatMessage(holders.usernameLength, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH}),
                 emailError: '',
                 passwordError: '',
                 serverError: ''
@@ -62,7 +88,7 @@ export default class SignupUserComplete extends React.Component {
 
         const providedPassword = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!providedPassword || providedPassword.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({nameError: '', emailError: '', passwordError: 'Please enter at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters', serverError: ''});
+            this.setState({nameError: '', emailError: '', passwordError: formatMessage(holders.passwordLength, {min: Constants.MIN_PASSWORD_LENGTH}), serverError: ''});
             return;
         }
 
@@ -95,7 +121,7 @@ export default class SignupUserComplete extends React.Component {
                         window.location.href = '/' + this.props.teamName + '/channels/town-square';
                     },
                     (err) => {
-                        if (err.message === 'Login failed because email address has not been verified') {
+                        if (err.id === 'api.user.login.not_verified.app_error') {
                             window.location.href = '/verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.props.teamName);
                         } else {
                             this.setState({serverError: err.message});
@@ -112,7 +138,14 @@ export default class SignupUserComplete extends React.Component {
         client.track('signup', 'signup_user_01_welcome');
 
         if (this.state.wizard === 'finished') {
-            return <div>{"You've already completed the signup process for this invitation or this invitation has expired."}</div>;
+            return (
+                <div>
+                    <FormattedMessage
+                        id='signup_user_completed.expired'
+                        defaultMessage="You've already completed the signup process for this invitation or this invitation has expired."
+                    />
+                </div>
+            );
         }
 
         // set up error labels
@@ -124,7 +157,18 @@ export default class SignupUserComplete extends React.Component {
         }
 
         var nameError = null;
-        var nameHelpText = <span className='help-block'>{'Username must begin with a letter, and contain between ' + Constants.MIN_USERNAME_LENGTH + ' to ' + Constants.MAX_USERNAME_LENGTH + " lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'"}</span>;
+        var nameHelpText = (
+            <span className='help-block'>
+                <FormattedMessage
+                    id='signup_user_completed.userHelp'
+                    defaultMessage="Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'"
+                    values={{
+                        min: Constants.MIN_USERNAME_LENGTH,
+                        max: Constants.MAX_USERNAME_LENGTH
+                    }}
+                />
+            </span>
+        );
         var nameDivStyle = 'form-group';
         if (this.state.nameError) {
             nameError = <label className='control-label'>{this.state.nameError}</label>;
@@ -151,7 +195,16 @@ export default class SignupUserComplete extends React.Component {
         // set up the email entry and hide it if an email was provided
         var yourEmailIs = '';
         if (this.state.user.email) {
-            yourEmailIs = <span>{'Your email address is '}<strong>{this.state.user.email}</strong>{". You'll use this address to sign in to " + global.window.mm_config.SiteName + '.'}</span>;
+            yourEmailIs = (
+                <FormattedHTMLMessage
+                    id='signup_user_completed.emailIs'
+                    defaultMessage="Your email address is <strong>{email}</strong>. You'll use this address to sign in to {siteName}."
+                    values={{
+                        email: this.state.user.email,
+                        siteName: global.window.mm_config.SiteName
+                    }}
+                />
+            );
         }
 
         var emailContainerStyle = 'margin--extra';
@@ -161,7 +214,12 @@ export default class SignupUserComplete extends React.Component {
 
         var email = (
             <div className={emailContainerStyle}>
-                <h5><strong>{"What's your email address?"}</strong></h5>
+                <h5><strong>
+                    <FormattedMessage
+                        id='signup_user_completed.whatis'
+                        defaultMessage="What's your email address?"
+                    />
+                </strong></h5>
                 <div className={emailDivStyle}>
                     <input
                         type='email'
@@ -183,10 +241,16 @@ export default class SignupUserComplete extends React.Component {
             signupMessage.push(
                     <a
                         className='btn btn-custom-login gitlab'
+                        key='gitlab'
                         href={'/' + this.props.teamName + '/signup/gitlab' + window.location.search}
                     >
                         <span className='icon' />
-                        <span>{'with GitLab'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='signup_user_completed.gitlab'
+                                defaultMessage='with GitLab'
+                            />
+                        </span>
                     </a>
            );
         }
@@ -195,10 +259,16 @@ export default class SignupUserComplete extends React.Component {
             signupMessage.push(
                 <a
                     className='btn btn-custom-login google'
+                    key='google'
                     href={'/' + this.props.teamName + '/signup/google' + window.location.search}
                 >
                     <span className='icon' />
-                    <span>{'with Google'}</span>
+                    <span>
+                        <FormattedMessage
+                            id='signup_user_completed.google'
+                            defaultMessage='with Google'
+                        />
+                    </span>
                 </a>
            );
         }
@@ -211,7 +281,12 @@ export default class SignupUserComplete extends React.Component {
                         {email}
                         {yourEmailIs}
                         <div className='margin--extra'>
-                            <h5><strong>{'Choose your username'}</strong></h5>
+                            <h5><strong>
+                                <FormattedMessage
+                                    id='signup_user_completed.chooseUser'
+                                    defaultMessage='Choose your username'
+                                />
+                            </strong></h5>
                             <div className={nameDivStyle}>
                                 <input
                                     type='text'
@@ -226,7 +301,12 @@ export default class SignupUserComplete extends React.Component {
                             </div>
                         </div>
                         <div className='margin--extra'>
-                            <h5><strong>{'Choose your password'}</strong></h5>
+                            <h5><strong>
+                                <FormattedMessage
+                                    id='signup_user_completed.choosePwd'
+                                    defaultMessage='Choose your password'
+                                />
+                            </strong></h5>
                             <div className={passwordDivStyle}>
                             <input
                                 type='password'
@@ -246,7 +326,10 @@ export default class SignupUserComplete extends React.Component {
                             onClick={this.handleSubmit}
                             className='btn-primary btn'
                         >
-                            {'Create Account'}
+                            <FormattedMessage
+                                id='signup_user_completed.create'
+                                defaultMessage='Create Account'
+                            />
                         </button>
                     </p>
                 </div>
@@ -258,7 +341,12 @@ export default class SignupUserComplete extends React.Component {
                 <div>
                     {signupMessage}
                     <div className='or__container'>
-                        <span>{'or'}</span>
+                        <span>
+                            <FormattedMessage
+                                id='signup_user_completed.or'
+                                defaultMessage='or'
+                            />
+                        </span>
                     </div>
                 </div>
             );
@@ -271,10 +359,28 @@ export default class SignupUserComplete extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h5 className='margin--less'>{'Welcome to:'}</h5>
+                    <h5 className='margin--less'>
+                        <FormattedMessage
+                            id='signup_user_completed.welcome'
+                            defaultMessage='Welcome to:'
+                        />
+                    </h5>
                     <h2 className='signup-team__name'>{this.props.teamDisplayName}</h2>
-                    <h2 className='signup-team__subdomain'>{'on ' + global.window.mm_config.SiteName}</h2>
-                    <h4 className='color--light'>{"Let's create your account"}</h4>
+                    <h2 className='signup-team__subdomain'>
+                        <FormattedMessage
+                            id='signup_user_completed.onSite'
+                            defaultMessage='on {siteName}'
+                            values={{
+                                siteName: global.window.mm_config.SiteName
+                            }}
+                        />
+                    </h2>
+                    <h4 className='color--light'>
+                        <FormattedMessage
+                            id='signup_user_completed.lets'
+                            defaultMessage="Let's create your account"
+                        />
+                    </h4>
                     {signupMessage}
                     {emailSignup}
                     {serverError}
@@ -293,6 +399,7 @@ SignupUserComplete.defaultProps = {
     teamDisplayName: ''
 };
 SignupUserComplete.propTypes = {
+    intl: intlShape.isRequired,
     teamName: React.PropTypes.string,
     hash: React.PropTypes.string,
     teamId: React.PropTypes.string,
@@ -300,3 +407,5 @@ SignupUserComplete.propTypes = {
     data: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string
 };
+
+export default injectIntl(SignupUserComplete);

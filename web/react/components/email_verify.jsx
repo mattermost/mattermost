@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
 export default class EmailVerify extends React.Component {
     constructor(props) {
         super(props);
@@ -19,21 +21,61 @@ export default class EmailVerify extends React.Component {
         var resend = '';
         var resendConfirm = '';
         if (this.props.isVerified === 'true') {
-            title = global.window.mm_config.SiteName + ' Email Verified';
-            body = <p>Your email has been verified! Click <a href={this.props.teamURL + '?email=' + this.props.userEmail}>here</a> to log in.</p>;
+            title = (
+                <FormattedMessage
+                    id='email_verify.verified'
+                    defaultMessage='{siteName} Email Verified'
+                    values={{
+                        siteName: global.window.mm_config.SiteName
+                    }}
+                />
+            );
+            body = (
+                <FormattedHTMLMessage
+                    id='email_verify.verifiedBody'
+                    defaultMessage='<p>Your email has been verified! Click <a href={url}>here</a> to log in.</p>'
+                    values={{
+                        url: this.props.teamURL + '?email=' + this.props.userEmail
+                    }}
+                />
+            );
         } else {
-            title = global.window.mm_config.SiteName + ': You are almost done';
-            body = <p>Please verify your email address. Check your inbox for an email.</p>;
+            title = (
+                <FormattedMessage
+                    id='email_verify.almost'
+                    defaultMessage='{siteName}: You are almost done'
+                    values={{
+                        siteName: global.window.mm_config.SiteName
+                    }}
+                />
+            );
+            body = (
+                <p>
+                    <FormattedMessage
+                        id='email_verify.notVerifiedBody'
+                        defaultMessage='Please verify your email address. Check your inbox for an email.'
+                    />
+                </p>
+            );
             resend = (
                 <button
                     onClick={this.handleResend}
                     className='btn btn-primary'
                 >
-                    Resend Email
+                    <FormattedMessage
+                        id='email_verify.resend'
+                        defaultMessage='Resend Email'
+                    />
                 </button>
             );
             if (this.props.resendSuccess) {
-                resendConfirm = <div><br /><p className='alert alert-success'><i className='fa fa-check'></i>{' Verification email sent.'}</p></div>;
+                resendConfirm = (
+                    <div><br /><p className='alert alert-success'><i className='fa fa-check'></i>
+                        <FormattedMessage
+                            id='email_verify.sent'
+                            defaultMessage=' Verification email sent.'
+                        />
+                    </p></div>);
             }
         }
 

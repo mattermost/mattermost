@@ -3,7 +3,24 @@
 
 import * as Utils from '../utils/utils.jsx';
 
-export default class TeamSignupEmailItem extends React.Component {
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    validEmail: {
+        id: 'team_signup_email.validEmail',
+        defaultMessage: 'Please enter a valid email address'
+    },
+    different: {
+        id: 'team_signup_email.different',
+        defaultMessage: 'Please use a different email than the one used at signup'
+    },
+    address: {
+        id: 'team_signup_email.address',
+        defaultMessage: 'Email Address'
+    }
+});
+
+class TeamSignupEmailItem extends React.Component {
     constructor(props) {
         super(props);
 
@@ -16,6 +33,7 @@ export default class TeamSignupEmailItem extends React.Component {
         return ReactDOM.findDOMNode(this.refs.email).value.trim();
     }
     validate(teamEmail) {
+        const {formatMessage} = this.props.intl;
         const email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
 
         if (!email) {
@@ -23,10 +41,10 @@ export default class TeamSignupEmailItem extends React.Component {
         }
 
         if (!Utils.isEmail(email)) {
-            this.setState({emailError: 'Please enter a valid email address'});
+            this.setState({emailError: formatMessage(holders.validEmail)});
             return false;
         } else if (email === teamEmail) {
-            this.setState({emailError: 'Please use a different email than the one used at signup'});
+            this.setState({emailError: formatMessage(holders.different)});
             return false;
         }
 
@@ -48,7 +66,7 @@ export default class TeamSignupEmailItem extends React.Component {
                     type='email'
                     ref='email'
                     className='form-control'
-                    placeholder='Email Address'
+                    placeholder={this.props.intl.formatMessage(holders.address)}
                     defaultValue={this.props.email}
                     maxLength='128'
                     spellCheck='false'
@@ -60,6 +78,9 @@ export default class TeamSignupEmailItem extends React.Component {
 }
 
 TeamSignupEmailItem.propTypes = {
+    intl: intlShape.isRequired,
     focus: React.PropTypes.bool,
     email: React.PropTypes.string
 };
+
+export default injectIntl(TeamSignupEmailItem);
