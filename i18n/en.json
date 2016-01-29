@@ -1085,7 +1085,7 @@
   },
   {
     "id": "api.templates.error.link",
-    "translation": "Go back to team site"
+    "translation": "Go back to Mattermost"
   },
   {
     "id": "api.templates.error.title",
@@ -1157,7 +1157,7 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same."
+    "translation": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1437,7 +1437,7 @@
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "The reset link has expired"
+    "translation": "The password reset link has expired"
   },
   {
     "id": "api.user.reset_password.method",
@@ -3325,7 +3325,11 @@
   },
   {
     "id": "web.reset_password.expired_link.app_error",
-    "translation": "The signup link has expired"
+    "translation": "The password reset link has expired"
+  },
+  {
+    "id": "web.reset_password.expired_link.app_error.link_text",
+    "translation": "Go to Password Reset page"
   },
   {
     "id": "web.reset_password.invalid_link.app_error",
