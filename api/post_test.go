@@ -857,3 +857,71 @@ func TestMakeDirectChannelVisible(t *testing.T) {
 		t.Fatal("Failed to set direct channel to be visible for user2")
 	}
 }
+
+func TestGetOutOfChannelMentions(t *testing.T) {
+	Setup()
+
+	team1 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team1 = Client.Must(Client.CreateTeam(team1)).Data.(*model.Team)
+
+	user1 := &model.User{TeamId: team1.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user1"}
+	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+
+	user2 := &model.User{TeamId: team1.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user2"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	user3 := &model.User{TeamId: team1.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user3"}
+	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
+
+	Client.Must(Client.LoginByEmail(team1.Name, user1.Email, "pwd"))
+
+	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team1.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	// test a post that doesn't @mention anybody
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "user1 user2 user3"}
+	if mentioned := getOutOfChannelMentions(post1, team1.Id); len(mentioned) != 0 {
+		t.Fatalf("getOutOfChannelMentions returned %v when no users were mentioned", mentioned)
+	}
+
+	// test a post that @mentions someone in the channel
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "@user1 is user1"}
+	if mentioned := getOutOfChannelMentions(post2, team1.Id); len(mentioned) != 0 {
+		t.Fatalf("getOutOfChannelMentions returned %v when only users in the channel were mentioned", mentioned)
+	}
+
+	// test a post that @mentions someone not in the channel
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "@user2 and @user3 aren't in the channel"}
+	if mentioned := getOutOfChannelMentions(post3, team1.Id); len(mentioned) != 2 || (mentioned[0].Id != user2.Id && mentioned[0].Id != user3.Id) || (mentioned[1].Id != user2.Id && mentioned[1].Id != user3.Id) {
+		t.Fatalf("getOutOfChannelMentions returned %v when two users outside the channel were mentioned", mentioned)
+	}
+
+	// test a post that @mentions someone not in the channel as well as someone in the channel
+	post4 := &model.Post{ChannelId: channel1.Id, Message: "@user2 and @user1 might be in the channel"}
+	if mentioned := getOutOfChannelMentions(post4, team1.Id); len(mentioned) != 1 || mentioned[0].Id != user2.Id {
+		t.Fatalf("getOutOfChannelMentions returned %v when someone in the channel and someone  outside the channel were mentioned", mentioned)
+	}
+
+	Client.Must(Client.Logout())
+
+	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
+
+	user4 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user4"}
+	user4 = Client.Must(Client.CreateUser(user4, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user4.Id))
+
+	Client.Must(Client.LoginByEmail(team2.Name, user4.Email, "pwd"))
+
+	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team2.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	// test a post that @mentions someone on a different team
+	post5 := &model.Post{ChannelId: channel2.Id, Message: "@user2 and @user3 might be in the channel"}
+	if mentioned := getOutOfChannelMentions(post5, team2.Id); len(mentioned) != 0 {
+		t.Fatalf("getOutOfChannelMentions returned %v when two users on a different team were mentioned", mentioned)
+	}
+}

@@ -249,6 +249,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		}
 
 		sendNotificationsAndForget(c, post, team, channel)
+		go checkForOutOfChannelMentions(post, channel)
 
 		var user *model.User
 		if result := <-uchan; result.Err != nil {
@@ -726,6 +727,58 @@ func updateMentionCountAndForget(channelId, userId string) {
 			l4g.Error(utils.T("api.post.update_mention_count_and_forget.update_error"), userId, channelId, result.Err)
 		}
 	}()
+}
+
+func checkForOutOfChannelMentions(post *model.Post, channel *model.Channel) {
+	// don't check for out of channel mentions in direct channels
+	if channel.Type == model.CHANNEL_DIRECT {
+		return
+	}
+
+	mentioned := getOutOfChannelMentions(post, channel.TeamId)
+
+	// TODO come up with a way to alert the client of these
+	for _, user := range mentioned {
+		l4g.Debug("%v was mentioned and wasn't in the channel", user.Username)
+	}
+}
+
+// Gets a list of users that were mentioned in a given post that aren't in the channel that the post was made in
+func getOutOfChannelMentions(post *model.Post, teamId string) []*model.User {
+	pchan := Srv.Store.User().GetProfiles(teamId)
+	mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
+
+	var profiles map[string]*model.User
+	if result := <-pchan; result.Err != nil {
+		l4g.Error(utils.T("api.post.get_out_of_channel_mentions.retrieve_profiles.error"), teamId, result.Err)
+		return []*model.User{}
+	} else {
+		profiles = result.Data.(map[string]*model.User)
+	}
+
+	// only keep profiles which aren't in the current channel
+	if result := <-mchan; result.Err != nil {
+		l4g.Error(utils.T("api.post.get_out_of_channel_mentions.retrieve_members.error"), post.ChannelId, result.Err)
+		return []*model.User{}
+	} else {
+		members := result.Data.([]model.ChannelMember)
+
+		for _, member := range members {
+			delete(profiles, member.UserId)
+		}
+	}
+
+	var mentioned []*model.User
+
+	for _, profile := range profiles {
+		if pattern, err := regexp.Compile(`(\W|^)@` + regexp.QuoteMeta(profile.Username) + `(\W|$)`); err != nil {
+			l4g.Error(utils.T("api.post.get_out_of_channel_mentions.regex.error"), profile.Id, err)
+		} else if pattern.MatchString(post.Message) {
+			mentioned = append(mentioned, profile)
+		}
+	}
+
+	return mentioned
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
