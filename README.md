@@ -109,6 +109,7 @@ Joining the Mattermost community is a great way to build relationships with othe
 - [Giphy Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-giphy) - connecting Mattermost to Giphy via outgoing webhooks
 - [node-mattermost](https://github.com/jonathanwiesel/node-mattermost) - a node.js module for sending and receiving messages from Mattermost webhooks
 - [matterqus](https://github.com/jonathanwiesel/matterqus) - Disqus comment notifier for Mattermost
+- [mattermost bot](https://github.com/LPgenerator/mattermost_bot) - A chat bot for MatterMost
 
 #### Have other ideas or suggestions?
 
