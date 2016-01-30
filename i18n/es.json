@@ -684,6 +684,18 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
+    "id": "api.post.get_out_of_channel_mentions.retrieve_members.error",
+    "translation": "Falla al obtener los miembros del canal channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.retrieve_profiles.error",
+    "translation": "Falla al recuperar los perfiles de usuario team_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.regex.error",
+    "translation": "Failed to compile @mention regex user_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_post.permissions.app_error",
     "translation": "No tienes los permisos apropiados"
   },

@@ -684,6 +684,18 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.post.get_out_of_channel_mentions.retrieve_members.error",
+    "translation": "Failed to get channel members channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.retrieve_profiles.error",
+    "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.regex.error",
+    "translation": "Failed to compile @mention regex user_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_post.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
   },
