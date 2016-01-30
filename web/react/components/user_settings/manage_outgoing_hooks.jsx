@@ -8,7 +8,20 @@ import ChannelStore from '../../stores/channel_store.jsx';
 import * as Client from '../../utils/client.jsx';
 import Constants from '../../utils/constants.jsx';
 
-export default class ManageOutgoingHooks extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    optional: {
+        id: 'user.settings.hooks_out.optional',
+        defaultMessage: 'Optional if channel selected'
+    },
+    callbackHolder: {
+        id: 'user.settings.hooks_out.callbackHolder',
+        defaultMessage: 'Each URL must start with http:// or https://'
+    }
+});
+
+class ManageOutgoingHooks extends React.Component {
     constructor() {
         super();
 
@@ -140,7 +153,10 @@ export default class ManageOutgoingHooks extends React.Component {
                 key='select-channel'
                 value=''
             >
-                {'--- Select a channel ---'}
+                <FormattedMessage
+                    id='user.settings.hooks_out.select'
+                    defaultMessage='--- Select a channel ---'
+                />
             </option>
         );
 
@@ -169,7 +185,12 @@ export default class ManageOutgoingHooks extends React.Component {
             if (c) {
                 channelDiv = (
                     <div className='padding-top'>
-                        <strong>{'Channel: '}</strong>{c.display_name}
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.hooks_out.channel'
+                                defaultMessage='Channel: '
+                            />
+                        </strong>{c.display_name}
                     </div>
                 );
             }
@@ -178,7 +199,12 @@ export default class ManageOutgoingHooks extends React.Component {
             if (hook.trigger_words && hook.trigger_words.length !== 0) {
                 triggerDiv = (
                     <div className='padding-top'>
-                        <strong>{'Trigger Words: '}</strong>{hook.trigger_words.join(', ')}
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.hooks_out.trigger'
+                                defaultMessage='Trigger Words: '
+                            />
+                        </strong>{hook.trigger_words.join(', ')}
                     </div>
                 );
             }
@@ -202,7 +228,10 @@ export default class ManageOutgoingHooks extends React.Component {
                             href='#'
                             onClick={this.regenToken.bind(this, hook.id)}
                         >
-                            {'Regen Token'}
+                            <FormattedMessage
+                                id='user.settings.hooks_out.regen'
+                                defaultMessage='Regen Token'
+                            />
                         </a>
                         <a
                             className='webhook__remove'
@@ -223,12 +252,24 @@ export default class ManageOutgoingHooks extends React.Component {
         } else if (hooks.length > 0) {
             displayHooks = hooks;
         } else {
-            displayHooks = <div className='padding-top x2'>{'None'}</div>;
+            displayHooks = (
+                <div className='padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.hooks_out.none'
+                        defaultMessage='None'
+                    />
+                </div>
+            );
         }
 
         const existingHooks = (
             <div className='webhooks__container'>
-                <label className='control-label padding-top x2'>{'Existing outgoing webhooks'}</label>
+                <label className='control-label padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.hooks_out.existing'
+                        defaultMessage='Existing outgoing webhooks'
+                    />
+                </label>
                 <div className='padding-top divider-light'></div>
                 <div className='webhooks__list'>
                     {displayHooks}
@@ -240,19 +281,25 @@ export default class ManageOutgoingHooks extends React.Component {
 
         return (
             <div key='addOutgoingHook'>
-                {'Create webhooks to send new message events to an external integration. Please see '}
-                <a
-                    href='http://mattermost.org/webhooks'
-                    target='_blank'
-                >
-                    {'http://mattermost.org/webhooks'}
-                </a>
-                {' to learn more.'}
-                <div><label className='control-label padding-top x2'>{'Add a new outgoing webhook'}</label></div>
+                <FormattedHTMLMessage
+                    id='user.settings.hooks_out.addDescription'
+                    defaultMessage='Create webhooks to send new message events to an external integration. Please see <a href="http://mattermost.org/webhooks">http://mattermost.org/webhooks</a>  to learn more.'
+                />
+                <div><label className='control-label padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.hooks_out.addTitle'
+                        defaultMessage='Add a new outgoing webhook'
+                    />
+                </label></div>
                 <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
                     <div>
-                        <label className='control-label'>{'Channel'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.hooks_out.channel'
+                                defaultMessage='Channel: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <select
                                 ref='channelName'
@@ -263,23 +310,43 @@ export default class ManageOutgoingHooks extends React.Component {
                                 {options}
                             </select>
                         </div>
-                        <div className='padding-top'>{'Only public channels can be used'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.hooks_out.only'
+                                defaultMessage='Only public channels can be used'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Trigger Words:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.hooks_out.trigger'
+                                defaultMessage='Trigger Words: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <input
                                 ref='triggerWords'
                                 className='form-control'
                                 value={this.state.triggerWords}
                                 onChange={this.updateTriggerWords}
-                                placeholder='Optional if channel selected'
+                                placeholder={this.props.intl.formatMessage(holders.optional)}
                             />
                         </div>
-                        <div className='padding-top'>{'Comma separated words to trigger on'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.hooks_out.comma'
+                                defaultMessage='Comma separated words to trigger on'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Callback URLs:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.hooks_out.callback'
+                                defaultMessage='Callback URLs: '
+                            />
+                        </label>
                         <div className='padding-top'>
                         <textarea
                             ref='callbackURLs'
@@ -288,10 +355,15 @@ export default class ManageOutgoingHooks extends React.Component {
                             resize={false}
                             rows={3}
                             onChange={this.updateCallbackURLs}
-                            placeholder='Each URL must start with http:// or https://'
+                            placeholder={this.props.intl.formatMessage(holders.callbackHolder)}
                         />
                         </div>
-                        <div className='padding-top'>{'New line separated URLs that will receive the HTTP POST event'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.hooks_out.callbackDesc'
+                                defaultMessage='New line separated URLs that will receive the HTTP POST event'
+                            />
+                        </div>
                         {addError}
                     </div>
                     <div className='padding-top padding-bottom'>
@@ -301,7 +373,10 @@ export default class ManageOutgoingHooks extends React.Component {
                             disabled={disableButton}
                             onClick={this.addNewHook}
                         >
-                            {'Add'}
+                            <FormattedMessage
+                                id='user.settings.hooks_out.add'
+                                defaultMessage='Add'
+                            />
                         </a>
                     </div>
                 </div>
@@ -311,3 +386,9 @@ export default class ManageOutgoingHooks extends React.Component {
         );
     }
 }
+
+ManageOutgoingHooks.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(ManageOutgoingHooks);

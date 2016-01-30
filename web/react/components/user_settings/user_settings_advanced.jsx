@@ -6,9 +6,55 @@ import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from '../../utils/constants.jsx';
 import PreferenceStore from '../../stores/preference_store.jsx';
+
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
-export default class AdvancedSettingsDisplay extends React.Component {
+const holders = defineMessages({
+    sendTitle: {
+        id: 'user.settings.advance.sendTitle',
+        defaultMessage: 'Send messages on Ctrl + Enter'
+    },
+    on: {
+        id: 'user.settings.advance.on',
+        defaultMessage: 'On'
+    },
+    off: {
+        id: 'user.settings.advance.off',
+        defaultMessage: 'Off'
+    },
+    preReleaseTitle: {
+        id: 'user.settings.advance.preReleaseTitle',
+        defaultMessage: 'Preview pre-release features'
+    },
+    feature: {
+        id: 'user.settings.advance.feature',
+        defaultMessage: ' Feature '
+    },
+    features: {
+        id: 'user.settings.advance.features',
+        defaultMessage: ' Features '
+    },
+    enabled: {
+        id: 'user.settings.advance.enabled',
+        defaultMessage: 'enabled'
+    },
+    MARKDOWN_PREVIEW: {
+        id: 'user.settings.advance.markdown_preview',
+        defaultMessage: 'Show markdown preview option in message input box'
+    },
+    EMBED_PREVIEW: {
+        id: 'user.settings.advance.embed_preview',
+        defaultMessage: 'Show preview snippet of links below message'
+    },
+    LOC_PREVIEW: {
+        id: 'user.settings.advance.loc_preview',
+        defaultMessage: 'Show user language in display settings'
+    }
+});
+
+class AdvancedSettingsDisplay extends React.Component {
     constructor(props) {
         super(props);
 
@@ -104,6 +150,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
     render() {
         const serverError = this.state.serverError || null;
+        const {formatMessage} = this.props.intl;
         let ctrlSendSection;
 
         if (this.props.activeSection === 'advancedCtrlSend') {
@@ -121,7 +168,10 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 checked={ctrlSendActive[0]}
                                 onChange={this.updateSetting.bind(this, 'send_on_ctrl_enter', 'true')}
                             />
-                            {'On'}
+                            <FormattedMessage
+                                id='user.settings.advance.on'
+                                defaultMessage='On'
+                            />
                         </label>
                         <br/>
                     </div>
@@ -132,17 +182,26 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 checked={ctrlSendActive[1]}
                                 onChange={this.updateSetting.bind(this, 'send_on_ctrl_enter', 'false')}
                             />
-                            {'Off'}
+                            <FormattedMessage
+                                id='user.settings.advance.off'
+                                defaultMessage='Off'
+                            />
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'If enabled \'Enter\' inserts a new line and \'Ctrl + Enter\' submits the message.'}</div>
+                    <div>
+                        <br/>
+                        <FormattedMessage
+                            id='user.settings.advance.sendDesc'
+                            defaultMessage="If enabled 'Enter' inserts a new line and 'Ctrl + Enter' submits the message."
+                        />
+                    </div>
                 </div>
             ];
 
             ctrlSendSection = (
                 <SettingItemMax
-                    title='Send messages on Ctrl + Enter'
+                    title={formatMessage(holders.sendTitle)}
                     inputs={inputs}
                     submit={() => this.handleSubmit('send_on_ctrl_enter')}
                     server_error={serverError}
@@ -155,8 +214,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
         } else {
             ctrlSendSection = (
                 <SettingItemMin
-                    title='Send messages on Ctrl + Enter'
-                    describe={this.state.settings.send_on_ctrl_enter === 'true' ? 'On' : 'Off'}
+                    title={formatMessage(holders.sendTitle)}
+                    describe={this.state.settings.send_on_ctrl_enter === 'true' ? formatMessage(holders.on) : formatMessage(holders.off)}
                     updateSection={() => this.props.updateSection('advancedCtrlSend')}
                 />
             );
@@ -185,7 +244,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                             this.toggleFeature(feature.label, e.target.checked);
                                         }}
                                     />
-                                    {feature.description}
+                                    {formatMessage({id: 'user.settings.advance.' + feature.label})}
                                 </label>
                             </div>
                         </div>
@@ -195,13 +254,16 @@ export default class AdvancedSettingsDisplay extends React.Component {
                 inputs.push(
                     <div key='advancedPreviewFeatures_helptext'>
                         <br/>
-                        {'Check any pre-released features you\'d like to preview.  You may also need to refresh the page before the setting will take effect.'}
+                        <FormattedMessage
+                            id='user.settings.advance.preReleaseDesc'
+                            defaultMessage="Check any pre-released features you'd like to preview.  You may also need to refresh the page before the setting will take effect."
+                        />
                     </div>
                 );
 
                 previewFeaturesSection = (
                     <SettingItemMax
-                        title='Preview pre-release features'
+                        title={formatMessage(holders.preReleaseTitle)}
                         inputs={inputs}
                         submit={this.saveEnabledFeatures}
                         server_error={serverError}
@@ -214,8 +276,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
             } else {
                 previewFeaturesSection = (
                     <SettingItemMin
-                        title='Preview pre-release features'
-                        describe={this.state.enabledFeatures + (this.state.enabledFeatures === 1 ? ' Feature ' : ' Features ') + 'enabled'}
+                        title={formatMessage(holders.preReleaseTitle)}
+                        describe={this.state.enabledFeatures + (this.state.enabledFeatures === 1 ? formatMessage(holders.feature) : formatMessage(holders.features)) + formatMessage(holders.enabled)}
                         updateSection={() => this.props.updateSection('advancedPreviewFeatures')}
                     />
                 );
@@ -242,11 +304,19 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Advanced Settings'}
+                        <FormattedMessage
+                            id='user.settings.advance.title'
+                            defaultMessage='Advanced Settings'
+                        />
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>{'Advanced Settings'}</h3>
+                    <h3 className='tab-header'>
+                        <FormattedMessage
+                            id='user.settings.advance.title'
+                            defaultMessage='Advanced Settings'
+                        />
+                    </h3>
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
                     {previewFeaturesSectionDivider}
@@ -259,6 +329,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
 }
 
 AdvancedSettingsDisplay.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
@@ -266,3 +337,5 @@ AdvancedSettingsDisplay.propTypes = {
     closeModal: React.PropTypes.func.isRequired,
     collapseModal: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(AdvancedSettingsDisplay);

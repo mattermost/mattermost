@@ -11,6 +11,9 @@ import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
 import Constants from '../../utils/constants.jsx';
+
+import {FormattedMessage} from 'mm-intl';
+
 const ActionTypes = Constants.ActionTypes;
 
 export default class UserSettingsAppearance extends React.Component {
@@ -180,7 +183,10 @@ export default class UserSettingsAppearance extends React.Component {
                                 checked={!displayCustom}
                                 onChange={this.updateType.bind(this, 'premade')}
                             />
-                            {'Theme Colors'}
+                            <FormattedMessage
+                                id='user.settings.appearance.themeColors'
+                                defaultMessage='Theme Colors'
+                            />
                         </label>
                         <br/>
                     </div>
@@ -191,7 +197,10 @@ export default class UserSettingsAppearance extends React.Component {
                                 checked={displayCustom}
                                 onChange={this.updateType.bind(this, 'custom')}
                             />
-                            {'Custom Theme'}
+                            <FormattedMessage
+                                id='user.settings.appearance.customTheme'
+                                defaultMessage='Custom Theme'
+                            />
                         </label>
                         <br/>
                     </div>
@@ -203,14 +212,20 @@ export default class UserSettingsAppearance extends React.Component {
                         href='#'
                         onClick={this.submitTheme}
                     >
-                        {'Save'}
+                        <FormattedMessage
+                            id='user.settings.appearance.save'
+                            defaultMessage='Save'
+                        />
                     </a>
                     <a
                         className='btn btn-sm theme'
                         href='#'
                         onClick={this.resetFields}
                     >
-                        {'Cancel'}
+                        <FormattedMessage
+                            id='user.settings.appearance.cancel'
+                            defaultMessage='Cancel'
+                        />
                     </a>
                 </div>
             </div>
@@ -235,11 +250,19 @@ export default class UserSettingsAppearance extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Appearance Settings'}
+                        <FormattedMessage
+                            id='user.settings.appearance.title'
+                            defaultMessage='Appearance Settings'
+                        />
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>{'Appearance Settings'}</h3>
+                    <h3 className='tab-header'>
+                        <FormattedMessage
+                            id='user.settings.appearance.title'
+                            defaultMessage='Appearance Settings'
+                        />
+                    </h3>
                     <div className='divider-dark first'/>
                     {themeUI}
                     <div className='divider-dark'/>
@@ -248,7 +271,10 @@ export default class UserSettingsAppearance extends React.Component {
                         className='theme'
                         onClick={this.handleImportModal}
                     >
-                        {'Import theme colors from Slack'}
+                        <FormattedMessage
+                            id='user.settings.appearance.import'
+                            defaultMessage='Import theme colors from Slack'
+                        />
                     </a>
                 </div>
             </div>

@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class SettingItemMin extends React.Component {
     render() {
         let editButton = null;
@@ -13,7 +15,10 @@ export default class SettingItemMin extends React.Component {
                         onClick={this.props.updateSection}
                     >
                         <i className='fa fa-pencil'/>
-                        {'Edit'}
+                        <FormattedMessage
+                            id='setting_item_min.edit'
+                            defaultMessage='Edit'
+                        />
                     </a>
                 </li>
             );
