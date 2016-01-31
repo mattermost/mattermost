@@ -385,20 +385,12 @@ class UserSettingsGeneralTab extends React.Component {
             const extraInfo = (
                 <span>
                     <FormattedMessage
-                        id='user.settings.general.notificationsExtra1'
-                        defaultMessage='By default, you will receive mention notifications when someone types your first name. Go to '
-                    >
-                        {(intro) => (
-                            <span key='intro'>
-                                {intro}
-                                {notifLink}
-                                <FormattedMessage
-                                    id='user.settings.general.notificationsExtra2'
-                                    defaultMessage=' settings to change this default.'
-                                />
-                            </span>
-                        )}
-                    </FormattedMessage>
+                        id='user.settings.general.notificationsExtra'
+                        defaultMessage='By default, you will receive mention notifications when someone types your first name. Go to {notify} settings to change this default.'
+                        values={{
+                            notify: (notifLink)
+                        }}
+                    />
                 </span>
             );
 
