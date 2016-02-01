@@ -4,6 +4,8 @@
 var Modal = ReactBootstrap.Modal;
 import * as Utils from '../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class ChangeUrlModal extends React.Component {
     constructor(props) {
         super(props);
@@ -39,21 +41,58 @@ export default class ChangeUrlModal extends React.Component {
     getURLError(url) {
         let error = []; //eslint-disable-line prefer-const
         if (url.length < 2) {
-            error.push(<span key='error1'>{'Must be longer than two characters'}<br/></span>);
+            error.push(
+                <span key='error1'>
+                    <FormattedMessage
+                        id='change_url.longer'
+                        defaultMessage='Must be longer than two characters'
+                    />
+                    <br/>
+                </span>
+            );
         }
         if (url.charAt(0) === '-' || url.charAt(0) === '_') {
-            error.push(<span key='error2'>{'Must start with a letter or number'}<br/></span>);
+            error.push(
+                <span key='error2'>
+                    <FormattedMessage
+                        id='change_url.startWithLetter'
+                        defaultMessage='Must start with a letter or number'
+                    />
+                    <br/>
+                </span>
+            );
         }
         if (url.length > 1 && (url.charAt(url.length - 1) === '-' || url.charAt(url.length - 1) === '_')) {
-            error.push(<span key='error3'>{'Must end with a letter or number'}<br/></span>);
+            error.push(
+                <span key='error3'>
+                    <FormattedMessage
+                        id='change_url.endWithLetter'
+                        defaultMessage='Must end with a letter or number'
+                    />
+                    <br/>
+                </span>);
         }
         if (url.indexOf('__') > -1) {
-            error.push(<span key='error4'>{'Can not contain two underscores in a row.'}<br/></span>);
+            error.push(
+                <span key='error4'>
+                    <FormattedMessage
+                        id='change_url.noUnderscore'
+                        defaultMessage='Can not contain two underscores in a row.'
+                    />
+                    <br/>
+                </span>);
         }
 
         // In case of error we don't detect
         if (error.length === 0) {
-            error.push(<span key='errorlast'>{'Invalid URL'}<br/></span>);
+            error.push(
+                <span key='errorlast'>
+                    <FormattedMessage
+                        id='change_url.invalidUrl'
+                        defaultMessage='Invalid URL'
+                    />
+                    <br/>
+                </span>);
         }
         return error;
     }
@@ -137,7 +176,10 @@ export default class ChangeUrlModal extends React.Component {
                             className='btn btn-default'
                             onClick={this.doCancel}
                         >
-                            {'Close'}
+                            <FormattedMessage
+                                id='change_url.close'
+                                defaultMessage='Close'
+                            />
                         </button>
                         <button
                             onClick={this.doSubmit}

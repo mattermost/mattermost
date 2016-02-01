@@ -17,6 +17,9 @@ import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
 
 import Constants from '../utils/constants.jsx';
+
+import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 
@@ -275,34 +278,33 @@ export default class Sidebar extends React.Component {
 
         screens.push(
             <div>
-                <h4>{'Channels'}</h4>
-                <p><strong>{'Channels'}</strong>{' organize conversations across different topics. They’re open to everyone on your team. To send private communications use '}<strong>{'Direct Messages'}</strong>{' for a single person or '}<strong>{'Private Groups'}</strong>{' for multiple people.'}
-                </p>
+                <FormattedHTMLMessage
+                    id='sidebar.tutorialScreen1'
+                    defaultMessage='<h4>Channels</h4><p><strong>Channels</strong> organize conversations across different topics. They’re open to everyone on your team. To send private communications use <strong>Direct Messages</strong> for a single person or <strong>Private Groups</strong> for multiple people.</p>'
+                />
             </div>
         );
 
         screens.push(
             <div>
-                <h4>{'"Town Square" and "Off-Topic" channels'}</h4>
-                <p>{'Here are two public channels to start:'}</p>
-                <p>
-                    <strong>{'Town Square'}</strong>{' is a place for team-wide communication. Everyone in your team is a member of this channel.'}
-                </p>
-                <p>
-                    <strong>{'Off-Topic'}</strong>{' is a place for fun and humor outside of work-related channels. You and your team can decide what other channels to create.'}
-                </p>
+                <FormattedHTMLMessage
+                    id='sidebar.tutorialScreen2'
+                    defaultMessage='<h4>"Town Square" and "Off-Topic" channels</h4>
+                    <p>Here are two public channels to start:</p>
+                    <p><strong>Town Square</strong> is a place for team-wide communication. Everyone in your team is a member of this channel.</p>
+                    <p><strong>Off-Topic</strong> is a place for fun and humor outside of work-related channels. You and your team can decide what other channels to create.</p>'
+                />
             </div>
         );
 
         screens.push(
             <div>
-                <h4>{'Creating and Joining Channels'}</h4>
-                <p>
-                    {'Click '}<strong>{'"More..."'}</strong>{' to create a new channel or join an existing one.'}
-                </p>
-                <p>
-                    {'You can also create a new channel or private group by clicking the '}<strong>{'"+" symbol'}</strong>{' next to the channel or private group header.'}
-                </p>
+                <FormattedHTMLMessage
+                    id='sidebar.tutorialScreen3'
+                    defaultMessage='<h4>Creating and Joining Channels</h4>
+                    <p>Click <strong>"More..."</strong> to create a new channel or join an existing one.</p>
+                    <p>You can also create a new channel or private group by clicking the <strong>"+" symbol</strong> next to the channel or private group header.</p>'
+                />
             </div>
         );
 
@@ -437,7 +439,12 @@ export default class Sidebar extends React.Component {
 
         let closeButton = null;
         const removeTooltip = (
-            <Tooltip id='remove-dm-tooltip'>{'Remove from list'}</Tooltip>
+            <Tooltip id='remove-dm-tooltip'>
+                <FormattedMessage
+                    id='sidebar.removeList'
+                    defaultMessage='Remove from list'
+                />
+            </Tooltip>
         );
         if (handleClose && !badge) {
             closeButton = (
@@ -525,7 +532,13 @@ export default class Sidebar extends React.Component {
                         href='#'
                         onClick={this.showMoreDirectChannelsModal}
                     >
-                        {'More (' + this.state.hiddenDirectChannelCount + ')'}
+                        <FormattedMessage
+                            id='sidebar.more'
+                            defaultMessage='More ({count})'
+                            values={{
+                                count: this.state.hiddenDirectChannelCount
+                            }}
+                        />
                     </a>
                 </li>
             );
@@ -537,10 +550,34 @@ export default class Sidebar extends React.Component {
         }
 
         const createChannelTootlip = (
-            <Tooltip id='new-channel-tooltip' >{'Create new channel'}</Tooltip>
+            <Tooltip id='new-channel-tooltip' >
+                <FormattedMessage
+                    id='sidebar.createChannel'
+                    defaultMessage='Create new channel'
+                />
+            </Tooltip>
         );
         const createGroupTootlip = (
-            <Tooltip id='new-group-tooltip'>{'Create new group'}</Tooltip>
+            <Tooltip id='new-group-tooltip'>
+                <FormattedMessage
+                    id='sidebar.createGroup'
+                    defaultMessage='Create new group'
+                />
+            </Tooltip>
+        );
+
+        const above = (
+            <FormattedMessage
+                id='sidebar.unreadAbove'
+                defaultMessage='Unread post(s) above'
+            />
+        );
+
+        const below = (
+            <FormattedMessage
+                id='sidebar.unreadBelow'
+                defaultMessage='Unread post(s) below'
+            />
         );
 
         return (
@@ -564,12 +601,12 @@ export default class Sidebar extends React.Component {
                 <UnreadChannelIndicator
                     show={this.state.showTopUnread}
                     extraClass='nav-pills__unread-indicator-top'
-                    text={'Unread post(s) above'}
+                    text={above}
                 />
                 <UnreadChannelIndicator
                     show={this.state.showBottomUnread}
                     extraClass='nav-pills__unread-indicator-bottom'
-                    text={'Unread post(s) below'}
+                    text={below}
                 />
 
                 <div
@@ -580,7 +617,10 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                {'Channels'}
+                                <FormattedMessage
+                                    id='sidebar.channels'
+                                    defaultMessage='Channels'
+                                />
                                 <OverlayTrigger
                                     delayShow={500}
                                     placement='top'
@@ -603,7 +643,10 @@ export default class Sidebar extends React.Component {
                                 className='nav-more'
                                 onClick={this.showMoreChannelsModal}
                             >
-                                {'More...'}
+                                <FormattedMessage
+                                    id='sidebar.moreElips'
+                                    defaultMessage='More...'
+                                />
                             </a>
                         </li>
                     </ul>
@@ -611,7 +654,10 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                {'Private Groups'}
+                                <FormattedMessage
+                                    id='sidebar.pg'
+                                    defaultMessage='Private Groups'
+                                />
                                 <OverlayTrigger
                                     delayShow={500}
                                     placement='top'
@@ -630,7 +676,14 @@ export default class Sidebar extends React.Component {
                         {privateChannelItems}
                     </ul>
                     <ul className='nav nav-pills nav-stacked'>
-                        <li><h4>{'Direct Messages'}</h4></li>
+                        <li>
+                            <h4>
+                                <FormattedMessage
+                                    id='sidebar.direct'
+                                    defaultMessage='Direct Messages'
+                                />
+                            </h4>
+                        </li>
                         {directMessageItems}
                         {directMessageMore}
                     </ul>

@@ -14,6 +14,8 @@ import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
 import Constants from '../utils/constants.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 function getStateFromStores() {
     const teams = [];
     const teamsObject = UserStore.getTeams();
@@ -97,7 +99,10 @@ export default class NavbarDropdown extends React.Component {
                         href='#'
                         onClick={EventHelpers.showInviteMemberModal}
                     >
-                        {'Invite New Member'}
+                        <FormattedMessage
+                            id='navbar_dropdown.inviteMember'
+                            defaultMessage='Invite New Member'
+                        />
                     </a>
                 </li>
             );
@@ -109,7 +114,10 @@ export default class NavbarDropdown extends React.Component {
                             href='#'
                             onClick={EventHelpers.showGetTeamInviteLinkModal}
                         >
-                            {'Get Team Invite Link'}
+                            <FormattedMessage
+                                id='navbar_dropdown.teamLink'
+                                defaultMessage='Get Team Invite Link'
+                            />
                         </a>
                     </li>
                 );
@@ -120,7 +128,10 @@ export default class NavbarDropdown extends React.Component {
             manageLink = (
                 <li>
                     <ToggleModalButton dialogType={TeamMembersModal}>
-                        {'Manage Members'}
+                        <FormattedMessage
+                            id='navbar_dropdown.manageMembers'
+                            defaultMessage='Manage Members'
+                        />
                     </ToggleModalButton>
                 </li>
             );
@@ -134,7 +145,10 @@ export default class NavbarDropdown extends React.Component {
                         data-toggle='modal'
                         data-target='#team_settings'
                     >
-                        {'Team Settings'}
+                        <FormattedMessage
+                            id='navbar_dropdown.teamSettings'
+                            defaultMessage='Team Settings'
+                        />
                     </a>
                 </li>
             );
@@ -146,7 +160,10 @@ export default class NavbarDropdown extends React.Component {
                     <a
                         href={'/admin_console?' + Utils.getSessionIndex()}
                     >
-                        {'System Console'}
+                        <FormattedMessage
+                            id='navbar_dropdown.console'
+                            defaultMessage='System Console'
+                        />
                     </a>
                 </li>
             );
@@ -165,7 +182,16 @@ export default class NavbarDropdown extends React.Component {
 
             this.state.teams.forEach((team) => {
                 if (team.name !== this.props.teamName) {
-                    teams.push(<li key={team.name}><a href={Utils.getWindowLocationOrigin() + '/' + team.name}>{'Switch to ' + team.display_name}</a></li>);
+                    teams.push(
+                        <li key={team.name}><a href={Utils.getWindowLocationOrigin() + '/' + team.name}>
+                            <FormattedMessage
+                                id='navbar_dropdown.switchTeam'
+                                defaultMessage='Switch to {team}'
+                                values={{
+                                    team: team.display_name
+                                }}
+                            />
+                        </a></li>);
                 }
             });
         }
@@ -178,7 +204,10 @@ export default class NavbarDropdown extends React.Component {
                         target='_blank'
                         href={Utils.getWindowLocationOrigin() + '/signup_team'}
                     >
-                        {'Create a New Team'}
+                        <FormattedMessage
+                            id='navbar_dropdown.create'
+                            defaultMessage='Create a New Team'
+                        />
                     </a>
                 </li>
             );
@@ -192,7 +221,10 @@ export default class NavbarDropdown extends React.Component {
                         target='_blank'
                         href={global.window.mm_config.HelpLink}
                     >
-                        {'Help'}
+                        <FormattedMessage
+                            id='navbar_dropdown.help'
+                            defaultMessage='Help'
+                        />
                     </a>
                 </li>
             );
@@ -206,7 +238,10 @@ export default class NavbarDropdown extends React.Component {
                         target='_blank'
                         href={global.window.mm_config.ReportAProblemLink}
                     >
-                        {'Report a Problem'}
+                        <FormattedMessage
+                            id='navbar_dropdown.report'
+                            defaultMessage='Report a Problem'
+                        />
                     </a>
                 </li>
             );
@@ -239,7 +274,10 @@ export default class NavbarDropdown extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showUserSettingsModal: true})}
                             >
-                                {'Account Settings'}
+                                <FormattedMessage
+                                    id='navbar_dropdown.accountSettings'
+                                    defaultMessage='Account Settings'
+                                />
                             </a>
                         </li>
                         {inviteLink}
@@ -249,7 +287,10 @@ export default class NavbarDropdown extends React.Component {
                                 href='#'
                                 onClick={this.handleLogoutClick}
                             >
-                                {'Logout'}
+                                <FormattedMessage
+                                    id='navbar_dropdown.logout'
+                                    defaultMessage='Logout'
+                                />
                             </a>
                         </li>
                         {adminDivider}
@@ -265,7 +306,10 @@ export default class NavbarDropdown extends React.Component {
                                 href='#'
                                 onClick={this.handleAboutModal}
                             >
-                                {'About Mattermost'}
+                                <FormattedMessage
+                                    id='navbar_dropdown.about'
+                                    defaultMessage='About Mattermost'
+                                />
                             </a>
                         </li>
                         <UserSettingsModal

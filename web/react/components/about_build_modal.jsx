@@ -3,6 +3,8 @@
 
 var Modal = ReactBootstrap.Modal;
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class AboutBuildModal extends React.Component {
     constructor(props) {
         super(props);
@@ -17,13 +19,28 @@ export default class AboutBuildModal extends React.Component {
         const config = global.window.mm_config;
         const license = global.window.mm_license;
 
-        let title = 'Team Edition';
+        let title = (
+            <FormattedMessage
+                id='about.teamEdtion'
+                defaultMessage='Team Edition'
+            />
+        );
         let licensee;
         if (config.BuildEnterpriseReady === 'true' && license.IsLicensed === 'true') {
-            title = 'Enterprise Edition';
+            title = (
+                <FormattedMessage
+                    id='about.enterpriseEdition'
+                    defaultMessage='Enterprise Edition'
+                />
+            );
             licensee = (
                 <div className='row form-group'>
-                    <div className='col-sm-3 info__label'>{'Licensed by:'}</div>
+                    <div className='col-sm-3 info__label'>
+                        <FormattedMessage
+                            id='about.licensed'
+                            defaultMessage='Licensed by:'
+                        />
+                    </div>
                     <div className='col-sm-9'>{license.Company}</div>
                 </div>
             );
@@ -35,25 +52,50 @@ export default class AboutBuildModal extends React.Component {
                 onHide={this.doHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'About Mattermost'}</Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='about.title'
+                            defaultMessage='About Mattermost'
+                        />
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <h4>{`Mattermost ${title}`}</h4>
+                    <h4>{'Mattermost'} {title}</h4>
                     {licensee}
                     <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Version:'}</div>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.version'
+                                defaultMessage='Version:'
+                            />
+                        </div>
                         <div className='col-sm-9'>{config.Version}</div>
                     </div>
                     <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Build Number:'}</div>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.number'
+                                defaultMessage='Build Number:'
+                            />
+                        </div>
                         <div className='col-sm-9'>{config.BuildNumber}</div>
                     </div>
                     <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Build Date:'}</div>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.date'
+                                defaultMessage='Build Date:'
+                            />
+                        </div>
                         <div className='col-sm-9'>{config.BuildDate}</div>
                     </div>
                     <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Build Hash:'}</div>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.hash'
+                                defaultMessage='Build Hash:'
+                            />
+                        </div>
                         <div className='col-sm-9'>{config.BuildHash}</div>
                     </div>
                 </Modal.Body>
@@ -63,7 +105,10 @@ export default class AboutBuildModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.doHide}
                     >
-                        {'Close'}
+                        <FormattedMessage
+                            id='about.close'
+                            defaultMessage='Close'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>

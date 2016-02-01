@@ -5,7 +5,20 @@ const Modal = ReactBootstrap.Modal;
 import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-export default class MoreDirectChannels extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    member: {
+        id: 'more_direct_channels.member',
+        defaultMessage: 'Member'
+    },
+    search: {
+        id: 'more_direct_channels.search',
+        defaultMessage: 'Search members'
+    }
+});
+
+class MoreDirectChannels extends React.Component {
     constructor(props) {
         super(props);
 
@@ -148,7 +161,10 @@ export default class MoreDirectChannels extends React.Component {
                     className='btn btn-primary btn-message'
                     onClick={this.handleShowDirectChannel.bind(this, user)}
                 >
-                    {'Message'}
+                    <FormattedMessage
+                        id='more_direct_channels.message'
+                        defaultMessage='Message'
+                    />
                 </button>
             );
         }
@@ -180,6 +196,7 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         if (!this.props.show) {
             return null;
         }
@@ -199,19 +216,44 @@ export default class MoreDirectChannels extends React.Component {
         const userEntries = users.map(this.createRowForUser);
 
         if (userEntries.length === 0) {
-            userEntries.push(<tr key='no-users-found'><td>{'No users found :('}</td></tr>);
+            userEntries.push(
+                <tr key='no-users-found'><td>
+                    <FormattedMessage
+                        id='more_direct_channels.notFound'
+                        defaultMessage='No users found :('
+                    />
+                </td></tr>);
         }
 
-        let memberString = 'Member';
+        let memberString = formatMessage(holders.member);
         if (users.length !== 1) {
             memberString += 's';
         }
 
         let count;
         if (users.length === this.state.users.length) {
-            count = `${users.length} ${memberString}`;
+            count = (
+                <FormattedMessage
+                    id='more_direct_channels.count'
+                    defaultMessage='{count} {member}'
+                    values={{
+                        count: users.length,
+                        member: memberString
+                    }}
+                />
+            );
         } else {
-            count = `${users.length} ${memberString} of ${this.state.users.length} Total`;
+            count = (
+                <FormattedMessage
+                    id='more_direct_channels.countTotal'
+                    defaultMessage='{count} {member} of {total} Total'
+                    values={{
+                        count: users.length,
+                        member: memberString,
+                        total: this.state.users.length
+                    }}
+                />
+            );
         }
 
         return (
@@ -221,7 +263,12 @@ export default class MoreDirectChannels extends React.Component {
                 onHide={this.handleHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Direct Messages'}</Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='more_direct_channels.title'
+                            defaultMessage='Direct Messages'
+                        />
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
                     <div className='filter-row'>
@@ -229,7 +276,7 @@ export default class MoreDirectChannels extends React.Component {
                             <input
                                 ref='filter'
                                 className='form-control filter-textbox'
-                                placeholder='Search members'
+                                placeholder={formatMessage(holders.search)}
                                 onInput={this.handleFilterChange}
                             />
                         </div>
@@ -254,7 +301,10 @@ export default class MoreDirectChannels extends React.Component {
                         className='btn btn-default'
                         onClick={this.handleHide}
                     >
-                        {'Close'}
+                        <FormattedMessage
+                            id='more_direct_channels.close'
+                            defaultMessage='Close'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -263,6 +313,9 @@ export default class MoreDirectChannels extends React.Component {
 }
 
 MoreDirectChannels.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func
 };
+
+export default injectIntl(MoreDirectChannels);
