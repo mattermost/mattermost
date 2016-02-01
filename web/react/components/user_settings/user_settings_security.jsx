@@ -13,7 +13,40 @@ import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import Constants from '../../utils/constants.jsx';
 
-export default class SecurityTab extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    currentPasswordError: {
+        id: 'user.settings.security.currentPasswordError',
+        defaultMessage: 'Please enter your current password'
+    },
+    passwordLengthError: {
+        id: 'user.settings.security.passwordLengthError',
+        defaultMessage: 'New passwords must be at least {chars} characters'
+    },
+    passwordMatchError: {
+        id: 'user.settings.security.passwordMatchError',
+        defaultMessage: 'The new passwords you entered do not match'
+    },
+    password: {
+        id: 'user.settings.security.password',
+        defaultMessage: 'Password'
+    },
+    lastUpdated: {
+        id: 'user.settings.security.lastUpdated',
+        defaultMessage: 'Last updated {date} at {time}'
+    },
+    method: {
+        id: 'user.settings.security.method',
+        defaultMessage: 'Sign-in Method'
+    },
+    close: {
+        id: 'user.settings.security.close',
+        defaultMessage: 'Close'
+    }
+});
+
+class SecurityTab extends React.Component {
     constructor(props) {
         super(props);
 
@@ -43,18 +76,19 @@ export default class SecurityTab extends React.Component {
         var newPassword = this.state.newPassword;
         var confirmPassword = this.state.confirmPassword;
 
+        const {formatMessage} = this.props.intl;
         if (currentPassword === '') {
-            this.setState({passwordError: 'Please enter your current password', serverError: ''});
+            this.setState({passwordError: formatMessage(holders.currentPasswordError), serverError: ''});
             return;
         }
 
         if (newPassword.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({passwordError: 'New passwords must be at least ' + Constants.MIN_PASSWORD_LENGTH + ' characters', serverError: ''});
+            this.setState({passwordError: formatMessage(holders.passwordLengthError, {chars: Constants.MIN_PASSWORD_LENGTH}), serverError: ''});
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            this.setState({passwordError: 'The new passwords you entered do not match', serverError: ''});
+            this.setState({passwordError: formatMessage(holders.passwordMatchError), serverError: ''});
             return;
         }
 
@@ -92,6 +126,7 @@ export default class SecurityTab extends React.Component {
     }
     createPasswordSection() {
         let updateSectionStatus;
+        const {formatMessage} = this.props.intl;
 
         if (this.props.activeSection === 'password' && this.props.user.auth_service === '') {
             const inputs = [];
@@ -101,7 +136,12 @@ export default class SecurityTab extends React.Component {
                     key='currentPasswordUpdateForm'
                     className='form-group'
                 >
-                    <label className='col-sm-5 control-label'>{'Current Password'}</label>
+                    <label className='col-sm-5 control-label'>
+                        <FormattedMessage
+                            id='user.settings.security.currentPassword'
+                            defaultMessage='Current Password'
+                        />
+                    </label>
                     <div className='col-sm-7'>
                         <input
                             className='form-control'
@@ -117,7 +157,12 @@ export default class SecurityTab extends React.Component {
                     key='newPasswordUpdateForm'
                     className='form-group'
                 >
-                    <label className='col-sm-5 control-label'>{'New Password'}</label>
+                    <label className='col-sm-5 control-label'>
+                        <FormattedMessage
+                            id='user.settings.security.newPassword'
+                            defaultMessage='New Password'
+                        />
+                    </label>
                     <div className='col-sm-7'>
                         <input
                             className='form-control'
@@ -133,7 +178,12 @@ export default class SecurityTab extends React.Component {
                     key='retypeNewPasswordUpdateForm'
                     className='form-group'
                 >
-                    <label className='col-sm-5 control-label'>{'Retype New Password'}</label>
+                    <label className='col-sm-5 control-label'>
+                        <FormattedMessage
+                            id='user.settings.security.retypePassword'
+                            defaultMessage='Retype New Password'
+                        />
+                    </label>
                     <div className='col-sm-7'>
                         <input
                             className='form-control'
@@ -153,7 +203,7 @@ export default class SecurityTab extends React.Component {
 
             return (
                 <SettingItemMax
-                    title='Password'
+                    title={formatMessage(holders.password)}
                     inputs={inputs}
                     submit={this.submitPassword}
                     server_error={this.state.serverError}
@@ -165,20 +215,16 @@ export default class SecurityTab extends React.Component {
 
         var describe;
         var d = new Date(this.props.user.last_password_update);
-        var hour = '12';
-        if (d.getHours() % 12) {
-            hour = String(d.getHours() % 12);
-        }
-        var min = String(d.getMinutes());
-        if (d.getMinutes() < 10) {
-            min = '0' + d.getMinutes();
-        }
         var timeOfDay = ' am';
         if (d.getHours() >= 12) {
             timeOfDay = ' pm';
         }
 
-        describe = 'Last updated ' + Constants.MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' at ' + hour + ':' + min + timeOfDay;
+        const locale = global.window.mm_locale;
+        describe = formatMessage(holders.lastUpdated, {
+            date: d.toLocaleDateString(locale, {month: 'short', day: '2-digit', year: 'numeric'}),
+            time: d.toLocaleTimeString(locale, {hours12: true, hour: '2-digit', minute: '2-digit'}) + timeOfDay
+        });
 
         updateSectionStatus = function updateSection() {
             this.props.updateSection('password');
@@ -186,7 +232,7 @@ export default class SecurityTab extends React.Component {
 
         return (
             <SettingItemMin
-                title='Password'
+                title={formatMessage(holders.password)}
                 describe={describe}
                 updateSection={updateSectionStatus}
             />
@@ -208,7 +254,10 @@ export default class SecurityTab extends React.Component {
                             className='btn btn-primary'
                             href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email)}
                         >
-                            {'Switch to using email and password'}
+                            <FormattedMessage
+                                id='user.settings.security.switchEmail'
+                                defaultMessage='Switch to using email and password'
+                            />
                         </a>
                         <br/>
                     </div>
@@ -223,7 +272,10 @@ export default class SecurityTab extends React.Component {
                             className='btn btn-primary'
                             href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&new_type=' + Constants.GITLAB_SERVICE}
                         >
-                            {'Switch to using GitLab SSO'}
+                            <FormattedMessage
+                                id='user.settings.security.switchGitlab'
+                                defaultMessage='Switch to using GitLab SSO'
+                            />
                         </a>
                         <br/>
                     </div>
@@ -238,7 +290,10 @@ export default class SecurityTab extends React.Component {
                             className='btn btn-primary'
                             href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&new_type=' + Constants.GOOGLE_SERVICE}
                         >
-                            {'Switch to using Google SSO'}
+                            <FormattedMessage
+                                id='user.settings.security.switchGoogle'
+                                defaultMessage='Switch to using Google SSO'
+                            />
                         </a>
                         <br/>
                     </div>
@@ -260,11 +315,18 @@ export default class SecurityTab extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
-            const extraInfo = <span>{'You may only have one sign-in method at a time. Switching sign-in method will send an email notifying you if the change was successful.'}</span>;
+            const extraInfo = (
+                <span>
+                    <FormattedMessage
+                        id='user.settings.security.oneSignin'
+                        defaultMessage='You may only have one sign-in method at a time. Switching sign-in method will send an email notifying you if the change was successful.'
+                    />
+                </span>
+            );
 
             return (
                 <SettingItemMax
-                    title='Sign-in Method'
+                    title={this.props.intl.formatMessage(holders.method)}
                     extraInfo={extraInfo}
                     inputs={inputs}
                     server_error={this.state.serverError}
@@ -277,14 +339,24 @@ export default class SecurityTab extends React.Component {
             this.props.updateSection('signin');
         }.bind(this);
 
-        let describe = 'Email and Password';
+        let describe = (
+            <FormattedMessage
+                id='user.settings.security.emailPwd'
+                defaultMessage='Email and Password'
+            />
+        );
         if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
-            describe = 'GitLab SSO';
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.gitlab'
+                    defaultMessage='GitLab SSO'
+                />
+            );
         }
 
         return (
             <SettingItemMin
-                title='Sign-in Method'
+                title={this.props.intl.formatMessage(holders.method)}
                 describe={describe}
                 updateSection={updateSectionStatus}
             />
@@ -309,7 +381,7 @@ export default class SecurityTab extends React.Component {
                         type='button'
                         className='close'
                         data-dismiss='modal'
-                        aria-label='Close'
+                        aria-label={this.props.intl.formatMessage(holders.close)}
                         onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
@@ -322,11 +394,19 @@ export default class SecurityTab extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Security Settings'}
+                        <FormattedMessage
+                            id='user.settings.security.title'
+                            defaultMessage='Security Settings'
+                        />
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>{'Security Settings'}</h3>
+                    <h3 className='tab-header'>
+                        <FormattedMessage
+                            id='user.settings.security.title'
+                            defaultMessage='Security Settings'
+                        />
+                    </h3>
                     <div className='divider-dark first'/>
                     {passwordSection}
                     <div className='divider-light'/>
@@ -337,14 +417,22 @@ export default class SecurityTab extends React.Component {
                         className='security-links theme'
                         dialogType={AccessHistoryModal}
                     >
-                        <i className='fa fa-clock-o'></i>{'View Access History'}
+                        <i className='fa fa-clock-o'></i>
+                        <FormattedMessage
+                            id='user.settings.security.viewHistory'
+                            defaultMessage='View Access History'
+                        />
                     </ToggleModalButton>
                     <b> </b>
                     <ToggleModalButton
                         className='security-links theme'
                         dialogType={ActivityLogModal}
                     >
-                        <i className='fa fa-clock-o'></i>{'View and Logout of Active Sessions'}
+                        <i className='fa fa-clock-o'></i>
+                        <FormattedMessage
+                            id='user.settings.security.logoutActiveSessions'
+                            defaultMessage='View and Logout of Active Sessions'
+                        />
                     </ToggleModalButton>
                 </div>
             </div>
@@ -357,6 +445,7 @@ SecurityTab.defaultProps = {
     activeSection: ''
 };
 SecurityTab.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     activeSection: React.PropTypes.string,
     updateSection: React.PropTypes.func,
@@ -365,3 +454,5 @@ SecurityTab.propTypes = {
     collapseModal: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(SecurityTab);

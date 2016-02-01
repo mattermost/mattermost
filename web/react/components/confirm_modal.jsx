@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
 const Modal = ReactBootstrap.Modal;
 
 export default class ConfirmModal extends React.Component {
@@ -33,7 +34,10 @@ export default class ConfirmModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onCancel}
                     >
-                        {'Cancel'}
+                        <FormattedMessage
+                            id='confirm_modal.cancel'
+                            defaultMessage='Cancel'
+                        />
                     </button>
                     <button
                         type='button'

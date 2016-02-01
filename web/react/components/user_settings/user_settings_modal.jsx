@@ -6,7 +6,56 @@ const Modal = ReactBootstrap.Modal;
 import SettingsSidebar from '../settings_sidebar.jsx';
 import UserSettings from './user_settings.jsx';
 
-export default class UserSettingsModal extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    general: {
+        id: 'user.settings.modal.general',
+        defaultMessage: 'General'
+    },
+    security: {
+        id: 'user.settings.modal.security',
+        defaultMessage: 'Security'
+    },
+    notifications: {
+        id: 'user.settings.modal.notifications',
+        defaultMessage: 'Notifications'
+    },
+    appearance: {
+        id: 'user.settings.modal.appearance',
+        defaultMessage: 'Appearance'
+    },
+    developer: {
+        id: 'user.settings.modal.developer',
+        defaultMessage: 'Developer'
+    },
+    integrations: {
+        id: 'user.settings.modal.integrations',
+        defaultMessage: 'Integrations'
+    },
+    display: {
+        id: 'user.settings.modal.display',
+        defaultMessage: 'Display'
+    },
+    advanced: {
+        id: 'user.settings.modal.advanced',
+        defaultMessage: 'Advanced'
+    },
+    confirmTitle: {
+        id: 'user.settings.modal.confirmTitle',
+        defaultMessage: 'Discard Changes?'
+    },
+    confirmMsg: {
+        id: 'user.settings.modal.confirmMsg',
+        defaultMessage: 'You have unsaved changes, are you sure you want to discard them?'
+    },
+    confirmBtns: {
+        id: 'user.settings.modal.confirmBtns',
+        defaultMessage: 'Yes, Discard'
+    }
+});
+
+class UserSettingsModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -170,20 +219,21 @@ export default class UserSettingsModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var tabs = [];
-        tabs.push({name: 'general', uiName: 'General', icon: 'glyphicon glyphicon-cog'});
-        tabs.push({name: 'security', uiName: 'Security', icon: 'glyphicon glyphicon-lock'});
-        tabs.push({name: 'notifications', uiName: 'Notifications', icon: 'glyphicon glyphicon-exclamation-sign'});
-        tabs.push({name: 'appearance', uiName: 'Appearance', icon: 'glyphicon glyphicon-wrench'});
+        tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'glyphicon glyphicon-cog'});
+        tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'glyphicon glyphicon-lock'});
+        tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'glyphicon glyphicon-exclamation-sign'});
+        tabs.push({name: 'appearance', uiName: formatMessage(holders.appearance), icon: 'glyphicon glyphicon-wrench'});
         if (global.window.mm_config.EnableOAuthServiceProvider === 'true') {
-            tabs.push({name: 'developer', uiName: 'Developer', icon: 'glyphicon glyphicon-th'});
+            tabs.push({name: 'developer', uiName: formatMessage(holders.developer), icon: 'glyphicon glyphicon-th'});
         }
 
         if (global.window.mm_config.EnableIncomingWebhooks === 'true' || global.window.mm_config.EnableOutgoingWebhooks === 'true') {
-            tabs.push({name: 'integrations', uiName: 'Integrations', icon: 'glyphicon glyphicon-transfer'});
+            tabs.push({name: 'integrations', uiName: formatMessage(holders.integrations), icon: 'glyphicon glyphicon-transfer'});
         }
-        tabs.push({name: 'display', uiName: 'Display', icon: 'glyphicon glyphicon-eye-open'});
-        tabs.push({name: 'advanced', uiName: 'Advanced', icon: 'glyphicon glyphicon-list-alt'});
+        tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'glyphicon glyphicon-eye-open'});
+        tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'glyphicon glyphicon-list-alt'});
 
         return (
             <Modal
@@ -194,7 +244,12 @@ export default class UserSettingsModal extends React.Component {
                 enforceFocus={this.state.enforceFocus}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Account Settings'}</Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='user.settings.modal.title'
+                            defaultMessage='Account Settings'
+                        />
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
                     <div className='settings-table'>
@@ -221,9 +276,9 @@ export default class UserSettingsModal extends React.Component {
                     </div>
                 </Modal.Body>
                 <ConfirmModal
-                    title='Discard Changes?'
-                    message='You have unsaved changes, are you sure you want to discard them?'
-                    confirm_button='Yes, Discard'
+                    title={formatMessage(holders.confirmTitle)}
+                    message={formatMessage(holders.confirmMsg)}
+                    confirm_button={formatMessage(holders.confirmBtns)}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}
@@ -234,6 +289,9 @@ export default class UserSettingsModal extends React.Component {
 }
 
 UserSettingsModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(UserSettingsModal);

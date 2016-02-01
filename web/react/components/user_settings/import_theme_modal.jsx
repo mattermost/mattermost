@@ -9,9 +9,19 @@ const Modal = ReactBootstrap.Modal;
 
 import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
 import Constants from '../../utils/constants.jsx';
+
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    submitError: {
+        id: 'user.settings.import_theme.submitError',
+        defaultMessage: 'Invalid format, please try copying and pasting in again.'
+    }
+});
+
 const ActionTypes = Constants.ActionTypes;
 
-export default class ImportThemeModal extends React.Component {
+class ImportThemeModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -39,7 +49,7 @@ export default class ImportThemeModal extends React.Component {
         const text = ReactDOM.findDOMNode(this.refs.input).value;
 
         if (!this.isInputValid(text)) {
-            this.setState({inputError: 'Invalid format, please try copying and pasting in again.'});
+            this.setState({inputError: this.props.intl.formatMessage(holders.submitError)});
             return;
         }
 
@@ -125,7 +135,7 @@ export default class ImportThemeModal extends React.Component {
         if (this.isInputValid(e.target.value)) {
             this.setState({inputError: null});
         } else {
-            this.setState({inputError: 'Invalid format, please try copying and pasting in again.'});
+            this.setState({inputError: this.props.intl.formatMessage(holders.submitError)});
         }
     }
     render() {
@@ -136,7 +146,12 @@ export default class ImportThemeModal extends React.Component {
                     onHide={() => this.setState({show: false})}
                 >
                     <Modal.Header closeButton={true}>
-                        <Modal.Title>{'Import Slack Theme'}</Modal.Title>
+                        <Modal.Title>
+                            <FormattedMessage
+                                id='user.settings.import_theme.importHeader'
+                                defaultMessage='Import Slack Theme'
+                            />
+                        </Modal.Title>
                     </Modal.Header>
                     <form
                         role='form'
@@ -144,7 +159,10 @@ export default class ImportThemeModal extends React.Component {
                     >
                         <Modal.Body>
                             <p>
-                                {'To import a theme, go to a Slack team and look for “Preferences -> Sidebar Theme”. Open the custom theme option, copy the theme color values and paste them here:'}
+                                <FormattedMessage
+                                    id='user.settings.import_theme.importBody'
+                                    defaultMessage='To import a theme, go to a Slack team and look for “Preferences -> Sidebar Theme”. Open the custom theme option, copy the theme color values and paste them here:'
+                                />
                             </p>
                             <div className='form-group less'>
                                 <div className='col-sm-9'>
@@ -166,7 +184,10 @@ export default class ImportThemeModal extends React.Component {
                                 className='btn btn-default'
                                 onClick={() => this.setState({show: false})}
                             >
-                                {'Cancel'}
+                                <FormattedMessage
+                                    id='user.settings.import_theme.cancel'
+                                    defaultMessage='Cancel'
+                                />
                             </button>
                             <button
                                 onClick={this.handleSubmit}
@@ -174,7 +195,10 @@ export default class ImportThemeModal extends React.Component {
                                 className='btn btn-primary'
                                 tabIndex='3'
                             >
-                                {'Submit'}
+                                <FormattedMessage
+                                    id='user.settings.import_theme.submit'
+                                    defaultMessage='Submit'
+                                />
                             </button>
                         </Modal.Footer>
                     </form>
@@ -183,3 +207,9 @@ export default class ImportThemeModal extends React.Component {
         );
     }
 }
+
+ImportThemeModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(ImportThemeModal);

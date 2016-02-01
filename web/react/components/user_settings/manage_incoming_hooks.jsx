@@ -7,6 +7,8 @@ import Constants from '../../utils/constants.jsx';
 import ChannelStore from '../../stores/channel_store.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 
+import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
 export default class ManageIncomingHooks extends React.Component {
     constructor() {
         super();
@@ -126,7 +128,12 @@ export default class ManageIncomingHooks extends React.Component {
                             <span className='word-break--all'>{Utils.getWindowLocationOrigin() + '/hooks/' + hook.id}</span>
                         </div>
                         <div className='padding-top'>
-                            <strong>{'Channel: '}</strong>{c.display_name}
+                            <strong>
+                                <FormattedMessage
+                                    id='user.settings.hooks_in.channel'
+                                    defaultMessage='Channel: '
+                                />
+                            </strong>{c.display_name}
                         </div>
                         <a
                             className={'webhook__remove'}
@@ -147,12 +154,24 @@ export default class ManageIncomingHooks extends React.Component {
         } else if (hooks.length > 0) {
             displayHooks = hooks;
         } else {
-            displayHooks = <div className='padding-top x2'>{'None'}</div>;
+            displayHooks = (
+                <div className='padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.hooks_in.none'
+                        defaultMessage='None'
+                    />
+                </div>
+            );
         }
 
         const existingHooks = (
             <div className='webhooks__container'>
-                <label className='control-label padding-top x2'>{'Existing incoming webhooks'}</label>
+                <label className='control-label padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.hooks_in.existing'
+                        defaultMessage='Existing incoming webhooks'
+                    />
+                </label>
                 <div className='padding-top divider-light'></div>
                 <div className='webhooks__list'>
                     {displayHooks}
@@ -162,15 +181,16 @@ export default class ManageIncomingHooks extends React.Component {
 
         return (
             <div key='addIncomingHook'>
-                {'Create webhook URLs for use in external integrations. Please see '}
-                <a
-                    href='http://mattermost.org/webhooks'
-                    target='_blank'
-                >
-                    {'http://mattermost.org/webhooks'}
-                </a>
-                {' to learn more.'}
-                <div><label className='control-label padding-top x2'>{'Add a new incoming webhook'}</label></div>
+                <FormattedHTMLMessage
+                    id='user.settings.hooks_in.description'
+                    defaultMessage='Create webhook URLs for use in external integrations. Please see<a href="http://mattermost.org/webhooks" target="_blank">http://mattermost.org/webhooks</a> to learn more.'
+                />
+                <div><label className='control-label padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.hooks_in.addTitle'
+                        defaultMessage='Add a new incoming webhook'
+                    />
+                </label></div>
                 <div className='row padding-top'>
                     <div className='col-sm-10 padding-bottom'>
                         <select
@@ -189,7 +209,10 @@ export default class ManageIncomingHooks extends React.Component {
                             href='#'
                             onClick={this.addNewHook}
                         >
-                            {'Add'}
+                            <FormattedMessage
+                                id='user.settings.hooks_in.add'
+                                defaultMessage='Add'
+                            />
                         </a>
                     </div>
                 </div>

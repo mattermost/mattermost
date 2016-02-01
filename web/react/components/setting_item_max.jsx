@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class SettingItemMax extends React.Component {
     render() {
         var clientError = null;
@@ -26,7 +28,10 @@ export default class SettingItemMax extends React.Component {
                     href='#'
                     onClick={this.props.submit}
                 >
-                    Save
+                    <FormattedMessage
+                        id='setting_item_max.save'
+                        defaultMessage='Save'
+                    />
                 </a>
             );
         }
@@ -60,7 +65,10 @@ export default class SettingItemMax extends React.Component {
                                 href='#'
                                 onClick={this.props.updateSection}
                             >
-                                Cancel
+                                <FormattedMessage
+                                    id='setting_item_max.cancel'
+                                    defaultMessage='Cancel'
+                                />
                             </a>
                         </li>
                     </ul>
