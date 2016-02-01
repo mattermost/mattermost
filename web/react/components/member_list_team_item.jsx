@@ -6,6 +6,8 @@ import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Utils from '../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class MemberListTeamItem extends React.Component {
     constructor(props) {
         super(props);
@@ -78,14 +80,29 @@ export default class MemberListTeamItem extends React.Component {
         }
 
         const user = this.props.user;
-        let currentRoles = 'Member';
+        let currentRoles = (
+            <FormattedMessage
+                id='member_team_item.member'
+                defaultMessage='Member'
+            />
+        );
         const timestamp = UserStore.getCurrentUser().update_at;
 
         if (user.roles.length > 0) {
             if (Utils.isSystemAdmin(user.roles)) {
-                currentRoles = 'System Admin';
+                currentRoles = (
+                    <FormattedMessage
+                        id='member_team_item.systemAdmin'
+                        defaultMessage='System Admin'
+                    />
+                );
             } else if (Utils.isAdmin(user.roles)) {
-                currentRoles = 'Team Admin';
+                currentRoles = (
+                    <FormattedMessage
+                        id='member_team_item.teamAdmin'
+                        defaultMessage='Team Admin'
+                    />
+                );
             } else {
                 currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
             }
@@ -98,7 +115,12 @@ export default class MemberListTeamItem extends React.Component {
         let showMakeNotActive = user.roles !== 'system_admin';
 
         if (user.delete_at > 0) {
-            currentRoles = 'Inactive';
+            currentRoles = (
+                <FormattedMessage
+                    id='member_team_item.inactive'
+                    defaultMessage='Inactive'
+                />
+            );
             showMakeMember = false;
             showMakeAdmin = false;
             showMakeActive = true;
@@ -114,7 +136,10 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeAdmin}
                     >
-                        {'Make Team Admin'}
+                        <FormattedMessage
+                            id='member_team_item.makeAdmin'
+                            defaultMessage='Make Team Admin'
+                        />
                     </a>
                 </li>
             );
@@ -129,7 +154,10 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeMember}
                     >
-                        {'Make Member'}
+                        <FormattedMessage
+                            id='member_team_item.makeMember'
+                            defaultMessage='Make Member'
+                        />
                     </a>
                 </li>
             );
@@ -144,7 +172,10 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeActive}
                     >
-                        {'Make Active'}
+                        <FormattedMessage
+                            id='member_team_item.makeActive'
+                            defaultMessage='Make Active'
+                        />
                     </a>
                 </li>
             );
@@ -159,7 +190,10 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeNotActive}
                     >
-                        {'Make Inactive'}
+                        <FormattedMessage
+                            id='member_team_item.makeInactive'
+                            defaultMessage='Make Inactive'
+                        />
                     </a>
                 </li>
             );

@@ -9,7 +9,7 @@ import TeamStore from '../../stores/team_store.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
 
-var messages = defineMessages({
+var holders = defineMessages({
     confirmDemoteRoleTitle: {
         id: 'admin.user_item.confirmDemoteRoleTitle',
         defaultMessage: 'Confirm demotion from System Admin role'
@@ -21,6 +21,10 @@ var messages = defineMessages({
     confirmDemoteDescription: {
         id: 'admin.user_item.confirmDemoteDescription',
         defaultMessage: 'If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you\'ll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.'
+    },
+    confirmDemotionCmd: {
+        id: 'admin.user_item.confirmDemotionCmd',
+        defaultMessage: 'platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"'
     }
 });
 
@@ -332,14 +336,15 @@ export default class UserItem extends React.Component {
             );
         }
         const me = UserStore.getCurrentUser();
+        const {formatMessage} = this.props.intl;
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
             makeDemoteModal = (
                 <ConfirmModal
                     show={this.state.showDemoteModal}
-                    title={this.props.intl.formatMessage(messages.confirmDemoteRoleTitle)}
-                    message={[this.props.intl.formatMessage(messages.confirmDemoteDescription), React.createElement('br'), React.createElement('br'), './platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"', serverError]}
-                    confirm_button={this.props.intl.formatMessage(messages.confirmDemotion)}
+                    title={formatMessage(holders.confirmDemoteRoleTitle)}
+                    message={[formatMessage(holders.confirmDemoteDescription), React.createElement('br'), React.createElement('br'), formatMessage(holders.confirmDemotionCmd), serverError]}
+                    confirm_button={formatMessage(holders.confirmDemotion)}
                     onConfirm={this.handleDemoteSubmit}
                     onCancel={this.handleDemoteCancel}
                 />
