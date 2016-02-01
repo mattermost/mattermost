@@ -13,14 +13,13 @@
     "twemoji": "1.4.1"
   },
   "devDependencies": {
-    "babel-eslint": "4.1.5",
+    "babel-eslint": "4.1.7",
     "babel-plugin-transform-runtime": "6.1.4",
     "babel-preset-es2015": "6.1.18",
     "babel-preset-react": "6.1.18",
     "babel-preset-stage-0": "6.1.18",
     "babelify": "7.2.0",
     "browserify": "12.0.1",
-    "escope": "3.3.0",
     "eslint": "1.9.0",
     "eslint-plugin-react": "3.9.0",
     "exorcist": "0.4.0",
