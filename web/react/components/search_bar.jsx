@@ -11,10 +11,20 @@ import SearchSuggestionList from './suggestion/search_suggestion_list.jsx';
 import SearchUserProvider from './suggestion/search_user_provider.jsx';
 import * as utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
+
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
 var ActionTypes = Constants.ActionTypes;
 var Popover = ReactBootstrap.Popover;
 
-export default class SearchBar extends React.Component {
+const holders = defineMessages({
+    search: {
+        id: 'search_bar.search',
+        defaultMessage: 'Search'
+    }
+});
+
+class SearchBar extends React.Component {
     constructor() {
         super();
         this.mounted = false;
@@ -147,7 +157,10 @@ export default class SearchBar extends React.Component {
                     className='search__clear'
                     onClick={this.clearFocus}
                 >
-                    {'Cancel'}
+                    <FormattedMessage
+                        id='search_bar.cancel'
+                        defaultMessage='Cancel'
+                    />
                 </span>
                 <form
                     role='form'
@@ -160,7 +173,7 @@ export default class SearchBar extends React.Component {
                     <SuggestionBox
                         ref='search'
                         className='form-control search-bar'
-                        placeholder='Search'
+                        placeholder={this.props.intl.formatMessage(holders.search)}
                         value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
@@ -174,18 +187,20 @@ export default class SearchBar extends React.Component {
                         placement='bottom'
                         className={helpClass}
                     >
-                        <h4>{'Search Options'}</h4>
-                        <ul>
-                            <li>
-                                <span>{'Use '}</span><b>{'"quotation marks"'}</b><span>{' to search for phrases'}</span>
-                            </li>
-                            <li>
-                                <span>{'Use '}</span><b>{'from:'}</b><span>{' to find posts from specific users and '}</span><b>{'in:'}</b><span>{' to find posts in specific channels'}</span>
-                            </li>
-                        </ul>
+                        <FormattedHTMLMessage
+                            id='search_bar.usage'
+                            defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
+                        />
                     </Popover>
                 </form>
             </div>
         );
     }
 }
+
+SearchBar.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(SearchBar);
+

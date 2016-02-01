@@ -16,10 +16,32 @@ import FilePreview from './file_preview.jsx';
 import * as Utils from '../utils/utils.jsx';
 
 import Constants from '../utils/constants.jsx';
+
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-export default class CreateComment extends React.Component {
+const holders = defineMessages({
+    commentLength: {
+        id: 'create_comment.commentLength',
+        defaultMessage: 'Comment length must be less than {max} characters.'
+    },
+    comment: {
+        id: 'create_comment.comment',
+        defaultMessage: 'Add Comment'
+    },
+    addComment: {
+        id: 'create_comment.addComment',
+        defaultMessage: 'Add a comment...'
+    },
+    commentTitle: {
+        id: 'create_comment.commentTitle',
+        defaultMessage: 'Comment'
+    }
+});
+
+class CreateComment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -93,7 +115,7 @@ export default class CreateComment extends React.Component {
         }
 
         if (post.message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({postError: `Comment length must be less than ${Constants.CHARACTER_LIMIT} characters.`});
+            this.setState({postError: this.props.intl.formatMessage(holders.commentLength, {max: Constants.CHARACTER_LIMIT})});
             return;
         }
 
@@ -189,7 +211,7 @@ export default class CreateComment extends React.Component {
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECIEVED_EDIT_POST,
                 refocusId: '#reply_textbox',
-                title: 'Comment',
+                title: this.props.intl.formatMessage(holders.commentTitle),
                 message: lastPost.message,
                 postId: lastPost.id,
                 channelId: lastPost.channel_id,
@@ -305,14 +327,23 @@ export default class CreateComment extends React.Component {
         let uploadsInProgressText = null;
         if (this.state.uploadsInProgress.length > 0) {
             uploadsInProgressText = (
-                <span
-                    className='pull-right post-right-comments-upload-in-progress'
-                >
-                    {this.state.uploadsInProgress.length === 1 ? 'File uploading' : 'Files uploading'}
+                <span className='pull-right post-right-comments-upload-in-progress'>
+                    {this.state.uploadsInProgress.length === 1 ? (
+                        <FormattedMessage
+                            id='create_comment.file'
+                            defaultMessage='File uploading'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='create_comment.files'
+                            defaultMessage='Files uploading'
+                        />
+                    )}
                 </span>
             );
         }
 
+        const {formatMessage} = this.props.intl;
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='post-create'>
@@ -326,7 +357,7 @@ export default class CreateComment extends React.Component {
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
-                                createMessage='Add a comment...'
+                                createMessage={formatMessage(holders.addComment)}
                                 initialText=''
                                 supportsCommands={false}
                                 id='reply_textbox'
@@ -351,7 +382,7 @@ export default class CreateComment extends React.Component {
                         <input
                             type='button'
                             className='btn btn-primary comment-btn pull-right'
-                            value='Add Comment'
+                            value={formatMessage(holders.comment)}
                             onClick={this.handleSubmit}
                         />
                         {uploadsInProgressText}
@@ -366,6 +397,9 @@ export default class CreateComment extends React.Component {
 }
 
 CreateComment.propTypes = {
+    intl: intlShape.isRequired,
     channelId: React.PropTypes.string.isRequired,
     rootId: React.PropTypes.string.isRequired
 };
+
+export default injectIntl(CreateComment);

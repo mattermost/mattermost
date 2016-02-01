@@ -11,6 +11,9 @@ import ErrorStore from '../stores/error_store.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
+
+import {FormattedMessage} from 'mm-intl';
+
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 export default class Textbox extends React.Component {
@@ -143,7 +146,17 @@ export default class Textbox extends React.Component {
                     onClick={this.showPreview}
                     className='textbox-preview-link'
                 >
-                    {this.state.preview ? 'Edit message' : 'Preview'}
+                    {this.state.preview ? (
+                        <FormattedMessage
+                            id='textbox.edit'
+                            defaultMessage='Edit message'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='textbox.preview'
+                            defaultMessage='Preview'
+                        />
+                    )}
                 </a>
             );
         }
@@ -184,7 +197,10 @@ export default class Textbox extends React.Component {
                     onClick={this.showHelp}
                     className='textbox-help-link'
                 >
-                    {'Help'}
+                    <FormattedMessage
+                        id='textbox.help'
+                        defaultMessage='Help'
+                    />
                 </a>
             </div>
         );

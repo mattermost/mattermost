@@ -9,6 +9,8 @@ import * as client from '../utils/client.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as utils from '../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class SidebarRightMenu extends React.Component {
     componentDidMount() {
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
@@ -49,7 +51,11 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         onClick={EventHelpers.showInviteMemberModal}
                     >
-                        <i className='fa fa-user'></i>{'Invite New Member'}
+                        <i className='fa fa-user'></i>
+                        <FormattedMessage
+                            id='sidebar_right_menu.inviteNew'
+                            defaultMessage='Invite New Member'
+                        />
                     </a>
                 </li>
             );
@@ -61,7 +67,11 @@ export default class SidebarRightMenu extends React.Component {
                             href='#'
                             onClick={EventHelpers.showGetTeamInviteLinkModal}
                         >
-                            <i className='glyphicon glyphicon-link'></i>{'Get Team Invite Link'}
+                            <i className='glyphicon glyphicon-link'></i>
+                            <FormattedMessage
+                                id='sidebar_right_menu.teamLink'
+                                defaultMessage='Get Team Invite Link'
+                            />
                         </a>
                     </li>
                 );
@@ -75,13 +85,23 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#team_settings'
-                    ><i className='fa fa-globe'></i>{'Team Settings'}</a>
+                    >
+                        <i className='fa fa-globe'></i>
+                        <FormattedMessage
+                            id='sidebar_right_menu.teamSettings'
+                            defaultMessage='Team Settings'
+                        />
+                    </a>
                 </li>
             );
             manageLink = (
                 <li>
                     <ToggleModalButton dialogType={TeamMembersModal}>
-                        <i className='fa fa-users'></i>{'Manage Members'}
+                        <i className='fa fa-users'></i>
+                        <FormattedMessage
+                            id='sidebar_right_menu.manageMembers'
+                            defaultMessage='Manage Members'
+                        />
                     </ToggleModalButton>
                 </li>
             );
@@ -93,7 +113,12 @@ export default class SidebarRightMenu extends React.Component {
                     <a
                         href={'/admin_console?' + utils.getSessionIndex()}
                     >
-                    <i className='fa fa-wrench'></i>{'System Console'}</a>
+                    <i className='fa fa-wrench'></i>
+                        <FormattedMessage
+                            id='sidebar_right_menu.console'
+                            defaultMessage='System Console'
+                        />
+                    </a>
                 </li>
             );
         }
@@ -114,7 +139,14 @@ export default class SidebarRightMenu extends React.Component {
                     <a
                         target='_blank'
                         href={global.window.mm_config.HelpLink}
-                    ><i className='fa fa-question'></i>{'Help'}</a></li>
+                    >
+                        <i className='fa fa-question'></i>
+                        <FormattedMessage
+                            id='sidebar_right_menu.help'
+                            defaultMessage='Help'
+                        />
+                    </a>
+                </li>
             );
         }
 
@@ -125,7 +157,14 @@ export default class SidebarRightMenu extends React.Component {
                     <a
                         target='_blank'
                         href={global.window.mm_config.ReportAProblemLink}
-                    ><i className='fa fa-phone'></i>{'Report a Problem'}</a></li>
+                    >
+                        <i className='fa fa-phone'></i>
+                        <FormattedMessage
+                            id='sidebar_right_menu.report'
+                            defaultMessage='Report a Problem'
+                        />
+                    </a>
+                </li>
             );
         }
         return (
@@ -144,7 +183,11 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showUserSettingsModal: true})}
                             >
-                                <i className='fa fa-cog'></i>{'Account Settings'}
+                                <i className='fa fa-cog'></i>
+                                <FormattedMessage
+                                    id='sidebar_right_menu.accountSettings'
+                                    defaultMessage='Account Settings'
+                                />
                             </a>
                         </li>
                         {teamSettingsLink}
@@ -156,7 +199,14 @@ export default class SidebarRightMenu extends React.Component {
                             <a
                                 href='#'
                                 onClick={this.handleLogoutClick}
-                            ><i className='fa fa-sign-out'></i>{'Logout'}</a></li>
+                            >
+                                <i className='fa fa-sign-out'></i>
+                                <FormattedMessage
+                                    id='sidebar_right_menu.logout'
+                                    defaultMessage='Logout'
+                                />
+                            </a>
+                        </li>
                         <li className='divider'></li>
                         {helpLink}
                         {reportLink}

@@ -16,7 +16,16 @@ import * as TextFormatting from '../utils/text_formatting.jsx';
 import twemoji from 'twemoji';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
-export default class RhsComment extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedDate} from 'mm-intl';
+
+const holders = defineMessages({
+    comment: {
+        id: 'rhs_comment.comment',
+        defaultMessage: 'Comment'
+    }
+});
+
+class RhsComment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -95,12 +104,15 @@ export default class RhsComment extends React.Component {
                         data-toggle='modal'
                         data-target='#edit_post'
                         data-refocusid='#reply_textbox'
-                        data-title='Comment'
+                        data-title={this.props.intl.formatMessage(holders.comment)}
                         data-message={post.message}
                         data-postid={post.id}
                         data-channelid={post.channel_id}
                     >
-                        {'Edit'}
+                        <FormattedMessage
+                            id='rhs_comment.edit'
+                            defaultMessage='Edit'
+                        />
                     </a>
                 </li>
             );
@@ -117,7 +129,10 @@ export default class RhsComment extends React.Component {
                         role='menuitem'
                         onClick={() => EventHelpers.showDeletePostModal(post, 0)}
                     >
-                        {'Delete'}
+                        <FormattedMessage
+                            id='rhs_comment.del'
+                            defaultMessage='Delete'
+                        />
                     </a>
                 </li>
             );
@@ -165,7 +180,10 @@ export default class RhsComment extends React.Component {
                     href='#'
                     onClick={this.retryComment}
                 >
-                    {'Retry'}
+                    <FormattedMessage
+                        id='rhs_comment.retry'
+                        defaultMessage='Retry'
+                    />
                 </a>
             );
         } else if (post.state === Constants.POST_LOADING) {
@@ -208,7 +226,15 @@ export default class RhsComment extends React.Component {
                             </li>
                             <li className='col'>
                                 <time className='post__time'>
-                                    {Utils.displayCommentDateTime(post.create_at)}
+                                    <FormattedDate
+                                        value={post.create_at}
+                                        day='numeric'
+                                        month='long'
+                                        year='numeric'
+                                        hour12='true'
+                                        hour='2-digit'
+                                        minute='2-digit'
+                                    />
                                 </time>
                             </li>
                             <li className='col col__reply'>
@@ -237,5 +263,8 @@ RhsComment.defaultProps = {
     post: null
 };
 RhsComment.propTypes = {
+    intl: intlShape.isRequired,
     post: React.PropTypes.object
 };
+
+export default injectIntl(RhsComment);

@@ -8,6 +8,8 @@ import * as Utils from '../utils/utils.jsx';
 import SearchResultsHeader from './search_results_header.jsx';
 import SearchResultsItem from './search_results_item.jsx';
 
+import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
 function getStateFromStores() {
     return {results: SearchStore.getSearchResults()};
 }
@@ -83,25 +85,29 @@ export default class SearchResults extends React.Component {
         if (!searchTerm && noResults) {
             ctls = (
                 <div className='sidebar--right__subheader'>
-                    <ul>
-                        <li>
-                            {'Use '}<b>{'"quotation marks"'}</b>{' to search for phrases'}
-                        </li>
-                        <li>
-                            {'Use '}<b>{'from:'}</b>{' to find posts from specific users and '}<b>{'in:'}</b>{' to find posts in specific channels'}
-                        </li>
-                    </ul>
+                    <FormattedHTMLMessage
+                        id='search_results.usage'
+                        defaultMessage='<ul><li>Use <b>"quotation marks"</b> to search for phrases</li><li>Use <b>from:</b> to find posts from specific users and <b>in:</b> to find posts in specific channels</li></ul>'
+                    />
                 </div>
             );
         } else if (noResults) {
             ctls =
             (
                 <div className='sidebar--right__subheader'>
-                    <h4>{'NO RESULTS'}</h4>
-                    <ul>
-                        <li>{'If you\'re searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term'}</li>
-                        <li>{'Due to the volume of results, two letter searches and common words like "this", "a" and "is" won\'t appear in search results'}</li>
-                    </ul>
+                    <h4>
+                        <FormattedMessage
+                            id='search_results.noResults'
+                            defaultMessage='NO RESULTS'
+                        />
+                    </h4>
+                    <FormattedHTMLMessage
+                        id='search_results.because'
+                        defaultMessage='<ul>
+                        <li>If you&#39;re searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term</li>
+                        <li>Due to the volume of results, two letter searches and common words like "this", "a" and "is" won&#39;t appear in search results</li>
+                    </ul>'
+                    />
                 </div>
             );
         } else {

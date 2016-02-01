@@ -3,6 +3,9 @@
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
+
+import {FormattedMessage} from 'mm-intl';
+
 var ActionTypes = Constants.ActionTypes;
 
 export default class SearchResultsHeader extends React.Component {
@@ -34,10 +37,20 @@ export default class SearchResultsHeader extends React.Component {
     }
 
     render() {
-        var title = 'Search Results';
+        var title = (
+            <FormattedMessage
+                id='search_header.results'
+                defaultMessage='Search Results'
+            />
+        );
 
         if (this.props.isMentionSearch) {
-            title = 'Recent Mentions';
+            title = (
+                <FormattedMessage
+                    id='search_header.title2'
+                    defaultMessage='Recent Mentions'
+                />
+            );
         }
 
         return (
