@@ -3,8 +3,26 @@
 
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
+import UserStore from '../../stores/user_store.jsx';
+import ConfirmModal from '../confirm_modal.jsx';
+import TeamStore from '../../stores/team_store.jsx';
 
-import {FormattedMessage} from 'mm-intl';
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+var messages = defineMessages({
+    confirmDemoteRoleTitle: {
+        id: 'admin.user_item.confirmDemoteRoleTitle',
+        defaultMessage: 'Confirm demotion from System Admin role'
+    },
+    confirmDemotion: {
+        id: 'admin.user_item.confirmDemotion',
+        defaultMessage: 'Confirm Demotion'
+    },
+    confirmDemoteDescription: {
+        id: 'admin.user_item.confirmDemoteDescription',
+        defaultMessage: 'If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you\'ll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.'
+    }
+});
 
 export default class UserItem extends React.Component {
     constructor(props) {
@@ -16,25 +34,38 @@ export default class UserItem extends React.Component {
         this.handleMakeAdmin = this.handleMakeAdmin.bind(this);
         this.handleMakeSystemAdmin = this.handleMakeSystemAdmin.bind(this);
         this.handleResetPassword = this.handleResetPassword.bind(this);
+        this.handleDemote = this.handleDemote.bind(this);
+        this.handleDemoteSubmit = this.handleDemoteSubmit.bind(this);
+        this.handleDemoteCancel = this.handleDemoteCancel.bind(this);
 
-        this.state = {};
+        this.state = {
+            serverError: null,
+            showDemoteModal: false,
+            user: null,
+            role: null
+        };
     }
 
     handleMakeMember(e) {
         e.preventDefault();
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: ''
-        };
+        const me = UserStore.getCurrentUser();
+        if (this.props.user.id === me.id) {
+            this.handleDemote(this.props.user, '');
+        } else {
+            const data = {
+                user_id: this.props.user.id,
+                new_roles: ''
+            };
 
-        Client.updateRoles(data,
-            () => {
-                this.props.refreshProfiles();
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
+            Client.updateRoles(data,
+                () => {
+                    this.props.refreshProfiles();
+                },
+                (err) => {
+                    this.setState({serverError: err.message});
+                }
+            );
+        }
     }
 
     handleMakeActive(e) {
@@ -63,19 +94,24 @@ export default class UserItem extends React.Component {
 
     handleMakeAdmin(e) {
         e.preventDefault();
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: 'admin'
-        };
+        const me = UserStore.getCurrentUser();
+        if (this.props.user.id === me.id) {
+            this.handleDemote(this.props.user, 'admin');
+        } else {
+            const data = {
+                user_id: this.props.user.id,
+                new_roles: 'admin'
+            };
 
-        Client.updateRoles(data,
-            () => {
-                this.props.refreshProfiles();
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
+            Client.updateRoles(data,
+                () => {
+                    this.props.refreshProfiles();
+                },
+                (err) => {
+                    this.setState({serverError: err.message});
+                }
+            );
+        }
     }
 
     handleMakeSystemAdmin(e) {
@@ -98,6 +134,54 @@ export default class UserItem extends React.Component {
     handleResetPassword(e) {
         e.preventDefault();
         this.props.doPasswordReset(this.props.user);
+    }
+
+    handleDemote(user, role) {
+        this.setState({
+            serverError: this.state.serverError,
+            showDemoteModal: true,
+            user,
+            role
+        });
+    }
+
+    handleDemoteCancel() {
+        this.setState({
+            serverError: null,
+            showDemoteModal: false,
+            user: null,
+            role: null
+        });
+    }
+
+    handleDemoteSubmit() {
+        const data = {
+            user_id: this.props.user.id,
+            new_roles: this.state.role
+        };
+
+        Client.updateRoles(data,
+            () => {
+                this.setState({
+                    serverError: null,
+                    showDemoteModal: false,
+                    user: null,
+                    role: null
+                });
+
+                const teamUrl = TeamStore.getCurrentTeamUrl();
+                if (teamUrl) {
+                    window.location.href = teamUrl;
+                } else {
+                    window.location.href = '/';
+                }
+            },
+            (err) => {
+                this.setState({
+                    serverError: err.message
+                });
+            }
+        );
     }
 
     render() {
@@ -247,6 +331,20 @@ export default class UserItem extends React.Component {
                 </li>
             );
         }
+        const me = UserStore.getCurrentUser();
+        let makeDemoteModal = null;
+        if (this.props.user.id === me.id) {
+            makeDemoteModal = (
+                <ConfirmModal
+                    show={this.state.showDemoteModal}
+                    title={this.props.intl.formatMessage(messages.confirmDemoteRoleTitle)}
+                    message={[this.props.intl.formatMessage(messages.confirmDemoteDescription), React.createElement('br'), React.createElement('br'), './platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"', serverError]}
+                    confirm_button={this.props.intl.formatMessage(messages.confirmDemotion)}
+                    onConfirm={this.handleDemoteSubmit}
+                    onCancel={this.handleDemoteCancel}
+                />
+            );
+        }
 
         return (
             <tr>
@@ -293,6 +391,7 @@ export default class UserItem extends React.Component {
                             </li>
                         </ul>
                     </div>
+                    {makeDemoteModal}
                     {serverError}
                 </td>
             </tr>
@@ -301,7 +400,10 @@ export default class UserItem extends React.Component {
 }
 
 UserItem.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object.isRequired,
     refreshProfiles: React.PropTypes.func.isRequired,
     doPasswordReset: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(UserItem);
