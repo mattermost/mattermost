@@ -4,7 +4,16 @@
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class PrivacySettings extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    saving: {
+        id: 'admin.privacy.saving',
+        defaultMessage: 'Saving Config...'
+    }
+});
+
+class PrivacySettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -64,7 +73,12 @@ export default class PrivacySettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'Privacy Settings'}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='admin.privacy.title'
+                        defaultMessage='Privacy Settings'
+                    />
+                </h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -75,7 +89,10 @@ export default class PrivacySettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ShowEmailAddress'
                         >
-                            {'Show Email Address: '}
+                            <FormattedMessage
+                                id='admin.privacy.showEmailTitle'
+                                defaultMessage='Show Email Address: '
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -87,7 +104,10 @@ export default class PrivacySettings extends React.Component {
                                     defaultChecked={this.props.config.PrivacySettings.ShowEmailAddress}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    <FormattedMessage
+                                        id='admin.privacy.true'
+                                        defaultMessage='true'
+                                    />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -97,9 +117,17 @@ export default class PrivacySettings extends React.Component {
                                     defaultChecked={!this.props.config.PrivacySettings.ShowEmailAddress}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    <FormattedMessage
+                                        id='admin.privacy.false'
+                                        defaultMessage='false'
+                                    />
                             </label>
-                            <p className='help-text'>{'When false, hides email address of users from other users in the user interface, including team owners and team administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.privacy.showEmailDescription'
+                                    defaultMessage='When false, hides email address of users from other users in the user interface, including team owners and team administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -108,7 +136,10 @@ export default class PrivacySettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ShowFullName'
                         >
-                            {'Show Full Name: '}
+                            <FormattedMessage
+                                id='admin.privacy.showFullNameTitle'
+                                defaultMessage='Show Full Name: '
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -120,7 +151,10 @@ export default class PrivacySettings extends React.Component {
                                     defaultChecked={this.props.config.PrivacySettings.ShowFullName}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    <FormattedMessage
+                                        id='admin.privacy.true'
+                                        defaultMessage='true'
+                                    />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -130,9 +164,17 @@ export default class PrivacySettings extends React.Component {
                                     defaultChecked={!this.props.config.PrivacySettings.ShowFullName}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    <FormattedMessage
+                                        id='admin.privacy.false'
+                                        defaultMessage='false'
+                                    />
                             </label>
-                            <p className='help-text'>{'When false, hides full name of users from other users, including team owners and team administrators. Username is shown in place of full name.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.privacy.showFullNameDescription'
+                                    defaultMessage='When false, hides full name of users from other users, including team owners and team administrators. Username is shown in place of full name.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -145,9 +187,12 @@ export default class PrivacySettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + this.props.intl.formatMessage(holders.saving)}
                             >
-                                {'Save'}
+                                <FormattedMessage
+                                    id='admin.privacy.save'
+                                    defaultMessage='Save'
+                                />
                             </button>
                         </div>
                     </div>
@@ -159,5 +204,8 @@ export default class PrivacySettings extends React.Component {
 }
 
 PrivacySettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(PrivacySettings);

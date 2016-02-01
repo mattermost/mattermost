@@ -4,7 +4,20 @@
 import * as utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 
-export default class FindTeam extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+var holders = defineMessages({
+    submitError: {
+        id: 'find_team.submitError',
+        defaultMessage: 'Please enter a valid email address'
+    },
+    placeholder: {
+        id: 'find_team.placeholder',
+        defaultMessage: 'you@domain.com'
+    }
+});
+
+class FindTeam extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
@@ -19,7 +32,7 @@ export default class FindTeam extends React.Component {
 
         var email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!email || !utils.isEmail(email)) {
-            state.email_error = 'Please enter a valid email address';
+            state.email_error = this.props.intl.formatMessage(holders.submitError);
             this.setState(state);
             return;
         }
@@ -50,25 +63,50 @@ export default class FindTeam extends React.Component {
         if (this.state.sent) {
             return (
                 <div>
-                    <h4>{'Find Your teams'}</h4>
-                    <p>{'An email was sent with links to any teams to which you are a member.'}</p>
+                    <h4>
+                        <FormattedMessage
+                            id='find_team.findTitle'
+                            defaultMessage='Find Your Team'
+                        />
+                    </h4>
+                    <p>
+                        <FormattedMessage
+                            id='find_team.findDescription'
+                            defaultMessage='An email was sent with links to any teams to which you are a member.'
+                        />
+                    </p>
                 </div>
             );
         }
 
         return (
         <div>
-                <h4>Find Your Team</h4>
+                <h4>
+                    <FormattedMessage
+                        id='find_team.findTitle'
+                        defaultMessage='Find Your Team'
+                    />
+                </h4>
                 <form onSubmit={this.handleSubmit}>
-                    <p>{'Get an email with links to any teams to which you are a member.'}</p>
+                    <p>
+                        <FormattedMessage
+                            id='find_team.getLinks'
+                            defaultMessage='Get an email with links to any teams to which you are a member.'
+                        />
+                    </p>
                     <div className='form-group'>
-                        <label className='control-label'>Email</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='find_team.email'
+                                defaultMessage='Email'
+                            />
+                        </label>
                         <div className={emailErrorClass}>
                             <input
                                 type='text'
                                 ref='email'
                                 className='form-control'
-                                placeholder='you@domain.com'
+                                placeholder={this.props.intl.formatMessage(holders.placeholder)}
                                 maxLength='128'
                                 spellCheck='false'
                             />
@@ -79,10 +117,19 @@ export default class FindTeam extends React.Component {
                         className='btn btn-md btn-primary'
                         type='submit'
                     >
-                        Send
+                        <FormattedMessage
+                            id='find_team.send'
+                            defaultMessage='Send'
+                        />
                     </button>
                 </form>
                 </div>
         );
     }
 }
+
+FindTeam.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(FindTeam);

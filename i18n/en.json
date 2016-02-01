@@ -401,7 +401,7 @@
   },
   {
     "id": "api.context.unknown.app_error",
-    "translation": "An unknown error has occured. Please contact support."
+    "translation": "An unknown error has occurred. Please contact support."
   },
   {
     "id": "api.export.json.app_error",
@@ -454,10 +454,6 @@
   {
     "id": "api.file.get_file.not_found.app_error",
     "translation": "Could not find file."
-  },
-  {
-    "id": "api.file.get_file.public_expired.app_error",
-    "translation": "The public link has expired"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -580,6 +576,10 @@
     "translation": "Invalid license file."
   },
   {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "Unable to count total unique users."
+  },
+  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request"
   },
@@ -590,6 +590,10 @@
   {
     "id": "api.license.add_license.save.app_error",
     "translation": "License did not save properly."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
   },
   {
     "id": "api.license.init.debug",
@@ -953,7 +957,7 @@
   },
   {
     "id": "api.team.email_teams.sending.error",
-    "translation": "An error occured while sending an email in emailTeams err=%v"
+    "translation": "An error occurred while sending an email in emailTeams err=%v"
   },
   {
     "id": "api.team.export_team.admin.app_error",
@@ -1077,7 +1081,7 @@
   },
   {
     "id": "api.templates.error.link",
-    "translation": "Go back to team site"
+    "translation": "Go back to Mattermost"
   },
   {
     "id": "api.templates.error.title",
@@ -1149,7 +1153,7 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same."
+    "translation": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1429,7 +1433,7 @@
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "The reset link has expired"
+    "translation": "The password reset link has expired"
   },
   {
     "id": "api.user.reset_password.method",
@@ -1564,6 +1568,10 @@
     "translation": "Unable to upload profile image. File is too large."
   },
   {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "Couldn't upload profile image"
+  },
+  {
     "id": "api.web_conn.new_web_conn.last_activity.error",
     "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
   },
@@ -1672,8 +1680,48 @@
     "translation": "Unable to get channels"
   },
   {
+    "id": "mattermost.bulletin.subject",
+    "translation": "Mattermost Security Bulletin"
+  },
+  {
+    "id": "mattermost.config_file",
+    "translation": "Loaded config file from %v"
+  },
+  {
     "id": "mattermost.current_version",
     "translation": "Current version is %v (%v/%v/%v)"
+  },
+  {
+    "id": "mattermost.entreprise_enabled",
+    "translation": "Enterprise Enabled: %v"
+  },
+  {
+    "id": "mattermost.security_bulletin.error",
+    "translation": "Failed to get security bulletin details"
+  },
+  {
+    "id": "mattermost.security_bulletin_read.error",
+    "translation": "Failed to read security bulletin details"
+  },
+  {
+    "id": "mattermost.security_checks.debug",
+    "translation": "Checking for security update from Mattermost"
+  },
+  {
+    "id": "mattermost.security_info.error",
+    "translation": "Failed to get security update information from Mattermost."
+  },
+  {
+    "id": "mattermost.send_bulletin.info",
+    "translation": "Sending security bulletin for %v to %v"
+  },
+  {
+    "id": "mattermost.system_admins.error",
+    "translation": "Failed to get system admins for security update information from Mattermost."
+  },
+  {
+    "id": "mattermost.working_dir",
+    "translation": "Current working directory is %v"
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -2156,6 +2204,846 @@
     "translation": "could not decode"
   },
   {
+    "id": "store.sql.check_index.critical",
+    "translation": "Failed to check index %v"
+  },
+  {
+    "id": "store.sql.closing.info",
+    "translation": "Closing SqlStore"
+  },
+  {
+    "id": "store.sql.column_exists.critical",
+    "translation": "Failed to check if column exists %v"
+  },
+  {
+    "id": "store.sql.column_exists_missing_driver.critical",
+    "translation": "Failed to check if column exists because of missing driver"
+  },
+  {
+    "id": "store.sql.convert_encrypt_string_map",
+    "translation": "FromDb: Unable to convert EncryptStringMap to *string"
+  },
+  {
+    "id": "store.sql.convert_string_array",
+    "translation": "FromDb: Unable to convert StringArray to *string"
+  },
+  {
+    "id": "store.sql.convert_string_interface",
+    "translation": "FromDb: Unable to convert StringInterface to *string"
+  },
+  {
+    "id": "store.sql.convert_string_map",
+    "translation": "FromDb: Unable to convert StringMap to *string"
+  },
+  {
+    "id": "store.sql.create_column.critical",
+    "translation": "Failed to create column %v"
+  },
+  {
+    "id": "store.sql.create_column_missing_driver.critical",
+    "translation": "Failed to create column because of missing driver"
+  },
+  {
+    "id": "store.sql.create_index.critical",
+    "translation": "Failed to create index %v"
+  },
+  {
+    "id": "store.sql.create_index_missing_driver.critical",
+    "translation": "Failed to create index because of missing driver"
+  },
+  {
+    "id": "store.sql.creating_tables.critical",
+    "translation": "Error creating database tables: %v"
+  },
+  {
+    "id": "store.sql.dialect_driver.critical",
+    "translation": "Failed to create dialect specific driver"
+  },
+  {
+    "id": "store.sql.dialect_driver.panic",
+    "translation": "Failed to create dialect specific driver %v"
+  },
+  {
+    "id": "store.sql.drop_column.critical",
+    "translation": "Failed to drop column %v"
+  },
+  {
+    "id": "store.sql.incorrect_mac",
+    "translation": "Incorrect MAC for the given ciphertext"
+  },
+  {
+    "id": "store.sql.open_conn.critical",
+    "translation": "Failed to open sql connection to err:%v"
+  },
+  {
+    "id": "store.sql.open_conn.panic",
+    "translation": "Failed to open sql connection %v"
+  },
+  {
+    "id": "store.sql.ping.critical",
+    "translation": "Failed to ping db err:%v"
+  },
+  {
+    "id": "store.sql.pinging.info",
+    "translation": "Pinging sql %v database"
+  },
+  {
+    "id": "store.sql.rename_column.critical",
+    "translation": "Failed to rename column %v"
+  },
+  {
+    "id": "store.sql.schema_out_of_date.warn",
+    "translation": "The database schema version of %v appears to be out of date"
+  },
+  {
+    "id": "store.sql.schema_set.info",
+    "translation": "The database schema has been set to version %v"
+  },
+  {
+    "id": "store.sql.schema_upgrade_attempt.warn",
+    "translation": "Attempting to upgrade the database schema version to %v"
+  },
+  {
+    "id": "store.sql.schema_version.critical",
+    "translation": "The database schema version of %v cannot be upgraded.  You must not skip a version."
+  },
+  {
+    "id": "store.sql.short_ciphertext",
+    "translation": "short ciphertext"
+  },
+  {
+    "id": "store.sql.table_column_type.critical",
+    "translation": "Failed to get data type for column %s from table %s: %v"
+  },
+  {
+    "id": "store.sql.table_exists.critical",
+    "translation": "Failed to check if table exists %v"
+  },
+  {
+    "id": "store.sql.too_short_ciphertext",
+    "translation": "ciphertext too short"
+  },
+  {
+    "id": "store.sql.upgraded.warn",
+    "translation": "The database schema has been upgraded to version %v"
+  },
+  {
+    "id": "store.sql_audit.get.finding.app_error",
+    "translation": "We encountered an error finding the audits"
+  },
+  {
+    "id": "store.sql_audit.get.limit.app_error",
+    "translation": "Limit exceeded for paging"
+  },
+  {
+    "id": "store.sql_audit.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error deleting the audits"
+  },
+  {
+    "id": "store.sql_audit.save.saving.app_error",
+    "translation": "We encountered an error saving the audit"
+  },
+  {
+    "id": "store.sql_channel.analytics_type_count.app_error",
+    "translation": "We couldn't get channel type counts"
+  },
+  {
+    "id": "store.sql_channel.check_open_channel_permissions.app_error",
+    "translation": "We couldn't check the permissions"
+  },
+  {
+    "id": "store.sql_channel.check_permissions.app_error",
+    "translation": "We couldn't check the permissions"
+  },
+  {
+    "id": "store.sql_channel.check_permissions_by_name.app_error",
+    "translation": "We couldn't check the permissions"
+  },
+  {
+    "id": "store.sql_channel.delete.channel.app_error",
+    "translation": "We couldn't delete the channel"
+  },
+  {
+    "id": "store.sql_channel.extra_updated.app_error",
+    "translation": "Problem updating members last updated time"
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "We couldn't find the existing channel"
+  },
+  {
+    "id": "store.sql_channel.get.find.app_error",
+    "translation": "We encountered an error finding the channel"
+  },
+  {
+    "id": "store.sql_channel.get_by_name.existing.app_error",
+    "translation": "We couldn't find the existing channel"
+  },
+  {
+    "id": "store.sql_channel.get_channel_counts.get.app_error",
+    "translation": "We couldn't get the channel counts"
+  },
+  {
+    "id": "store.sql_channel.get_channels.get.app_error",
+    "translation": "We couldn't get the channels"
+  },
+  {
+    "id": "store.sql_channel.get_channels.not_found.app_error",
+    "translation": "No channels were found"
+  },
+  {
+    "id": "store.sql_channel.get_extra_members.app_error",
+    "translation": "We couldn't get the extra info for channel members"
+  },
+  {
+    "id": "store.sql_channel.get_for_export.app_error",
+    "translation": "We couldn't get all the channels"
+  },
+  {
+    "id": "store.sql_channel.get_member.app_error",
+    "translation": "We couldn't get the channel member"
+  },
+  {
+    "id": "store.sql_channel.get_member_count.app_error",
+    "translation": "We couldn't get the channel member count"
+  },
+  {
+    "id": "store.sql_channel.get_members.app_error",
+    "translation": "We couldn't get the channel members"
+  },
+  {
+    "id": "store.sql_channel.get_more_channels.get.app_error",
+    "translation": "We couldn't get the channels"
+  },
+  {
+    "id": "store.sql_channel.increment_mention_count.app_error",
+    "translation": "We couldn't increment the mention count"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.app_error",
+    "translation": "We couldn't delete the channels"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
+    "translation": "We couldn't remove the channel member"
+  },
+  {
+    "id": "store.sql_channel.remove_member.app_error",
+    "translation": "We couldn't remove the channel member"
+  },
+  {
+    "id": "store.sql_channel.save.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.save.direct_channel.app_error",
+    "translation": "Use SaveDirectChannel to create a direct channel"
+  },
+  {
+    "id": "store.sql_channel.save.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
+    "id": "store.sql_channel.save_channel.current_count.app_error",
+    "translation": "Failed to get current channel count"
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "Must call update for exisiting channel"
+  },
+  {
+    "id": "store.sql_channel.save_channel.exists.app_error",
+    "translation": "A channel with that URL already exists"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "You've reached the limit of the number of allowed channels."
+  },
+  {
+    "id": "store.sql_channel.save_channel.previously.app_error",
+    "translation": "A channel with that URL was previously created"
+  },
+  {
+    "id": "store.sql_channel.save_channel.save.app_error",
+    "translation": "We couldn't save the channel"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.add_members.app_error",
+    "translation": "Unable to add direct channel members"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.commit.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
+    "translation": "Not a direct channel attempted to be created with SaveDirectChannel"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
+    "id": "store.sql_channel.save_member.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.save_member.exists.app_error",
+    "translation": "A channel member with that id already exists"
+  },
+  {
+    "id": "store.sql_channel.save_member.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
+    "id": "store.sql_channel.save_member.save.app_error",
+    "translation": "We couldn't save the channel member"
+  },
+  {
+    "id": "store.sql_channel.update.app_error",
+    "translation": "We couldn't update the channel"
+  },
+  {
+    "id": "store.sql_channel.update.exists.app_error",
+    "translation": "A channel with that handle already exists"
+  },
+  {
+    "id": "store.sql_channel.update.previously.app_error",
+    "translation": "A channel with that handle was previously created"
+  },
+  {
+    "id": "store.sql_channel.update.updating.app_error",
+    "translation": "We encountered an error updating the channel"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at.app_error",
+    "translation": "We couldn't update the last viewed at time"
+  },
+  {
+    "id": "store.sql_channel.update_member.app_error",
+    "translation": "We encountered an error updating the channel member"
+  },
+  {
+    "id": "store.sql_oauth.get_access_data.app_error",
+    "translation": "We encountered an error finding the access token"
+  },
+  {
+    "id": "store.sql_oauth.get_access_data_by_code.app_error",
+    "translation": "We encountered an error finding the access token"
+  },
+  {
+    "id": "store.sql_oauth.get_app.find.app_error",
+    "translation": "We couldn't find the existing app"
+  },
+  {
+    "id": "store.sql_oauth.get_app.finding.app_error",
+    "translation": "We encountered an error finding the app"
+  },
+  {
+    "id": "store.sql_oauth.get_app_by_user.find.app_error",
+    "translation": "We couldn't find any existing apps"
+  },
+  {
+    "id": "store.sql_oauth.get_auth_data.find.app_error",
+    "translation": "We couldn't find the existing authorization code"
+  },
+  {
+    "id": "store.sql_oauth.get_auth_data.finding.app_error",
+    "translation": "We encountered an error finding the authorization code"
+  },
+  {
+    "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
+    "translation": "We couldn't remove the authorization code"
+  },
+  {
+    "id": "store.sql_oauth.remove_access_data.app_error",
+    "translation": "We couldn't remove the access token"
+  },
+  {
+    "id": "store.sql_oauth.remove_auth_data.app_error",
+    "translation": "We couldn't remove the authorization code"
+  },
+  {
+    "id": "store.sql_oauth.save_access_data.app_error",
+    "translation": "We couldn't save the access token."
+  },
+  {
+    "id": "store.sql_oauth.save_app.existing.app_error",
+    "translation": "Must call update for exisiting app"
+  },
+  {
+    "id": "store.sql_oauth.save_app.save.app_error",
+    "translation": "We couldn't save the app."
+  },
+  {
+    "id": "store.sql_oauth.save_auth_data.app_error",
+    "translation": "We couldn't save the authorization code."
+  },
+  {
+    "id": "store.sql_oauth.update_app.find.app_error",
+    "translation": "We couldn't find the existing app to update"
+  },
+  {
+    "id": "store.sql_oauth.update_app.finding.app_error",
+    "translation": "We encountered an error finding the app"
+  },
+  {
+    "id": "store.sql_oauth.update_app.update.app_error",
+    "translation": "We couldn't update the app"
+  },
+  {
+    "id": "store.sql_oauth.update_app.updating.app_error",
+    "translation": "We encountered an error updating the app"
+  },
+  {
+    "id": "store.sql_post.analytics_posts_count.app_error",
+    "translation": "We couldn't get post counts"
+  },
+  {
+    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
+    "translation": "We couldn't get post counts by day"
+  },
+  {
+    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "We couldn't get user counts with posts"
+  },
+  {
+    "id": "store.sql_post.delete.app_error",
+    "translation": "We couldn't delete the post"
+  },
+  {
+    "id": "store.sql_post.get.app_error",
+    "translation": "We couldn't get the post"
+  },
+  {
+    "id": "store.sql_post.get_for_export.app_error",
+    "translation": "We couldn't get the posts for the channel"
+  },
+  {
+    "id": "store.sql_post.get_parents_posts.app_error",
+    "translation": "We couldn't get the parent post for the channel"
+  },
+  {
+    "id": "store.sql_post.get_posts.app_error",
+    "translation": "Limit exceeded for paging"
+  },
+  {
+    "id": "store.sql_post.get_posts_around.get.app_error",
+    "translation": "We couldn't get the posts for the channel"
+  },
+  {
+    "id": "store.sql_post.get_posts_around.get_parent.app_error",
+    "translation": "We couldn't get the parent posts for the channel"
+  },
+  {
+    "id": "store.sql_post.get_posts_since.app_error",
+    "translation": "We couldn't get the posts for the channel"
+  },
+  {
+    "id": "store.sql_post.get_root_posts.app_error",
+    "translation": "We couldn't get the posts for the channel"
+  },
+  {
+    "id": "store.sql_post.permanent_delete.app_error",
+    "translation": "We couldn't delete the post"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
+    "translation": "We couldn't delete the comments for user"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_user.app_error",
+    "translation": "We couldn't select the posts to delete for the user"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
+    "translation": "We couldn't select the posts to delete for the user (too many), please re-run"
+  },
+  {
+    "id": "store.sql_post.save.app_error",
+    "translation": "We couldn't save the Post"
+  },
+  {
+    "id": "store.sql_post.save.existing.app_error",
+    "translation": "You cannot update an existing Post"
+  },
+  {
+    "id": "store.sql_post.search.app_error",
+    "translation": "We encountered an error while searching for posts"
+  },
+  {
+    "id": "store.sql_post.update.app_error",
+    "translation": "We couldn't update the Post"
+  },
+  {
+    "id": "store.sql_preference.delete_unused_features.debug",
+    "translation": "Deleting any unused pre-release features"
+  },
+  {
+    "id": "store.sql_preference.get.app_error",
+    "translation": "We encountered an error while finding preferences"
+  },
+  {
+    "id": "store.sql_preference.get_all.app_error",
+    "translation": "We encountered an error while finding preferences"
+  },
+  {
+    "id": "store.sql_preference.get_category.app_error",
+    "translation": "We encountered an error while finding preferences"
+  },
+  {
+    "id": "store.sql_preference.insert.exists.app_error",
+    "translation": "A preference with that user id, category, and name already exists"
+  },
+  {
+    "id": "store.sql_preference.insert.save.app_error",
+    "translation": "We couldn't save the preference"
+  },
+  {
+    "id": "store.sql_preference.is_feature_enabled.app_error",
+    "translation": "We encountered an error while finding a pre release feature preference"
+  },
+  {
+    "id": "store.sql_preference.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error while deleteing preferences"
+  },
+  {
+    "id": "store.sql_preference.save.commit_transaction.app_error",
+    "translation": "Unable to commit transaction to save preferences"
+  },
+  {
+    "id": "store.sql_preference.save.missing_driver.app_error",
+    "translation": "We encountered an error while updating preferences"
+  },
+  {
+    "id": "store.sql_preference.save.open_transaction.app_error",
+    "translation": "Unable to open transaction to save preferences"
+  },
+  {
+    "id": "store.sql_preference.save.rollback_transaction.app_error",
+    "translation": "Unable to rollback transaction to save preferences"
+  },
+  {
+    "id": "store.sql_preference.save.updating.app_error",
+    "translation": "We encountered an error while updating preferences"
+  },
+  {
+    "id": "store.sql_preference.update.app_error",
+    "translation": "We couldn't update the preference"
+  },
+  {
+    "id": "store.sql_session.cleanup_expired_sessions.app_error",
+    "translation": "We encountered an error while deleting expired user sessions"
+  },
+  {
+    "id": "store.sql_session.get.app_error",
+    "translation": "We encountered an error finding the session"
+  },
+  {
+    "id": "store.sql_session.get_sessions.app_error",
+    "translation": "We encountered an error while finding user sessions"
+  },
+  {
+    "id": "store.sql_session.get_sessions.error",
+    "translation": "Failed to cleanup sessions in getSessions err=%v"
+  },
+  {
+    "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
+    "translation": "We couldn't remove all the sessions for the user"
+  },
+  {
+    "id": "store.sql_session.remove.app_error",
+    "translation": "We couldn't remove the session"
+  },
+  {
+    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
+    "translation": "We couldn't remove all the sessions for the team"
+  },
+  {
+    "id": "store.sql_session.save.app_error",
+    "translation": "We couldn't save the session"
+  },
+  {
+    "id": "store.sql_session.save.cleanup.error",
+    "translation": "Failed to cleanup sessions in Save err=%v"
+  },
+  {
+    "id": "store.sql_session.save.existing.app_error",
+    "translation": "Cannot update existing session"
+  },
+  {
+    "id": "store.sql_session.update_device_id.app_error",
+    "translation": "We couldn't update the device id"
+  },
+  {
+    "id": "store.sql_session.update_last_activity.app_error",
+    "translation": "We couldn't update the last_activity_at"
+  },
+  {
+    "id": "store.sql_session.update_roles.app_error",
+    "translation": "We couldn't update the roles"
+  },
+  {
+    "id": "store.sql_system.get.app_error",
+    "translation": "We encountered an error finding the system properties"
+  },
+  {
+    "id": "store.sql_system.save.app_error",
+    "translation": "We encountered an error saving the system property"
+  },
+  {
+    "id": "store.sql_system.update.app_error",
+    "translation": "We encountered an error updating the system property"
+  },
+  {
+    "id": "store.sql_team.get.find.app_error",
+    "translation": "We couldn't find the existing team"
+  },
+  {
+    "id": "store.sql_team.get.finding.app_error",
+    "translation": "We encountered an error finding the team"
+  },
+  {
+    "id": "store.sql_team.get_all.app_error",
+    "translation": "We could not get all teams"
+  },
+  {
+    "id": "store.sql_team.get_all_team_listing.app_error",
+    "translation": "We could not get all teams"
+  },
+  {
+    "id": "store.sql_team.get_by_invite_id.find.app_error",
+    "translation": "We couldn't find the existing team"
+  },
+  {
+    "id": "store.sql_team.get_by_invite_id.finding.app_error",
+    "translation": "We couldn't find the existing team"
+  },
+  {
+    "id": "store.sql_team.get_by_name.app_error",
+    "translation": "We couldn't find the existing team"
+  },
+  {
+    "id": "store.sql_team.get_teams_for_email.app_error",
+    "translation": "We encountered a problem when looking up teams"
+  },
+  {
+    "id": "store.sql_team.permanent_delete.app_error",
+    "translation": "We couldn't delete the existing team"
+  },
+  {
+    "id": "store.sql_team.save.app_error",
+    "translation": "We couldn't save the team"
+  },
+  {
+    "id": "store.sql_team.save.domain_exists.app_error",
+    "translation": "A team with that domain already exists"
+  },
+  {
+    "id": "store.sql_team.save.existing.app_error",
+    "translation": "Must call update for exisiting team"
+  },
+  {
+    "id": "store.sql_team.update.app_error",
+    "translation": "We couldn't update the team"
+  },
+  {
+    "id": "store.sql_team.update.find.app_error",
+    "translation": "We couldn't find the existing team to update"
+  },
+  {
+    "id": "store.sql_team.update.finding.app_error",
+    "translation": "We encountered an error finding the team"
+  },
+  {
+    "id": "store.sql_team.update.updating.app_error",
+    "translation": "We encountered an error updating the team"
+  },
+  {
+    "id": "store.sql_team.update_display_name.app_error",
+    "translation": "We couldn't update the team name"
+  },
+  {
+    "id": "store.sql_user.analytics_unique_user_count.app_error",
+    "translation": "We couldn't get the unique user count"
+  },
+  {
+    "id": "store.sql_user.get.app_error",
+    "translation": "We encountered an error finding the account"
+  },
+  {
+    "id": "store.sql_user.get_by_auth.app_error",
+    "translation": "We couldn't find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
+  },
+  {
+    "id": "store.sql_user.get_by_username.app_error",
+    "translation": "We couldn't find an existing account matching your username for this team. This team may require an invite from the team owner to join."
+  },
+  {
+    "id": "store.sql_user.get_for_export.app_error",
+    "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_profiles.app_error",
+    "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_sysadmin_profiles.app_error",
+    "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_total_active_users_count.app_error",
+    "translation": "We could not count the users"
+  },
+  {
+    "id": "store.sql_user.get_total_users_count.app_error",
+    "translation": "We could not count the users"
+  },
+  {
+    "id": "store.sql_user.missing_account.const",
+    "translation": "We couldn't find an existing account matching your email address for this team. This team may require an invite from the team owner to join."
+  },
+  {
+    "id": "store.sql_user.permanent_delete.app_error",
+    "translation": "We couldn't delete the existing account"
+  },
+  {
+    "id": "store.sql_user.save.app_error",
+    "translation": "We couldn't save the account."
+  },
+  {
+    "id": "store.sql_user.save.email_exists.app_error",
+    "translation": "An account with that email already exists."
+  },
+  {
+    "id": "store.sql_user.save.existing.app_error",
+    "translation": "Must call update for exisiting user"
+  },
+  {
+    "id": "store.sql_user.save.max_accounts.app_error",
+    "translation": "This team has reached the maxmium number of allowed accounts. Contact your systems administrator to set a higher limit."
+  },
+  {
+    "id": "store.sql_user.save.member_count.app_error",
+    "translation": "Failed to get current team member count"
+  },
+  {
+    "id": "store.sql_user.save.username_exists.app_error",
+    "translation": "An account with that username already exists."
+  },
+  {
+    "id": "store.sql_user.update.app_error",
+    "translation": "We couldn't update the account"
+  },
+  {
+    "id": "store.sql_user.update.email_taken.app_error",
+    "translation": "This email is already taken. Please choose another."
+  },
+  {
+    "id": "store.sql_user.update.find.app_error",
+    "translation": "We couldn't find the existing account to update"
+  },
+  {
+    "id": "store.sql_user.update.finding.app_error",
+    "translation": "We encountered an error finding the account"
+  },
+  {
+    "id": "store.sql_user.update.updating.app_error",
+    "translation": "We encountered an error updating the account"
+  },
+  {
+    "id": "store.sql_user.update.username_taken.app_error",
+    "translation": "This username is already taken. Please choose another."
+  },
+  {
+    "id": "store.sql_user.update_auth_data.app_error",
+    "translation": "We couldn't update the auth data"
+  },
+  {
+    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
+    "translation": "We couldn't update the failed_attempts"
+  },
+  {
+    "id": "store.sql_user.update_last_activity.app_error",
+    "translation": "We couldn't update the last_activity_at"
+  },
+  {
+    "id": "store.sql_user.update_last_picture_update.app_error",
+    "translation": "We couldn't update the update_at"
+  },
+  {
+    "id": "store.sql_user.update_last_ping.app_error",
+    "translation": "We couldn't update the last_ping_at"
+  },
+  {
+    "id": "store.sql_user.update_password.app_error",
+    "translation": "We couldn't update the user password"
+  },
+  {
+    "id": "store.sql_user.verify_email.app_error",
+    "translation": "Unable to update verify email field"
+  },
+  {
+    "id": "store.sql_webhooks.delete_incoming.app_error",
+    "translation": "We couldn't delete the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.delete_outgoing.app_error",
+    "translation": "We couldn't delete the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming.app_error",
+    "translation": "We couldn't get the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
+    "translation": "We couldn't get the webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming_by_user.app_error",
+    "translation": "We couldn't get the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing.app_error",
+    "translation": "We couldn't get the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
+    "translation": "We couldn't get the webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
+    "translation": "We couldn't get the webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "We couldn't delete the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "We couldn't delete the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.save_incoming.app_error",
+    "translation": "We couldn't save the IncomingWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.save_incoming.existing.app_error",
+    "translation": "You cannot overwrite an existing IncomingWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.save_outgoing.app_error",
+    "translation": "We couldn't save the OutgoingWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.save_outgoing.override.app_error",
+    "translation": "You cannot overwrite an existing OutgoingWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.update_outgoing.app_error",
+    "translation": "We couldn't update the webhook"
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
   },
@@ -2254,5 +3142,265 @@
   {
     "id": "utils.mail.test.configured.error",
     "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v"
+  },
+  {
+    "id": "web.admin_console.title",
+    "translation": "Admin Console"
+  },
+  {
+    "id": "web.authorize_oauth.disabled.app_error",
+    "translation": "The system admin has turned off OAuth service providing."
+  },
+  {
+    "id": "web.authorize_oauth.missing.app_error",
+    "translation": "Missing one or more of response_type, client_id, or redirect_uri"
+  },
+  {
+    "id": "web.authorize_oauth.title",
+    "translation": "Authorize Application"
+  },
+  {
+    "id": "web.check_browser_compatibility.app_error",
+    "translation": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 11 or higher, FireFox 14 or higher, Safari 9 or higher"
+  },
+  {
+    "id": "web.claim_account.team.error",
+    "translation": "Couldn't find team name=%v, err=%v"
+  },
+  {
+    "id": "web.claim_account.title",
+    "translation": "Claim Account"
+  },
+  {
+    "id": "web.claim_account.user.error",
+    "translation": "Couldn't find user teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.create_dir.error",
+    "translation": "Failed to create directory watcher %v"
+  },
+  {
+    "id": "web.dir_fail.error",
+    "translation": "Failed in directory watcher %v"
+  },
+  {
+    "id": "web.do_load_channel.error",
+    "translation": "Error in getting users profile for id=%v forcing logout"
+  },
+  {
+    "id": "web.doc.title",
+    "translation": "Documentation"
+  },
+  {
+    "id": "web.email_verified.title",
+    "translation": "Email Verified"
+  },
+  {
+    "id": "web.find_team.title",
+    "translation": "Find Team"
+  },
+  {
+    "id": "web.footer.about",
+    "translation": "About"
+  },
+  {
+    "id": "web.footer.help",
+    "translation": "Help"
+  },
+  {
+    "id": "web.footer.privacy",
+    "translation": "Privacy"
+  },
+  {
+    "id": "web.footer.terms",
+    "translation": "Terms"
+  },
+  {
+    "id": "web.get_access_token.bad_client_id.app_error",
+    "translation": "invalid_request: Bad client_id"
+  },
+  {
+    "id": "web.get_access_token.bad_client_secret.app_error",
+    "translation": "invalid_request: Missing client_secret"
+  },
+  {
+    "id": "web.get_access_token.bad_grant.app_error",
+    "translation": "invalid_request: Bad grant_type"
+  },
+  {
+    "id": "web.get_access_token.credentials.app_error",
+    "translation": "invalid_client: Invalid client credentials"
+  },
+  {
+    "id": "web.get_access_token.disabled.app_error",
+    "translation": "The system admin has turned off OAuth service providing."
+  },
+  {
+    "id": "web.get_access_token.exchanged.app_error",
+    "translation": "invalid_grant: Authorization code already exchanged for an access token"
+  },
+  {
+    "id": "web.get_access_token.expired_code.app_error",
+    "translation": "invalid_grant: Invalid or expired authorization code"
+  },
+  {
+    "id": "web.get_access_token.internal.app_error",
+    "translation": "server_error: Encountered internal server error while accessing database"
+  },
+  {
+    "id": "web.get_access_token.internal_saving.app_error",
+    "translation": "server_error: Encountered internal server error while saving access token to database"
+  },
+  {
+    "id": "web.get_access_token.internal_session.app_error",
+    "translation": "server_error: Encountered internal server error while saving session to database"
+  },
+  {
+    "id": "web.get_access_token.internal_user.app_error",
+    "translation": "server_error: Encountered internal server error while pulling user from database"
+  },
+  {
+    "id": "web.get_access_token.missing_code.app_error",
+    "translation": "invalid_request: Missing code"
+  },
+  {
+    "id": "web.get_access_token.redirect_uri.app_error",
+    "translation": "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri"
+  },
+  {
+    "id": "web.get_access_token.revoking.error",
+    "translation": "Encountered an error revoking an access token, err="
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "Couldn't find the channel"
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "Invalid webhook"
+  },
+  {
+    "id": "web.incoming_webhook.parse.app_error",
+    "translation": "Unable to parse incoming data"
+  },
+  {
+    "id": "web.incoming_webhook.permissions.app_error",
+    "translation": "Inappropriate channel permissions"
+  },
+  {
+    "id": "web.incoming_webhook.text.app_error",
+    "translation": "No text specified"
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Couldn't find the user"
+  },
+  {
+    "id": "web.init.debug",
+    "translation": "Initializing web routes"
+  },
+  {
+    "id": "web.login.error",
+    "translation": "Couldn't find team name=%v, err=%v"
+  },
+  {
+    "id": "web.login.login_title",
+    "translation": "Login"
+  },
+  {
+    "id": "web.login_with_oauth.invalid_team.app_error",
+    "translation": "Invalid team name"
+  },
+  {
+    "id": "web.parsing_templates.debug",
+    "translation": "Parsing templates at %v"
+  },
+  {
+    "id": "web.parsing_templates.error",
+    "translation": "Failed to parse templates %v"
+  },
+  {
+    "id": "web.post_permalink.app_error",
+    "translation": "Invalid Post ID"
+  },
+  {
+    "id": "web.reparse_templates.info",
+    "translation": "Re-parsing templates because of modified file %v"
+  },
+  {
+    "id": "web.reset_password.expired_link.app_error",
+    "translation": "The password reset link has expired"
+  },
+  {
+    "id": "web.reset_password.invalid_link.app_error",
+    "translation": "The reset link does not appear to be valid"
+  },
+  {
+    "id": "web.root.home_title",
+    "translation": "Home"
+  },
+  {
+    "id": "web.root.singup_info",
+    "translation": "All team communication in one place, searchable and accessible anywhere"
+  },
+  {
+    "id": "web.root.singup_title",
+    "translation": "Signup"
+  },
+  {
+    "id": "web.signup_team_complete.invalid_link.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "web.signup_team_complete.link_expired.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "web.signup_team_complete.title",
+    "translation": "Complete Team Sign Up"
+  },
+  {
+    "id": "web.signup_team_confirm.title",
+    "translation": "Signup Email Sent"
+  },
+  {
+    "id": "web.signup_user_complete.link_expired.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "web.signup_user_complete.link_invalid.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "web.signup_user_complete.no_invites.app_error",
+    "translation": "The team type doesn't allow open invites"
+  },
+  {
+    "id": "web.signup_user_complete.title",
+    "translation": "Complete User Sign Up"
+  },
+  {
+    "id": "web.singup_with_oauth.disabled.app_error",
+    "translation": "User sign-up is disabled."
+  },
+  {
+    "id": "web.singup_with_oauth.expired_link.app_error",
+    "translation": "The signup link has expired"
+  },
+  {
+    "id": "web.singup_with_oauth.invalid_link.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "web.singup_with_oauth.invalid_team.app_error",
+    "translation": "Invalid team name"
+  },
+  {
+    "id": "web.watcher_fail.error",
+    "translation": "Failed to add directory to watcher %v"
   }
 ]

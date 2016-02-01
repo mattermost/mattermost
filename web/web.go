@@ -54,13 +54,18 @@ func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
 	me.Props["Locale"] = me.Locale
 	me.SessionTokenIndex = c.SessionTokenIndex
 
+	me.ClientCfg["FooterHelp"] = c.T("web.footer.help")
+	me.ClientCfg["FooterTerms"] = c.T("web.footer.terms")
+	me.ClientCfg["FooterPrivacy"] = c.T("web.footer.privacy")
+	me.ClientCfg["FooterAbout"] = c.T("web.footer.about")
+
 	if err := Templates.ExecuteTemplate(w, me.TemplateName, me); err != nil {
 		c.SetUnknownError(me.TemplateName, err.Error())
 	}
 }
 
 func InitWeb() {
-	l4g.Debug("Initializing web routes")
+	l4g.Debug(utils.T("web.init.debug"))
 
 	mainrouter := api.Srv.Router
 
@@ -112,15 +117,15 @@ func InitWeb() {
 func watchAndParseTemplates() {
 
 	templatesDir := utils.FindDir("web/templates")
-	l4g.Debug("Parsing templates at %v", templatesDir)
+	l4g.Debug(utils.T("web.parsing_templates.debug"), templatesDir)
 	var err error
 	if Templates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
-		l4g.Error("Failed to parse templates %v", err)
+		l4g.Error(utils.T("web.parsing_templates.error"), err)
 	}
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		l4g.Error("Failed to create directory watcher %v", err)
+		l4g.Error(utils.T("web.create_dir.error"), err)
 	}
 
 	go func() {
@@ -128,20 +133,20 @@ func watchAndParseTemplates() {
 			select {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					l4g.Info("Re-parsing templates because of modified file %v", event.Name)
+					l4g.Info(utils.T("web.reparse_templates.info"), event.Name)
 					if Templates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
-						l4g.Error("Failed to parse templates %v", err)
+						l4g.Error(utils.T("web.parsing_templates.error"), err)
 					}
 				}
 			case err := <-watcher.Errors:
-				l4g.Error("Failed in directory watcher %v", err)
+				l4g.Error(utils.T("web.dir_fail.error"), err)
 			}
 		}
 	}()
 
 	err = watcher.Add(templatesDir)
 	if err != nil {
-		l4g.Error("Failed to add directory to watcher %v", err)
+		l4g.Error(utils.T("web.watcher_fail.error"), err)
 	}
 }
 
@@ -156,7 +161,7 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 		version := strings.Split(browser, "/")
 
 		if strings.HasPrefix(bname, version[0]) && strings.HasPrefix(bversion, version[1]) {
-			c.Err = model.NewAppError("CheckBrowserCompatability", "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 11 or higher, FireFox 14 or higher, Safari 9 or higher", "")
+			c.Err = model.NewLocAppError("CheckBrowserCompatability", "web.check_browser_compatibility.app_error", nil, "")
 			return false
 		}
 	}
@@ -172,7 +177,8 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(c.Session.UserId) == 0 {
-		page := NewHtmlTemplatePage("signup_team", "Signup", c.Locale)
+		page := NewHtmlTemplatePage("signup_team", c.T("web.root.singup_title"), c.Locale)
+		page.Props["Info"] = c.T("web.root.singup_info")
 
 		if result := <-api.Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
 			c.Err = result.Err
@@ -211,7 +217,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			user = ur.Data.(*model.User)
 		}
 
-		page := NewHtmlTemplatePage("home", "Home", c.Locale)
+		page := NewHtmlTemplatePage("home", c.T("web.root.home_title"), c.Locale)
 		page.Team = team
 		page.User = user
 		page.Render(c, w)
@@ -224,7 +230,7 @@ func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage("signup_team", "Signup", c.Locale)
+	page := NewHtmlTemplatePage("signup_team", c.T("web.root.singup_title"), c.Locale)
 	page.Render(c, w)
 }
 
@@ -237,7 +243,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	var team *model.Team
 	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
-		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
+		l4g.Error(utils.T("web.login.error"), teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
 	} else {
@@ -259,7 +265,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage("login", "Login", c.Locale)
+	page := NewHtmlTemplatePage("login", c.T("web.login.login_title"), c.Locale)
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
 
@@ -273,7 +279,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 func signupTeamConfirm(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 
-	page := NewHtmlTemplatePage("signup_team_confirm", "Signup Email Sent", c.Locale)
+	page := NewHtmlTemplatePage("signup_team_confirm", c.T("web.signup_team_confirm.title"), c.Locale)
 	page.Props["Email"] = email
 	page.Render(c, w)
 }
@@ -283,7 +289,7 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	hash := r.FormValue("h")
 
 	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
-		c.Err = model.NewAppError("signupTeamComplete", "The signup link does not appear to be valid", "")
+		c.Err = model.NewLocAppError("signupTeamComplete", "web.signup_team_complete.invalid_link.app_error", nil, "")
 		return
 	}
 
@@ -291,11 +297,11 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 	t, err := strconv.ParseInt(props["time"], 10, 64)
 	if err != nil || model.GetMillis()-t > 1000*60*60*24*30 { // 30 days
-		c.Err = model.NewAppError("signupTeamComplete", "The signup link has expired", "")
+		c.Err = model.NewLocAppError("signupTeamComplete", "web.signup_team_complete.link_expired.app_error", nil, "")
 		return
 	}
 
-	page := NewHtmlTemplatePage("signup_team_complete", "Complete Team Sign Up", c.Locale)
+	page := NewHtmlTemplatePage("signup_team_complete", c.T("web.signup_team_complete.title"), c.Locale)
 	page.Props["Email"] = props["email"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
@@ -318,7 +324,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		} else {
 			team := result.Data.(*model.Team)
 			if !(team.Type == model.TEAM_OPEN || (team.Type == model.TEAM_INVITE && len(team.AllowedDomains) > 0)) {
-				c.Err = model.NewAppError("signupUserComplete", "The team type doesn't allow open invites", "id="+id)
+				c.Err = model.NewLocAppError("signupUserComplete", "web.signup_user_complete.no_invites.app_error", nil, "id="+id)
 				return
 			}
 
@@ -332,7 +338,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
-			c.Err = model.NewAppError("signupTeamComplete", "The signup link does not appear to be valid", "")
+			c.Err = model.NewLocAppError("signupTeamComplete", "web.signup_user_complete.link_invalid.app_error", nil, "")
 			return
 		}
 
@@ -340,12 +346,12 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 		t, err := strconv.ParseInt(props["time"], 10, 64)
 		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hour
-			c.Err = model.NewAppError("signupTeamComplete", "The signup link has expired", "")
+			c.Err = model.NewLocAppError("signupTeamComplete", "web.signup_user_complete.link_expired.app_error", nil, "")
 			return
 		}
 	}
 
-	page := NewHtmlTemplatePage("signup_user_complete", "Complete User Sign Up", c.Locale)
+	page := NewHtmlTemplatePage("signup_user_complete", c.T("web.signup_user_complete.title"), c.Locale)
 	page.Props["Email"] = props["email"]
 	page.Props["TeamDisplayName"] = props["display_name"]
 	page.Props["TeamName"] = props["name"]
@@ -366,7 +372,7 @@ func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	postId := params["postid"]
 
 	if len(postId) != 26 {
-		c.Err = model.NewAppError("postPermalink", "Invalid Post ID", "id="+postId)
+		c.Err = model.NewLocAppError("postPermalink", "web.post_permalink.app_error", nil, "id="+postId)
 		return
 	}
 
@@ -518,15 +524,23 @@ func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, 
 
 func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team *model.Team, channel *model.Channel, postid string) {
 	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+	prefChan := api.Srv.Store.Preference().GetAll(c.Session.UserId)
 
 	var user *model.User
 	if ur := <-userChan; ur.Err != nil {
 		c.Err = ur.Err
 		c.RemoveSessionCookie(w, r)
-		l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
+		l4g.Error(utils.T("web.do_load_channel.error"), c.Session.UserId)
 		return
 	} else {
 		user = ur.Data.(*model.User)
+	}
+
+	var preferences model.Preferences
+	if result := <-prefChan; result.Err != nil {
+		l4g.Error("Error in getting preferences for id=%v", c.Session.UserId)
+	} else {
+		preferences = result.Data.(model.Preferences)
 	}
 
 	page := NewHtmlTemplatePage("channel", "", c.Locale)
@@ -538,6 +552,7 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 	page.Team = team
 	page.User = user
 	page.Channel = channel
+	page.Preferences = &preferences
 	page.Render(c, w)
 }
 
@@ -586,7 +601,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	page := NewHtmlTemplatePage("verify", "Email Verified", c.Locale)
+	page := NewHtmlTemplatePage("verify", c.T("web.email_verified.title"), c.Locale)
 	page.Props["TeamURL"] = c.GetTeamURLFromTeam(team)
 	page.Props["UserEmail"] = email
 	page.Props["ResendSuccess"] = resendSuccess
@@ -594,7 +609,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func findTeam(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	page := NewHtmlTemplatePage("find_team", "Find Team", c.Locale)
+	page := NewHtmlTemplatePage("find_team", c.T("web.find_team.title"), c.Locale)
 	page.Render(c, w)
 }
 
@@ -602,8 +617,17 @@ func docs(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	doc := params["doc"]
 
-	page := NewHtmlTemplatePage("docs", "Documentation", c.Locale)
+	var user *model.User
+	if len(c.Session.UserId) != 0 {
+		userChan := api.Srv.Store.User().Get(c.Session.UserId)
+		if userChan := <-userChan; userChan.Err == nil {
+			user = userChan.Data.(*model.User)
+		}
+	}
+
+	page := NewHtmlTemplatePage("docs", c.T("web.doc.title"), c.Locale)
 	page.Props["Site"] = doc
+	page.User = user
 	page.Render(c, w)
 }
 
@@ -618,7 +642,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		isResetLink = false
 	} else {
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.PasswordResetSalt)) {
-			c.Err = model.NewAppError("resetPassword", "The reset link does not appear to be valid", "")
+			c.Err = model.NewLocAppError("resetPassword", "web.reset_password.invalid_link.app_error", nil, "")
 			return
 		}
 
@@ -626,7 +650,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 		t, err := strconv.ParseInt(props["time"], 10, 64)
 		if err != nil || model.GetMillis()-t > 1000*60*60 { // one hour
-			c.Err = model.NewAppError("resetPassword", "The signup link has expired", "")
+			c.Err = model.NewLocAppError("resetPassword", "web.reset_password.expired_link.app_error", nil, "")
 			return
 		}
 	}
@@ -661,13 +685,13 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	teamName := params["team"]
 
 	if !utils.Cfg.TeamSettings.EnableUserCreation {
-		c.Err = model.NewAppError("signupTeam", "User sign-up is disabled.", "")
+		c.Err = model.NewLocAppError("signupTeam", "web.singup_with_oauth.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
 	if len(teamName) == 0 {
-		c.Err = model.NewAppError("signupWithOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err = model.NewLocAppError("signupWithOAuth", "web.singup_with_oauth.invalid_team.app_error", nil, "team_name="+teamName)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -687,18 +711,18 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		props := model.MapFromJson(strings.NewReader(data))
 
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
-			c.Err = model.NewAppError("signupWithOAuth", "The signup link does not appear to be valid", "")
+			c.Err = model.NewLocAppError("signupWithOAuth", "web.singup_with_oauth.invalid_link.app_error", nil, "")
 			return
 		}
 
 		t, err := strconv.ParseInt(props["time"], 10, 64)
 		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-			c.Err = model.NewAppError("signupWithOAuth", "The signup link has expired", "")
+			c.Err = model.NewLocAppError("signupWithOAuth", "web.singup_with_oauth.expired_link.app_error", nil, "")
 			return
 		}
 
 		if team.Id != props["id"] {
-			c.Err = model.NewAppError("signupWithOAuth", "Invalid team name", data)
+			c.Err = model.NewLocAppError("signupWithOAuth", "web.singup_with_oauth.invalid_team.app_error", nil, data)
 			return
 		}
 	}
@@ -770,7 +794,7 @@ func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 
 	if len(teamName) == 0 {
-		c.Err = model.NewAppError("loginWithOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err = model.NewLocAppError("loginWithOAuth", "web.login_with_oauth.invalid_team.app_error", nil, "team_name="+teamName)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -822,7 +846,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	activeTab := params["tab"]
 	teamId := params["team"]
 
-	page := NewHtmlTemplatePage("admin_console", "Admin Console", c.Locale)
+	page := NewHtmlTemplatePage("admin_console", c.T("web.admin_console.title"), c.Locale)
 	page.User = user
 	page.Team = team
 	page.Props["ActiveTab"] = activeTab
@@ -832,7 +856,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
-		c.Err = model.NewAppError("authorizeOAuth", "The system admin has turned off OAuth service providing.", "")
+		c.Err = model.NewLocAppError("authorizeOAuth", "web.authorize_oauth.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -848,7 +872,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 
 	if len(responseType) == 0 || len(clientId) == 0 || len(redirect) == 0 {
-		c.Err = model.NewAppError("authorizeOAuth", "Missing one or more of response_type, client_id, or redirect_uri", "")
+		c.Err = model.NewLocAppError("authorizeOAuth", "web.authorize_oauth.missing.app_error", nil, "")
 		return
 	}
 
@@ -868,7 +892,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		team = result.Data.(*model.Team)
 	}
 
-	page := NewHtmlTemplatePage("authorize", "Authorize Application", c.Locale)
+	page := NewHtmlTemplatePage("authorize", c.T("web.authorize_oauth.title"), c.Locale)
 	page.Props["TeamName"] = team.Name
 	page.Props["AppName"] = app.Name
 	page.Props["ResponseType"] = responseType
@@ -881,7 +905,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
-		c.Err = model.NewAppError("getAccessToken", "The system admin has turned off OAuth service providing.", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -892,25 +916,25 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	grantType := r.FormValue("grant_type")
 	if grantType != model.ACCESS_TOKEN_GRANT_TYPE {
-		c.Err = model.NewAppError("getAccessToken", "invalid_request: Bad grant_type", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.bad_grant.app_error", nil, "")
 		return
 	}
 
 	clientId := r.FormValue("client_id")
 	if len(clientId) != 26 {
-		c.Err = model.NewAppError("getAccessToken", "invalid_request: Bad client_id", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.bad_client_id.app_error", nil, "")
 		return
 	}
 
 	secret := r.FormValue("client_secret")
 	if len(secret) == 0 {
-		c.Err = model.NewAppError("getAccessToken", "invalid_request: Missing client_secret", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.bad_client_secret.app_error", nil, "")
 		return
 	}
 
 	code := r.FormValue("code")
 	if len(code) == 0 {
-		c.Err = model.NewAppError("getAccessToken", "invalid_request: Missing code", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.missing_code.app_error", nil, "")
 		return
 	}
 
@@ -923,7 +947,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if authData == nil {
 		c.LogAudit("fail - invalid auth code")
-		c.Err = model.NewAppError("getAccessToken", "invalid_grant: Invalid or expired authorization code", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.expired_code.app_error", nil, "")
 		return
 	}
 
@@ -931,25 +955,25 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if authData.IsExpired() {
 		c.LogAudit("fail - auth code expired")
-		c.Err = model.NewAppError("getAccessToken", "invalid_grant: Invalid or expired authorization code", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.expired_code.app_error", nil, "")
 		return
 	}
 
 	if authData.RedirectUri != redirectUri {
 		c.LogAudit("fail - redirect uri provided did not match previous redirect uri")
-		c.Err = model.NewAppError("getAccessToken", "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.redirect_uri.app_error", nil, "")
 		return
 	}
 
 	if !model.ComparePassword(code, fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
 		c.LogAudit("fail - auth code is invalid")
-		c.Err = model.NewAppError("getAccessToken", "invalid_grant: Invalid or expired authorization code", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.expired_code.app_error", nil, "")
 		return
 	}
 
 	var app *model.OAuthApp
 	if result := <-achan; result.Err != nil {
-		c.Err = model.NewAppError("getAccessToken", "invalid_client: Invalid client credentials", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.credentials.app_error", nil, "")
 		return
 	} else {
 		app = result.Data.(*model.OAuthApp)
@@ -957,7 +981,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if !model.ComparePassword(app.ClientSecret, secret) {
 		c.LogAudit("fail - invalid client credentials")
-		c.Err = model.NewAppError("getAccessToken", "invalid_client: Invalid client credentials", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.credentials.app_error", nil, "")
 		return
 	}
 
@@ -967,7 +991,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := <-tchan; result.Err != nil {
-		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while accessing database", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.internal.app_error", nil, "")
 		return
 	} else if result.Data != nil {
 		c.LogAudit("fail - auth code has been used previously")
@@ -975,16 +999,16 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 		// Revoke access token, related auth code, and session from DB as well as from cache
 		if err := api.RevokeAccessToken(accessData.Token); err != nil {
-			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
+			l4g.Error(utils.T("web.get_access_token.revoking.error") + err.Message)
 		}
 
-		c.Err = model.NewAppError("getAccessToken", "invalid_grant: Authorization code already exchanged for an access token", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.exchanged.app_error", nil, "")
 		return
 	}
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
-		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while pulling user from database", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.internal_user.app_error", nil, "")
 		return
 	} else {
 		user = result.Data.(*model.User)
@@ -993,7 +1017,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, IsOAuth: true}
 
 	if result := <-api.Srv.Store.Session().Save(session); result.Err != nil {
-		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while saving session to database", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.internal_session.app_error", nil, "")
 		return
 	} else {
 		session = result.Data.(*model.Session)
@@ -1004,7 +1028,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if result := <-api.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
 		l4g.Error(result.Err)
-		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while saving access token to database", "")
+		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.internal_saving.app_error", nil, "")
 		return
 	}
 
@@ -1021,7 +1045,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("incomingWebhook", "Incoming webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -1042,13 +1066,13 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if parsedRequest == nil {
-		c.Err = model.NewAppError("incomingWebhook", "Unable to parse incoming data", "")
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.parse.app_error", nil, "")
 		return
 	}
 
 	text := parsedRequest.Text
 	if len(text) == 0 && parsedRequest.Attachments == nil {
-		c.Err = model.NewAppError("incomingWebhook", "No text specified", "")
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.text.app_error", nil, "")
 		return
 	}
 
@@ -1066,7 +1090,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	var hook *model.IncomingWebhook
 	if result := <-hchan; result.Err != nil {
-		c.Err = model.NewAppError("incomingWebhook", "Invalid webhook", "err="+result.Err.Message)
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "err="+result.Err.Message)
 		return
 	} else {
 		hook = result.Data.(*model.IncomingWebhook)
@@ -1078,7 +1102,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if len(channelName) != 0 {
 		if channelName[0] == '@' {
 			if result := <-api.Srv.Store.User().GetByUsername(hook.TeamId, channelName[1:]); result.Err != nil {
-				c.Err = model.NewAppError("incomingWebhook", "Couldn't find the user", "err="+result.Err.Message)
+				c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message)
 				return
 			} else {
 				channelName = model.GetDMNameFromIds(result.Data.(*model.User).Id, hook.UserId)
@@ -1096,7 +1120,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	overrideIconUrl := parsedRequest.IconURL
 
 	if result := <-cchan; result.Err != nil {
-		c.Err = model.NewAppError("incomingWebhook", "Couldn't find the channel", "err="+result.Err.Message)
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message)
 		return
 	} else {
 		channel = result.Data.(*model.Channel)
@@ -1108,7 +1132,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
-		c.Err = model.NewAppError("incomingWebhook", "Inappropriate channel permissions", "")
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "")
 		return
 	}
 
@@ -1133,7 +1157,7 @@ func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	var team *model.Team
 	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
-		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
+		l4g.Error(utils.T("web.claim_account.team.error"), teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
 	} else {
@@ -1143,7 +1167,7 @@ func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	authType := ""
 	if len(email) != 0 {
 		if uResult := <-api.Srv.Store.User().GetByEmail(team.Id, email); uResult.Err != nil {
-			l4g.Error("Couldn't find user teamid=%v, email=%v, err=%v", team.Id, email, uResult.Err.Message)
+			l4g.Error(utils.T("web.claim_account.user.error"), team.Id, email, uResult.Err.Message)
 			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 			return
 		} else {
@@ -1166,7 +1190,7 @@ func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	page := NewHtmlTemplatePage("claim_account", "Claim Account", c.Locale)
+	page := NewHtmlTemplatePage("claim_account", c.T("web.claim_account.title"), c.Locale)
 	page.Props["Email"] = email
 	page.Props["CurrentType"] = authType
 	page.Props["NewType"] = newType

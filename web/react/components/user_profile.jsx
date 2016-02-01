@@ -3,6 +3,9 @@
 
 import * as Utils from '../utils/utils.jsx';
 import UserStore from '../stores/user_store.jsx';
+
+import {FormattedMessage} from 'mm-intl';
+
 var Popover = ReactBootstrap.Popover;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
@@ -87,7 +90,10 @@ export default class UserProfile extends React.Component {
                     className='text-nowrap'
                     key='user-popover-no-email'
                 >
-                    {'Email not shared'}
+                    <FormattedMessage
+                        id='user_profile.notShared'
+                        defaultMessage='Email not shared'
+                    />
                 </div>
             );
         } else {

@@ -820,6 +820,17 @@ func (c *Client) UpdateUserRoles(data map[string]string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) AttachDeviceId(deviceId string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["device_id"] = deviceId
+	if r, err := c.DoApiPost("/users/attach_device", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) UpdateActive(userId string, active bool) (*Result, *AppError) {
 	data := make(map[string]string)
 	data["user_id"] = userId

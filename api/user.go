@@ -48,6 +48,7 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/logout", ApiUserRequired(logout)).Methods("POST")
 	sr.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	sr.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
+	sr.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
 	sr.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
 	sr.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
 
@@ -546,7 +547,6 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 				}
 			}
 		}
-
 	} else {
 		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthWebInDays)
 	}
@@ -716,6 +716,49 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := props["id"]
 	RevokeSessionById(c, id)
 	w.Write([]byte(model.MapToJson(props)))
+}
+
+func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	deviceId := props["device_id"]
+	if len(deviceId) == 0 {
+		c.SetInvalidParam("attachDevice", "deviceId")
+		return
+	}
+
+	if !(strings.HasPrefix(deviceId, model.PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(deviceId, model.PUSH_NOTIFY_ANDROID+":")) {
+		c.SetInvalidParam("attachDevice", "deviceId")
+		return
+	}
+
+	// A special case where we logout of all other sessions with the same Id
+	if result := <-Srv.Store.Session().GetSessions(c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	} else {
+		sessions := result.Data.([]*model.Session)
+		for _, session := range sessions {
+			if session.DeviceId == deviceId && session.Id != c.Session.Id {
+				l4g.Debug(utils.T("api.user.login.revoking.app_error"), session.Id, c.Session.UserId)
+				RevokeSessionById(c, session.Id)
+				if c.Err != nil {
+					c.LogError(c.Err)
+					c.Err = nil
+				}
+			}
+		}
+	}
+
+	sessionCache.Remove(c.Session.Token)
+
+	if result := <-Srv.Store.Session().UpdateDeviceId(c.Session.Id, deviceId); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	w.Write([]byte(deviceId))
 }
 
 func RevokeSessionById(c *Context, sessionId string) {
@@ -1114,7 +1157,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	path := "teams/" + c.Session.TeamId + "/users/" + c.Session.UserId + "/profile.png"
 
 	if err := writeFile(buf.Bytes(), path); err != nil {
-		c.Err = model.NewAppError("uploadProfileImage", "Couldn't upload profile image", "")
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
 		return
 	}
 

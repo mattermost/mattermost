@@ -9,6 +9,9 @@ import PreferenceStore from '../stores/preference_store.jsx';
 
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
+
+import {FormattedHTMLMessage} from 'mm-intl';
+
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 
@@ -51,20 +54,12 @@ export default class SidebarHeader extends React.Component {
 
         screens.push(
             <div>
-                <h4>{'Main Menu'}</h4>
-                <p>
-                {'The '}<strong>{'Main Menu'}</strong>{' is where you can '}
-                <strong>{'Invite New Members'}</strong>
-                {', access your '}
-                <strong>{'Account Settings'}</strong>
-                {' and set your '}<strong>{'Theme Color'}</strong>{'.'}
-                </p>
-                <p>
-                {'Team administrators can also access their '}<strong>{'Team Settings'}</strong>{' from this menu.'}
-                </p>
-                <p>
-                {'System administrators will find a '}<strong>{'System Console'}</strong>{' option to administrate the entire system.'}
-                </p>
+                <FormattedHTMLMessage
+                    id='sidebar_header.tutorial'
+                    defaultMessage='<h4>Main Menu</h4>
+                    <p>The <strong>Main Menu</strong> is where you can <strong>Invite New Members</strong>, access your <strong>Account Settings</strong> and set your <strong>Theme Color</strong>.</p>
+                    <p>Team administrators can also access their <strong>Team Settings</strong> from this menu.</p><p>System administrators will find a <strong>System Console</strong> option to administrate the entire system.</p>'
+                />
             </div>
         );
 

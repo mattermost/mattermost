@@ -20,12 +20,7 @@ func splitWordsNoQuotes(text string) []string {
 	words := []string{}
 
 	for _, word := range strings.Fields(text) {
-		word = puncStart.ReplaceAllString(word, "")
-		word = puncEnd.ReplaceAllString(word, "")
-
-		if len(word) != 0 {
-			words = append(words, word)
-		}
+		words = append(words, word)
 	}
 
 	return words
@@ -94,7 +89,16 @@ func parseSearchFlags(input []string) ([]string, [][2]string) {
 		}
 
 		if !isFlag {
-			words = append(words, word)
+			// trim off surrounding punctuation
+			word = puncStart.ReplaceAllString(word, "")
+			word = puncEnd.ReplaceAllString(word, "")
+
+			// and remove extra pound #s
+			word = hashtagStart.ReplaceAllString(word, "#")
+
+			if len(word) != 0 {
+				words = append(words, word)
+			}
 		}
 	}
 

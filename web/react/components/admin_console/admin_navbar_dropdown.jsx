@@ -7,6 +7,8 @@ import TeamStore from '../../stores/team_store.jsx';
 
 import Constants from '../../utils/constants.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 function getStateFromStores() {
     return {currentTeam: TeamStore.getCurrent()};
 }
@@ -66,7 +68,13 @@ export default class AdminNavbarDropdown extends React.Component {
                             <a
                                 href={Utils.getWindowLocationOrigin() + '/' + this.state.currentTeam.name}
                             >
-                                {'Switch to ' + this.state.currentTeam.display_name}
+                                <FormattedMessage
+                                    id='admin.nav.switch'
+                                    defaultMessage='Switch to {display_name}'
+                                    values={{
+                                        display_name: this.state.currentTeam.display_name
+                                    }}
+                                />
                             </a>
                         </li>
                         <li>
@@ -74,7 +82,10 @@ export default class AdminNavbarDropdown extends React.Component {
                                 href='#'
                                 onClick={this.handleLogoutClick}
                             >
-                                {'Logout'}
+                                <FormattedMessage
+                                    id='admin.nav.logout'
+                                    defaultMessage='Logout'
+                                />
                             </a>
                         </li>
                         <li className='divider'></li>
@@ -83,7 +94,10 @@ export default class AdminNavbarDropdown extends React.Component {
                                 target='_blank'
                                 href='/static/help/help.html'
                             >
-                                {'Help'}
+                                <FormattedMessage
+                                    id='admin.nav.help'
+                                    defaultMessage='Help'
+                                />
                             </a>
                         </li>
                         <li>
@@ -91,7 +105,10 @@ export default class AdminNavbarDropdown extends React.Component {
                                 target='_blank'
                                 href='/static/help/report_problem.html'
                             >
-                                {'Report a Problem'}
+                                <FormattedMessage
+                                    id='admin.nav.report'
+                                    defaultMessage='Report a Problem'
+                                />
                             </a>
                         </li>
                     </ul>

@@ -10,6 +10,8 @@ import * as TextFormatting from '../utils/text_formatting.jsx';
 
 import Constants from '../utils/constants.jsx';
 
+import {FormattedMessage, FormattedDate} from 'mm-intl';
+
 export default class SearchResultsItem extends React.Component {
     constructor(props) {
         super(props);
@@ -42,7 +44,12 @@ export default class SearchResultsItem extends React.Component {
         if (channel) {
             channelName = channel.display_name;
             if (channel.type === 'D') {
-                channelName = 'Direct Message';
+                channelName = (
+                    <FormattedMessage
+                        id='search_item.direct'
+                        defaultMessage='Direct Message'
+                    />
+                );
             }
         }
 
@@ -69,7 +76,15 @@ export default class SearchResultsItem extends React.Component {
                             <li className='col__name'><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
                             <li className='col'>
                                 <time className='search-item-time'>
-                                    {utils.displayDate(this.props.post.create_at) + ' ' + utils.displayTime(this.props.post.create_at)}
+                                    <FormattedDate
+                                        value={this.props.post.create_at}
+                                        day='numeric'
+                                        month='long'
+                                        year='numeric'
+                                        hour12={true}
+                                        hour='2-digit'
+                                        minute='2-digit'
+                                    />
                                 </time>
                             </li>
                             <li>
@@ -78,7 +93,10 @@ export default class SearchResultsItem extends React.Component {
                                     className='search-item__jump'
                                     onClick={this.handleClick}
                                 >
-                                    {'Jump'}
+                                    <FormattedMessage
+                                        id='search_item.jump'
+                                        defaultMessage='Jump'
+                                    />
                                 </a>
                             </li>
                             <li>
@@ -89,7 +107,7 @@ export default class SearchResultsItem extends React.Component {
                                 >
                                     <span
                                         className='comment-icon'
-                                        dangerouslySetInnerHTML={{__html: Constants.COMMENT_ICON}}
+                                        dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
                                     />
                                 </a>
                             </li>

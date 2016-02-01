@@ -9,6 +9,8 @@ import UsernamePage from './team_signup_username_page.jsx';
 import PasswordPage from './team_signup_password_page.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class SignupTeamComplete extends React.Component {
     constructor(props) {
         super(props);
@@ -96,7 +98,14 @@ export default class SignupTeamComplete extends React.Component {
             );
         }
 
-        return (<div>You've already completed the signup process for this invitation or this invitation has expired.</div>);
+        return (
+            <div>
+                <FormattedMessage
+                    id='signup_team_complete.completed'
+                    defaultMessage="You've already completed the signup process for this invitation or this invitation has expired."
+                />
+            </div>
+        );
     }
 }
 

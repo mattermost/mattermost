@@ -36,7 +36,7 @@ class ChannelStoreClass extends EventEmitter {
         this.get = this.get.bind(this);
         this.getMember = this.getMember.bind(this);
         this.getByName = this.getByName.bind(this);
-        this.pSetPostMode = this.pSetPostMode.bind(this);
+        this.setPostMode = this.setPostMode.bind(this);
         this.getPostMode = this.getPostMode.bind(this);
         this.setUnreadCount = this.setUnreadCount.bind(this);
         this.setUnreadCounts = this.setUnreadCounts.bind(this);
@@ -95,7 +95,7 @@ class ChannelStoreClass extends EventEmitter {
         this.removeListener(LEAVE_EVENT, callback);
     }
     findFirstBy(field, value) {
-        var channels = this.pGetChannels();
+        var channels = this.getChannels();
         for (var i = 0; i < channels.length; i++) {
             if (channels[i][field] === value) {
                 return channels[i];
@@ -114,13 +114,13 @@ class ChannelStoreClass extends EventEmitter {
         return this.findFirstBy('name', name);
     }
     getAll() {
-        return this.pGetChannels();
+        return this.getChannels();
     }
     getAllMembers() {
-        return this.pGetChannelMembers();
+        return this.getChannelMembers();
     }
     getMoreAll() {
-        return this.pGetMoreChannels();
+        return this.getMoreChannels();
     }
     setCurrentId(id) {
         this.currentId = id;
@@ -161,9 +161,9 @@ class ChannelStoreClass extends EventEmitter {
         return null;
     }
     setChannelMember(member) {
-        var members = this.pGetChannelMembers();
+        var members = this.getChannelMembers();
         members[member.channel_id] = member;
-        this.pStoreChannelMembers(members);
+        this.storeChannelMembers(members);
         this.emitChange();
     }
     getCurrentExtraInfo() {
@@ -173,7 +173,7 @@ class ChannelStoreClass extends EventEmitter {
         var extra = null;
 
         if (channelId) {
-            extra = this.pGetExtraInfos()[channelId];
+            extra = this.getExtraInfos()[channelId];
         }
 
         if (extra) {
@@ -186,7 +186,7 @@ class ChannelStoreClass extends EventEmitter {
         return extra;
     }
     pStoreChannel(channel) {
-        var channels = this.pGetChannels();
+        var channels = this.getChannels();
         var found;
 
         for (var i = 0; i < channels.length; i++) {
@@ -206,42 +206,42 @@ class ChannelStoreClass extends EventEmitter {
         }
 
         channels.sort(Utils.sortByDisplayName);
-        this.pStoreChannels(channels);
+        this.storeChannels(channels);
     }
-    pStoreChannels(channels) {
+    storeChannels(channels) {
         this.channels = channels;
     }
-    pGetChannels() {
+    getChannels() {
         return this.channels;
     }
     pStoreChannelMember(channelMember) {
-        var members = this.pGetChannelMembers();
+        var members = this.getChannelMembers();
         members[channelMember.channel_id] = channelMember;
-        this.pStoreChannelMembers(members);
+        this.storeChannelMembers(members);
     }
-    pStoreChannelMembers(channelMembers) {
+    storeChannelMembers(channelMembers) {
         this.channelMembers = channelMembers;
     }
-    pGetChannelMembers() {
+    getChannelMembers() {
         return this.channelMembers;
     }
-    pStoreMoreChannels(channels) {
+    storeMoreChannels(channels) {
         this.moreChannels = channels;
     }
-    pGetMoreChannels() {
+    getMoreChannels() {
         return this.moreChannels;
     }
-    pStoreExtraInfos(extraInfos) {
+    storeExtraInfos(extraInfos) {
         this.extraInfos = extraInfos;
     }
-    pGetExtraInfos() {
+    getExtraInfos() {
         return this.extraInfos;
     }
     isDefault(channel) {
         return channel.name === Constants.DEFAULT_CHANNEL;
     }
 
-    pSetPostMode(mode) {
+    setPostMode(mode) {
         this.postMode = mode;
     }
 
@@ -292,21 +292,21 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.CLICK_CHANNEL:
         ChannelStore.setCurrentId(action.id);
         ChannelStore.resetCounts(action.id);
-        ChannelStore.pSetPostMode(ChannelStore.POST_MODE_CHANNEL);
+        ChannelStore.setPostMode(ChannelStore.POST_MODE_CHANNEL);
         ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECIEVED_FOCUSED_POST: {
         const post = action.post_list.posts[action.postId];
         ChannelStore.setCurrentId(post.channel_id);
-        ChannelStore.pSetPostMode(ChannelStore.POST_MODE_FOCUS);
+        ChannelStore.setPostMode(ChannelStore.POST_MODE_FOCUS);
         ChannelStore.emitChange();
         break;
     }
 
     case ActionTypes.RECIEVED_CHANNELS:
-        ChannelStore.pStoreChannels(action.channels);
-        ChannelStore.pStoreChannelMembers(action.members);
+        ChannelStore.storeChannels(action.channels);
+        ChannelStore.storeChannelMembers(action.members);
         currentId = ChannelStore.getCurrentId();
         if (currentId) {
             ChannelStore.resetCounts(currentId);
@@ -329,14 +329,14 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.RECIEVED_MORE_CHANNELS:
-        ChannelStore.pStoreMoreChannels(action.channels);
+        ChannelStore.storeMoreChannels(action.channels);
         ChannelStore.emitMoreChange();
         break;
 
     case ActionTypes.RECIEVED_CHANNEL_EXTRA_INFO:
-        var extraInfos = ChannelStore.pGetExtraInfos();
+        var extraInfos = ChannelStore.getExtraInfos();
         extraInfos[action.extra_info.id] = action.extra_info;
-        ChannelStore.pStoreExtraInfos(extraInfos);
+        ChannelStore.storeExtraInfos(extraInfos);
         ChannelStore.emitExtraInfoChange();
         break;
 

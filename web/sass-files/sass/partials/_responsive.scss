@@ -72,29 +72,19 @@
 
     }
 
+}
+
+@media screen and (max-width: 768px) {
+
+    .signup-team__container {
+        font-size: 1em;
+    }
+
+    .date-separator.hovered--after:before, .new-separator.hovered--after:before {
+        background: none !important;
+    }
+
     .post {
-
-        .post-list__content & {
-
-            &:hover {
-                background: transparent;
-
-                .comment-icon__container {
-                    visibility: hidden;
-
-                    &.icon--show {
-                        visibility: visible;
-                    }
-
-                }
-
-            }
-
-        }
-
-        .dropdown {
-            visibility: visible;
-        }
 
         .post__dropdown {
             line-height: 9px;
@@ -112,19 +102,49 @@
 
         }
 
-    }
+        .post-list__content & {
 
-}
+            &:hover {
+                background: transparent;
+            }
 
-@media screen and (max-width: 768px) {
+            .comment-icon__container {
+                visibility: visible;
+            }
 
-    .signup-team__container {
-        font-size: 1em;
-    }
+        }
 
-    .post {
+        .dropdown, .post__reply {
+            visibility: visible;
+        }
+
+        .post__body {
+            width: calc(100% - 75px);
+        }
+
+        .post__reply {
+            margin-right: 20px;
+            float: right;
+
+            svg {
+                top: 1px;
+            }
+
+        }
+
+        &.other--root .post__reply {
+
+            &.post__reply--hide {
+                visibility: hidden;
+            }
+
+        }
 
         .post__header {
+
+            .col__reply {
+                width: 65px;
+            }
 
             .col__name {
                 pointer-events: none;

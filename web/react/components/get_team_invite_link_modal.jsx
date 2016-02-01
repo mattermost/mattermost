@@ -6,7 +6,20 @@ import GetLinkModal from './get_link_modal.jsx';
 import ModalStore from '../stores/modal_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 
-export default class GetTeamInviteLinkModal extends React.Component {
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    title: {
+        id: 'get_team_invite_link_modal.title',
+        defaultMessage: 'Team Invite Link'
+    },
+    help: {
+        id: 'get_team_invite_link_modal.help',
+        defaultMessage: 'Send teammates the link below for them to sign-up to this team site.'
+    }
+});
+
+class GetTeamInviteLinkModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -32,14 +45,22 @@ export default class GetTeamInviteLinkModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
+
         return (
             <GetLinkModal
                 show={this.state.show}
                 onHide={() => this.setState({show: false})}
-                title='Team Invite Link'
-                helpText='Send teammates the link below for them to sign-up to this team site.'
+                title={formatMessage(holders.title)}
+                helpText={formatMessage(holders.help)}
                 link={TeamStore.getCurrentInviteLink()}
             />
         );
     }
 }
+
+GetTeamInviteLinkModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(GetTeamInviteLinkModal);

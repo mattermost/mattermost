@@ -9,11 +9,47 @@ import UserStore from '../stores/user_store.jsx';
 import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
 
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
 const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;
 const SHOW_EDIT_URL_THEN_COMPLETE = 3;
+const messages = defineMessages({
+    invalidName: {
+        id: 'channel_flow.invalidName',
+        defaultMessage: 'Invalid Channel Name'
+    },
+    alreadyExist: {
+        id: 'channel_flow.alreadyExist',
+        defaultMessage: 'A channel with that URL already exists'
+    },
+    channel: {
+        id: 'channel_flow.channel',
+        defaultMessage: 'Channel'
+    },
+    group: {
+        id: 'channel_flow.group',
+        defaultMessage: 'Group'
+    },
+    change: {
+        id: 'channel_flow.changeUrlTitle',
+        defaultMessage: 'Change {term} URL'
+    },
+    set: {
+        id: 'channel_flow.set_url_title',
+        defaultMessage: 'Set {term} URL'
+    },
+    create: {
+        id: 'channel_flow.create',
+        defaultMessage: 'Create {term}'
+    },
+    changeUrlDescription: {
+        id: 'channel_flow.changeUrlDescription',
+        defaultMessage: 'Some characters are not allowed in URLs and may be removed.'
+    }
+});
 
-export default class NewChannelFlow extends React.Component {
+class NewChannelFlow extends React.Component {
     constructor(props) {
         super(props);
 
@@ -51,9 +87,10 @@ export default class NewChannelFlow extends React.Component {
     doSubmit() {
         var channel = {};
 
+        const {formatMessage} = this.props.intl;
         channel.display_name = this.state.channelDisplayName;
         if (!channel.display_name) {
-            this.setState({serverError: 'Invalid Channel Name'});
+            this.setState({serverError: formatMessage(messages.invalidName)});
             return;
         }
 
@@ -75,11 +112,11 @@ export default class NewChannelFlow extends React.Component {
                 Utils.switchChannel(data);
             },
             (err) => {
-                if (err.message === 'Name must be 2 or more lowercase alphanumeric characters') {
+                if (err.id === 'model.channel.is_valid.2_or_more.app_error') {
                     this.setState({flowState: SHOW_EDIT_URL_THEN_COMPLETE});
                 }
-                if (err.message === 'A channel with that handle already exists') {
-                    this.setState({serverError: 'A channel with that URL already exists'});
+                if (err.id === 'store.sql_channel.update.exists.app_error') {
+                    this.setState({serverError: formatMessage(messages.alreadyExist)});
                     return;
                 }
                 this.setState({serverError: err.message});
@@ -130,27 +167,29 @@ export default class NewChannelFlow extends React.Component {
         let changeURLSubmitButtonText = '';
         let channelTerm = '';
 
+        const {formatMessage} = this.props.intl;
+
         // Only listen to flow state if we are being shown
         if (this.props.show) {
             switch (this.state.flowState) {
             case SHOW_NEW_CHANNEL:
                 if (this.state.channelType === 'O') {
                     showChannelModal = true;
-                    channelTerm = 'Channel';
+                    channelTerm = formatMessage(messages.channel);
                 } else {
                     showGroupModal = true;
-                    channelTerm = 'Group';
+                    channelTerm = formatMessage(messages.group);
                 }
                 break;
             case SHOW_EDIT_URL:
                 showChangeURLModal = true;
-                changeURLTitle = 'Change ' + channelTerm + ' URL';
-                changeURLSubmitButtonText = 'Change ' + channelTerm + ' URL';
+                changeURLTitle = formatMessage(messages.change, {term: channelTerm});
+                changeURLSubmitButtonText = formatMessage(messages.change, {term: channelTerm});
                 break;
             case SHOW_EDIT_URL_THEN_COMPLETE:
                 showChangeURLModal = true;
-                changeURLTitle = 'Set ' + channelTerm + ' URL';
-                changeURLSubmitButtonText = 'Create ' + channelTerm;
+                changeURLTitle = formatMessage(messages.set, {term: channelTerm});
+                changeURLSubmitButtonText = formatMessage(messages.create, {term: channelTerm});
                 break;
             }
         }
@@ -181,7 +220,7 @@ export default class NewChannelFlow extends React.Component {
                 <ChangeURLModal
                     show={showChangeURLModal}
                     title={changeURLTitle}
-                    description={'Some characters are not allowed in URLs and may be removed.'}
+                    description={formatMessage(messages.changeUrlDescription)}
                     urlLabel={channelTerm + ' URL'}
                     submitButtonText={changeURLSubmitButtonText}
                     currentURL={this.state.channelName}
@@ -200,7 +239,10 @@ NewChannelFlow.defaultProps = {
 };
 
 NewChannelFlow.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channelType: React.PropTypes.string.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(NewChannelFlow);

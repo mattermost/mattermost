@@ -5,6 +5,15 @@
         height: 100%;
     }
 
+    .inner__wrap {
+        position: absolute;
+        width: 100%;
+    }
+
+    .row {
+        margin: 0;
+    }
+
     h3 {
         font-weight: 600;
         border-bottom: 1px solid #ddd;

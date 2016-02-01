@@ -58,9 +58,9 @@ func main() {
 
 	pwd, _ := os.Getwd()
 	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
-	l4g.Info("Enterprise Enabled: %v", model.BuildEnterpriseReady)
-	l4g.Info("Current working directory is %v", pwd)
-	l4g.Info("Loaded config file from %v", utils.FindConfigFile(flagConfigFile))
+	l4g.Info(utils.T("mattermost.entreprise_enabled"), model.BuildEnterpriseReady)
+	l4g.Info(utils.T("mattermost.working_dir"), pwd)
+	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(flagConfigFile))
 
 	api.NewServer()
 	api.InitApi()
@@ -118,7 +118,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 					currentTime := model.GetMillis()
 
 					if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
-						l4g.Debug("Checking for security update from Mattermost")
+						l4g.Debug(utils.T("mattermost.security_checks.debug"))
 
 						v := url.Values{}
 
@@ -152,7 +152,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 
 						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
 						if err != nil {
-							l4g.Error("Failed to get security update information from Mattermost.")
+							l4g.Error(utils.T("mattermost.security_info.error"))
 							return
 						}
 
@@ -162,27 +162,27 @@ func runSecurityAndDiagnosticsJobAndForget() {
 							if bulletin.AppliesToVersion == model.CurrentVersion {
 								if props["SecurityBulletin_"+bulletin.Id] == "" {
 									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
-										l4g.Error("Failed to get system admins for security update information from Mattermost.")
+										l4g.Error(utils.T("mattermost.system_admins.error"))
 										return
 									} else {
 										users := results.Data.(map[string]*model.User)
 
 										resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
 										if err != nil {
-											l4g.Error("Failed to get security bulletin details")
+											l4g.Error(utils.T("mattermost.security_bulletin.error"))
 											return
 										}
 
 										body, err := ioutil.ReadAll(resBody.Body)
 										res.Body.Close()
 										if err != nil || resBody.StatusCode != 200 {
-											l4g.Error("Failed to read security bulletin details")
+											l4g.Error(utils.T("mattermost.security_bulletin_read.error"))
 											return
 										}
 
 										for _, user := range users {
-											l4g.Info("Sending security bulletin for " + bulletin.Id + " to " + user.Email)
-											utils.SendMail(user.Email, "Mattermost Security Bulletin", string(body))
+											l4g.Info(utils.T("mattermost.send_bulletin.info"), bulletin.Id, user.Email)
+											utils.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
 										}
 									}
 
@@ -266,7 +266,7 @@ func cmdCreateTeam() {
 
 		api.CreateTeam(c, team)
 		if c.Err != nil {
-			if c.Err.Message != "A team with that domain already exists" {
+			if c.Err.Id != "store.sql_team.save.domain_exists.app_error" {
 				l4g.Error("%v", c.Err)
 				flushLogAndExit(1)
 			}
@@ -313,7 +313,7 @@ func cmdCreateUser() {
 
 		_, err := api.CreateUser(team, user)
 		if err != nil {
-			if err.Message != "An account with that email already exists." {
+			if err.Id != "store.sql_user.save.email_exists.app_error" {
 				l4g.Error("%v", err)
 				flushLogAndExit(1)
 			}

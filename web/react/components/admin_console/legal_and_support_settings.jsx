@@ -4,7 +4,16 @@
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class LegalAndSupportSettings extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+var holders = defineMessages({
+    saving: {
+        id: 'admin.support.saving',
+        defaultMessage: 'Saving Config...'
+    }
+});
+
+class LegalAndSupportSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -69,7 +78,12 @@ export default class LegalAndSupportSettings extends React.Component {
         return (
             <div className='wrapper--fixed'>
 
-                <h3>{'Legal and Support Settings'}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='admin.support.title'
+                        defaultMessage='Legal and Support Settings'
+                    />
+                </h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -80,7 +94,10 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='TermsOfServiceLink'
                         >
-                            {'Terms of Service link:'}
+                            <FormattedMessage
+                                id='admin.support.termsTitle'
+                                defaultMessage='Terms of Service link:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -91,7 +108,12 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.TermsOfServiceLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.support.termsDesc'
+                                    defaultMessage='Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -100,7 +122,10 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='PrivacyPolicyLink'
                         >
-                            {'Privacy Policy link:'}
+                            <FormattedMessage
+                                id='admin.support.privacyTitle'
+                                defaultMessage='Privacy Policy link:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -111,7 +136,12 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.PrivacyPolicyLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to Privacy Policy available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.support.privacyDesc'
+                                    defaultMessage='Link to Privacy Policy available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -120,7 +150,10 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='AboutLink'
                         >
-                            {'About link:'}
+                            <FormattedMessage
+                                id='admin.support.aboutTitle'
+                                defaultMessage='About link:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -131,7 +164,12 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.AboutLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.support.aboutDesc'
+                                    defaultMessage='Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -140,7 +178,10 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='HelpLink'
                         >
-                            {'Help link:'}
+                            <FormattedMessage
+                                id='admin.support.helpTitle'
+                                defaultMessage='Help link:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -151,7 +192,12 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.HelpLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.support.helpDesc'
+                                    defaultMessage='Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -160,7 +206,10 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ReportAProblemLink'
                         >
-                            {'Report a Problem link:'}
+                            <FormattedMessage
+                                id='admin.support.problemTitle'
+                                defaultMessage='Report a Problem link:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -171,7 +220,12 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.ReportAProblemLink}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.support.problemDesc'
+                                    defaultMessage='Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -180,7 +234,10 @@ export default class LegalAndSupportSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='SupportEmail'
                         >
-                            {'Support email:'}
+                            <FormattedMessage
+                                id='admin.support.emailTitle'
+                                defaultMessage='Support email:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -191,7 +248,12 @@ export default class LegalAndSupportSettings extends React.Component {
                                 defaultValue={this.props.config.SupportSettings.SupportEmail}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Email shown during tutorial for end users to ask support questions.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.support.emailHelp'
+                                    defaultMessage='Email shown during tutorial for end users to ask support questions.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -204,9 +266,12 @@ export default class LegalAndSupportSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + this.props.intl.formatMessage(holders.saving)}
                             >
-                                {'Save'}
+                                <FormattedMessage
+                                    id='admin.support.save'
+                                    defaultMessage='Save'
+                                />
                             </button>
                         </div>
                     </div>
@@ -218,5 +283,8 @@ export default class LegalAndSupportSettings extends React.Component {
 }
 
 LegalAndSupportSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(LegalAndSupportSettings);

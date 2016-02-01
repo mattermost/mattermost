@@ -133,6 +133,16 @@ class PreferenceStoreClass extends EventEmitter {
         return preference;
     }
 
+    setPreferences(newPreferences) {
+        const preferences = this.getAllPreferences();
+
+        for (const preference of newPreferences) {
+            preferences.set(getPreferenceKeyForModel(preference), preference);
+        }
+
+        this.setAllPreferences(preferences);
+    }
+
     emitChange() {
         this.emit(CHANGE_EVENT);
     }
@@ -155,17 +165,10 @@ class PreferenceStoreClass extends EventEmitter {
             this.emitChange();
             break;
         }
-        case ActionTypes.RECIEVED_PREFERENCES: {
-            const preferences = this.getAllPreferences();
-
-            for (const preference of action.preferences) {
-                preferences.set(getPreferenceKeyForModel(preference), preference);
-            }
-
-            this.setAllPreferences(preferences);
+        case ActionTypes.RECIEVED_PREFERENCES:
+            this.setPreferences(action.preferences);
             this.emitChange();
             break;
-        }
         }
     }
 }

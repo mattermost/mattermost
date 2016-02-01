@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class FileUploadOverlay extends React.Component {
     render() {
         var overlayClass = 'file-overlay hidden';
@@ -19,7 +21,12 @@ export default class FileUploadOverlay extends React.Component {
                             src='/static/images/filesOverlay.png'
                             alt='Files'
                         />
-                        <span><i className='fa fa-upload'></i>{'Drop a file to upload it.'}</span>
+                        <span><i className='fa fa-upload'></i>
+                            <FormattedMessage
+                                id='upload_overlay.info'
+                                defaultMessage='Drop a file to upload it.'
+                            />
+                        </span>
                         <img
                             className='overlay__logo'
                             src='/static/images/logoWhite.png'

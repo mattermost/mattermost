@@ -6,6 +6,7 @@ package store
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type SqlSessionStore struct {
@@ -45,7 +46,7 @@ func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 		result := StoreResult{}
 
 		if len(session.Id) > 0 {
-			result.Err = model.NewAppError("SqlSessionStore.Save", "Cannot update existing session", "id="+session.Id)
+			result.Err = model.NewLocAppError("SqlSessionStore.Save", "store.sql_session.save.existing.app_error", nil, "id="+session.Id)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -54,11 +55,11 @@ func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 		session.PreSave()
 
 		if cur := <-me.CleanUpExpiredSessions(session.UserId); cur.Err != nil {
-			l4g.Error("Failed to cleanup sessions in Save err=%v", cur.Err)
+			l4g.Error(utils.T("store.sql_session.save.cleanup.error"), cur.Err)
 		}
 
 		if err := me.GetMaster().Insert(session); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Save", "We couldn't save the session", "id="+session.Id+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error())
 		} else {
 			result.Data = session
 		}
@@ -80,9 +81,9 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 		var sessions []*model.Session
 
 		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Get", "We encountered an error finding the session", "sessionIdOrToken="+sessionIdOrToken+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+err.Error())
 		} else if sessions == nil || len(sessions) == 0 {
-			result.Err = model.NewAppError("SqlSessionStore.Get", "We encountered an error finding the session", "sessionIdOrToken="+sessionIdOrToken)
+			result.Err = model.NewLocAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken)
 		} else {
 			result.Data = sessions[0]
 		}
@@ -101,7 +102,7 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 	go func() {
 
 		if cur := <-me.CleanUpExpiredSessions(userId); cur.Err != nil {
-			l4g.Error("Failed to cleanup sessions in getSessions err=%v", cur.Err)
+			l4g.Error(utils.T("store.sql_session.get_sessions.error"), cur.Err)
 		}
 
 		result := StoreResult{}
@@ -109,7 +110,7 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 		var sessions []*model.Session
 
 		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId ORDER BY LastActivityAt DESC", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.GetSessions", "We encountered an error while finding user sessions", err.Error())
+			result.Err = model.NewLocAppError("SqlSessionStore.GetSessions", "store.sql_session.get_sessions.app_error", nil, err.Error())
 		} else {
 
 			result.Data = sessions
@@ -130,7 +131,7 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) StoreChannel {
 
 		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
 		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveSession", "We couldn't remove the session", "id="+sessionIdOrToken+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlSessionStore.RemoveSession", "store.sql_session.remove.app_error", nil, "id="+sessionIdOrToken+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -148,7 +149,7 @@ func (me SqlSessionStore) RemoveAllSessionsForTeam(teamId string) StoreChannel {
 
 		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForTeam", "We couldn't remove all the sessions for the team", "id="+teamId+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlSessionStore.RemoveAllSessionsForTeam", "store.sql_session.remove_all_sessions_for_team.app_error", nil, "id="+teamId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -166,7 +167,7 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) StoreChan
 
 		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "We couldn't remove all the sessions for the user", "id="+userId+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -183,7 +184,7 @@ func (me SqlSessionStore) CleanUpExpiredSessions(userId string) StoreChannel {
 		result := StoreResult{}
 
 		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt > ExpiresAt", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.CleanUpExpiredSessions", "We encountered an error while deleting expired user sessions", err.Error())
+			result.Err = model.NewLocAppError("SqlSessionStore.CleanUpExpiredSessions", "store.sql_session.cleanup_expired_sessions.app_error", nil, err.Error())
 		} else {
 			result.Data = userId
 		}
@@ -202,7 +203,7 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) Sto
 		result := StoreResult{}
 
 		if _, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "sessionId="+sessionId)
+			result.Err = model.NewLocAppError("SqlSessionStore.UpdateLastActivityAt", "store.sql_session.update_last_activity.app_error", nil, "sessionId="+sessionId)
 		} else {
 			result.Data = sessionId
 		}
@@ -220,9 +221,27 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 		if _, err := me.GetMaster().Exec("UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId", map[string]interface{}{"Roles": roles, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.UpdateRoles", "We couldn't update the roles", "userId="+userId)
+			result.Err = model.NewLocAppError("SqlSessionStore.UpdateRoles", "store.sql_session.update_roles.app_error", nil, "userId="+userId)
 		} else {
 			result.Data = userId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (me SqlSessionStore) UpdateDeviceId(id, deviceId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id}); err != nil {
+			result.Err = model.NewLocAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, "")
+		} else {
+			result.Data = deviceId
 		}
 
 		storeChannel <- result

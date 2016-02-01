@@ -27,7 +27,7 @@ func TestRandomString(t *testing.T) {
 }
 
 func TestAppError(t *testing.T) {
-	err := NewAppError("TestAppError", "message", "")
+	err := NewLocAppError("TestAppError", "message", nil, "")
 	json := err.ToJson()
 	rerr := AppErrorFromJson(strings.NewReader(json))
 	if err.Message != rerr.Message {
@@ -83,19 +83,34 @@ func TestEtag(t *testing.T) {
 }
 
 var hashtags map[string]string = map[string]string{
-	"#test":         "#test",
-	"test":          "",
-	"#test123":      "#test123",
-	"#123test123":   "",
-	"#test-test":    "#test-test",
-	"#test?":        "#test",
-	"hi #there":     "#there",
-	"#bug #idea":    "#bug #idea",
-	"#bug or #gif!": "#bug #gif",
-	"#hüllo":        "#hüllo",
-	"#?test":        "",
-	"#-test":        "",
-	"#yo_yo":        "#yo_yo",
+	"#test":           "#test",
+	"test":            "",
+	"#test123":        "#test123",
+	"#123test123":     "",
+	"#test-test":      "#test-test",
+	"#test?":          "#test",
+	"hi #there":       "#there",
+	"#bug #idea":      "#bug #idea",
+	"#bug or #gif!":   "#bug #gif",
+	"#hüllo":          "#hüllo",
+	"#?test":          "",
+	"#-test":          "",
+	"#yo_yo":          "#yo_yo",
+	"(#brakets)":      "#brakets",
+	")#stekarb(":      "#stekarb",
+	"<#less_than<":    "#less_than",
+	">#greater_than>": "#greater_than",
+	"-#minus-":        "#minus",
+	"+#plus+":         "#plus",
+	"=#equals=":       "#equals",
+	"%#pct%":          "#pct",
+	"&#and&":          "#and",
+	"^#hat^":          "#hat",
+	"##brown#":        "#brown",
+	"*#star*":         "#star",
+	"|#pipe|":         "#pipe",
+	":#colon:":        "#colon",
+	";#semi;":         "#semi",
 }
 
 func TestParseHashtags(t *testing.T) {

@@ -8,6 +8,8 @@ import ChannelStore from '../stores/channel_store.jsx';
 import LoadingScreen from './loading_screen.jsx';
 import NewChannelFlow from './new_channel_flow.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 function getStateFromStores() {
     return {
         channels: ChannelStore.getMoreAll(),
@@ -100,7 +102,10 @@ export default class MoreChannels extends React.Component {
                                             onClick={self.handleJoin.bind(self, channel, index)}
                                             className='btn btn-primary'
                                         >
-                                            Join
+                                            <FormattedMessage
+                                                id='more_channels.join'
+                                                defaultMessage='Join'
+                                            />
                                         </button>
                                         );
                                 }
@@ -123,8 +128,18 @@ export default class MoreChannels extends React.Component {
             } else {
                 moreChannels = (
                     <div className='no-channel-message'>
-                       <p className='primary-message'>No more channels to join</p>
-                       <p className='secondary-message'>Click 'Create New Channel' to make a new one</p>
+                       <p className='primary-message'>
+                           <FormattedMessage
+                               id='more_channels.noMore'
+                               defaultMessage='No more channels to join'
+                           />
+                       </p>
+                       <p className='secondary-message'>
+                           <FormattedMessage
+                               id='more_channels.createClick'
+                               defaultMessage="Click 'Create New Channel' to make a new one"
+                           />
+                       </p>
                     </div>
                 );
             }
@@ -148,15 +163,28 @@ export default class MoreChannels extends React.Component {
                                 data-dismiss='modal'
                             >
                                 <span aria-hidden='true'>{'×'}</span>
-                                <span className='sr-only'>{'Close'}</span>
+                                <span className='sr-only'>
+                                    <FormattedMessage
+                                        id='more_channels.close'
+                                        defaultMessage='Close'
+                                    />
+                                </span>
                             </button>
-                            <h4 className='modal-title'>{'More Channels'}</h4>
+                            <h4 className='modal-title'>
+                                <FormattedMessage
+                                    id='more_channels.title'
+                                    defaultMessage='More Channels'
+                                />
+                            </h4>
                             <button
                                 type='button'
                                 className='btn btn-primary channel-create-btn'
                                 onClick={this.handleNewChannel}
                             >
-                                {'Create New Channel'}
+                                <FormattedMessage
+                                    id='more_channels.create'
+                                    defaultMessage='Create New Channel'
+                                />
                             </button>
                             <NewChannelFlow
                                 show={this.state.showNewChannelModal}
@@ -174,7 +202,10 @@ export default class MoreChannels extends React.Component {
                                 className='btn btn-default'
                                 data-dismiss='modal'
                             >
-                                {'Close'}
+                                <FormattedMessage
+                                    id='more_channels.close'
+                                    defaultMessage='Close'
+                                />
                             </button>
                         </div>
                     </div>

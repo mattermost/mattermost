@@ -4,7 +4,16 @@
 import * as utils from '../utils/utils.jsx';
 import SettingUpload from './setting_upload.jsx';
 
-export default class TeamImportTab extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    importSlack: {
+        id: 'team_import_tab.importSlack',
+        defaultMessage: 'Import from Slack (Beta)'
+    }
+});
+
+class TeamImportTab extends React.Component {
     constructor(props) {
         super(props);
 
@@ -32,16 +41,19 @@ export default class TeamImportTab extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var uploadHelpText = (
             <div>
-                <p>{'To import a team from Slack go to Slack > Team Settings > Import/Export Data > Export > Start Export. Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team\'\s public channels.'}</p>
-                <p>{'The Slack import to Mattermost is in "Beta". Slack bot posts do not yet import and Slack @mentions are not currently supported.'}</p>
+                <FormattedHTMLMessage
+                    id='team_import_tab.importHelp'
+                    defaultMessage="<p>To import a team from Slack go to Slack > Team Settings > Import/Export Data > Export > Start Export. Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team's public channels.</p><p>The Slack import to Mattermost is in 'Beta'. Slack bot posts do not yet import and Slack @mentions are not currently supported.</p>"
+                />
             </div>
         );
 
         var uploadSection = (
             <SettingUpload
-                title='Import from Slack (Beta)'
+                title={formatMessage(holders.importSlack)}
                 submit={this.doImportSlack}
                 helpText={uploadHelpText}
                 fileTypesAccepted='.zip'
@@ -56,19 +68,30 @@ export default class TeamImportTab extends React.Component {
             break;
         case 'in-progress':
             messageSection = (
-                <p className='confirm-import alert alert-warning'><i className='fa fa-spinner fa-pulse'></i>{' Importing...'}</p>
+                <p className='confirm-import alert alert-warning'><i className='fa fa-spinner fa-pulse'></i>
+                    <FormattedMessage
+                        id='team_import_tab.importing'
+                        defaultMessage=' Importing...'
+                    />
+                </p>
             );
             break;
         case 'done':
             messageSection = (
                 <p className='confirm-import alert alert-success'>
                     <i className='fa fa-check' />
-                    {' Import successful: '}
+                    <FormattedMessage
+                        id='team_import_tab.successful'
+                        defaultMessage=' Import successful: '
+                    />
                     <a
                         href={this.state.link}
                         download='MattermostImportSummary.txt'
                     >
-                        {'View Summary'}
+                        <FormattedMessage
+                            id='team_import_tab.summary'
+                            defaultMessage='View Summary'
+                        />
                     </a>
                 </p>
         );
@@ -77,12 +100,18 @@ export default class TeamImportTab extends React.Component {
             messageSection = (
                 <p className='confirm-import alert alert-warning'>
                     <i className='fa fa-warning' />
-                    {' Import failure: '}
+                    <FormattedMessage
+                        id='team_import_tab.failure'
+                        defaultMessage=' Import failure: '
+                    />
                     <a
                         href={this.state.link}
                         download='MattermostImportSummary.txt'
                     >
-                        {'View Summary'}
+                        <FormattedMessage
+                            id='team_import_tab.summary'
+                            defaultMessage='View Summary'
+                        />
                     </a>
                 </p>
             );
@@ -102,13 +131,23 @@ export default class TeamImportTab extends React.Component {
                     <h4
                         className='modal-title'
                         ref='title'
-                    ><i className='modal-back'></i>{'Import'}</h4>
+                    ><i className='modal-back'></i>
+                        <FormattedMessage
+                            id='team_import_tab.import'
+                            defaultMessage='Import'
+                        />
+                    </h4>
                 </div>
                 <div
                     ref='wrapper'
                     className='user-settings'
                 >
-                    <h3 className='tab-header'>{'Import'}</h3>
+                    <h3 className='tab-header'>
+                        <FormattedMessage
+                            id='team_import_tab.import'
+                            defaultMessage='Import'
+                        />
+                    </h3>
                     <div className='divider-dark first'/>
                     {uploadSection}
                     <div className='divider-dark'/>
@@ -118,3 +157,9 @@ export default class TeamImportTab extends React.Component {
         );
     }
 }
+
+TeamImportTab.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(TeamImportTab);

@@ -197,7 +197,7 @@ travis-init:
 build-container:
 	@echo Building in container
 
-	docker run -e TRAVIS_BUILD_NUMBER=$(TRAVIS_BUILD_NUMBER) --link mattermost-mysql:mysql --link mattermost-postgres:postgres -v `pwd`:/go/src/github.com/mattermost/platform mattermost/builder:latest
+	cd .. && docker run -e TRAVIS_BUILD_NUMBER=$(TRAVIS_BUILD_NUMBER) --link mattermost-mysql:mysql --link mattermost-postgres:postgres -v `pwd`:/go/src/github.com/mattermost mattermost/builder:latest
 
 stop-docker:
 	@echo Stopping docker containers
@@ -255,7 +255,7 @@ nuke: | clean clean-docker
 
 	touch $@
 
-.prepare-jsx:
+.prepare-jsx: web/react/package.json
 	@echo Preparation for compiling jsx code
 
 	cd web/react/ && npm install

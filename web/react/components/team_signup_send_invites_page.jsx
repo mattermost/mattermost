@@ -4,6 +4,8 @@
 import EmailItem from './team_signup_email_item.jsx';
 import * as Client from '../utils/client.jsx';
 
+import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
 export default class TeamSignupSendInvitesPage extends React.Component {
     constructor(props) {
         super(props);
@@ -117,7 +119,10 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                             href='#'
                             onClick={this.submitAddInvite}
                         >
-                            Add Invitation
+                            <FormattedMessage
+                                id='team_signup_send_invites.addInvitation'
+                                defaultMessage='Add Invitation'
+                            />
                         </a>
                     </div>
                 </div>
@@ -125,22 +130,32 @@ export default class TeamSignupSendInvitesPage extends React.Component {
 
             bottomContent = (
                 <p className='color--light'>
-                    {'if you prefer, you can invite team members later'}
-                    <br />
-                    {' and '}
+                    <FormattedHTMLMessage
+                        id='team_signup_send_invites.prefer'
+                        defaultMessage='if you prefer, you can invite team members later<br /> and '
+                    />
                     <a
                         href='#'
                         onClick={this.submitSkip}
                     >
-                    {'skip this step '}
+                        <FormattedMessage
+                            id='team_signup_send_invites.skip'
+                            defaultMessage='skip this step '
+                        />
                     </a>
-                    {'for now.'}
+                    <FormattedMessage
+                        id='team_signup_send_invites.forNow'
+                        defaultMessage='for now.'
+                    />
                 </p>
             );
         } else {
             content = (
                 <div className='form-group color--light'>
-                    {'Email is currently disabled for your team, and emails cannot be sent. Contact your system administrator to enable email and email invitations.'}
+                    <FormattedMessage
+                        id='team_signup_send_invites.disabled'
+                        defaultMessage='Email is currently disabled for your team, and emails cannot be sent. Contact your system administrator to enable email and email invitations.'
+                    />
                 </div>
             );
         }
@@ -152,7 +167,12 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2>{'Invite Team Members'}</h2>
+                    <h2>
+                        <FormattedMessage
+                            id='team_signup_send_invites.title'
+                            defaultMessage='Invite Team Members'
+                        />
+                    </h2>
                     {content}
                     <div className='form-group'>
                         <button
@@ -160,7 +180,10 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                             className='btn-primary btn'
                             onClick={this.submitNext}
                         >
-                            Next<i className='glyphicon glyphicon-chevron-right' />
+                            <FormattedMessage
+                                id='team_signup_send_invites.next'
+                                defaultMessage='Next'
+                            /><i className='glyphicon glyphicon-chevron-right' />
                         </button>
                     </div>
                 </form>
@@ -170,7 +193,10 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                         href='#'
                         onClick={this.submitBack}
                     >
-                        Back to previous step
+                        <FormattedMessage
+                            id='team_signup_send_invites.back'
+                            defaultMessage='Back to previous step'
+                        />
                     </a>
                 </div>
             </div>

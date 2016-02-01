@@ -118,19 +118,19 @@ func TestParseSearchFlags(t *testing.T) {
 		t.Fatalf("got incorrect flags %v", flags)
 	}
 
-	if words, flags := parseSearchFlags(splitWords("fruit: cherry")); len(words) != 2 || words[0] != "fruit:" || words[1] != "cherry" {
+	if words, flags := parseSearchFlags(splitWords("fruit: cherry")); len(words) != 2 || words[0] != "fruit" || words[1] != "cherry" {
 		t.Fatalf("got incorrect words %v", words)
 	} else if len(flags) != 0 {
 		t.Fatalf("got incorrect flags %v", flags)
 	}
 
-	if words, flags := parseSearchFlags(splitWords("channel:")); len(words) != 1 || words[0] != "channel:" {
+	if words, flags := parseSearchFlags(splitWords("channel:")); len(words) != 1 || words[0] != "channel" {
 		t.Fatalf("got incorrect words %v", words)
 	} else if len(flags) != 0 {
 		t.Fatalf("got incorrect flags %v", flags)
 	}
 
-	if words, flags := parseSearchFlags(splitWords("channel: first in: second from:")); len(words) != 1 || words[0] != "from:" {
+	if words, flags := parseSearchFlags(splitWords("channel: first in: second from:")); len(words) != 1 || words[0] != "from" {
 		t.Fatalf("got incorrect words %v", words)
 	} else if len(flags) != 2 || flags[0][0] != "channel" || flags[0][1] != "first" || flags[1][0] != "in" || flags[1][1] != "second" {
 		t.Fatalf("got incorrect flags %v", flags)
@@ -210,6 +210,10 @@ func TestParseSearchParams(t *testing.T) {
 	}
 
 	if sp := ParseSearchParams("testing in:channel from:someone"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 1 || sp[0].FromUsers[0] != "someone" {
+		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
+	}
+
+	if sp := ParseSearchParams("##hashtag +#plus+"); len(sp) != 1 || sp[0].Terms != "#hashtag #plus" || sp[0].IsHashtag != true || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
 	}
 }

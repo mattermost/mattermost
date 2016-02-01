@@ -6,6 +6,9 @@ import PreferenceStore from '../../stores/preference_store.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
 import Constants from '../../utils/constants.jsx';
+
+import {FormattedMessage} from 'mm-intl';
+
 const Preferences = Constants.Preferences;
 
 const Overlay = ReactBootstrap.Overlay;
@@ -46,7 +49,17 @@ export default class TutorialTip extends React.Component {
         AsyncClient.savePreferences([preference]);
     }
     render() {
-        const buttonText = this.state.currentScreen === this.props.screens.length - 1 ? 'Okay' : 'Next';
+        const buttonText = this.state.currentScreen === this.props.screens.length - 1 ? (
+            <FormattedMessage
+                id='tutorial_tip.ok'
+                defaultMessage='Okay'
+            />
+        ) : (
+            <FormattedMessage
+                id='tutorial_tip.next'
+                defaultMessage='Next'
+            />
+        );
 
         const dots = [];
         if (this.props.screens.length > 1) {
@@ -71,7 +84,7 @@ export default class TutorialTip extends React.Component {
         }
 
         var tipColor = '';
-        if (this.props.overlayClass === 'tip-overlay--header') {
+        if (this.props.overlayClass === 'tip-overlay--header' || this.props.overlayClass === 'tip-overlay--sidebar') {
             tipColor = 'White';
         }
 
@@ -111,12 +124,18 @@ export default class TutorialTip extends React.Component {
                                     {buttonText}
                                 </button>
                                 <div className='tip-opt'>
-                                    {'Seen this before? '}
+                                    <FormattedMessage
+                                        id='tutorial_tip.seen'
+                                        defaultMessage='Seen this before? '
+                                    />
                                     <a
                                         href='#'
                                         onClick={this.skipTutorial}
                                     >
-                                        {'Opt out of these tips.'}
+                                        <FormattedMessage
+                                            id='tutorial_tip.out'
+                                            defaultMessage='Opt out of these tips.'
+                                        />
                                     </a>
                                 </div>
                             </div>

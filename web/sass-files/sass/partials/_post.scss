@@ -408,7 +408,7 @@ body.ios {
 	@include legacy-pie-clearfix;
 
 	&:hover {
-		.dropdown, .comment-icon__container {
+		.dropdown, .comment-icon__container, .post__reply {
 			visibility: visible;
 		}
 		.permalink-icon {
@@ -754,13 +754,33 @@ body.ios {
 		visibility: hidden;
 	}
 
+	.post__reply {
+		display: inline-block;
+		margin-right: 6px;
+		visibility: hidden;
+		svg {
+			width: 18px;
+			top: 3px;
+			fill: inherit;
+			position: relative;
+		}
+	}
+
 	.comment-icon__container {
 		fill: $primary-color;
 		display: inline-block;
 		visibility: hidden;
 
+		&:focus {
+			outline: none;
+		}
+
 		&.icon--visible {
 			visibility: visible;
+		}
+
+		svg {
+			width: 17px;
 		}
 
 		.comment-icon {

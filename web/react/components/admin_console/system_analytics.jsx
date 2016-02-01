@@ -4,7 +4,24 @@
 import Analytics from './analytics.jsx';
 import * as Client from '../../utils/client.jsx';
 
-export default class SystemAnalytics extends React.Component {
+import {injectIntl, intlShape, defineMessages} from 'mm-intl';
+
+const labels = defineMessages({
+    totalPosts: {
+        id: 'admin.system_analytics.totalPosts',
+        defaultMessage: 'Total Posts'
+    },
+    activeUsers: {
+        id: 'admin.system_analytics.activeUsers',
+        defaultMessage: 'Active Users With Posts'
+    },
+    title: {
+        id: 'admin.system_analytics.title',
+        defaultMessage: 'the System'
+    }
+});
+
+class SystemAnalytics extends React.Component {
     constructor(props) {
         super(props);
 
@@ -29,6 +46,7 @@ export default class SystemAnalytics extends React.Component {
     }
 
     getData() { // should be moved to an action creator eventually
+        const {formatMessage} = this.props.intl;
         Client.getSystemAnalytics(
             'standard',
             (data) => {
@@ -63,7 +81,7 @@ export default class SystemAnalytics extends React.Component {
                 var chartData = {
                     labels: [],
                     datasets: [{
-                        label: 'Total Posts',
+                        label: formatMessage(labels.totalPosts),
                         fillColor: 'rgba(151,187,205,0.2)',
                         strokeColor: 'rgba(151,187,205,1)',
                         pointColor: 'rgba(151,187,205,1)',
@@ -97,7 +115,7 @@ export default class SystemAnalytics extends React.Component {
                 var chartData = {
                     labels: [],
                     datasets: [{
-                        label: 'Active Users With Posts',
+                        label: formatMessage(labels.activeUsers),
                         fillColor: 'rgba(151,187,205,0.2)',
                         strokeColor: 'rgba(151,187,205,1)',
                         pointColor: 'rgba(151,187,205,1)',
@@ -142,7 +160,7 @@ export default class SystemAnalytics extends React.Component {
         return (
             <div>
                 <Analytics
-                    title={'the System'}
+                    title={this.props.intl.formatMessage(labels.title)}
                     channelOpenCount={this.state.channel_open_count}
                     channelPrivateCount={this.state.channel_private_count}
                     postCount={this.state.post_count}
@@ -157,5 +175,8 @@ export default class SystemAnalytics extends React.Component {
 }
 
 SystemAnalytics.propTypes = {
+    intl: intlShape.isRequired,
     team: React.PropTypes.object
 };
+
+export default injectIntl(SystemAnalytics);

@@ -3,6 +3,8 @@
 
 import * as Client from '../utils/client.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class TeamExportTab extends React.Component {
     constructor(props) {
         super(props);
@@ -35,7 +37,10 @@ export default class TeamExportTab extends React.Component {
             messageSection = (
                 <p className='confirm-import alert alert-warning'>
                     <i className='fa fa-spinner fa-pulse' />
-                    {' Exporting...'}
+                    <FormattedMessage
+                        id='team_export_tab.exporting'
+                        defaultMessage=' Exporting...'
+                    />
                 </p>
             );
             break;
@@ -43,12 +48,18 @@ export default class TeamExportTab extends React.Component {
             messageSection = (
                 <p className='confirm-import alert alert-success'>
                     <i className='fa fa-check' />
-                    {' Ready for '}
+                    <FormattedMessage
+                        id='team_export_tab.ready'
+                        defaultMessage=' Ready for '
+                    />
                     <a
                         href={this.state.link}
                         download={true}
                     >
-                        {'download'}
+                        <FormattedMessage
+                            id='team_export_tab.download'
+                            defaultMessage='download'
+                        />
                     </a>
                 </p>
             );
@@ -57,7 +68,13 @@ export default class TeamExportTab extends React.Component {
             messageSection = (
                 <p className='confirm-import alert alert-warning'>
                     <i className='fa fa-warning' />
-                    {' Unable to export: ' + this.state.err}
+                    <FormattedMessage
+                        id='team_export_tab.unable'
+                        defaultMessage=' Unable to export: {error}'
+                        values={{
+                            error: this.state.err
+                        }}
+                    />
                 </p>
             );
             break;
@@ -68,10 +85,20 @@ export default class TeamExportTab extends React.Component {
                 ref='wrapper'
                 className='user-settings'
             >
-                <h3 className='tab-header'>{'Export'}</h3>
+                <h3 className='tab-header'>
+                    <FormattedMessage
+                        id='team_export_tab.export'
+                        defaultMessage='Export'
+                    />
+                </h3>
                 <div className='divider-dark first'/>
                 <ul className='section-max'>
-                    <li className='col-xs-12 section-title'>{'Export your team'}</li>
+                    <li className='col-xs-12 section-title'>
+                        <FormattedMessage
+                            id='team_export_tab.exportTeam'
+                            defaultMessage='Export your team'
+                        />
+                    </li>
                     <li className='col-xs-offset-3 col-xs-8'>
                         <ul className='setting-list'>
                             <li className='setting-list-item'>
@@ -80,7 +107,10 @@ export default class TeamExportTab extends React.Component {
                                     href='#'
                                     onClick={this.doExport}
                                 >
-                                {'Export'}
+                                    <FormattedMessage
+                                        id='team_export_tab.export'
+                                        defaultMessage='Export'
+                                    />
                                 </a>
                             </li>
                         </ul>

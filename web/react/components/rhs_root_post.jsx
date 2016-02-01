@@ -14,6 +14,8 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
 
+import {FormattedMessage, FormattedDate} from 'mm-intl';
+
 export default class RhsRootPost extends React.Component {
     constructor(props) {
         super(props);
@@ -68,7 +70,12 @@ export default class RhsRootPost extends React.Component {
         var channelName;
         if (channel) {
             if (channel.type === 'D') {
-                channelName = 'Direct Message';
+                channelName = (
+                    <FormattedMessage
+                        id='rhs_root.direct'
+                        defaultMessage='Direct Message'
+                    />
+                );
             } else {
                 channelName = channel.display_name;
             }
@@ -93,7 +100,10 @@ export default class RhsRootPost extends React.Component {
                         data-postid={post.id}
                         data-channelid={post.channel_id}
                     >
-                        {'Edit'}
+                        <FormattedMessage
+                            id='rhs_root.edit'
+                            defaultMessage='Edit'
+                        />
                     </a>
                 </li>
             );
@@ -110,7 +120,10 @@ export default class RhsRootPost extends React.Component {
                         role='menuitem'
                         onClick={() => EventHelpers.showDeletePostModal(post, this.props.commentCount)}
                     >
-                        {'Delete'}
+                        <FormattedMessage
+                            id='rhs_root.del'
+                            defaultMessage='Delete'
+                        />
                     </a>
                 </li>
             );
@@ -205,7 +218,15 @@ export default class RhsRootPost extends React.Component {
                             {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
-                                    {utils.displayCommentDateTime(post.create_at)}
+                                    <FormattedDate
+                                        value={post.create_at}
+                                        day='numeric'
+                                        month='long'
+                                        year='numeric'
+                                        hour12={true}
+                                        hour='2-digit'
+                                        minute='2-digit'
+                                    />
                                 </time>
                             </li>
                             <li className='col col__reply'>

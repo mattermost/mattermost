@@ -4,7 +4,24 @@
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class LogSettings extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    locationPlaceholder: {
+        id: 'admin.log.locationPlaceholder',
+        defaultMessage: 'Enter your file location'
+    },
+    formatPlaceholder: {
+        id: 'admin.log.formatPlaceholder',
+        defaultMessage: 'Enter your file format'
+    },
+    saving: {
+        id: 'admin.log.saving',
+        defaultMessage: 'Saving Config...'
+    }
+});
+
+class LogSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -78,6 +95,7 @@ export default class LogSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -90,7 +108,12 @@ export default class LogSettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'Log Settings'}</h3>
+                <h3>
+                    <FormattedMessage
+                        id='admin.log.logSettings'
+                        defaultMessage='Log Settings'
+                    />
+                </h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -101,7 +124,10 @@ export default class LogSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='consoleEnable'
                         >
-                            {'Log To The Console: '}
+                            <FormattedMessage
+                                id='admin.log.consoleTitle'
+                                defaultMessage='Log To The Console: '
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -113,7 +139,10 @@ export default class LogSettings extends React.Component {
                                     defaultChecked={this.props.config.LogSettings.EnableConsole}
                                     onChange={this.handleChange.bind(this, 'console_true')}
                                 />
-                                    {'true'}
+                                    <FormattedMessage
+                                        id='admin.log.true'
+                                        defaultMessage='true'
+                                    />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -123,9 +152,17 @@ export default class LogSettings extends React.Component {
                                     defaultChecked={!this.props.config.LogSettings.EnableConsole}
                                     onChange={this.handleChange.bind(this, 'console_false')}
                                 />
-                                    {'false'}
+                                    <FormattedMessage
+                                        id='admin.log.false'
+                                        defaultMessage='false'
+                                    />
                             </label>
-                            <p className='help-text'>{'Typically set to false in production. Developers may set this field to true to output log messages to console based on the console level option.  If true, server writes messages to the standard output stream (stdout).'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.consoleDescription'
+                                    defaultMessage='Typically set to false in production. Developers may set this field to true to output log messages to console based on the console level option.  If true, server writes messages to the standard output stream (stdout).'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -134,7 +171,10 @@ export default class LogSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='consoleLevel'
                         >
-                            {'Console Log Level:'}
+                            <FormattedMessage
+                                id='admin.log.levelTitle'
+                                defaultMessage='Console Log Level:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <select
@@ -149,7 +189,12 @@ export default class LogSettings extends React.Component {
                                 <option value='INFO'>{'INFO'}</option>
                                 <option value='ERROR'>{'ERROR'}</option>
                             </select>
-                            <p className='help-text'>{'This setting determines the level of detail at which log events are written to the console. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.levelDescription'
+                                    defaultMessage='This setting determines the level of detail at which log events are written to the console. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -157,7 +202,10 @@ export default class LogSettings extends React.Component {
                         <label
                             className='control-label col-sm-4'
                         >
-                            {'Log To File: '}
+                            <FormattedMessage
+                                id='admin.log.fileTitle'
+                                defaultMessage='Log To File: '
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -169,7 +217,10 @@ export default class LogSettings extends React.Component {
                                     defaultChecked={this.props.config.LogSettings.EnableFile}
                                     onChange={this.handleChange.bind(this, 'file_true')}
                                 />
-                                    {'true'}
+                                    <FormattedMessage
+                                        id='admin.log.true'
+                                        defaultMessage='true'
+                                    />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -179,9 +230,17 @@ export default class LogSettings extends React.Component {
                                     defaultChecked={!this.props.config.LogSettings.EnableFile}
                                     onChange={this.handleChange.bind(this, 'file_false')}
                                 />
-                                    {'false'}
+                                    <FormattedMessage
+                                        id='admin.log.false'
+                                        defaultMessage='false'
+                                    />
                             </label>
-                            <p className='help-text'>{'Typically set to true in production.  When true, log files are written to the log file specified in file location field below.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.fileDescription'
+                                    defaultMessage='Typically set to true in production.  When true, log files are written to the log file specified in file location field below.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -190,7 +249,10 @@ export default class LogSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='fileLevel'
                         >
-                            {'File Log Level:'}
+                            <FormattedMessage
+                                id='admin.log.fileLevelTitle'
+                                defaultMessage='File Log Level:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <select
@@ -205,7 +267,12 @@ export default class LogSettings extends React.Component {
                                 <option value='INFO'>{'INFO'}</option>
                                 <option value='ERROR'>{'ERROR'}</option>
                             </select>
-                            <p className='help-text'>{'This setting determines the level of detail at which log events are written to the log file. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.fileLevelDescription'
+                                    defaultMessage='This setting determines the level of detail at which log events are written to the log file. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -214,7 +281,10 @@ export default class LogSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='fileLocation'
                         >
-                            {'File Location:'}
+                            <FormattedMessage
+                                id='admin.log.locationTitle'
+                                defaultMessage='File Location:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -222,12 +292,17 @@ export default class LogSettings extends React.Component {
                                 className='form-control'
                                 id='fileLocation'
                                 ref='fileLocation'
-                                placeholder='Enter your file location'
+                                placeholder={formatMessage(holders.locationPlaceholder)}
                                 defaultValue={this.props.config.LogSettings.FileLocation}
                                 onChange={this.handleChange}
                                 disabled={!this.state.fileEnable}
                             />
-                            <p className='help-text'>{'File to which log files are written. If blank, will be set to ./logs/mattermost, which writes logs to mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.'}</p>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.locationDescription'
+                                    defaultMessage='File to which log files are written. If blank, will be set to ./logs/mattermost, which writes logs to mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.'
+                                />
+                            </p>
                         </div>
                     </div>
 
@@ -236,7 +311,10 @@ export default class LogSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='fileFormat'
                         >
-                            {'File Format:'}
+                            <FormattedMessage
+                                id='admin.log.formatTitle'
+                                defaultMessage='File Format:'
+                            />
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -244,25 +322,58 @@ export default class LogSettings extends React.Component {
                                 className='form-control'
                                 id='fileFormat'
                                 ref='fileFormat'
-                                placeholder='Enter your file format'
+                                placeholder={formatMessage(holders.formatPlaceholder)}
                                 defaultValue={this.props.config.LogSettings.FileFormat}
                                 onChange={this.handleChange}
                                 disabled={!this.state.fileEnable}
                             />
                             <div className='help-text'>
-                                {'Format of log message output. If blank will be set to "[%D %T] [%L] %M", where:'}
+                                <FormattedMessage
+                                    id='admin.log.formatDescription'
+                                    defaultMessage='Format of log message output. If blank will be set to "[%D %T] [%L] %M", where:'
+                                />
                                 <div className='help-text'>
                                     <table
                                         className='table table-bordered'
                                         cellPadding='5'
                                     >
                                         <tbody>
-                                            <tr><td className='help-text'>{'%T'}</td><td className='help-text'>{'Time (15:04:05 MST)'}</td></tr>
-                                            <tr><td className='help-text'>{'%D'}</td><td className='help-text'>{'Date (2006/01/02)'}</td></tr>
-                                            <tr><td className='help-text'>{'%d'}</td><td className='help-text'>{'Date (01/02/06)'}</td></tr>
-                                            <tr><td className='help-text'>{'%L'}</td><td className='help-text'>{'Level (DEBG, INFO, EROR)'}</td></tr>
-                                            <tr><td className='help-text'>{'%S'}</td><td className='help-text'>{'Source'}</td></tr>
-                                            <tr><td className='help-text'>{'%M'}</td><td className='help-text'>{'Message'}</td></tr>
+                                            <tr><td className='help-text'>{'%T'}</td><td className='help-text'>
+                                                <FormattedMessage
+                                                    id='admin.log.formatTime'
+                                                    defaultMessage='Time (15:04:05 MST)'
+                                                />
+                                            </td></tr>
+                                            <tr><td className='help-text'>{'%D'}</td><td className='help-text'>
+                                                <FormattedMessage
+                                                    id='admin.log.formatDateLong'
+                                                    defaultMessage='Date (2006/01/02)'
+                                                />
+                                            </td></tr>
+                                            <tr><td className='help-text'>{'%d'}</td><td className='help-text'>
+                                                <FormattedMessage
+                                                    id='admin.log.formatDateShort'
+                                                    defaultMessage='Date (01/02/06)'
+                                                />
+                                            </td></tr>
+                                            <tr><td className='help-text'>{'%L'}</td><td className='help-text'>
+                                                <FormattedMessage
+                                                    id='admin.log.formatLevel'
+                                                    defaultMessage='Level (DEBG, INFO, EROR)'
+                                                />
+                                            </td></tr>
+                                            <tr><td className='help-text'>{'%S'}</td><td className='help-text'>
+                                                <FormattedMessage
+                                                    id='admin.log.formatSource'
+                                                    defaultMessage='Source'
+                                                />
+                                            </td></tr>
+                                            <tr><td className='help-text'>{'%M'}</td><td className='help-text'>
+                                                <FormattedMessage
+                                                    id='admin.log.formatMessage'
+                                                    defaultMessage='Message'
+                                                />
+                                            </td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -279,9 +390,12 @@ export default class LogSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(holders.saving)}
                             >
-                                {'Save'}
+                                <FormattedMessage
+                                    id='admin.log.save'
+                                    defaultMessage='Save'
+                                />
                             </button>
                         </div>
                     </div>
@@ -293,5 +407,8 @@ export default class LogSettings extends React.Component {
 }
 
 LogSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(LogSettings);

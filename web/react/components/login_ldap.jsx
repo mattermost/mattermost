@@ -4,7 +4,32 @@
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 
-export default class LoginLdap extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    badTeam: {
+        id: 'login_ldap.badTeam',
+        defaultMessage: 'Bad team name'
+    },
+    idReq: {
+        id: 'login_ldap.idlReq',
+        defaultMessage: 'An LDAP ID is required'
+    },
+    pwdReq: {
+        id: 'login_ldap.pwdReq',
+        defaultMessage: 'An LDAP password is required'
+    },
+    username: {
+        id: 'login_ldap.username',
+        defaultMessage: 'LDAP Username'
+    },
+    pwd: {
+        id: 'login_ldap.pwd',
+        defaultMessage: 'LDAP Password'
+    }
+});
+
+class LoginLdap extends React.Component {
     constructor(props) {
         super(props);
 
@@ -16,25 +41,26 @@ export default class LoginLdap extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
+        const {formatMessage} = this.props.intl;
         var state = {};
 
         const teamName = this.props.teamName;
         if (!teamName) {
-            state.serverError = 'Bad team name';
+            state.serverError = formatMessage(holders.badTeam);
             this.setState(state);
             return;
         }
 
         const id = this.refs.id.value.trim();
         if (!id) {
-            state.serverError = 'An LDAP ID is required';
+            state.serverError = formatMessage(holders.idReq);
             this.setState(state);
             return;
         }
 
         const password = this.refs.password.value.trim();
         if (!password) {
-            state.serverError = 'An LDAP password is required';
+            state.serverError = formatMessage(holders.pwdReq);
             this.setState(state);
             return;
         }
@@ -64,7 +90,7 @@ export default class LoginLdap extends React.Component {
             serverError = <label className='control-label'>{this.state.serverError}</label>;
             errorClass = ' has-error';
         }
-
+        const {formatMessage} = this.props.intl;
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='signup__email-container'>
@@ -76,7 +102,7 @@ export default class LoginLdap extends React.Component {
                             autoFocus={true}
                             className='form-control'
                             ref='id'
-                            placeholder='LDAP Username'
+                            placeholder={formatMessage(holders.username)}
                             spellCheck='false'
                         />
                     </div>
@@ -85,7 +111,7 @@ export default class LoginLdap extends React.Component {
                             type='password'
                             className='form-control'
                             ref='password'
-                            placeholder='LDAP Password'
+                            placeholder={formatMessage(holders.pwd)}
                             spellCheck='false'
                         />
                     </div>
@@ -94,7 +120,10 @@ export default class LoginLdap extends React.Component {
                             type='submit'
                             className='btn btn-primary'
                         >
-                            {'Sign in'}
+                            <FormattedMessage
+                                id='login_ldap.signin'
+                                defaultMessage='Sign in'
+                            />
                         </button>
                     </div>
                 </div>
@@ -106,5 +135,8 @@ LoginLdap.defaultProps = {
 };
 
 LoginLdap.propTypes = {
+    intl: intlShape.isRequired,
     teamName: React.PropTypes.string.isRequired
 };
+
+export default injectIntl(LoginLdap);

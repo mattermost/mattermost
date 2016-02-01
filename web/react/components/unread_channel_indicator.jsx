@@ -31,5 +31,5 @@ UnreadChannelIndicator.defaultProps = {
 UnreadChannelIndicator.propTypes = {
     show: React.PropTypes.bool,
     extraClass: React.PropTypes.string,
-    text: React.PropTypes.string
+    text: React.PropTypes.object
 };

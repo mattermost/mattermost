@@ -4,7 +4,24 @@
 import SettingsSidebar from './settings_sidebar.jsx';
 import TeamSettings from './team_settings.jsx';
 
-export default class TeamSettingsModal extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    generalTab: {
+        id: 'team_settings_modal.generalTab',
+        defaultMessage: 'General'
+    },
+    importTab: {
+        id: 'team_settings_modal.importTab',
+        defaultMessage: 'Import'
+    },
+    exportTab: {
+        id: 'team_settings_modal.exportTab',
+        defaultMessage: 'Export'
+    }
+});
+
+class TeamSettingsModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -36,12 +53,13 @@ export default class TeamSettingsModal extends React.Component {
         this.setState({activeSection: section});
     }
     render() {
+        const {formatMessage} = this.props.intl;
         const tabs = [];
-        tabs.push({name: 'general', uiName: 'General', icon: 'glyphicon glyphicon-cog'});
-        tabs.push({name: 'import', uiName: 'Import', icon: 'glyphicon glyphicon-upload'});
+        tabs.push({name: 'general', uiName: formatMessage(holders.generalTab), icon: 'glyphicon glyphicon-cog'});
+        tabs.push({name: 'import', uiName: formatMessage(holders.importTab), icon: 'glyphicon glyphicon-upload'});
 
         // To enable export uncomment this line
-        //tabs.push({name: 'export', uiName: 'Export', icon: 'glyphicon glyphicon-download'});
+        //tabs.push({name: 'export', uiName: formatMessage(holders.exportTab), icon: 'glyphicon glyphicon-download'});
 
         return (
             <div
@@ -67,7 +85,10 @@ export default class TeamSettingsModal extends React.Component {
                                 className='modal-title'
                                 ref='title'
                             >
-                                {'Team Settings'}
+                                <FormattedMessage
+                                    id='team_settings_modal.title'
+                                    defaultMessage='Team Settings'
+                                />
                             </h4>
                         </div>
                         <div className='modal-body'>
@@ -96,4 +117,7 @@ export default class TeamSettingsModal extends React.Component {
 }
 
 TeamSettingsModal.propTypes = {
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(TeamSettingsModal);

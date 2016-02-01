@@ -4,6 +4,8 @@
 import MemberListTeam from './member_list_team.jsx';
 import TeamStore from '../stores/team_store.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 const Modal = ReactBootstrap.Modal;
 
 export default class TeamMembersModal extends React.Component {
@@ -44,7 +46,13 @@ export default class TeamMembersModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    {team.display_name + ' Members'}
+                    <FormattedMessage
+                        id='team_member_modal.members'
+                        defaultMessage='{team} Members'
+                        values={{
+                            team: team.display_name
+                        }}
+                    />
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
                     <div className='team-member-list'>
@@ -57,7 +65,10 @@ export default class TeamMembersModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onHide}
                     >
-                        {'Close'}
+                        <FormattedMessage
+                            id='team_member_modal.close'
+                            defaultMessage='Close'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>

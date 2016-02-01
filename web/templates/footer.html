@@ -5,10 +5,10 @@
     </div>
     <div class="col-xs-12">
         <span class="pull-right footer-link copyright">© 2015 Mattermost, Inc.</span>
-        <a id="help_link" class="pull-right footer-link" href="#">Help</a>
-        <a id="terms_link" class="pull-right footer-link" href="#">Terms</a>
-        <a id="privacy_link" class="pull-right footer-link" href="#">Privacy</a>
-        <a id="about_link" class="pull-right footer-link" href="#">About</a>
+        <a id="help_link" class="pull-right footer-link" href="#">{{ .ClientCfg.FooterHelp }}</a>
+        <a id="terms_link" class="pull-right footer-link" href="#">{{ .ClientCfg.FooterTerms }}</a>
+        <a id="privacy_link" class="pull-right footer-link" href="#">{{ .ClientCfg.FooterPrivacy }}</a>
+        <a id="about_link" class="pull-right footer-link" href="#">{{ .ClientCfg.FooterAbout }}</a>
     </div>
 </div>
 <script>

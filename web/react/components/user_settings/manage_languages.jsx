@@ -4,6 +4,8 @@
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class ManageLanguage extends React.Component {
     constructor(props) {
         super(props);
@@ -70,7 +72,12 @@ export default class ManageLanguage extends React.Component {
         return (
             <div key='changeLanguage'>
                 <br/>
-                <label className='control-label'>{'Change interface language'}</label>
+                <label className='control-label'>
+                    <FormattedMessage
+                        id='user.settings.languages.change'
+                        defaultMessage='Change interface language'
+                    />
+                </label>
                 <div className='padding-top'>
                     <select
                         ref='language'
@@ -87,7 +94,10 @@ export default class ManageLanguage extends React.Component {
                             href='#'
                             onClick={this.changeLanguage}
                         >
-                            {'Set language'}
+                            <FormattedMessage
+                                id='user.settings.languages'
+                                defaultMessage='Set language'
+                            />
                         </a>
                     </div>
                 </div>

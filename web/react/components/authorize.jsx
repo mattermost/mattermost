@@ -3,6 +3,8 @@
 
 import * as Client from '../utils/client.jsx';
 
+import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
 export default class Authorize extends React.Component {
     constructor(props) {
         super(props);
@@ -33,28 +35,67 @@ export default class Authorize extends React.Component {
     }
     render() {
         return (
-            <div className='authorize-box'>
-                <div className='authorize-inner'>
-                    <h3>{'An application would like to connect to your '}{this.props.teamName}{' account'}</h3>
-                    <label>{'The app '}{this.props.appName}{' would like the ability to access and modify your basic information.'}</label>
-                    <br/>
-                    <br/>
-                    <label>{'Allow '}{this.props.appName}{' access?'}</label>
-                    <br/>
-                    <button
-                        type='submit'
-                        className='btn authorize-btn'
-                        onClick={this.handleDeny}
-                    >
-                        {'Deny'}
-                    </button>
-                    <button
-                        type='submit'
-                        className='btn btn-primary authorize-btn'
-                        onClick={this.handleAllow}
-                    >
-                        {'Allow'}
-                    </button>
+            <div className='container-fluid'>
+                <div className='oauth-prompt'>
+                    <div className='prompt__heading'>
+                        <div className='prompt__app-icon'>
+                            <img
+                                src='/static/images/icon50x50.png'
+                                width='50'
+                                height='50'
+                                alt=''
+                            />
+                        </div>
+                        <div className='text'>
+                            <FormattedMessage
+                                id='authorize.title'
+                                defaultMessage='An application would like to connect to your {teamName} account'
+                                values={{
+                                    teamName: this.props.teamName
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <p>
+                        <FormattedHTMLMessage
+                            id='authorize.app'
+                            defaultMessage='The app <strong>{appName}</strong> would like the ability to access and modify your basic information.'
+                            values={{
+                                appName: this.props.appName
+                            }}
+                        />
+                    </p>
+                    <h2 className='prompt__allow'>
+                        <FormattedHTMLMessage
+                            id='authorize.access'
+                            defaultMessage='Allow <strong>{appName}</strong> access?'
+                            values={{
+                                appName: this.props.appName
+                            }}
+                        />
+                    </h2>
+                    <div className='prompt__buttons'>
+                        <button
+                            type='submit'
+                            className='btn authorize-btn'
+                            onClick={this.handleDeny}
+                        >
+                            <FormattedMessage
+                                id='authorize.deny'
+                                defaultMessage='Deny'
+                            />
+                        </button>
+                        <button
+                            type='submit'
+                            className='btn btn-primary authorize-btn'
+                            onClick={this.handleAllow}
+                        >
+                            <FormattedMessage
+                                id='authorize.allow'
+                                defaultMessage='Allow'
+                            />
+                        </button>
+                    </div>
                 </div>
             </div>
         );

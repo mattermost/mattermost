@@ -44,19 +44,19 @@ export default class PostInfo extends React.Component {
 
         if (this.props.allowReply === 'true') {
             dropdownContents.push(
-                <li
-                    key='replyLink'
-                    role='presentation'
-                >
-                    <a
-                        className='link__reply theme'
-                        href='#'
-                        onClick={this.props.handleCommentClick}
-                    >
-                        {'Reply'}
-                    </a>
-                </li>
-            );
+                 <li
+                     key='replyLink'
+                     role='presentation'
+                 >
+                     <a
+                         className='link__reply theme'
+                         href='#'
+                         onClick={this.props.handleCommentClick}
+                     >
+                         {'Reply'}
+                     </a>
+                 </li>
+             );
         }
 
         dropdownContents.push(
@@ -173,7 +173,7 @@ export default class PostInfo extends React.Component {
                 >
                     <span
                         className='comment-icon'
-                        dangerouslySetInnerHTML={{__html: Constants.COMMENT_ICON}}
+                        dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
                     />
                     {commentCountText}
                 </a>

@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 const Modal = ReactBootstrap.Modal;
 
 export default class GetLinkModal extends React.Component {
@@ -59,14 +61,25 @@ export default class GetLinkModal extends React.Component {
                     className='btn btn-primary pull-left'
                     onClick={this.copyLink}
                 >
-                    {'Copy Link'}
+                    <FormattedMessage
+                        id='get_link.copy'
+                        defaultMessage='Copy Link'
+                    />
                 </button>
             );
         }
 
         var copyLinkConfirm = null;
         if (this.state.copiedLink) {
-            copyLinkConfirm = <p className='alert alert-success copy-link-confirm'><i className='fa fa-check'></i>{' Link copied to clipboard.'}</p>;
+            copyLinkConfirm = (
+                <p className='alert alert-success copy-link-confirm'>
+                    <i className='fa fa-check'></i>
+                    <FormattedMessage
+                        id='get_link.clipboard'
+                        defaultMessage=' Link copied to clipboard.'
+                    />
+                </p>
+            );
         }
 
         return (
@@ -92,7 +105,10 @@ export default class GetLinkModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.onHide}
                     >
-                        {'Close'}
+                        <FormattedMessage
+                            id='get_link.close'
+                            defaultMessage='Close'
+                        />
                     </button>
                     {copyLink}
                     {copyLinkConfirm}

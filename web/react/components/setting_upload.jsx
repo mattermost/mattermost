@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class SettingsUpload extends React.Component {
     constructor(props) {
         super(props);
@@ -41,7 +43,7 @@ export default class SettingsUpload extends React.Component {
         if (inputnode.files && inputnode.files[0]) {
             this.props.submit(inputnode.files[0]);
         } else {
-            this.setState({clientError: 'No file selected.'});
+            this.setState({clientError: true});
         }
     }
 
@@ -49,7 +51,12 @@ export default class SettingsUpload extends React.Component {
         let clientError = null;
         if (this.state.clientError) {
             clientError = (
-                <div className='file-status'>{this.state.clientError}</div>
+                <div className='file-status'>
+                    <FormattedMessage
+                        id='setting_upload.noFile'
+                        defaultMessage='No file selected.'
+                    />
+                </div>
             );
         }
         let serverError = null;
@@ -75,7 +82,10 @@ export default class SettingsUpload extends React.Component {
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
-                                {'Select file'}
+                                <FormattedMessage
+                                    id='setting_upload.select'
+                                    defaultMessage='Select file'
+                                />
                                 <input
                                     ref='uploadinput'
                                     accept={this.props.fileTypesAccepted}
@@ -87,7 +97,10 @@ export default class SettingsUpload extends React.Component {
                                 className={submitButtonClass}
                                 onClick={this.doSubmit}
                             >
-                                {'Import'}
+                                <FormattedMessage
+                                    id='setting_upload.import'
+                                    defaultMessage='Import'
+                                />
                             </a>
                             {fileNameText}
                             {serverError}

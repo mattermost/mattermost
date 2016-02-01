@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class SettingPicture extends React.Component {
     constructor(props) {
         super(props);
@@ -76,10 +78,24 @@ export default class SettingPicture extends React.Component {
                 <a
                     className={confirmButtonClass}
                     onClick={this.props.submit}
-                >Save</a>
+                >
+                    <FormattedMessage
+                        id='setting_picture.save'
+                        defaultMessage='Save'
+                    />
+                </a>
             );
         }
-        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + global.window.mm_config.ProfileWidth + 'px in width and ' + global.window.mm_config.ProfileHeight + 'px height.';
+        var helpText = (
+            <FormattedMessage
+                id='setting_picture.help'
+                defaultMessage='Upload a profile picture in either JPG or PNG format, at least {width}px in width and {height}px height.'
+                values={{
+                    width: global.window.mm_config.ProfileWidth,
+                    height: global.window.mm_config.ProfileHeight
+                }}
+            />
+        );
 
         var self = this;
         return (
@@ -97,7 +113,10 @@ export default class SettingPicture extends React.Component {
                             {serverError}
                             {clientError}
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
-                                Select
+                                <FormattedMessage
+                                    id='setting_picture.select'
+                                    defaultMessage='Select'
+                                />
                                 <input
                                     ref='input'
                                     accept='.jpg,.png,.bmp'
@@ -110,7 +129,12 @@ export default class SettingPicture extends React.Component {
                                 className='btn btn-sm theme'
                                 href='#'
                                 onClick={self.props.updateSection}
-                            >Cancel</a>
+                            >
+                                <FormattedMessage
+                                    id='setting_picture.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </a>
                         </li>
                     </ul>
                 </li>

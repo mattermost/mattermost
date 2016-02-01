@@ -4,7 +4,20 @@
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 
-export default class EmailSignUpPage extends React.Component {
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    emailError: {
+        id: 'email_signup.emailError',
+        defaultMessage: 'Please enter a valid email address'
+    },
+    address: {
+        id: 'email_signup.address',
+        defaultMessage: 'Email Address'
+    }
+});
+
+class EmailSignUpPage extends React.Component {
     constructor() {
         super();
 
@@ -20,7 +33,7 @@ export default class EmailSignUpPage extends React.Component {
 
         team.email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!team.email || !Utils.isEmail(team.email)) {
-            state.emailError = 'Please enter a valid email address';
+            state.emailError = this.props.intl.formatMessage(holders.emailError);
             isValid = false;
         } else {
             state.emailError = null;
@@ -67,7 +80,7 @@ export default class EmailSignUpPage extends React.Component {
                         type='email'
                         ref='email'
                         className='form-control'
-                        placeholder='Email Address'
+                        placeholder={this.props.intl.formatMessage(holders.address)}
                         maxLength='128'
                         spellCheck='false'
                     />
@@ -78,12 +91,20 @@ export default class EmailSignUpPage extends React.Component {
                         className='btn btn-md btn-primary'
                         type='submit'
                     >
-                        {'Create Team'}
+                        <FormattedMessage
+                            id='email_signup.createTeam'
+                            defaultMessage='Create Team'
+                        />
                     </button>
                     {serverError}
                 </div>
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{`Find my teams`}</a></span>
+                    <span><a href='/find_team'>
+                        <FormattedMessage
+                            id='email_signup.find'
+                            defaultMessage='Find my teams'
+                        />
+                    </a></span>
                 </div>
             </form>
         );
@@ -93,4 +114,7 @@ export default class EmailSignUpPage extends React.Component {
 EmailSignUpPage.defaultProps = {
 };
 EmailSignUpPage.propTypes = {
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(EmailSignUpPage);
