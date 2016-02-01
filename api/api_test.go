@@ -30,7 +30,7 @@ func SetupBenchmark() (*model.Team, *model.User, *model.Channel) {
 
 	team := &model.Team{DisplayName: "Benchmark Team", Name: "z-z-" + model.NewId() + "a", Email: "benchmark@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "benchmark@test.com", Nickname: "Mr. Benchmarker", Password: "pwd"}
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Mr. Benchmarker", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
