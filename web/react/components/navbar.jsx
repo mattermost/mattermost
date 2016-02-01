@@ -392,10 +392,14 @@ export default class Navbar extends React.Component {
             } else if (channel.type === 'D') {
                 isDirect = true;
                 if (this.state.users.length > 1) {
+                    let p;
                     if (this.state.users[0].id === currentId) {
-                        channelTitle = UserStore.getProfile(this.state.users[1].id).username;
+                        p = UserStore.getProfile(this.state.users[1].id);
                     } else {
-                        channelTitle = UserStore.getProfile(this.state.users[0].id).username;
+                        p = UserStore.getProfile(this.state.users[0].id);
+                    }
+                    if (p != null) {
+                        channelTitle = p.username;
                     }
                 }
             }

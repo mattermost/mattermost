@@ -182,7 +182,10 @@ export default class Sidebar extends React.Component {
 
             let currentChannelName = channel.display_name;
             if (channel.type === 'D') {
-                currentChannelName = Utils.getDirectTeammate(channel.id).username;
+                const teammate = Utils.getDirectTeammate(channel.id);
+                if (teammate != null) {
+                    currentChannelName = teammate.username;
+                }
             }
 
             const unread = this.getTotalUnreadCount();
