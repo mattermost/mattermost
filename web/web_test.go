@@ -61,7 +61,7 @@ func TestGetAccessToken(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := ApiClient.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Password: "pwd"}
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
 	ruser := ApiClient.Must(ApiClient.CreateUser(&user, "")).Data.(*model.User)
 	store.Must(api.Srv.Store.User().VerifyEmail(ruser.Id))
 
@@ -190,7 +190,7 @@ func TestIncomingWebhook(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
 	store.Must(api.Srv.Store.User().VerifyEmail(user.Id))
 
