@@ -597,7 +597,7 @@ body.ios {
 			position: absolute;
 			right: 0;
 			top: 30px;
-			width: 85px;
+			width: 65px;
 			white-space: nowrap;
 		}
 
@@ -666,7 +666,7 @@ body.ios {
 		word-wrap: break-word;
 		padding: 0.2em 0.5em 0em;
 		@include legacy-pie-clearfix;
-		width: calc(100% - 95px);
+		width: calc(100% - 75px);
 
 		p {
 			margin: 0 0 0.4em;

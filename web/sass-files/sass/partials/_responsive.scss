@@ -72,23 +72,19 @@
 
     }
 
+}
+
+@media screen and (max-width: 768px) {
+
+    .signup-team__container {
+        font-size: 1em;
+    }
+
+    .date-separator.hovered--after:before, .new-separator.hovered--after:before {
+        background: none !important;
+    }
+
     .post {
-
-        .post-list__content & {
-
-            &:hover {
-                background: transparent;
-            }
-
-            .comment-icon__container {
-                visibility: hidden;
-            }
-
-        }
-
-        .dropdown, .post__reply {
-            visibility: visible;
-        }
 
         .post__dropdown {
             line-height: 9px;
@@ -106,17 +102,21 @@
 
         }
 
-    }
+        .post-list__content & {
 
-}
+            &:hover {
+                background: transparent;
+            }
 
-@media screen and (max-width: 768px) {
+            .comment-icon__container {
+                visibility: visible;
+            }
 
-    .signup-team__container {
-        font-size: 1em;
-    }
+        }
 
-    .post {
+        .dropdown, .post__reply {
+            visibility: visible;
+        }
 
         .post__body {
             width: calc(100% - 75px);
