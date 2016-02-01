@@ -223,7 +223,7 @@ export default class RhsRootPost extends React.Component {
                                         day='numeric'
                                         month='long'
                                         year='numeric'
-                                        hour12='true'
+                                        hour12={true}
                                         hour='2-digit'
                                         minute='2-digit'
                                     />

@@ -545,7 +545,7 @@
   "file_upload.fileAbove": "No se puede subir un archivo que pesa más de {max}MB: {filename}",
   "file_upload.filesAbove": "No se pueden subir archivos de más de {max}MB: {filenames}",
   "file_upload.limited": "Se pueden subir un máximo de {count} archivos. Por favor envía otros mensajes para adjuntar más archivos.",
-  "file_upload.pasted": "Imagen Pegada en ",
+  "file_upload.pasted": "Imagen Pegada el ",
   "find_team.email": "Correo electrónico",
   "find_team.findDescription": "Enviamos un correo electrónico con los equipos a los que perteneces.",
   "find_team.findTitle": "Encuentra tu equipo",

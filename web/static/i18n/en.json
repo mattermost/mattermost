@@ -513,6 +513,7 @@
   "file_upload.limited": "Uploads limited to {count} files maximum. Please use additional posts for more files.",
   "file_upload.filesAbove": "Files above {max}MB could not be uploaded: {filenames}",
   "file_upload.fileAbove": "File above {max}MB could not be uploaded: {filename}",
+  "file_upload.pasted": "Image Pasted at ",
   "find_team.submitError": "Please enter a valid email address",
   "find_team.placeholder": "you@domain.com",
   "find_team.findTitle": "Find Your Team",

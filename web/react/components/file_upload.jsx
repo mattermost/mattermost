@@ -20,6 +20,10 @@ const holders = defineMessages({
     fileAbove: {
         id: 'file_upload.fileAbove',
         defaultMessage: 'File above {max}MB could not be uploaded: {filename}'
+    },
+    pasted: {
+        id: 'file_upload.pasted',
+        defaultMessage: 'Image Pasted at '
     }
 });
 
@@ -237,7 +241,7 @@ class FileUpload extends React.Component {
                             min = String(d.getMinutes());
                         }
 
-                        var name = 'Image Pasted at ' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
+                        var name = formatMessage(holders.pasted) + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
                         formData.append('files', file, name);
                         formData.append('client_ids', clientId);
 
