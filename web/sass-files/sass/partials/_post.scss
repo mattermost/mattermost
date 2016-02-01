@@ -456,7 +456,7 @@ body.ios {
 			&:hover {
 
 				.post__time {
-
+					@include opacity(0.5);
 				}
 
 			}
@@ -480,27 +480,15 @@ body.ios {
 			}
 
 			.post__time {
-				display: inline-block;
-				font: normal normal normal 14px/1 FontAwesome;
-				font-size: inherit;
+				font: normal normal normal FontAwesome;
 				text-rendering: auto;
 				-webkit-font-smoothing: antialiased;
 				-moz-osx-font-smoothing: grayscale;
-				font-size: 0;
 				position: absolute;
 				top: -3px;
-				left: 17px;
-				width: 30px;
-				height: 30px;
+				left: -1.0em;
 				line-height: 37px;
-
-				&:before {
-					@include opacity(0);
-					content: "\f017";
-					content: "\f017";
-					font-size: 19px;
-				}
-
+				@include opacity(0);
 			}
 
 		}

@@ -14,7 +14,7 @@ export default class TimeSince extends React.Component {
     componentDidMount() {
         this.intervalId = setInterval(() => {
             this.forceUpdate();
-        }, 30000);
+        }, Constants.TIME_SINCE_UPDATE_INTERVAL);
     }
     componentWillUnmount() {
         clearInterval(this.intervalId);
@@ -22,6 +22,14 @@ export default class TimeSince extends React.Component {
     render() {
         const displayDate = Utils.displayDate(this.props.eventTime);
         const displayTime = Utils.displayTime(this.props.eventTime);
+
+        if (this.props.sameUser) {
+            return (
+                <time className='post__time'>
+                    {Utils.displayTime(this.props.eventTime)}
+                </time>
+            );
+        }
 
         const tooltip = (
             <Tooltip id={'time-since-tooltip-' + this.props.eventTime}>
@@ -42,10 +50,13 @@ export default class TimeSince extends React.Component {
         );
     }
 }
+
 TimeSince.defaultProps = {
-    eventTime: 0
+    eventTime: 0,
+    sameUser: false
 };
 
 TimeSince.propTypes = {
-    eventTime: React.PropTypes.number.isRequired
+    eventTime: React.PropTypes.number.isRequired,
+    sameUser: React.PropTypes.bool
 };

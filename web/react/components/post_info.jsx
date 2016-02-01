@@ -220,6 +220,7 @@ export default class PostInfo extends React.Component {
                 <li className='col'>
                     <TimeSince
                         eventTime={post.create_at}
+                        sameUser={this.props.sameUser}
                     />
                 </li>
                 <li className='col col__reply'>
@@ -251,12 +252,14 @@ PostInfo.defaultProps = {
     post: null,
     commentCount: 0,
     isLastComment: false,
-    allowReply: false
+    allowReply: false,
+    sameUser: false
 };
 PostInfo.propTypes = {
     post: React.PropTypes.object,
     commentCount: React.PropTypes.number,
     isLastComment: React.PropTypes.bool,
     allowReply: React.PropTypes.string,
-    handleCommentClick: React.PropTypes.func
+    handleCommentClick: React.PropTypes.func,
+    sameUser: React.PropTypes.bool
 };
