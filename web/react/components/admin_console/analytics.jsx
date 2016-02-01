@@ -104,10 +104,12 @@ export default class Analytics extends React.Component {
             let content;
             if (this.props.postCountsDay.labels.length === 0) {
                 content = (
-                    <FormattedMessage
-                        id='admin.analytics.meaningful'
-                        defaultMessage='Not enough data for a meaningful representation.'
-                    />
+                    <h5>
+                        <FormattedMessage
+                            id='admin.analytics.meaningful'
+                            defaultMessage='Not enough data for a meaningful representation.'
+                        />
+                    </h5>
                 );
             } else {
                 content = (
@@ -153,10 +155,12 @@ export default class Analytics extends React.Component {
             let content;
             if (this.props.userCountsWithPostsDay.labels.length === 0) {
                 content = (
-                    <FormattedMessage
-                        id='admin.analytics.meaningful'
-                        defaultMessage='Not enough data for a meaningful representation.'
-                    />
+                    <h5>
+                        <FormattedMessage
+                            id='admin.analytics.meaningful'
+                            defaultMessage='Not enough data for a meaningful representation.'
+                        />
+                    </h5>
                 );
             } else {
                 content = (

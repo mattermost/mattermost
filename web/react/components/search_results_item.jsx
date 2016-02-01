@@ -89,7 +89,7 @@ export default class SearchResultsItem extends React.Component {
                                 >
                                     <span
                                         className='comment-icon'
-                                        dangerouslySetInnerHTML={{__html: Constants.COMMENT_ICON}}
+                                        dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
                                     />
                                 </a>
                             </li>
