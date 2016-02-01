@@ -408,7 +408,7 @@ body.ios {
 	@include legacy-pie-clearfix;
 
 	&:hover {
-		.dropdown, .comment-icon__container, .post__reply {
+		.dropdown, .comment-icon__container, .post__reply, .post__remove {
 			visibility: visible;
 		}
 		.permalink-icon {
@@ -644,6 +644,13 @@ body.ios {
 			top: -1px;
 			position: relative;
 		}
+	}
+
+	.post__remove {
+		display: inline-block;
+		visibility: hidden;
+		margin-right: 5px;
+		top: -1px;
 	}
 
 	.post__body {

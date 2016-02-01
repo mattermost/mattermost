@@ -12,6 +12,7 @@ export default {
         LEAVE_CHANNEL: null,
         CREATE_POST: null,
         POST_DELETED: null,
+        REMOVE_POST: null,
 
         RECIEVED_CHANNELS: null,
         RECIEVED_CHANNEL: null,
@@ -127,6 +128,7 @@ export default {
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
     POST_TYPE_JOIN_LEAVE: 'system_join_leave',
+    POST_TYPE_EPHEMERAL: 'system_ephemeral',
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SYSTEM_MESSAGE_PROFILE_NAME: 'System',
     SYSTEM_MESSAGE_PROFILE_IMAGE: '/static/images/logo_compact.png',

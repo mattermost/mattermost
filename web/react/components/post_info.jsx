@@ -23,13 +23,14 @@ export default class PostInfo extends React.Component {
         };
 
         this.handlePermalinkCopy = this.handlePermalinkCopy.bind(this);
+        this.removePost = this.removePost.bind(this);
     }
     createDropdown() {
         var post = this.props.post;
         var isOwner = UserStore.getCurrentId() === post.user_id;
         var isAdmin = Utils.isAdmin(UserStore.getCurrentUser().roles);
 
-        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.state === Constants.POST_DELETED) {
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.ephemeral) {
             return '';
         }
 
@@ -166,6 +167,25 @@ export default class PostInfo extends React.Component {
             this.setState({copiedLink: false});
         }
     }
+    removePost() {
+        EventHelpers.emitRemovePost(this.props.post);
+    }
+    createRemovePostButton(post) {
+        if (!post.ephemeral) {
+            return null;
+        }
+
+        return (
+            <a
+                href='#'
+                className='post__remove theme'
+                type='button'
+                onClick={this.removePost}
+            >
+                {'×'}
+            </a>
+        );
+    }
     render() {
         var post = this.props.post;
         var comments = '';
@@ -178,7 +198,7 @@ export default class PostInfo extends React.Component {
             commentCountText = '';
         }
 
-        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && post.state !== Constants.POST_DELETED) {
+        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && !post.ephemeral) {
             comments = (
                 <a
                     href='#'
@@ -264,6 +284,7 @@ export default class PostInfo extends React.Component {
                     >
                         {permalinkOverlay}
                     </Overlay>
+                    {this.createRemovePostButton(post)}
                 </li>
             </ul>
         );
