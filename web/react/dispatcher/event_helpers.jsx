@@ -180,3 +180,10 @@ export function emitPreferenceChangedEvent(preference) {
         preference
     });
 }
+
+export function emitRemovePost(post) {
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.REMOVE_POST,
+        post
+    });
+}
