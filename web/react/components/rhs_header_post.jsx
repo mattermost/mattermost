@@ -3,6 +3,9 @@
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
+
+import {FormattedMessage} from 'mm-intl';
+
 const ActionTypes = Constants.ActionTypes;
 
 export default class RhsHeaderPost extends React.Component {
@@ -58,7 +61,13 @@ export default class RhsHeaderPost extends React.Component {
 
         return (
             <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>{back}Message Details</span>
+                <span className='sidebar--right__title'>
+                    {back}
+                    <FormattedMessage
+                        id='rhs_header.details'
+                        defaultMessage='Message Details'
+                    />
+                </span>
                 <button
                     type='button'
                     className='sidebar--right__close'

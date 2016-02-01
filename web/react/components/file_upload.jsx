@@ -6,7 +6,28 @@ import Constants from '../utils/constants.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-export default class FileUpload extends React.Component {
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    limited: {
+        id: 'file_upload.limited',
+        defaultMessage: 'Uploads limited to {count} files maximum. Please use additional posts for more files.'
+    },
+    filesAbove: {
+        id: 'file_upload.filesAbove',
+        defaultMessage: 'Files above {max}MB could not be uploaded: {filenames}'
+    },
+    fileAbove: {
+        id: 'file_upload.fileAbove',
+        defaultMessage: 'File above {max}MB could not be uploaded: {filename}'
+    },
+    pasted: {
+        id: 'file_upload.pasted',
+        defaultMessage: 'Image Pasted at '
+    }
+});
+
+class FileUpload extends React.Component {
     constructor(props) {
         super(props);
 
@@ -74,14 +95,15 @@ export default class FileUpload extends React.Component {
             numUploads += 1;
         }
 
+        const {formatMessage} = this.props.intl;
         if (files.length > uploadsRemaining) {
-            this.props.onUploadError(`Uploads limited to ${Constants.MAX_UPLOAD_FILES} files maximum. Please use additional posts for more files.`);
+            this.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
         } else if (tooLargeFiles.length > 1) {
             var tooLargeFilenames = tooLargeFiles.map((file) => file.name).join(', ');
 
-            this.props.onUploadError(`Files above ${Constants.MAX_FILE_SIZE / 1000000}MB could not be uploaded: ${tooLargeFilenames}`);
+            this.props.onUploadError(formatMessage(holders.filesAbove, {max: (Constants.MAX_FILE_SIZE / 1000000), files: tooLargeFilenames}));
         } else if (tooLargeFiles.length > 0) {
-            this.props.onUploadError(`File above ${Constants.MAX_FILE_SIZE / 1000000}MB could not be uploaded: ${tooLargeFiles[0].name}`);
+            this.props.onUploadError(formatMessage(holders.fileAbove, {max: (Constants.MAX_FILE_SIZE / 1000000), file: tooLargeFiles[0].name}));
         }
     }
 
@@ -106,6 +128,7 @@ export default class FileUpload extends React.Component {
     componentDidMount() {
         var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         var self = this;
+        const {formatMessage} = this.props.intl;
 
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
@@ -184,7 +207,7 @@ export default class FileUpload extends React.Component {
                 var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - self.props.getFileCount(ChannelStore.getCurrentId()), numItems);
 
                 if (numItems > numToUpload) {
-                    self.props.onUploadError('Uploads limited to ' + Constants.MAX_UPLOAD_FILES + ' files maximum. Please use additional posts for more files.');
+                    self.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
                 }
 
                 for (var i = 0; i < items.length && i < numToUpload; i++) {
@@ -218,7 +241,7 @@ export default class FileUpload extends React.Component {
                             min = String(d.getMinutes());
                         }
 
-                        var name = 'Image Pasted at ' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
+                        var name = formatMessage(holders.pasted) + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
                         formData.append('files', file, name);
                         formData.append('client_ids', clientId);
 
@@ -296,6 +319,7 @@ export default class FileUpload extends React.Component {
 }
 
 FileUpload.propTypes = {
+    intl: intlShape.isRequired,
     onUploadError: React.PropTypes.func,
     getFileCount: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
@@ -304,3 +328,5 @@ FileUpload.propTypes = {
     channelId: React.PropTypes.string,
     postType: React.PropTypes.string
 };
+
+export default injectIntl(FileUpload);
