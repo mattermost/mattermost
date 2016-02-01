@@ -401,7 +401,7 @@
   },
   {
     "id": "api.context.unknown.app_error",
-    "translation": "An unknown error has occured. Please contact support."
+    "translation": "An unknown error has occurred. Please contact support."
   },
   {
     "id": "api.export.json.app_error",
@@ -957,7 +957,7 @@
   },
   {
     "id": "api.team.email_teams.sending.error",
-    "translation": "An error occured while sending an email in emailTeams err=%v"
+    "translation": "An error occurred while sending an email in emailTeams err=%v"
   },
   {
     "id": "api.team.export_team.admin.app_error",
