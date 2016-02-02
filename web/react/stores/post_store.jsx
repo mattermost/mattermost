@@ -341,7 +341,6 @@ class PostStoreClass extends EventEmitter {
         if (post.id in postList.posts) {
             // make sure to copy the post so that component state changes work properly
             postList.posts[post.id] = Object.assign({}, post, {
-                message: this.delete_message, // TODO
                 state: Constants.POST_DELETED,
                 filenames: [],
                 ephemeral: true
@@ -533,9 +532,6 @@ class PostStoreClass extends EventEmitter {
         }
 
         return commentCount;
-    }
-    deleteMessage(msg) {
-        this.delete_message = msg;
     }
 }
 
