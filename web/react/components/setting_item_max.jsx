@@ -85,6 +85,6 @@ SettingItemMax.propTypes = {
     extraInfo: React.PropTypes.element,
     updateSection: React.PropTypes.func,
     submit: React.PropTypes.func,
-    title: React.PropTypes.string,
+    title: React.PropTypes.node,
     width: React.PropTypes.string
 };

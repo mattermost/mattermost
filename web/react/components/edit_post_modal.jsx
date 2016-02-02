@@ -10,9 +10,19 @@ import PostStore from '../stores/post_store.jsx';
 import PreferenceStore from '../stores/preference_store.jsx';
 
 import Constants from '../utils/constants.jsx';
+
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
 var KeyCodes = Constants.KeyCodes;
 
-export default class EditPostModal extends React.Component {
+const holders = defineMessages({
+    editPost: {
+        id: 'edit_post.editPost',
+        defaultMessage: 'Edit the post...'
+    }
+});
+
+class EditPostModal extends React.Component {
     constructor() {
         super();
 
@@ -151,7 +161,15 @@ export default class EditPostModal extends React.Component {
                             >
                                 <span aria-hidden='true'>&times;</span>
                             </button>
-                        <h4 className='modal-title'>Edit {this.state.title}</h4>
+                        <h4 className='modal-title'>
+                            <FormattedMessage
+                                id='edit_post.edit'
+                                defaultMessage='Edit {title}'
+                                values={{
+                                    title: this.state.title
+                                }}
+                            />
+                        </h4>
                         </div>
                         <div className='edit-modal-body modal-body'>
                             <Textbox
@@ -159,7 +177,7 @@ export default class EditPostModal extends React.Component {
                                 onKeyPress={this.handleEditKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.editText}
-                                createMessage='Edit the post...'
+                                createMessage={this.props.intl.formatMessage(holders.editPost)}
                                 supportsCommands={false}
                                 id='edit_textbox'
                                 ref='editbox'
@@ -172,14 +190,20 @@ export default class EditPostModal extends React.Component {
                                 className='btn btn-default'
                                 data-dismiss='modal'
                             >
-                                Cancel
+                                <FormattedMessage
+                                    id='edit_post.cancel'
+                                    defaultMessage='Cancel'
+                                />
                             </button>
                             <button
                                 type='button'
                                 className='btn btn-primary'
                                 onClick={this.handleEdit}
                             >
-                                Save
+                                <FormattedMessage
+                                    id='edit_post.save'
+                                    defaultMessage='Save'
+                                />
                             </button>
                         </div>
                     </div>
@@ -188,3 +212,9 @@ export default class EditPostModal extends React.Component {
         );
     }
 }
+
+EditPostModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(EditPostModal);

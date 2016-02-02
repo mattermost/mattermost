@@ -9,6 +9,8 @@ import Constants from '../utils/constants.jsx';
 
 import ChannelStore from '../stores/channel_store.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class PopoverListMembers extends React.Component {
     constructor(props) {
         super(props);
@@ -92,7 +94,10 @@ export default class PopoverListMembers extends React.Component {
                             className='btn-message'
                             onClick={(e) => this.handleShowDirectChannel(m, e)}
                         >
-                            {'Message'}
+                            <FormattedMessage
+                                id='members_popover.msg'
+                                defaultMessage='Message'
+                            />
                         </a>
                     );
                 }
@@ -147,6 +152,12 @@ export default class PopoverListMembers extends React.Component {
             countText = count.toString();
         }
 
+        const title = (
+            <FormattedMessage
+                id='members_popover.title'
+                defaultMessage='Members'
+            />
+        );
         return (
             <div>
                 <div
@@ -171,7 +182,7 @@ export default class PopoverListMembers extends React.Component {
                 >
                     <Popover
                         ref='memebersPopover'
-                        title='Members'
+                        title={title}
                         id='member-list-popover'
                     >
                         {popoverHtml}

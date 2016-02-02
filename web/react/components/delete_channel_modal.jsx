@@ -5,7 +5,9 @@ import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 const Modal = ReactBootstrap.Modal;
 import TeamStore from '../stores/team_store.jsx';
-import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
+
+import {FormattedMessage} from 'mm-intl';
 
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {
@@ -32,7 +34,20 @@ export default class DeleteChannelModal extends React.Component {
     }
 
     render() {
-        const channelTerm = Utils.getChannelTerm(this.props.channel.type).toLowerCase();
+        let channelTerm = (
+            <FormattedMessage
+                id='delete_channel.channel'
+                defaultMessage='channel'
+            />
+        );
+        if (this.props.channel.type === Constants.PRIVATE_CHANNEL) {
+            channelTerm = (
+                <FormattedMessage
+                    id='delete_channel.group'
+                    defaultMessage='group'
+                />
+            );
+        }
 
         return (
             <Modal
@@ -40,10 +55,22 @@ export default class DeleteChannelModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <h4 className='modal-title'>{'Confirm DELETE Channel'}</h4>
+                    <h4 className='modal-title'>
+                        <FormattedMessage
+                            id='delete_channel.confirm'
+                            defaultMessage='Confirm DELETE Channel'
+                        />
+                    </h4>
                 </Modal.Header>
                 <Modal.Body>
-                    {`Are you sure you wish to delete the ${this.props.channel.display_name} ${channelTerm}?`}
+                    <FormattedMessage
+                        id='delete_channel.question'
+                        defaultMessage='Are you sure you wish to delete the {display_name} {term}?'
+                        values={{
+                            display_name: this.props.channel.display_name,
+                            term: (channelTerm)
+                        }}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <button
@@ -51,7 +78,10 @@ export default class DeleteChannelModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onHide}
                     >
-                        {'Cancel'}
+                        <FormattedMessage
+                            id='delete_channel.cancel'
+                            defaultMessage='Cancel'
+                        />
                     </button>
                     <button
                         type='button'
@@ -59,7 +89,10 @@ export default class DeleteChannelModal extends React.Component {
                         data-dismiss='modal'
                         onClick={this.handleDelete}
                     >
-                        {'Delete'}
+                        <FormattedMessage
+                            id='delete_channel.del'
+                            defaultMessage='Delete'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>
