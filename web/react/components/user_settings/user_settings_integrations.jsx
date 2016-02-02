@@ -25,6 +25,14 @@ const holders = defineMessages({
     outDesc: {
         id: 'user.settings.integrations.outWebhooksDescription',
         defaultMessage: 'Manage your outgoing webhooks'
+    },
+    cmdName: {
+        id: 'user.settings.integrations.commands',
+        defaultMessage: 'Commands'
+    },
+    cmdDesc: {
+        id: 'user.settings.integrations.commandsDescription',
+        defaultMessage: 'Manage your commands'
     }
 });
 
@@ -116,7 +124,7 @@ class UserSettingsIntegrationsTab extends React.Component {
 
                 commandHooksSection = (
                     <SettingItemMax
-                        title='Commands'
+                        title={formatMessage(holders.cmdName)}
                         width='medium'
                         inputs={inputs}
                         updateSection={(e) => {
@@ -128,9 +136,9 @@ class UserSettingsIntegrationsTab extends React.Component {
             } else {
                 commandHooksSection = (
                     <SettingItemMin
-                        title='Commands'
+                        title={formatMessage(holders.cmdName)}
                         width='medium'
-                        describe='Manage your commands'
+                        describe={formatMessage(holders.cmdDesc)}
                         updateSection={() => {
                             this.updateSection('command-hooks');
                         }}

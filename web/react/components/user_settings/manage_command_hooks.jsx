@@ -5,6 +5,43 @@ import LoadingScreen from '../loading_screen.jsx';
 
 import * as Client from '../../utils/client.jsx';
 
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    requestTypePost: {
+        id: 'user.settings.cmds.request_type_post',
+        defaultMessage: 'POST'
+    },
+    requestTypeGet: {
+        id: 'user.settings.cmds.request_type_get',
+        defaultMessage: 'GET'
+    },
+    addDisplayNamePlaceholder: {
+        id: 'user.settings.cmds.add_display_name.placeholder',
+        defaultMessage: 'Display Name'
+    },
+    addUsernamePlaceholder: {
+        id: 'user.settings.cmds.add_username.placeholder',
+        defaultMessage: 'Username'
+    },
+    addTriggerPlaceholder: {
+        id: 'user.settings.cmds.add_trigger.placeholder',
+        defaultMessage: 'Command trigger e.g. "hello" not including the slash'
+    },
+    addAutoCompleteDescPlaceholder: {
+        id: 'user.settings.cmds.auto_complete_desc.placeholder',
+        defaultMessage: 'A short description of what this commands does.'
+    },
+    addAutoCompleteHintPlaceholder: {
+        id: 'user.settings.cmds.auto_complete_hint.placeholder',
+        defaultMessage: '[zipcode]'
+    },
+    adUrlPlaceholder: {
+        id: 'user.settings.cmds.url.placeholder',
+        defaultMessage: 'Must start with http:// or https://'
+    }
+});
+
 export default class ManageCommandCmds extends React.Component {
     constructor() {
         super();
@@ -23,6 +60,12 @@ export default class ManageCommandCmds extends React.Component {
         this.updateAutoCompleteHint = this.updateAutoCompleteHint.bind(this);
 
         this.state = {cmds: [], cmd: this.emptyCmd(), getCmdsComplete: false};
+    }
+
+    static propTypes() {
+        return {
+            intl: intlShape.isRequired
+        };
     }
 
     emptyCmd() {
@@ -207,7 +250,12 @@ export default class ManageCommandCmds extends React.Component {
             if (cmd.trigger && cmd.trigger.length !== 0) {
                 triggerDiv = (
                     <div className='padding-top'>
-                        <strong>{'Trigger: '}</strong>{cmd.trigger}
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.trigger'
+                                defaultMessage='Trigger: '
+                            />
+                        </strong>{cmd.trigger}
                     </div>
                 );
             }
@@ -218,32 +266,90 @@ export default class ManageCommandCmds extends React.Component {
                     className='webcmd__item'
                 >
                     <div className='padding-top x2'>
-                        <strong>{'Display Name: '}</strong><span className='word-break--all'>{cmd.display_name}</span>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.display_name'
+                                defaultMessage='Display Name: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.display_name}</span>
                     </div>
                     <div className='padding-top x2'>
-                        <strong>{'Username: '}</strong><span className='word-break--all'>{cmd.username}</span>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.username'
+                                defaultMessage='Username: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.username}</span>
                     </div>
                     <div className='padding-top x2'>
-                        <strong>{'Icon URL: '}</strong><span className='word-break--all'>{cmd.icon_url}</span>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.icon_url'
+                                defaultMessage='Icon URL: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.icon_url}</span>
                     </div>
                     <div className='padding-top x2'>
-                        <strong>{'Auto Complete: '}</strong><span className='word-break--all'>{cmd.auto_complete ? 'yes' : 'no'}</span>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete'
+                                defaultMessage='Auto Complete: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.auto_complete ? 'yes' : 'no'}</span>
                     </div>
                     <div className='padding-top x2'>
-                        <strong>{'Auto Complete Description: '}</strong><span className='word-break--all'>{cmd.auto_complete_desc}</span>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_desc'
+                                defaultMessage='Auto Complete Description: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.auto_complete_desc}</span>
                     </div>
                     <div className='padding-top x2'>
-                        <strong>{'Auto Complete Hint: '}</strong><span className='word-break--all'>{cmd.auto_complete_hint}</span>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_hint'
+                                defaultMessage='Auto Complete Hint: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.auto_complete_hint}</span>
                     </div>
                     <div className='padding-top x2'>
-                        <strong>{'Request Type: '}</strong><span className='word-break--all'>{cmd.method === 'P' ? 'POST' : 'GET'}</span>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.request_type'
+                                defaultMessage='Request Type: '
+                            />
+                        </strong>
+                        <span className='word-break--all'>
+                            {
+                                cmd.method === 'P' ?
+                                <FormattedMessage
+                                    id='user.settings.cmds.request_type_post'
+                                    defaultMessage='POST'
+                                /> :
+                                <FormattedMessage
+                                    id='user.settings.cmds.request_type_get'
+                                    defaultMessage='GET'
+                                />
+                            }
+                        </span>
                     </div>
                     <div className='padding-top x2 webcmd__url'>
-                        <strong>{'URL: '}</strong><span className='word-break--all'>{cmd.url}</span>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.url'
+                                defaultMessage='URL: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.url}</span>
                     </div>
                     {triggerDiv}
                     <div className='padding-top'>
-                        <strong>{'Token: '}</strong>{cmd.token}
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.token'
+                                defaultMessage='Token: '
+                            />
+                        </strong>{cmd.token}
                     </div>
                     <div className='padding-top'>
                         <a
@@ -251,7 +357,10 @@ export default class ManageCommandCmds extends React.Component {
                             href='#'
                             onClick={this.regenToken.bind(this, cmd.id)}
                         >
-                            {'Regen Token'}
+                            <FormattedMessage
+                                id='user.settings.cmds.regen'
+                                defaultMessage='Regen Token'
+                            />
                         </a>
                         <a
                             className='webcmd__remove'
@@ -272,12 +381,24 @@ export default class ManageCommandCmds extends React.Component {
         } else if (cmds.length > 0) {
             displayCmds = cmds;
         } else {
-            displayCmds = <div className='padding-top x2'>{'None'}</div>;
+            displayCmds = (
+                <div className='padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.cmds.none'
+                        defaultMessage='None'
+                    />
+                </div>
+            );
         }
 
         const existingCmds = (
             <div className='webcmds__container'>
-                <label className='control-label padding-top x2'>{'Existing commands'}</label>
+                <label className='control-label padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.cmds.existing'
+                        defaultMessage='Existing commands'
+                    />
+                </label>
                 <div className='padding-top divider-light'></div>
                 <div className='webcmds__list'>
                     {displayCmds}
@@ -289,45 +410,61 @@ export default class ManageCommandCmds extends React.Component {
 
         return (
             <div key='addCommandCmd'>
-                {'Create commands to send new message events to an external integration. Please see '}
-                <a
-                    href='http://mattermost.org/commands'
-                    target='_blank'
-                >
-                    {'http://mattermost.org/commands'}
-                </a>
-                {' to learn more.'}
+                <FormattedHTMLMessage
+                    id='user.settings.cmds.add_desc'
+                    defaultMessage='Create commands to send message events to an external integration. Please see <a href="http://mattermost.org/commands">http://mattermost.org/commands</a>  to learn more.'
+                />
                 <div><label className='control-label padding-top x2'>{'Add a new command'}</label></div>
                 <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Display Name:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.display_name'
+                                defaultMessage='Display Name: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <input
                                 ref='displayName'
                                 className='form-control'
                                 value={this.state.cmd.display_name}
                                 onChange={this.updateDisplayName}
-                                placeholder='Display Name'
+                                placeholder={this.props.intl.formatMessage(holders.addDisplayNamePlaceholder)}
                             />
                         </div>
                         <div className='padding-top'>{'Command display name.'}</div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Username:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.username'
+                                defaultMessage='Username: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <input
                                 ref='username'
                                 className='form-control'
                                 value={this.state.cmd.username}
                                 onChange={this.updateUsername}
-                                placeholder='Username'
+                                placeholder={this.props.intl.formatMessage(holders.addUsernamePlaceholder)}
                             />
                         </div>
-                        <div className='padding-top'>{'The username to use when overriding the post.'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.username_desc'
+                                defaultMessage='The username to use when overriding the post.'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Icon URL:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.icon_url'
+                                defaultMessage='Icon URL: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <input
                                 ref='iconURL'
@@ -337,24 +474,43 @@ export default class ManageCommandCmds extends React.Component {
                                 placeholder='https://www.example.com/myicon.png'
                             />
                         </div>
-                        <div className='padding-top'>{'URL to an icon'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.icon_url_desc'
+                                defaultMessage='URL to an icon'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Trigger:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.trigger'
+                                defaultMessage='Trigger: '
+                            />
+                        </label>
                         <div className='padding-top'>
-                            {'/'}
                             <input
                                 ref='trigger'
                                 className='form-control'
                                 value={this.state.cmd.trigger}
                                 onChange={this.updateTrigger}
-                                placeholder='Command trigger e.g. "hello" not including the slash'
+                                placeholder={this.props.intl.formatMessage(holders.addTriggerPlaceholder)}
                             />
                         </div>
-                        <div className='padding-top'>{'Word to trigger on'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.trigger_desc'
+                                defaultMessage='Word to trigger on'
+                            />
+                        {''}</div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Autocomplete:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete'
+                                defaultMessage='Auto Complete: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <label>
                                 <input
@@ -362,39 +518,72 @@ export default class ManageCommandCmds extends React.Component {
                                     checked={this.state.cmd.auto_complete}
                                     onChange={this.updateAutoComplete}
                                 />
-                                {'A short description of what this commands does'}
+                                <FormattedMessage
+                                    id='user.settings.cmds.auto_complete_desc_desc'
+                                    defaultMessage='A short description of what this commands does'
+                                />
                             </label>
                         </div>
-                        <div className='padding-top'>{'Show this command in autocomplete list.'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_help'
+                                defaultMessage='Show this command in autocomplete list.'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Autocomplete Description:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_desc'
+                                defaultMessage='Auto Complete Description: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <input
                                 ref='autoCompleteDesc'
                                 className='form-control'
                                 value={this.state.cmd.auto_complete_desc}
                                 onChange={this.updateAutoCompleteDesc}
-                                placeholder='A short description of what this commands does.'
+                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteDescPlaceholder)}
                             />
                         </div>
-                        <div className='padding-top'>{'A short description of what this commands does.'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_desc_desc'
+                                defaultMessage='A short description of what this commands does'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Autocomplete Hint:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_hint'
+                                defaultMessage='Auto Complete Hint: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <input
                                 ref='autoCompleteHint'
                                 className='form-control'
                                 value={this.state.cmd.auto_complete_hint}
                                 onChange={this.updateAutoCompleteHint}
-                                placeholder='[zipcode]'
+                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteHintPlaceholder)}
                             />
                         </div>
-                        <div className='padding-top'>{'List parameters to be passed to the command.'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_hint_desc'
+                                defaultMessage='List parameters to be passed to the command.'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Request Type:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.request_type'
+                                defaultMessage='Request Type: '
+                            />
+                        </label>
                         <div className='padding-top'>
                             <select
                                 ref='method'
@@ -402,14 +591,28 @@ export default class ManageCommandCmds extends React.Component {
                                 value={this.state.cmd.method}
                                 onChange={this.updateMethod}
                             >
-                                <option value='P'>{'POST'}</option>
-                                <option value='G'>{'GET'}</option>
+                                <option value='P'>
+                                    {this.props.intl.formatMessage(holders.requestTypePost)}
+                                </option>
+                                <option value='G'>
+                                    {this.props.intl.formatMessage(holders.requestTypeGet)}
+                                </option>
                             </select>
                         </div>
-                        <div className='padding-top'>{'Command request type issued to the callback URL.'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.request_type_desc'
+                                defaultMessage='Command request type issued to the callback URL.'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
-                        <label className='control-label'>{'Callback URL:'}</label>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.url'
+                                defaultMessage='URL: '
+                            />
+                        </label>
                         <div className='padding-top'>
                         <input
                             ref='URL'
@@ -417,10 +620,15 @@ export default class ManageCommandCmds extends React.Component {
                             value={this.state.cmd.url}
                             rows={1}
                             onChange={this.updateURL}
-                            placeholder='Must start with http:// or https://'
+                            placeholder={this.props.intl.formatMessage(holders.adUrlPlaceholder)}
                         />
                         </div>
-                        <div className='padding-top'>{'URL that will receive the HTTP POST or GET event'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.url_desc'
+                                defaultMessage='URL that will receive the HTTP POST or GET event'
+                            />
+                        </div>
                         {addError}
                     </div>
                     <div className='padding-top padding-bottom'>
@@ -440,3 +648,5 @@ export default class ManageCommandCmds extends React.Component {
         );
     }
 }
+
+export default injectIntl(ManageCommandCmds);
