@@ -8,6 +8,7 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
@@ -861,18 +862,18 @@ func TestMakeDirectChannelVisible(t *testing.T) {
 func TestGetOutOfChannelMentions(t *testing.T) {
 	Setup()
 
-	team1 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team1 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Type: model.TEAM_OPEN}
 	team1 = Client.Must(Client.CreateTeam(team1)).Data.(*model.Team)
 
-	user1 := &model.User{TeamId: team1.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user1"}
+	user1 := &model.User{TeamId: team1.Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user1"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	user2 := &model.User{TeamId: team1.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user2"}
+	user2 := &model.User{TeamId: team1.Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user2"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	user3 := &model.User{TeamId: team1.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user3"}
+	user3 := &model.User{TeamId: team1.Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user3"}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
 
@@ -907,10 +908,10 @@ func TestGetOutOfChannelMentions(t *testing.T) {
 
 	Client.Must(Client.Logout())
 
-	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
-	user4 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user4"}
+	user4 := &model.User{TeamId: team2.Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd", Username: "user4"}
 	user4 = Client.Must(Client.CreateUser(user4, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user4.Id))
 
