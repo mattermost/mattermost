@@ -79,7 +79,8 @@ export default {
         USER_ADDED: 'user_added',
         USER_REMOVED: 'user_removed',
         TYPING: 'typing',
-        PREFERENCE_CHANGED: 'preference_changed'
+        PREFERENCE_CHANGED: 'preference_changed',
+        EPHEMERAL_MESSAGE: 'ephemeral_message'
     },
 
     //SPECIAL_MENTIONS: ['all', 'channel'],

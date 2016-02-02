@@ -109,6 +109,7 @@ class SocketStoreClass extends EventEmitter {
     handleMessage(msg) {
         switch (msg.action) {
         case SocketEvents.POSTED:
+        case SocketEvents.EPHEMERAL_MESSAGE:
             handleNewPostEvent(msg, this.translations);
             break;
 
