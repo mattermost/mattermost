@@ -244,120 +244,140 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
-    "id": "api.command.check_command.start.app_error",
-    "translation": "Command must start with /"
-  },
-  {
-    "id": "api.command.echo_command.create.error",
-    "translation": "Unable to create /echo post, err=%v"
-  },
-  {
-    "id": "api.command.echo_command.description",
-    "translation": "Echo back text from your account, /echo \"message\" [delay in seconds]"
-  },
-  {
-    "id": "api.command.echo_command.high_volume.app_error",
-    "translation": "High volume of echo request, cannot process request"
-  },
-  {
-    "id": "api.command.echo_command.under.app_error",
-    "translation": "Delays must be under 10000 seconds"
-  },
-  {
     "id": "api.command.init.debug",
     "translation": "Initializing command api routes"
   },
   {
-    "id": "api.command.load_test_channels_command.channel.description",
-    "translation": "Add a specified number of random channels to current team <MinChannels> <MaxChannels>"
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "No command trigger found"
   },
   {
-    "id": "api.command.load_test_channels_command.fuzz.description",
-    "translation": "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"
+    "id": "api.command.execute_command.debug",
+    "translation": "Executing cmd=%v userId=%v"
   },
   {
-    "id": "api.command.load_test_command.description",
-    "translation": "Debug Load Testing"
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Command with a trigger of '{{.Trigger}}' failed"
   },
   {
-    "id": "api.command.load_test_posts_command.fuzz.description",
-    "translation": "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Command with a trigger of '{{.Trigger}}' returned an empty response"
   },
   {
-    "id": "api.command.load_test_posts_command.posts.description",
-    "translation": "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Command with a trigger of '{{.Trigger}}' returned response {{.Status}}"
   },
   {
-    "id": "api.command.load_test_setup_command.create.error",
-    "translation": "Failed to create testing environment"
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Command with a trigger of '{{.Trigger}}' not found"
   },
   {
-    "id": "api.command.load_test_setup_command.created.info",
-    "translation": "Team Created: %v"
+    "id": "api.command.execute_command.save.app_error",
+    "translation": "An error while saving the command response to the channel"
   },
   {
-    "id": "api.command.load_test_setup_command.description",
-    "translation": "Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"
+    "id": "api.command.disabled.app_error",
+    "translation": "Commands have been disabled by the system admin."
   },
   {
-    "id": "api.command.load_test_setup_command.login.info",
-    "translation": "\t User to login: %v, %v"
+    "id": "api.command.admin_only.app_error",
+    "translation": "Integrations have been limited to admins only."
   },
   {
-    "id": "api.command.load_test_url_command.create.error",
-    "translation": "Unable to create post, err=%v"
+    "id": "api.command.regen.app_error",
+    "translation": "Inappropriate permissions to regenerate command token"
   },
   {
-    "id": "api.command.load_test_url_command.description",
-    "translation": "Add a post containing the text from a given url to current channel <Url>"
+    "id": "api.command.delete.app_error",
+    "translation": "Inappropriate permissions to delete command"
   },
   {
-    "id": "api.command.load_test_url_command.file.app_error",
-    "translation": "Unable to get file"
+    "id": "api.command_echo.desc",
+    "translation": "Echo back text from your account"
   },
   {
-    "id": "api.command.load_test_url_command.reading.app_error",
-    "translation": "Encountered error reading file"
+    "id": "api.command_echo.hint",
+    "translation": "'message' [delay in seconds]"
   },
   {
-    "id": "api.command.load_test_url_command.url.app_error",
-    "translation": "Command must contain a url"
+    "id": "api.command_echo.name",
+    "translation": "echo"
   },
   {
-    "id": "api.command.load_test_users_command.fuzz.description",
-    "translation": "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Delays must be under 10000 seconds"
   },
   {
-    "id": "api.command.load_test_users_command.users.description",
-    "translation": "Add a specified number of random users to current team <Min Users> <Max Users>"
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "High volume of echo request, cannot process request"
   },
   {
-    "id": "api.command.logout_command.description",
-    "translation": "Logout"
+    "id": "api.command_echo.create.app_error",
+    "translation": "Unable to create /echo post, err=%v"
   },
   {
-    "id": "api.command.me_command.create.error",
-    "translation": "Unable to create /me post post, err=%v"
-  },
-  {
-    "id": "api.command.me_command.description",
-    "translation": "Do an action, /me [message]"
-  },
-  {
-    "id": "api.command.no_implemented.app_error",
-    "translation": "Command not implemented"
-  },
-  {
-    "id": "api.command.shrug_command.create.error",
-    "translation": "Unable to create /shrug post post, err=%v"
-  },
-  {
-    "id": "api.command.shrug_command.description",
-    "translation": "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"
-  },
-  {
-    "id": "api.commmand.join_command.description",
+    "id": "api.command_join.desc",
     "translation": "Join the open channel"
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "[channel-name]"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "join"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "An error occured while listing channels."
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "An error occured while joining the channel."
+  },
+  {
+    "id": "api.command_join.success",
+    "translation": "Joined channel."
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "We couldn't find the channel"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Logout of Mattermost"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "logout"
+  },
+  {
+    "id": "api.command_logout.success_message",
+    "translation": "Logging out..."
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Do an action"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "me"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Adds ¯\\_(ツ)_/¯ to your message"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "shrug"
   },
   {
     "id": "api.context.404.app_error",
@@ -1776,6 +1796,46 @@
     "translation": "Name must be 2 or more lowercase alphanumeric characters"
   },
   {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Invalid token"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "Invalid trigger"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "Invalid url"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "Invalid URL. Must be a valid URL and start with http:// or https://"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Invalid Method"
+  },
+  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -2342,6 +2402,34 @@
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit"
+  },
+  {
+    "id": "store.sql_command.save.saving_overwrite.app_error",
+    "translation": "You cannot overwrite an existing Command"
+  },
+  {
+    "id": "store.sql_command.save.saving.app_error",
+    "translation": "We couldn't save the Command"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "We couldn't get the command"
+  },
+  {
+    "id": "store.sql_command.save.get_team.app_error",
+    "translation": "We couldn't get the commands"
+  },
+  {
+    "id": "store.sql_command.save.delete.app_error",
+    "translation": "We couldn't delete the command"
+  },
+  {
+    "id": "store.sql_command.save.delete_perm.app_error",
+    "translation": "We couldn't delete the command"
+  },
+  {
+    "id": "store.sql_command.save.update.app_error",
+    "translation": "We couldn't update the command"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",

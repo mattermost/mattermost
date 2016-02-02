@@ -10,17 +10,25 @@ import (
 type MeProvider struct {
 }
 
+const (
+	CMD_ME = "me"
+)
+
 func init() {
 	RegisterCommandProvider(&MeProvider{})
 }
 
-func (me *MeProvider) GetCommand() *model.Command {
+func (me *MeProvider) GetTrigger() string {
+	return CMD_ME
+}
+
+func (me *MeProvider) GetCommand(c *Context) *model.Command {
 	return &model.Command{
-		Trigger:          "me",
+		Trigger:          CMD_ME,
 		AutoComplete:     true,
-		AutoCompleteDesc: "Do an action",
-		AutoCompleteHint: "[message]",
-		DisplayName:      "me",
+		AutoCompleteDesc: c.T("api.command_me.desc"),
+		AutoCompleteHint: c.T("api.command_me.hint"),
+		DisplayName:      c.T("api.command_me.name"),
 	}
 }
 

@@ -52,6 +52,10 @@ var usage = `Mattermost load testing commands to help configure the system
 
 `
 
+const (
+	CMD_LOADTEST = "loadtest"
+)
+
 type LoadTestProvider struct {
 }
 
@@ -61,9 +65,13 @@ func init() {
 	}
 }
 
-func (me *LoadTestProvider) GetCommand() *model.Command {
+func (me *LoadTestProvider) GetTrigger() string {
+	return CMD_LOADTEST
+}
+
+func (me *LoadTestProvider) GetCommand(c *Context) *model.Command {
 	return &model.Command{
-		Trigger:          "loadtest",
+		Trigger:          CMD_LOADTEST,
 		AutoComplete:     false,
 		AutoCompleteDesc: "Debug Load Testing",
 		AutoCompleteHint: "help",
@@ -73,10 +81,10 @@ func (me *LoadTestProvider) GetCommand() *model.Command {
 
 func (me *LoadTestProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
 
-	// This command is only available when EnableTesting is true
-	// if !utils.Cfg.ServiceSettings.EnableTesting {
-	// 	return &model.CommandResponse{}
-	// }
+	//This command is only available when EnableTesting is true
+	if !utils.Cfg.ServiceSettings.EnableTesting {
+		return &model.CommandResponse{}
+	}
 
 	if strings.HasPrefix(message, "setup") {
 		return me.SetupCommand(c, channelId, message)

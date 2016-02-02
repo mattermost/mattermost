@@ -17,17 +17,25 @@ var echoSem chan bool
 type EchoProvider struct {
 }
 
+const (
+	CMD_ECHO = "echo"
+)
+
 func init() {
 	RegisterCommandProvider(&EchoProvider{})
 }
 
-func (me *EchoProvider) GetCommand() *model.Command {
+func (me *EchoProvider) GetTrigger() string {
+	return CMD_ECHO
+}
+
+func (me *EchoProvider) GetCommand(c *Context) *model.Command {
 	return &model.Command{
-		Trigger:          "echo",
+		Trigger:          CMD_ECHO,
 		AutoComplete:     true,
-		AutoCompleteDesc: "Echo back text from your account",
-		AutoCompleteHint: "\"message\" [delay in seconds]",
-		DisplayName:      "echo",
+		AutoCompleteDesc: c.T("api.command_echo.desc"),
+		AutoCompleteHint: c.T("api.command_echo.hint"),
+		DisplayName:      c.T("api.command_echo.name"),
 	}
 }
 
@@ -51,7 +59,7 @@ func (me *EchoProvider) DoCommand(c *Context, channelId string, message string) 
 	}
 
 	if delay > 10000 {
-		return &model.CommandResponse{Text: "Delays must be under 10000 seconds", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: c.T("api.command_echo.delay.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	if echoSem == nil {
@@ -60,7 +68,7 @@ func (me *EchoProvider) DoCommand(c *Context, channelId string, message string) 
 	}
 
 	if len(echoSem) >= maxThreads {
-		return &model.CommandResponse{Text: "High volume of echo request, cannot process request", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: c.T("api.command_echo.high_volume.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	echoSem <- true
@@ -73,7 +81,7 @@ func (me *EchoProvider) DoCommand(c *Context, channelId string, message string) 
 		time.Sleep(time.Duration(delay) * time.Second)
 
 		if _, err := CreatePost(c, post, true); err != nil {
-			l4g.Error("Unable to create /echo post, err=%v", err)
+			l4g.Error(c.T("api.command_echo.create.app_error"), err)
 		}
 	}()
 

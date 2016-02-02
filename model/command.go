@@ -75,43 +75,43 @@ func CommandListFromJson(data io.Reader) []*Command {
 func (o *Command) IsValid() *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("Command.IsValid", "Invalid Id", "")
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.id.app_error", nil, "")
 	}
 
 	if len(o.Token) != 26 {
-		return NewAppError("Command.IsValid", "Invalid token", "")
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.token.app_error", nil, "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("Command.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.create_at.app_error", nil, "")
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("Command.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.update_at.app_error", nil, "")
 	}
 
 	if len(o.CreatorId) != 26 {
-		return NewAppError("Command.IsValid", "Invalid user id", "")
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.user_id.app_error", nil, "")
 	}
 
 	if len(o.TeamId) != 26 {
-		return NewAppError("Command.IsValid", "Invalid team id", "")
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "")
 	}
 
 	if len(o.Trigger) > 1024 {
-		return NewAppError("Command.IsValid", "Invalid trigger", "")
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.trigger.app_error", nil, "")
 	}
 
 	if len(o.URL) == 0 || len(o.URL) > 1024 {
-		return NewAppError("Command.IsValid", "Invalid url", "")
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.url.app_error", nil, "")
 	}
 
 	if !IsValidHttpUrl(o.URL) {
-		return NewAppError("Command.IsValid", "Invalid URL. Must be a valid URL and start with http:// or https://", "")
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.url_http.app_error", nil, "")
 	}
 
 	if !(o.Method == COMMAND_METHOD_GET || o.Method == COMMAND_METHOD_POST) {
-		return NewAppError("Command.IsValid", "Invalid Method", "")
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.method.app_error", nil, "")
 	}
 
 	return nil

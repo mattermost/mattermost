@@ -4,6 +4,7 @@
 package api
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -16,14 +17,15 @@ import (
 )
 
 type CommandProvider interface {
-	GetCommand() *model.Command
+	GetTrigger() string
+	GetCommand(c *Context) *model.Command
 	DoCommand(c *Context, channelId string, message string) *model.CommandResponse
 }
 
 var commandProviders = make(map[string]CommandProvider)
 
 func RegisterCommandProvider(newProvider CommandProvider) {
-	commandProviders[newProvider.GetCommand().Trigger] = newProvider
+	commandProviders[newProvider.GetTrigger()] = newProvider
 }
 
 func GetCommandProvidersProvider(name string) CommandProvider {
@@ -56,7 +58,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 	for _, value := range commandProviders {
-		cpy := *value.GetCommand()
+		cpy := *value.GetCommand(c)
 		if cpy.AutoComplete && !seen[cpy.Id] {
 			cpy.Sanatize()
 			seen[cpy.Trigger] = true
@@ -87,7 +89,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelId := strings.TrimSpace(props["channelId"])
 
 	if len(command) <= 1 || strings.Index(command, "/") != 0 {
-		c.Err = model.NewLocAppError("executeCommand", "api.command.check_command.start.app_error", nil, "")
+		c.Err = model.NewLocAppError("executeCommand", "api.command.execute_command.start.app_error", nil, "")
 		return
 	}
 
@@ -147,7 +149,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 			teamCmds := result.Data.([]*model.Command)
 			for _, cmd := range teamCmds {
 				if trigger == cmd.Trigger {
-					l4g.Debug("Executing cmd=" + trigger + " userId=" + c.Session.UserId)
+					l4g.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, c.Session.UserId))
 
 					p := url.Values{}
 					p.Set("token", cmd.Token)
@@ -178,18 +180,18 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 					}
 
 					if resp, err := client.Do(req); err != nil {
-						c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' failed", err.Error())
+						c.Err = model.NewLocAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error())
 					} else {
 						if resp.StatusCode == http.StatusOK {
 							response := model.CommandResponseFromJson(resp.Body)
 							if response == nil {
-								c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' returned an empty response", "")
+								c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "")
 							} else {
 								handleResponse(c, w, response, channelId)
 							}
 						} else {
 							body, _ := ioutil.ReadAll(resp.Body)
-							c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' returned response "+resp.Status, string(body))
+							c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": trigger, "Status": resp.Status}, string(body))
 						}
 					}
 
@@ -200,7 +202,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' not found", "")
+	c.Err = model.NewLocAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "")
 }
 
 func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, channelId string) {
@@ -209,14 +211,14 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 		post.ChannelId = channelId
 		post.Message = response.Text
 		if _, err := CreatePost(c, post, true); err != nil {
-			c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
+			c.Err = model.NewLocAppError("command", "api.command.execute_command.save.app_error", nil, "")
 		}
 	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
 		post := &model.Post{}
 		post.ChannelId = channelId
 		post.Message = "TODO_EPHEMERAL: " + response.Text
 		if _, err := CreatePost(c, post, true); err != nil {
-			c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
+			c.Err = model.NewLocAppError("command", "api.command.execute_command.save.app_error", nil, "")
 		}
 	}
 
@@ -225,14 +227,14 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*utils.Cfg.ServiceSettings.EnableCommands {
-		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("createCommand", "api.command.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("createCommand", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -262,14 +264,14 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*utils.Cfg.ServiceSettings.EnableCommands {
-		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("listTeamCommands", "api.command.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("listTeamCommands", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -286,14 +288,14 @@ func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*utils.Cfg.ServiceSettings.EnableCommands {
-		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("regenCommandToken", "api.command.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("regenCommandToken", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -318,7 +320,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if c.Session.TeamId != cmd.TeamId && c.Session.UserId != cmd.CreatorId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate permissions")
-			c.Err = model.NewAppError("regenToken", "Inappropriate permissions to regenerate command token", "user_id="+c.Session.UserId)
+			c.Err = model.NewLocAppError("regenToken", "api.command.regen.app_error", nil, "user_id="+c.Session.UserId)
 			return
 		}
 	}
@@ -335,14 +337,14 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*utils.Cfg.ServiceSettings.EnableCommands {
-		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
+		c.Err = model.NewLocAppError("deleteCommand", "api.command.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("deleteCommand", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -364,7 +366,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		if c.Session.TeamId != result.Data.(*model.Command).TeamId && c.Session.UserId != result.Data.(*model.Command).CreatorId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate permissions")
-			c.Err = model.NewAppError("deleteCommand", "Inappropriate permissions to delete command", "user_id="+c.Session.UserId)
+			c.Err = model.NewLocAppError("deleteCommand", "api.command.delete.app_error", nil, "user_id="+c.Session.UserId)
 			return
 		}
 	}

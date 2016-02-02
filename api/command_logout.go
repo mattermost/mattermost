@@ -10,20 +10,28 @@ import (
 type LogoutProvider struct {
 }
 
+const (
+	CMD_LOGOUT = "logout"
+)
+
 func init() {
 	RegisterCommandProvider(&LogoutProvider{})
 }
 
-func (me *LogoutProvider) GetCommand() *model.Command {
+func (me *LogoutProvider) GetTrigger() string {
+	return CMD_LOGOUT
+}
+
+func (me *LogoutProvider) GetCommand(c *Context) *model.Command {
 	return &model.Command{
-		Trigger:          "logout",
+		Trigger:          CMD_LOGOUT,
 		AutoComplete:     true,
-		AutoCompleteDesc: "Logout",
+		AutoCompleteDesc: c.T("api.command_logout.desc"),
 		AutoCompleteHint: "",
-		DisplayName:      "logout",
+		DisplayName:      c.T("api.command_logout.name"),
 	}
 }
 
 func (me *LogoutProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
-	return &model.CommandResponse{GotoLocation: "/logout", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: "Logging out..."}
+	return &model.CommandResponse{GotoLocation: "/logout", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command_logout.success_message")}
 }

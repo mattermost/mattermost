@@ -34,7 +34,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("createIncomingHook", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -89,7 +89,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("deleteIncomingHook", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -134,7 +134,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("getIncomingHooks", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -158,7 +158,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("createOutgoingHook", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -222,7 +222,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("getOutgoingHooks", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -246,7 +246,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("deleteOutgoingHook", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -291,7 +291,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
-			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}

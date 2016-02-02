@@ -10,17 +10,25 @@ import (
 type ShrugProvider struct {
 }
 
+const (
+	CMD_SHRUG = "shrug"
+)
+
 func init() {
 	RegisterCommandProvider(&ShrugProvider{})
 }
 
-func (me *ShrugProvider) GetCommand() *model.Command {
+func (me *ShrugProvider) GetTrigger() string {
+	return CMD_SHRUG
+}
+
+func (me *ShrugProvider) GetCommand(c *Context) *model.Command {
 	return &model.Command{
-		Trigger:          "shrug",
+		Trigger:          CMD_SHRUG,
 		AutoComplete:     true,
-		AutoCompleteDesc: `Adds ¯\_(ツ)_/¯ to your message`,
-		AutoCompleteHint: "[message]",
-		DisplayName:      "shrug",
+		AutoCompleteDesc: c.T("api.command_shrug.desc"),
+		AutoCompleteHint: c.T("api.command_shrug.hint"),
+		DisplayName:      c.T("api.command_shrug.name"),
 	}
 }
 
