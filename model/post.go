@@ -10,11 +10,12 @@ import (
 )
 
 const (
-	POST_SYSTEM_MESSAGE_PREFIX = "system_"
-	POST_DEFAULT               = ""
-	POST_SLACK_ATTACHMENT      = "slack_attachment"
-	POST_JOIN_LEAVE            = "system_join_leave"
-	POST_HEADER_CHANGE         = "system_header_change"
+	POST_SYSTEM_MESSAGE_PREFIX  = "system_"
+	POST_DEFAULT                = ""
+	POST_SLACK_ATTACHMENT       = "slack_attachment"
+	POST_JOIN_LEAVE             = "system_join_leave"
+	POST_HEADER_CHANGE          = "system_header_change"
+	POST_OUT_OF_CHANNEL_MENTION = "system_out_of_channel_mention"
 )
 
 type Post struct {
@@ -33,6 +34,7 @@ type Post struct {
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
+	Ephemeral     bool            `json:"ephemeral" db:"-"`
 }
 
 func (o *Post) ToJson() string {

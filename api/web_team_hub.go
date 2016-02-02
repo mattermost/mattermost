@@ -101,6 +101,9 @@ func ShouldSendEvent(webCon *WebConn, msg *model.Message) bool {
 			return false
 		} else if msg.Action == model.ACTION_PREFERENCE_CHANGED {
 			return false
+		} else if msg.Action == model.ACTION_EPHEMERAL_MESSAGE {
+			// For now, ephemeral messages are sent directly to individual users
+			return false
 		}
 
 		// Only report events to a user who is the subject of the event, or is in the channel of the event
