@@ -8,7 +8,7 @@
         "EnableIncomingWebhooks": false,
         "EnableOutgoingWebhooks": false,
         "EnableCommands": false,
-        "EnableOnlyAdminIntegrations": false,
+        "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableTesting": false,
