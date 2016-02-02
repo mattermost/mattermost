@@ -11,6 +11,7 @@ import * as Utils from '../../utils/utils.jsx';
 import EmailSettingsTab from './email_settings.jsx';
 import LogSettingsTab from './log_settings.jsx';
 import LogsTab from './logs.jsx';
+import AuditsTab from './audits.jsx';
 import FileSettingsTab from './image_settings.jsx';
 import PrivacySettingsTab from './privacy_settings.jsx';
 import RateSettingsTab from './rate_settings.jsx';
@@ -138,6 +139,8 @@ export default class AdminController extends React.Component {
                 tab = <LogSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'logs') {
                 tab = <LogsTab />;
+            } else if (this.state.selected === 'audits') {
+                tab = <AuditsTab />;
             } else if (this.state.selected === 'image_settings') {
                 tab = <FileSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'privacy_settings') {

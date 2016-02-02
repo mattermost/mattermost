@@ -45,6 +45,7 @@ export default {
 
         RECIEVED_CONFIG: null,
         RECIEVED_LOGS: null,
+        RECIEVED_SERVER_AUDITS: null,
         RECIEVED_ALL_TEAMS: null,
 
         SHOW_SEARCH: null,
