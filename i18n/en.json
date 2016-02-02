@@ -656,6 +656,14 @@
     "translation": "Error getting access token from DB before deletion"
   },
   {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "{{.Username}} was mentioned, but they do not belong to this channel."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned, but they do not belong to this channel."
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Bad filename discarded, filename=%v"
   },
@@ -682,6 +690,18 @@
   {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.retrieve_members.error",
+    "translation": "Failed to get channel members channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.retrieve_profiles.error",
+    "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.regex.error",
+    "translation": "Failed to compile @mention regex user_id=%v, err=%v"
   },
   {
     "id": "api.post.get_post.permissions.app_error",

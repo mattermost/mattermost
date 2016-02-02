@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -249,6 +250,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		}
 
 		sendNotificationsAndForget(c, post, team, channel)
+		go checkForOutOfChannelMentions(c, post, channel)
 
 		var user *model.User
 		if result := <-uchan; result.Err != nil {
@@ -726,6 +728,92 @@ func updateMentionCountAndForget(channelId, userId string) {
 			l4g.Error(utils.T("api.post.update_mention_count_and_forget.update_error"), userId, channelId, result.Err)
 		}
 	}()
+}
+
+func checkForOutOfChannelMentions(c *Context, post *model.Post, channel *model.Channel) {
+	// don't check for out of channel mentions in direct channels
+	if channel.Type == model.CHANNEL_DIRECT {
+		return
+	}
+
+	mentioned := getOutOfChannelMentions(post, channel.TeamId)
+	if len(mentioned) == 0 {
+		return
+	}
+
+	usernames := make([]string, len(mentioned))
+	for i, user := range mentioned {
+		usernames[i] = user.Username
+	}
+	sort.Strings(usernames)
+
+	var messageText string
+	if len(usernames) == 1 {
+		messageText = c.T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
+			"Username": usernames[0],
+		})
+	} else {
+		messageText = c.T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
+			"Usernames":    strings.Join(usernames[:len(usernames)-1], ", "),
+			"LastUsername": usernames[len(usernames)-1],
+		})
+	}
+
+	// create an ephemeral post that will be sent only to the sender of this original post and not stored in the DB
+	warningPost := model.Post{
+		Id:        model.NewId(),
+		ChannelId: post.ChannelId,
+		Message:   messageText,
+		Type:      model.POST_OUT_OF_CHANNEL_MENTION,
+		CreateAt:  post.CreateAt + 1,
+		Ephemeral: true,
+		Props:     model.StringInterface{},
+		Filenames: []string{},
+	}
+
+	message := model.NewMessage(c.Session.TeamId, channel.Id, post.UserId, model.ACTION_EPHEMERAL_MESSAGE)
+	message.Add("post", warningPost.ToJson())
+	message.Add("channel_type", channel.Type)
+
+	PublishAndForget(message)
+}
+
+// Gets a list of users that were mentioned in a given post that aren't in the channel that the post was made in
+func getOutOfChannelMentions(post *model.Post, teamId string) []*model.User {
+	pchan := Srv.Store.User().GetProfiles(teamId)
+	mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
+
+	var profiles map[string]*model.User
+	if result := <-pchan; result.Err != nil {
+		l4g.Error(utils.T("api.post.get_out_of_channel_mentions.retrieve_profiles.error"), teamId, result.Err)
+		return []*model.User{}
+	} else {
+		profiles = result.Data.(map[string]*model.User)
+	}
+
+	// only keep profiles which aren't in the current channel
+	if result := <-mchan; result.Err != nil {
+		l4g.Error(utils.T("api.post.get_out_of_channel_mentions.retrieve_members.error"), post.ChannelId, result.Err)
+		return []*model.User{}
+	} else {
+		members := result.Data.([]model.ChannelMember)
+
+		for _, member := range members {
+			delete(profiles, member.UserId)
+		}
+	}
+
+	var mentioned []*model.User
+
+	for _, profile := range profiles {
+		if pattern, err := regexp.Compile(`(\W|^)@` + regexp.QuoteMeta(profile.Username) + `(\W|$)`); err != nil {
+			l4g.Error(utils.T("api.post.get_out_of_channel_mentions.regex.error"), profile.Id, err)
+		} else if pattern.MatchString(post.Message) {
+			mentioned = append(mentioned, profile)
+		}
+	}
+
+	return mentioned
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
