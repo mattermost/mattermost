@@ -656,14 +656,6 @@
     "translation": "Error obteniendo el token de acceso desde la BD antes de ser eliminado"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{ .Username } was mentioned, but they do not belong to this channel."
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{ .Usernames } and { .LastUsername} were mentioned, but they do not belong to this channel."
-  },
-  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Nombre errado de archivo descartado, archivo=%v"
   },
@@ -698,10 +690,6 @@
   {
     "id": "api.post.get_out_of_channel_mentions.retrieve_profiles.error",
     "translation": "Falla al recuperar los perfiles de usuario team_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.get_out_of_channel_mentions.regex.error",
-    "translation": "Failed to compile @mention regex user_id=%v, err=%v"
   },
   {
     "id": "api.post.get_post.permissions.app_error",
