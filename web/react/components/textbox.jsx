@@ -129,13 +129,6 @@ export default class Textbox extends React.Component {
         this.resize();
     }
 
-    showHelp(e) {
-        e.preventDefault();
-        e.target.blur();
-
-        global.window.open('/docs/Messaging');
-    }
-
     render() {
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
@@ -194,7 +187,8 @@ export default class Textbox extends React.Component {
                 </div>
                 {previewLink}
                 <a
-                    onClick={this.showHelp}
+                    target='_blank'
+                    href='http://docs.mattermost.com/help/getting-started/messaging-basics.html'
                     className='textbox-help-link'
                 >
                     <FormattedMessage
