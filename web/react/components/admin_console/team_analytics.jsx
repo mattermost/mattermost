@@ -227,6 +227,7 @@ class TeamAnalytics extends React.Component {
         return (
             <div>
                 <Analytics
+                    intl={this.props.intl}
                     title={this.props.team.name}
                     users={this.state.users}
                     channelOpenCount={this.state.channel_open_count}

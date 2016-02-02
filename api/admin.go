@@ -161,9 +161,10 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
 		rows[3] = &model.AnalyticsRow{"unique_user_count", 0}
+
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		postChan := Srv.Store.Post().AnalyticsPostCount(teamId)
+		postChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
 		userChan := Srv.Store.User().AnalyticsUniqueUserCount(teamId)
 
 		if r := <-openChan; r.Err != nil {
@@ -209,6 +210,47 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
 		}
+	} else if name == "extra_counts" {
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 4)
+		rows[0] = &model.AnalyticsRow{"file_post_count", 0}
+		rows[1] = &model.AnalyticsRow{"hashtag_post_count", 0}
+		rows[2] = &model.AnalyticsRow{"incoming_webhook_count", 0}
+		rows[3] = &model.AnalyticsRow{"outgoing_webhook_count", 0}
+
+		fileChan := Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
+		hashtagChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
+		iHookChan := Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
+		oHookChan := Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
+
+		if r := <-fileChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[0].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-hashtagChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[1].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-iHookChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[2].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-oHookChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[3].Value = float64(r.Data.(int64))
+		}
+
+		w.Write([]byte(rows.ToJson()))
 	} else {
 		c.SetInvalidParam("getAnalytics", "name")
 	}

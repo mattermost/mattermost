@@ -362,3 +362,113 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 		}
 	}
 }
+
+func TestGetTeamAnalyticsExtra(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "#test a" + model.NewId() + "a"}
+	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
+
+	if _, err := Client.GetTeamAnalytics("", "extra_counts"); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if result, err := Client.GetTeamAnalytics(team.Id, "extra_counts"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Name != "file_post_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[0].Value != 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Name != "hashtag_post_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Value != 1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[2].Name != "incoming_webhook_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[2].Value != 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[3].Name != "outgoing_webhook_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[3].Value != 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
+
+	if result, err := Client.GetSystemAnalytics("extra_counts"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Name != "file_post_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Name != "hashtag_post_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Value < 1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[2].Name != "incoming_webhook_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[3].Name != "outgoing_webhook_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
+}

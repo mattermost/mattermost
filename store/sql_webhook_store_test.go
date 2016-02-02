@@ -332,3 +332,42 @@ func TestWebhookStoreUpdateOutgoing(t *testing.T) {
 		t.Fatal(r2.Err)
 	}
 }
+
+func TestWebhookStoreCountIncoming(t *testing.T) {
+	Setup()
+
+	o1 := &model.IncomingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.TeamId = model.NewId()
+
+	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+
+	if r := <-store.Webhook().AnalyticsIncomingCount(""); r.Err != nil {
+		t.Fatal(r.Err)
+	} else {
+		if r.Data.(int64) == 0 {
+			t.Fatal("should have at least 1 incoming hook")
+		}
+	}
+}
+
+func TestWebhookStoreCountOutgoing(t *testing.T) {
+	Setup()
+
+	o1 := &model.OutgoingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.CreatorId = model.NewId()
+	o1.TeamId = model.NewId()
+	o1.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o1 = (<-store.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+
+	if r := <-store.Webhook().AnalyticsOutgoingCount(""); r.Err != nil {
+		t.Fatal(r.Err)
+	} else {
+		if r.Data.(int64) == 0 {
+			t.Fatal("should have at least 1 outgoing hook")
+		}
+	}
+}
