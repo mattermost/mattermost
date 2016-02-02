@@ -154,8 +154,8 @@ class SignupUserComplete extends React.Component {
             <span className='help-block'>
                 <FormattedMessage
                     id='signup_user_completed.emailHelp'
-                    defaultMessage="Valid email required for sign-up"
-                    />
+                    defaultMessage='Valid email required for sign-up'
+                />
             </span>
         );
         var emailDivStyle = 'form-group';
