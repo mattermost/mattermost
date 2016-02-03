@@ -134,7 +134,7 @@ func (o *Command) PreUpdate() {
 	o.UpdateAt = GetMillis()
 }
 
-func (o *Command) Sanatize() {
+func (o *Command) Sanitize() {
 	o.Token = ""
 	o.CreatorId = ""
 	o.Method = ""

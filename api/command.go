@@ -28,7 +28,7 @@ func RegisterCommandProvider(newProvider CommandProvider) {
 	commandProviders[newProvider.GetTrigger()] = newProvider
 }
 
-func GetCommandProvidersProvider(name string) CommandProvider {
+func GetCommandProvider(name string) CommandProvider {
 	provider, ok := commandProviders[name]
 	if ok {
 		return provider
@@ -104,7 +104,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(command, " ")
 	trigger := parts[0][1:]
 	message := strings.Join(parts[1:], " ")
-	provider := GetCommandProvidersProvider(trigger)
+	provider := GetCommandProvider(trigger)
 
 	if provider != nil {
 
