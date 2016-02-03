@@ -134,7 +134,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             );
         } else if (usedLanguage === 'tex' || usedLanguage === 'latex') {
             try {
-                const html = katex.renderToString(TextFormatting.sanitizeHtml(code), {throwOnError: false, displayMode: true});
+                const html = katex.renderToString(code, {throwOnError: false, displayMode: true});
 
                 return '<div class="post-body--code tex">' + html + '</div>';
             } catch (e) {
