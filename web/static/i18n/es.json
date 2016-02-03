@@ -526,7 +526,7 @@
   "channel_invite.addNewMembers": "Agregar nuevos Miembros a  ",
   "channel_invite.close": "Cerrar",
   "channel_loader.posted": "Publicó",
-  "channel_loader.socketError": "Mattermost está al alcance. Por favor revise su conexión. Si el problema persiste, solicite a un administrador que revise el puerto del WebSocket.",
+  "channel_loader.socketError": "No se puede conectar con Mattermost, por favor revise su conexión. Si el problema persiste, solicite a un administrador que revise el puerto del WebSocket.",
   "channel_loader.someone": "Alguien",
   "channel_loader.something": " hizo algo nuevo",
   "channel_loader.uploadedFile": " subió un archivo",
