@@ -747,34 +747,27 @@ func checkForOutOfChannelMentions(c *Context, post *model.Post, channel *model.C
 	}
 	sort.Strings(usernames)
 
-	var messageText string
+	var message string
 	if len(usernames) == 1 {
-		messageText = c.T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
+		message = c.T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
 			"Username": usernames[0],
 		})
 	} else {
-		messageText = c.T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
+		message = c.T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
 			"Usernames":    strings.Join(usernames[:len(usernames)-1], ", "),
 			"LastUsername": usernames[len(usernames)-1],
 		})
 	}
 
-	// create an ephemeral post that will be sent only to the sender of this original post and not stored in the DB
-	warningPost := model.Post{
-		Id:        model.NewId(),
-		ChannelId: post.ChannelId,
-		Message:   messageText,
-		Type:      model.POST_EPHEMERAL,
-		CreateAt:  post.CreateAt + 1,
-		Props:     model.StringInterface{},
-		Filenames: []string{},
-	}
-
-	message := model.NewMessage(c.Session.TeamId, channel.Id, post.UserId, model.ACTION_EPHEMERAL_MESSAGE)
-	message.Add("post", warningPost.ToJson())
-	message.Add("channel_type", channel.Type)
-
-	PublishAndForget(message)
+	SendEphemeralPost(
+		c.Session.TeamId,
+		post.UserId,
+		&model.Post{
+			ChannelId: post.ChannelId,
+			Message:   message,
+			CreateAt:  post.CreateAt + 1,
+		},
+	)
 }
 
 // Gets a list of users that were mentioned in a given post that aren't in the channel that the post was made in
@@ -801,6 +794,29 @@ func getOutOfChannelMentions(post *model.Post, allProfiles map[string]*model.Use
 	}
 
 	return mentioned
+}
+
+func SendEphemeralPost(teamId, userId string, post *model.Post) {
+	post.Type = model.POST_EPHEMERAL
+
+	// fill in fields which haven't been specified which have sensible defaults
+	if post.Id == "" {
+		post.Id = model.NewId()
+	}
+	if post.CreateAt == 0 {
+		post.CreateAt = model.GetMillis()
+	}
+	if post.Props == nil {
+		post.Props = model.StringInterface{}
+	}
+	if post.Filenames == nil {
+		post.Filenames = []string{}
+	}
+
+	message := model.NewMessage(teamId, post.ChannelId, userId, model.ACTION_EPHEMERAL_MESSAGE)
+	message.Add("post", post.ToJson())
+
+	PublishAndForget(message)
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
