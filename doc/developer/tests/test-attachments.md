@@ -7,8 +7,9 @@ This test contains instructions for the core team to manually test common attach
 
 **Notes:**  
 - All file types should upload and post.
-- Read the expected for details on the behavior of the thumbnail and preview window.
+- Read the expected for details on the behavior of the thumbnail and preview window.  
 - The expected behavior of video and audio formats depends on the operating system, browser and plugins. View the permalinks to the Public Test Channel on Pre-Release Core to see the expected cases.   
+- If the browser can play the media file, media player controls should appear. If the browser cannot play the file, it should show appear as a regular attachment without the media controls.
 
 
 ### Images  
@@ -72,7 +73,7 @@ Expected: Generic Word thumbnail & preview window.
 
 **MP4**  
 `Videos/MP4.mp4`  
-Expected: Generic video thumbnail & playable preview window. View Permalink.  
+Expected: Generic video thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.    
 [Permalink](https://pre-release.mattermost.com/core/pl/5dx5qx9t9brqfnhohccxjynx7c)
 
 **AVI**  
@@ -114,7 +115,7 @@ Expected: Generic audio thumbnail & playable preview window
 
 **M4A**  
 `Audio/M4a.m4a`  
-Expected: Generic audio thumbnail & playable preview window  
+Expected: Generic audio thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/6c7qsw48ybd88bktgeykodsrrc)
 
 **AAC**  

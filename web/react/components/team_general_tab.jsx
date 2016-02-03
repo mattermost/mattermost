@@ -575,6 +575,8 @@ class GeneralTab extends React.Component {
                 </div>
             );
 
+            const nameExtraInfo = <span>{formatMessage(holders.teamNameInfo)}</span>;
+
             nameSection = (
                 <SettingItemMax
                     title={formatMessage({id: 'general_tab.teamName'})}
@@ -583,7 +585,7 @@ class GeneralTab extends React.Component {
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={this.onUpdateNameSection}
-                    extraInfo={formatMessage(holders.teamNameInfo)}
+                    extraInfo={nameExtraInfo}
                 />
             );
         } else {
