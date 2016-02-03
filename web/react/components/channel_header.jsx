@@ -24,8 +24,10 @@ import * as TextFormatting from '../utils/text_formatting.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 
+import {FormattedMessage} from 'mm-intl';
+
+const ActionTypes = Constants.ActionTypes;
 const Popover = ReactBootstrap.Popover;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 const Tooltip = ReactBootstrap.Tooltip;
@@ -124,7 +126,14 @@ export default class ChannelHeader extends React.Component {
         }
 
         const channel = this.state.channel;
-        const recentMentionsTooltip = <Tooltip id='recentMentionsTooltip'>{'Recent Mentions'}</Tooltip>;
+        const recentMentionsTooltip = (
+            <Tooltip id='recentMentionsTooltip'>
+                <FormattedMessage
+                    id='channel_header.recentMentions'
+                    defaultMessage='Recent Mentions'
+                />
+            </Tooltip>
+        );
         const popoverContent = (
             <Popover
                 id='hader-popover'
@@ -157,9 +166,19 @@ export default class ChannelHeader extends React.Component {
             }
         }
 
-        let channelTerm = 'Channel';
-        if (channel.type === 'P') {
-            channelTerm = 'Group';
+        let channelTerm = (
+            <FormattedMessage
+                id='channel_header.channel'
+                defaultMessage='Channel'
+            />
+        );
+        if (channel.type === Constants.PRIVATE_CHANNEL) {
+            channelTerm = (
+                <FormattedMessage
+                    id='channel_header.group'
+                    defaultMessage='Group'
+                />
+            );
         }
 
         const dropdownContents = [];
@@ -174,7 +193,10 @@ export default class ChannelHeader extends React.Component {
                         dialogType={EditChannelHeaderModal}
                         dialogProps={{channel}}
                     >
-                        {'Set Channel Header...'}
+                        <FormattedMessage
+                            id='channel_header.channelHeader'
+                            defaultMessage='Set Channel Header...'
+                        />
                     </ToggleModalButton>
                 </li>
             );
@@ -189,7 +211,10 @@ export default class ChannelHeader extends React.Component {
                         dialogType={ChannelInfoModal}
                         dialogProps={{channel}}
                     >
-                        {'View Info'}
+                        <FormattedMessage
+                            id='channel_header.viewInfo'
+                            defaultMessage='View Info'
+                        />
                     </ToggleModalButton>
                 </li>
             );
@@ -205,7 +230,10 @@ export default class ChannelHeader extends React.Component {
                             dialogType={ChannelInviteModal}
                             dialogProps={{channel}}
                         >
-                            {'Add Members'}
+                            <FormattedMessage
+                                id='chanel_header.addMembers'
+                                defaultMessage='Add Members'
+                            />
                         </ToggleModalButton>
                     </li>
                 );
@@ -221,7 +249,10 @@ export default class ChannelHeader extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showMembersModal: true})}
                             >
-                                {'Manage Members'}
+                                <FormattedMessage
+                                    id='channel_header.manageMembers'
+                                    defaultMessage='Manage Members'
+                                />
                             </a>
                         </li>
                     );
@@ -238,7 +269,13 @@ export default class ChannelHeader extends React.Component {
                         dialogType={EditChannelHeaderModal}
                         dialogProps={{channel}}
                     >
-                        {`Set ${channelTerm} Header...`}
+                        <FormattedMessage
+                            id='channel_header.setHeader'
+                            defaultMessage='Set {term} Header...'
+                            values={{
+                                term: (channelTerm)
+                            }}
+                        />
                     </ToggleModalButton>
                 </li>
             );
@@ -252,7 +289,13 @@ export default class ChannelHeader extends React.Component {
                         href='#'
                         onClick={() => this.setState({showEditChannelPurposeModal: true})}
                     >
-                        {'Set '}{channelTerm}{' Purpose...'}
+                        <FormattedMessage
+                            id='channel_header.setPurpose'
+                            defaultMessage='Set {term} Purpose...'
+                            values={{
+                                term: (channelTerm)
+                            }}
+                        />
                     </a>
                 </li>
             );
@@ -266,7 +309,10 @@ export default class ChannelHeader extends React.Component {
                         dialogType={ChannelNotificationsModal}
                         dialogProps={{channel}}
                     >
-                        {'Notification Preferences'}
+                        <FormattedMessage
+                            id='channel_header.notificationPreferences'
+                            defaultMessage='Notification Preferences'
+                        />
                     </ToggleModalButton>
                 </li>
             );
@@ -286,7 +332,13 @@ export default class ChannelHeader extends React.Component {
                             data-name={channel.name}
                             data-channelid={channel.id}
                         >
-                            {'Rename '}{channelTerm}{'...'}
+                            <FormattedMessage
+                                id='channel_header.rename'
+                                defaultMessage='Rename {term}...'
+                                values={{
+                                    term: (channelTerm)
+                                }}
+                            />
                         </a>
                     </li>
                 );
@@ -302,7 +354,13 @@ export default class ChannelHeader extends React.Component {
                                 dialogType={DeleteChannelModal}
                                 dialogProps={{channel}}
                             >
-                                {'Delete '}{channelTerm}{'...'}
+                                <FormattedMessage
+                                    id='channel_header.delete'
+                                    defaultMessage='Delete {term}...'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
+                                />
                             </ToggleModalButton>
                         </li>
                     );
@@ -320,7 +378,13 @@ export default class ChannelHeader extends React.Component {
                             href='#'
                             onClick={this.handleLeave}
                         >
-                            {'Leave '}{channelTerm}
+                            <FormattedMessage
+                                id='channel_header.leave'
+                                defaultMessage='Leave {term}'
+                                values={{
+                                    term: (channelTerm)
+                                }}
+                            />
                         </a>
                     </li>
                 );

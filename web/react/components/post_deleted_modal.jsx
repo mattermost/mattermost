@@ -4,6 +4,9 @@
 import UserStore from '../stores/user_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
+
+import {FormattedMessage} from 'mm-intl';
+
 var ActionTypes = Constants.ActionTypes;
 
 export default class PostDeletedModal extends React.Component {
@@ -65,11 +68,19 @@ export default class PostDeletedModal extends React.Component {
                                     className='modal-title'
                                     id='myModalLabel'
                                 >
-                                    {'Comment could not be posted'}
+                                    <FormattedMessage
+                                        id='post_delete.notPosted'
+                                        defaultMessage='Comment could not be posted'
+                                    />
                                 </h4>
                             </div>
                             <div className='modal-body'>
-                                <p>{'Someone deleted the message on which you tried to post a comment.'}</p>
+                                <p>
+                                    <FormattedMessage
+                                        id='post_delete.someone'
+                                        defaultMessage='Someone deleted the message on which you tried to post a comment.'
+                                    />
+                                </p>
                             </div>
                             <div className='modal-footer'>
                                 <button
@@ -77,7 +88,10 @@ export default class PostDeletedModal extends React.Component {
                                     className='btn btn-primary'
                                     data-dismiss='modal'
                                 >
-                                    {'Okay'}
+                                    <FormattedMessage
+                                        id='post_delete.okay'
+                                        defaultMessage='Okay'
+                                    />
                                 </button>
                             </div>
                         </div>

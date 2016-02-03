@@ -3,9 +3,18 @@
 
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
-import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
+
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
 const Modal = ReactBootstrap.Modal;
+
+const holders = defineMessages({
+    error: {
+        id: 'edit_channel_purpose_modal.error',
+        defaultMessage: 'This channel purpose is too long, please enter a shorter one'
+    }
+});
 
 export default class EditChannelPurposeModal extends React.Component {
     constructor(props) {
@@ -48,8 +57,8 @@ export default class EditChannelPurposeModal extends React.Component {
                 this.handleHide();
             },
             (err) => {
-                if (err.message === 'Invalid channel_purpose parameter') {
-                    this.setState({serverError: 'This channel purpose is too long, please enter a shorter one'});
+                if (err.id === 'api.context.invalid_param.app_error') {
+                    this.setState({serverError: this.props.intl.formatMessage(holders.error)});
                 } else {
                     this.setState({serverError: err.message});
                 }
@@ -72,9 +81,39 @@ export default class EditChannelPurposeModal extends React.Component {
             );
         }
 
-        let title = <span>{'Edit Purpose'}</span>;
+        let title = (
+            <span>
+                <FormattedMessage
+                    id='edit_channel_purpose_modal.title1'
+                    defaultMessage='Edit Purpose'
+                />
+            </span>
+        );
         if (this.props.channel.display_name) {
-            title = <span>{'Edit Purpose for '}<span className='name'>{this.props.channel.display_name}</span></span>;
+            title = (
+                <span>
+                    <FormattedMessage
+                        id='edit_channel_purpose_modal.title2'
+                        defaultMessage='Edit Purpose for '
+                    />
+                    <span className='name'>{this.props.channel.display_name}</span>
+                </span>
+            );
+        }
+
+        let channelType = (
+            <FormattedMessage
+                id='edit_channel_purpose_modal.channel'
+                defaultMessage='Channel'
+            />
+        );
+        if (this.props.channel.type === Constants.PRIVATE_CHANNEL) {
+            channelType = (
+                <FormattedMessage
+                    id='edit_channel_purpose_modal.group'
+                    defaultMessage='Group'
+                />
+            );
         }
 
         return (
@@ -90,7 +129,15 @@ export default class EditChannelPurposeModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>{`Describe how this ${Utils.getChannelTerm(this.props.channel.channelType)} should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.`}</p>
+                    <p>
+                        <FormattedMessage
+                            id='edit_channel_purpose_modal.body'
+                            defaultMessage='Describe how this {type} should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
+                            values={{
+                                type: (channelType)
+                            }}
+                        />
+                    </p>
                     <textarea
                         ref='purpose'
                         className='form-control no-resize'
@@ -106,14 +153,20 @@ export default class EditChannelPurposeModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.handleHide}
                     >
-                        {'Cancel'}
+                        <FormattedMessage
+                            id='edit_channel_purpose_modal.cancel'
+                            defaultMessage='Cancel'
+                        />
                     </button>
                     <button
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSave}
                     >
-                        {'Save'}
+                        <FormattedMessage
+                            id='edit_channel_purpose_modal.save'
+                            defaultMessage='Save'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -122,7 +175,10 @@ export default class EditChannelPurposeModal extends React.Component {
 }
 
 EditChannelPurposeModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channel: React.PropTypes.object,
     onModalDismissed: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(EditChannelPurposeModal);
