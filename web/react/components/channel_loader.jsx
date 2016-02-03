@@ -15,13 +15,57 @@ import PreferenceStore from '../stores/preference_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class ChannelLoader extends React.Component {
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    socketError: {
+        id: 'channel_loader.socketError',
+        defaultMessage: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.'
+    },
+    someone: {
+        id: 'channel_loader.someone',
+        defaultMessage: 'Someone'
+    },
+    posted: {
+        id: 'channel_loader.posted',
+        defaultMessage: 'Posted'
+    },
+    uploadedImage: {
+        id: 'channel_loader.uploadedImage',
+        defaultMessage: ' uploaded an image'
+    },
+    uploadedFile: {
+        id: 'channel_loader.uploadedFile',
+        defaultMessage: ' uploaded a file'
+    },
+    something: {
+        id: 'channel_loader.something',
+        defaultMessage: ' did something new'
+    },
+    wrote: {
+        id: 'channel_loader.wrote',
+        defaultMessage: ' wrote: '
+    }
+});
+
+class ChannelLoader extends React.Component {
     constructor(props) {
         super(props);
 
         this.intervalId = null;
 
         this.onSocketChange = this.onSocketChange.bind(this);
+
+        const {formatMessage} = this.props.intl;
+        SocketStore.setTranslations({
+            socketError: formatMessage(holders.socketError),
+            someone: formatMessage(holders.someone),
+            posted: formatMessage(holders.posted),
+            uploadedImage: formatMessage(holders.uploadedImage),
+            uploadedFile: formatMessage(holders.uploadedFile),
+            something: formatMessage(holders.something),
+            wrote: formatMessage(holders.wrote)
+        });
 
         this.state = {};
     }
@@ -126,3 +170,9 @@ export default class ChannelLoader extends React.Component {
         return <div/>;
     }
 }
+
+ChannelLoader.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(ChannelLoader);
