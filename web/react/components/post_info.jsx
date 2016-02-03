@@ -30,7 +30,7 @@ export default class PostInfo extends React.Component {
         var isOwner = UserStore.getCurrentId() === post.user_id;
         var isAdmin = Utils.isAdmin(UserStore.getCurrentUser().roles);
 
-        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.ephemeral) {
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || Utils.isPostEphemeral(post)) {
             return '';
         }
 
@@ -171,7 +171,7 @@ export default class PostInfo extends React.Component {
         EventHelpers.emitRemovePost(this.props.post);
     }
     createRemovePostButton(post) {
-        if (!post.ephemeral) {
+        if (!Utils.isPostEphemeral(post)) {
             return null;
         }
 
@@ -198,7 +198,7 @@ export default class PostInfo extends React.Component {
             commentCountText = '';
         }
 
-        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && !post.ephemeral) {
+        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && !Utils.isPostEphemeral(post)) {
             comments = (
                 <a
                     href='#'

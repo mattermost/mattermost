@@ -764,9 +764,8 @@ func checkForOutOfChannelMentions(c *Context, post *model.Post, channel *model.C
 		Id:        model.NewId(),
 		ChannelId: post.ChannelId,
 		Message:   messageText,
-		Type:      model.POST_OUT_OF_CHANNEL_MENTION,
+		Type:      model.POST_EPHEMERAL,
 		CreateAt:  post.CreateAt + 1,
-		Ephemeral: true,
 		Props:     model.StringInterface{},
 		Filenames: []string{},
 	}
