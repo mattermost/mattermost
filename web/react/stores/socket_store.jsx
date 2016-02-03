@@ -64,6 +64,8 @@ class SocketStoreClass extends EventEmitter {
                         ErrorStore.storeLastError(null);
                         ErrorStore.emitChange();
                     }
+
+                    AsyncClient.getChannels();
                 }
 
                 this.failCount = 0;
@@ -81,7 +83,8 @@ class SocketStoreClass extends EventEmitter {
 
             conn.onerror = (evt) => {
                 if (this.failCount === 0) {
-                    console.log('websocket error ' + evt); //eslint-disable-line no-console
+                    console.log('websocket error'); //eslint-disable-line no-console
+                    console.log(evt); //eslint-disable-line no-console
                 }
 
                 this.failCount = this.failCount + 1;
