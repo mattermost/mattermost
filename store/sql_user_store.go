@@ -305,7 +305,7 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateAuthData(userId, service, authData string) StoreChannel {
+func (us SqlUserStore) UpdateAuthData(userId, service, authData, email string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -314,7 +314,24 @@ func (us SqlUserStore) UpdateAuthData(userId, service, authData string) StoreCha
 
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = '', LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, FailedAttempts = 0, AuthService = :AuthService, AuthData = :AuthData WHERE Id = :UserId", map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData}); err != nil {
+		query := `
+			UPDATE
+			     Users
+			SET
+			     Password = '',
+			     LastPasswordUpdate = :LastPasswordUpdate,
+			     UpdateAt = :UpdateAt,
+			     FailedAttempts = 0,
+			     AuthService = :AuthService,
+			     AuthData = :AuthData`
+
+		if len(email) != 0 {
+			query += ", Email = :Email"
+		}
+
+		query += " WHERE Id = :UserId"
+
+		if _, err := us.GetMaster().Exec(query, map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData, "Email": email}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdateAuthData", "store.sql_user.update_auth_data.app_error", nil, "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId

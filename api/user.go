@@ -2087,13 +2087,16 @@ func switchToSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team, email string) {
 	authData := ""
+	ssoEmail := ""
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
 			map[string]interface{}{"Service": service}, "")
 		return
 	} else {
-		authData = provider.GetAuthDataFromJson(userData)
+		ssoUser := provider.GetUserFromJson(userData)
+		authData = ssoUser.AuthData
+		ssoEmail = ssoUser.Email
 	}
 
 	if len(authData) == 0 {
@@ -2120,7 +2123,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if result := <-Srv.Store.User().UpdateAuthData(user.Id, service, authData); result.Err != nil {
+	if result := <-Srv.Store.User().UpdateAuthData(user.Id, service, authData, ssoEmail); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
