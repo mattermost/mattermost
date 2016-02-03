@@ -41,6 +41,36 @@ func TestGetLogs(t *testing.T) {
 	}
 }
 
+func TestGetAllAudits(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if _, err := Client.GetAllAudits(); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if audits, err := Client.GetAllAudits(); err != nil {
+		t.Fatal(err)
+	} else if len(audits.Data.(model.Audits)) <= 0 {
+		t.Fatal()
+	}
+}
+
 func TestGetClientProperties(t *testing.T) {
 	Setup()
 

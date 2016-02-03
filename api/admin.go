@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -21,6 +21,7 @@ func InitAdmin(r *mux.Router) {
 
 	sr := r.PathPrefix("/admin").Subrouter()
 	sr.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
+	sr.Handle("/audits", ApiUserRequired(getAllAudits)).Methods("GET")
 	sr.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
 	sr.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
 	sr.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
@@ -56,6 +57,32 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.ArrayToJson(lines)))
+}
+
+func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if !c.HasSystemAdminPermissions("getAllAudits") {
+		return
+	}
+
+	if result := <-Srv.Store.Audit().Get("", 200); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		audits := result.Data.(model.Audits)
+		etag := audits.Etag()
+
+		if HandleEtag(etag, w, r) {
+			return
+		}
+
+		if len(etag) > 0 {
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		}
+
+		w.Write([]byte(audits.ToJson()))
+		return
+	}
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {

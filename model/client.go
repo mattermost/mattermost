@@ -406,6 +406,15 @@ func (c *Client) GetLogs() (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetAllAudits() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/admin/audits", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), AuditsFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetClientProperties() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/client_props", "", ""); err != nil {
 		return nil, err

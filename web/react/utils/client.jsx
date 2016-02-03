@@ -407,6 +407,20 @@ export function getLogs(success, error) {
     });
 }
 
+export function getServerAudits(success, error) {
+    $.ajax({
+        url: '/api/v1/admin/audits',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getServerAudits', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function getConfig(success, error) {
     $.ajax({
         url: '/api/v1/admin/config',
