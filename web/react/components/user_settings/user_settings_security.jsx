@@ -88,7 +88,8 @@ class SecurityTab extends React.Component {
         }
 
         if (newPassword !== confirmPassword) {
-            this.setState({passwordError: formatMessage(holders.passwordMatchError), serverError: ''});
+            var defaultState = Object.assign(this.getDefaultState(), {passwordError: formatMessage(holders.passwordMatchError), serverError: ''});
+            this.setState(defaultState);
             return;
         }
 
