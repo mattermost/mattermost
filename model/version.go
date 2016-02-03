@@ -84,7 +84,7 @@ func GetPreviousVersion(version string) string {
 }
 
 func IsOfficalBuild() bool {
-	return BuildNumber != "dev"
+	return BuildNumber != "_BUILD_NUMBER_"
 }
 
 func IsCurrentVersion(versionToCheck string) bool {
