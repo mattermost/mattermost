@@ -4,11 +4,60 @@
 import * as Utils from '../../utils/utils.jsx';
 import Constants from '../../utils/constants.jsx';
 import LineChart from './line_chart.jsx';
+import DoughnutChart from './doughnut_chart.jsx';
+import StatisticCount from './statistic_count.jsx';
 
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-import {FormattedMessage} from 'mm-intl';
+import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    analyticsTotalUsers: {
+        id: 'admin.analytics.totalUsers',
+        defaultMessage: 'Total Users'
+    },
+    analyticsPublicChannels: {
+        id: 'admin.analytics.publicChannels',
+        defaultMessage: 'Public Channels'
+    },
+    analyticsPrivateGroups: {
+        id: 'admin.analytics.privateGroups',
+        defaultMessage: 'Private Groups'
+    },
+    analyticsTotalPosts: {
+        id: 'admin.analytics.totalPosts',
+        defaultMessage: 'Total Posts'
+    },
+    analyticsFilePosts: {
+        id: 'admin.analytics.totalFilePosts',
+        defaultMessage: 'Posts with Files'
+    },
+    analyticsHashtagPosts: {
+        id: 'admin.analytics.totalHashtagPosts',
+        defaultMessage: 'Posts with Hashtags'
+    },
+    analyticsIncomingHooks: {
+        id: 'admin.analytics.totalIncomingWebhooks',
+        defaultMessage: 'Incoming Webhooks'
+    },
+    analyticsOutgoingHooks: {
+        id: 'admin.analytics.totalOutgoingWebhooks',
+        defaultMessage: 'Outgoing Webhooks'
+    },
+    analyticsChannelTypes: {
+        id: 'admin.analytics.channelTypes',
+        defaultMessage: 'Channel Types'
+    },
+    analyticsTextPosts: {
+        id: 'admin.analytics.textPosts',
+        defaultMessage: 'Posts with Text-only'
+    },
+    analyticsPostTypes: {
+        id: 'admin.analytics.postTypes',
+        defaultMessage: 'Posts, Files and Hashtags'
+    }
+});
 
 export default class Analytics extends React.Component {
     constructor(props) {
@@ -18,6 +67,8 @@ export default class Analytics extends React.Component {
     }
 
     render() { // in the future, break down these into smaller components
+        const {formatMessage} = this.props.intl;
+
         var serverError = '';
         if (this.props.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.props.serverError}</label></div>;
@@ -30,77 +81,129 @@ export default class Analytics extends React.Component {
             />
         );
 
-        var totalCount = (
-            <div className='col-sm-3'>
-                <div className='total-count'>
-                    <div className='title'>
-                        <FormattedMessage
-                            id='admin.analytics.totalUsers'
-                            defaultMessage='Total Users'
-                        />
-                        <i className='fa fa-users'/></div>
-                    <div className='content'>{this.props.uniqueUserCount == null ? loading : this.props.uniqueUserCount}</div>
+        let firstRow;
+        let extraGraphs;
+        if (this.props.showAdvanced) {
+            firstRow = (
+                <div className='row'>
+                    <StatisticCount
+                        title={formatMessage(holders.analyticsTotalUsers)}
+                        icon='fa-users'
+                        count={this.props.uniqueUserCount}
+                    />
+                    <StatisticCount
+                        title={formatMessage(holders.analyticsTotalPosts)}
+                        icon='fa-comment'
+                        count={this.props.postCount}
+                    />
+                    <StatisticCount
+                        title={formatMessage(holders.analyticsIncomingHooks)}
+                        icon='fa-arrow-down'
+                        count={this.props.incomingWebhookCount}
+                    />
+                    <StatisticCount
+                        title={formatMessage(holders.analyticsOutgoingHooks)}
+                        icon='fa-arrow-up'
+                        count={this.props.outgoingWebhookCount}
+                    />
                 </div>
-            </div>
-        );
+            );
 
-        var openChannelCount = (
-            <div className='col-sm-3'>
-                <div className='total-count'>
-                    <div className='title'>
-                        <FormattedMessage
-                            id='admin.analytics.publicChannels'
-                            defaultMessage='Public Channels'
-                        />
-                        <i className='fa fa-globe'/></div>
-                    <div className='content'>{this.props.channelOpenCount == null ? loading : this.props.channelOpenCount}</div>
+            const channelTypeData = [
+                {
+                    value: this.props.channelOpenCount,
+                    color: '#46BFBD',
+                    highlight: '#5AD3D1',
+                    label: formatMessage(holders.analyticsPublicChannels)
+                },
+                {
+                    value: this.props.channelPrivateCount,
+                    color: '#FDB45C',
+                    highlight: '#FFC870',
+                    label: formatMessage(holders.analyticsPrivateGroups)
+                }
+            ];
+
+            const postTypeData = [
+                {
+                    value: this.props.filePostCount,
+                    color: '#46BFBD',
+                    highlight: '#5AD3D1',
+                    label: formatMessage(holders.analyticsFilePosts)
+                },
+                {
+                    value: this.props.filePostCount,
+                    color: '#F7464A',
+                    highlight: '#FF5A5E',
+                    label: formatMessage(holders.analyticsHashtagPosts)
+                },
+                {
+                    value: this.props.postCount - this.props.filePostCount - this.props.hashtagPostCount,
+                    color: '#FDB45C',
+                    highlight: '#FFC870',
+                    label: formatMessage(holders.analyticsTextPosts)
+                }
+            ];
+
+            extraGraphs = (
+                <div className='row'>
+                    <DoughnutChart
+                        title={formatMessage(holders.analyticsChannelTypes)}
+                        data={channelTypeData}
+                        width='300'
+                        height='225'
+                    />
+                    <DoughnutChart
+                        title={formatMessage(holders.analyticsPostTypes)}
+                        data={postTypeData}
+                        width='300'
+                        height='225'
+                    />
                 </div>
-            </div>
-        );
-
-        var openPrivateCount = (
-            <div className='col-sm-3'>
-                <div className='total-count'>
-                    <div className='title'>
-                        <FormattedMessage
-                            id='admin.analytics.privateGroups'
-                            defaultMessage='Private Groups'
-                        />
-                        <i className='fa fa-lock'/></div>
-                    <div className='content'>{this.props.channelPrivateCount == null ? loading : this.props.channelPrivateCount}</div>
+            );
+        } else {
+            firstRow = (
+                <div className='row'>
+                    <StatisticCount
+                        title={formatMessage(holders.analyticsTotalUsers)}
+                        icon='fa-users'
+                        count={this.props.uniqueUserCount}
+                    />
+                    <StatisticCount
+                        title={formatMessage(holders.analyticsPublicChannels)}
+                        icon='fa-globe'
+                        count={this.props.channelOpenCount}
+                    />
+                    <StatisticCount
+                        title={formatMessage(holders.analyticsPrivateGroups)}
+                        icon='fa-lock'
+                        count={this.props.channelPrivateCount}
+                    />
+                    <StatisticCount
+                        title={formatMessage(holders.analyticsTotalPosts)}
+                        icon='fa-comment'
+                        count={this.props.postCount}
+                    />
                 </div>
-            </div>
-        );
+            );
+        }
 
-        var postCount = (
-            <div className='col-sm-3'>
-                <div className='total-count'>
-                    <div className='title'>
-                        <FormattedMessage
-                            id='admin.analytics.totalPosts'
-                            defaultMessage='Total Posts'
-                        />
-                        <i className='fa fa-comment'/></div>
-                    <div className='content'>{this.props.postCount == null ? loading : this.props.postCount}</div>
-                </div>
-            </div>
-        );
-
-        var postCountsByDay = (
-            <div className='col-sm-12'>
-                <div className='total-count by-day'>
-                    <div className='title'>
-                        <FormattedMessage
-                            id='admin.analytics.totalPosts'
-                            defaultMessage='Total Posts'
-                        />
+        let postCountsByDay;
+        if (this.props.postCountsDay == null) {
+            postCountsByDay = (
+                <div className='col-sm-12'>
+                    <div className='total-count by-day'>
+                        <div className='title'>
+                            <FormattedMessage
+                                id='admin.analytics.totalPosts'
+                                defaultMessage='Total Posts'
+                            />
+                        </div>
+                        <div className='content'>{loading}</div>
                     </div>
-                    <div className='content'>{loading}</div>
                 </div>
-            </div>
-        );
-
-        if (this.props.postCountsDay != null) {
+            );
+        } else {
             let content;
             if (this.props.postCountsDay.labels.length === 0) {
                 content = (
@@ -137,21 +240,22 @@ export default class Analytics extends React.Component {
             );
         }
 
-        var usersWithPostsByDay = (
-            <div className='col-sm-12'>
-                <div className='total-count by-day'>
-                    <div className='title'>
-                        <FormattedMessage
-                            id='admin.analytics.activeUsers'
-                            defaultMessage='Active Users With Posts'
-                        />
+        let usersWithPostsByDay;
+        if (this.props.userCountsWithPostsDay == null) {
+            usersWithPostsByDay = (
+                <div className='col-sm-12'>
+                    <div className='total-count by-day'>
+                        <div className='title'>
+                            <FormattedMessage
+                                id='admin.analytics.activeUsers'
+                                defaultMessage='Active Users With Posts'
+                            />
+                        </div>
+                        <div className='content'>{loading}</div>
                     </div>
-                    <div className='content'>{loading}</div>
                 </div>
-            </div>
-        );
-
-        if (this.props.userCountsWithPostsDay != null) {
+            );
+        } else {
             let content;
             if (this.props.userCountsWithPostsDay.labels.length === 0) {
                 content = (
@@ -312,12 +416,8 @@ export default class Analytics extends React.Component {
                     />
                 </h3>
                 {serverError}
-                <div className='row'>
-                    {totalCount}
-                    {postCount}
-                    {openChannelCount}
-                    {openPrivateCount}
-                </div>
+                {firstRow}
+                {extraGraphs}
                 <div className='row'>
                     {postCountsByDay}
                 </div>
@@ -347,10 +447,16 @@ Analytics.defaultProps = {
 };
 
 Analytics.propTypes = {
+    intl: intlShape.isRequired,
     title: React.PropTypes.string,
     channelOpenCount: React.PropTypes.number,
     channelPrivateCount: React.PropTypes.number,
     postCount: React.PropTypes.number,
+    showAdvanced: React.PropTypes.bool,
+    filePostCount: React.PropTypes.number,
+    hashtagPostCount: React.PropTypes.number,
+    incomingWebhookCount: React.PropTypes.number,
+    outgoingWebhookCount: React.PropTypes.number,
     postCountsDay: React.PropTypes.object,
     userCountsWithPostsDay: React.PropTypes.object,
     recentActiveUsers: React.PropTypes.array,
@@ -358,3 +464,5 @@ Analytics.propTypes = {
     uniqueUserCount: React.PropTypes.number,
     serverError: React.PropTypes.string
 };
+
+export default injectIntl(Analytics);

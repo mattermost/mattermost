@@ -3080,6 +3080,14 @@
     "translation": "We couldn't update the webhook"
   },
   {
+    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
+    "translation": "We couldn't count the incoming webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
+    "translation": "We couldn't count the outgoing webhooks"
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
   },
