@@ -629,7 +629,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 		if params.IsHashtag {
 			searchType = "Hashtags"
 			for _, term := range strings.Split(terms, " ") {
-				termMap[term] = true
+				termMap[strings.ToUpper(term)] = true
 			}
 		}
 
@@ -748,7 +748,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			if searchType == "Hashtags" {
 				exactMatch := false
 				for _, tag := range strings.Split(p.Hashtags, " ") {
-					if termMap[tag] {
+					if termMap[strings.ToUpper(tag)] {
 						exactMatch = true
 					}
 				}
