@@ -15,9 +15,7 @@
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,
-        "SessionCacheInMinutes": 10,
-        "WebsocketSecurePort": 443,
-        "WebsocketPort": 80
+        "SessionCacheInMinutes": 10
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -111,28 +109,5 @@
         "AuthEndpoint": "",
         "TokenEndpoint": "",
         "UserApiEndpoint": ""
-    },
-    "GoogleSettings": {
-        "Enable": false,
-        "Secret": "",
-        "Id": "",
-        "Scope": "",
-        "AuthEndpoint": "",
-        "TokenEndpoint": "",
-        "UserApiEndpoint": ""
-    },
-    "LdapSettings": {
-        "Enable": false,
-        "LdapServer": null,
-        "LdapPort": 389,
-        "BaseDN": null,
-        "BindUsername": null,
-        "BindPassword": null,
-        "FirstNameAttribute": null,
-        "LastNameAttribute": null,
-        "EmailAttribute": null,
-        "UsernameAttribute": null,
-        "IdAttribute": null,
-        "QueryTimeout": 60
     }
 }
