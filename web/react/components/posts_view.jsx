@@ -8,6 +8,9 @@ import * as Utils from '../utils/utils.jsx';
 import Post from './post.jsx';
 import Constants from '../utils/constants.jsx';
 import DelayedAction from '../utils/delayed_action.jsx';
+
+import {FormattedDate, FormattedMessage} from 'mm-intl';
+
 const Preferences = Constants.Preferences;
 
 export default class PostsView extends React.Component {
@@ -250,7 +253,15 @@ export default class PostsView extends React.Component {
                         className='date-separator'
                     >
                         <hr className='separator__hr' />
-                        <div className='separator__text'>{currentPostDay.toDateString()}</div>
+                        <div className='separator__text'>
+                            <FormattedDate
+                                value={currentPostDay}
+                                weekday='short'
+                                month='short'
+                                day='2-digit'
+                                year='numeric'
+                            />
+                        </div>
                     </div>
                 );
             }
@@ -276,7 +287,12 @@ export default class PostsView extends React.Component {
                         <hr
                             className='separator__hr'
                         />
-                        <div className='separator__text'>{'New Messages'}</div>
+                        <div className='separator__text'>
+                            <FormattedMessage
+                                id='posts_view.newMsg'
+                                defaultMessage='New Messages'
+                            />
+                        </div>
                     </div>
                 );
             }
@@ -420,7 +436,10 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsTop}
                     >
-                        {'Load more messages'}
+                        <FormattedMessage
+                            id='posts_view.loadMore'
+                            defaultMessage='Load more messages'
+                        />
                     </a>
                 );
             } else {
@@ -436,7 +455,7 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsBottom}
                     >
-                        {'Load more messages'}
+                        <FormattedMessage id='posts_view.loadMore' />
                     </a>
                 );
             } else {

@@ -89,9 +89,9 @@ export default class LoginUsername extends React.Component {
                 }
             },
             (err) => {
-                if (err.message === 'api.user.login.not_verified.app_error') {
+                if (err.id === 'api.user.login.not_verified.app_error') {
                     state.serverError = formatMessage(holders.verifyEmailError);
-                } else if (err.message === 'store.sql_user.get_by_username.app_error') {
+                } else if (err.id === 'store.sql_user.get_by_username.app_error') {
                     state.serverError = formatMessage(holders.userNotFoundError);
                 } else {
                     state.serverError = err.message;

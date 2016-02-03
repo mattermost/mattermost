@@ -2900,6 +2900,14 @@
     "translation": "No se puede actualizar el campo de verificar correo"
   },
   {
+    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
+    "translation": "No pudimos contar la cantidad de webhooks entrantes"
+  },
+  {
+    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
+    "translation": "No pudimos contar la cantidad de webhooks salientes"
+  },
+  {
     "id": "store.sql_webhooks.delete_incoming.app_error",
     "translation": "No pudimos eliminar el webhook"
   },

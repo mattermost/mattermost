@@ -3,7 +3,20 @@
 
 import * as TextFormatting from '../utils/text_formatting.jsx';
 
-export default class PostAttachment extends React.Component {
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    collapse: {
+        id: 'post_attachment.collapse',
+        defaultMessage: '▲ collapse text'
+    },
+    more: {
+        id: 'post_attachment.more',
+        defaultMessage: '▼ read more'
+    }
+});
+
+class PostAttachment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -28,7 +41,7 @@ export default class PostAttachment extends React.Component {
     getInitState() {
         const shouldCollapse = this.shouldCollapse();
         const text = TextFormatting.formatText(this.props.attachment.text || '');
-        const uncollapsedText = text + (shouldCollapse ? '<a class="attachment-link-more" href="#">▲ collapse text</a>' : '');
+        const uncollapsedText = text + (shouldCollapse ? `<a class="attachment-link-more" href="#">${this.props.intl.formatMessage(holders.collapse)}</a>` : '');
         const collapsedText = shouldCollapse ? this.getCollapsedText() : text;
 
         return {
@@ -62,7 +75,7 @@ export default class PostAttachment extends React.Component {
             text = text.substr(0, 700);
         }
 
-        return TextFormatting.formatText(text) + '<a class="attachment-link-more" href="#">▼ read more</a>';
+        return TextFormatting.formatText(text) + `<a class="attachment-link-more" href="#">${this.props.intl.formatMessage(holders.more)}</a>`;
     }
 
     getFieldsTable() {
@@ -292,5 +305,8 @@ export default class PostAttachment extends React.Component {
 }
 
 PostAttachment.propTypes = {
+    intl: intlShape.isRequired,
     attachment: React.PropTypes.object.isRequired
 };
+
+export default injectIntl(PostAttachment);

@@ -339,7 +339,10 @@ class EmailSettings extends React.Component {
                                     defaultChecked={this.props.config.EmailSettings.EnableSignInWithEmail}
                                     onChange={this.handleChange.bind(this, 'allowSignInWithEmail_true')}
                                 />
-                                    {'true'}
+                                <FormattedMessage
+                                    id='admin.email.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -349,7 +352,10 @@ class EmailSettings extends React.Component {
                                     defaultChecked={!this.props.config.EmailSettings.EnableSignInWithEmail}
                                     onChange={this.handleChange.bind(this, 'allowSignInWithEmail_false')}
                                 />
-                                    {'false'}
+                                <FormattedMessage
+                                    id='admin.email.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -380,7 +386,10 @@ class EmailSettings extends React.Component {
                                     defaultChecked={this.props.config.EmailSettings.EnableSignInWithUsername}
                                     onChange={this.handleChange.bind(this, 'allowSignInWithUsername_true')}
                                 />
-                                    {'true'}
+                                <FormattedMessage
+                                    id='admin.email.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -390,7 +399,10 @@ class EmailSettings extends React.Component {
                                     defaultChecked={!this.props.config.EmailSettings.EnableSignInWithUsername}
                                     onChange={this.handleChange.bind(this, 'allowSignInWithUsername_false')}
                                 />
-                                    {'false'}
+                                <FormattedMessage
+                                    id='admin.email.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

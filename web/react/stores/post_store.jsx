@@ -446,7 +446,7 @@ class PostStoreClass extends EventEmitter {
             posts = {};
         }
 
-        post.message = '(message deleted)';
+        post.message = this.delete_message;
         post.state = Constants.POST_DELETED;
         post.filenames = [];
 
@@ -580,6 +580,9 @@ class PostStoreClass extends EventEmitter {
         }
 
         return commentCount;
+    }
+    deleteMessage(msg) {
+        this.delete_message = msg;
     }
 }
 
