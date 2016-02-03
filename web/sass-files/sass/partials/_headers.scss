@@ -173,6 +173,7 @@
 		.team__name {
 			line-height: 22px;
 			margin-top: -2px;
+			float: left;
 		}
 		.user__name {
 			@include single-transition(all, 0.1s, linear);
