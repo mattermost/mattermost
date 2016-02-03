@@ -305,6 +305,28 @@ export function loginByEmail(name, email, password, success, error) {
     });
 }
 
+export function loginByUsername(name, username, password, success, error) {
+    $.ajax({
+        url: '/api/v1/users/login',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({name, username, password}),
+        success: function onSuccess(data, textStatus, xhr) {
+            track('api', 'api_users_login_success', data.team_id, 'username', data.username);
+            sessionStorage.removeItem(data.id + '_last_error');
+            BrowserStore.signalLogin();
+            success(data, textStatus, xhr);
+        },
+        error: function onError(xhr, status, err) {
+            track('api', 'api_users_login_fail', name, 'username', username);
+
+            var e = handleError('loginByUsername', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function loginByLdap(teamName, id, password, success, error) {
     $.ajax({
         url: '/api/v1/users/login_ldap',

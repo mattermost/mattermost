@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import LoginEmail from './login_email.jsx';
+import LoginUsername from './login_username.jsx';
 import LoginLdap from './login_ldap.jsx';
 
 import * as Utils from '../utils/utils.jsx';
@@ -35,7 +36,7 @@ export default class Login extends React.Component {
                             />
                         </span>
                     </a>
-           );
+            );
         }
 
         if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
@@ -87,7 +88,7 @@ export default class Login extends React.Component {
         }
 
         let emailSignup;
-        if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
+        if (global.window.mm_config.EnableSignInWithEmail === 'true') {
             emailSignup = (
                 <LoginEmail
                     teamName={this.props.teamName}
@@ -189,6 +190,15 @@ export default class Login extends React.Component {
             );
         }
 
+        let usernameLogin = null;
+        if (global.window.mm_config.EnableSignInWithUsername === 'true') {
+            usernameLogin = (
+                <LoginUsername
+                    teamName={this.props.teamName}
+                />
+            );
+        }
+
         return (
             <div className='signup-team__container'>
                 <h5 className='margin--less'>
@@ -210,6 +220,7 @@ export default class Login extends React.Component {
                     {extraBox}
                     {loginMessage}
                     {emailSignup}
+                    {usernameLogin}
                     {ldapLogin}
                     {userSignUp}
                     {findTeams}

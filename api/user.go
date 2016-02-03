@@ -444,6 +444,38 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 	return nil
 }
 
+func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, username, name, password, deviceId string) *model.User {
+	var team *model.Team
+
+	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+		c.Err = result.Err
+		return nil
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if result := <-Srv.Store.User().GetByUsername(team.Id, username); result.Err != nil {
+		c.Err = result.Err
+		c.Err.StatusCode = http.StatusForbidden
+		return nil
+	} else {
+		user := result.Data.(*model.User)
+
+		if len(user.AuthData) != 0 {
+			c.Err = model.NewLocAppError("LoginByUsername", "api.user.login_by_email.sign_in.app_error",
+				map[string]interface{}{"AuthService": user.AuthService}, "")
+			return nil
+		}
+
+		if checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password) {
+			Login(c, w, r, user, deviceId)
+			return user
+		}
+	}
+
+	return nil
+}
+
 func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team) *model.User {
 	authData := ""
 	provider := einterfaces.GetOauthProvider(service)
@@ -629,6 +661,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = LoginById(c, w, r, props["id"], props["password"], props["device_id"])
 	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
 		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
+	} else if len(props["username"]) != 0 && len(props["name"]) != 0 {
+		user = LoginByUsername(c, w, r, props["username"], props["name"], props["password"], props["device_id"])
 	} else {
 		c.Err = model.NewLocAppError("login", "api.user.login.not_provided.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden

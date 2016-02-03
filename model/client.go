@@ -280,6 +280,14 @@ func (c *Client) LoginByEmail(name string, email string, password string) (*Resu
 	return c.login(m)
 }
 
+func (c *Client) LoginByUsername(name string, username string, password string) (*Result, *AppError) {
+	m := make(map[string]string)
+	m["name"] = name
+	m["username"] = username
+	m["password"] = password
+	return c.login(m)
+}
+
 func (c *Client) LoginByEmailWithDevice(name string, email string, password string, deviceId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["name"] = name
