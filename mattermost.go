@@ -31,6 +31,8 @@ import (
 	_ "github.com/go-ldap/ldap"
 )
 
+//ENTERPRISE_IMPORTS
+
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdAssignRole bool

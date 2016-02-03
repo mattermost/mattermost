@@ -4,6 +4,8 @@
 import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class MemberListItem extends React.Component {
     constructor(props) {
         super(props);
@@ -38,7 +40,10 @@ export default class MemberListItem extends React.Component {
                         className='btn btn-sm btn-primary'
                     >
                         <i className='glyphicon glyphicon-envelope'/>
-                        {' Add'}
+                        <FormattedMessage
+                            id='member_item.add'
+                            defaultMessage=' Add'
+                        />
                     </a>
             );
         } else if (isAdmin && !isMemberAdmin && (member.id !== UserStore.getCurrentId())) {
@@ -53,7 +58,10 @@ export default class MemberListItem extends React.Component {
                                             role='menuitem'
                                             onClick={self.handleMakeAdmin}
                                         >
-                                            Make Admin
+                                            <FormattedMessage
+                                                id='member_item.makeAdmin'
+                                                defaultMessage='Make Admin'
+                                            />
                                         </a>
                                     </li>);
             }
@@ -67,7 +75,10 @@ export default class MemberListItem extends React.Component {
                                                 role='menuitem'
                                                 onClick={self.handleRemove}
                                             >
-                                                Remove Member
+                                                <FormattedMessage
+                                                    id='member_item.removeMember'
+                                                    defaultMessage='Remove Member'
+                                                />
                                             </a>
                                         </li>);
             }
@@ -82,7 +93,14 @@ export default class MemberListItem extends React.Component {
                                 aria-expanded='true'
                             >
                                 <span className='fa fa-pencil'></span>
-                                <span className='text-capitalize'>{member.roles || 'Member'} </span>
+                                <span className='text-capitalize'>
+                                    {member.roles ||
+                                    <FormattedMessage
+                                        id='member_item.member'
+                                        defaultMessage='Member'
+                                    />
+                                    }
+                                </span>
                             </a>
                             <ul
                                 className='dropdown-menu member-menu'
@@ -94,7 +112,7 @@ export default class MemberListItem extends React.Component {
                         </div>
                     );
         } else {
-            invite = <div className='member-role text-capitalize'><span className='fa fa-pencil hidden'></span>{member.roles || 'Member'}</div>;
+            invite = (<div className='member-role text-capitalize'><span className='fa fa-pencil hidden'></span>{member.roles || <FormattedMessage id='member_item.member' />}</div>);
         }
 
         return (

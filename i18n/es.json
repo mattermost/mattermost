@@ -1532,6 +1532,38 @@
     "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
   },
   {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "No se pudo enlazar con el servidor LDAP. Revisa las opciones de BindUsername y BindPassword."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "Contraseña inválida"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "Las funcionalidades de LDAP están deshabilitadas con la licencia actual. Por favor contacta a un administrador del sistema acerca de mejorar la licencia enterprise."
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "Nombre de usuario dado coincide con varios usuarios"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "Falla al buscar en el servidor LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "No se pudo conectar con el servidor LDAP"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_create_user.app_error",
+    "translation": "Credenciales válidas pero no se pudo crear el usuario."
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "Usuario no registrado en el servidor LDAP"
+  },
+  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "No pudimos encontrar el canal: %v, búsqueda realizada con estas posibilidades %v"
   },

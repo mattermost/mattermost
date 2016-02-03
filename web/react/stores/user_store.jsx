@@ -38,6 +38,8 @@ class UserStoreClass extends EventEmitter {
         this.setCurrentUser = this.setCurrentUser.bind(this);
         this.getLastEmail = this.getLastEmail.bind(this);
         this.setLastEmail = this.setLastEmail.bind(this);
+        this.getLastUsername = this.getLastUsername.bind(this);
+        this.setLastUsername = this.setLastUsername.bind(this);
         this.hasProfile = this.hasProfile.bind(this);
         this.getProfile = this.getProfile.bind(this);
         this.getProfileByUsername = this.getProfileByUsername.bind(this);
@@ -157,6 +159,14 @@ class UserStoreClass extends EventEmitter {
 
     setLastEmail(email) {
         BrowserStore.setGlobalItem('last_email', email);
+    }
+
+    getLastUsername() {
+        return BrowserStore.getGlobalItem('last_username', '');
+    }
+
+    setLastUsername(username) {
+        BrowserStore.setGlobalItem('last_username', username);
     }
 
     hasProfile(userId) {

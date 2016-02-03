@@ -11,6 +11,8 @@ import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 const Modal = ReactBootstrap.Modal;
 
 export default class ChannelInviteModal extends React.Component {
@@ -154,7 +156,13 @@ export default class ChannelInviteModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Add New Members to '}<span className='name'>{this.props.channel.display_name}</span></Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='channel_invite.addNewMembers'
+                            defaultMessage='Add New Members to '
+                        />
+                        <span className='name'>{this.props.channel.display_name}</span>
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body
                     ref='modalBody'
@@ -168,7 +176,10 @@ export default class ChannelInviteModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onHide}
                     >
-                        {'Close'}
+                        <FormattedMessage
+                            id='channel_invite.close'
+                            defaultMessage='Close'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>

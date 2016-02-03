@@ -9,6 +9,9 @@ import * as Utils from '../utils/utils.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
+
+import {FormattedMessage} from 'mm-intl';
+
 var ActionTypes = Constants.ActionTypes;
 
 export default class DeletePostModal extends React.Component {
@@ -128,10 +131,28 @@ export default class DeletePostModal extends React.Component {
 
         var commentWarning = '';
         if (this.state.commentCount > 0) {
-            commentWarning = 'This post has ' + this.state.commentCount + ' comment(s) on it.';
+            commentWarning = (
+                <FormattedMessage
+                    id='delete_post.warning'
+                    defaultMessage='This post has {count} comment(s) on it.'
+                    values={{
+                        count: this.state.commentCount
+                    }}
+                />
+            );
         }
 
-        const postTerm = Utils.getPostTerm(this.state.post);
+        const postTerm = this.state.post.root_id ? (
+            <FormattedMessage
+                id='delete_post.comment'
+                defaultMessage='Comment'
+            />
+        ) : (
+            <FormattedMessage
+                id='delete_post.post'
+                defaultMessage='Post'
+            />
+        );
 
         return (
             <Modal
@@ -139,10 +160,24 @@ export default class DeletePostModal extends React.Component {
                 onHide={this.handleHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{`Confirm ${postTerm} Delete`}</Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='delete_post.confirm'
+                            defaultMessage='Confirm {term} Delete'
+                            values={{
+                                term: (postTerm)
+                            }}
+                        />
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {`Are you sure you want to delete this ${postTerm.toLowerCase()}?`}
+                    <FormattedMessage
+                        id='delete_post.question'
+                        defaultMessage='Are you sure you want to delete this ${term}?'
+                        values={{
+                            term: (postTerm)
+                        }}
+                    />
                     <br />
                     <br />
                     {commentWarning}
@@ -154,7 +189,10 @@ export default class DeletePostModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.handleHide}
                     >
-                        {'Cancel'}
+                        <FormattedMessage
+                            id='delete_post.cancel'
+                            defaultMessage='Cancel'
+                        />
                     </button>
                     <button
                         ref='deletePostBtn'
@@ -162,7 +200,10 @@ export default class DeletePostModal extends React.Component {
                         className='btn btn-danger'
                         onClick={this.handleDelete}
                     >
-                        {'Delete'}
+                        <FormattedMessage
+                            id='delete_post.del'
+                            defaultMessage='Delete'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>

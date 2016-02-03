@@ -6,9 +6,18 @@ import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 import * as Utils from '../utils/utils.jsx';
 
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
 const Modal = ReactBootstrap.Modal;
 
-export default class EditChannelHeaderModal extends React.Component {
+const holders = defineMessages({
+    error: {
+        id: 'edit_channel_header_modal.error',
+        defaultMessage: 'This channel header is too long, please enter a shorter one'
+    }
+});
+
+class EditChannelHeaderModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -64,8 +73,8 @@ export default class EditChannelHeaderModal extends React.Component {
                 });
             },
             (err) => {
-                if (err.message === 'Invalid channel_header parameter') {
-                    this.setState({serverError: 'This channel header is too long, please enter a shorter one'});
+                if (err.id === 'api.context.invalid_param.app_error') {
+                    this.setState({serverError: this.props.intl.formatMessage(holders.error)});
                 } else {
                     this.setState({serverError: err.message});
                 }
@@ -99,10 +108,23 @@ export default class EditChannelHeaderModal extends React.Component {
                 onHide={this.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Edit Header for ' + this.props.channel.display_name}</Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='edit_channel_header_modal.title'
+                            defaultMessage='Edit Header for {channel}'
+                            values={{
+                                channel: this.props.channel.display_name
+                            }}
+                        />
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>{'Edit the text appearing next to the channel name in the channel header.'}</p>
+                    <p>
+                        <FormattedMessage
+                            id='edit_channel_header_modal.description'
+                            defaultMessage='Edit the text appearing next to the channel name in the channel header.'
+                        />
+                    </p>
                     <textarea
                         ref='textarea'
                         className='form-control no-resize'
@@ -120,14 +142,20 @@ export default class EditChannelHeaderModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.onHide}
                     >
-                        {'Cancel'}
+                        <FormattedMessage
+                            id='edit_channel_header_modal.cancel'
+                            defaultMessage='Cancel'
+                        />
                     </button>
                     <button
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSubmit}
                     >
-                        {'Save'}
+                        <FormattedMessage
+                            id='edit_channel_header_modal.save'
+                            defaultMessage='Save'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -136,7 +164,10 @@ export default class EditChannelHeaderModal extends React.Component {
 }
 
 EditChannelHeaderModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
 };
+
+export default injectIntl(EditChannelHeaderModal);

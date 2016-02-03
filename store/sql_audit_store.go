@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -72,9 +72,16 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 			return
 		}
 
+		query := "SELECT * FROM Audits"
+
+		if len(user_id) != 0 {
+			query += " WHERE UserId = :user_id"
+		}
+
+		query += " ORDER BY CreateAt DESC LIMIT :limit"
+
 		var audits model.Audits
-		if _, err := s.GetReplica().Select(&audits, "SELECT * FROM Audits WHERE UserId = :user_id ORDER BY CreateAt DESC LIMIT :limit",
-			map[string]interface{}{"user_id": user_id, "limit": limit}); err != nil {
+		if _, err := s.GetReplica().Select(&audits, query, map[string]interface{}{"user_id": user_id, "limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlAuditStore.Get", "store.sql_audit.get.finding.app_error", nil, "user_id="+user_id)
 		} else {
 			result.Data = audits

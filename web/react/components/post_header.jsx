@@ -52,6 +52,7 @@ export default class PostHeader extends React.Component {
                         handleCommentClick={this.props.handleCommentClick}
                         allowReply='true'
                         isLastComment={this.props.isLastComment}
+                        sameUser={this.props.sameUser}
                     />
                 </li>
             </ul>
@@ -62,11 +63,13 @@ export default class PostHeader extends React.Component {
 PostHeader.defaultProps = {
     post: null,
     commentCount: 0,
-    isLastComment: false
+    isLastComment: false,
+    sameUser: false
 };
 PostHeader.propTypes = {
     post: React.PropTypes.object,
     commentCount: React.PropTypes.number,
     isLastComment: React.PropTypes.bool,
-    handleCommentClick: React.PropTypes.func
+    handleCommentClick: React.PropTypes.func,
+    sameUser: React.PropTypes.bool
 };

@@ -329,3 +329,65 @@ func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) StoreChanne
 
 	return storeChannel
 }
+
+func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`SELECT 
+			    COUNT(*)
+			FROM
+			    IncomingWebhooks
+			WHERE
+                DeleteAt = 0`
+
+		if len(teamId) > 0 {
+			query += " AND TeamId = :TeamId"
+		}
+
+		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.AnalyticsIncomingCount", "store.sql_webhooks.analytics_incoming_count.app_error", nil, "team_id="+teamId+", err="+err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`SELECT 
+			    COUNT(*)
+			FROM
+			    OutgoingWebhooks
+			WHERE
+                DeleteAt = 0`
+
+		if len(teamId) > 0 {
+			query += " AND TeamId = :TeamId"
+		}
+
+		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.AnalyticsOutgoingCount", "store.sql_webhooks.analytics_outgoing_count.app_error", nil, "team_id="+teamId+", err="+err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

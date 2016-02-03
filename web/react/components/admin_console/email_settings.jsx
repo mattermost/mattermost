@@ -112,6 +112,8 @@ class EmailSettings extends React.Component {
     buildConfig() {
         var config = this.props.config;
         config.EmailSettings.EnableSignUpWithEmail = ReactDOM.findDOMNode(this.refs.allowSignUpWithEmail).checked;
+        config.EmailSettings.EnableSignInWithEmail = ReactDOM.findDOMNode(this.refs.allowSignInWithEmail).checked;
+        config.EmailSettings.EnableSignInWithUsername = ReactDOM.findDOMNode(this.refs.allowSignInWithUsername).checked;
         config.EmailSettings.SendEmailNotifications = ReactDOM.findDOMNode(this.refs.sendEmailNotifications).checked;
         config.EmailSettings.SendPushNotifications = ReactDOM.findDOMNode(this.refs.sendPushNotifications).checked;
         config.EmailSettings.RequireEmailVerification = ReactDOM.findDOMNode(this.refs.requireEmailVerification).checked;
@@ -312,6 +314,88 @@ class EmailSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.email.allowSignupDescription'
                                     defaultMessage='When true, Mattermost allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single-sign-on service like OAuth or LDAP.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='allowSignInWithEmail'
+                        >
+                            <FormattedMessage
+                                id='admin.email.allowEmailSignInTitle'
+                                defaultMessage='Allow Sign In With Email: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='allowSignInWithEmail'
+                                    value='true'
+                                    ref='allowSignInWithEmail'
+                                    defaultChecked={this.props.config.EmailSettings.EnableSignInWithEmail}
+                                    onChange={this.handleChange.bind(this, 'allowSignInWithEmail_true')}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='allowSignInWithEmail'
+                                    value='false'
+                                    defaultChecked={!this.props.config.EmailSettings.EnableSignInWithEmail}
+                                    onChange={this.handleChange.bind(this, 'allowSignInWithEmail_false')}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.email.allowEmailSignInDescription'
+                                    defaultMessage='When true, Mattermost allows users to sign in using their email and password.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='allowSignInWithUsername'
+                        >
+                            <FormattedMessage
+                                id='admin.email.allowUsernameSignInTitle'
+                                defaultMessage='Allow Sign In With Username: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='allowSignInWithUsername'
+                                    value='true'
+                                    ref='allowSignInWithUsername'
+                                    defaultChecked={this.props.config.EmailSettings.EnableSignInWithUsername}
+                                    onChange={this.handleChange.bind(this, 'allowSignInWithUsername_true')}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='allowSignInWithUsername'
+                                    value='false'
+                                    defaultChecked={!this.props.config.EmailSettings.EnableSignInWithUsername}
+                                    onChange={this.handleChange.bind(this, 'allowSignInWithUsername_false')}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.email.allowUsernameSignInDescription'
+                                    defaultMessage='When true, Mattermost allows users to sign in using their username and password.  This setting is typically only used when email verification is disabled.'
                                 />
                             </p>
                         </div>

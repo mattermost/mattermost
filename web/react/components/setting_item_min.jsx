@@ -38,8 +38,8 @@ export default class SettingItemMin extends React.Component {
 }
 
 SettingItemMin.propTypes = {
-    title: React.PropTypes.string,
+    title: React.PropTypes.node,
     disableOpen: React.PropTypes.bool,
     updateSection: React.PropTypes.func,
-    describe: React.PropTypes.string
+    describe: React.PropTypes.node
 };

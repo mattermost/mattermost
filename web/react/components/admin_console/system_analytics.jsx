@@ -140,6 +140,34 @@ class SystemAnalytics extends React.Component {
                 this.setState({serverError: err.message});
             }
         );
+
+        if (global.window.mm_license.IsLicensed === 'true') {
+            Client.getSystemAnalytics(
+                'extra_counts',
+                (data) => {
+                    for (var index in data) {
+                        if (data[index].name === 'file_post_count') {
+                            this.setState({file_post_count: data[index].value});
+                        }
+
+                        if (data[index].name === 'hashtag_post_count') {
+                            this.setState({hashtag_post_count: data[index].value});
+                        }
+
+                        if (data[index].name === 'incoming_webhook_count') {
+                            this.setState({incoming_webhook_count: data[index].value});
+                        }
+
+                        if (data[index].name === 'outgoing_webhook_count') {
+                            this.setState({outgoing_webhook_count: data[index].value});
+                        }
+                    }
+                },
+                (err) => {
+                    this.setState({serverError: err.message});
+                }
+            );
+        }
     }
 
     componentWillReceiveProps() {
@@ -160,10 +188,16 @@ class SystemAnalytics extends React.Component {
         return (
             <div>
                 <Analytics
+                    intl={this.props.intl}
                     title={this.props.intl.formatMessage(labels.title)}
                     channelOpenCount={this.state.channel_open_count}
                     channelPrivateCount={this.state.channel_private_count}
                     postCount={this.state.post_count}
+                    showAdvanced={global.window.mm_license.IsLicensed === 'true'}
+                    filePostCount={this.state.file_post_count}
+                    hashtagPostCount={this.state.hashtag_post_count}
+                    incomingWebhookCount={this.state.incoming_webhook_count}
+                    outgoingWebhookCount={this.state.outgoing_webhook_count}
                     postCountsDay={this.state.post_counts_day}
                     userCountsWithPostsDay={this.state.user_counts_with_posts_day}
                     uniqueUserCount={this.state.unique_user_count}

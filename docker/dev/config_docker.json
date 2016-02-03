@@ -68,6 +68,8 @@
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
+        "EnableSignInWithEmail": true,
+        "EnableSignInWithUsername": false,
         "SendEmailNotifications": false,
         "RequireEmailVerification": false,
         "FeedbackName": "",

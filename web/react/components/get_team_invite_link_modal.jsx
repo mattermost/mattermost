@@ -16,6 +16,10 @@ const holders = defineMessages({
     help: {
         id: 'get_team_invite_link_modal.help',
         defaultMessage: 'Send teammates the link below for them to sign-up to this team site.'
+    },
+    helpDisabled: {
+        id: 'get_team_invite_link_modal.helpDisabled',
+        defaultMessage: 'User creation has been disabled for your team. Please ask your team administrator for details.'
     }
 });
 
@@ -47,12 +51,18 @@ class GetTeamInviteLinkModal extends React.Component {
     render() {
         const {formatMessage} = this.props.intl;
 
+        let helpText = formatMessage(holders.helpDisabled);
+
+        if (global.window.mm_config.EnableUserCreation === 'true') {
+            helpText = formatMessage(holders.help);
+        }
+
         return (
             <GetLinkModal
                 show={this.state.show}
                 onHide={() => this.setState({show: false})}
                 title={formatMessage(holders.title)}
-                helpText={formatMessage(holders.help)}
+                helpText={helpText}
                 link={TeamStore.getCurrentInviteLink()}
             />
         );

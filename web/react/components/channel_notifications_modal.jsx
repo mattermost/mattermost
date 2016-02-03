@@ -9,6 +9,8 @@ import * as Client from '../utils/client.jsx';
 import UserStore from '../stores/user_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class ChannelNotificationsModal extends React.Component {
     constructor(props) {
         super(props);
@@ -97,12 +99,34 @@ export default class ChannelNotificationsModal extends React.Component {
 
         let globalNotifyLevelName;
         if (globalNotifyLevel === 'all') {
-            globalNotifyLevelName = 'For all activity';
+            globalNotifyLevelName = (
+                <FormattedMessage
+                    id='channel_notifications.allActivity'
+                    defaultMessage='For all activity'
+                />
+            );
         } else if (globalNotifyLevel === 'mention') {
-            globalNotifyLevelName = 'Only for mentions';
+            globalNotifyLevelName = (
+                <FormattedMessage
+                    id='channel_notifications.onlyMentions'
+                    defaultMessage='Only for mentions'
+                />
+            );
         } else {
-            globalNotifyLevelName = 'Never';
+            globalNotifyLevelName = (
+                <FormattedMessage
+                    id='channel_notifications.never'
+                    defaultMessage='Never'
+                />
+            );
         }
+
+        const sendDesktop = (
+            <FormattedMessage
+                id='channel_notifications.sendDesktop'
+                defaultMessage='Send desktop notifications'
+            />
+        );
 
         if (this.state.activeSection === 'desktop') {
             var notifyActive = [false, false, false, false];
@@ -127,7 +151,13 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[0]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'default')}
                             />
-                                {`Global default (${globalNotifyLevelName})`}
+                            <FormattedMessage
+                                id='channel_notifications.globalDefault'
+                                defaultMessage='Global default ({notifyLevel}'
+                                values={{
+                                    notifyLevel: (globalNotifyLevelName)
+                                }}
+                            />
                         </label>
                         <br/>
                     </div>
@@ -138,7 +168,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[1]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'all')}
                             />
-                                {'For all activity'}
+                            <FormattedMessage id='channel_notifications.allActivity' />
                         </label>
                         <br/>
                     </div>
@@ -149,7 +179,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[2]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'mention')}
                             />
-                                {'Only for mentions'}
+                            <FormattedMessage id='channel_notifications.onlyMentions' />
                         </label>
                         <br/>
                     </div>
@@ -160,7 +190,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[3]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'none')}
                             />
-                                {'Never'}
+                            <FormattedMessage id='channel_notifications.never' />
                         </label>
                     </div>
                 </div>
@@ -174,13 +204,16 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const extraInfo = (
                 <span>
-                    {'Selecting an option other than "Default" will override the global notification settings. Desktop notifications are available on Firefox, Safari, and Chrome.'}
+                    <FormattedMessage
+                        id='channel_notifications.override'
+                        defaultMessage='Selecting an option other than "Default" will override the global notification settings. Desktop notifications are available on Firefox, Safari, and Chrome.'
+                    />
                 </span>
             );
 
             return (
                 <SettingItemMax
-                    title='Send desktop notifications'
+                    title={sendDesktop}
                     inputs={inputs}
                     submit={this.handleSubmitNotifyLevel}
                     server_error={serverError}
@@ -192,13 +225,20 @@ export default class ChannelNotificationsModal extends React.Component {
 
         var describe;
         if (this.state.notifyLevel === 'default') {
-            describe = `Global default (${globalNotifyLevelName})`;
+            describe = (
+                <FormattedMessage
+                    id='channel_notifications.globalDefault'
+                    values={{
+                        notifyLevel: (globalNotifyLevelName)
+                    }}
+                />
+            );
         } else if (this.state.notifyLevel === 'mention') {
-            describe = 'Only for mentions';
+            describe = (<FormattedMessage id='channel_notifications.onlyMentions' />);
         } else if (this.state.notifyLevel === 'all') {
-            describe = 'For all activity';
+            describe = (<FormattedMessage id='channel_notifications.allActivity' />);
         } else {
-            describe = 'Never';
+            describe = (<FormattedMessage id='channel_notifications.never' />);
         }
 
         handleUpdateSection = function updateSection(e) {
@@ -208,7 +248,7 @@ export default class ChannelNotificationsModal extends React.Component {
 
         return (
             <SettingItemMin
-                title='Send desktop notifications'
+                title={sendDesktop}
                 describe={describe}
                 updateSection={handleUpdateSection}
             />
@@ -250,6 +290,12 @@ export default class ChannelNotificationsModal extends React.Component {
     createMarkUnreadLevelSection(serverError) {
         let content;
 
+        const markUnread = (
+            <FormattedMessage
+                id='channel_notifications.markUnread'
+                defaultMessage='Mark Channel Unread'
+            />
+        );
         if (this.state.activeSection === 'markUnreadLevel') {
             const inputs = [(
                 <div key='channel-notification-unread-radio'>
@@ -260,7 +306,10 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={this.state.markUnreadLevel === 'all'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'all')}
                             />
-                                {'For all unread messages'}
+                                <FormattedMessage
+                                    id='channel_notifications.allUnread'
+                                    defaultMessage='For all unread messages'
+                                />
                         </label>
                         <br />
                     </div>
@@ -271,7 +320,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={this.state.markUnreadLevel === 'mention'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'mention')}
                             />
-                                {'Only for mentions'}
+                            <FormattedMessage id='channel_notifications.onlyMentions' />
                         </label>
                         <br />
                     </div>
@@ -284,11 +333,18 @@ export default class ChannelNotificationsModal extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
-            const extraInfo = <span>{'The channel name is bolded in the sidebar when there are unread messages. Selecting "Only for mentions" will bold the channel only when you are mentioned.'}</span>;
+            const extraInfo = (
+                <span>
+                    <FormattedMessage
+                        id='channel_notifications.unreadInfo'
+                        defaultMessage='The channel name is bolded in the sidebar when there are unread messages. Selecting "Only for mentions" will bold the channel only when you are mentioned.'
+                    />
+                </span>
+            );
 
             content = (
                 <SettingItemMax
-                    title='Mark Channel Unread'
+                    title={markUnread}
                     inputs={inputs}
                     submit={this.handleSubmitMarkUnreadLevel}
                     server_error={serverError}
@@ -300,9 +356,14 @@ export default class ChannelNotificationsModal extends React.Component {
             let describe;
 
             if (!this.state.markUnreadLevel || this.state.markUnreadLevel === 'all') {
-                describe = 'For all unread messages';
+                describe = (
+                    <FormattedMessage
+                        id='channel_notifications.allUnread'
+                        defaultMessage='For all unread messages'
+                    />
+                );
             } else {
-                describe = 'Only for mentions';
+                describe = (<FormattedMessage id='channel_notifications.onlyMentions' />);
             }
 
             const handleUpdateSection = function handleUpdateSection(e) {
@@ -312,7 +373,7 @@ export default class ChannelNotificationsModal extends React.Component {
 
             content = (
                 <SettingItemMin
-                    title='Mark Channel Unread'
+                    title={markUnread}
                     describe={describe}
                     updateSection={handleUpdateSection}
                 />
@@ -335,7 +396,13 @@ export default class ChannelNotificationsModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Notification Preferences for '}<span className='name'>{this.props.channel.display_name}</span></Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='channel_notifications.preferences'
+                            defaultMessage='Notification Preferences for '
+                        />
+                        <span className='name'>{this.props.channel.display_name}</span>
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='settings-table'>

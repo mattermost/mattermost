@@ -150,9 +150,18 @@ class SignupUserComplete extends React.Component {
 
         // set up error labels
         var emailError = null;
+        var emailHelpText = (
+            <span className='help-block'>
+                <FormattedMessage
+                    id='signup_user_completed.emailHelp'
+                    defaultMessage='Valid email required for sign-up'
+                />
+            </span>
+        );
         var emailDivStyle = 'form-group';
         if (this.state.emailError) {
             emailError = <label className='control-label'>{this.state.emailError}</label>;
+            emailHelpText = '';
             emailDivStyle += ' has-error';
         }
 
@@ -232,6 +241,7 @@ class SignupUserComplete extends React.Component {
                         spellCheck='false'
                     />
                     {emailError}
+                    {emailHelpText}
                 </div>
             </div>
         );

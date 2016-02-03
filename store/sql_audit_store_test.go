@@ -45,6 +45,14 @@ func TestSqlAuditStore(t *testing.T) {
 		t.Fatal("Should have returned empty because user_id is missing")
 	}
 
+	c = store.Audit().Get("", 100)
+	result = <-c
+	audits = result.Data.(model.Audits)
+
+	if len(audits) <= 4 {
+		t.Fatal("Failed to save and retrieve 4 audit logs")
+	}
+
 	if r2 := <-store.Audit().PermanentDeleteByUser(audit.UserId); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}

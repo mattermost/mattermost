@@ -312,6 +312,32 @@ export function getLogs() {
     );
 }
 
+export function getServerAudits() {
+    if (isCallInProgress('getServerAudits')) {
+        return;
+    }
+
+    callTracker.getServerAudits = utils.getTimestamp();
+    client.getServerAudits(
+        (data, textStatus, xhr) => {
+            callTracker.getServerAudits = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_SERVER_AUDITS,
+                audits: data
+            });
+        },
+        (err) => {
+            callTracker.getServerAudits = 0;
+            dispatchError(err, 'getServerAudits');
+        }
+    );
+}
+
 export function getConfig() {
     if (isCallInProgress('getConfig')) {
         return;

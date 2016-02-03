@@ -106,9 +106,9 @@ class MsgTyping extends React.Component {
                 <FormattedMessage
                     id='msg_typing.areTyping'
                     defaultMessage='{users} and {last} are typing...'
-                    vaues={{
-                        users: users.join(', '),
-                        last: last
+                    values={{
+                        users: (users.join(', ')),
+                        last: (last)
                     }}
                 />
             );

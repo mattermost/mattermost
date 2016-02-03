@@ -101,7 +101,7 @@ type PostStore interface {
 	GetForExport(channelId string) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
-	AnalyticsPostCount(teamId string) StoreChannel
+	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
 }
 
 type UserStore interface {
@@ -182,6 +182,8 @@ type WebhookStore interface {
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
+	AnalyticsIncomingCount(teamId string) StoreChannel
+	AnalyticsOutgoingCount(teamId string) StoreChannel
 }
 
 type CommandStore interface {

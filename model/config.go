@@ -99,6 +99,8 @@ type FileSettings struct {
 
 type EmailSettings struct {
 	EnableSignUpWithEmail    bool
+	EnableSignInWithEmail    *bool
+	EnableSignInWithUsername *bool
 	SendEmailNotifications   bool
 	RequireEmailVerification bool
 	FeedbackName             string
@@ -258,6 +260,21 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.EnableTeamListing == nil {
 		o.TeamSettings.EnableTeamListing = new(bool)
 		*o.TeamSettings.EnableTeamListing = false
+	}
+
+	if o.EmailSettings.EnableSignInWithEmail == nil {
+		o.EmailSettings.EnableSignInWithEmail = new(bool)
+
+		if o.EmailSettings.EnableSignUpWithEmail == true {
+			*o.EmailSettings.EnableSignInWithEmail = true
+		} else {
+			*o.EmailSettings.EnableSignInWithEmail = false
+		}
+	}
+
+	if o.EmailSettings.EnableSignInWithUsername == nil {
+		o.EmailSettings.EnableSignInWithUsername = new(bool)
+		*o.EmailSettings.EnableSignInWithUsername = false
 	}
 
 	if o.EmailSettings.SendPushNotifications == nil {

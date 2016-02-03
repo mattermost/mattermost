@@ -151,7 +151,7 @@ package:
 	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
-	
+
 	sudo mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json || echo 'nomv'
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
@@ -283,7 +283,7 @@ run: start-docker .prepare-go .prepare-jsx
 	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
 
 	@echo Starting compass watch
-	cd web/sass-files && compass watch &
+	cd web/sass-files && compass compile && compass watch &
 
 stop:
 	@for PID in $$(ps -ef | grep [c]ompass | awk '{ print $$2 }'); do \
@@ -296,7 +296,7 @@ stop:
 		kill $$PID; \
 	done
 
-	@for PID in $$(ps -ef | grep [m]atterm | awk '{ print $$2 }'); do \
+	@for PID in $$(ps -ef | grep [m]atterm | grep -v VirtualBox | awk '{ print $$2 }'); do \
 		echo stopping go web $$PID; \
 		kill $$PID; \
 	done

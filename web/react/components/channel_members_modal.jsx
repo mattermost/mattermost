@@ -12,6 +12,8 @@ import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 const Modal = ReactBootstrap.Modal;
 
 export default class ChannelMembersModal extends React.Component {
@@ -191,7 +193,13 @@ export default class ChannelMembersModal extends React.Component {
                     onHide={this.props.onModalDismissed}
                 >
                     <Modal.Header closeButton={true}>
-                        <Modal.Title><span className='name'>{this.props.channel.display_name}</span>{' Members'}</Modal.Title>
+                        <Modal.Title>
+                            <span className='name'>{this.props.channel.display_name}</span>
+                            <FormattedMessage
+                                id='channel_memebers_modal.members'
+                                defaultMessage=' Members'
+                            />
+                        </Modal.Title>
                         <a
                             className='btn btn-md btn-primary'
                             href='#'
@@ -200,7 +208,11 @@ export default class ChannelMembersModal extends React.Component {
                                 this.props.onModalDismissed();
                             }}
                         >
-                            <i className='glyphicon glyphicon-envelope'/>{' Add New Members'}
+                            <i className='glyphicon glyphicon-envelope'/>
+                            <FormattedMessage
+                                id='channel_members_modal.addNew'
+                                defaultMessage=' Add New Members'
+                            />
                         </a>
                     </Modal.Header>
                     <Modal.Body
@@ -215,7 +227,10 @@ export default class ChannelMembersModal extends React.Component {
                             className='btn btn-default'
                             onClick={this.props.onModalDismissed}
                         >
-                            {'Close'}
+                            <FormattedMessage
+                                id='channel_members_modal.close'
+                                defaultMessage='Close'
+                            />
                         </button>
                     </Modal.Footer>
                 </Modal>

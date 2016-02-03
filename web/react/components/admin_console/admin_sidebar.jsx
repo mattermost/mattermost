@@ -214,6 +214,24 @@ export default class AdminSidebar extends React.Component {
             );
         }
 
+        let audits;
+        if (global.window.mm_license.IsLicensed === 'true') {
+            audits = (
+                <li>
+                    <a
+                        href='#'
+                        className={this.isSelected('audits')}
+                        onClick={this.handleClick.bind(this, 'audits', null)}
+                    >
+                        <FormattedMessage
+                            id='admin.sidebar.audits'
+                            defaultMessage='Audits'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
         return (
             <div className='sidebar--left sidebar--collapsable'>
                 <div>
@@ -448,6 +466,7 @@ export default class AdminSidebar extends React.Component {
                                             />
                                         </a>
                                     </li>
+                                    {audits}
                                 </ul>
                             </li>
                         </ul>

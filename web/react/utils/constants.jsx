@@ -45,6 +45,7 @@ export default {
 
         RECIEVED_CONFIG: null,
         RECIEVED_LOGS: null,
+        RECIEVED_SERVER_AUDITS: null,
         RECIEVED_ALL_TEAMS: null,
 
         SHOW_SEARCH: null,
@@ -84,7 +85,7 @@ export default {
     SPECIAL_MENTIONS: ['channel'],
     CHARACTER_LIMIT: 4000,
     IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg'],
-    AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac'],
+    AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac', 'ogg'],
     VIDEO_TYPES: ['mp4', 'avi', 'webm', 'mkv', 'wmv', 'mpg', 'mov', 'flv'],
     PRESENTATION_TYPES: ['ppt', 'pptx'],
     SPREADSHEET_TYPES: ['xlsx', 'csv'],
@@ -462,5 +463,6 @@ export default {
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 15,
     MIN_PASSWORD_LENGTH: 5,
-    MAX_PASSWORD_LENGTH: 50
+    MAX_PASSWORD_LENGTH: 50,
+    TIME_SINCE_UPDATE_INTERVAL: 30000
 };

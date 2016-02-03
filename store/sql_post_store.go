@@ -629,7 +629,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 		if params.IsHashtag {
 			searchType = "Hashtags"
 			for _, term := range strings.Split(terms, " ") {
-				termMap[term] = true
+				termMap[strings.ToUpper(term)] = true
 			}
 		}
 
@@ -748,7 +748,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			if searchType == "Hashtags" {
 				exactMatch := false
 				for _, tag := range strings.Split(p.Hashtags, " ") {
-					if termMap[tag] {
+					if termMap[strings.ToUpper(tag)] {
 						exactMatch = true
 					}
 				}
@@ -940,7 +940,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
+func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -959,8 +959,15 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
 			query += " AND Channels.TeamId = :TeamId"
 		}
 
-		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
-		if err != nil {
+		if mustHaveFile {
+			query += " AND Posts.Filenames != '[]'"
+		}
+
+		if mustHaveHashtag {
+			query += " AND Posts.Hashtags != ''"
+		}
+
+		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
 			result.Err = model.NewLocAppError("SqlPostStore.AnalyticsPostCount", "store.sql_post.analytics_posts_count.app_error", nil, err.Error())
 		} else {
 			result.Data = v

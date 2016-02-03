@@ -1668,6 +1668,38 @@
     "translation": "Inappropriate permissions to regenerate outcoming webhook token"
   },
   {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "Unable to bind to LDAP server. Check BindUsername and BindPassword."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "Invalid Password"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "LDAP functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "Username given matches multiple users"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "Failed to search LDAP server"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "Unable to connect to LDAP server"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_create_user.app_error",
+    "translation": "Credentials valid but unable to create user."
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "User not registered on LDAP server"
+  },
+  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Could not find channel: %v, %v possibilites searched"
   },
@@ -3130,6 +3162,14 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "We couldn't update the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
+    "translation": "We couldn't count the incoming webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
+    "translation": "We couldn't count the outgoing webhooks"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
