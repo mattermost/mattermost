@@ -463,7 +463,7 @@ class ServiceSettings extends React.Component {
                             <label className='radio-inline'>
                                 <input
                                     type='radio'
-                                    name='EnableCommands'
+                                    name='EnableOnlyAdminIntegrations'
                                     value='false'
                                     defaultChecked={!this.props.config.ServiceSettings.EnableOnlyAdminIntegrations}
                                     onChange={this.handleChange}
