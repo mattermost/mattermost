@@ -75,6 +75,8 @@ class ServiceSettings extends React.Component {
         config.ServiceSettings.EnableTesting = ReactDOM.findDOMNode(this.refs.EnableTesting).checked;
         config.ServiceSettings.EnableDeveloper = ReactDOM.findDOMNode(this.refs.EnableDeveloper).checked;
         config.ServiceSettings.EnableSecurityFixAlert = ReactDOM.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
+        config.ServiceSettings.EnableCommands = ReactDOM.findDOMNode(this.refs.EnableCommands).checked;
+        config.ServiceSettings.EnableOnlyAdminIntegrations = ReactDOM.findDOMNode(this.refs.EnableOnlyAdminIntegrations).checked;
 
         //config.ServiceSettings.EnableOAuthServiceProvider = ReactDOM.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
 
@@ -389,11 +391,105 @@ class ServiceSettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
+                            htmlFor='EnableCommands'
+                        >
+                            <FormattedMessage
+                                id='admin.service.cmdsTitle'
+                                defaultMessage='Enable Slash Commands: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableCommands'
+                                    value='true'
+                                    ref='EnableCommands'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableCommands}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.true'
+                                        defaultMessage='true'
+                                    />
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableCommands'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableCommands}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.false'
+                                        defaultMessage='false'
+                                    />
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.service.cmdsDesc'
+                                    defaultMessage='When true, user created slash commands will be allowed.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableOnlyAdminIntegrations'
+                        >
+                            <FormattedMessage
+                                id='admin.service.integrationAdmin'
+                                defaultMessage='Enable Integrations for Admin Only: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOnlyAdminIntegrations'
+                                    value='true'
+                                    ref='EnableOnlyAdminIntegrations'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableOnlyAdminIntegrations}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.true'
+                                        defaultMessage='true'
+                                    />
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableCommands'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableOnlyAdminIntegrations}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.false'
+                                        defaultMessage='false'
+                                    />
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.service.integrationAdminDesc'
+                                    defaultMessage='When true, user created integrations can only be created by admins.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
                             htmlFor='EnablePostUsernameOverride'
                         >
                             <FormattedMessage
                                 id='admin.service.overrideTitle'
-                                defaultMessage='Enable Overriding Usernames from Webhooks: '
+                                defaultMessage='Enable Overriding Usernames from Webhooks and Slash Commands: '
                             />
                         </label>
                         <div className='col-sm-8'>
@@ -427,7 +523,7 @@ class ServiceSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.service.overrideDescription'
-                                    defaultMessage='When true, webhooks will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'
+                                    defaultMessage='When true, webhooks and slash commands will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'
                                 />
                             </p>
                         </div>
@@ -440,7 +536,7 @@ class ServiceSettings extends React.Component {
                         >
                             <FormattedMessage
                                 id='admin.service.iconTitle'
-                                defaultMessage='Enable Overriding Icon from Webhooks: '
+                                defaultMessage='Enable Overriding Icon from Webhooks and Slash Commands: '
                             />
                         </label>
                         <div className='col-sm-8'>
@@ -474,7 +570,7 @@ class ServiceSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.service.iconDescription'
-                                    defaultMessage='When true, webhooks will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'
+                                    defaultMessage='When true, webhooks and slash commands will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'
                                 />
                             </p>
                         </div>
