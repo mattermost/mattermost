@@ -5,7 +5,16 @@ import * as utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class FileAttachment extends React.Component {
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    download: {
+        id: 'file_attachment.download',
+        defaultMessage: 'Download'
+    }
+});
+
+class FileAttachment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -266,7 +275,7 @@ export default class FileAttachment extends React.Component {
                         href={fileUrl}
                         download={filenameString}
                         data-toggle='tooltip'
-                        title={'Download \"' + filenameString + '\"'}
+                        title={this.props.intl.formatMessage(holders.download) + ' \"' + filenameString + '\"'}
                         className='post-image__name'
                     >
                         {trimmedFilename}
@@ -291,6 +300,7 @@ export default class FileAttachment extends React.Component {
 }
 
 FileAttachment.propTypes = {
+    intl: intlShape.isRequired,
 
     // a list of file pathes displayed by the parent FileAttachmentList
     filename: React.PropTypes.string.isRequired,
@@ -301,3 +311,5 @@ FileAttachment.propTypes = {
     // handler for when the thumbnail is clicked passed the index above
     handleImageClick: React.PropTypes.func
 };
+
+export default injectIntl(FileAttachment);

@@ -66,7 +66,7 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage.Props["Title"] = c.T("api.templates.signup_team_body.title")
 	bodyPage.Props["Button"] = c.T("api.templates.signup_team_body.button")
-	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.signup_team_body.button",
+	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.signup_team_body.info",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]}))
 
 	props := make(map[string]string)

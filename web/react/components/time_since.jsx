@@ -2,7 +2,8 @@
 // See License.txt for license information.
 
 import Constants from '../utils/constants.jsx';
-import * as Utils from '../utils/utils.jsx';
+
+import {FormattedRelative, FormattedDate} from 'mm-intl';
 
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
@@ -20,20 +21,25 @@ export default class TimeSince extends React.Component {
         clearInterval(this.intervalId);
     }
     render() {
-        const displayDate = Utils.displayDate(this.props.eventTime);
-        const displayTime = Utils.displayTime(this.props.eventTime);
-
         if (this.props.sameUser) {
             return (
                 <time className='post__time'>
-                    {Utils.displayTime(this.props.eventTime)}
+                    <FormattedRelative value={this.props.eventTime} />
                 </time>
             );
         }
 
         const tooltip = (
             <Tooltip id={'time-since-tooltip-' + this.props.eventTime}>
-                {displayDate + ' at ' + displayTime}
+                <FormattedDate
+                    value={this.props.eventTime}
+                    month='long'
+                    day='numeric'
+                    year='numeric'
+                    hour12={true}
+                    hour='numeric'
+                    minute='2-digit'
+                />
             </Tooltip>
         );
 
@@ -44,7 +50,7 @@ export default class TimeSince extends React.Component {
                 overlay={tooltip}
             >
                 <time className='post__time'>
-                    {Utils.displayDateTime(this.props.eventTime)}
+                    <FormattedRelative value={this.props.eventTime} />
                 </time>
             </OverlayTrigger>
         );
