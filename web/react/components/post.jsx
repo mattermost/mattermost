@@ -214,6 +214,7 @@ export default class Post extends React.Component {
                                 commentCount={commentCount}
                                 handleCommentClick={this.handleCommentClick}
                                 isLastComment={this.props.isLastComment}
+                                sameUser={this.props.sameUser}
                             />
                             <PostBody
                                 post={post}
