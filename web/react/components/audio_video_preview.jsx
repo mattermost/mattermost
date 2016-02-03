@@ -75,6 +75,7 @@ export default class AudioVideoPreview extends React.Component {
                     filename={this.props.filename}
                     fileUrl={this.props.fileUrl}
                     fileInfo={this.props.fileInfo}
+                    formatMessage={this.props.formatMessage}
                 />
             );
         }
@@ -110,5 +111,6 @@ AudioVideoPreview.propTypes = {
     filename: React.PropTypes.string.isRequired,
     fileUrl: React.PropTypes.string.isRequired,
     fileInfo: React.PropTypes.object.isRequired,
-    maxHeight: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]).isRequired
+    maxHeight: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]).isRequired,
+    formatMessage: React.PropTypes.func.isRequired
 };

@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class ViewImagePopoverBar extends React.Component {
     constructor(props) {
         super(props);
@@ -16,7 +18,10 @@ export default class ViewImagePopoverBar extends React.Component {
                         data-title='Public Image'
                         onClick={this.props.getPublicLink}
                     >
-                        {'Get Public Link'}
+                        <FormattedMessage
+                            id='view_image_popover.publicLink'
+                            defaultMessage='Get Public Link'
+                        />
                     </a>
                     <span className='text'>{' | '}</span>
                 </div>
@@ -33,7 +38,16 @@ export default class ViewImagePopoverBar extends React.Component {
                 ref='imageFooter'
                 className={footerClass}
             >
-                <span className='pull-left text'>{'File ' + (this.props.fileId + 1) + ' of ' + this.props.totalFiles}</span>
+                <span className='pull-left text'>
+                    <FormattedMessage
+                        id='view_image_popover.file'
+                        defaultMessage='File {count} of {total}'
+                        values={{
+                            count: (this.props.fileId + 1),
+                            total: this.props.totalFiles
+                        }}
+                    />
+                </span>
                 <div className='image-links'>
                     {publicLink}
                     <a
@@ -41,7 +55,10 @@ export default class ViewImagePopoverBar extends React.Component {
                         download={this.props.filename}
                         className='text'
                     >
-                        {'Download'}
+                        <FormattedMessage
+                            id='view_image_popover.download'
+                            defaultMessage='Download'
+                        />
                     </a>
                 </div>
             </div>

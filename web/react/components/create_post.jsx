@@ -21,12 +21,33 @@ import SocketStore from '../stores/socket_store.jsx';
 
 import Constants from '../utils/constants.jsx';
 
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'mm-intl';
+
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-export default class CreatePost extends React.Component {
+const holders = defineMessages({
+    comment: {
+        id: 'create_post.comment',
+        defaultMessage: 'Comment'
+    },
+    post: {
+        id: 'create_post.post',
+        defaultMessage: 'Post'
+    },
+    write: {
+        id: 'create_post.write',
+        defaultMessage: 'Write a message...'
+    },
+    deleteMsg: {
+        id: 'create_post.deleteMsg',
+        defaultMessage: '(message deleted)'
+    }
+});
+
+class CreatePost extends React.Component {
     constructor(props) {
         super(props);
 
@@ -49,6 +70,7 @@ export default class CreatePost extends React.Component {
         this.sendMessage = this.sendMessage.bind(this);
 
         PostStore.clearDraftUploads();
+        PostStore.deleteMessage(this.props.intl.formatMessage(holders.deleteMsg));
 
         const draft = this.getCurrentDraft();
 
@@ -361,7 +383,8 @@ export default class CreatePost extends React.Component {
             if (!lastPost) {
                 return;
             }
-            var type = (lastPost.root_id && lastPost.root_id.length > 0) ? 'Comment' : 'Post';
+            const {formatMessage} = this.props.intl;
+            var type = (lastPost.root_id && lastPost.root_id.length > 0) ? formatMessage(holders.comment) : formatMessage(holders.post);
 
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECIEVED_EDIT_POST,
@@ -379,9 +402,10 @@ export default class CreatePost extends React.Component {
 
         screens.push(
             <div>
-                <h4>{'Sending Messages'}</h4>
-                <p>{'Type here to write a message and press '}<strong>{'Enter'}</strong>{' to post it.'}</p>
-                <p>{'Click the '}<strong>{'Attachment'}</strong>{' button to upload an image or a file.'}</p>
+                <FormattedHTMLMessage
+                    id='create_post.tutorialTip'
+                    defaultMessage='<h4>Sending Messages</h4><p>Type here to write a message and press <strong>Enter</strong> to post it.</p><p>Click the <strong>Attachment</strong> button to upload an image or a file.</p>'
+                />
             </div>
         );
 
@@ -445,7 +469,7 @@ export default class CreatePost extends React.Component {
                                 onKeyDown={this.handleKeyDown}
                                 onHeightChange={this.resizePostHolder}
                                 messageText={this.state.messageText}
-                                createMessage='Write a message...'
+                                createMessage={this.props.intl.formatMessage(holders.write)}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
                                 ref='textbox'
@@ -482,3 +506,9 @@ export default class CreatePost extends React.Component {
         );
     }
 }
+
+CreatePost.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(CreatePost);

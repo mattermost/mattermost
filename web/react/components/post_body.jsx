@@ -14,7 +14,20 @@ import YoutubeVideo from './youtube_video.jsx';
 
 import providers from './providers.json';
 
-export default class PostBody extends React.Component {
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
+const holders = defineMessages({
+    plusOne: {
+        id: 'post_body.plusOne',
+        defaultMessage: ' plus 1 other file'
+    },
+    plusMore: {
+        id: 'post_body.plusMore',
+        defaultMessage: ' plus {count} other files'
+    }
+});
+
+class PostBody extends React.Component {
     constructor(props) {
         super(props);
 
@@ -187,6 +200,7 @@ export default class PostBody extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         const post = this.props.post;
         const filenames = this.props.post.filenames;
         const parentPost = this.props.parentPost;
@@ -208,10 +222,12 @@ export default class PostBody extends React.Component {
                     username = parentPost.props.override_username;
                 }
 
-                if (username.slice(-1) === 's') {
-                    apostrophe = '\'';
-                } else {
-                    apostrophe = '\'s';
+                if (global.window.mm_locale === 'en') {
+                    if (username.slice(-1) === 's') {
+                        apostrophe = '\'';
+                    } else {
+                        apostrophe = '\'s';
+                    }
                 }
                 name = (
                     <a
@@ -230,16 +246,23 @@ export default class PostBody extends React.Component {
                 message = parentPost.filenames[0].split('/').pop();
 
                 if (parentPost.filenames.length === 2) {
-                    message += ' plus 1 other file';
+                    message += formatMessage(holders.plusOne);
                 } else if (parentPost.filenames.length > 2) {
-                    message += ` plus ${parentPost.filenames.length - 1} other files`;
+                    message += formatMessage(holders.plusMore, {count: (parentPost.filenames.length - 1)});
                 }
             }
 
             comment = (
                 <div className='post__link'>
                     <span>
-                        {'Commented on '}{name}{apostrophe}{' message: '}
+                        <FormattedMessage
+                            id='post_body.commentedOn'
+                            defaultMessage='Commented on {name}{apostrophe} message: '
+                            values={{
+                                name: (name),
+                                apostrophe: apostrophe
+                            }}
+                        />
                         <a
                             className='theme'
                             onClick={this.props.handleCommentClick}
@@ -260,7 +283,10 @@ export default class PostBody extends React.Component {
                     href='#'
                     onClick={this.props.retryPost}
                 >
-                    {'Retry'}
+                    <FormattedMessage
+                        id='post_body.retry'
+                        defaultMessage='Retry'
+                    />
                 </a>
             );
         } else if (post.state === Constants.POST_LOADING) {
@@ -313,8 +339,11 @@ export default class PostBody extends React.Component {
 }
 
 PostBody.propTypes = {
+    intl: intlShape.isRequired,
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(PostBody);

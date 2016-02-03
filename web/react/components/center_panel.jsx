@@ -15,6 +15,8 @@ import UserStore from '../stores/user_store.jsx';
 
 import * as Utils from '../utils/utils.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 import Constants from '../utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
@@ -69,8 +71,11 @@ export default class CenterPanel extends React.Component {
                     onClick={handleClick}
                 >
                     <a href=''>
-                        {'Click here to jump to recent messages. '}
-                        {<i className='fa fa-arrow-down'></i>}
+                        <FormattedMessage
+                            id='center_panel.recent'
+                            defaultMessage='Click here to jump to recent messages. '
+                        />
+                        <i className='fa fa-arrow-down'></i>
                     </a>
                 </div>
             );

@@ -9,6 +9,8 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 const Overlay = ReactBootstrap.Overlay;
 const Popover = ReactBootstrap.Popover;
 
@@ -53,7 +55,10 @@ export default class PostInfo extends React.Component {
                          href='#'
                          onClick={this.props.handleCommentClick}
                      >
-                         {'Reply'}
+                         <FormattedMessage
+                             id='post_info.reply'
+                             defaultMessage='Reply'
+                         />
                      </a>
                  </li>
              );
@@ -68,7 +73,10 @@ export default class PostInfo extends React.Component {
                     href='#'
                     onClick={(e) => this.setState({target: e.target, show: !this.state.show})}
                 >
-                    {'Permalink'}
+                    <FormattedMessage
+                        id='post_info.permalink'
+                        defaultMessage='Permalink'
+                    />
                 </a>
             </li>
         );
@@ -84,7 +92,10 @@ export default class PostInfo extends React.Component {
                         role='menuitem'
                         onClick={() => EventHelpers.showDeletePostModal(post, dataComments)}
                     >
-                        {'Delete'}
+                        <FormattedMessage
+                            id='post_info.del'
+                            defaultMessage='Delete'
+                        />
                     </a>
                 </li>
             );
@@ -108,7 +119,10 @@ export default class PostInfo extends React.Component {
                         data-channelid={post.channel_id}
                         data-comments={dataComments}
                     >
-                        {'Edit'}
+                        <FormattedMessage
+                            id='post_info.edit'
+                            defaultMessage='Edit'
+                        />
                     </a>
                 </li>
             );
@@ -183,7 +197,15 @@ export default class PostInfo extends React.Component {
         var dropdown = this.createDropdown();
 
         const permalink = TeamStore.getCurrentTeamUrl() + '/pl/' + post.id;
-        const copyButtonText = this.state.copiedLink ? (<div>{'Copy '}<i className='fa fa-check'/></div>) : 'Copy';
+        const copyButtonText = this.state.copiedLink ? (
+            <div>
+                <FormattedMessage
+                    id='post_info.copy'
+                    defaultMessage='Copy '
+                />
+                <i className='fa fa-check'/></div>
+        ) : (<FormattedMessage id='post_info.copy' />);
+
         const permalinkOverlay = (
             <Popover
                 id='permalink-overlay'

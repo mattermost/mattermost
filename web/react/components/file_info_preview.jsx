@@ -3,15 +3,28 @@
 
 import * as Utils from '../utils/utils.jsx';
 
-export default function FileInfoPreview({filename, fileUrl, fileInfo}) {
+import {defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    type: {
+        id: 'file_info_preview.type',
+        defaultMessage: 'File type '
+    },
+    size: {
+        id: 'file_info_preview.size',
+        defaultMessage: 'Size '
+    }
+});
+
+export default function FileInfoPreview({filename, fileUrl, fileInfo, formatMessage}) {
     // non-image files include a section providing details about the file
     const infoParts = [];
 
     if (fileInfo.extension !== '') {
-        infoParts.push('File type ' + fileInfo.extension.toUpperCase());
+        infoParts.push(formatMessage(holders.type) + fileInfo.extension.toUpperCase());
     }
 
-    infoParts.push('Size ' + Utils.fileSizeToString(fileInfo.size));
+    infoParts.push(formatMessage(holders.size) + Utils.fileSizeToString(fileInfo.size));
 
     const infoString = infoParts.join(', ');
 
