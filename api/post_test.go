@@ -882,27 +882,41 @@ func TestGetOutOfChannelMentions(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team1.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
+	var allProfiles map[string]*model.User
+	if result := <-Srv.Store.User().GetProfiles(team1.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		allProfiles = result.Data.(map[string]*model.User)
+	}
+
+	var members []model.ChannelMember
+	if result := <-Srv.Store.Channel().GetMembers(channel1.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		members = result.Data.([]model.ChannelMember)
+	}
+
 	// test a post that doesn't @mention anybody
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "user1 user2 user3"}
-	if mentioned := getOutOfChannelMentions(post1, team1.Id); len(mentioned) != 0 {
+	if mentioned := getOutOfChannelMentions(post1, allProfiles, members); len(mentioned) != 0 {
 		t.Fatalf("getOutOfChannelMentions returned %v when no users were mentioned", mentioned)
 	}
 
 	// test a post that @mentions someone in the channel
 	post2 := &model.Post{ChannelId: channel1.Id, Message: "@user1 is user1"}
-	if mentioned := getOutOfChannelMentions(post2, team1.Id); len(mentioned) != 0 {
+	if mentioned := getOutOfChannelMentions(post2, allProfiles, members); len(mentioned) != 0 {
 		t.Fatalf("getOutOfChannelMentions returned %v when only users in the channel were mentioned", mentioned)
 	}
 
 	// test a post that @mentions someone not in the channel
 	post3 := &model.Post{ChannelId: channel1.Id, Message: "@user2 and @user3 aren't in the channel"}
-	if mentioned := getOutOfChannelMentions(post3, team1.Id); len(mentioned) != 2 || (mentioned[0].Id != user2.Id && mentioned[0].Id != user3.Id) || (mentioned[1].Id != user2.Id && mentioned[1].Id != user3.Id) {
+	if mentioned := getOutOfChannelMentions(post3, allProfiles, members); len(mentioned) != 2 || (mentioned[0].Id != user2.Id && mentioned[0].Id != user3.Id) || (mentioned[1].Id != user2.Id && mentioned[1].Id != user3.Id) {
 		t.Fatalf("getOutOfChannelMentions returned %v when two users outside the channel were mentioned", mentioned)
 	}
 
 	// test a post that @mentions someone not in the channel as well as someone in the channel
 	post4 := &model.Post{ChannelId: channel1.Id, Message: "@user2 and @user1 might be in the channel"}
-	if mentioned := getOutOfChannelMentions(post4, team1.Id); len(mentioned) != 1 || mentioned[0].Id != user2.Id {
+	if mentioned := getOutOfChannelMentions(post4, allProfiles, members); len(mentioned) != 1 || mentioned[0].Id != user2.Id {
 		t.Fatalf("getOutOfChannelMentions returned %v when someone in the channel and someone  outside the channel were mentioned", mentioned)
 	}
 
@@ -920,9 +934,21 @@ func TestGetOutOfChannelMentions(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team2.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
+	if result := <-Srv.Store.User().GetProfiles(team2.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		allProfiles = result.Data.(map[string]*model.User)
+	}
+
+	if result := <-Srv.Store.Channel().GetMembers(channel2.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		members = result.Data.([]model.ChannelMember)
+	}
+
 	// test a post that @mentions someone on a different team
 	post5 := &model.Post{ChannelId: channel2.Id, Message: "@user2 and @user3 might be in the channel"}
-	if mentioned := getOutOfChannelMentions(post5, team2.Id); len(mentioned) != 0 {
+	if mentioned := getOutOfChannelMentions(post5, allProfiles, members); len(mentioned) != 0 {
 		t.Fatalf("getOutOfChannelMentions returned %v when two users on a different team were mentioned", mentioned)
 	}
 }

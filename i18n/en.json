@@ -692,14 +692,6 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
-    "id": "api.post.get_out_of_channel_mentions.retrieve_members.error",
-    "translation": "Failed to get channel members channel_id=%v err=%v"
-  },
-  {
-    "id": "api.post.get_out_of_channel_mentions.retrieve_profiles.error",
-    "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
-  },
-  {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
     "translation": "Failed to compile @mention regex user_id=%v, err=%v"
   },
@@ -710,6 +702,14 @@
   {
     "id": "api.post.handle_post_events_and_forget.channel.error",
     "translation": "Encountered error getting channel, channel_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.members.error",
+    "translation": "Failed to get channel members channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.profiles.error",
+    "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
   },
   {
     "id": "api.post.handle_post_events_and_forget.team.error",
@@ -752,10 +752,6 @@
     "translation": "Failed to update direct channel preference user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.members.error",
-    "translation": "Failed to get channel members channel_id=%v err=%v"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.mention_body",
     "translation": "You have one new mention."
   },
@@ -786,10 +782,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Failed to send push notificationid=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.retrive_profiles.error",
-    "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
