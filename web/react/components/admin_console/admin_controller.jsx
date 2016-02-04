@@ -160,7 +160,7 @@ export default class AdminController extends React.Component {
             } else if (this.state.selected === 'ldap_settings') {
                 tab = <LdapSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'license') {
-                tab = <LicenseSettingsTab />;
+                tab = <LicenseSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'team_users') {
                 if (this.state.teams) {
                     tab = <TeamUsersTab team={this.state.teams[this.state.selectedTeam]} />;

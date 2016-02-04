@@ -136,6 +136,7 @@ class LicenseSettings extends React.Component {
             licenseKey = (
                 <div className='col-sm-8'>
                     <button
+                        disabled={this.props.config.LdapSettings.Enable}
                         className='btn btn-danger'
                         onClick={this.handleRemove}
                         id='remove-button'
@@ -266,7 +267,8 @@ class LicenseSettings extends React.Component {
 }
 
 LicenseSettings.propTypes = {
-    intl: intlShape.isRequired
+    intl: intlShape.isRequired,
+    config: React.PropTypes.object
 };
 
 export default injectIntl(LicenseSettings);
