@@ -14,6 +14,8 @@ import * as AsyncClient from './async_client.jsx';
 import * as client from './client.jsx';
 import Autolinker from 'autolinker';
 
+import {FormattedTime} from 'mm-intl';
+
 export function isEmail(email) {
     // writing a regex to match all valid email addresses is really, really hard (see http://stackoverflow.com/a/201378)
     // so we just do a simple check and rely on a verification email to tell if it's a real address
@@ -209,40 +211,17 @@ export function displayDate(ticks) {
     return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
 
-export function displayTime(ticks, utc) {
-    const d = new Date(ticks);
-    let hours;
-    let minutes;
-    let ampm = '';
-    let timezone = '';
-
-    if (utc) {
-        hours = d.getUTCHours();
-        minutes = d.getUTCMinutes();
-        timezone = ' UTC';
-    } else {
-        hours = d.getHours();
-        minutes = d.getMinutes();
-    }
-
-    if (minutes <= 9) {
-        minutes = '0' + minutes;
-    }
-
+export function displayTime(ticks) {
     const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
-    if (!useMilitaryTime) {
-        ampm = ' AM';
-        if (hours >= 12) {
-            ampm = ' PM';
-        }
 
-        hours = hours % 12;
-        if (!hours) {
-            hours = '12';
-        }
-    }
-
-    return hours + ':' + minutes + ampm + timezone;
+    return (
+        <FormattedTime
+            value={ticks}
+            hour='numeric'
+            minute='numeric'
+            hour12={!useMilitaryTime}
+        />
+    );
 }
 
 export function displayDateTime(ticks) {
