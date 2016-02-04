@@ -51,6 +51,7 @@ class CreateComment extends React.Component {
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -218,6 +219,9 @@ class CreateComment extends React.Component {
             });
         }
     }
+    handleUploadClick() {
+        this.refs.textbox.focus();
+    }
     handleUploadStart(clientIds) {
         let draft = PostStore.getCommentDraft(this.props.rootId);
 
@@ -365,6 +369,7 @@ class CreateComment extends React.Component {
                             <FileUpload
                                 ref='fileUpload'
                                 getFileCount={this.getFileCount}
+                                onClick={this.handleUploadClick}
                                 onUploadStart={this.handleUploadStart}
                                 onFileUpload={this.handleFileUploadComplete}
                                 onUploadError={this.handleUploadError}
