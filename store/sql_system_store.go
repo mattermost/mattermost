@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -38,6 +38,30 @@ func (s SqlSystemStore) Save(system *model.System) StoreChannel {
 
 		if err := s.GetMaster().Insert(system); err != nil {
 			result.Err = model.NewLocAppError("SqlSystemStore.Save", "store.sql_system.save.app_error", nil, "")
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlSystemStore) SaveOrUpdate(system *model.System) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if err := s.GetReplica().SelectOne(&model.System{}, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": system.Name}); err == nil {
+			if _, err := s.GetMaster().Update(system); err != nil {
+				result.Err = model.NewLocAppError("SqlSystemStore.SaveOrUpdate", "store.sql_system.update.app_error", nil, "")
+			}
+		} else {
+			if err := s.GetMaster().Insert(system); err != nil {
+				result.Err = model.NewLocAppError("SqlSystemStore.SaveOrUpdate", "store.sql_system.save.app_error", nil, "")
+			}
 		}
 
 		storeChannel <- result

@@ -612,6 +612,10 @@
     "translation": "License did not save properly."
   },
   {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "Active license ID did not save properly."
+  },
+  {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
   },
@@ -1730,6 +1734,10 @@
   {
     "id": "manaultesting.test_autolink.unable.app_error",
     "translation": "Unable to get channels"
+  },
+  {
+    "id": "mattermost.load_license.find.warn",
+    "translation": "Unable to find active license"
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -2916,6 +2924,18 @@
     "translation": "We encountered an error updating the system property"
   },
   {
+    "id": "store.sql_license.save.app_error",
+    "translation": "We encountered an error saving the license"
+  },
+  {
+    "id": "store.sql_license.get.app_error",
+    "translation": "We encountered an error getting the license"
+  },
+  {
+    "id": "store.sql_license.get.missing.app_error",
+    "translation": "A license with that ID was not found"
+  },
+  {
     "id": "store.sql_team.get.find.app_error",
     "translation": "We couldn't find the existing team"
   },
@@ -3202,10 +3222,6 @@
   {
     "id": "utils.license.load_license.invalid.warn",
     "translation": "No valid enterprise license found"
-  },
-  {
-    "id": "utils.license.load_license.open_find.warn",
-    "translation": "Unable to open/find license file"
   },
   {
     "id": "utils.license.remove_license.unable.error",

@@ -3204,10 +3204,6 @@
     "translation": "No se encontró una licencia enterprise válida"
   },
   {
-    "id": "utils.license.load_license.open_find.warn",
-    "translation": "No pudimos encontrar/abrir el achivo de licencia"
-  },
-  {
     "id": "utils.license.remove_license.unable.error",
     "translation": "No se pudo remover el archivo de la licencia, err=%v"
   },

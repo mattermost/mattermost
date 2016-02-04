@@ -1,29 +1,21 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package utils
 
 import (
-	"bytes"
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"io"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/model"
-)
-
-const (
-	LICENSE_FILENAME = "active.dat"
 )
 
 var IsLicensed bool = false
@@ -41,18 +33,8 @@ NxpC+5KFhU+xSeeklNqwCgnlOyZ7qSTxmdJHb+60SwuYnnGIYzLJhY4LYDr4J+KR
 1wIDAQAB
 -----END PUBLIC KEY-----`)
 
-func LoadLicense() {
-	file, err := os.Open(LicenseLocation())
-	if err != nil {
-		l4g.Warn(T("utils.license.load_license.open_find.warn"))
-		return
-	}
-	defer file.Close()
-
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-
-	if success, licenseStr := ValidateLicense(buf.Bytes()); success {
+func LoadLicense(licenseBytes []byte) {
+	if success, licenseStr := ValidateLicense(licenseBytes); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		SetLicense(license)
 		return
@@ -74,21 +56,10 @@ func SetLicense(license *model.License) bool {
 	return false
 }
 
-func LicenseLocation() string {
-	return filepath.Dir(CfgFileName) + "/" + LICENSE_FILENAME
-}
-
-func RemoveLicense() bool {
+func RemoveLicense() {
 	License = &model.License{}
 	IsLicensed = false
 	ClientLicense = getClientLicense(License)
-
-	if err := os.Remove(LicenseLocation()); err != nil {
-		l4g.Error(T("utils.license.remove_license.unable.error"), err.Error())
-		return false
-	}
-
-	return true
 }
 
 func ValidateLicense(signed []byte) (bool, string) {

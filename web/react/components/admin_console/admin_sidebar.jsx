@@ -454,6 +454,7 @@ export default class AdminSidebar extends React.Component {
                                 </ul>
                                 <ul className='nav nav__sub-menu padded'>
                                     {licenseSettings}
+                                    {audits}
                                     <li>
                                         <a
                                             href='#'
@@ -466,7 +467,6 @@ export default class AdminSidebar extends React.Component {
                                             />
                                         </a>
                                     </li>
-                                    {audits}
                                 </ul>
                             </li>
                         </ul>
