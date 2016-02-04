@@ -294,7 +294,7 @@ class NotificationsTab extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.info'
-                        defaultMessage='Desktop notification sounds are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'
+                        defaultMessage='Desktop notification are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'
                     />
                 </span>
             );
@@ -395,7 +395,7 @@ class NotificationsTab extends React.Component {
             const extraInfo = (
                 <span>
                     <FormattedMessage
-                        id='user.settings.notifications.info'
+                        id='user.settings.notifications.sounds_info'
                         defaultMessage='Desktop notification sounds are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'
                     />
                 </span>
