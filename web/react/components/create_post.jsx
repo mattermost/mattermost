@@ -230,6 +230,10 @@ class CreatePost extends React.Component {
         PostStore.storeDraft(channelId, draft);
 
         this.setState({uploadsInProgress: draft.uploadsInProgress});
+
+        // this is a bit redundant with the code that sets focus when the file input is clicked,
+        // but this also resets the focus after a drag and drop
+        this.refs.textbox.focus();
     }
     handleFileUploadComplete(filenames, clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
