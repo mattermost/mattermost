@@ -90,6 +90,7 @@
 	-webkit-overflow-scrolling: touch;
 	@include flex(1 1 auto);
 	height: calc(100% - 56px);
+	padding-top: 10px;
 }
 
 .search-results-header {
@@ -104,19 +105,22 @@
 	border-bottom: $border-gray;
 }
 
-.search-item-container {
-	border-top: $border-gray;
-	padding: 10px 1em;
-	margin: 0;
+.search-item__container {
 
-	&:first-child {
-		border: none;
+	.post {
+		padding: 0 1em 1em;
+		margin: 0;
+
+		&:first-child {
+			border: none;
+		}
+
+		.search-channel__name {
+			font-weight: 600;
+			margin: 0 0 10px 0;
+		}
 	}
 
-	.search-channel__name {
-		font-weight: 600;
-		margin: 0 0 10px 0;
-	}
 }
 
 .search-item__jump {

@@ -202,8 +202,7 @@ class CreateComment extends React.Component {
         if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
             e.preventDefault();
 
-            const channelId = ChannelStore.getCurrentId();
-            const lastPost = PostStore.getCurrentUsersLatestPost(channelId, this.props.rootId);
+            const lastPost = PostStore.getCurrentUsersLatestPost(this.props.channelId, this.props.rootId);
             if (!lastPost) {
                 return;
             }

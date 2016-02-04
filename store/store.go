@@ -37,6 +37,7 @@ type Store interface {
 	OAuth() OAuthStore
 	System() SystemStore
 	Webhook() WebhookStore
+	Command() CommandStore
 	Preference() PreferenceStore
 	MarkSystemRanUnitTests()
 	Close()
@@ -111,7 +112,7 @@ type UserStore interface {
 	UpdateLastActivityAt(userId string, time int64) StoreChannel
 	UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel
 	UpdatePassword(userId, newPassword string) StoreChannel
-	UpdateAuthData(userId, service, authData string) StoreChannel
+	UpdateAuthData(userId, service, authData, email string) StoreChannel
 	Get(id string) StoreChannel
 	GetProfiles(teamId string) StoreChannel
 	GetByEmail(teamId string, email string) StoreChannel
@@ -170,13 +171,12 @@ type SystemStore interface {
 type WebhookStore interface {
 	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncoming(id string) StoreChannel
-	GetIncomingByUser(userId string) StoreChannel
+	GetIncomingByTeam(teamId string) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
 	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
 	GetOutgoing(id string) StoreChannel
-	GetOutgoingByCreator(userId string) StoreChannel
 	GetOutgoingByChannel(channelId string) StoreChannel
 	GetOutgoingByTeam(teamId string) StoreChannel
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
@@ -184,6 +184,15 @@ type WebhookStore interface {
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 	AnalyticsIncomingCount(teamId string) StoreChannel
 	AnalyticsOutgoingCount(teamId string) StoreChannel
+}
+
+type CommandStore interface {
+	Save(webhook *model.Command) StoreChannel
+	Get(id string) StoreChannel
+	GetByTeam(teamId string) StoreChannel
+	Delete(commandId string, time int64) StoreChannel
+	PermanentDeleteByUser(userId string) StoreChannel
+	Update(hook *model.Command) StoreChannel
 }
 
 type PreferenceStore interface {

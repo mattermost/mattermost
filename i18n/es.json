@@ -244,120 +244,140 @@
     "translation": "Intento de realizar una actualización inválida al canal predeterminado {{.Channel}}"
   },
   {
-    "id": "api.command.check_command.start.app_error",
-    "translation": "El comando debe comenzar con  /"
+    "id": "api.command.admin_only.app_error",
+    "translation": "Las ingtegraciones solo pueden ser utilizadas por adminitradores."
   },
   {
-    "id": "api.command.echo_command.create.error",
-    "translation": "No se puede crear /echo mensaje, err=%v"
+    "id": "api.command.delete.app_error",
+    "translation": "Permisos inapropiados para utilizar el comando de borrar"
   },
   {
-    "id": "api.command.echo_command.description",
-    "translation": "Echo del texto desde tu cuenta, /echo \"mensaje\" [retraso en segundos]"
+    "id": "api.command.disabled.app_error",
+    "translation": "Los comandos han sido deshabilitados por el administrador de sistema."
   },
   {
-    "id": "api.command.echo_command.high_volume.app_error",
-    "translation": "Volumen alto de solicitudes echo, no se puede procesar la solicitud"
+    "id": "api.command.execute_command.debug",
+    "translation": "Ejecutando cmd=%v userId=%v"
   },
   {
-    "id": "api.command.echo_command.under.app_error",
-    "translation": "El retraso debe ser menor a 10000 segundos"
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "El Comando con el gatillador '{{.Trigger}}' falló"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "El Comando con el gatillador '{{.Trigger}}' retorno una respuesta vacía"
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "El Comando con el gatillador '{{.Trigger}}' retorno la respuesta {{.Status}}"
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "No se encontró el Comando con el gatillador '{{.Trigger}}'"
+  },
+  {
+    "id": "api.command.execute_command.save.app_error",
+    "translation": "Ocurrió un error mientras se guardaba la respuesta del comando en el canal"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "No se encontró un gatillador para el comando"
   },
   {
     "id": "api.command.init.debug",
     "translation": "Inicializando rutas del API para los comandos"
   },
   {
-    "id": "api.command.load_test_channels_command.channel.description",
-    "translation": "Agrega un número específico de canales aleatorios al equipo actual <MinChannels> <MaxChannels>"
+    "id": "api.command.regen.app_error",
+    "translation": "Permisos inapropiados para utilizar le comando de regenerar token"
   },
   {
-    "id": "api.command.load_test_channels_command.fuzz.description",
-    "translation": "Agrega un número específico de canales aleatorios con el texto fuzz al equipo actual <Min Channels> <Max Channels>"
+    "id": "api.command_echo.create.app_error",
+    "translation": "No se pudo crear el /echo mensaje, err=%v"
   },
   {
-    "id": "api.command.load_test_command.description",
-    "translation": "Depurar pruebas de carga"
+    "id": "api.command_echo.delay.app_error",
+    "translation": "El retraso debe ser menor a 10000 segundos"
   },
   {
-    "id": "api.command.load_test_posts_command.fuzz.description",
-    "translation": "Agrega algunos mensajes aleatorios con el texto fuzz al canal actual <Min Mensajes> <Max Mensajes> <Min Images> <Max Imágenes>"
+    "id": "api.command_echo.desc",
+    "translation": "Eco de vuelta un texto utilizando tu cuenta"
   },
   {
-    "id": "api.command.load_test_posts_command.posts.description",
-    "translation": "Agrega algunos mensajes aleatorios al canal actual <Min Mensajes> <Max Mensajes> <Min Images> <Max Imágenes>"
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "Demasiadas solicitudes de echo, no pudimos procesar la solicitud"
   },
   {
-    "id": "api.command.load_test_setup_command.create.error",
-    "translation": "Falla al crear el entorno de pruebas"
+    "id": "api.command_echo.hint",
+    "translation": "'mensaje' [retraso en segundos]"
   },
   {
-    "id": "api.command.load_test_setup_command.created.info",
-    "translation": "Equipo Creado: %v"
+    "id": "api.command_echo.name",
+    "translation": "echo"
   },
   {
-    "id": "api.command.load_test_setup_command.description",
-    "translation": "Crea un entorno de prueba para el equipo actual. [equipos] [fuzz] <Cant Canales> <Cant Usuarios> <Num Mensajes>"
+    "id": "api.command_join.desc",
+    "translation": "Unirte a un canal público"
   },
   {
-    "id": "api.command.load_test_setup_command.login.info",
-    "translation": "\t Usuario que inicia sesión: %v, %v"
+    "id": "api.command_join.fail.app_error",
+    "translation": "Ocurrió un error al unirse al canal."
   },
   {
-    "id": "api.command.load_test_url_command.create.error",
-    "translation": "No se pudo crear el mensaje, err=%v"
+    "id": "api.command_join.hint",
+    "translation": "[nombre del canal]"
   },
   {
-    "id": "api.command.load_test_url_command.description",
-    "translation": "Agraga un mensaje que contiene el texto de un url dado al canal actual <Url>"
+    "id": "api.command_join.list.app_error",
+    "translation": "Ocurrió un error al listar los canales."
   },
   {
-    "id": "api.command.load_test_url_command.file.app_error",
-    "translation": "No se puede obtener el archivo"
+    "id": "api.command_join.missing.app_error",
+    "translation": "No pudimos encontrar el canal"
   },
   {
-    "id": "api.command.load_test_url_command.reading.app_error",
-    "translation": "Se encontró un error leyendo el archivo"
+    "id": "api.command_join.name",
+    "translation": "unir"
   },
   {
-    "id": "api.command.load_test_url_command.url.app_error",
-    "translation": "El comando debe contener un url"
+    "id": "api.command_join.success",
+    "translation": "Te uniste al canal."
   },
   {
-    "id": "api.command.load_test_users_command.fuzz.description",
-    "translation": "Agraga un número específico de usuarios aleatorios con el texto fuzz al equipo actual <Min Users> <Max Users>"
+    "id": "api.command_logout.desc",
+    "translation": "Salir de Mattermost"
   },
   {
-    "id": "api.command.load_test_users_command.users.description",
-    "translation": "Agrega un número específico de usuarios aleatorios al equipo actual <Min Users> <Max Users>"
+    "id": "api.command_logout.name",
+    "translation": "salir"
   },
   {
-    "id": "api.command.logout_command.description",
-    "translation": "Cerrar sesión"
+    "id": "api.command_logout.success_message",
+    "translation": "Cerrando sesión..."
   },
   {
-    "id": "api.command.me_command.create.error",
-    "translation": "No se pudo crear el mensaje /me mensaje, err=%v"
+    "id": "api.command_me.desc",
+    "translation": "Hacer una acción"
   },
   {
-    "id": "api.command.me_command.description",
-    "translation": "Realiza una acción, /me [mensaje]"
+    "id": "api.command_me.hint",
+    "translation": "[mensaje]"
   },
   {
-    "id": "api.command.no_implemented.app_error",
-    "translation": "Comando no implementado"
+    "id": "api.command_me.name",
+    "translation": "yo"
   },
   {
-    "id": "api.command.shrug_command.create.error",
-    "translation": "No se pudo crear el mensaje /shrug mensaje, err=%v"
+    "id": "api.command_shrug.desc",
+    "translation": "Agrega ¯\\_(ツ)_/¯ a tu mensaje"
   },
   {
-    "id": "api.command.shrug_command.description",
-    "translation": "Agrega ¯\\_(ツ)_/¯ a tu mensaje, /shrug [mensaje]"
+    "id": "api.command_shrug.hint",
+    "translation": "[mensaje]"
   },
   {
-    "id": "api.commmand.join_command.description",
-    "translation": "Unirme al canal abierto"
+    "id": "api.command_shrug.name",
+    "translation": "npi"
   },
   {
     "id": "api.context.404.app_error",
@@ -1872,6 +1892,46 @@
     "translation": "Token de autenticación no coincidió"
   },
   {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "Fecha de Creación debe ser válida"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Método Inválido"
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "Id del equipo inválido"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Token inválido"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "gatillador inválido"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "Fecha de Actualización debe ser válida"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "URL inválido"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "URL inválido. Debe ser un URL válido y comenzar con http:// o https://"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "Id de usuario inválido"
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Salt para restablecer contraseñas en la configuración de correos es inválido.  Debe ser de 32 caracteres o más."
   },
@@ -2556,6 +2616,34 @@
     "translation": "Encontramos un error actualizando el miembro del canal"
   },
   {
+    "id": "store.sql_command.save.delete.app_error",
+    "translation": "No pudimos eliminar el comando"
+  },
+  {
+    "id": "store.sql_command.save.delete_perm.app_error",
+    "translation": "No pudimos eliminar el comando"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "No pudimos obtener el comando"
+  },
+  {
+    "id": "store.sql_command.save.get_team.app_error",
+    "translation": "No pudimos obtener los comandos"
+  },
+  {
+    "id": "store.sql_command.save.saving.app_error",
+    "translation": "No pudimos guardar el Comando"
+  },
+  {
+    "id": "store.sql_command.save.saving_overwrite.app_error",
+    "translation": "No puedes sobreescribir un comando existente"
+  },
+  {
+    "id": "store.sql_command.save.update.app_error",
+    "translation": "No pudimos actualizar el comando"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "Encontramos un error buscando el token de acceso"
   },
@@ -3049,10 +3137,6 @@
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "No pudimos obtener los webhooks"
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_creator.app_error",
     "translation": "No pudimos obtener los webhooks"
   },
   {

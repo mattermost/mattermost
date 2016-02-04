@@ -402,7 +402,7 @@ func TestUserStoreUpdateAuthData(t *testing.T) {
 	service := "someservice"
 	authData := "1"
 
-	if err := (<-store.User().UpdateAuthData(u1.Id, service, authData)).Err; err != nil {
+	if err := (<-store.User().UpdateAuthData(u1.Id, service, authData, "")).Err; err != nil {
 		t.Fatal(err)
 	}
 

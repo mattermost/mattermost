@@ -59,63 +59,73 @@ export default class SearchResultsItem extends React.Component {
         };
 
         return (
-            <div
-                className='search-item-container post'
-            >
-                <div className='search-channel__name'>{channelName}</div>
-                <div className='post__content'>
-                    <div className='post__img'>
-                        <img
-                            src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex()}
-                            height='36'
-                            width='36'
+            <div className='search-item__container'>
+                <div className='date-separator'>
+                    <hr className='separator__hr' />
+                    <div className='separator__text'>
+                        <FormattedDate
+                            value={this.props.post.create_at}
+                            day='numeric'
+                            month='long'
+                            year='numeric'
                         />
                     </div>
-                    <div>
-                        <ul className='post__header'>
-                            <li className='col__name'><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
-                            <li className='col'>
-                                <time className='search-item-time'>
-                                    <FormattedDate
-                                        value={this.props.post.create_at}
-                                        day='numeric'
-                                        month='long'
-                                        year='numeric'
-                                        hour12={true}
-                                        hour='2-digit'
-                                        minute='2-digit'
-                                    />
-                                </time>
-                            </li>
-                            <li>
-                                <a
-                                    href='#'
-                                    className='search-item__jump'
-                                    onClick={this.handleClick}
-                                >
-                                    <FormattedMessage
-                                        id='search_item.jump'
-                                        defaultMessage='Jump'
-                                    />
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href='#'
-                                    className='comment-icon__container search-item__comment'
-                                    onClick={this.handleFocusRHSClick}
-                                >
-                                    <span
-                                        className='comment-icon'
-                                        dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
-                                    />
-                                </a>
-                            </li>
-                        </ul>
-                        <div className='search-item-snippet'>
-                            <span
-                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
+                </div>
+                <div
+                    className='post'
+                >
+                    <div className='search-channel__name'>{channelName}</div>
+                    <div className='post__content'>
+                        <div className='post__img'>
+                            <img
+                                src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex()}
+                                height='36'
+                                width='36'
                             />
+                        </div>
+                        <div>
+                            <ul className='post__header'>
+                                <li className='col__name'><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
+                                <li className='col'>
+                                    <time className='search-item-time'>
+                                        <FormattedDate
+                                            value={this.props.post.create_at}
+                                            hour12={true}
+                                            hour='2-digit'
+                                            minute='2-digit'
+                                        />
+                                    </time>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className='search-item__jump'
+                                        onClick={this.handleClick}
+                                    >
+                                        <FormattedMessage
+                                            id='search_item.jump'
+                                            defaultMessage='Jump'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className='comment-icon__container search-item__comment'
+                                        onClick={this.handleFocusRHSClick}
+                                    >
+                                        <span
+                                            className='comment-icon'
+                                            dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
+                                        />
+                                    </a>
+                                </li>
+                            </ul>
+                            <div className='search-item-snippet'>
+                                <span
+                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
