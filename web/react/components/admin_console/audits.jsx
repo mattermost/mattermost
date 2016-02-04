@@ -72,7 +72,7 @@ export default class Audits extends React.Component {
                 <h3>
                     <FormattedMessage
                         id='admin.audits.title'
-                        defaultMessage='Server Audits'
+                        defaultMessage='User Activity'
                     />
                 </h3>
                 <button

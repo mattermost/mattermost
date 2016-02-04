@@ -225,7 +225,7 @@ export default class AdminSidebar extends React.Component {
                     >
                         <FormattedMessage
                             id='admin.sidebar.audits'
-                            defaultMessage='Audits'
+                            defaultMessage='Compliance and Auditing'
                         />
                     </a>
                 </li>

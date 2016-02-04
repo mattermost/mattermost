@@ -50,6 +50,8 @@
   "admin.sidebar.teams": "TEAMS ({count})",
   "admin.sidebar.other": "OTHER",
   "admin.sidebar.logs": "Logs",
+  "admin.sidebar.audits": "Compliance and Auditing",
+  "admin.analytics.loading": "Loading...",
   "admin.analytics.totalUsers": "Total Users",
   "admin.analytics.publicChannels": "Public Channels",
   "admin.analytics.privateGroups": "Private Groups",
@@ -293,6 +295,11 @@
   "admin.log.save": "Save",
   "admin.logs.title": "Server Logs",
   "admin.logs.reload": "Reload",
+<<<<<<< HEAD
+=======
+  "admin.audits.title": "User Activity",
+  "admin.audits.reload": "Reload",
+>>>>>>> Rename audits tab
   "admin.privacy.saving": "Saving Config...",
   "admin.privacy.title": "Privacy Settings",
   "admin.privacy.showEmailTitle": "Show Email Address: ",
