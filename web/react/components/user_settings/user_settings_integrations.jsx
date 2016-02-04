@@ -5,6 +5,7 @@ import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import ManageIncomingHooks from './manage_incoming_hooks.jsx';
 import ManageOutgoingHooks from './manage_outgoing_hooks.jsx';
+import ManageCommandHooks from './manage_command_hooks.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
@@ -24,6 +25,14 @@ const holders = defineMessages({
     outDesc: {
         id: 'user.settings.integrations.outWebhooksDescription',
         defaultMessage: 'Manage your outgoing webhooks'
+    },
+    cmdName: {
+        id: 'user.settings.integrations.commands',
+        defaultMessage: 'Commands'
+    },
+    cmdDesc: {
+        id: 'user.settings.integrations.commandsDescription',
+        defaultMessage: 'Manage your commands'
     }
 });
 
@@ -41,6 +50,7 @@ class UserSettingsIntegrationsTab extends React.Component {
     render() {
         let incomingHooksSection;
         let outgoingHooksSection;
+        let commandHooksSection;
         var inputs = [];
         const {formatMessage} = this.props.intl;
 
@@ -106,6 +116,37 @@ class UserSettingsIntegrationsTab extends React.Component {
             }
         }
 
+        if (global.window.mm_config.EnableCommands === 'true') {
+            if (this.props.activeSection === 'command-hooks') {
+                inputs.push(
+                    <ManageCommandHooks key='command-hook-ui' />
+                );
+
+                commandHooksSection = (
+                    <SettingItemMax
+                        title={formatMessage(holders.cmdName)}
+                        width='medium'
+                        inputs={inputs}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                );
+            } else {
+                commandHooksSection = (
+                    <SettingItemMin
+                        title={formatMessage(holders.cmdName)}
+                        width='medium'
+                        describe={formatMessage(holders.cmdDesc)}
+                        updateSection={() => {
+                            this.updateSection('command-hooks');
+                        }}
+                    />
+                );
+            }
+        }
+
         return (
             <div>
                 <div className='modal-header'>
@@ -143,6 +184,8 @@ class UserSettingsIntegrationsTab extends React.Component {
                     {incomingHooksSection}
                     <div className='divider-light'/>
                     {outgoingHooksSection}
+                    <div className='divider-dark'/>
+                    {commandHooksSection}
                     <div className='divider-dark'/>
                 </div>
             </div>

@@ -47,6 +47,7 @@ type SqlStore struct {
 	oauth      OAuthStore
 	system     SystemStore
 	webhook    WebhookStore
+	command    CommandStore
 	preference PreferenceStore
 }
 
@@ -100,6 +101,7 @@ func NewSqlStore() Store {
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
 	sqlStore.system = NewSqlSystemStore(sqlStore)
 	sqlStore.webhook = NewSqlWebhookStore(sqlStore)
+	sqlStore.command = NewSqlCommandStore(sqlStore)
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
@@ -116,6 +118,7 @@ func NewSqlStore() Store {
 	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
 	sqlStore.system.(*SqlSystemStore).UpgradeSchemaIfNeeded()
 	sqlStore.webhook.(*SqlWebhookStore).UpgradeSchemaIfNeeded()
+	sqlStore.command.(*SqlCommandStore).UpgradeSchemaIfNeeded()
 	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
@@ -127,6 +130,7 @@ func NewSqlStore() Store {
 	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
 	sqlStore.system.(*SqlSystemStore).CreateIndexesIfNotExists()
 	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
+	sqlStore.command.(*SqlCommandStore).CreateIndexesIfNotExists()
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
@@ -509,6 +513,10 @@ func (ss SqlStore) System() SystemStore {
 
 func (ss SqlStore) Webhook() WebhookStore {
 	return ss.webhook
+}
+
+func (ss SqlStore) Command() CommandStore {
+	return ss.command
 }
 
 func (ss SqlStore) Preference() PreferenceStore {

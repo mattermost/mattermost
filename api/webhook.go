@@ -32,6 +32,14 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewLocAppError("createIncomingHook", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	c.LogAudit("attempt")
 
 	hook := model.IncomingWebhookFromJson(r.Body)
@@ -79,6 +87,14 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewLocAppError("deleteIncomingHook", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	c.LogAudit("attempt")
 
 	props := model.MapFromJson(r.Body)
@@ -116,7 +132,15 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Webhook().GetIncomingByUser(c.Session.UserId); result.Err != nil {
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewLocAppError("getIncomingHooks", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	if result := <-Srv.Store.Webhook().GetIncomingByTeam(c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -130,6 +154,14 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewLocAppError("createOutgoingHook", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
 	}
 
 	c.LogAudit("attempt")
@@ -188,7 +220,15 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Webhook().GetOutgoingByCreator(c.Session.UserId); result.Err != nil {
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewLocAppError("getOutgoingHooks", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -202,6 +242,14 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewLocAppError("deleteOutgoingHook", "api.webhook.delete_outgoing.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewLocAppError("deleteOutgoingHook", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
 	}
 
 	c.LogAudit("attempt")
@@ -241,6 +289,14 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	c.LogAudit("attempt")
 
 	props := model.MapFromJson(r.Body)
@@ -258,7 +314,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		hook = result.Data.(*model.OutgoingWebhook)
 
-		if c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
+		if c.Session.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.webhook.regen_outgoing_token.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return

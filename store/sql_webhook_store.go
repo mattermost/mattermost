@@ -134,7 +134,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncomingByUser(userId string) StoreChannel {
+func (s SqlWebhookStore) GetIncomingByTeam(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -142,8 +142,8 @@ func (s SqlWebhookStore) GetIncomingByUser(userId string) StoreChannel {
 
 		var webhooks []*model.IncomingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "userId="+userId+", err="+err.Error())
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error())
 		}
 
 		result.Data = webhooks
@@ -223,27 +223,6 @@ func (s SqlWebhookStore) GetOutgoing(id string) StoreChannel {
 		}
 
 		result.Data = &webhook
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (s SqlWebhookStore) GetOutgoingByCreator(userId string) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		var webhooks []*model.OutgoingWebhook
-
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE CreatorId = :UserId AND DeleteAt = 0", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlWebhookStore.GetOutgoingByCreator", "store.sql_webhooks.get_outgoing_by_creator.app_error", nil, "userId="+userId+", err="+err.Error())
-		}
-
-		result.Data = webhooks
 
 		storeChannel <- result
 		close(storeChannel)

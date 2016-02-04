@@ -48,7 +48,7 @@ func TestWebhookStoreGetIncoming(t *testing.T) {
 	}
 }
 
-func TestWebhookStoreGetIncomingByUser(t *testing.T) {
+func TestWebhookStoreGetIncomingByTeam(t *testing.T) {
 	Setup()
 
 	o1 := &model.IncomingWebhook{}
@@ -58,7 +58,7 @@ func TestWebhookStoreGetIncomingByUser(t *testing.T) {
 
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-store.Webhook().GetIncomingByUser(o1.UserId); r1.Err != nil {
+	if r1 := <-store.Webhook().GetIncomingByTeam(o1.TeamId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.([]*model.IncomingWebhook)[0].CreateAt != o1.CreateAt {
@@ -66,7 +66,7 @@ func TestWebhookStoreGetIncomingByUser(t *testing.T) {
 		}
 	}
 
-	if result := <-store.Webhook().GetIncomingByUser("123"); result.Err != nil {
+	if result := <-store.Webhook().GetIncomingByTeam("123"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		if len(result.Data.([]*model.IncomingWebhook)) != 0 {
@@ -193,34 +193,6 @@ func TestWebhookStoreGetOutgoingByChannel(t *testing.T) {
 	}
 
 	if result := <-store.Webhook().GetOutgoingByChannel("123"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		if len(result.Data.([]*model.OutgoingWebhook)) != 0 {
-			t.Fatal("no webhooks should have returned")
-		}
-	}
-}
-
-func TestWebhookStoreGetOutgoingByCreator(t *testing.T) {
-	Setup()
-
-	o1 := &model.OutgoingWebhook{}
-	o1.ChannelId = model.NewId()
-	o1.CreatorId = model.NewId()
-	o1.TeamId = model.NewId()
-	o1.CallbackURLs = []string{"http://nowhere.com/"}
-
-	o1 = (<-store.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
-
-	if r1 := <-store.Webhook().GetOutgoingByCreator(o1.CreatorId); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.([]*model.OutgoingWebhook)[0].CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
-	}
-
-	if result := <-store.Webhook().GetOutgoingByCreator("123"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		if len(result.Data.([]*model.OutgoingWebhook)) != 0 {

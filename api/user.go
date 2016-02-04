@@ -1542,6 +1542,10 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
+	if result := <-Srv.Store.Command().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
 	if result := <-Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
