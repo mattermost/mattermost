@@ -13,8 +13,10 @@ const (
 	POST_SYSTEM_MESSAGE_PREFIX = "system_"
 	POST_DEFAULT               = ""
 	POST_SLACK_ATTACHMENT      = "slack_attachment"
+	POST_SYSTEM_GENERIC        = "system_generic"
 	POST_JOIN_LEAVE            = "system_join_leave"
 	POST_HEADER_CHANGE         = "system_header_change"
+	POST_EPHEMERAL             = "system_ephemeral"
 )
 
 type Post struct {

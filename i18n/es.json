@@ -712,6 +712,14 @@
     "translation": "Se encontró un error obteniendo el canal, channel_id=%s, err=%v"
   },
   {
+    "id": "api.post.handle_post_events_and_forget.members.error",
+    "translation": "Falla al obtener los miembros del canal channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.profiles.error",
+    "translation": "Falla al recuperar los perfiles de usuario team_id=%v, err=%v"
+  },
+  {
     "id": "api.post.handle_post_events_and_forget.team.error",
     "translation": "Se encontró un error obteniendo el equipo, team_id=%s, err=%v"
   },
@@ -752,10 +760,6 @@
     "translation": "Falla al actualizar las preferencias del canal directo user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.members.error",
-    "translation": "Falla al obtener los miembros del canal channel_id=%v err=%v"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.mention_body",
     "translation": "Tienes una mención nueva."
   },
@@ -786,10 +790,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Falló el envio de la notificación push notificationid=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.retrive_profiles.error",
-    "translation": "Falla al recuperar los perfiles de usuario team_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",

@@ -9,6 +9,7 @@ import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export function emitChannelClickEvent(channel) {
     AsyncClient.getChannels(true);
@@ -179,4 +180,28 @@ export function emitPreferenceChangedEvent(preference) {
         type: Constants.ActionTypes.RECIEVED_PREFERENCE,
         preference
     });
+}
+
+export function emitRemovePost(post) {
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.REMOVE_POST,
+        post
+    });
+}
+
+export function sendEphemeralPost(message, channelId) {
+    const timestamp = Utils.getTimestamp();
+    const post = {
+        id: Utils.generateId(),
+        user_id: '0',
+        channel_id: channelId || ChannelStore.getCurrentId(),
+        message,
+        type: Constants.POST_TYPE_EPHEMERAL,
+        create_at: timestamp,
+        update_at: timestamp,
+        filenames: [],
+        props: {}
+    };
+
+    emitPostRecievedEvent(post);
 }

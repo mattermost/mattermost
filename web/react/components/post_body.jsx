@@ -44,7 +44,6 @@ class PostBody extends React.Component {
 
         this.state = {
             links: linkData.links,
-            message: linkData.text,
             post: this.props.post,
             hasUserProfiles: profiles && Object.keys(profiles).length > 1
         };
@@ -106,7 +105,9 @@ class PostBody extends React.Component {
         if (this.props.post.filenames.length === 0 && this.state.links && this.state.links.length > 0) {
             this.embed = this.createEmbed(linkData.links[0]);
         }
-        this.setState({links: linkData.links, message: linkData.text});
+        this.setState({
+            links: linkData.links
+        });
     }
 
     createEmbed(link) {
@@ -310,6 +311,23 @@ class PostBody extends React.Component {
             );
         }
 
+        let message;
+        if (this.props.post.state === Constants.POST_DELETED) {
+            message = (
+                <FormattedMessage
+                    id='post_body.deleted'
+                    defaultMessage='(message deleted)'
+                />
+            );
+        } else {
+            message = (
+                <span
+                    onClick={TextFormatting.handleClick}
+                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message)}}
+                />
+            );
+        }
+
         return (
             <div>
                 {comment}
@@ -320,11 +338,7 @@ class PostBody extends React.Component {
                         className={postClass}
                     >
                         {loading}
-                        <span
-                            ref='message_span'
-                            onClick={TextFormatting.handleClick}
-                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
-                        />
+                        {message}
                     </div>
                     <PostBodyAdditionalContent
                         post={this.state.post}

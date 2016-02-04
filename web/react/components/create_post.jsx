@@ -40,10 +40,6 @@ const holders = defineMessages({
     write: {
         id: 'create_post.write',
         defaultMessage: 'Write a message...'
-    },
-    deleteMsg: {
-        id: 'create_post.deleteMsg',
-        defaultMessage: '(message deleted)'
     }
 });
 
@@ -70,7 +66,6 @@ class CreatePost extends React.Component {
         this.sendMessage = this.sendMessage.bind(this);
 
         PostStore.clearDraftUploads();
-        PostStore.deleteMessage(this.props.intl.formatMessage(holders.deleteMsg));
 
         const draft = this.getCurrentDraft();
 

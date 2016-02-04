@@ -18,6 +18,7 @@ const (
 	ACTION_USER_ADDED         = "user_added"
 	ACTION_USER_REMOVED       = "user_removed"
 	ACTION_PREFERENCE_CHANGED = "preference_changed"
+	ACTION_EPHEMERAL_MESSAGE  = "ephemeral_message"
 )
 
 type Message struct {

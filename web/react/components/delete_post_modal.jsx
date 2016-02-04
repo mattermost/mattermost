@@ -88,7 +88,7 @@ export default class DeletePostModal extends React.Component {
                     }
                 }
 
-                PostStore.removePost(this.state.post.id, this.state.post.channel_id);
+                PostStore.deletePost(this.state.post);
                 AsyncClient.getPosts(this.state.post.channel_id);
             },
             (err) => {

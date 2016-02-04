@@ -12,6 +12,7 @@ export default {
         LEAVE_CHANNEL: null,
         CREATE_POST: null,
         POST_DELETED: null,
+        REMOVE_POST: null,
 
         RECIEVED_CHANNELS: null,
         RECIEVED_CHANNEL: null,
@@ -78,7 +79,8 @@ export default {
         USER_ADDED: 'user_added',
         USER_REMOVED: 'user_removed',
         TYPING: 'typing',
-        PREFERENCE_CHANGED: 'preference_changed'
+        PREFERENCE_CHANGED: 'preference_changed',
+        EPHEMERAL_MESSAGE: 'ephemeral_message'
     },
 
     //SPECIAL_MENTIONS: ['all', 'channel'],
@@ -126,6 +128,7 @@ export default {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
+    POST_TYPE_EPHEMERAL: 'system_ephemeral',
     POST_TYPE_JOIN_LEAVE: 'system_join_leave',
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SYSTEM_MESSAGE_PROFILE_NAME: 'System',

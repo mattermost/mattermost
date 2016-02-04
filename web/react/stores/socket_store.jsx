@@ -109,6 +109,7 @@ class SocketStoreClass extends EventEmitter {
     handleMessage(msg) {
         switch (msg.action) {
         case SocketEvents.POSTED:
+        case SocketEvents.EPHEMERAL_MESSAGE:
             handleNewPostEvent(msg, this.translations);
             break;
 
@@ -179,7 +180,6 @@ function handleNewPostEvent(msg, translations) {
             mentions = JSON.parse(msg.props.mentions);
         }
 
-        const channelType = msgProps.channel_type;
         const channel = ChannelStore.get(msg.channel_id);
         const user = UserStore.getCurrentUser();
         const member = ChannelStore.getMember(msg.channel_id);
@@ -191,7 +191,7 @@ function handleNewPostEvent(msg, translations) {
 
         if (notifyLevel === 'none') {
             return;
-        } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channelType !== Constants.DM_CHANNEL) {
+        } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channel.type !== Constants.DM_CHANNEL) {
             return;
         }
 
