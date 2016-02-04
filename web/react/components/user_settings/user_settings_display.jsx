@@ -297,7 +297,7 @@ class UserSettingsDisplay extends React.Component {
             if (this.state.nameFormat === 'username') {
                 describe = formatMessage(holders.showUsername);
             } else if (this.state.nameFormat === 'full_name') {
-                describe = formatMessage(holders.showFullName);
+                describe = formatMessage(holders.showFullname);
             } else {
                 describe = formatMessage(holders.showNickname);
             }
