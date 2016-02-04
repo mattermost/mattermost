@@ -20,6 +20,7 @@ export default class Textbox extends React.Component {
     constructor(props) {
         super(props);
 
+        this.focus = this.focus.bind(this);
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onRecievedError = this.onRecievedError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
@@ -81,6 +82,10 @@ export default class Textbox extends React.Component {
         }
     }
 
+    focus() {
+        this.refs.message.getTextbox().focus();
+    }
+
     resize() {
         const textbox = this.refs.message.getTextbox();
         const $textbox = $(textbox);
@@ -89,8 +94,6 @@ export default class Textbox extends React.Component {
         const padding = parseInt($textbox.css('padding-bottom'), 10) + parseInt($textbox.css('padding-top'), 10);
         const borders = parseInt($textbox.css('border-bottom-width'), 10) + parseInt($textbox.css('border-top-width'), 10);
         const maxHeight = parseInt($textbox.css('max-height'), 10) - borders;
-
-        const prevHeight = $textbox.height();
 
         // set the height to auto and remove the scrollbar so we can get the actual size of the contents
         $textbox.css('height', 'auto').css('overflow-y', 'hidden');
@@ -115,10 +118,6 @@ export default class Textbox extends React.Component {
 
         if (this.state.preview) {
             $(ReactDOM.findDOMNode(this.refs.preview)).height(height + borders);
-        }
-
-        if (height !== prevHeight && this.props.onHeightChange) {
-            this.props.onHeightChange();
         }
     }
 
@@ -211,7 +210,6 @@ Textbox.propTypes = {
     messageText: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
-    onHeightChange: React.PropTypes.func,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,
     supportsCommands: React.PropTypes.bool.isRequired

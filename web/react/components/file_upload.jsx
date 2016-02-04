@@ -310,6 +310,7 @@ class FileUpload extends React.Component {
                     ref='fileInput'
                     type='file'
                     onChange={this.handleChange}
+                    onClick={this.props.onClick}
                     multiple={multiple}
                     accept={accept}
                 />
@@ -322,6 +323,7 @@ FileUpload.propTypes = {
     intl: intlShape.isRequired,
     onUploadError: React.PropTypes.func,
     getFileCount: React.PropTypes.func,
+    onClick: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
