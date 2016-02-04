@@ -73,7 +73,8 @@ class AccessHistoryModal extends React.Component {
             content = (
                 <AuditTable
                     audits={this.state.audits}
-                    moreInfo={this.state.moreInfo}
+                    showIp={true}
+                    showSession={true}
                 />
             );
         }
