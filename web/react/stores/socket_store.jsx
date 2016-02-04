@@ -66,6 +66,7 @@ class SocketStoreClass extends EventEmitter {
                     }
 
                     AsyncClient.getChannels();
+                    AsyncClient.getPosts(ChannelStore.getCurrentId());
                 }
 
                 this.failCount = 0;
@@ -73,6 +74,16 @@ class SocketStoreClass extends EventEmitter {
 
             conn.onclose = () => {
                 conn = null;
+
+                if (this.failCount === 0) {
+                    console.log('websocket closed'); //eslint-disable-line no-console
+                }
+
+                this.failCount = this.failCount + 1;
+
+                ErrorStore.storeLastError({connErrorCount: this.failCount, message: this.translations.socketError});
+                ErrorStore.emitChange();
+
                 setTimeout(
                     () => {
                         this.initialize();
@@ -82,15 +93,10 @@ class SocketStoreClass extends EventEmitter {
             };
 
             conn.onerror = (evt) => {
-                if (this.failCount === 0) {
+                if (this.failCount <= 1) {
                     console.log('websocket error'); //eslint-disable-line no-console
                     console.log(evt); //eslint-disable-line no-console
                 }
-
-                this.failCount = this.failCount + 1;
-
-                ErrorStore.storeLastError({connErrorCount: this.failCount, message: this.translations.socketError});
-                ErrorStore.emitChange();
             };
 
             conn.onmessage = (evt) => {
