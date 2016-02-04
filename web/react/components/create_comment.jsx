@@ -75,6 +75,8 @@ class CreateComment extends React.Component {
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         window.addEventListener('resize', this.handleResize);
+
+        this.refs.textbox.focus();
     }
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
@@ -94,6 +96,10 @@ class CreateComment extends React.Component {
             if (this.state.windowWidth > 768) {
                 $('.post-right__scroll').perfectScrollbar('update');
             }
+        }
+
+        if (prevProps.rootId !== this.props.rootId) {
+            this.refs.textbox.focus();
         }
     }
     handleSubmit(e) {
