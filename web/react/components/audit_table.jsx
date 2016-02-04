@@ -213,11 +213,16 @@ class AuditTable extends React.Component {
                 sContent = <td>{auditInfo.sessionId}</td>;
             }
 
+            let descStyle = {};
+            if (auditInfo.desc.toLowerCase().indexOf('fail') !== -1) {
+                descStyle.color = 'red';
+            }
+
             accessList[i] = (
                 <tr key={audit.id}>
                     <td>{auditInfo.timestamp}</td>
                     {uContent}
-                    <td>{auditInfo.desc}</td>
+                    <td style={descStyle}>{auditInfo.desc}</td>
                     {iContent}
                     {sContent}
                 </tr>
