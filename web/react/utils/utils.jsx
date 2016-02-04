@@ -142,16 +142,24 @@ export function getCookie(name) {
     }
 }
 
+var requestedNotificationPermission = false;
+
 export function notifyMe(title, body, channel) {
-    if ('Notification' in window && Notification.permission !== 'denied') {
-        Notification.requestPermission(function onRequestPermission(permission) {
+    if (!('Notification' in window)) {
+        return;
+    }
+
+    if (Notification.permission === 'granted' || (Notification.permission === 'default' && !requestedNotificationPermission)) {
+        requestedNotificationPermission = true;
+
+        Notification.requestPermission((permission) => {
             if (Notification.permission !== permission) {
                 Notification.permission = permission;
             }
 
             if (permission === 'granted') {
-                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
-                notification.onclick = function onClick() {
+                var notification = new Notification(title, {body, tag: body, icon: '/static/images/icon50x50.png'});
+                notification.onclick = () => {
                     window.focus();
                     if (channel) {
                         switchChannel(channel);
@@ -159,7 +167,7 @@ export function notifyMe(title, body, channel) {
                         window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
                     }
                 };
-                setTimeout(function closeNotificationOnTimeout() {
+                setTimeout(() => {
                     notification.close();
                 }, 5000);
             }
