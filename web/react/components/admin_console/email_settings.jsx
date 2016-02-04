@@ -54,7 +54,7 @@ var holders = defineMessages({
     },
     pushServerEx: {
         id: 'admin.email.pushServerEx',
-        defaultMessage: 'E.g.: "https://push-test.mattermost.com"'
+        defaultMessage: 'E.g.: "http://push-test.mattermost.com"'
     },
     testing: {
         id: 'admin.email.testing',
