@@ -53,7 +53,7 @@ class CreatePost extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
-        this.resizePostHolder = this.resizePostHolder.bind(this);
+        this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -62,7 +62,6 @@ class CreatePost extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleResize = this.handleResize.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
 
         PostStore.clearDraftUploads();
@@ -76,33 +75,9 @@ class CreatePost extends React.Component {
             previews: draft.previews,
             submitting: false,
             initialText: draft.messageText,
-            windowWidth: Utils.windowWidth(),
-            windowHeight: Utils.windowHeight(),
             ctrlSend: false,
             showTutorialTip: false
         };
-    }
-    handleResize() {
-        this.setState({
-            windowWidth: Utils.windowWidth(),
-            windowHeight: Utils.windowHeight()
-        });
-    }
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.previews.length !== this.state.previews.length) {
-            this.resizePostHolder();
-            return;
-        }
-
-        if (prevState.uploadsInProgress !== this.state.uploadsInProgress) {
-            this.resizePostHolder();
-            return;
-        }
-
-        if (prevState.windowWidth !== this.state.windowWidth || prevState.windowHeight !== this.state.windowHeight) {
-            this.resizePostHolder();
-            return;
-        }
     }
     getCurrentDraft() {
         const draft = PostStore.getCurrentDraft();
@@ -240,10 +215,8 @@ class CreatePost extends React.Component {
         draft.message = messageText;
         PostStore.storeCurrentDraft(draft);
     }
-    resizePostHolder() {
-        if (this.state.windowWidth > 960) {
-            $('#post_textbox').focus();
-        }
+    handleUploadClick() {
+        this.refs.textbox.focus();
     }
     handleUploadStart(clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
@@ -252,6 +225,10 @@ class CreatePost extends React.Component {
         PostStore.storeDraft(channelId, draft);
 
         this.setState({uploadsInProgress: draft.uploadsInProgress});
+
+        // this is a bit redundant with the code that sets focus when the file input is clicked,
+        // but this also resets the focus after a drag and drop
+        this.refs.textbox.focus();
     }
     handleFileUploadComplete(filenames, clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
@@ -328,13 +305,16 @@ class CreatePost extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-        this.resizePostHolder();
-        window.addEventListener('resize', this.handleResize);
+        this.refs.textbox.focus();
+    }
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.channelId !== this.state.channelId) {
+            this.refs.textbox.focus();
+        }
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
-        window.removeEventListener('resize', this.handleResize);
     }
     onChange() {
         const channelId = ChannelStore.getCurrentId();
@@ -457,7 +437,6 @@ class CreatePost extends React.Component {
                                 onUserInput={this.handleUserInput}
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
-                                onHeightChange={this.resizePostHolder}
                                 messageText={this.state.messageText}
                                 createMessage={this.props.intl.formatMessage(holders.write)}
                                 channelId={this.state.channelId}
@@ -467,6 +446,7 @@ class CreatePost extends React.Component {
                             <FileUpload
                                 ref='fileUpload'
                                 getFileCount={this.getFileCount}
+                                onClick={this.handleUploadClick}
                                 onUploadStart={this.handleUploadStart}
                                 onFileUpload={this.handleFileUploadComplete}
                                 onUploadError={this.handleUploadError}

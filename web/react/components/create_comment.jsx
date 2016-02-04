@@ -51,6 +51,7 @@ class CreateComment extends React.Component {
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -74,6 +75,8 @@ class CreateComment extends React.Component {
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         window.addEventListener('resize', this.handleResize);
+
+        this.refs.textbox.focus();
     }
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
@@ -93,6 +96,10 @@ class CreateComment extends React.Component {
             if (this.state.windowWidth > 768) {
                 $('.post-right__scroll').perfectScrollbar('update');
             }
+        }
+
+        if (prevProps.rootId !== this.props.rootId) {
+            this.refs.textbox.focus();
         }
     }
     handleSubmit(e) {
@@ -218,6 +225,9 @@ class CreateComment extends React.Component {
             });
         }
     }
+    handleUploadClick() {
+        this.refs.textbox.focus();
+    }
     handleUploadStart(clientIds) {
         let draft = PostStore.getCommentDraft(this.props.rootId);
 
@@ -225,6 +235,10 @@ class CreateComment extends React.Component {
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         this.setState({uploadsInProgress: draft.uploadsInProgress});
+
+        // this is a bit redundant with the code that sets focus when the file input is clicked,
+        // but this also resets the focus after a drag and drop
+        this.refs.textbox.focus();
     }
     handleFileUploadComplete(filenames, clientIds) {
         let draft = PostStore.getCommentDraft(this.props.rootId);
@@ -365,6 +379,7 @@ class CreateComment extends React.Component {
                             <FileUpload
                                 ref='fileUpload'
                                 getFileCount={this.getFileCount}
+                                onClick={this.handleUploadClick}
                                 onUploadStart={this.handleUploadStart}
                                 onFileUpload={this.handleFileUploadComplete}
                                 onUploadError={this.handleUploadError}
