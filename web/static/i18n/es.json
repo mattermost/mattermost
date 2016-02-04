@@ -74,7 +74,7 @@
   "admin.email.passwordSaltTitle": "Resetear el Salt para las contraseñas:",
   "admin.email.pushDesc": "Normalmente se asigna como verdadero en producción. Cuando está en verdadero, Mattermost intenta enviar notificaciones a dispositivos iOS y Android a través del servidor de notificaciones.",
   "admin.email.pushServerDesc": "Ubicación del servicio de notificaciones push de Mattermost, puedes ubicarlo detras de un cortafuego utilizando https://github.com/mattermost/push-proxy. Para realizar pruebas puedes utilizar https://push-test.mattermost.com, el cual conecta con la ap de ejemplo de Mattermost en iOS publicada en el Apple AppStore. Por favor no utilices este servicio en producción.",
-  "admin.email.pushServerEx": "Ej.: \"https://push-test.mattermost.com\"",
+  "admin.email.pushServerEx": "Ej.: \"http://push-test.mattermost.com\"",
   "admin.email.pushServerTitle": "Servidor de Notificaciones:",
   "admin.email.pushTitle": "Envío de Notificaciones: ",
   "admin.email.regenerate": "Regenerar",
