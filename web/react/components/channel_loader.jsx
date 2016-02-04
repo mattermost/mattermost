@@ -128,6 +128,16 @@ class ChannelLoader extends React.Component {
             }
         });
 
+        $('body').on('mouseenter mouseleave', '.search-item__container .post', function mouseOver(ev) {
+            if (ev.type === 'mouseenter') {
+                $(this).closest('.search-item__container').find('.date-separator').addClass('hovered--after');
+                $(this).closest('.search-item__container').next('div').find('.date-separator').addClass('hovered--before');
+            } else {
+                $(this).closest('.search-item__container').find('.date-separator').removeClass('hovered--after');
+                $(this).closest('.search-item__container').next('div').find('.date-separator').removeClass('hovered--before');
+            }
+        });
+
         $('body').on('mouseenter mouseleave', '.post.post--comment.same--root', function mouseOver(ev) {
             if (ev.type === 'mouseenter') {
                 $(this).parent('div').prev('.date-separator, .new-separator').addClass('hovered--comment');
