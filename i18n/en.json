@@ -244,12 +244,16 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
-    "id": "api.command.init.debug",
-    "translation": "Initializing command api routes"
+    "id": "api.command.admin_only.app_error",
+    "translation": "Integrations have been limited to admins only."
   },
   {
-    "id": "api.command.execute_command.start.app_error",
-    "translation": "No command trigger found"
+    "id": "api.command.delete.app_error",
+    "translation": "Inappropriate permissions to delete command"
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "Commands have been disabled by the system admin."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -276,24 +280,32 @@
     "translation": "An error while saving the command response to the channel"
   },
   {
-    "id": "api.command.disabled.app_error",
-    "translation": "Commands have been disabled by the system admin."
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "No command trigger found"
   },
   {
-    "id": "api.command.admin_only.app_error",
-    "translation": "Integrations have been limited to admins only."
+    "id": "api.command.init.debug",
+    "translation": "Initializing command api routes"
   },
   {
     "id": "api.command.regen.app_error",
     "translation": "Inappropriate permissions to regenerate command token"
   },
   {
-    "id": "api.command.delete.app_error",
-    "translation": "Inappropriate permissions to delete command"
+    "id": "api.command_echo.create.app_error",
+    "translation": "Unable to create /echo post, err=%v"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Delays must be under 10000 seconds"
   },
   {
     "id": "api.command_echo.desc",
     "translation": "Echo back text from your account"
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "High volume of echo request, cannot process request"
   },
   {
     "id": "api.command_echo.hint",
@@ -304,44 +316,32 @@
     "translation": "echo"
   },
   {
-    "id": "api.command_echo.delay.app_error",
-    "translation": "Delays must be under 10000 seconds"
-  },
-  {
-    "id": "api.command_echo.high_volume.app_error",
-    "translation": "High volume of echo request, cannot process request"
-  },
-  {
-    "id": "api.command_echo.create.app_error",
-    "translation": "Unable to create /echo post, err=%v"
-  },
-  {
     "id": "api.command_join.desc",
     "translation": "Join the open channel"
-  },
-  {
-    "id": "api.command_join.hint",
-    "translation": "[channel-name]"
-  },
-  {
-    "id": "api.command_join.name",
-    "translation": "join"
-  },
-  {
-    "id": "api.command_join.list.app_error",
-    "translation": "An error occured while listing channels."
   },
   {
     "id": "api.command_join.fail.app_error",
     "translation": "An error occured while joining the channel."
   },
   {
-    "id": "api.command_join.success",
-    "translation": "Joined channel."
+    "id": "api.command_join.hint",
+    "translation": "[channel-name]"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "An error occured while listing channels."
   },
   {
     "id": "api.command_join.missing.app_error",
     "translation": "We couldn't find the channel"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "join"
+  },
+  {
+    "id": "api.command_join.success",
+    "translation": "Joined channel."
   },
   {
     "id": "api.command_logout.desc",
@@ -1828,46 +1828,6 @@
     "translation": "Name must be 2 or more lowercase alphanumeric characters"
   },
   {
-    "id": "model.command.is_valid.id.app_error",
-    "translation": "Invalid Id"
-  },
-  {
-    "id": "model.command.is_valid.token.app_error",
-    "translation": "Invalid token"
-  },
-  {
-    "id": "model.command.is_valid.create_at.app_error",
-    "translation": "Create at must be a valid time"
-  },
-  {
-    "id": "model.command.is_valid.update_at.app_error",
-    "translation": "Update at must be a valid time"
-  },
-  {
-    "id": "model.command.is_valid.user_id.app_error",
-    "translation": "Invalid user id"
-  },
-  {
-    "id": "model.command.is_valid.team_id.app_error",
-    "translation": "Invalid team id"
-  },
-  {
-    "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Invalid trigger"
-  },
-  {
-    "id": "model.command.is_valid.url.app_error",
-    "translation": "Invalid url"
-  },
-  {
-    "id": "model.command.is_valid.url_http.app_error",
-    "translation": "Invalid URL. Must be a valid URL and start with http:// or https://"
-  },
-  {
-    "id": "model.command.is_valid.method.app_error",
-    "translation": "Invalid Method"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -1930,6 +1890,46 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Authentication tokens didn't match"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Invalid Method"
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Invalid token"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "Invalid trigger"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "Invalid url"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "Invalid URL. Must be a valid URL and start with http:// or https://"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -2436,34 +2436,6 @@
     "translation": "We encountered an error saving the audit"
   },
   {
-    "id": "store.sql_command.save.saving_overwrite.app_error",
-    "translation": "You cannot overwrite an existing Command"
-  },
-  {
-    "id": "store.sql_command.save.saving.app_error",
-    "translation": "We couldn't save the Command"
-  },
-  {
-    "id": "store.sql_command.save.get.app_error",
-    "translation": "We couldn't get the command"
-  },
-  {
-    "id": "store.sql_command.save.get_team.app_error",
-    "translation": "We couldn't get the commands"
-  },
-  {
-    "id": "store.sql_command.save.delete.app_error",
-    "translation": "We couldn't delete the command"
-  },
-  {
-    "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "We couldn't delete the command"
-  },
-  {
-    "id": "store.sql_command.save.update.app_error",
-    "translation": "We couldn't update the command"
-  },
-  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "We couldn't get channel type counts"
   },
@@ -2642,6 +2614,34 @@
   {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "We encountered an error updating the channel member"
+  },
+  {
+    "id": "store.sql_command.save.delete.app_error",
+    "translation": "We couldn't delete the command"
+  },
+  {
+    "id": "store.sql_command.save.delete_perm.app_error",
+    "translation": "We couldn't delete the command"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "We couldn't get the command"
+  },
+  {
+    "id": "store.sql_command.save.get_team.app_error",
+    "translation": "We couldn't get the commands"
+  },
+  {
+    "id": "store.sql_command.save.saving.app_error",
+    "translation": "We couldn't save the Command"
+  },
+  {
+    "id": "store.sql_command.save.saving_overwrite.app_error",
+    "translation": "You cannot overwrite an existing Command"
+  },
+  {
+    "id": "store.sql_command.save.update.app_error",
+    "translation": "We couldn't update the command"
   },
   {
     "id": "store.sql_oauth.get_access_data.app_error",
@@ -3104,6 +3104,14 @@
     "translation": "Unable to update verify email field"
   },
   {
+    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
+    "translation": "We couldn't count the incoming webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
+    "translation": "We couldn't count the outgoing webhooks"
+  },
+  {
     "id": "store.sql_webhooks.delete_incoming.app_error",
     "translation": "We couldn't delete the webhook"
   },
@@ -3162,14 +3170,6 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "We couldn't update the webhook"
-  },
-  {
-    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "We couldn't count the incoming webhooks"
-  },
-  {
-    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "We couldn't count the outgoing webhooks"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
