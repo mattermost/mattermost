@@ -123,7 +123,7 @@
   "admin.email.pushTitle": "Send Push Notifications: ",
   "admin.email.pushDesc": "Typically set to true in production. When true, Mattermost attempts to send iOS and Android push notifications through the push notification server.",
   "admin.email.pushServerTitle": "Push Notification Server:",
-  "admin.email.pushServerDesc": "Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.",
+  "admin.email.pushServerDesc": "Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use http://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. To troubleshoot, set Log Settings > File Log Level to DEBUG to log sending of push notifications. Please do not use test service for production deployments.",
   "admin.email.save": "Save",
   "admin.gitlab.clientIdExample": "Ex \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
   "admin.gitlab.clientSecretExample": "Ex \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
