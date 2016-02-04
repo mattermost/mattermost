@@ -80,7 +80,7 @@
   "admin.email.connectionSecurityStart": "STARTTLS",
   "admin.email.inviteSaltExample": "Ex \"bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo\"",
   "admin.email.passwordSaltExample": "Ex \"bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo\"",
-  "admin.email.pushServerEx": "E.g.: \"https://push-test.mattermost.com\"",
+  "admin.email.pushServerEx": "E.g.: \"http://push-test.mattermost.com\"",
   "admin.email.testing": "Testing...",
   "admin.email.saving": "Saving Config...",
   "admin.email.emailSuccess": "No errors were reported while sending an email.  Please check your inbox to make sure.",
