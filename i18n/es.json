@@ -612,6 +612,10 @@
     "translation": "La licencia no fue guardada correctamente."
   },
   {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "El ID de la licencia Activa no se guardo apropiadamente."
+  },
+  {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "Esta licencia sólo soporta {{.Users}} usuarios, cuando tu sistema tiene {{.Count}} usuarios únicos. Los usuarios únicos se cuentan por direcciónes de correo electrónico distintas. Puedes ver el totoal de usuarios en REPORTES DEL SITIO -> Ver Estadísticas."
   },
@@ -676,6 +680,14 @@
     "translation": "Error obteniendo el token de acceso desde la BD antes de ser eliminado"
   },
   {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "{{.Usernames}} y {{.LastUsername}} fueron mencionados, pero ellos no pertenecen a este canal."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "{{.Username}} fue mencionado, pero no pertenece a este canal."
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Nombre errado de archivo descartado, archivo=%v"
   },
@@ -702,6 +714,10 @@
   {
     "id": "api.post.delete_post.permissions.app_error",
     "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.regex.error",
+    "translation": "Falla al compilar el regex de la @mencion user_id=%v, err=%v"
   },
   {
     "id": "api.post.get_post.permissions.app_error",
@@ -1748,6 +1764,10 @@
     "translation": "Empresa Habilitada: %v"
   },
   {
+    "id": "mattermost.load_license.find.warn",
+    "translation": "No se encontró una licencia activa"
+  },
+  {
     "id": "mattermost.security_bulletin.error",
     "translation": "Falla al obtener el detalle del boletín de seguridad"
   },
@@ -2642,6 +2662,18 @@
   {
     "id": "store.sql_command.save.update.app_error",
     "translation": "No pudimos actualizar el comando"
+  },
+  {
+    "id": "store.sql_license.get.app_error",
+    "translation": "Encontramos un error al obtener la licencia"
+  },
+  {
+    "id": "store.sql_license.get.missing.app_error",
+    "translation": "No se encontró una licencia con ese ID"
+  },
+  {
+    "id": "store.sql_license.save.app_error",
+    "translation": "Encontramos un error al guardar la licencia"
   },
   {
     "id": "store.sql_oauth.get_access_data.app_error",
