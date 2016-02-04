@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -39,6 +39,7 @@ type Store interface {
 	Webhook() WebhookStore
 	Command() CommandStore
 	Preference() PreferenceStore
+	License() LicenseStore
 	MarkSystemRanUnitTests()
 	Close()
 }
@@ -164,6 +165,7 @@ type OAuthStore interface {
 
 type SystemStore interface {
 	Save(system *model.System) StoreChannel
+	SaveOrUpdate(system *model.System) StoreChannel
 	Update(system *model.System) StoreChannel
 	Get() StoreChannel
 }
@@ -202,4 +204,9 @@ type PreferenceStore interface {
 	GetAll(userId string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	IsFeatureEnabled(feature, userId string) StoreChannel
+}
+
+type LicenseStore interface {
+	Save(license *model.LicenseRecord) StoreChannel
+	Get(id string) StoreChannel
 }

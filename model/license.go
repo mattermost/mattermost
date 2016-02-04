@@ -8,6 +8,12 @@ import (
 	"io"
 )
 
+type LicenseRecord struct {
+	Id       string `json:"id"`
+	CreateAt int64  `json:"create_at"`
+	Bytes    string `json:"-"`
+}
+
 type License struct {
 	Id        string    `json:"id"`
 	IssuedAt  int64     `json:"issued_at"`
@@ -82,4 +88,24 @@ func LicenseFromJson(data io.Reader) *License {
 	} else {
 		return nil
 	}
+}
+
+func (lr *LicenseRecord) IsValid() *AppError {
+	if len(lr.Id) != 26 {
+		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.id.app_error", nil, "")
+	}
+
+	if lr.CreateAt == 0 {
+		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "")
+	}
+
+	if len(lr.Bytes) == 0 || len(lr.Bytes) > 10000 {
+		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "")
+	}
+
+	return nil
+}
+
+func (lr *LicenseRecord) PreSave() {
+	lr.CreateAt = GetMillis()
 }

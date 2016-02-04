@@ -31,3 +31,19 @@ func TestSqlSystemStore(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestSqlSystemStoreSaveOrUpdate(t *testing.T) {
+	Setup()
+
+	system := &model.System{Name: model.NewId(), Value: "value"}
+
+	if err := (<-store.System().SaveOrUpdate(system)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	system.Value = "value2"
+
+	if r := <-store.System().SaveOrUpdate(system); r.Err != nil {
+		t.Fatal(r.Err)
+	}
+}

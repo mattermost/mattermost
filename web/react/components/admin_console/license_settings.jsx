@@ -109,7 +109,17 @@ class LicenseSettings extends React.Component {
             );
             licenseType = (
                 <FormattedHTMLMessage
-                    id='admin.license.entrepriseType'
+                    id='admin.license.enterpriseType'
+                    values={{
+                        terms: global.window.mm_config.TermsOfServiceLink,
+                        name: global.window.mm_license.Name,
+                        company: global.window.mm_license.Company,
+                        users: global.window.mm_license.Users,
+                        issued: Utils.displayDate(parseInt(global.window.mm_license.IssuedAt, 10)) + ' ' + Utils.displayTime(parseInt(global.window.mm_license.IssuedAt, 10), true),
+                        start: Utils.displayDate(parseInt(global.window.mm_license.StartsAt, 10)),
+                        expires: Utils.displayDate(parseInt(global.window.mm_license.ExpiresAt, 10)),
+                        ldap: global.window.mm_license.LDAP
+                    }}
                     defaultMessage='<div><p>This compiled release of Mattermost platform is provided under a <a href="http://mattermost.com" target="_blank">commercial license</a>
                     from Mattermost, Inc. based on your subscription level and is subject to the <a href="{terms}" target="_blank">Terms of Service.</a></p>
                     <p>Your subscription details are as follows:</p>
@@ -126,6 +136,7 @@ class LicenseSettings extends React.Component {
             licenseKey = (
                 <div className='col-sm-8'>
                     <button
+                        disabled={this.props.config.LdapSettings.Enable}
                         className='btn btn-danger'
                         onClick={this.handleRemove}
                         id='remove-button'
@@ -256,7 +267,8 @@ class LicenseSettings extends React.Component {
 }
 
 LicenseSettings.propTypes = {
-    intl: intlShape.isRequired
+    intl: intlShape.isRequired,
+    config: React.PropTypes.object
 };
 
 export default injectIntl(LicenseSettings);

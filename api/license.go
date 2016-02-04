@@ -81,9 +81,24 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := writeFileLocally(data, utils.LicenseLocation()); err != nil {
-			c.LogAudit("failed - could not save license file")
-			c.Err = model.NewLocAppError("addLicense", "api.license.add_license.save.app_error", nil, "path="+utils.LicenseLocation())
+		record := &model.LicenseRecord{}
+		record.Id = license.Id
+		record.Bytes = string(data)
+		rchan := Srv.Store.License().Save(record)
+
+		sysVar := &model.System{}
+		sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
+		sysVar.Value = license.Id
+		schan := Srv.Store.System().SaveOrUpdate(sysVar)
+
+		if result := <-rchan; result.Err != nil {
+			c.Err = model.NewLocAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+result.Err.Error())
+			utils.RemoveLicense()
+			return
+		}
+
+		if result := <-schan; result.Err != nil {
+			c.Err = model.NewLocAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "")
 			utils.RemoveLicense()
 			return
 		}
@@ -100,9 +115,14 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
-	if ok := utils.RemoveLicense(); !ok {
-		c.LogAudit("failed - could not remove license file")
-		c.Err = model.NewLocAppError("removeLicense", "api.license.remove_license.remove.app_error", nil, "")
+	utils.RemoveLicense()
+
+	sysVar := &model.System{}
+	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
+	sysVar.Value = ""
+
+	if result := <-Srv.Store.System().Update(sysVar); result.Err != nil {
+		c.Err = model.NewLocAppError("removeLicense", "api.license.remove_license.update.app_error", nil, "")
 		return
 	}
 

@@ -49,6 +49,7 @@ type SqlStore struct {
 	webhook    WebhookStore
 	command    CommandStore
 	preference PreferenceStore
+	license    LicenseStore
 }
 
 func NewSqlStore() Store {
@@ -103,6 +104,7 @@ func NewSqlStore() Store {
 	sqlStore.webhook = NewSqlWebhookStore(sqlStore)
 	sqlStore.command = NewSqlCommandStore(sqlStore)
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
+	sqlStore.license = NewSqlLicenseStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
@@ -120,6 +122,7 @@ func NewSqlStore() Store {
 	sqlStore.webhook.(*SqlWebhookStore).UpgradeSchemaIfNeeded()
 	sqlStore.command.(*SqlCommandStore).UpgradeSchemaIfNeeded()
 	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
+	sqlStore.license.(*SqlLicenseStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -132,6 +135,7 @@ func NewSqlStore() Store {
 	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
 	sqlStore.command.(*SqlCommandStore).CreateIndexesIfNotExists()
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
+	sqlStore.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -521,6 +525,10 @@ func (ss SqlStore) Command() CommandStore {
 
 func (ss SqlStore) Preference() PreferenceStore {
 	return ss.preference
+}
+
+func (ss SqlStore) License() LicenseStore {
+	return ss.license
 }
 
 type mattermConverter struct{}

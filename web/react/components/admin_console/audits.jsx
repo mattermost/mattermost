@@ -60,8 +60,9 @@ export default class Audits extends React.Component {
                 <div style={{margin: '10px'}}>
                 <AuditTable
                     audits={this.state.audits}
-                    oneLine={true}
                     showUserId={true}
+                    showIp={true}
+                    showSession={true}
                 />
                 </div>
             );
@@ -72,7 +73,7 @@ export default class Audits extends React.Component {
                 <h3>
                     <FormattedMessage
                         id='admin.audits.title'
-                        defaultMessage='Server Audits'
+                        defaultMessage='User Activity'
                     />
                 </h3>
                 <button
