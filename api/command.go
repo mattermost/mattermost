@@ -318,7 +318,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		cmd = result.Data.(*model.Command)
 
-		if c.Session.TeamId != cmd.TeamId && c.Session.UserId != cmd.CreatorId && !c.IsTeamAdmin() {
+		if c.Session.TeamId != cmd.TeamId || (c.Session.UserId != cmd.CreatorId && !c.IsTeamAdmin()) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("regenToken", "api.command.regen.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -364,7 +364,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.TeamId != result.Data.(*model.Command).TeamId && c.Session.UserId != result.Data.(*model.Command).CreatorId && !c.IsTeamAdmin() {
+		if c.Session.TeamId != result.Data.(*model.Command).TeamId || (c.Session.UserId != result.Data.(*model.Command).CreatorId && !c.IsTeamAdmin()) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteCommand", "api.command.delete.app_error", nil, "user_id="+c.Session.UserId)
 			return

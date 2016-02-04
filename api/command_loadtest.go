@@ -327,7 +327,7 @@ func (me *LoadTestProvider) UrlCommand(c *Context, channelId string, message str
 		}
 	}
 
-	return &model.CommandResponse{Text: "Loading url...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{Text: "Loading data...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func parseRange(command string, cmd string) (utils.Range, bool) {

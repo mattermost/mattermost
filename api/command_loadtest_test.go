@@ -197,17 +197,17 @@ func TestLoadTestUrlCommands(t *testing.T) {
 	}
 
 	command = "/loadtest url https://raw.githubusercontent.com/mattermost/platform/master/README.md"
-	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading url..." {
+	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
 		t.Fatal("/loadtest url for README.md should've executed")
 	}
 
 	command = "/loadtest url test-emoticons.md"
-	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading url..." {
+	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
 		t.Fatal("/loadtest url for test-emoticons.md should've executed")
 	}
 
 	command = "/loadtest url test-emoticons"
-	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading url..." {
+	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
 		t.Fatal("/loadtest url for test-emoticons should've executed")
 	}
 

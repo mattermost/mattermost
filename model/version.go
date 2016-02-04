@@ -26,7 +26,6 @@ var versions = []string{
 }
 
 var CurrentVersion string = versions[0]
-
 var BuildNumber = "_BUILD_NUMBER_"
 var BuildDate = "_BUILD_DATE_"
 var BuildHash = "_BUILD_HASH_"

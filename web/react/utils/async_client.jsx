@@ -787,7 +787,6 @@ export function getSuggestedCommands(command, suggestionId, component) {
             });
 
             // pull out the suggested commands from the returned data
-            //const terms = matches.map((suggestion) => suggestion.trigger);
             const terms = matches.map((suggestion) => suggestion.suggestion);
 
             AppDispatcher.handleServerAction({
