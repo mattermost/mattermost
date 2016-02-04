@@ -60,7 +60,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, value := range commandProviders {
 		cpy := *value.GetCommand(c)
 		if cpy.AutoComplete && !seen[cpy.Id] {
-			cpy.Sanatize()
+			cpy.Sanitize()
 			seen[cpy.Trigger] = true
 			commands = append(commands, &cpy)
 		}
@@ -73,7 +73,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		teamCmds := result.Data.([]*model.Command)
 		for _, cmd := range teamCmds {
 			if cmd.AutoComplete && !seen[cmd.Id] {
-				cmd.Sanatize()
+				cmd.Sanitize()
 				seen[cmd.Trigger] = true
 				commands = append(commands, cmd)
 			}
