@@ -918,7 +918,7 @@ class EmailSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.email.pushServerDesc'
-                                    defaultMessage='Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'
+                                    defaultMessage='Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use http://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'
                                 />
                             </p>
                         </div>
