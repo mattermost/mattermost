@@ -59,6 +59,7 @@ class CreateComment extends React.Component {
         this.getFileCount = this.getFileCount.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
+        this.focusTextbox = this.focusTextbox.bind(this);
 
         PostStore.clearCommentDraftUploads();
 
@@ -76,7 +77,7 @@ class CreateComment extends React.Component {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         window.addEventListener('resize', this.handleResize);
 
-        this.refs.textbox.focus();
+        this.focusTextbox();
     }
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
@@ -99,7 +100,7 @@ class CreateComment extends React.Component {
         }
 
         if (prevProps.rootId !== this.props.rootId) {
-            this.refs.textbox.focus();
+            this.focusTextbox();
         }
     }
     handleSubmit(e) {
@@ -226,7 +227,7 @@ class CreateComment extends React.Component {
         }
     }
     handleUploadClick() {
-        this.refs.textbox.focus();
+        this.focusTextbox();
     }
     handleUploadStart(clientIds) {
         let draft = PostStore.getCommentDraft(this.props.rootId);
@@ -238,7 +239,7 @@ class CreateComment extends React.Component {
 
         // this is a bit redundant with the code that sets focus when the file input is clicked,
         // but this also resets the focus after a drag and drop
-        this.refs.textbox.focus();
+        this.focusTextbox();
     }
     handleFileUploadComplete(filenames, clientIds) {
         let draft = PostStore.getCommentDraft(this.props.rootId);
@@ -305,6 +306,11 @@ class CreateComment extends React.Component {
     }
     getFileCount() {
         return this.state.previews.length + this.state.uploadsInProgress.length;
+    }
+    focusTextbox() {
+        if (!Utils.isMobile()) {
+            this.refs.textbox.focus();
+        }
     }
     render() {
         let serverError = null;
