@@ -514,6 +514,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <label className='col-sm-5 control-label'>{usernameLabel}</label>
                     <div className='col-sm-7'>
                         <input
+                            maxLength={Constants.MAX_USERNAME_LENGTH}
                             className='form-control'
                             type='text'
                             onChange={this.updateUsername}
