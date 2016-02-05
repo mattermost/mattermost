@@ -680,12 +680,12 @@
     "translation": "Error getting access token from DB before deletion"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} was mentioned, but they do not belong to this channel."
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned, but they do not belong to this channel."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "{{.Username}} was mentioned, but they do not belong to this channel."
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -1748,10 +1748,6 @@
     "translation": "Unable to get channels"
   },
   {
-    "id": "mattermost.load_license.find.warn",
-    "translation": "Unable to find active license"
-  },
-  {
     "id": "mattermost.bulletin.subject",
     "translation": "Mattermost Security Bulletin"
   },
@@ -1766,6 +1762,10 @@
   {
     "id": "mattermost.entreprise_enabled",
     "translation": "Enterprise Enabled: %v"
+  },
+  {
+    "id": "mattermost.load_license.find.warn",
+    "translation": "Unable to find active license"
   },
   {
     "id": "mattermost.security_bulletin.error",
@@ -2664,6 +2664,18 @@
     "translation": "We couldn't update the command"
   },
   {
+    "id": "store.sql_license.get.app_error",
+    "translation": "We encountered an error getting the license"
+  },
+  {
+    "id": "store.sql_license.get.missing.app_error",
+    "translation": "A license with that ID was not found"
+  },
+  {
+    "id": "store.sql_license.save.app_error",
+    "translation": "We encountered an error saving the license"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "We encountered an error finding the access token"
   },
@@ -2934,18 +2946,6 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "We encountered an error updating the system property"
-  },
-  {
-    "id": "store.sql_license.save.app_error",
-    "translation": "We encountered an error saving the license"
-  },
-  {
-    "id": "store.sql_license.get.app_error",
-    "translation": "We encountered an error getting the license"
-  },
-  {
-    "id": "store.sql_license.get.missing.app_error",
-    "translation": "A license with that ID was not found"
   },
   {
     "id": "store.sql_team.get.find.app_error",
