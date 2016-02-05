@@ -4,6 +4,7 @@
 package api
 
 import (
+	"crypto/tls"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -401,7 +402,11 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 				p.Set("text", post.Message)
 				p.Set("trigger_word", firstWord)
 
-				client := &http.Client{}
+				// accept any TLS certs
+				tr := &http.Transport{
+					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				}
+				client := &http.Client{Transport: tr}
 
 				for _, url := range hook.CallbackURLs {
 					go func(url string) {
