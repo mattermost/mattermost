@@ -39,6 +39,14 @@ const holders = defineMessages({
     adUrlPlaceholder: {
         id: 'user.settings.cmds.url.placeholder',
         defaultMessage: 'Must start with http:// or https://'
+    },
+    autocompleteYes: {
+        id: 'user.settings.cmds.auto_complete.yes',
+        defaultMessage: 'yes'
+    },
+    autocompleteNo: {
+        id: 'user.settings.cmds.auto_complete.no',
+        defaultMessage: 'no'
     }
 });
 
@@ -295,7 +303,7 @@ export default class ManageCommandCmds extends React.Component {
                                 id='user.settings.cmds.auto_complete'
                                 defaultMessage='Auto Complete: '
                             />
-                        </strong><span className='word-break--all'>{cmd.auto_complete ? 'yes' : 'no'}</span>
+                        </strong><span className='word-break--all'>{cmd.auto_complete ? this.props.intl.formatMessage(holders.autocompleteYes) : this.props.intl.formatMessage(holders.autocompleteNo)}</span>
                     </div>
                     <div className='padding-top x2'>
                         <strong>
@@ -414,7 +422,12 @@ export default class ManageCommandCmds extends React.Component {
                     id='user.settings.cmds.add_desc'
                     defaultMessage='Create commands to send message events to an external integration. Please see <a href="http://mattermost.org/commands">http://mattermost.org/commands</a>  to learn more.'
                 />
-                <div><label className='control-label padding-top x2'>{'Add a new command'}</label></div>
+                <div><label className='control-label padding-top x2'>
+                    <FormattedMessage
+                        id='user.settings.cmds.add_new'
+                        defaultMessage='Add a new command'
+                    />
+                </label></div>
                 <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
                     <div className='padding-top x2'>
@@ -433,7 +446,12 @@ export default class ManageCommandCmds extends React.Component {
                                 placeholder={this.props.intl.formatMessage(holders.addDisplayNamePlaceholder)}
                             />
                         </div>
-                        <div className='padding-top'>{'Command display name.'}</div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.cmd_display_name'
+                                defaultMessage='Command display name.'
+                            />
+                        </div>
                     </div>
                     <div className='padding-top x2'>
                         <label className='control-label'>
@@ -638,7 +656,10 @@ export default class ManageCommandCmds extends React.Component {
                             disabled={disableButton}
                             onClick={this.addNewCmd}
                         >
-                            {'Add'}
+                            <FormattedMessage
+                                id='user.settings.cmds.add'
+                                defaultMessage='Add'
+                            />
                         </a>
                     </div>
                 </div>
