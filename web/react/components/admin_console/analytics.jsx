@@ -1,7 +1,6 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Utils from '../../utils/utils.jsx';
 import Constants from '../../utils/constants.jsx';
 import LineChart from './line_chart.jsx';
 import DoughnutChart from './doughnut_chart.jsx';
@@ -10,7 +9,7 @@ import StatisticCount from './statistic_count.jsx';
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedDate} from 'mm-intl';
 
 const holders = defineMessages({
     analyticsTotalUsers: {
@@ -324,7 +323,17 @@ export default class Analytics extends React.Component {
                                                     </time>
                                                 </OverlayTrigger>
                                             </td>
-                                            <td>{Utils.displayDateTime(user.last_activity_at)}</td>
+                                            <td>
+                                                <FormattedDate
+                                                    value={user.last_activity_at}
+                                                    day='numeric'
+                                                    month='long'
+                                                    year='numeric'
+                                                    hour12={true}
+                                                    hour='2-digit'
+                                                    minute='2-digit'
+                                                />
+                                            </td>
                                         </tr>
                                     );
                                 })
@@ -380,7 +389,17 @@ export default class Analytics extends React.Component {
                                                     </time>
                                                 </OverlayTrigger>
                                             </td>
-                                            <td>{Utils.displayDateTime(user.create_at)}</td>
+                                            <td>
+                                                <FormattedDate
+                                                    value={user.create_at}
+                                                    day='numeric'
+                                                    month='long'
+                                                    year='numeric'
+                                                    hour12={true}
+                                                    hour='2-digit'
+                                                    minute='2-digit'
+                                                />
+                                            </td>
                                         </tr>
                                     );
                                 })
