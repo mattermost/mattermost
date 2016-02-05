@@ -20,6 +20,14 @@
 
 .post-body--code {
 	position: relative;
+
+	pre {
+		margin-bottom: 0;
+		word-break: normal;
+		overflow: auto;
+		word-wrap: normal;
+	}
+
 }
 
 .post-body--code__language {
@@ -43,7 +51,7 @@
 		@include opacity(0.2);
 	}
 	code {
-		white-space: pre-line;
+		white-space: pre;
 	}
 }
 .markdown__table {

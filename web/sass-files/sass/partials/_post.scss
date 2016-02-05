@@ -647,10 +647,26 @@ body.ios {
 	}
 
 	.post__remove {
+		font-family: 'Open Sans', sans-serif;
+		position: relative;
 		display: inline-block;
+		vertical-align: top;
+		right: 15px;
+		top: -5px;
+		font-size: 20px;
+		width: 20px;
+		height: 20px;
+		line-height: 20px;
+		font-weight: 600;
 		visibility: hidden;
-		margin-right: 5px;
-		top: -1px;
+		color: inherit;
+		@include opacity(0.5);
+		text-decoration: none;
+
+		&:hover {
+			@include opacity(0.8);
+		}
+
 	}
 
 	.post__body {
