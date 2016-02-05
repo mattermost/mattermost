@@ -537,16 +537,10 @@ export default class ManageCommandCmds extends React.Component {
                                     onChange={this.updateAutoComplete}
                                 />
                                 <FormattedMessage
-                                    id='user.settings.cmds.auto_complete_desc_desc'
-                                    defaultMessage='A short description of what this commands does'
+                                    id='user.settings.cmds.auto_complete_help'
+                                    defaultMessage='Show this command in autocomplete list'
                                 />
                             </label>
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_help'
-                                defaultMessage='Show this command in autocomplete list.'
-                            />
                         </div>
                     </div>
                     <div className='padding-top x2'>
@@ -563,12 +557,6 @@ export default class ManageCommandCmds extends React.Component {
                                 value={this.state.cmd.auto_complete_desc}
                                 onChange={this.updateAutoCompleteDesc}
                                 placeholder={this.props.intl.formatMessage(holders.addAutoCompleteDescPlaceholder)}
-                            />
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_desc_desc'
-                                defaultMessage='A short description of what this commands does'
                             />
                         </div>
                     </div>

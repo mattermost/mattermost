@@ -214,12 +214,15 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 			c.Err = model.NewLocAppError("command", "api.command.execute_command.save.app_error", nil, "")
 		}
 	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
-		// post := &model.Post{}
-		// post.ChannelId = channelId
-		// post.Message = "TODO_EPHEMERAL: " + response.Text
-		// if _, err := CreatePost(c, post, true); err != nil {
-		// 	c.Err = model.NewLocAppError("command", "api.command.execute_command.save.app_error", nil, "")
-		// }
+		post := &model.Post{}
+		post.ChannelId = channelId
+		post.Message = response.Text
+		post.CreateAt = model.GetMillis()
+		SendEphemeralPost(
+			c.Session.TeamId,
+			c.Session.UserId,
+			post,
+		)
 	}
 
 	w.Write([]byte(response.ToJson()))
