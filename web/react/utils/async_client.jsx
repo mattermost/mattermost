@@ -789,14 +789,16 @@ export function getSuggestedCommands(command, suggestionId, component) {
             // pull out the suggested commands from the returned data
             const terms = matches.map((suggestion) => suggestion.suggestion);
 
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
-                id: suggestionId,
-                matchedPretext: command,
-                terms,
-                items: matches,
-                component
-            });
+            if (terms.length > 0) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                    id: suggestionId,
+                    matchedPretext: command,
+                    terms,
+                    items: matches,
+                    component
+                });
+            }
         },
         (err) => {
             dispatchError(err, 'getCommandSuggestions');

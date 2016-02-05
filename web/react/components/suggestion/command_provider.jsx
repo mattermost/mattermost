@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import * as AsyncClient from '../../utils/async_client.jsx';
-import SuggestionStore from '../../stores/suggestion_store.jsx';
 
 class CommandSuggestion extends React.Component {
     render() {
@@ -38,8 +37,6 @@ CommandSuggestion.propTypes = {
 export default class CommandProvider {
     handlePretextChanged(suggestionId, pretext) {
         if (pretext.startsWith('/')) {
-            SuggestionStore.setMatchedPretext(suggestionId, pretext);
-
             AsyncClient.getSuggestedCommands(pretext, suggestionId, CommandSuggestion);
         }
     }
