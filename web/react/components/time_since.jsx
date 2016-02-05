@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import Constants from '../utils/constants.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 import {FormattedRelative, FormattedDate} from 'mm-intl';
 
@@ -24,7 +25,7 @@ export default class TimeSince extends React.Component {
         if (this.props.sameUser) {
             return (
                 <time className='post__time'>
-                    <FormattedRelative value={this.props.eventTime} />
+                    {Utils.displayTimeFormatted(this.props.eventTime)}
                 </time>
             );
         }

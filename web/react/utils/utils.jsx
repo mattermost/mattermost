@@ -14,6 +14,8 @@ import * as AsyncClient from './async_client.jsx';
 import * as client from './client.jsx';
 import Autolinker from 'autolinker';
 
+import {FormattedTime} from 'mm-intl';
+
 export function isEmail(email) {
     // writing a regex to match all valid email addresses is really, really hard (see http://stackoverflow.com/a/201378)
     // so we just do a simple check and rely on a verification email to tell if it's a real address
@@ -243,6 +245,19 @@ export function displayTime(ticks, utc) {
     }
 
     return hours + ':' + minutes + ampm + timezone;
+}
+
+export function displayTimeFormatted(ticks) {
+    const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
+
+    return (
+        <FormattedTime
+            value={ticks}
+            hour='numeric'
+            minute='numeric'
+            hour12={!useMilitaryTime}
+        />
+    );
 }
 
 export function displayDateTime(ticks) {
