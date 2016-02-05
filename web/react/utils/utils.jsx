@@ -211,7 +211,43 @@ export function displayDate(ticks) {
     return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
 
-export function displayTime(ticks) {
+export function displayTime(ticks, utc) {
+    const d = new Date(ticks);
+    let hours;
+    let minutes;
+    let ampm = '';
+    let timezone = '';
+
+    if (utc) {
+        hours = d.getUTCHours();
+        minutes = d.getUTCMinutes();
+        timezone = ' UTC';
+    } else {
+        hours = d.getHours();
+        minutes = d.getMinutes();
+    }
+
+    if (minutes <= 9) {
+        minutes = '0' + minutes;
+    }
+
+    const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
+    if (!useMilitaryTime) {
+        ampm = ' AM';
+        if (hours >= 12) {
+            ampm = ' PM';
+        }
+
+        hours = hours % 12;
+        if (!hours) {
+            hours = '12';
+        }
+    }
+
+    return hours + ':' + minutes + ampm + timezone;
+}
+
+export function displayTimeFormatted(ticks) {
     const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
 
     return (

@@ -25,7 +25,7 @@ export default class TimeSince extends React.Component {
         if (this.props.sameUser) {
             return (
                 <time className='post__time'>
-                    {Utils.displayTime(this.props.eventTime)}
+                    {Utils.displayTimeFormatted(this.props.eventTime)}
                 </time>
             );
         }
