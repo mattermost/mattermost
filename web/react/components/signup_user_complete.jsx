@@ -303,7 +303,7 @@ class SignupUserComplete extends React.Component {
                                     ref='name'
                                     className='form-control'
                                     placeholder=''
-                                    maxLength='128'
+                                    maxLength={Constants.MAX_USERNAME_LENGTH}
                                     spellCheck='false'
                                 />
                                 {nameError}
