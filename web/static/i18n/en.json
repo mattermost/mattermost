@@ -365,6 +365,8 @@
   "admin.service.developerDesc": "(Developer Option) When true, extra information around errors will be displayed in the UI.",
   "admin.service.securityTitle": "Enable Security Alerts: ",
   "admin.service.securityDesc": "When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.",
+  "admin.service.insecureTlsTitle": "Enable Insecure Outgoing Connections: ",
+  "admin.service.insecureTlsDesc": "When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.",
   "admin.service.webSessionDays": "Session Length for Web in Days:",
   "admin.service.webSessionDaysDesc": "The web session will expire after the number of days specified and will require a user to login again.",
   "admin.service.mobileSessionDays": "Session Length for Mobile Device in Days:",
