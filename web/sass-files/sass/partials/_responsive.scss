@@ -60,6 +60,11 @@
 
         &.move--left {
             @include translateX(0);
+
+            .search-bar__container {
+                padding-right: 8px;
+            }
+
         }
 
     }
@@ -68,6 +73,13 @@
 
         &.move--left {
             margin-right: 0;
+
+            .channel-header__links {
+                position: relative;
+                right: auto;
+                top: auto;
+            }
+
         }
 
     }

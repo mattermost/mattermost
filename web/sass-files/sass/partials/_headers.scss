@@ -298,8 +298,13 @@
 	height: 30px;
 	width: 24px;
 	line-height: 26px;
-	margin-right: 10px;
+	margin-right: 9px;
 	font-size: 22px;
+	.channel__wrap.move--left & {
+		position: absolute;
+		right: -400px;
+		top: 14px;
+	}
 	> a {
 		color: inherit;
 		text-decoration: none;

@@ -75,10 +75,12 @@ export default class Analytics extends React.Component {
         }
 
         let loading = (
-            <FormattedMessage
-                id='admin.analytics.loading'
-                defaultMessage='Loading...'
-            />
+            <h5>
+                <FormattedMessage
+                    id='admin.analytics.loading'
+                    defaultMessage='Loading...'
+                />
+            </h5>
         );
 
         let firstRow;

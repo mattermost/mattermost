@@ -419,7 +419,7 @@ export default class ChannelHeader extends React.Component {
                                         </ul>
                                     </div>
                                     <OverlayTrigger
-                                        trigger={['hover', 'focus']}
+                                        trigger={'click'}
                                         placement='bottom'
                                         overlay={popoverContent}
                                         ref='headerOverlay'
