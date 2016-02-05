@@ -52,6 +52,8 @@ func InitCommand(r *mux.Router) {
 
 	sr.Handle("/test", ApiAppHandler(testCommand)).Methods("POST")
 	sr.Handle("/test", ApiAppHandler(testCommand)).Methods("GET")
+	sr.Handle("/test_e", ApiAppHandler(testEphemeralCommand)).Methods("POST")
+	sr.Handle("/test_e", ApiAppHandler(testEphemeralCommand)).Methods("GET")
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -107,9 +109,8 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	provider := GetCommandProvider(trigger)
 
 	if provider != nil {
-
 		response := provider.DoCommand(c, channelId, message)
-		handleResponse(c, w, response, channelId)
+		handleResponse(c, w, response, channelId, provider.GetCommand(c))
 		return
 	} else {
 		chanChan := Srv.Store.Channel().Get(channelId)
@@ -187,7 +188,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 							if response == nil {
 								c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "")
 							} else {
-								handleResponse(c, w, response, channelId)
+								handleResponse(c, w, response, channelId, cmd)
 							}
 						} else {
 							body, _ := ioutil.ReadAll(resp.Body)
@@ -205,17 +206,34 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Err = model.NewLocAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "")
 }
 
-func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, channelId string) {
+func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, channelId string, cmd *model.Command) {
+
+	post := &model.Post{}
+	post.ChannelId = channelId
+	post.AddProp("from_webhook", "true")
+
+	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
+		if len(cmd.Username) != 0 {
+			post.AddProp("override_username", cmd.Username)
+		} else {
+			post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
+		}
+	}
+
+	if utils.Cfg.ServiceSettings.EnablePostIconOverride {
+		if len(cmd.IconURL) != 0 {
+			post.AddProp("override_icon_url", cmd.IconURL)
+		} else {
+			post.AddProp("override_icon_url", model.DEFAULT_WEBHOOK_ICON)
+		}
+	}
+
 	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
-		post := &model.Post{}
-		post.ChannelId = channelId
 		post.Message = response.Text
 		if _, err := CreatePost(c, post, true); err != nil {
 			c.Err = model.NewLocAppError("command", "api.command.execute_command.save.app_error", nil, "")
 		}
 	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
-		post := &model.Post{}
-		post.ChannelId = channelId
 		post.Message = response.Text
 		post.CreateAt = model.GetMillis()
 		SendEphemeralPost(
@@ -398,6 +416,26 @@ func testCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	rc := &model.CommandResponse{
 		Text:         "test command response " + msg,
 		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+	}
+
+	w.Write([]byte(rc.ToJson()))
+}
+
+func testEphemeralCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	msg := ""
+	if r.Method == "POST" {
+		msg = msg + "\ntoken=" + r.FormValue("token")
+		msg = msg + "\nteam_domain=" + r.FormValue("team_domain")
+	} else {
+		body, _ := ioutil.ReadAll(r.Body)
+		msg = string(body)
+	}
+
+	rc := &model.CommandResponse{
+		Text:         "test command response " + msg,
+		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 	}
 
 	w.Write([]byte(rc.ToJson()))
