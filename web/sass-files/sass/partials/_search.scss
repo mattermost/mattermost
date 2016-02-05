@@ -1,11 +1,14 @@
 @charset "UTF-8";
 
 #channel-header .search-bar__container {
-	padding: 0 8px 0 3px;
+	padding: 0 9px 0 3px;
 }
 .search-bar__container {
 	padding: 12px 8px 0 0;
 	@include flex(0 0 56px);
+	.sidebar--right.move--left & {
+		padding-right: 42px;
+	}
 }
 .search__clear {
 	display: none;
