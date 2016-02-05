@@ -222,7 +222,7 @@ class CustomThemeChooser extends React.Component {
             } else {
                 elements.push(
                     <div
-                        className='col-sm-4 form-group'
+                        className='col-sm-4 form-group element'
                         key={'custom-theme-key' + index}
                     >
                         <label className='custom-label'>{formatMessage(messages[element.id])}</label>
@@ -265,8 +265,8 @@ class CustomThemeChooser extends React.Component {
         );
 
         return (
-            <div>
-                <div className='row form-group'>
+            <div className='appearance-section'>
+                <div className='theme-elements row form-group'>
                     {elements}
                 </div>
                 <div className='row'>

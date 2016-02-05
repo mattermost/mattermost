@@ -2,9 +2,13 @@
 // See License.txt for license information.
 
 import ConfirmModal from '../confirm_modal.jsx';
-const Modal = ReactBootstrap.Modal;
-import SettingsSidebar from '../settings_sidebar.jsx';
 import UserSettings from './user_settings.jsx';
+import SettingsSidebar from '../settings_sidebar.jsx';
+
+import UserStore from '../../stores/user_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
+
+const Modal = ReactBootstrap.Modal;
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
@@ -20,10 +24,6 @@ const holders = defineMessages({
     notifications: {
         id: 'user.settings.modal.notifications',
         defaultMessage: 'Notifications'
-    },
-    appearance: {
-        id: 'user.settings.modal.appearance',
-        defaultMessage: 'Appearance'
     },
     developer: {
         id: 'user.settings.modal.developer',
@@ -214,6 +214,10 @@ class UserSettingsModal extends React.Component {
         if (!skipConfirm && this.requireConfirm) {
             this.showConfirmModal(() => this.updateSection(section, true));
         } else {
+            if (this.state.active_section === 'theme' && section !== 'theme') {
+                const user = UserStore.getCurrentUser();
+                Utils.applyTheme(user.theme_props);
+            }
             this.setState({active_section: section});
         }
     }
@@ -224,7 +228,6 @@ class UserSettingsModal extends React.Component {
         tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'glyphicon glyphicon-cog'});
         tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'glyphicon glyphicon-lock'});
         tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'glyphicon glyphicon-exclamation-sign'});
-        tabs.push({name: 'appearance', uiName: formatMessage(holders.appearance), icon: 'glyphicon glyphicon-wrench'});
         if (global.window.mm_config.EnableOAuthServiceProvider === 'true') {
             tabs.push({name: 'developer', uiName: formatMessage(holders.developer), icon: 'glyphicon glyphicon-th'});
         }
