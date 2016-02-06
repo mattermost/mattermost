@@ -248,8 +248,14 @@ function autolinkHashtags(text, tokens) {
         const index = tokens.size;
         const alias = `MM_HASHTAG${index}`;
 
+        let value = hashtag;
+
+        if (hashtag.length > Constants.MIN_HASHTAG_LINK_LENGTH) {
+            value = `<a class='mention-link' href='#' data-hashtag='${hashtag}'>${hashtag}</a>`;
+        }
+
         tokens.set(alias, {
-            value: `<a class='mention-link' href='#' data-hashtag='${hashtag}'>${hashtag}</a>`,
+            value,
             originalText: hashtag
         });
 
