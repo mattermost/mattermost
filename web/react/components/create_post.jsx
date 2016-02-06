@@ -63,6 +63,7 @@ class CreatePost extends React.Component {
         this.getFileCount = this.getFileCount.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
+        this.focusTextbox = this.focusTextbox.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -193,6 +194,11 @@ class CreatePost extends React.Component {
             }
         );
     }
+    focusTextbox() {
+        if (!Utils.isMobile()) {
+            this.refs.textbox.focus();
+        }
+    }
     postMsgKeyPress(e) {
         if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
@@ -216,7 +222,7 @@ class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
     }
     handleUploadClick() {
-        this.refs.textbox.focus();
+        this.focusTextbox();
     }
     handleUploadStart(clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
@@ -228,7 +234,7 @@ class CreatePost extends React.Component {
 
         // this is a bit redundant with the code that sets focus when the file input is clicked,
         // but this also resets the focus after a drag and drop
-        this.refs.textbox.focus();
+        this.focusTextbox();
     }
     handleFileUploadComplete(filenames, clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
@@ -305,11 +311,12 @@ class CreatePost extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-        this.refs.textbox.focus();
+
+        this.focusTextbox();
     }
     componentDidUpdate(prevProps, prevState) {
         if (prevState.channelId !== this.state.channelId) {
-            this.refs.textbox.focus();
+            this.focusTextbox();
         }
     }
     componentWillUnmount() {
