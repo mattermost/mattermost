@@ -216,7 +216,9 @@ class UserSettingsModal extends React.Component {
         } else {
             if (this.state.active_section === 'theme' && section !== 'theme') {
                 const user = UserStore.getCurrentUser();
-                Utils.applyTheme(user.theme_props);
+                if (user.theme_props != null) {
+                    Utils.applyTheme(user.theme_props);
+                }
             }
             this.setState({active_section: section});
         }
