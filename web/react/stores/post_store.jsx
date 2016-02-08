@@ -376,15 +376,16 @@ class PostStoreClass extends EventEmitter {
     }
 
     storePendingPost(post) {
-        post.state = Constants.POST_LOADING;
+        const copyPost = JSON.parse(JSON.stringify(post));
+        copyPost.state = Constants.POST_LOADING;
 
-        const postList = makePostListNonNull(this.getPendingPosts(post.channel_id));
+        const postList = makePostListNonNull(this.getPendingPosts(copyPost.channel_id));
 
-        postList.posts[post.pending_post_id] = post;
-        postList.order.unshift(post.pending_post_id);
+        postList.posts[copyPost.pending_post_id] = copyPost;
+        postList.order.unshift(copyPost.pending_post_id);
 
-        this.makePostsInfo(post.channel_id);
-        this.postsInfo[post.channel_id].pendingPosts = postList;
+        this.makePostsInfo(copyPost.channel_id);
+        this.postsInfo[copyPost.channel_id].pendingPosts = postList;
         this.emitChange();
     }
 
@@ -410,14 +411,15 @@ class PostStoreClass extends EventEmitter {
     }
 
     updatePendingPost(post) {
-        const postList = makePostListNonNull(this.getPendingPosts(post.channel_id));
+        const copyPost = JSON.parse(JSON.stringify(post));
+        const postList = makePostListNonNull(this.getPendingPosts(copyPost.channel_id));
 
-        if (postList.order.indexOf(post.pending_post_id) === -1) {
+        if (postList.order.indexOf(copyPost.pending_post_id) === -1) {
             return;
         }
 
-        postList.posts[post.pending_post_id] = post;
-        this.postsInfo[post.channel_id].pendingPosts = postList;
+        postList.posts[copyPost.pending_post_id] = copyPost;
+        this.postsInfo[copyPost.channel_id].pendingPosts = postList;
         this.emitChange();
     }
 
