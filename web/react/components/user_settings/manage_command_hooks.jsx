@@ -530,17 +530,19 @@ export default class ManageCommandCmds extends React.Component {
                             />
                         </label>
                         <div className='padding-top'>
-                            <label>
-                                <input
-                                    type='checkbox'
-                                    checked={this.state.cmd.auto_complete}
-                                    onChange={this.updateAutoComplete}
-                                />
-                                <FormattedMessage
-                                    id='user.settings.cmds.auto_complete_help'
-                                    defaultMessage='Show this command in autocomplete list'
-                                />
-                            </label>
+                            <div className='checkbox'>
+                                <label>
+                                    <input
+                                        type='checkbox'
+                                        checked={this.state.cmd.auto_complete}
+                                        onChange={this.updateAutoComplete}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.cmds.auto_complete_help'
+                                        defaultMessage=' Show this command in autocomplete list'
+                                    />
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div className='padding-top x2'>
@@ -637,7 +639,7 @@ export default class ManageCommandCmds extends React.Component {
                         </div>
                         {addError}
                     </div>
-                    <div className='padding-top padding-bottom'>
+                    <div className='padding-top x2 padding-bottom'>
                         <a
                             className={'btn btn-sm btn-primary'}
                             href='#'

@@ -570,11 +570,20 @@ body.ios {
 
 		li {
 			display: inline-block;
+			vertical-align: top;
 		}
 
 		.col__name {
 			margin-right: 7px;
 			font-weight: 600;
+
+			.user-popover {
+				max-width: 130px;
+				@include clearfix;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
 		}
 
 		.col__reply {
