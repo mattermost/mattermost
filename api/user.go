@@ -31,6 +31,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func InitUser(r *mux.Router) {
@@ -633,12 +634,14 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	}
 
 	multiToken = strings.TrimSpace(multiToken + " " + session.Token)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 
 	multiSessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    multiToken,
 		Path:     "/",
 		MaxAge:   maxAge,
+		Expires:  expiresAt,
 		HttpOnly: true,
 	}
 
