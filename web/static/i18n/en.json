@@ -148,7 +148,6 @@
   "admin.gitlab.userTitle": "User API Endpoint:",
   "admin.gitlab.userDescription": "Enter https://<your-gitlab-url>/api/v3/user.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.",
   "admin.gitlab.save": "Save",
-  "admin.image.storeDisabled": "Disable File Storage",
   "admin.image.storeLocal": "Local File System",
   "admin.image.storeAmazonS3": "Amazon S3",
   "admin.image.localExample": "Ex \"./data/\"",
