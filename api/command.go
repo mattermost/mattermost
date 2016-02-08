@@ -4,6 +4,7 @@
 package api
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -173,7 +174,11 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 						method = "GET"
 					}
 
-					client := &http.Client{}
+					tr := &http.Transport{
+						TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+					}
+					client := &http.Client{Transport: tr}
+
 					req, _ := http.NewRequest(method, cmd.URL, strings.NewReader(p.Encode()))
 					req.Header.Set("Accept", "application/json")
 					if cmd.Method == model.COMMAND_METHOD_POST {

@@ -75,6 +75,7 @@ class ServiceSettings extends React.Component {
         config.ServiceSettings.EnableTesting = ReactDOM.findDOMNode(this.refs.EnableTesting).checked;
         config.ServiceSettings.EnableDeveloper = ReactDOM.findDOMNode(this.refs.EnableDeveloper).checked;
         config.ServiceSettings.EnableSecurityFixAlert = ReactDOM.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
+        config.ServiceSettings.EnableInsecureOutgoingConnections = ReactDOM.findDOMNode(this.refs.EnableInsecureOutgoingConnections).checked;
         config.ServiceSettings.EnableCommands = ReactDOM.findDOMNode(this.refs.EnableCommands).checked;
         config.ServiceSettings.EnableOnlyAdminIntegrations = ReactDOM.findDOMNode(this.refs.EnableOnlyAdminIntegrations).checked;
 
@@ -712,6 +713,53 @@ class ServiceSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.service.securityDesc'
                                     defaultMessage='When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableInsecureOutgoingConnections'
+                        >
+                            <FormattedMessage
+                                id='admin.service.insecureTlsTitle'
+                                defaultMessage='Enable Insecure Outgoing Connections: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableInsecureOutgoingConnections'
+                                    value='true'
+                                    ref='EnableInsecureOutgoingConnections'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableInsecureOutgoingConnections}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.true'
+                                        defaultMessage='true'
+                                    />
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableInsecureOutgoingConnections'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableInsecureOutgoingConnections}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.false'
+                                        defaultMessage='false'
+                                    />
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.service.insecureTlsDesc'
+                                    defaultMessage='When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.'
                                 />
                             </p>
                         </div>

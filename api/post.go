@@ -4,6 +4,7 @@
 package api
 
 import (
+	"crypto/tls"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -401,7 +402,10 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 				p.Set("text", post.Message)
 				p.Set("trigger_word", firstWord)
 
-				client := &http.Client{}
+				tr := &http.Transport{
+					TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+				}
+				client := &http.Client{Transport: tr}
 
 				for _, url := range hook.CallbackURLs {
 					go func(url string) {
@@ -682,7 +686,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 								msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
 							}
 
-							httpClient := http.Client{}
+							tr := &http.Transport{
+								TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+							}
+							httpClient := &http.Client{Transport: tr}
 							request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+"/api/v1/send_push", strings.NewReader(msg.ToJson()))
 
 							l4g.Debug(utils.T("api.post.send_notifications_and_forget.push_notification.debug"), msg.DeviceId, msg.Message)

@@ -24,26 +24,27 @@ const (
 )
 
 type ServiceSettings struct {
-	ListenAddress               string
-	MaximumLoginAttempts        int
-	SegmentDeveloperKey         string
-	GoogleDeveloperKey          string
-	EnableOAuthServiceProvider  bool
-	EnableIncomingWebhooks      bool
-	EnableOutgoingWebhooks      bool
-	EnableCommands              *bool
-	EnableOnlyAdminIntegrations *bool
-	EnablePostUsernameOverride  bool
-	EnablePostIconOverride      bool
-	EnableTesting               bool
-	EnableDeveloper             *bool
-	EnableSecurityFixAlert      *bool
-	SessionLengthWebInDays      *int
-	SessionLengthMobileInDays   *int
-	SessionLengthSSOInDays      *int
-	SessionCacheInMinutes       *int
-	WebsocketSecurePort         *int
-	WebsocketPort               *int
+	ListenAddress                     string
+	MaximumLoginAttempts              int
+	SegmentDeveloperKey               string
+	GoogleDeveloperKey                string
+	EnableOAuthServiceProvider        bool
+	EnableIncomingWebhooks            bool
+	EnableOutgoingWebhooks            bool
+	EnableCommands                    *bool
+	EnableOnlyAdminIntegrations       *bool
+	EnablePostUsernameOverride        bool
+	EnablePostIconOverride            bool
+	EnableTesting                     bool
+	EnableDeveloper                   *bool
+	EnableSecurityFixAlert            *bool
+	EnableInsecureOutgoingConnections *bool
+	SessionLengthWebInDays            *int
+	SessionLengthMobileInDays         *int
+	SessionLengthSSOInDays            *int
+	SessionCacheInMinutes             *int
+	WebsocketSecurePort               *int
+	WebsocketPort                     *int
 }
 
 type SSOSettings struct {
@@ -164,7 +165,7 @@ type LdapSettings struct {
 	UsernameAttribute  *string
 	IdAttribute        *string
 
-	// Advansed
+	// Advanced
 	QueryTimeout *int
 }
 
@@ -250,6 +251,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableSecurityFixAlert == nil {
 		o.ServiceSettings.EnableSecurityFixAlert = new(bool)
 		*o.ServiceSettings.EnableSecurityFixAlert = true
+	}
+
+	if o.ServiceSettings.EnableInsecureOutgoingConnections == nil {
+		o.ServiceSettings.EnableInsecureOutgoingConnections = new(bool)
+		*o.ServiceSettings.EnableInsecureOutgoingConnections = false
 	}
 
 	if o.TeamSettings.RestrictTeamNames == nil {

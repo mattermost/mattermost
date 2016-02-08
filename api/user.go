@@ -5,6 +5,7 @@ package api
 
 import (
 	"bytes"
+	"crypto/tls"
 	b64 "encoding/base64"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
@@ -1960,7 +1961,10 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	p.Set("redirect_uri", redirectUri)
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+	}
+	client := &http.Client{Transport: tr}
 	req, _ := http.NewRequest("POST", sso.TokenEndpoint, strings.NewReader(p.Encode()))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
