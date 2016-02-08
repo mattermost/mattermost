@@ -392,6 +392,10 @@ export function areObjectsEqual(x, y) {
         return x.toString() === y.toString();
     }
 
+    if (x instanceof Map && y instanceof Map) {
+        return areMapsEqual(x, y);
+    }
+
     // At last checking prototypes as good a we can
     if (!(x instanceof Object && y instanceof Object)) {
         return false;
@@ -450,6 +454,24 @@ export function areObjectsEqual(x, y) {
                 return false;
             }
             break;
+        }
+    }
+
+    return true;
+}
+
+export function areMapsEqual(a, b) {
+    if (a.size !== b.size) {
+        return false;
+    }
+
+    for (const [key, value] of a) {
+        if (!b.has(key)) {
+            return false;
+        }
+
+        if (!areObjectsEqual(value, b.get(key))) {
+            return false;
         }
     }
 
