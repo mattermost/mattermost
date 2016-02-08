@@ -49,7 +49,7 @@ class FileStore extends EventEmitter {
         const action = payload.action;
 
         switch (action.type) {
-        case ActionTypes.RECIEVED_FILE_INFO:
+        case ActionTypes.RECEIVED_FILE_INFO:
             this.setInfo(action.filename, action.info);
             this.emitChange(action.filename);
             break;

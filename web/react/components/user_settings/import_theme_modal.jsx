@@ -84,7 +84,7 @@ class ImportThemeModal extends React.Component {
         Client.updateUser(user,
             (data) => {
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_ME,
+                    type: ActionTypes.RECEIVED_ME,
                     me: data
                 });
 

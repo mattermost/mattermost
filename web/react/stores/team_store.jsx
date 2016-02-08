@@ -116,7 +116,7 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_TEAM:
+    case ActionTypes.RECEIVED_TEAM:
         TeamStore.saveTeam(action.team);
         TeamStore.emitChange();
         break;

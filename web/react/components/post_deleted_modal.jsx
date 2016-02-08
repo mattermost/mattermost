@@ -24,19 +24,19 @@ export default class PostDeletedModal extends React.Component {
     }
     handleClose() {
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_SEARCH,
+            type: ActionTypes.RECEIVED_SEARCH,
             results: null
         });
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_SEARCH_TERM,
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
             term: null,
             do_search: false,
             is_mention_search: false
         });
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_POST_SELECTED,
+            type: ActionTypes.RECEIVED_POST_SELECTED,
             results: null
         });
     }

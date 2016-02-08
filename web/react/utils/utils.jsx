@@ -490,7 +490,7 @@ export function insertHtmlEntities(text) {
 
 export function searchForTerm(term) {
     AppDispatcher.handleServerAction({
-        type: ActionTypes.RECIEVED_SEARCH_TERM,
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
         term: term,
         do_search: true
     });

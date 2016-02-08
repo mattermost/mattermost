@@ -540,23 +540,23 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_POSTS: {
+    case ActionTypes.RECEIVED_POSTS: {
         const id = PostStore.currentFocusedPostId == null ? action.id : PostStore.currentFocusedPostId;
         PostStore.checkBounds(id, action.numRequested, makePostListNonNull(action.post_list), action.before);
         PostStore.storePosts(id, makePostListNonNull(action.post_list));
         PostStore.emitChange();
         break;
     }
-    case ActionTypes.RECIEVED_FOCUSED_POST:
+    case ActionTypes.RECEIVED_FOCUSED_POST:
         PostStore.clearChannelVisibility(action.postId, false);
         PostStore.storeFocusedPost(action.postId, makePostListNonNull(action.post_list));
         PostStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_POST:
+    case ActionTypes.RECEIVED_POST:
         PostStore.storePost(action.post);
         PostStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_EDIT_POST:
+    case ActionTypes.RECEIVED_EDIT_POST:
         PostStore.emitEditPost(action);
         PostStore.emitChange();
         break;
@@ -577,7 +577,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         PostStore.removePost(action.post);
         PostStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_POST_SELECTED:
+    case ActionTypes.RECEIVED_POST_SELECTED:
         PostStore.storeSelectedPost(action.post_list);
         PostStore.emitSelectedPostChange(action.from_search);
         break;

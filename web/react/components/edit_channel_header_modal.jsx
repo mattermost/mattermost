@@ -68,7 +68,7 @@ class EditChannelHeaderModal extends React.Component {
                 this.onHide();
 
                 AppDispatcher.handleServerAction({
-                    type: Constants.ActionTypes.RECIEVED_CHANNEL,
+                    type: Constants.ActionTypes.RECEIVED_CHANNEL,
                     channel
                 });
             },

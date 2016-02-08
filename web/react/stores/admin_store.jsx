@@ -135,19 +135,19 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_LOGS:
+    case ActionTypes.RECEIVED_LOGS:
         AdminStore.saveLogs(action.logs);
         AdminStore.emitLogChange();
         break;
-    case ActionTypes.RECIEVED_SERVER_AUDITS:
+    case ActionTypes.RECEIVED_SERVER_AUDITS:
         AdminStore.saveAudits(action.audits);
         AdminStore.emitAuditChange();
         break;
-    case ActionTypes.RECIEVED_CONFIG:
+    case ActionTypes.RECEIVED_CONFIG:
         AdminStore.saveConfig(action.config);
         AdminStore.emitConfigChange();
         break;
-    case ActionTypes.RECIEVED_ALL_TEAMS:
+    case ActionTypes.RECEIVED_ALL_TEAMS:
         AdminStore.saveAllTeams(action.teams);
         AdminStore.emitAllTeamsChange();
         break;

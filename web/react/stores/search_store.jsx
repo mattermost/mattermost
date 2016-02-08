@@ -119,11 +119,11 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_SEARCH:
+    case ActionTypes.RECEIVED_SEARCH:
         SearchStore.storeSearchResults(action.results, action.is_mention_search);
         SearchStore.emitSearchChange();
         break;
-    case ActionTypes.RECIEVED_SEARCH_TERM:
+    case ActionTypes.RECEIVED_SEARCH_TERM:
         SearchStore.storeSearchTerm(action.term);
         SearchStore.emitSearchTermChange(action.do_search, action.is_mention_search);
         break;

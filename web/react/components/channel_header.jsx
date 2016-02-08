@@ -114,7 +114,7 @@ export default class ChannelHeader extends React.Component {
         }
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_SEARCH_TERM,
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
             term: terms,
             do_search: true,
             is_mention_search: true

@@ -62,12 +62,12 @@ export default class DeletePostModal extends React.Component {
                     var selectedPost = selectedList.posts[selectedList.order[0]];
                     if ((selectedPost.id === this.state.post.id && !this.state.root_id) || selectedPost.root_id === this.state.post.id) {
                         AppDispatcher.handleServerAction({
-                            type: ActionTypes.RECIEVED_SEARCH,
+                            type: ActionTypes.RECEIVED_SEARCH,
                             results: null
                         });
 
                         AppDispatcher.handleServerAction({
-                            type: ActionTypes.RECIEVED_POST_SELECTED,
+                            type: ActionTypes.RECEIVED_POST_SELECTED,
                             results: null
                         });
                     } else if (selectedPost.id === this.state.post.id && this.state.root_id) {
@@ -76,12 +76,12 @@ export default class DeletePostModal extends React.Component {
                             delete selectedList.posts[selectedPost.id];
 
                             AppDispatcher.handleServerAction({
-                                type: ActionTypes.RECIEVED_POST_SELECTED,
+                                type: ActionTypes.RECEIVED_POST_SELECTED,
                                 post_list: selectedList
                             });
 
                             AppDispatcher.handleServerAction({
-                                type: ActionTypes.RECIEVED_SEARCH,
+                                type: ActionTypes.RECEIVED_SEARCH,
                                 results: null
                             });
                         }
