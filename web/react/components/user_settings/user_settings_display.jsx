@@ -10,7 +10,6 @@ import PreferenceStore from '../../stores/preference_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
 import Constants from '../../utils/constants.jsx';
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 import {savePreferences} from '../../utils/client.jsx';
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
