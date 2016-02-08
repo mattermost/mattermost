@@ -122,6 +122,12 @@
                 }
             });
         });
+
+        $(window).on('beforeunload', function(){
+            if (window.SocketStore) {
+                SocketStore.close();
+            }
+        });
     </script>
 
     <script>

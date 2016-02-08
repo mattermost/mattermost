@@ -28,10 +28,13 @@ class SocketStoreClass extends EventEmitter {
         this.addChangeListener = this.addChangeListener.bind(this);
         this.removeChangeListener = this.removeChangeListener.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
+        this.close = this.close.bind(this);
+
         this.failCount = 0;
 
         this.initialize();
     }
+
     initialize() {
         if (!UserStore.getCurrentId()) {
             return;
@@ -106,15 +109,19 @@ class SocketStoreClass extends EventEmitter {
             };
         }
     }
+
     emitChange(msg) {
         this.emit(CHANGE_EVENT, msg);
     }
+
     addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
     }
+
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
     }
+
     handleMessage(msg) {
         switch (msg.action) {
         case SocketEvents.POSTED:
@@ -153,6 +160,7 @@ class SocketStoreClass extends EventEmitter {
         default:
         }
     }
+
     sendMessage(msg) {
         if (conn && conn.readyState === WebSocket.OPEN) {
             conn.send(JSON.stringify(msg));
@@ -161,8 +169,15 @@ class SocketStoreClass extends EventEmitter {
             this.initialize();
         }
     }
+
     setTranslations(messages) {
         this.translations = messages;
+    }
+
+    close() {
+        if (conn && conn.readyState === WebSocket.OPEN) {
+            conn.close();
+        }
     }
 }
 
@@ -305,12 +320,5 @@ function handlePreferenceChangedEvent(msg) {
 
 var SocketStore = new SocketStoreClass();
 
-/*SocketStore.dispatchToken = AppDispatcher.register((payload) => {
-    var action = payload.action;
-
-    switch (action.type) {
-    default:
-    }
-    });*/
-
 export default SocketStore;
+window.SocketStore = SocketStore;
