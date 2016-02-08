@@ -47,10 +47,6 @@ const holders = defineMessages({
     EMBED_PREVIEW: {
         id: 'user.settings.advance.embed_preview',
         defaultMessage: 'Show preview snippet of links below message'
-    },
-    LOC_PREVIEW: {
-        id: 'user.settings.advance.loc_preview',
-        defaultMessage: 'Show user language in display settings'
     }
 });
 
