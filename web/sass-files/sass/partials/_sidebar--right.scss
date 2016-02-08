@@ -16,6 +16,22 @@
 
     }
 
+    .post {
+
+        .post__header {
+
+            .col__name {
+
+                .user-popover {
+                    max-width: 130px;
+                }
+
+            }
+
+        }
+
+    }
+
     .sidebar--right__content {
         height: 100%;
         @include display-flex;
