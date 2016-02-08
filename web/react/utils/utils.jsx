@@ -1373,7 +1373,7 @@ export function languages() {
             },
             {
                 value: 'es',
-                name: 'Español'
+                name: 'Español (Beta)'
             }
         ]
     );

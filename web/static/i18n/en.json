@@ -1126,7 +1126,6 @@
   "user.settings.advance.enabled": "enabled",
   "user.settings.advance.markdown_preview": "Show markdown preview option in message input box",
   "user.settings.advance.embed_preview": "Show preview snippet of links below message",
-  "user.settings.advance.loc_preview": "Show user language in display settings",
   "user.settings.advance.sendDesc": "If enabled 'Enter' inserts a new line and 'Ctrl + Enter' submits the message.",
   "user.settings.advance.preReleaseDesc": "Check any pre-released features you'd like to preview.  You may also need to refresh the page before the setting will take effect.",
   "user.settings.advance.title": "Advanced Settings",
