@@ -796,7 +796,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(deviceId))
+	w.Write([]byte(model.MapToJson(props)))
 }
 
 func RevokeSessionById(c *Context, sessionId string) {
