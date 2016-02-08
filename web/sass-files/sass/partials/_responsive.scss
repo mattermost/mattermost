@@ -160,6 +160,11 @@
 
             .col__name {
                 pointer-events: none;
+
+                .user-popover {
+                    max-width: 130px;
+                }
+
             }
 
         }

@@ -25,6 +25,10 @@ body {
     }
 }
 
+b, strong {
+    font-weight: 600;
+}
+
 .inner__wrap {
     height: 100%;
     > .row.main {
