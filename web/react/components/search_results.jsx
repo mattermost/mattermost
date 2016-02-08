@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import ChannelStore from '../stores/channel_store.jsx';
 import SearchStore from '../stores/search_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import SearchBox from './search_bar.jsx';
@@ -11,7 +12,22 @@ import SearchResultsItem from './search_results_item.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
 
 function getStateFromStores() {
-    return {results: SearchStore.getSearchResults()};
+    const results = SearchStore.getSearchResults();
+
+    const channels = new Map();
+    const channelIds = results.order.map((postId) => results.posts[postId].channel_id);
+    for (const id of channelIds) {
+        if (channels.has(id)) {
+            continue;
+        }
+
+        channels.set(id, ChannelStore.get(id));
+    }
+
+    return {
+        results,
+        channels
+    };
 }
 
 export default class SearchResults extends React.Component {
@@ -33,8 +49,13 @@ export default class SearchResults extends React.Component {
     componentDidMount() {
         this.mounted = true;
         SearchStore.addSearchChangeListener(this.onChange);
+        ChannelStore.addChangeListener(this.onChange);
         this.resize();
         window.addEventListener('resize', this.handleResize);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return !Utils.areObjectsEqual(this.props, nextProps) || !Utils.areObjectsEqual(this.state, nextState);
     }
 
     componentDidUpdate() {
@@ -43,6 +64,7 @@ export default class SearchResults extends React.Component {
 
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onChange);
+        ChannelStore.removeChangeListener(this.onChange);
         this.mounted = false;
         window.removeEventListener('resize', this.handleResize);
     }
@@ -56,10 +78,7 @@ export default class SearchResults extends React.Component {
 
     onChange() {
         if (this.mounted) {
-            var newState = getStateFromStores();
-            if (!Utils.areObjectsEqual(newState, this.state)) {
-                this.setState(newState);
-            }
+            this.setState(getStateFromStores());
         }
     }
 
@@ -116,6 +135,7 @@ export default class SearchResults extends React.Component {
                 return (
                     <SearchResultsItem
                         key={post.id}
+                        channel={this.state.channels.get(post.channel_id)}
                         post={post}
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
