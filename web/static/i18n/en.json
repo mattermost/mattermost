@@ -1252,7 +1252,7 @@
   "intro_messages.teammate": "This is the start of your direct message history with this teammate. Direct messages and files shared here are not shown to people outside this area.",
   "intro_messages.offTopic": "<h4 class=\"channel-intro__title\">Beginning of {display_name}</h4><p class=\"channel-intro__content\">This is the start of {display_name}, a channel for non-work-related conversations.<br/></p>",
   "intro_messages.inviteOthers": "Invite others to this team",
-  "intro_messages.default": "<h4 class='channel-intro__title'>Beginning of {display_name}</h4><p class='channel-intro__content'><strong>Welcome to {display_name}!'</strong><br/><br/>This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.</p>",
+  "intro_messages.default": "<h4 class='channel-intro__title'>Beginning of {display_name}</h4><p class='channel-intro__content'><strong>Welcome to {display_name}!</strong><br/><br/>This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.</p>",
   "intro_messages.group": "private group",
   "intro_messages.onlyInvited": " Only invited members can see this private group.",
   "intro_messages.channel": "channel",

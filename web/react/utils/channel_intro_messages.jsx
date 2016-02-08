@@ -128,7 +128,7 @@ export function createDefaultIntroMessage(channel) {
         <div className='channel-intro'>
             <FormattedHTMLMessage
                 id='intro_messages.default'
-                defaultMessage="<h4 class='channel-intro__title'>Beginning of {display_name}</h4><p class='channel-intro__content'><strong>Welcome to {display_name}!'</strong><br/><br/>This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.</p>"
+                defaultMessage="<h4 class='channel-intro__title'>Beginning of {display_name}</h4><p class='channel-intro__content'><strong>Welcome to {display_name}!</strong><br/><br/>This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.</p>"
                 values={{
                     display_name: channel.display_name
                 }}
