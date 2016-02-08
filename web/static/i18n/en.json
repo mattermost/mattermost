@@ -901,6 +901,7 @@
   "signup_user_completed.choosePwd": "Choose your password",
   "signup_user_completed.create": "Create Account",
   "signup_user_completed.or": "or",
+  "signup_user_completed.none": "No user creation method has been enabled.  Please contact an administrator for access.",
   "signup_user_completed.welcome": "Welcome to:",
   "signup_user_completed.onSite": "on {siteName}",
   "signup_user_completed.lets": "Let's create your account",
