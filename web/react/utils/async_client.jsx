@@ -5,6 +5,7 @@ import * as client from './client.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 import PostStore from '../stores/post_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import * as utils from './utils.jsx';
@@ -661,13 +662,12 @@ export function getMe() {
 }
 
 export function getStatuses() {
-    const directChannels = ChannelStore.getAll().filter((channel) => channel.type === Constants.DM_CHANNEL);
+    const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
     const teammateIds = [];
-    for (var i = 0; i < directChannels.length; i++) {
-        const teammate = utils.getDirectTeammate(directChannels[i].id);
-        if (teammate) {
-            teammateIds.push(teammate.id);
+    for (const preference of preferences) {
+        if (preference.value === 'true') {
+            teammateIds.push(preference.name);
         }
     }
 
