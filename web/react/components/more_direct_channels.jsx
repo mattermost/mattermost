@@ -57,7 +57,7 @@ class MoreDirectChannels extends React.Component {
     }
 
     componentWillUnmount() {
-        UserStore.addChangeListener(this.handleUserChange);
+        UserStore.removeChangeListener(this.handleUserChange);
     }
 
     componentDidUpdate(prevProps) {
