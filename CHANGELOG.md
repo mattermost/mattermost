@@ -1,5 +1,164 @@
 # Mattermost Changelog
 
+## Release v2.0.0
+
+Expected Release date: 2016-02-16
+
+### New Features
+
+Localization
+
+- Support for language translation, with community support for Spanish from **Account Settings** > **Display**
+
+Slash Commands
+
+- Support custom slash commands to send message events to external integrations using a slack compatible method.
+- Enable slash commands from the **System Console** > **Service Settings** > **Enable Slash Commands** and configure them in **Account Settings** > **Integrations** > **Commands**
+
+[iOS](https://github.com/mattermost/ios)
+
+- Added support for GitLab SSO
+
+System Console
+
+- Added **Site Reports** to view system statistics on posts, channels and users. 
+
+
+### Improvements 
+
+Upgrading
+
+- Support version skipping to allow directly upgrading from v1.3 or v1.4
+
+Files and Images
+
+- Public links to images and files created by users no longer expire 
+- OGG attachments now play in preview window on Chrome and Firefox
+
+Onboarding
+
+- “Get Team Invite Link” option is disabled from the main menu if user creation is disabled for the team
+
+Authentication
+
+- Switching from email to SSO sign in now updates email address to use the SSO email
+- Added ability to sign in with username as an alternative to email address
+
+
+System Console
+
+- Removed "Disable File Storage" option from System Console > File Storage
+- Added a warning if a user demotes their account from System Administrator.
+- Option to allow insecure TLS outbound connections for self-signed certificates.
+
+
+Search
+
+- Hashtag search is no longer case sensitive
+- System messages no longer appear in search results
+
+User Interface
+
+- Changed the comment bubble to a reply arrow to make post replies and the RHS more discoverable
+- Away status in direct message list for users who haven’t had any Mattermost activity for 5 minutes.
+- Time stamp next to sequential posts made by users now shows HH:MM instead of on-hover timestamp
+- Tutorial colors improved to provide higher contrast with new default theme
+- Added more favicon sizes for home screen icons on mobile devices
+- Date separator added to search
+- Code blocks now support horizontal scrolling if content exceeds the max width 
+- Moved the recent mentions icon to the right of the search bar
+- Long usernames are now truncated in the center channel and RHS
+
+#### Bug Fixes  
+
+- Incorrect “Mattermost unreachable” error on iOS no longer appears
+- Dialog to confirm deletion of a post now supports hitting “ENTER” to confirm deletion. 
+- Keyboard focus on the New Channel modal on IE11 is now contained within the text box.
+- LHS indicator for “Unread Posts Above/Below” now displays on IE11
+- Unresponsive UI when viewing a permalink is fixed if a user clicks outside the text on the "Click here to jump to recent messages" bar. 
+- Console error is no longer thrown on first page load in Firefox and Edge.
+- Dismissed blue bar error messages no longer re-appear on page refresh.
+- Console error and missing notification is fixed for the first direct message received from any user.
+- Comment bubble in Firefox no longer appears with a box around it on-hover.
+- Home screen icons on Android and iOS devices now appear with the Mattermost logo.
+- Switching channels now clears the “user is typing” message below the text input box.
+- iOS devices are no longer detected as “unknown” devices in the session history.
+
+### Compatibility  
+
+#### Config.json Changes from v1.4 to v2.0
+
+**iOS**  
+The new iOS app for v2.0 is not backwards compatible with Mattermost v1.4.
+
+**config.json**    
+Multiple setting options were added to `config.json`. Below is a list of the additions and their default values on install. The settings can be modified in `config.json` or the System Console.  
+
+- Under `ServiceSettings` in `config.json`:
+    - `"EnableCommands": false` to set whether users can create slash commands from **Account Settings** > **Integrations** > **Commands**
+    - `"EnableOnlyAdminIntegrations": true` to restrict integrations to being created by admins only.
+    - `"EnableInsecureOutgoingConnections": false` sets whether outgoing HTTPS requests can accept unverified, self-signed certificates.
+    - Optional: `"WebsocketSecurePort" : 443` sets the port on which the secured WebSocket will listen using the `wss` protocol. If this setting is not present in `config.json`, it defaults to `443`.
+    - Optional: `"WebsocketPort": 80` sets the port on which the unsecured WebSocket will listen using the `ws` protocol. If this setting is not present in `config.json`, it defaults to `80`.
+
+- Under `EmailSettings` in `config.json`:
+    -  `"EnableSignInWithEmail": true` allows users to sign in using their email.    
+    -  `"EnableSignInWithUsername": false` sets whether users can sign in with their username. Typically only used when email verification is disabled.
+
+**Localization**  
+There are two new directories for i18n localization JSON files:
+- platform/i18n for server-side localization files
+- platform/web/static/i18n for client-side localization files
+
+#### Database Changes from v1.4 to v2.0
+
+The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions.
+
+##### Users Table
+1. Added `Locale` column
+
+##### Licenses Table
+1. Added `Licenses` Table
+
+
+#### Known Issues
+
+- Navigating to a page with new messages containing inline images added via markdown causes the channel to scroll up and down while loading the inline images.
+- Microsoft Edge does not yet support drag and drop for file attachments. 
+- Scroll bar does not appear in the center channel.
+- Unable to paste images into the text box on Firefox, Safari, and IE11.
+- Importing from Slack fails to load messages in certain cases and breaks @mentions.
+- System Console > TEAMS > Statistics > Newly Created Users shows all users as created "just now".
+- Favicon does not turn red when @mentions and direct messages are received in an inactive browser tab.
+- Searching for a phrase in quotations returns more than just the phrase on installations with a Postgres database.
+- Archived channels are not removed from the "More" menu for the person that archived the channel until after refresh.
+- Search results don't highlight searches for @username, non-latin characters, or terms inside Markdown code blocks.
+- Searching for a username or hashtag containing a dot returns a search where the dot is replaced with the "or" operator. 
+- Hashtags less than three characters long are not searchable.
+- Users remains in the channel counter after being deactivated.
+- Messages with symbols (<,>,-,+,=,%,^,#,*,|) directly before or after a hashtag are not searchable.
+- Permalinks for the second message or later consecutively sent in a group by the same author displaces the copy link popover or causes an error
+- Emoji smileys ending with a letter at the end of a message do not auto-complete as expected
+
+#### Contributors 
+
+Special thanks to [enahum](https://github.com/enahum) for creating the Spanish localization!
+
+Many thanks to all our external contributors. In no particular order:
+
+- [enahum](https://github.com/enahum)
+- [trashcan](https://github.com/trashcan)
+- [khoa-le](https://github.com/khoa-le)
+- [alanmoo](https://github.com/alanmoo)
+- [fallenby](https://github.com/fallenby)
+- [loafoe](https://github.com/loafoe)
+- [gramakri](https://github.com/gramakri)
+- [pawelad](https://github.com/pawelad)
+- [cifvts](https://github.com/cifvts)
+- [rosskusler](https://github.com/rosskusler)
+- [apskim](https://github.com/apskim) 
+
+
 ## Release v1.4.0
 
 Expected Release date: 2016-01-16
