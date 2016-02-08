@@ -159,13 +159,13 @@ class PreferenceStoreClass extends EventEmitter {
         const action = payload.action;
 
         switch (action.type) {
-        case ActionTypes.RECIEVED_PREFERENCE: {
+        case ActionTypes.RECEIVED_PREFERENCE: {
             const preference = action.preference;
             this.setPreference(preference.category, preference.name, preference.value);
             this.emitChange();
             break;
         }
-        case ActionTypes.RECIEVED_PREFERENCES:
+        case ActionTypes.RECEIVED_PREFERENCES:
             this.setPreferences(action.preferences);
             this.emitChange();
             break;

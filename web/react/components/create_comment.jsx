@@ -152,7 +152,7 @@ class CreateComment extends React.Component {
                 ChannelStore.setChannelMember(member);
 
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_POST,
+                    type: ActionTypes.RECEIVED_POST,
                     post: data
                 });
             }.bind(this),
@@ -216,7 +216,7 @@ class CreateComment extends React.Component {
             }
 
             AppDispatcher.handleViewAction({
-                type: ActionTypes.RECIEVED_EDIT_POST,
+                type: ActionTypes.RECEIVED_EDIT_POST,
                 refocusId: '#reply_textbox',
                 title: this.props.intl.formatMessage(holders.commentTitle),
                 message: lastPost.message,

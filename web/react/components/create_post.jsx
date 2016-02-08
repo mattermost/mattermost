@@ -364,7 +364,7 @@ class CreatePost extends React.Component {
             var type = (lastPost.root_id && lastPost.root_id.length > 0) ? formatMessage(holders.comment) : formatMessage(holders.post);
 
             AppDispatcher.handleViewAction({
-                type: ActionTypes.RECIEVED_EDIT_POST,
+                type: ActionTypes.RECEIVED_EDIT_POST,
                 refocusId: '#post_textbox',
                 title: type,
                 message: lastPost.message,

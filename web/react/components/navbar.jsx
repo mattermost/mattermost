@@ -82,12 +82,12 @@ export default class Navbar extends React.Component {
         var windowWidth = $(window).outerWidth();
         if (windowWidth <= 768) {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_SEARCH,
+                type: ActionTypes.RECEIVED_SEARCH,
                 results: null
             });
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_POST_SELECTED,
+                type: ActionTypes.RECEIVED_POST_SELECTED,
                 results: null
             });
 

@@ -30,7 +30,7 @@ export function emitPostFocusEvent(postId) {
         postId,
         (data) => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_FOCUSED_POST,
+                type: ActionTypes.RECEIVED_FOCUSED_POST,
                 postId,
                 post_list: data
             });
@@ -47,13 +47,13 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
         post.id,
         (data) => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_POST_SELECTED,
+                type: ActionTypes.RECEIVED_POST_SELECTED,
                 post_list: data,
                 from_search: SearchStore.getSearchTerm()
             });
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_SEARCH,
+                type: ActionTypes.RECEIVED_SEARCH,
                 results: null,
                 is_mention_search: isMentionSearch
             });
@@ -89,7 +89,7 @@ export function emitLoadMorePostsFocusedBottomEvent() {
 
 export function emitPostRecievedEvent(post) {
     AppDispatcher.handleServerAction({
-        type: ActionTypes.RECIEVED_POST,
+        type: ActionTypes.RECEIVED_POST,
         post
     });
 }
@@ -177,7 +177,7 @@ export function emitClearSuggestions(suggestionId) {
 
 export function emitPreferenceChangedEvent(preference) {
     AppDispatcher.handleServerAction({
-        type: Constants.ActionTypes.RECIEVED_PREFERENCE,
+        type: Constants.ActionTypes.RECEIVED_PREFERENCE,
         preference
     });
 }

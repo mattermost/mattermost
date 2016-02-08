@@ -336,27 +336,27 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_PROFILES:
+    case ActionTypes.RECEIVED_PROFILES:
         UserStore.saveProfiles(action.profiles);
         UserStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_ME:
+    case ActionTypes.RECEIVED_ME:
         UserStore.setCurrentUser(action.me);
         UserStore.emitChange(action.me.id);
         break;
-    case ActionTypes.RECIEVED_SESSIONS:
+    case ActionTypes.RECEIVED_SESSIONS:
         UserStore.setSessions(action.sessions);
         UserStore.emitSessionsChange();
         break;
-    case ActionTypes.RECIEVED_AUDITS:
+    case ActionTypes.RECEIVED_AUDITS:
         UserStore.setAudits(action.audits);
         UserStore.emitAuditsChange();
         break;
-    case ActionTypes.RECIEVED_TEAMS:
+    case ActionTypes.RECEIVED_TEAMS:
         UserStore.setTeams(action.teams);
         UserStore.emitTeamsChange();
         break;
-    case ActionTypes.RECIEVED_STATUSES:
+    case ActionTypes.RECEIVED_STATUSES:
         UserStore.pSetStatuses(action.statuses);
         UserStore.emitStatusesChange();
         break;

@@ -49,7 +49,7 @@ class RhsComment extends React.Component {
                 ChannelStore.setChannelMember(member);
 
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_POST,
+                    type: ActionTypes.RECEIVED_POST,
                     post: data
                 });
             },

@@ -31,12 +31,12 @@ export default class Post extends React.Component {
         data.posts = this.props.posts;
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_POST_SELECTED,
+            type: ActionTypes.RECEIVED_POST_SELECTED,
             post_list: data
         });
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_SEARCH,
+            type: ActionTypes.RECEIVED_SEARCH,
             results: null
         });
     }
@@ -59,7 +59,7 @@ export default class Post extends React.Component {
                 ChannelStore.setChannelMember(member);
 
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_POST,
+                    type: ActionTypes.RECEIVED_POST,
                     post: data
                 });
             },

@@ -17,7 +17,7 @@ var callTracker = {};
 
 export function dispatchError(err, method) {
     AppDispatcher.handleServerAction({
-        type: ActionTypes.RECIEVED_ERROR,
+        type: ActionTypes.RECEIVED_ERROR,
         err: err,
         method: method
     });
@@ -70,7 +70,7 @@ export function getChannels(checkVersion) {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_CHANNELS,
+                type: ActionTypes.RECEIVED_CHANNELS,
                 channels: data.channels,
                 members: data.members
             });
@@ -98,7 +98,7 @@ export function getChannel(id) {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_CHANNEL,
+                type: ActionTypes.RECEIVED_CHANNEL,
                 channel: data.channel,
                 member: data.member
             });
@@ -155,7 +155,7 @@ export function getMoreChannels(force) {
                 }
 
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_MORE_CHANNELS,
+                    type: ActionTypes.RECEIVED_MORE_CHANNELS,
                     channels: data.channels,
                     members: data.members
                 });
@@ -194,7 +194,7 @@ export function getChannelExtraInfo(id, memberLimit) {
                 }
 
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_CHANNEL_EXTRA_INFO,
+                    type: ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO,
                     extra_info: data
                 });
             },
@@ -221,7 +221,7 @@ export function getProfiles() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_PROFILES,
+                type: ActionTypes.RECEIVED_PROFILES,
                 profiles: data
             });
         },
@@ -248,7 +248,7 @@ export function getSessions() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_SESSIONS,
+                type: ActionTypes.RECEIVED_SESSIONS,
                 sessions: data
             });
         },
@@ -275,7 +275,7 @@ export function getAudits() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_AUDITS,
+                type: ActionTypes.RECEIVED_AUDITS,
                 audits: data
             });
         },
@@ -301,7 +301,7 @@ export function getLogs() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_LOGS,
+                type: ActionTypes.RECEIVED_LOGS,
                 logs: data
             });
         },
@@ -327,7 +327,7 @@ export function getServerAudits() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_SERVER_AUDITS,
+                type: ActionTypes.RECEIVED_SERVER_AUDITS,
                 audits: data
             });
         },
@@ -353,7 +353,7 @@ export function getConfig() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_CONFIG,
+                type: ActionTypes.RECEIVED_CONFIG,
                 config: data
             });
         },
@@ -379,7 +379,7 @@ export function getAllTeams() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_ALL_TEAMS,
+                type: ActionTypes.RECEIVED_ALL_TEAMS,
                 teams: data
             });
         },
@@ -408,7 +408,7 @@ export function findTeams(email) {
                 }
 
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_TEAMS,
+                    type: ActionTypes.RECEIVED_TEAMS,
                     teams: data
                 });
             },
@@ -436,7 +436,7 @@ export function search(terms) {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_SEARCH,
+                type: ActionTypes.RECEIVED_SEARCH,
                 results: data
             });
         },
@@ -488,7 +488,7 @@ export function getPostsPage(id, maxPosts) {
                 }
 
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_POSTS,
+                    type: ActionTypes.RECEIVED_POSTS,
                     id: channelId,
                     before: true,
                     numRequested: numPosts,
@@ -538,7 +538,7 @@ export function getPosts(id) {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_POSTS,
+                type: ActionTypes.RECEIVED_POSTS,
                 id: channelId,
                 before: true,
                 numRequested: Constants.POST_CHUNK_SIZE,
@@ -577,7 +577,7 @@ export function getPostsBefore(postId, offset, numPost) {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_POSTS,
+                type: ActionTypes.RECEIVED_POSTS,
                 id: channelId,
                 before: true,
                 numRequested: numPost,
@@ -616,7 +616,7 @@ export function getPostsAfter(postId, offset, numPost) {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_POSTS,
+                type: ActionTypes.RECEIVED_POSTS,
                 id: channelId,
                 before: false,
                 numRequested: numPost,
@@ -649,7 +649,7 @@ export function getMe() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_ME,
+                type: ActionTypes.RECEIVED_ME,
                 me: data
             });
         },
@@ -685,7 +685,7 @@ export function getStatuses() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_STATUSES,
+                type: ActionTypes.RECEIVED_STATUSES,
                 statuses: data
             });
         },
@@ -711,7 +711,7 @@ export function getMyTeam() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_TEAM,
+                type: ActionTypes.RECEIVED_TEAM,
                 team: data
             });
         },
@@ -737,7 +737,7 @@ export function getAllPreferences() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_PREFERENCES,
+                type: ActionTypes.RECEIVED_PREFERENCES,
                 preferences: data
             });
         },
@@ -754,7 +754,7 @@ export function savePreferences(preferences, success, error) {
         (data, textStatus, xhr) => {
             if (xhr.status !== 304) {
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_PREFERENCES,
+                    type: ActionTypes.RECEIVED_PREFERENCES,
                     preferences
                 });
             }
@@ -821,7 +821,7 @@ export function getFileInfo(filename) {
             callTracker[callName] = 0;
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_FILE_INFO,
+                type: ActionTypes.RECEIVED_FILE_INFO,
                 filename,
                 info: data
             });
