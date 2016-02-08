@@ -157,7 +157,6 @@
   "admin.image.shareDescription": "Permitir a los usuarios compartir enlaces públicos para archivos e imágenes.",
   "admin.image.shareTitle": "Compartir publicamente enlaces de archivos: ",
   "admin.image.storeAmazonS3": "Amazon S3",
-  "admin.image.storeDisabled": "Deshabilitar almacenamiento de archivos",
   "admin.image.storeLocal": "Sistema local de archivos",
   "admin.image.storeTitle": "Almacenar archivos en:",
   "admin.image.thumbHeightDescription": "Alto de imágen miniatura subida. Actualizando este valor la imagen miniatura cambia en el futuro, pero no cambia para imagenes creadas en el pasado.",

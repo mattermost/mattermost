@@ -8,10 +8,6 @@ import crypto from 'crypto';
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
 
 const holders = defineMessages({
-    storeDisabled: {
-        id: 'admin.image.storeDisabled',
-        defaultMessage: 'Disable File Storage'
-    },
     storeLocal: {
         id: 'admin.image.storeLocal',
         defaultMessage: 'Local File System'
@@ -242,7 +238,6 @@ class FileSettings extends React.Component {
                                 defaultValue={this.props.config.FileSettings.DriverName}
                                 onChange={this.handleChange.bind(this, 'DriverName')}
                             >
-                                <option value=''>{formatMessage(holders.storeDisabled)}</option>
                                 <option value='local'>{formatMessage(holders.storeLocal)}</option>
                                 <option value='amazons3'>{formatMessage(holders.storeAmazonS3)}</option>
                             </select>
