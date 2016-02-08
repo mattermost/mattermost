@@ -362,6 +362,17 @@ class SignupUserComplete extends React.Component {
             );
         }
 
+        if (signupMessage.length === 0 && !emailSignup) {
+            emailSignup = (
+                <div>
+                    <FormattedMessage
+                        id='signup_user_completed.none'
+                        defaultMessage='No user creation method has been enabled.  Please contact an administrator for access.'
+                    />
+                </div>
+            );
+        }
+
         return (
             <div>
                 <form>
