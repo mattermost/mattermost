@@ -485,8 +485,9 @@ body.ios {
 				-webkit-font-smoothing: antialiased;
 				-moz-osx-font-smoothing: grayscale;
 				position: absolute;
-				top: -3px;
-				left: -1.0em;
+				top: -2px;
+				left: -7px;
+			    font-size: 11px;
 				line-height: 37px;
 				@include opacity(0);
 			}
