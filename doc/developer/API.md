@@ -6,13 +6,13 @@ Mattermost APIs let you integrate your favorite tools and services withing your 
 
 To offer an alternative to propreitary SaaS services, Mattermost focuses on being "Slack-compatible, but not Slack limited". That means providing support for developers of Slack applications to easily extend their apps to Mattermost, as well as support and capabilities beyond what Slack offers. 
 
-### [Incoming Webhooks](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Incoming-Webhooks.md)
+### [Incoming Webhooks](http://docs.mattermost.com/developer/webhooks-incoming.html)
 
 Incoming webhooks allow external applications to post messages into Mattermost channels and private groups by sending a JSON payload via HTTP POST request to a secret Mattermost URL generated specifically for each application.
 
 In addition to supporting Slack's incoming webhook formatting, Mattermost webhooks offer full support of industry-standard markdown formatting, including headings, tables and in-line images. 
 
-### [Outgoing Webhooks](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Outgoing-Webhooks.md) 
+### [Outgoing Webhooks](http://docs.mattermost.com/developer/webhooks-outgoing.html) 
 
 Outgoing webhooks allow external applications to receive webhook events from events happening within Mattermost channels and private groups via JSON payloads via HTTP POST requests sent to incoming webhook URLs defined by your applications. 
 
