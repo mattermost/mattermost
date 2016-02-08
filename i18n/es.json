@@ -245,7 +245,7 @@
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Las ingtegraciones solo pueden ser utilizadas por adminitradores."
+    "translation": "Las integraciones han sido limitadas a los adminitradores."
   },
   {
     "id": "api.command.delete.app_error",
