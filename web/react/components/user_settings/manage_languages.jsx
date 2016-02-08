@@ -5,6 +5,7 @@ import SettingItemMax from '../setting_item_max.jsx';
 
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
+import * as GlobalActions from '../../action_creators/global_actions.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -41,7 +42,7 @@ export default class ManageLanguage extends React.Component {
     submitUser(user) {
         Client.updateUser(user,
             () => {
-                window.location.reload(true);
+                GlobalActions.newLocalizationSelected(user.locale);
             },
             (err) => {
                 let serverError;

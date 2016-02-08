@@ -42,12 +42,14 @@ export default {
 
         RECEIVED_MSG: null,
 
-        RECEIVED_TEAM: null,
+        RECEIVED_MY_TEAM: null,
 
         RECEIVED_CONFIG: null,
         RECEIVED_LOGS: null,
         RECEIVED_SERVER_AUDITS: null,
         RECEIVED_ALL_TEAMS: null,
+
+        RECEIVED_LOCALE: null,
 
         SHOW_SEARCH: null,
 
@@ -143,6 +145,7 @@ export default {
     EMAIL_SERVICE: 'email',
     SIGNIN_CHANGE: 'signin_change',
     SIGNIN_VERIFIED: 'verified',
+    SESSION_EXPIRED: 'expired',
     POST_CHUNK_SIZE: 60,
     MAX_POST_CHUNKS: 3,
     POST_FOCUS_CONTEXT_RADIUS: 10,

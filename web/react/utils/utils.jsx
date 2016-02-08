@@ -2,9 +2,10 @@
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
+import LocalizationStore from '../stores/localization_store.jsx';
 import PreferenceStore from '../stores/preference_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import Constants from '../utils/constants.jsx';
@@ -941,7 +942,7 @@ export function updateAddressBar(channelName) {
 }
 
 export function switchChannel(channel) {
-    EventHelpers.emitChannelClickEvent(channel);
+    GlobalActions.emitChannelClickEvent(channel);
 
     updateAddressBar(channel.name);
 
@@ -1130,8 +1131,8 @@ export function fileSizeToString(bytes) {
 
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
 export function getFileUrl(filename, isDownload) {
-    const downloadParam = isDownload ? '&download=1' : '';
-    return getWindowLocationOrigin() + '/api/v1/files/get' + filename + '?' + getSessionIndex() + downloadParam;
+    const downloadParam = isDownload ? '?download=1' : '';
+    return getWindowLocationOrigin() + '/api/v1/files/get' + filename + downloadParam;
 }
 
 // Gets the name of a file (including extension) from a given url or file path.
@@ -1148,14 +1149,6 @@ export function getWebsocketPort(protocol) {
     if ((/^ws:/).test(protocol)) {
         return ':' + global.window.mm_config.WebsocketPort;
     }
-    return '';
-}
-
-export function getSessionIndex() {
-    if (global.window.mm_session_token_index >= 0) {
-        return 'session_token_index=' + global.window.mm_session_token_index;
-    }
-
     return '';
 }
 
@@ -1404,4 +1397,20 @@ export function isPostEphemeral(post) {
 
 export function getRootId(post) {
     return post.root_id === '' ? post.id : post.root_id;
+}
+
+export function localizeMessage(id, defaultMessage) {
+    const translations = LocalizationStore.getTranslations();
+    if (translations) {
+        const value = translations[id];
+        if (value) {
+            return value;
+        }
+    }
+
+    if (defaultMessage) {
+        return defaultMessage;
+    }
+
+    return id;
 }

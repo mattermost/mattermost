@@ -2,12 +2,13 @@
 // See License.txt for license information.
 
 import * as Utils from '../../utils/utils.jsx';
-import * as Client from '../../utils/client.jsx';
 import TeamStore from '../../stores/team_store.jsx';
 
 import Constants from '../../utils/constants.jsx';
 
 import {FormattedMessage} from 'mm-intl';
+
+import {Link} from 'react-router';
 
 function getStateFromStores() {
     return {currentTeam: TeamStore.getCurrent()};
@@ -18,14 +19,7 @@ export default class AdminNavbarDropdown extends React.Component {
         super(props);
         this.blockToggle = false;
 
-        this.handleLogoutClick = this.handleLogoutClick.bind(this);
-
         this.state = getStateFromStores();
-    }
-
-    handleLogoutClick(e) {
-        e.preventDefault();
-        Client.logout();
     }
 
     componentDidMount() {
@@ -78,15 +72,12 @@ export default class AdminNavbarDropdown extends React.Component {
                             </a>
                         </li>
                         <li>
-                            <a
-                                href='#'
-                                onClick={this.handleLogoutClick}
-                            >
+                            <Link to={Utils.getTeamURLFromAddressBar() + '/logout'}>
                                 <FormattedMessage
                                     id='admin.nav.logout'
                                     defaultMessage='Logout'
                                 />
-                            </a>
+                            </Link>
                         </li>
                         <li className='divider'></li>
                         <li>

@@ -3,7 +3,7 @@
 
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 import Textbox from './textbox.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import PostStore from '../stores/post_store.jsx';
@@ -45,7 +45,7 @@ class EditPostModal extends React.Component {
             delete tempState.editText;
             BrowserStore.setItem('edit_state_transfer', tempState);
             $('#edit_post').modal('hide');
-            EventHelpers.showDeletePostModal(PostStore.getPost(this.state.channel_id, this.state.post_id), this.state.comments);
+            GlobalActions.showDeletePostModal(PostStore.getPost(this.state.channel_id, this.state.post_id), this.state.comments);
             return;
         }
 

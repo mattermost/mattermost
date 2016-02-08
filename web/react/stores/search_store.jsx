@@ -135,7 +135,3 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export default SearchStore;
-
-if (window.mm_config.EnableDeveloper === 'true') {
-    window.SearchStore = SearchStore;
-}

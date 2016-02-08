@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import Constants from '../../utils/constants.jsx';
-import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../../action_creators/global_actions.jsx';
 import SuggestionStore from '../../stores/suggestion_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
@@ -48,7 +48,7 @@ export default class SuggestionBox extends React.Component {
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
             // we can't just use blur for this because it fires and hides the children before
             // their click handlers can be called
-            EventHelpers.emitClearSuggestions(this.suggestionId);
+            GlobalActions.emitClearSuggestions(this.suggestionId);
         }
     }
 
@@ -57,7 +57,7 @@ export default class SuggestionBox extends React.Component {
         const caret = Utils.getCaretPosition(textbox);
         const pretext = textbox.value.substring(0, caret);
 
-        EventHelpers.emitSuggestionPretextChanged(this.suggestionId, pretext);
+        GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
 
         if (this.props.onUserInput) {
             this.props.onUserInput(textbox.value);
@@ -89,13 +89,13 @@ export default class SuggestionBox extends React.Component {
     handleKeyDown(e) {
         if (SuggestionStore.hasSuggestions(this.suggestionId)) {
             if (e.which === KeyCodes.UP) {
-                EventHelpers.emitSelectPreviousSuggestion(this.suggestionId);
+                GlobalActions.emitSelectPreviousSuggestion(this.suggestionId);
                 e.preventDefault();
             } else if (e.which === KeyCodes.DOWN) {
-                EventHelpers.emitSelectNextSuggestion(this.suggestionId);
+                GlobalActions.emitSelectNextSuggestion(this.suggestionId);
                 e.preventDefault();
             } else if (e.which === KeyCodes.ENTER || e.which === KeyCodes.TAB) {
-                EventHelpers.emitCompleteWordSuggestion(this.suggestionId);
+                GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
                 e.preventDefault();
             } else if (this.props.onKeyDown) {
                 this.props.onKeyDown(e);

@@ -10,8 +10,36 @@ import {FormattedMessage} from 'mm-intl';
 const Modal = ReactBootstrap.Modal;
 
 export default class TeamMembersModal extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.teamChanged = this.teamChanged.bind(this);
+
+        this.state = {
+            team: TeamStore.getCurrent()
+        };
+    }
+    componentDidMount() {
+        if (this.props.show) {
+            this.onShow();
+        }
+
+        TeamStore.addChangeListener(this.teamChanged);
+    }
+
+    componentWillUnmount() {
+        TeamStore.removeChangeListener(this.teamChanged);
+    }
+
+    teamChanged() {
+        this.setState({team: TeamStore.getCurrent()});
+    }
+
     render() {
-        const team = TeamStore.getCurrent();
+        let teamDisplayName = '';
+        if (this.state.team) {
+            teamDisplayName = this.state.team.display_name;
+        }
 
         let maxHeight = 1000;
         if (Utils.windowHeight() <= 1200) {
@@ -29,7 +57,7 @@ export default class TeamMembersModal extends React.Component {
                         id='team_member_modal.members'
                         defaultMessage='{team} Members'
                         values={{
-                            team: team.display_name
+                            team: teamDisplayName
                         }}
                     />
                 </Modal.Header>

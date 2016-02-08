@@ -127,8 +127,13 @@ export default class SidebarRight extends React.Component {
         }
 
         return (
-            <div className='sidebar-right-container'>
-                {content}
+            <div
+                className='sidebar--right'
+                id='sidebar-right'
+            >
+                <div className='sidebar-right-container'>
+                    {content}
+                </div>
             </div>
         );
     }

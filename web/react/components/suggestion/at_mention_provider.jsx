@@ -40,7 +40,7 @@ class AtMentionSuggestion extends React.Component {
             icon = (
                 <img
                     className='mention-img'
-                    src={'/api/v1/users/' + item.id + '/image?time=' + item.update_at + '&' + Utils.getSessionIndex()}
+                    src={'/api/v1/users/' + item.id + '/image?time=' + item.update_at}
                 />
             );
         }

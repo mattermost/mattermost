@@ -419,7 +419,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 
 							// copy the context and create a mock session for posting the message
 							mockSession := model.Session{UserId: hook.CreatorId, TeamId: hook.TeamId, IsOAuth: false}
-							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL, 0, c.T, c.Locale}
+							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL, c.T, c.Locale}
 
 							if text, ok := respProps["text"]; ok {
 								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
@@ -604,12 +604,13 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			year := fmt.Sprintf("%d", tm.Year())
 			zone, _ := tm.Zone()
 
-			subjectPage := NewServerTemplatePage("post_subject", profileMap[id].Locale)
+			subjectPage := utils.NewHTMLTemplate("post_subject", profileMap[id].Locale)
 			subjectPage.Props["Subject"] = userLocale("api.templates.post_subject",
 				map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
 					"Month": month[:3], "Day": day, "Year": year})
+			subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
-			bodyPage := NewServerTemplatePage("post_body", profileMap[id].Locale)
+			bodyPage := utils.NewHTMLTemplate("post_body", profileMap[id].Locale)
 			bodyPage.Props["SiteURL"] = c.GetSiteURL()
 			bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 			bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name

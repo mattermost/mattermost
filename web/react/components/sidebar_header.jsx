@@ -4,10 +4,8 @@
 import NavbarDropdown from './navbar_dropdown.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 
-import UserStore from '../stores/user_store.jsx';
 import PreferenceStore from '../stores/preference_store.jsx';
 
-import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 
 import {FormattedHTMLMessage} from 'mm-intl';
@@ -34,7 +32,7 @@ export default class SidebarHeader extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
     getStateFromStores() {
-        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, this.props.currentUser.id, 999);
 
         return {showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER};
     }
@@ -77,7 +75,7 @@ export default class SidebarHeader extends React.Component {
         );
     }
     render() {
-        var me = UserStore.getCurrentUser();
+        var me = this.props.currentUser;
         var profilePicture = null;
 
         if (!me) {
@@ -88,7 +86,7 @@ export default class SidebarHeader extends React.Component {
             profilePicture = (
                 <img
                     className='user__picture'
-                    src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at + '&' + Utils.getSessionIndex()}
+                    src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at}
                 />
             );
         }
@@ -124,6 +122,7 @@ export default class SidebarHeader extends React.Component {
                     teamType={this.props.teamType}
                     teamDisplayName={this.props.teamDisplayName}
                     teamName={this.props.teamName}
+                    currentUser={this.props.currentUser}
                 />
             </div>
         );
@@ -131,11 +130,12 @@ export default class SidebarHeader extends React.Component {
 }
 
 SidebarHeader.defaultProps = {
-    teamDisplayName: global.window.mm_config.SiteName,
+    teamDisplayName: '',
     teamType: ''
 };
 SidebarHeader.propTypes = {
     teamDisplayName: React.PropTypes.string,
     teamName: React.PropTypes.string,
-    teamType: React.PropTypes.string
+    teamType: React.PropTypes.string,
+    currentUser: React.PropTypes.object
 };

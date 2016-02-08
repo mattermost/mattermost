@@ -3,7 +3,7 @@
 
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
-import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../../action_creators/global_actions.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
@@ -28,7 +28,7 @@ class DeveloperTab extends React.Component {
     }
     register() {
         this.props.closeModal();
-        EventHelpers.showRegisterAppModal();
+        GlobalActions.showRegisterAppModal();
     }
     render() {
         var appSection;

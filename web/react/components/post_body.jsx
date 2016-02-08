@@ -80,12 +80,10 @@ class PostBody extends React.Component {
                     username = parentPost.props.override_username;
                 }
 
-                if (global.window.mm_locale === 'en') {
-                    if (username.slice(-1) === 's') {
-                        apostrophe = '\'';
-                    } else {
-                        apostrophe = '\'s';
-                    }
+                if (username.slice(-1) === 's') {
+                    apostrophe = '\'';
+                } else {
+                    apostrophe = '\'s';
                 }
                 name = (
                     <a
