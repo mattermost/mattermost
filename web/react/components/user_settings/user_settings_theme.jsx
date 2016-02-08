@@ -1,8 +1,10 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import CustomThemeChooser from './custom_theme_chooser.jsx';
 import PremadeThemeChooser from './premade_theme_chooser.jsx';
+import SettingItemMin from '../setting_item_min.jsx';
+import SettingItemMax from '../setting_item_max.jsx';
 
 import UserStore from '../../stores/user_store.jsx';
 
@@ -12,11 +14,22 @@ import * as Utils from '../../utils/utils.jsx';
 
 import Constants from '../../utils/constants.jsx';
 
-import {FormattedMessage} from 'mm-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
 const ActionTypes = Constants.ActionTypes;
 
-export default class UserSettingsAppearance extends React.Component {
+const holders = defineMessages({
+    themeTitle: {
+        id: 'user.settings.display.theme.title',
+        defaultMessage: 'Theme'
+    },
+    themeDescribe: {
+        id: 'user.settings.display.theme.describe',
+        defaultMessage: 'Open to manage your theme'
+    }
+});
+
+export default class ThemeSetting extends React.Component {
     constructor(props) {
         super(props);
 
@@ -34,14 +47,19 @@ export default class UserSettingsAppearance extends React.Component {
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
 
-        if (this.props.activeSection === 'theme') {
+        if (this.props.selected) {
             $(ReactDOM.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
     }
     componentDidUpdate() {
-        if (this.props.activeSection === 'theme') {
+        if (this.props.selected) {
             $('.color-btn').removeClass('active-border');
             $(ReactDOM.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
+        }
+    }
+    componentWillReceiveProps(nextProps) {
+        if (!this.props.selected && nextProps.selected) {
+            this.resetFields();
         }
     }
     componentWillUnmount() {
@@ -96,6 +114,7 @@ export default class UserSettingsAppearance extends React.Component {
                 this.props.setRequireConfirm(false);
                 this.originalTheme = Object.assign({}, this.state.theme);
                 this.scrollToTop();
+                this.props.updateSection('');
             },
             (err) => {
                 var state = this.getStateFromStores();
@@ -149,6 +168,8 @@ export default class UserSettingsAppearance extends React.Component {
         this.props.setEnforceFocus(false);
     }
     render() {
+        const {formatMessage} = this.props.intl;
+
         var serverError;
         if (this.state.serverError) {
             serverError = this.state.serverError;
@@ -160,136 +181,121 @@ export default class UserSettingsAppearance extends React.Component {
         let premade;
         if (displayCustom) {
             custom = (
-                <CustomThemeChooser
-                    theme={this.state.theme}
-                    updateTheme={this.updateTheme}
-                />
+                <div key='customThemeChooser'>
+                    <br/>
+                    <CustomThemeChooser
+                        theme={this.state.theme}
+                        updateTheme={this.updateTheme}
+                    />
+                </div>
             );
         } else {
             premade = (
-                <PremadeThemeChooser
-                    theme={this.state.theme}
-                    updateTheme={this.updateTheme}
-                />
+                <div key='premadeThemeChooser'>
+                    <br/>
+                    <PremadeThemeChooser
+                        theme={this.state.theme}
+                        updateTheme={this.updateTheme}
+                    />
+                </div>
             );
         }
 
-        const themeUI = (
-            <div className='section-max appearance-section'>
-                <div className='col-sm-12'>
-                    <div className='radio'>
-                        <label>
-                            <input type='radio'
-                                checked={!displayCustom}
-                                onChange={this.updateType.bind(this, 'premade')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.appearance.themeColors'
-                                defaultMessage='Theme Colors'
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                    {premade}
-                    <div className='radio'>
-                        <label>
-                            <input type='radio'
-                                checked={displayCustom}
-                                onChange={this.updateType.bind(this, 'custom')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.appearance.customTheme'
-                                defaultMessage='Custom Theme'
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                    {custom}
-                    <hr />
-                    {serverError}
-                    <a
-                        className='btn btn-sm btn-primary'
-                        href='#'
-                        onClick={this.submitTheme}
-                    >
-                        <FormattedMessage
-                            id='user.settings.appearance.save'
-                            defaultMessage='Save'
-                        />
-                    </a>
-                    <a
-                        className='btn btn-sm theme'
-                        href='#'
-                        onClick={this.resetFields}
-                    >
-                        <FormattedMessage
-                            id='user.settings.appearance.cancel'
-                            defaultMessage='Cancel'
-                        />
-                    </a>
-                </div>
-            </div>
-        );
+        let themeUI;
+        if (this.props.selected) {
+            let inputs = [];
 
-        return (
-            <div>
-                <div className='modal-header'>
-                    <button
-                        type='button'
-                        className='close'
-                        aria-label='Close'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                        ref='title'
-                    >
-                        <i
-                            className='modal-back'
-                            onClick={this.props.collapseModal}
+            inputs.push(
+                <div
+                    className='radio'
+                    key='premadeThemeColorLabel'
+                >
+                    <label>
+                        <input type='radio'
+                            checked={!displayCustom}
+                            onChange={this.updateType.bind(this, 'premade')}
                         />
                         <FormattedMessage
-                            id='user.settings.appearance.title'
-                            defaultMessage='Appearance Settings'
+                            id='user.settings.display.theme.themeColors'
+                            defaultMessage='Theme Colors'
                         />
-                    </h4>
+                    </label>
+                    <br/>
                 </div>
-                <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='user.settings.appearance.title'
-                            defaultMessage='Appearance Settings'
+            );
+
+            inputs.push(premade);
+
+            inputs.push(
+                <div
+                    className='radio'
+                    key='customThemeColorLabel'
+                >
+                    <label>
+                        <input type='radio'
+                            checked={displayCustom}
+                            onChange={this.updateType.bind(this, 'custom')}
                         />
-                    </h3>
-                    <div className='divider-dark first'/>
-                    {themeUI}
-                    <div className='divider-dark'/>
+                        <FormattedMessage
+                            id='user.settings.display.theme.customTheme'
+                            defaultMessage='Custom Theme'
+                        />
+                    </label>
+                    <br/>
+                </div>
+            );
+
+            inputs.push(custom);
+
+            inputs.push(
+                <div key='importSlackThemeButton'>
                     <br/>
                     <a
                         className='theme'
                         onClick={this.handleImportModal}
                     >
                         <FormattedMessage
-                            id='user.settings.appearance.import'
+                            id='user.settings.display.theme.import'
                             defaultMessage='Import theme colors from Slack'
                         />
                     </a>
                 </div>
-            </div>
-        );
+            );
+
+            themeUI = (
+                <SettingItemMax
+                    inputs={inputs}
+                    submit={this.submitTheme}
+                    server_error={serverError}
+                    width='full'
+                    updateSection={(e) => {
+                        this.props.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            themeUI = (
+                <SettingItemMin
+                    title={formatMessage(holders.themeTitle)}
+                    describe={formatMessage(holders.themeDescribe)}
+                    updateSection={() => {
+                        this.props.updateSection('theme');
+                    }}
+                />
+            );
+        }
+
+        return themeUI;
     }
 }
 
-UserSettingsAppearance.defaultProps = {
-    activeSection: ''
-};
-UserSettingsAppearance.propTypes = {
-    activeSection: React.PropTypes.string,
-    updateTab: React.PropTypes.func,
-    closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired,
+ThemeSetting.propTypes = {
+    intl: intlShape.isRequired,
+    selected: React.PropTypes.bool.isRequired,
+    updateSection: React.PropTypes.func.isRequired,
     setRequireConfirm: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(ThemeSetting);

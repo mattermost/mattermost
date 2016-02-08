@@ -178,9 +178,17 @@
                     }
                 }
             }
+
+            .theme-elements {
+                padding-left:15px;
+                .element {
+                    margin-right:10px;
+                }
+            }
+
             .custom-label {
                 font-weight: normal;
-                font-size: 13px;
+                font-size: 12px;
                 width: 100%;
                 overflow: hidden;
                 text-overflow: ellipsis;

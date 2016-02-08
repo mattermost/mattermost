@@ -46,9 +46,14 @@ export default class SettingItemMax extends React.Component {
             widthClass = 'col-sm-9 col-sm-offset-3';
         }
 
+        let title;
+        if (this.props.title) {
+            title = <li className='col-sm-12 section-title'>{this.props.title}</li>;
+        }
+
         return (
             <ul className='section-max form-horizontal'>
-                <li className='col-sm-12 section-title'>{this.props.title}</li>
+                {title}
                 <li className={widthClass}>
                     <ul className='setting-list'>
                         <li className='setting-list-item'>

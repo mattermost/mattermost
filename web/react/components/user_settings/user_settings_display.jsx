@@ -1,15 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {savePreferences} from '../../utils/client.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
-import Constants from '../../utils/constants.jsx';
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
-import PreferenceStore from '../../stores/preference_store.jsx';
 import ManageLanguages from './manage_languages.jsx';
+import ThemeSetting from './user_settings_theme.jsx';
+
+import PreferenceStore from '../../stores/preference_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
+import Constants from '../../utils/constants.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
+
+import {savePreferences} from '../../utils/client.jsx';
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
 const holders = defineMessages({
@@ -452,6 +455,13 @@ class UserSettingsDisplay extends React.Component {
                         />
                     </h3>
                     <div className='divider-dark first'/>
+                        <ThemeSetting
+                            selected={this.props.activeSection === 'theme'}
+                            updateSection={this.updateSection}
+                            setRequireConfirm={this.props.setRequireConfirm}
+                            setEnforceFocus={this.props.setEnforceFocus}
+                        />
+                    <div className='divider-dark'/>
                     {fontSection}
                     <div className='divider-dark'/>
                     {clockSection}
@@ -472,7 +482,9 @@ UserSettingsDisplay.propTypes = {
     updateTab: React.PropTypes.func,
     activeSection: React.PropTypes.string,
     closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired
+    collapseModal: React.PropTypes.func.isRequired,
+    setRequireConfirm: React.PropTypes.func.isRequired,
+    setEnforceFocus: React.PropTypes.func.isRequired
 };
 
 export default injectIntl(UserSettingsDisplay);

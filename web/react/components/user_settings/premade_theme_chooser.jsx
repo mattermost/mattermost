@@ -45,7 +45,7 @@ export default class PremadeThemeChooser extends React.Component {
         }
 
         return (
-            <div className='row'>
+            <div className='row appearance-section'>
                 {premadeThemes}
             </div>
         );
