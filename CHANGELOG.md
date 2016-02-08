@@ -85,8 +85,7 @@ User Interface
 - iOS devices are no longer detected as “unknown” devices in the session history.
 
 ### Compatibility  
-
-#### Config.json Changes from v1.4 to v2.0
+Changes from v1.4 to v2.0:
 
 **iOS**  
 The new iOS app for v2.0 is not backwards compatible with Mattermost v1.4.
