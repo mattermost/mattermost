@@ -579,7 +579,7 @@
   "delete_post.comment": "Comment",
   "delete_post.post": "Post",
   "delete_post.confirm": "Confirm {term} Delete",
-  "delete_post.question": "Are you sure you want to delete this ${term}?",
+  "delete_post.question": "Are you sure you want to delete this {term}?",
   "delete_post.cancel": "Cancel",
   "delete_post.del": "Delete",
   "edit_channel_header_modal.error": "This channel header is too long, please enter a shorter one",
