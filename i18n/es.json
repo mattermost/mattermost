@@ -681,7 +681,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} y {{.LastUsername}} fueron mencionados, pero ellos no pertenecen a este canal."
+    "translation": "{{.Usernames}} y {{.LastUsername}} fueron mencionados, pero no pertenecen a este canal."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",

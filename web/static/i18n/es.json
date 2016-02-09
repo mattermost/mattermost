@@ -933,6 +933,7 @@
   "signup_user_completed.gitlab": "con GitLab",
   "signup_user_completed.google": "con Google",
   "signup_user_completed.lets": "Vamos a crear tu cuenta",
+  "signup_user_completed.none": "No está habilitado ningún método para crear usuarios. Por favor contacta a un administrador para obtener acceso.",
   "signup_user_completed.onSite": "en {siteName}",
   "signup_user_completed.or": "o",
   "signup_user_completed.passwordLength": "Por favor ingresa al menos {min} caracteres",
