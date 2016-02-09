@@ -160,7 +160,7 @@ export function notifyMe(title, body, channel) {
             }
 
             if (permission === 'granted') {
-                var notification = new Notification(title, {body, tag: body, icon: '/static/images/icon50x50.png'});
+                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
                 notification.onclick = () => {
                     window.focus();
                     if (channel) {
