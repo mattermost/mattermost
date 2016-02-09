@@ -1,5 +1,186 @@
 # Mattermost Changelog
 
+## Release v2.0.0
+
+Expected Release date: 2016-02-16
+
+### Highlights 
+
+#### Incremented Version Number: Mattermost "2.0" 
+
+- Version number incremented from "1.x" to "2.x" indicating major product changes, including: 
+    
+##### Localization 
+
+- Addition of localization support to entire user interface plus error and log messages
+- Added Spanish language translation (Beta quality) available from **Account Settings** > **Display**
+
+##### Enhanced Support for Mobile Devices 
+
+- BREAKING CHANGE to APIs: New Android and updated iOS apps require `platform` 2.0 and higher
+- iOS added app support for GitLab single-sign-on
+- iOS added app support for LDAP/AD single-sign-on (Enterprise Edition only) 
+
+##### Upgrade and Deployment Improvements
+- Mattermost v2.0 now upgrades from up to two previous major builds (e.g. v1.4.x and v1.3.x)
+- Added option to allow use of insecure TLS outbound connections to allow use of self-signed certificates
+
+### New Features
+
+Localization 
+
+- Addition of localization support to entire user interface plus error and log messages
+- Added Spanish language translation (Beta quality) available from **Account Settings** > **Display**
+
+Slash Commands
+
+- Added [Slack-compatible slash commands](http://docs.mattermost.com/developer/slash-commands.html) to integrate with external systems 
+
+iOS
+
+- [iOS app](https://github.com/mattermost/ios) added support for GitLab single-sign-on
+- [iOS app](https://github.com/mattermost/ios) added support for LDAP/AD single-sign-on (Enterprise Edition only) 
+
+Android 
+
+- New open source Android application compatible with Mattermost 2.0 and higher 
+
+System Console
+
+- Added **Site Reports** to view system statistics on posts, channels and users. 
+
+### Improvements 
+
+Upgrading
+
+- Mattermost v2.0 now upgrades from up to two previous major builds (e.g. v1.4.x and v1.3.x).
+
+Files and Images
+
+- Public links to images and files created by users no longer expire 
+- OGG attachments now play in preview window on Chrome and Firefox
+
+Onboarding
+
+- “Get Team Invite Link” option is disabled from the main menu if user creation is disabled for the team
+- Tutorial colors improved to provide higher contrast with new default theme
+
+Authentication
+
+- Added ability to sign in with username as an alternative to email address
+- Switching from email to SSO for sign in now updates email address to use the SSO email
+
+System Console
+
+- Added option to allow use of insecure TLS outbound connections to allow use of self-signed certificates
+- Removed unused "Disable File Storage" option from **System Console** > **File Storage**
+- Added warning if a user demotes their account from System Administrator
+
+Search
+
+- Hashtag search is no longer case sensitive
+- System messages no longer appear in search results
+- Date separator added to search results 
+- Moved the recent mentions icon to the right of the search bar
+
+Messaging 
+- Changed the comment bubble to a reply arrow to make post replies and the RHS more discoverable
+- Time stamp next to sequential posts made by users now shows HH:MM instead of on-hover timestamp
+- Code blocks now support horizontal scrolling if content exceeds the max width 
+
+User Interface
+
+- Away status added to note users who have been idle for more than 5 minutes.
+- Long usernames are now truncated in the center channel and RHS
+- Added more favicon sizes for home screen icons on mobile devices
+
+#### Bug Fixes  
+
+- Incorrect “Mattermost unreachable” error on iOS no longer appears
+- Dialog to confirm deletion of a post now supports hitting “ENTER” to confirm deletion. 
+- Keyboard focus on the New Channel modal on IE11 is now contained within the text box.
+- LHS indicator for “Unread Posts Above/Below” now displays on IE11
+- Unresponsive UI when viewing a permalink is fixed if a user clicks outside the text on the "Click here to jump to recent messages" bar. 
+- Dismissed blue bar error messages no longer re-appear on page refresh.
+- Console error is no longer thrown on first page load in Firefox and Edge.
+- Console error and missing notification is fixed for the first direct message received from any user.
+- Comment bubble in Firefox no longer appears with a box around it on-hover.
+- Home screen icons on Android and iOS devices now appear with the Mattermost logo.
+- Switching channels now clears the “user is typing” message below the text input box.
+- iOS devices are no longer detected as “unknown” devices in the session history.
+
+### Compatibility  
+Changes from v1.4 to v2.0:
+
+**iOS**  
+Mattermost iOS app v2.0 requires Mattermost platform v2.0 and higher.
+
+**config.json**    
+Multiple setting options were added to `config.json`. Below is a list of the additions and their default values on install. The settings can be modified in `config.json` or the System Console.  
+
+- Under `ServiceSettings` in `config.json`:
+    - `"EnableCommands": false` to set whether users can create slash commands from **Account Settings** > **Integrations** > **Commands**
+    - `"EnableOnlyAdminIntegrations": true` to restrict integrations to being created by admins only.
+    - `"EnableInsecureOutgoingConnections": false` sets whether outgoing HTTPS requests can accept unverified, self-signed certificates.
+    - Optional: `"WebsocketSecurePort" : 443` sets the port on which the secured WebSocket will listen using the `wss` protocol. If this setting is not present in `config.json`, it defaults to `443`.
+    - Optional: `"WebsocketPort": 80` sets the port on which the unsecured WebSocket will listen using the `ws` protocol. If this setting is not present in `config.json`, it defaults to `80`.
+
+- Under `EmailSettings` in `config.json`:
+    -  `"EnableSignInWithEmail": true` allows users to sign in using their email.    
+    -  `"EnableSignInWithUsername": false` sets whether users can sign in with their username. Typically only used when email verification is disabled.
+
+**Localization**  
+There are two new directories for i18n localization JSON files:
+- platform/i18n for server-side localization files
+- platform/web/static/i18n for client-side localization files
+
+#### Database Changes from v1.4 to v2.0
+
+The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions.
+
+##### Users Table
+1. Added `Locale` column
+
+##### Licenses Table
+1. Added `Licenses` Table
+
+#### Known Issues
+
+- Navigating to a page with new messages containing inline images added via markdown causes the channel to scroll up and down while loading the inline images.
+- Microsoft Edge does not yet support drag and drop for file attachments. 
+- Scroll bar does not appear in the center channel.
+- Unable to paste images into the text box on Firefox, Safari, and IE11.
+- Importing from Slack fails to load messages in certain cases and breaks @mentions.
+- System Console > TEAMS > Statistics > Newly Created Users shows all users as created "just now".
+- Favicon does not turn red when @mentions and direct messages are received in an inactive browser tab.
+- Searching for a phrase in quotations returns more than just the phrase on installations with a Postgres database.
+- Archived channels are not removed from the "More" menu for the person that archived the channel until after refresh.
+- Search results don't highlight searches for @username, non-latin characters, or terms inside Markdown code blocks.
+- Searching for a username or hashtag containing a dot returns a search where the dot is replaced with the "or" operator. 
+- Hashtags less than three characters long are not searchable.
+- Users remains in the channel counter after being deactivated.
+- Messages with symbols (<,>,-,+,=,%,^,#,*,|) directly before or after a hashtag are not searchable.
+- Permalinks for the second message or later consecutively sent in a group by the same author displaces the copy link popover or causes an error
+- Emoji smileys ending with a letter at the end of a message do not auto-complete as expected
+
+#### Contributors 
+
+Special thanks to [enahum](https://github.com/enahum) for creating the Spanish localization!
+
+Many thanks to all our external contributors. In no particular order:
+
+- [enahum](https://github.com/enahum)
+- [trashcan](https://github.com/trashcan)
+- [khoa-le](https://github.com/khoa-le)
+- [alanmoo](https://github.com/alanmoo)
+- [fallenby](https://github.com/fallenby)
+- [loafoe](https://github.com/loafoe)
+- [gramakri](https://github.com/gramakri)
+- [pawelad](https://github.com/pawelad)
+- [cifvts](https://github.com/cifvts)
+- [rosskusler](https://github.com/rosskusler)
+- [apskim](https://github.com/apskim) 
+
 ## Release v1.4.0
 
 Expected Release date: 2016-01-16
