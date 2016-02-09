@@ -4,31 +4,46 @@
 
 Expected Release date: 2016-02-16
 
-### New Features
+### Highlights 
+
+New Version
+
+- Mattermost user interface and logging completely overhauled to support localization 
+
+iOS 
+
+- Breaking Change: New Mattermost iOS app v2.0 requires Mattermost v2.0 and higher 
+- Adding support for Mattermost iOS app v2.0 with single-sign-on for LDAP/AD (Enterprise Edition only) and GitLab
+
+Android 
+
+- New open source Android application connects to Mattermost v2.0 and higher 
 
 Localization
 
-- Support for language translation, with community support for Spanish from **Account Settings** > **Display**
+- Mattermost now supports language translation across user interface and error logging
+- Beta release of Spanish language translation (Latin American dialect) available from **Account Settings** > **Display**
+
+
+### New Features
 
 Slash Commands
 
-- Support custom slash commands to send message events to external integrations using a slack compatible method.
-- Enable slash commands from the **System Console** > **Service Settings** > **Enable Slash Commands** and configure them in **Account Settings** > **Integrations** > **Commands**
+- Added [Slack-compatible slash commands](http://docs.mattermost.com/developer/slash-commands.html) to integrate with external systems 
 
-[iOS](https://github.com/mattermost/ios)
+iOS
 
-- Added support for GitLab SSO
+- Added support for GitLab single-sign-on 
 
 System Console
 
 - Added **Site Reports** to view system statistics on posts, channels and users. 
 
-
 ### Improvements 
 
 Upgrading
 
-- Support version skipping to allow directly upgrading from v1.3 or v1.4
+- Mattermost v2.0 supports upgrading from up to two previous major builds (v1.4.x and v1.3.x). Previous version could only upgrade from most recent major build. 
 
 Files and Images
 
@@ -38,36 +53,37 @@ Files and Images
 Onboarding
 
 - “Get Team Invite Link” option is disabled from the main menu if user creation is disabled for the team
+- Tutorial colors improved to provide higher contrast with new default theme
 
 Authentication
 
-- Switching from email to SSO sign in now updates email address to use the SSO email
 - Added ability to sign in with username as an alternative to email address
-
+- Switching from email to SSO for sign in now updates email address to use the SSO email
 
 System Console
 
-- Removed "Disable File Storage" option from System Console > File Storage
-- Added a warning if a user demotes their account from System Administrator.
-- Option to allow insecure TLS outbound connections for self-signed certificates.
+- Removed unused "Disable File Storage" option from **System Console** > **File Storage**
+- Added warning if a user demotes their account from System Administrator
+- Added option to allow use of insecure TLS outbound connections for self-signed certificates
 
 
 Search
 
 - Hashtag search is no longer case sensitive
 - System messages no longer appear in search results
+- Date separator added to search results 
+- Moved the recent mentions icon to the right of the search bar
+
+Messaging 
+- Changed the comment bubble to a reply arrow to make post replies and the RHS more discoverable
+- Time stamp next to sequential posts made by users now shows HH:MM instead of on-hover timestamp
+- Code blocks now support horizontal scrolling if content exceeds the max width 
 
 User Interface
 
-- Changed the comment bubble to a reply arrow to make post replies and the RHS more discoverable
-- Away status in direct message list for users who haven’t had any Mattermost activity for 5 minutes.
-- Time stamp next to sequential posts made by users now shows HH:MM instead of on-hover timestamp
-- Tutorial colors improved to provide higher contrast with new default theme
-- Added more favicon sizes for home screen icons on mobile devices
-- Date separator added to search
-- Code blocks now support horizontal scrolling if content exceeds the max width 
-- Moved the recent mentions icon to the right of the search bar
+- Away status added to note users who have been idle for more than 5 minutes.
 - Long usernames are now truncated in the center channel and RHS
+- Added more favicon sizes for home screen icons on mobile devices
 
 #### Bug Fixes  
 
@@ -76,8 +92,8 @@ User Interface
 - Keyboard focus on the New Channel modal on IE11 is now contained within the text box.
 - LHS indicator for “Unread Posts Above/Below” now displays on IE11
 - Unresponsive UI when viewing a permalink is fixed if a user clicks outside the text on the "Click here to jump to recent messages" bar. 
-- Console error is no longer thrown on first page load in Firefox and Edge.
 - Dismissed blue bar error messages no longer re-appear on page refresh.
+- Console error is no longer thrown on first page load in Firefox and Edge.
 - Console error and missing notification is fixed for the first direct message received from any user.
 - Comment bubble in Firefox no longer appears with a box around it on-hover.
 - Home screen icons on Android and iOS devices now appear with the Mattermost logo.
@@ -88,7 +104,7 @@ User Interface
 Changes from v1.4 to v2.0:
 
 **iOS**  
-The new iOS app for v2.0 is not backwards compatible with Mattermost v1.4.
+Mattermost iOS app v2.0 requires Mattermost platform v2.0 and higher.
 
 **config.json**    
 Multiple setting options were added to `config.json`. Below is a list of the additions and their default values on install. The settings can be modified in `config.json` or the System Console.  
@@ -118,7 +134,6 @@ The following is for informational purposes only, no action needed. Mattermost a
 
 ##### Licenses Table
 1. Added `Licenses` Table
-
 
 #### Known Issues
 
@@ -156,7 +171,6 @@ Many thanks to all our external contributors. In no particular order:
 - [cifvts](https://github.com/cifvts)
 - [rosskusler](https://github.com/rosskusler)
 - [apskim](https://github.com/apskim) 
-
 
 ## Release v1.4.0
 
