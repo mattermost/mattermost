@@ -271,7 +271,7 @@ export default class ManageCommandCmds extends React.Component {
             cmds.push(
                 <div
                     key={cmd.id}
-                    className='webcmd__item'
+                    className='webhook__item webcmd__item'
                 >
                     <div className='padding-top x2'>
                         <strong>
@@ -400,7 +400,7 @@ export default class ManageCommandCmds extends React.Component {
         }
 
         const existingCmds = (
-            <div className='webcmds__container'>
+            <div className='webhooks__container webcmds__container'>
                 <label className='control-label padding-top x2'>
                     <FormattedMessage
                         id='user.settings.cmds.existing'
@@ -408,7 +408,7 @@ export default class ManageCommandCmds extends React.Component {
                     />
                 </label>
                 <div className='padding-top divider-light'></div>
-                <div className='webcmds__list'>
+                <div className='webhooks__list webcmds__list'>
                     {displayCmds}
                 </div>
             </div>

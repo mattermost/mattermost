@@ -680,6 +680,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelColor) {
+        changeCss('.post-list__arrows', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.sidebar--left, .sidebar--right .sidebar--right__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .command-name, .modal .modal-content, .dropdown-menu, .popover, .mentions-name, .tip-overlay', 'color:' + theme.centerChannelColor, 1);
         changeCss('#archive-link-home', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);

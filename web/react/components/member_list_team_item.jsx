@@ -208,8 +208,8 @@ export default class MemberListTeamItem extends React.Component {
                         height='36'
                         width='36'
                     />
-                    <span className='member-name'>{Utils.displayUsername(user.id)}</span>
-                    <span className='member-email'>{email}</span>
+                    <span className='more-name'>{Utils.displayUsername(user.id)}</span>
+                    <span className='more-description'>{email}</span>
                     <div className='dropdown member-drop'>
                         <a
                             href='#'

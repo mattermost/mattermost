@@ -124,8 +124,8 @@ export default class MemberListItem extends React.Component {
                         height='36'
                         width='36'
                     />
-                    <div className='member-name'>{Utils.displayUsername(member.id)}</div>
-                    <div className='member-description'>{member.email}</div>
+                    <div className='more-name'>{Utils.displayUsername(member.id)}</div>
+                    <div className='more-description'>{member.email}</div>
                 </td>
                 <td className='td--action lg'>{invite}</td>
             </tr>

@@ -94,7 +94,7 @@ export default class PostsView extends React.Component {
             });
         }
 
-        this.scrollStopAction.fireAfter(1000);
+        this.scrollStopAction.fireAfter(2000);
     }
     handleScrollStop() {
         this.setState({
@@ -564,6 +564,8 @@ function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
         <div
             className={className}
             onClick={onClick}
-        />
+        >
+            <span dangerouslySetInnerHTML={{__html: Constants.SCROLL_BOTTOM_ICON}} />
+        </div>
     );
 }
