@@ -18,7 +18,7 @@ const holders = defineMessages({
     },
     addDisplayNamePlaceholder: {
         id: 'user.settings.cmds.add_display_name.placeholder',
-        defaultMessage: 'Display Name'
+        defaultMessage: 'Example: "Search patient records"'
     },
     addUsernamePlaceholder: {
         id: 'user.settings.cmds.add_username.placeholder',
@@ -30,11 +30,11 @@ const holders = defineMessages({
     },
     addAutoCompleteDescPlaceholder: {
         id: 'user.settings.cmds.auto_complete_desc.placeholder',
-        defaultMessage: 'A short description of what this commands does.'
+        defaultMessage: 'Example: "Returns search results for patient records"'
     },
     addAutoCompleteHintPlaceholder: {
         id: 'user.settings.cmds.auto_complete_hint.placeholder',
-        defaultMessage: '[zipcode]'
+        defaultMessage: 'Example: [Patient Name]'
     },
     adUrlPlaceholder: {
         id: 'user.settings.cmds.url.placeholder',
@@ -261,7 +261,7 @@ export default class ManageCommandCmds extends React.Component {
                         <strong>
                             <FormattedMessage
                                 id='user.settings.cmds.trigger'
-                                defaultMessage='Trigger: '
+                                defaultMessage='Command Trigger Word: '
                             />
                         </strong>{cmd.trigger}
                     </div>
@@ -273,59 +273,20 @@ export default class ManageCommandCmds extends React.Component {
                     key={cmd.id}
                     className='webhook__item webcmd__item'
                 >
-                    <div className='padding-top x2'>
+                    {triggerDiv}
+                    <div className='padding-top x2 webcmd__url'>
                         <strong>
                             <FormattedMessage
-                                id='user.settings.cmds.display_name'
-                                defaultMessage='Display Name: '
+                                id='user.settings.cmds.url'
+                                defaultMessage='Request URL: '
                             />
-                        </strong><span className='word-break--all'>{cmd.display_name}</span>
-                    </div>
-                    <div className='padding-top x2'>
-                        <strong>
-                            <FormattedMessage
-                                id='user.settings.cmds.username'
-                                defaultMessage='Username: '
-                            />
-                        </strong><span className='word-break--all'>{cmd.username}</span>
-                    </div>
-                    <div className='padding-top x2'>
-                        <strong>
-                            <FormattedMessage
-                                id='user.settings.cmds.icon_url'
-                                defaultMessage='Icon URL: '
-                            />
-                        </strong><span className='word-break--all'>{cmd.icon_url}</span>
-                    </div>
-                    <div className='padding-top x2'>
-                        <strong>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete'
-                                defaultMessage='Auto Complete: '
-                            />
-                        </strong><span className='word-break--all'>{cmd.auto_complete ? this.props.intl.formatMessage(holders.autocompleteYes) : this.props.intl.formatMessage(holders.autocompleteNo)}</span>
-                    </div>
-                    <div className='padding-top x2'>
-                        <strong>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_desc'
-                                defaultMessage='Auto Complete Description: '
-                            />
-                        </strong><span className='word-break--all'>{cmd.auto_complete_desc}</span>
-                    </div>
-                    <div className='padding-top x2'>
-                        <strong>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_hint'
-                                defaultMessage='Auto Complete Hint: '
-                            />
-                        </strong><span className='word-break--all'>{cmd.auto_complete_hint}</span>
+                        </strong><span className='word-break--all'>{cmd.url}</span>
                     </div>
                     <div className='padding-top x2'>
                         <strong>
                             <FormattedMessage
                                 id='user.settings.cmds.request_type'
-                                defaultMessage='Request Type: '
+                                defaultMessage='Request Method: '
                             />
                         </strong>
                         <span className='word-break--all'>
@@ -342,15 +303,54 @@ export default class ManageCommandCmds extends React.Component {
                             }
                         </span>
                     </div>
-                    <div className='padding-top x2 webcmd__url'>
+                    <div className='padding-top x2'>
                         <strong>
                             <FormattedMessage
-                                id='user.settings.cmds.url'
-                                defaultMessage='URL: '
+                                id='user.settings.cmds.username'
+                                defaultMessage='Response Username: '
                             />
-                        </strong><span className='word-break--all'>{cmd.url}</span>
+                        </strong><span className='word-break--all'>{cmd.username}</span>
                     </div>
-                    {triggerDiv}
+                    <div className='padding-top x2'>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.icon_url'
+                                defaultMessage='Response Icon: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.icon_url}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete'
+                                defaultMessage='Autocomplete: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.auto_complete ? this.props.intl.formatMessage(holders.autocompleteYes) : this.props.intl.formatMessage(holders.autocompleteNo)}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_hint'
+                                defaultMessage='Autocomplete Hint: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.auto_complete_hint}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_desc'
+                                defaultMessage='Autocomplete Description: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.auto_complete_desc}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.display_name'
+                                defaultMessage='Descriptive Label: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.display_name}</span>
+                    </div>
                     <div className='padding-top'>
                         <strong>
                             <FormattedMessage
@@ -420,7 +420,7 @@ export default class ManageCommandCmds extends React.Component {
             <div key='addCommandCmd'>
                 <FormattedHTMLMessage
                     id='user.settings.cmds.add_desc'
-                    defaultMessage='Create commands to send message events to an external integration. Please see <a href="http://mattermost.org/commands">http://mattermost.org/commands</a>  to learn more.'
+                    defaultMessage='Create slash commands to send events to external integrations and receive a response. For example typing `/patient Joe Smith` could bring back search results from your internal health records management system for the name “Joe Smith”.  Please see <a href="http://docs.mattermost.com/developer/slash-commands.html">Slash commands documentation</a>  for detailed instructions.'
                 />
                 <div><label className='control-label padding-top x2'>
                     <FormattedMessage
@@ -430,80 +430,12 @@ export default class ManageCommandCmds extends React.Component {
                 </label></div>
                 <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.display_name'
-                                defaultMessage='Display Name: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='displayName'
-                                className='form-control'
-                                value={this.state.cmd.display_name}
-                                onChange={this.updateDisplayName}
-                                placeholder={this.props.intl.formatMessage(holders.addDisplayNamePlaceholder)}
-                            />
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.cmd_display_name'
-                                defaultMessage='Command display name.'
-                            />
-                        </div>
-                    </div>
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.username'
-                                defaultMessage='Username: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='username'
-                                className='form-control'
-                                value={this.state.cmd.username}
-                                onChange={this.updateUsername}
-                                placeholder={this.props.intl.formatMessage(holders.addUsernamePlaceholder)}
-                            />
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.username_desc'
-                                defaultMessage='The username to use when overriding the post.'
-                            />
-                        </div>
-                    </div>
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.icon_url'
-                                defaultMessage='Icon URL: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='iconURL'
-                                className='form-control'
-                                value={this.state.cmd.icon_url}
-                                onChange={this.updateIconURL}
-                                placeholder='https://www.example.com/myicon.png'
-                            />
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.icon_url_desc'
-                                defaultMessage='URL to an icon'
-                            />
-                        </div>
-                    </div>
+
                     <div className='padding-top x2'>
                         <label className='control-label'>
                             <FormattedMessage
                                 id='user.settings.cmds.trigger'
-                                defaultMessage='Trigger: '
+                                defaultMessage='Command Trigger Word: '
                             />
                         </label>
                         <div className='padding-top'>
@@ -518,78 +450,41 @@ export default class ManageCommandCmds extends React.Component {
                         <div className='padding-top'>
                             <FormattedMessage
                                 id='user.settings.cmds.trigger_desc'
-                                defaultMessage='Word to trigger on'
+                                defaultMessage='Examples: /patient, /client, /employee Reserved: /echo, /join, /logout, /me, /shrug'
                             />
-                        {''}</div>
+                        </div>
                     </div>
+
                     <div className='padding-top x2'>
                         <label className='control-label'>
                             <FormattedMessage
-                                id='user.settings.cmds.auto_complete'
-                                defaultMessage='Auto Complete: '
+                                id='user.settings.cmds.url'
+                                defaultMessage='Request URL: '
                             />
                         </label>
                         <div className='padding-top'>
-                            <div className='checkbox'>
-                                <label>
-                                    <input
-                                        type='checkbox'
-                                        checked={this.state.cmd.auto_complete}
-                                        onChange={this.updateAutoComplete}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.cmds.auto_complete_help'
-                                        defaultMessage=' Show this command in autocomplete list'
-                                    />
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_desc'
-                                defaultMessage='Auto Complete Description: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='autoCompleteDesc'
-                                className='form-control'
-                                value={this.state.cmd.auto_complete_desc}
-                                onChange={this.updateAutoCompleteDesc}
-                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteDescPlaceholder)}
-                            />
-                        </div>
-                    </div>
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_hint'
-                                defaultMessage='Auto Complete Hint: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='autoCompleteHint'
-                                className='form-control'
-                                value={this.state.cmd.auto_complete_hint}
-                                onChange={this.updateAutoCompleteHint}
-                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteHintPlaceholder)}
-                            />
+                        <input
+                            ref='URL'
+                            className='form-control'
+                            value={this.state.cmd.url}
+                            rows={1}
+                            onChange={this.updateURL}
+                            placeholder={this.props.intl.formatMessage(holders.adUrlPlaceholder)}
+                        />
                         </div>
                         <div className='padding-top'>
                             <FormattedMessage
-                                id='user.settings.cmds.auto_complete_hint_desc'
-                                defaultMessage='List parameters to be passed to the command.'
+                                id='user.settings.cmds.url_desc'
+                                defaultMessage='The callback URL to receive the HTTP POST or GET event request when the slash command is run.'
                             />
                         </div>
                     </div>
+
                     <div className='padding-top x2'>
                         <label className='control-label'>
                             <FormattedMessage
                                 id='user.settings.cmds.request_type'
-                                defaultMessage='Request Type: '
+                                defaultMessage='Request Method: '
                             />
                         </label>
                         <div className='padding-top'>
@@ -610,35 +505,156 @@ export default class ManageCommandCmds extends React.Component {
                         <div className='padding-top'>
                             <FormattedMessage
                                 id='user.settings.cmds.request_type_desc'
-                                defaultMessage='Command request type issued to the callback URL.'
+                                defaultMessage='The type of command request issued to the Request URL.'
                             />
                         </div>
                     </div>
+
                     <div className='padding-top x2'>
                         <label className='control-label'>
                             <FormattedMessage
-                                id='user.settings.cmds.url'
-                                defaultMessage='URL: '
+                                id='user.settings.cmds.username'
+                                defaultMessage='Response Username: '
                             />
                         </label>
                         <div className='padding-top'>
-                        <input
-                            ref='URL'
-                            className='form-control'
-                            value={this.state.cmd.url}
-                            rows={1}
-                            onChange={this.updateURL}
-                            placeholder={this.props.intl.formatMessage(holders.adUrlPlaceholder)}
-                        />
+                            <input
+                                ref='username'
+                                className='form-control'
+                                value={this.state.cmd.username}
+                                onChange={this.updateUsername}
+                                placeholder={this.props.intl.formatMessage(holders.addUsernamePlaceholder)}
+                            />
                         </div>
                         <div className='padding-top'>
                             <FormattedMessage
-                                id='user.settings.cmds.url_desc'
-                                defaultMessage='URL that will receive the HTTP POST or GET event'
+                                id='user.settings.cmds.username_desc'
+                                defaultMessage='Choose a username override for responses for this slash command. Usernames can consist of up to 22 characters consisting of lowercase letters, numbers and they symbols "-", "_", and "." .'
+                            />
+                        </div>
+                    </div>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.icon_url'
+                                defaultMessage='Response Icon: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <input
+                                ref='iconURL'
+                                className='form-control'
+                                value={this.state.cmd.icon_url}
+                                onChange={this.updateIconURL}
+                                placeholder='https://www.example.com/myicon.png'
+                            />
+                        </div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.icon_url_desc'
+                                defaultMessage='Choose a profile picture override for the post responses to this slash command. Enter the URL of a .png or .jpg file at least 128 pixels by 128 pixels.'
+                            />
+                        </div>
+                    </div>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete'
+                                defaultMessage='Autocomplete: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <div className='checkbox'>
+                                <label>
+                                    <input
+                                        type='checkbox'
+                                        checked={this.state.cmd.auto_complete}
+                                        onChange={this.updateAutoComplete}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.cmds.auto_complete_help'
+                                        defaultMessage=' Show this command in the autocomplete list.'
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_hint'
+                                defaultMessage='Autocomplete Hint: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <input
+                                ref='autoCompleteHint'
+                                className='form-control'
+                                value={this.state.cmd.auto_complete_hint}
+                                onChange={this.updateAutoCompleteHint}
+                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteHintPlaceholder)}
+                            />
+                        </div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_hint_desc'
+                                defaultMessage='Optional hint in the autocomplete list about parameters needed for command.'
+                            />
+                        </div>
+                    </div>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_desc'
+                                defaultMessage='Autocomplete Description: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <input
+                                ref='autoCompleteDesc'
+                                className='form-control'
+                                value={this.state.cmd.auto_complete_desc}
+                                onChange={this.updateAutoCompleteDesc}
+                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteDescPlaceholder)}
+                            />
+                        </div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_desc_desc'
+                                defaultMessage='Optional short description of slash command for the autocomplete list.'
+                            />
+                        </div>
+                    </div>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.display_name'
+                                defaultMessage='Descriptive Label: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <input
+                                ref='displayName'
+                                className='form-control'
+                                value={this.state.cmd.display_name}
+                                onChange={this.updateDisplayName}
+                                placeholder={this.props.intl.formatMessage(holders.addDisplayNamePlaceholder)}
+                            />
+                        </div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.cmd_display_name'
+                                defaultMessage='Brief description of slash command to show in listings.'
                             />
                         </div>
                         {addError}
                     </div>
+
                     <div className='padding-top x2 padding-bottom'>
                         <a
                             className={'btn btn-sm btn-primary'}

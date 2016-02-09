@@ -28,11 +28,11 @@ const holders = defineMessages({
     },
     cmdName: {
         id: 'user.settings.integrations.commands',
-        defaultMessage: 'Commands'
+        defaultMessage: 'Slash Commands'
     },
     cmdDesc: {
         id: 'user.settings.integrations.commandsDescription',
-        defaultMessage: 'Manage your commands'
+        defaultMessage: 'Manage your slash commands'
     }
 });
 
