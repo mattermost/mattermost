@@ -685,7 +685,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} was mentioned, but they do not belong to this channel."
+    "translation": "{{.Username}} was mentioned, but does not belong to this channel."
   },
   {
     "id": "api.post.create_post.bad_filename.error",

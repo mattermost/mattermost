@@ -1089,7 +1089,7 @@
   "user.settings.cmds.username_desc": "The username to use when overriding the post.",
   "user.settings.cmds.icon_url_desc": "URL to an icon",
   "user.settings.cmds.trigger_desc": "Word to trigger on",
-  "user.settings.cmds.auto_complete_help": "Show this command in autocomplete list",
+  "user.settings.cmds.auto_complete_help": " Show this command in autocomplete list",
   "user.settings.cmds.auto_complete_hint_desc": "List parameters to be passed to the command.",
   "user.settings.cmds.request_type_desc": "Command request type issued to the callback URL.",
   "user.settings.cmds.url_desc": "URL that will receive the HTTP POST or GET event",
