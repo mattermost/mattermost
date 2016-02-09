@@ -188,7 +188,9 @@ function handleNewPostEvent(msg, translations) {
 
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.channel_id) {
-        if (window.isActive) {
+        if (document.hidden) {
+            AsyncClient.getChannel(msg.channel_id);
+        } else {
             AsyncClient.updateLastViewedAt();
         }
     } else if (UserStore.getCurrentId() !== msg.user_id || post.type !== Constants.POST_TYPE_JOIN_LEAVE) {

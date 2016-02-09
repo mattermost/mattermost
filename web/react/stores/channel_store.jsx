@@ -308,7 +308,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         ChannelStore.storeChannels(action.channels);
         ChannelStore.storeChannelMembers(action.members);
         currentId = ChannelStore.getCurrentId();
-        if (currentId) {
+        if (currentId && !document.hidden) {
             ChannelStore.resetCounts(currentId);
         }
         ChannelStore.setUnreadCounts();
@@ -321,7 +321,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
             ChannelStore.pStoreChannelMember(action.member);
         }
         currentId = ChannelStore.getCurrentId();
-        if (currentId) {
+        if (currentId && !document.hidden) {
             ChannelStore.resetCounts(currentId);
         }
         ChannelStore.setUnreadCount(action.channel.id);
