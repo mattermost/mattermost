@@ -6,24 +6,27 @@ Expected Release date: 2016-02-16
 
 ### Highlights 
 
-New Version
+#### Incremented Version Number: Mattermost "2.0" 
 
-- Mattermost user interface and logging completely overhauled to support localization 
+- Version number incremented from "1.x" to "2.x" indicating major product changes, including: 
+    - Added localization support to entire user interface plus error and log messages
+    - BREAKING CHANGE to APIs: New Android and updated iOS apps require `platform` 2.0 and higher
+    - Upgrade procedure significantly improved to enable upgrades from multiple major build versions
+ 
+#### Localization 
 
-iOS 
-
-- Breaking Change: New Mattermost iOS app v2.0 requires Mattermost v2.0 and higher 
-- Adding support for Mattermost iOS app v2.0 with single-sign-on for LDAP/AD (Enterprise Edition only) and GitLab
-
-Android 
-
-- New open source Android application connects to Mattermost v2.0 and higher 
-
-Localization
-
-- Mattermost now supports language translation across user interface and error logging
+- Addition of localization support to entire user interface plus error and log messages
 - Beta release of Spanish language translation (Latin American dialect) available from **Account Settings** > **Display**
 
+#### Enhanced Support for Mobile Devices 
+
+- BREAKING CHANGE to APIs: New Android and updated iOS apps require `platform` 2.0 and higher
+- iOS added app support for GitLab single-sign-on
+- iOS added app support for LDAP/AD single-sign-on (Enterprise Edition only) 
+
+#### Upgrade and Deployment Improvements
+- Mattermost v2.0 now upgrades from up to two previous major builds (e.g. v1.4.x and v1.3.x)
+- Added option to allow use of insecure TLS outbound connections to allow use of self-signed certificates
 
 ### New Features
 
@@ -33,7 +36,12 @@ Slash Commands
 
 iOS
 
-- Added support for GitLab single-sign-on 
+- [iOS app](https://github.com/mattermost/ios) added support for GitLab single-sign-on
+- [iOS app](https://github.com/mattermost/ios) added support for LDAP/AD single-sign-on (Enterprise Edition only) 
+
+Android 
+
+- New open source Android application compatible with Mattermost 2.0 and higher 
 
 System Console
 
@@ -43,7 +51,7 @@ System Console
 
 Upgrading
 
-- Mattermost v2.0 supports upgrading from up to two previous major builds (v1.4.x and v1.3.x). Previous version could only upgrade from most recent major build. 
+- Mattermost v2.0 now upgrades from up to two previous major builds (e.g. v1.4.x and v1.3.x).
 
 Files and Images
 
@@ -62,10 +70,9 @@ Authentication
 
 System Console
 
+- Added option to allow use of insecure TLS outbound connections to allow use of self-signed certificates
 - Removed unused "Disable File Storage" option from **System Console** > **File Storage**
 - Added warning if a user demotes their account from System Administrator
-- Added option to allow use of insecure TLS outbound connections for self-signed certificates
-
 
 Search
 
