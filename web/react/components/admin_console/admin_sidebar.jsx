@@ -50,6 +50,7 @@ export default class AdminSidebar extends React.Component {
 
     removeTeam(teamId, e) {
         e.preventDefault();
+        e.stopPropagation();
         Reflect.deleteProperty(this.props.selectedTeams, teamId);
         this.props.removeSelectedTeam(teamId);
 
