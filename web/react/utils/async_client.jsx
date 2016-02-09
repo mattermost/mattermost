@@ -779,12 +779,18 @@ export function getSuggestedCommands(command, suggestionId, component) {
             var matches = [];
             data.forEach((cmd) => {
                 if (('/' + cmd.trigger).indexOf(command) === 0) {
+                    let s = '/' + cmd.trigger;
+                    if (cmd.auto_complete_hint && cmd.auto_complete_hint.length !== 0) {
+                        s += ' ' + cmd.auto_complete_hint;
+                    }
                     matches.push({
-                        suggestion: '/' + cmd.trigger + ' ' + cmd.auto_complete_hint,
+                        suggestion: s,
                         description: cmd.auto_complete_desc
                     });
                 }
             });
+
+            matches = matches.sort((a, b) => a.suggestion.localeCompare(b.suggestion));
 
             // pull out the suggested commands from the returned data
             const terms = matches.map((suggestion) => suggestion.suggestion);

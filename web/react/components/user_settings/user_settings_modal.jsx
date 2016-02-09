@@ -234,7 +234,7 @@ class UserSettingsModal extends React.Component {
             tabs.push({name: 'developer', uiName: formatMessage(holders.developer), icon: 'glyphicon glyphicon-th'});
         }
 
-        if (global.window.mm_config.EnableIncomingWebhooks === 'true' || global.window.mm_config.EnableOutgoingWebhooks === 'true') {
+        if (global.window.mm_config.EnableIncomingWebhooks === 'true' || global.window.mm_config.EnableOutgoingWebhooks === 'true' || global.window.mm_config.EnableCommands === 'true') {
             tabs.push({name: 'integrations', uiName: formatMessage(holders.integrations), icon: 'glyphicon glyphicon-transfer'});
         }
         tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'glyphicon glyphicon-eye-open'});
