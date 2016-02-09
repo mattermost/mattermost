@@ -16,11 +16,16 @@ addons:
   hosts:
   - 127.0.0.1 dockerhost
 after_success:
-    - cd dist && curl -F "pr_number=$TRAVIS_PULL_REQUEST" -F "file=@mattermost.tar.gz" mattermod.mattermost.com:8087/upload_pr_build && cd ..
+    - sudo chown -R `whoami` dist
+    - sudo chmod -R 777 dist
+    - cd dist && curl -F "pr_number=$TRAVIS_PULL_REQUEST" -F "file=@mattermost.tar.gz" mattermod.mattermost.com:8087/upload_pr_build
+    - md5sum mattermost.tar.gz > mm.md5
+    - sha1sum mattermost.tar.gz > mm.sha1
+    - sha256sum mattermost.tar.gz > mm.sha256
+    - cat mm.md5 mm.sha1 mm.sha256
+    - cd ..
 before_deploy:
     - sudo rm -rf dist/mattermost
-    - sudo chown `whoami` dist/mattermost.tar.gz
-    - sudo chmod 777 dist/mattermost.tar.gz
     - rvm 1.9.3 do gem install mime-types -v 2.6.2
 deploy:
 # Github releases, builds only on tags
