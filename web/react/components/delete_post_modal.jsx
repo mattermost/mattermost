@@ -173,7 +173,7 @@ export default class DeletePostModal extends React.Component {
                 <Modal.Body>
                     <FormattedMessage
                         id='delete_post.question'
-                        defaultMessage='Are you sure you want to delete this ${term}?'
+                        defaultMessage='Are you sure you want to delete this {term}?'
                         values={{
                             term: (postTerm)
                         }}
