@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
@@ -37,8 +36,8 @@ export default class SearchResultsItem extends React.Component {
     }
 
     render() {
-        var channelName = '';
-        var channel = ChannelStore.get(this.props.post.channel_id);
+        var channelName = null;
+        const channel = this.props.channel;
         var timestamp = UserStore.getCurrentUser().update_at;
 
         if (channel) {
@@ -136,6 +135,7 @@ export default class SearchResultsItem extends React.Component {
 
 SearchResultsItem.propTypes = {
     post: React.PropTypes.object,
+    channel: React.PropTypes.object,
     isMentionSearch: React.PropTypes.bool,
     term: React.PropTypes.string
 };
