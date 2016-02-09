@@ -103,7 +103,7 @@
 				background: rgba(0, 0, 0, 0.1);
 			}
 			span {
-			    font-family: 'Open Sans', sans-serif;
+				font-family: 'Open Sans', sans-serif;
 				line-height: 10px;
 			}
 		}
@@ -167,6 +167,12 @@
 		.more-name {
 			font-weight: 600;
 			font-size: 0.95em;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.more-description {
+			@include opacity(0.7);
+			display: block;
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
@@ -425,9 +431,9 @@
 }
 
 .modal-body.edit-modal-body {
-    overflow: visible;
+	overflow: visible;
 
-    .suggestion-content {
-        max-height: 150px;
-    }
+	.suggestion-content {
+		max-height: 150px;
+	}
 }

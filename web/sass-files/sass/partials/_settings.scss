@@ -223,6 +223,8 @@
         .section-describe {
             @include opacity(0.7);
             white-space:pre;
+            @include clearfix;
+            text-overflow: ellipsis;
         }
 
         .divider-dark {
@@ -340,21 +342,6 @@ h3 {
     .post-profile-img {
         @include border-radius(50px);
         margin-right: 8px;
-    }
-    .member-name {
-        font-weight:500;
-        display: block;
-        max-width: 80%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .member-email {
-        color:darkgrey;
-        display: block;
-        max-width: 80%;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 }
 

@@ -18,6 +18,13 @@
 	line-height: 36px;
 	font-size: 13px;
 	cursor: pointer;
+	white-space: nowrap;
+
+	.mention-align {
+		@include clearfix;
+		text-overflow: ellipsis;
+		width: calc(100% - 50px);
+	}
 }
 
 .mentions-text {
@@ -33,6 +40,15 @@
 	font-size: 20px;
 	text-align: center;
 	@include border-radius(32px);
+
+	.mention-align {
+		max-width: 80%;
+		overflow: hidden;
+		display: inline-block;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
 }
 
 .mention-fullname {
