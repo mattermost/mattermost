@@ -9,22 +9,19 @@ Expected Release date: 2016-02-16
 #### Incremented Version Number: Mattermost "2.0" 
 
 - Version number incremented from "1.x" to "2.x" indicating major product changes, including: 
-    - Added localization support to entire user interface plus error and log messages
-    - BREAKING CHANGE to APIs: New Android and updated iOS apps require `platform` 2.0 and higher
-    - Upgrade procedure significantly improved to enable upgrades from multiple major build versions
- 
-#### Localization 
+    
+##### Localization 
 
 - Addition of localization support to entire user interface plus error and log messages
-- Beta release of Spanish language translation (Latin American dialect) available from **Account Settings** > **Display**
+- Added Spanish language translation (Beta quality) available from **Account Settings** > **Display**
 
-#### Enhanced Support for Mobile Devices 
+##### Enhanced Support for Mobile Devices 
 
 - BREAKING CHANGE to APIs: New Android and updated iOS apps require `platform` 2.0 and higher
 - iOS added app support for GitLab single-sign-on
 - iOS added app support for LDAP/AD single-sign-on (Enterprise Edition only) 
 
-#### Upgrade and Deployment Improvements
+##### Upgrade and Deployment Improvements
 - Mattermost v2.0 now upgrades from up to two previous major builds (e.g. v1.4.x and v1.3.x)
 - Added option to allow use of insecure TLS outbound connections to allow use of self-signed certificates
 
