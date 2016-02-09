@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import UserStore from '../stores/user_store.jsx';
-import TeamStore from '../stores/team_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import TimeSince from './time_since.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
@@ -11,18 +10,11 @@ import Constants from '../utils/constants.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
-const Overlay = ReactBootstrap.Overlay;
-const Popover = ReactBootstrap.Popover;
-
 export default class PostInfo extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            copiedLink: false,
-            show: false
-        };
 
-        this.handlePermalinkCopy = this.handlePermalinkCopy.bind(this);
+        this.handlePermalink = this.handlePermalink.bind(this);
         this.removePost = this.removePost.bind(this);
     }
     createDropdown() {
@@ -72,7 +64,7 @@ export default class PostInfo extends React.Component {
             >
                 <a
                     href='#'
-                    onClick={(e) => this.setState({target: e.target, show: !this.state.show})}
+                    onClick={this.handlePermalink}
                 >
                     <FormattedMessage
                         id='post_info.permalink'
@@ -152,21 +144,10 @@ export default class PostInfo extends React.Component {
         );
     }
 
-    handlePermalinkCopy() {
-        const textBox = $(ReactDOM.findDOMNode(this.refs.permalinkbox));
-        textBox.select();
-
-        try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                this.setState({copiedLink: true, show: false});
-            } else {
-                this.setState({copiedLink: false});
-            }
-        } catch (err) {
-            this.setState({copiedLink: false});
-        }
+    handlePermalink() {
+        EventHelpers.showGetPostLinkModal(this.props.post);
     }
+
     removePost() {
         EventHelpers.emitRemovePost(this.props.post);
     }
@@ -216,47 +197,6 @@ export default class PostInfo extends React.Component {
 
         var dropdown = this.createDropdown();
 
-        const permalink = TeamStore.getCurrentTeamUrl() + '/pl/' + post.id;
-        const copyButtonText = this.state.copiedLink ? (
-            <div>
-                <FormattedMessage
-                    id='post_info.copy'
-                    defaultMessage='Copy '
-                />
-                <i className='fa fa-check'/></div>
-        ) : (<FormattedMessage id='post_info.copy' />);
-
-        const permalinkOverlay = (
-            <Popover
-                id='permalink-overlay'
-                className='permalink-popover'
-                placement='left'
-                title=''
-            >
-                <div className='form-inline'>
-                    <input
-                        type='text'
-                        readOnly='true'
-                        ref='permalinkbox'
-                        className='permalink-text form-control no-resize'
-                        rows='1'
-                        value={permalink}
-                    />
-                    <button
-                        data-copy-btn='true'
-                        type='button'
-                        className='btn btn-primary'
-                        onClick={this.handlePermalinkCopy}
-                        data-clipboard-text={permalink}
-                    >
-                        {copyButtonText}
-                    </button>
-                </div>
-            </Popover>
-        );
-
-        const containerPadding = 20;
-
         return (
             <ul className='post__header post__header--info'>
                 <li className='col'>
@@ -273,17 +213,6 @@ export default class PostInfo extends React.Component {
                         {dropdown}
                     </div>
                     {comments}
-                    <Overlay
-                        show={this.state.show}
-                        target={() => ReactDOM.findDOMNode(this.refs.dotMenu)}
-                        onHide={() => this.setState({show: false})}
-                        placement='left'
-                        container={this}
-                        containerPadding={containerPadding}
-                        rootClose={true}
-                    >
-                        {permalinkOverlay}
-                    </Overlay>
                     {this.createRemovePostButton(post)}
                 </li>
             </ul>
