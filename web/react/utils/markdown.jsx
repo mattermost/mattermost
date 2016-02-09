@@ -151,6 +151,10 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         );
     }
 
+    codespan(text) {
+        return '<pre class="text-nowrap">' + super.codespan(text) + '</pre>';
+    }
+
     br() {
         if (this.formattingOptions.singleline) {
             return ' ';

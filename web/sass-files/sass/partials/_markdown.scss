@@ -54,6 +54,13 @@
 	code {
 		white-space: pre;
 	}
+	pre {
+		&.text-nowrap {
+			code {
+				white-space: nowrap;
+			}
+		}
+	}
 }
 .markdown__table {
 	background: #fff;
