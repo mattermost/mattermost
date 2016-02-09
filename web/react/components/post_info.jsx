@@ -144,7 +144,8 @@ export default class PostInfo extends React.Component {
         );
     }
 
-    handlePermalink() {
+    handlePermalink(e) {
+        e.preventDefault();
         EventHelpers.showGetPostLinkModal(this.props.post);
     }
 
