@@ -117,6 +117,14 @@ export function showDeletePostModal(post, commentCount = 0) {
     });
 }
 
+export function showGetPostLinkModal(post) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_GET_POST_LINK_MODAL,
+        value: true,
+        post
+    });
+}
+
 export function showGetTeamInviteLinkModal() {
     AppDispatcher.handleViewAction({
         type: Constants.ActionTypes.TOGGLE_GET_TEAM_INVITE_LINK_MODAL,

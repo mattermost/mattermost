@@ -6,6 +6,7 @@ import ChannelLoader from '../components/channel_loader.jsx';
 import ErrorBar from '../components/error_bar.jsx';
 import * as Client from '../utils/client.jsx';
 
+import GetPostLinkModal from '../components/get_post_link_modal.jsx';
 import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
 import RenameChannelModal from '../components/rename_channel_modal.jsx';
 import EditPostModal from '../components/edit_post_modal.jsx';
@@ -69,6 +70,7 @@ class Root extends React.Component {
                     <ErrorBar/>
                     <ChannelView/>
 
+                    <GetPostLinkModal />
                     <GetTeamInviteLinkModal />
                     <InviteMemberModal />
                     <ImportThemeModal />

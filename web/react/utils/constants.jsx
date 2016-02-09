@@ -54,6 +54,7 @@ export default {
         TOGGLE_IMPORT_THEME_MODAL: null,
         TOGGLE_INVITE_MEMBER_MODAL: null,
         TOGGLE_DELETE_POST_MODAL: null,
+        TOGGLE_GET_POST_LINK_MODAL: null,
         TOGGLE_GET_TEAM_INVITE_LINK_MODAL: null,
         TOGGLE_REGISTER_APP_MODAL: null,
 
