@@ -27,6 +27,11 @@ Expected Release date: 2016-02-16
 
 ### New Features
 
+Localization 
+
+- Addition of localization support to entire user interface plus error and log messages
+- Added Spanish language translation (Beta quality) available from **Account Settings** > **Display**
+
 Slash Commands
 
 - Added [Slack-compatible slash commands](http://docs.mattermost.com/developer/slash-commands.html) to integrate with external systems 
