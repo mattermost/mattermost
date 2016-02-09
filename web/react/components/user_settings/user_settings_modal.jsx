@@ -113,6 +113,7 @@ class UserSettingsModal extends React.Component {
             return false;
         }
 
+        this.resetTheme();
         this.deactivateTab();
         this.props.onModalDismissed();
     }
@@ -215,12 +216,16 @@ class UserSettingsModal extends React.Component {
             this.showConfirmModal(() => this.updateSection(section, true));
         } else {
             if (this.state.active_section === 'theme' && section !== 'theme') {
-                const user = UserStore.getCurrentUser();
-                if (user.theme_props != null) {
-                    Utils.applyTheme(user.theme_props);
-                }
+                this.resetTheme();
             }
             this.setState({active_section: section});
+        }
+    }
+
+    resetTheme() {
+        const user = UserStore.getCurrentUser();
+        if (user.theme_props != null) {
+            Utils.applyTheme(user.theme_props);
         }
     }
 
