@@ -83,28 +83,23 @@ func TestIsCurrentVersion(t *testing.T) {
 
 func TestIsPreviousVersionsSupported(t *testing.T) {
 
-	// 1.4.0 CURRENT RELEASED VERSION
-	if !IsPreviousVersionsSupported(versions[0]) {
+	if !IsPreviousVersionsSupported(versionsWithoutHotFixes[0]) {
 		t.Fatal()
 	}
 
-	// 1.3.0
-	if !IsPreviousVersionsSupported(versions[1]) {
+	if !IsPreviousVersionsSupported(versionsWithoutHotFixes[1]) {
 		t.Fatal()
 	}
 
-	// 1.2.1
-	if !IsPreviousVersionsSupported(versions[2]) {
+	if !IsPreviousVersionsSupported(versionsWithoutHotFixes[2]) {
 		t.Fatal()
 	}
 
-	// 1.2.0
-	if !IsPreviousVersionsSupported(versions[3]) {
+	if IsPreviousVersionsSupported(versionsWithoutHotFixes[4]) {
 		t.Fatal()
 	}
 
-	// 1.1.0 NOT SUPPORTED
-	if IsPreviousVersionsSupported(versions[4]) {
+	if IsPreviousVersionsSupported(versionsWithoutHotFixes[5]) {
 		t.Fatal()
 	}
 }
