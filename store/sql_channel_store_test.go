@@ -377,6 +377,18 @@ func TestChannelMemberStore(t *testing.T) {
 	if t4 != t3 {
 		t.Fatal("Should not update time upon failure")
 	}
+
+	// rejoin the channel and make sure that an inactive user isn't returned by GetExtraMambers
+	Must(store.Channel().SaveMember(&o2))
+
+	u2.DeleteAt = 1000
+	Must(store.User().Update(&u2, true))
+
+	if result := <-store.Channel().GetExtraMembers(o1.ChannelId, 20); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if extraMembers := result.Data.([]model.ExtraMember); len(extraMembers) != 1 {
+		t.Fatal("should have 1 extra members")
+	}
 }
 
 func TestChannelDeleteMemberStore(t *testing.T) {
