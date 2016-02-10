@@ -535,7 +535,15 @@ function FloatingTimestamp({isScrolling, post}) {
         return <noscript />;
     }
 
-    const dateString = Utils.getDateForUnixTicks(post.create_at).toDateString();
+    const dateString = (
+        <FormattedDate
+            value={post.create_at}
+            weekday='short'
+            day='2-digit'
+            month='short'
+            year='numeric'
+        />
+    );
 
     let className = 'post-list__timestamp';
     if (isScrolling) {
