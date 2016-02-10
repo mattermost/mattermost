@@ -107,7 +107,7 @@ export default class PopoverListMembers extends React.Component {
                     name = Utils.displayUsername(teamMembers[m.username].id);
                 }
 
-                if (name && teamMembers[m.username].delete_at <= 0) {
+                if (name) {
                     popoverHtml.push(
                         <div
                             className='text-nowrap'
