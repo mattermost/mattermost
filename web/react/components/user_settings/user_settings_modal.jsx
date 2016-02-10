@@ -7,6 +7,7 @@ import SettingsSidebar from '../settings_sidebar.jsx';
 
 import UserStore from '../../stores/user_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
+import Constants from '../../utils/constants.jsx';
 
 const Modal = ReactBootstrap.Modal;
 
@@ -224,7 +225,9 @@ class UserSettingsModal extends React.Component {
 
     resetTheme() {
         const user = UserStore.getCurrentUser();
-        if (user.theme_props != null) {
+        if (user.theme_props == null) {
+            Utils.applyTheme(Constants.THEMES.default);
+        } else {
             Utils.applyTheme(user.theme_props);
         }
     }
