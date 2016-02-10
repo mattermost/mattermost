@@ -15,13 +15,16 @@ function getStateFromStores() {
     const results = SearchStore.getSearchResults();
 
     const channels = new Map();
-    const channelIds = results.order.map((postId) => results.posts[postId].channel_id);
-    for (const id of channelIds) {
-        if (channels.has(id)) {
-            continue;
-        }
 
-        channels.set(id, ChannelStore.get(id));
+    if (results && results.order) {
+        const channelIds = results.order.map((postId) => results.posts[postId].channel_id);
+        for (const id of channelIds) {
+            if (channels.has(id)) {
+                continue;
+            }
+
+            channels.set(id, ChannelStore.get(id));
+        }
     }
 
     return {
