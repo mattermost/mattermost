@@ -152,7 +152,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     codespan(text) {
-        return '<pre class="text-nowrap">' + super.codespan(text) + '</pre>';
+        return '<span class="codespan__pre-wrap">' + super.codespan(text) + '</span>';
     }
 
     br() {

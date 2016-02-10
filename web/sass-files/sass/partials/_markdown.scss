@@ -54,11 +54,9 @@
 	code {
 		white-space: pre;
 	}
-	pre {
-		&.text-nowrap {
-			code {
-				white-space: nowrap;
-			}
+	.codespan__pre-wrap {
+		code {
+			white-space: pre-wrap;
 		}
 	}
 }
