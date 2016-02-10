@@ -1761,7 +1761,7 @@ func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, teamDisplayNa
 	go func() {
 
 		subjectPage := NewServerTemplatePage("email_change_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.email_change_body",
+		subjectPage.Props["Subject"] = c.T("api.templates.email_change_subject",
 			map[string]interface{}{"TeamDisplayName": teamDisplayName})
 
 		bodyPage := NewServerTemplatePage("email_change_body", c.Locale)
