@@ -257,7 +257,7 @@ export default class ManageCommandCmds extends React.Component {
             let triggerDiv;
             if (cmd.trigger && cmd.trigger.length !== 0) {
                 triggerDiv = (
-                    <div className='padding-top'>
+                    <div className='padding-top x2'>
                         <strong>
                             <FormattedMessage
                                 id='user.settings.cmds.trigger'
@@ -371,7 +371,7 @@ export default class ManageCommandCmds extends React.Component {
                             />
                         </a>
                         <a
-                            className='webcmd__remove'
+                            className='webhook__remove webcmd__remove'
                             href='#'
                             onClick={this.removeCmd.bind(this, cmd.id)}
                         >
