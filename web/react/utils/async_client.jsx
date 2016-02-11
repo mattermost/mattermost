@@ -521,7 +521,9 @@ export function getPosts(id) {
         return;
     }
 
-    if ($.isEmptyObject(PostStore.getAllPosts(channelId))) {
+    const postList = PostStore.getAllPosts(channelId);
+
+    if ($.isEmptyObject(postList) || postList.order.length < Constants.POST_CHUNK_SIZE) {
         getPostsPage(channelId, Constants.POST_CHUNK_SIZE);
         return;
     }
