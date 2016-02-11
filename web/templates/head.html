@@ -79,6 +79,7 @@
         $(function() {
             if (window.mm_preferences != null) {
                 PreferenceStore.setPreferences(window.mm_preferences);
+                PreferenceStore.emitChange();
             }
         });
 
