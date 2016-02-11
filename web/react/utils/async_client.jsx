@@ -521,18 +521,18 @@ export function getPosts(id) {
         return;
     }
 
-    if (PostStore.getAllPosts(channelId) == null) {
+    if ($.isEmptyObject(PostStore.getAllPosts(channelId))) {
         getPostsPage(channelId, Constants.POST_CHUNK_SIZE);
         return;
     }
 
-    const latestUpdate = PostStore.getLatestUpdate(channelId);
+    const latestPost = PostStore.getLatestPost(channelId);
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
 
     client.getPosts(
         channelId,
-        latestUpdate,
+        latestPost.update_at,
         (data, textStatus, xhr) => {
             if (xhr.status === 304 || !data) {
                 return;
