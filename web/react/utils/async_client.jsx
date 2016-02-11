@@ -527,12 +527,17 @@ export function getPosts(id) {
     }
 
     const latestPost = PostStore.getLatestPost(channelId);
+    let latestPostTime = 0;
+
+    if (latestPost != null && latestPost.update_at != null) {
+        latestPostTime = latestPost.update_at;
+    }
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
 
     client.getPosts(
         channelId,
-        latestPost.update_at,
+        latestPostTime,
         (data, textStatus, xhr) => {
             if (xhr.status === 304 || !data) {
                 return;
