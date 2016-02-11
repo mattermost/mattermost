@@ -28,6 +28,7 @@ import {FormattedMessage} from 'mm-intl';
 
 const Popover = ReactBootstrap.Popover;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+const attachFastClick = require('fastclick');
 
 export default class Navbar extends React.Component {
     constructor(props) {
@@ -59,6 +60,7 @@ export default class Navbar extends React.Component {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner__wrap').click(this.hideSidebars);
+        attachFastClick(document.body);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
