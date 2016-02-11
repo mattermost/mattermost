@@ -532,7 +532,7 @@ export function getPosts(id) {
     let latestPostTime = 0;
 
     if (latestPost != null && latestPost.update_at != null) {
-        latestPostTime = latestPost.update_at;
+        latestPostTime = latestPost.create_at;
     }
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
