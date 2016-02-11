@@ -260,6 +260,10 @@ export function displayTimeFormatted(ticks) {
     );
 }
 
+export function isMilitaryTime() {
+    return PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
+}
+
 export function displayDateTime(ticks) {
     var seconds = Math.floor((Date.now() - ticks) / 1000);
 
