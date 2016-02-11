@@ -219,7 +219,7 @@ class SecurityTab extends React.Component {
         var d = new Date(this.props.user.last_password_update);
 
         const locale = global.window.mm_locale;
-        const hours12 = !Utils.useMilitaryTime();
+        const hours12 = !Utils.isMilitaryTime();
         describe = formatMessage(holders.lastUpdated, {
             date: d.toLocaleDateString(locale, {month: 'short', day: '2-digit', year: 'numeric'}),
             time: d.toLocaleTimeString(locale, {hour12: hours12, hour: '2-digit', minute: '2-digit'})

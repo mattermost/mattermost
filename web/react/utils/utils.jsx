@@ -260,7 +260,7 @@ export function displayTimeFormatted(ticks) {
     );
 }
 
-export function useMilitaryTime() {
+export function isMilitaryTime() {
     return PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
 }
 
