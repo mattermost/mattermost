@@ -83,4 +83,4 @@ TeamSignupEmailItem.propTypes = {
     email: React.PropTypes.string
 };
 
-export default injectIntl(TeamSignupEmailItem);
+export default injectIntl(TeamSignupEmailItem, {withRef: true});
