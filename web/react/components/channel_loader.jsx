@@ -20,31 +20,31 @@ import {intlShape, injectIntl, defineMessages} from 'mm-intl';
 const holders = defineMessages({
     socketError: {
         id: 'channel_loader.socketError',
-        defaultMessage: SocketStore.getDefaultTranslations().socketError
+        defaultMessage: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.'
     },
     someone: {
         id: 'channel_loader.someone',
-        defaultMessage: SocketStore.getDefaultTranslations().someone
+        defaultMessage: 'Someone'
     },
     posted: {
         id: 'channel_loader.posted',
-        defaultMessage: SocketStore.getDefaultTranslations().posted
+        defaultMessage: 'Posted'
     },
     uploadedImage: {
         id: 'channel_loader.uploadedImage',
-        defaultMessage: SocketStore.getDefaultTranslations().uploadedImage
+        defaultMessage: ' uploaded an image'
     },
     uploadedFile: {
         id: 'channel_loader.uploadedFile',
-        defaultMessage: SocketStore.getDefaultTranslations().uploadedFile
+        defaultMessage: ' uploaded a file'
     },
     something: {
         id: 'channel_loader.something',
-        defaultMessage: SocketStore.getDefaultTranslations().something
+        defaultMessage: ' did something new'
     },
     wrote: {
         id: 'channel_loader.wrote',
-        defaultMessage: SocketStore.getDefaultTranslations().wrote
+        defaultMessage: ' wrote: '
     }
 });
 
