@@ -165,6 +165,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
+
+		if r.Method == "GET" {
+			w.Header().Set("Expires", "0")
+		}
 	}
 
 	if len(token) != 0 {
