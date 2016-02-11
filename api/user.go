@@ -1761,14 +1761,14 @@ func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, teamDisplayNa
 	go func() {
 
 		subjectPage := NewServerTemplatePage("email_change_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.email_change_body",
+		subjectPage.Props["Subject"] = c.T("api.templates.email_change_subject",
 			map[string]interface{}{"TeamDisplayName": teamDisplayName})
 
 		bodyPage := NewServerTemplatePage("email_change_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.email_change_body.title")
-		bodyPage.Props["Info"] = c.T("api.templates.email_change_body.info",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName, "NewEmail": newEmail})
+		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.email_change_body.info",
+			map[string]interface{}{"TeamDisplayName": teamDisplayName, "NewEmail": newEmail}))
 
 		if err := utils.SendMail(oldEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error(utils.T("api.user.send_email_change_email_and_forget.error"), err)
