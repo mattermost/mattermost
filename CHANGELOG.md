@@ -144,6 +144,9 @@ The following is for informational purposes only, no action needed. Mattermost a
 ##### Licenses Table
 1. Added `Licenses` Table
 
+##### Commands Table
+1. Added `Commands` Table
+
 #### Known Issues
 
 - Navigating to a page with new messages containing inline images added via markdown causes the channel to scroll up and down while loading the inline images.
