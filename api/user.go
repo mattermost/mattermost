@@ -897,7 +897,6 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		result.Data.(*model.User).Sanitize(map[string]bool{})
 		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.User).Etag())
-		w.Header().Set("Expires", "-1")
 		w.Write([]byte(result.Data.(*model.User).ToJson()))
 		return
 	}

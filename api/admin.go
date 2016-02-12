@@ -121,7 +121,6 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	json = cfg.ToJson()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Header().Set("Expires", "0")
 	w.Write([]byte(json))
 }
 

@@ -647,7 +647,6 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.Team).Etag())
-		w.Header().Set("Expires", "-1")
 		w.Write([]byte(result.Data.(*model.Team).ToJson()))
 		return
 	}
