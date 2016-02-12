@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "autolinker": "0.22.0",
+    "fastclick": "^1.0.6",
     "flux": "2.1.1",
     "highlight.js": "8.9.1",
     "keymirror": "0.1.1",

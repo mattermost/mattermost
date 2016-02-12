@@ -353,7 +353,7 @@ export default class UserItem extends React.Component {
 
         return (
             <tr>
-                <td className='row member-div'>
+                <td className='row member-div padding--equal'>
                     <img
                         className='post-profile-img pull-left'
                         src={`/api/v1/users/${user.id}/image?time=${user.update_at}&${Utils.getSessionIndex()}`}

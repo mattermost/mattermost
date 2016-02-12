@@ -776,6 +776,24 @@
     }
 }
 @media screen and (max-width: 480px) {
+    .settings-modal {
+
+         .settings-table {
+
+            .security-links {
+                margin-bottom: 10px;
+                display: block;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+
+            }
+
+         }
+
+    }
+
     .tip-overlay.tip-overlay--sidebar {
         min-height: 350px;
     }

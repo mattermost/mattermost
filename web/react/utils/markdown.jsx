@@ -222,7 +222,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     table(header, body) {
-        return `<table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table>`;
+        return `<div class="table-responsive"><table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
     }
 
     listitem(text) {

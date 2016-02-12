@@ -56,7 +56,7 @@ class ChannelInfoModal extends React.Component {
                         </div>
                         <div className='col-sm-9'>{channelURL}</div>
                     </div>
-                    <div className='row'>
+                    <div className='row form-group'>
                         <div className='col-sm-3 info__label'>
                             <FormattedMessage
                                 id='channel_info.id'

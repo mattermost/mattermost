@@ -25,6 +25,7 @@ const ActionTypes = Constants.ActionTypes;
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 
 import {FormattedMessage} from 'mm-intl';
+import attachFastClick from 'fastclick';
 
 const Popover = ReactBootstrap.Popover;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
@@ -59,6 +60,7 @@ export default class Navbar extends React.Component {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner__wrap').click(this.hideSidebars);
+        attachFastClick(document.body);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
