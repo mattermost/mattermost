@@ -95,6 +95,8 @@ class ChannelLoader extends React.Component {
 
         $(window).on('focus', function windowFocus() {
             AsyncClient.updateLastViewedAt();
+            ChannelStore.resetCounts(ChannelStore.getCurrentId());
+            ChannelStore.emitChange();
             window.isActive = true;
         });
 
