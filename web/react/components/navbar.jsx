@@ -25,10 +25,10 @@ const ActionTypes = Constants.ActionTypes;
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 
 import {FormattedMessage} from 'mm-intl';
+import attachFastClick from 'fastclick';
 
 const Popover = ReactBootstrap.Popover;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
-const attachFastClick = require('fastclick');
 
 export default class Navbar extends React.Component {
     constructor(props) {
