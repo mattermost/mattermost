@@ -32,6 +32,8 @@ class SocketStoreClass extends EventEmitter {
 
         this.failCount = 0;
 
+        this.translations = this.getDefaultTranslations();
+
         this.initialize();
     }
 
@@ -172,6 +174,18 @@ class SocketStoreClass extends EventEmitter {
 
     setTranslations(messages) {
         this.translations = messages;
+    }
+
+    getDefaultTranslations() {
+        return ({
+            socketError: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.',
+            someone: 'Someone',
+            posted: 'Posted',
+            uploadedImage: ' uploaded an image',
+            uploadedFile: ' uploaded a file',
+            something: ' did something new',
+            wrote: ' wrote: '
+        });
     }
 
     close() {

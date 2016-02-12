@@ -83,8 +83,6 @@ class PostStoreClass extends EventEmitter {
         this.getCommentDraft = this.getCommentDraft.bind(this);
         this.clearDraftUploads = this.clearDraftUploads.bind(this);
         this.clearCommentDraftUploads = this.clearCommentDraftUploads.bind(this);
-        this.storeLatestUpdate = this.storeLatestUpdate.bind(this);
-        this.getLatestUpdate = this.getLatestUpdate.bind(this);
         this.getCurrentUsersLatestPost = this.getCurrentUsersLatestPost.bind(this);
         this.getCommentCount = this.getCommentCount.bind(this);
 
@@ -258,7 +256,7 @@ class PostStoreClass extends EventEmitter {
                 const np = newPosts.posts[pid];
                 if (np.delete_at === 0) {
                     combinedPosts.posts[pid] = np;
-                    if (combinedPosts.order.indexOf(pid) === -1) {
+                    if (combinedPosts.order.indexOf(pid) === -1 && newPosts.order.indexOf(pid) !== -1) {
                         combinedPosts.order.push(pid);
                     }
                 }
@@ -506,19 +504,6 @@ class PostStoreClass extends EventEmitter {
                 BrowserStore.setItem(key, value);
             }
         });
-    }
-    storeLatestUpdate(channelId, time) {
-        if (!this.postsInfo.hasOwnProperty(channelId)) {
-            this.postsInfo[channelId] = {};
-        }
-        this.postsInfo[channelId].latestPost = time;
-    }
-    getLatestUpdate(channelId) {
-        if (this.postsInfo.hasOwnProperty(channelId) && this.postsInfo[channelId].hasOwnProperty('latestPost')) {
-            return this.postsInfo[channelId].latestPost;
-        }
-
-        return 0;
     }
     getCommentCount(post) {
         const posts = this.getAllPosts(post.channel_id).posts;

@@ -120,6 +120,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := model.ConfigFromJson(strings.NewReader(json))
 	json = cfg.ToJson()
 
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(json))
 }
 

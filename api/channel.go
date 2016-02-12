@@ -729,7 +729,6 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
-			w.Header().Set("Expires", "-1")
 			w.Write([]byte(data.ToJson()))
 		}
 	}
@@ -798,7 +797,6 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		data := model.ChannelExtra{Id: channel.Id, Members: extraMembers, MemberCount: memberCount}
 		w.Header().Set(model.HEADER_ETAG_SERVER, extraEtag)
-		w.Header().Set("Expires", "-1")
 		w.Write([]byte(data.ToJson()))
 	}
 }

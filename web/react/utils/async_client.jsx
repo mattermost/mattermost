@@ -521,18 +521,25 @@ export function getPosts(id) {
         return;
     }
 
-    if (PostStore.getAllPosts(channelId) == null) {
+    const postList = PostStore.getAllPosts(channelId);
+
+    if ($.isEmptyObject(postList) || postList.order.length < Constants.POST_CHUNK_SIZE) {
         getPostsPage(channelId, Constants.POST_CHUNK_SIZE);
         return;
     }
 
-    const latestUpdate = PostStore.getLatestUpdate(channelId);
+    const latestPost = PostStore.getLatestPost(channelId);
+    let latestPostTime = 0;
+
+    if (latestPost != null && latestPost.update_at != null) {
+        latestPostTime = latestPost.create_at;
+    }
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
 
     client.getPosts(
         channelId,
-        latestUpdate,
+        latestPostTime,
         (data, textStatus, xhr) => {
             if (xhr.status === 304 || !data) {
                 return;

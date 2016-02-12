@@ -234,7 +234,10 @@ class UserSettingsModal extends React.Component {
 
     render() {
         const {formatMessage} = this.props.intl;
+        var currentUser = UserStore.getCurrentUser();
+        var isAdmin = Utils.isAdmin(currentUser.roles);
         var tabs = [];
+
         tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'glyphicon glyphicon-cog'});
         tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'glyphicon glyphicon-lock'});
         tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'glyphicon glyphicon-exclamation-sign'});
@@ -243,8 +246,17 @@ class UserSettingsModal extends React.Component {
         }
 
         if (global.window.mm_config.EnableIncomingWebhooks === 'true' || global.window.mm_config.EnableOutgoingWebhooks === 'true' || global.window.mm_config.EnableCommands === 'true') {
-            tabs.push({name: 'integrations', uiName: formatMessage(holders.integrations), icon: 'glyphicon glyphicon-transfer'});
+            var show = global.window.mm_config.EnableOnlyAdminIntegrations !== 'true';
+
+            if (global.window.mm_config.EnableOnlyAdminIntegrations === 'true' && isAdmin) {
+                show = true;
+            }
+
+            if (show) {
+                tabs.push({name: 'integrations', uiName: formatMessage(holders.integrations), icon: 'glyphicon glyphicon-transfer'});
+            }
         }
+
         tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'glyphicon glyphicon-eye-open'});
         tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'glyphicon glyphicon-list-alt'});
 
