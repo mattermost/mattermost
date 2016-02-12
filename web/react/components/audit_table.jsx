@@ -183,6 +183,26 @@ const holders = defineMessages({
     loginFailure: {
         id: 'audit_table.loginFailure',
         defaultMessage: ' (Login failure)'
+    },
+    attemptedLicenseAdd: {
+        id: 'audit_table.attemptedLicenseAdd',
+        defaultMessage: 'Attempted to add new license'
+    },
+    successfullLicenseAdd: {
+        id: 'audit_table.successfullLicenseAdd',
+        defaultMessage: 'Successfully added new license'
+    },
+    failedExpiredLicenseAdd: {
+        id: 'audit_table.failedExpiredLicenseAdd',
+        defaultMessage: 'Failed to add a new license as it has either expired or not yet been started'
+    },
+    failedInvalidLicenseAdd: {
+        id: 'audit_table.failedInvalidLicenseAdd',
+        defaultMessage: 'Failed to add an invalid license'
+    },
+    licenseRemoved: {
+        id: 'audit_table.licenseRemoved',
+        defaultMessage: 'Successfully removed a license'
     }
 });
 
@@ -327,17 +347,17 @@ export function formatAuditInfo(audit, formatMessage) {
 
         switch (actionURL) {
         case '/channels/create':
-            auditDesc = formatMessage(holders.channelCreated, {channelName: channelName});
+            auditDesc = formatMessage(holders.channelCreated, {channelName});
             break;
         case '/channels/create_direct':
             auditDesc = formatMessage(holders.establishedDM, {username: Utils.getDirectTeammate(channelObj.id).username});
             break;
         case '/channels/update':
-            auditDesc = formatMessage(holders.nameUpdated, {channelName: channelName});
+            auditDesc = formatMessage(holders.nameUpdated, {channelName});
             break;
         case '/channels/update_desc': // support the old path
         case '/channels/update_header':
-            auditDesc = formatMessage(holders.headerUpdated, {channelName: channelName});
+            auditDesc = formatMessage(holders.headerUpdated, {channelName});
             break;
         default: {
             let userIdField = [];
@@ -356,9 +376,9 @@ export function formatAuditInfo(audit, formatMessage) {
             if (/\/channels\/[A-Za-z0-9]+\/delete/.test(actionURL)) {
                 auditDesc = formatMessage(holders.channelDeleted, {url: channelURL});
             } else if (/\/channels\/[A-Za-z0-9]+\/add/.test(actionURL)) {
-                auditDesc = formatMessage(holders.userAdded, {username: username, channelName: channelName});
+                auditDesc = formatMessage(holders.userAdded, {username, channelName});
             } else if (/\/channels\/[A-Za-z0-9]+\/remove/.test(actionURL)) {
-                auditDesc = formatMessage(holders.userRemoved, {username: username, channelName: channelName});
+                auditDesc = formatMessage(holders.userRemoved, {username, channelName});
             }
 
             break;
@@ -495,28 +515,50 @@ export function formatAuditInfo(audit, formatMessage) {
             break;
         }
     } else if (actionURL.indexOf('/hooks') === 0) {
-        const webhookInfo = audit.extra_info.split(' ');
+        const webhookInfo = audit.extra_info;
 
         switch (actionURL) {
         case '/hooks/incoming/create':
-            if (webhookInfo[0] === 'attempt') {
+            if (webhookInfo === 'attempt') {
                 auditDesc = formatMessage(holders.attemptedWebhookCreate);
-            } else if (webhookInfo[0] === 'success') {
+            } else if (webhookInfo === 'success') {
                 auditDesc = formatMessage(holders.succcessfullWebhookCreate);
-            } else if (webhookInfo[0] === 'fail - bad channel permissions') {
+            } else if (webhookInfo === 'fail - bad channel permissions') {
                 auditDesc = formatMessage(holders.failedWebhookCreate);
             }
 
             break;
         case '/hooks/incoming/delete':
-            if (webhookInfo[0] === 'attempt') {
+            if (webhookInfo === 'attempt') {
                 auditDesc = formatMessage(holders.attemptedWebhookDelete);
-            } else if (webhookInfo[0] === 'success') {
+            } else if (webhookInfo === 'success') {
                 auditDesc = formatMessage(holders.successfullWebhookDelete);
-            } else if (webhookInfo[0] === 'fail - inappropriate conditions') {
+            } else if (webhookInfo === 'fail - inappropriate conditions') {
                 auditDesc = formatMessage(holders.failedWebhookDelete);
             }
 
+            break;
+        default:
+            break;
+        }
+    } else if (actionURL.indexOf('/license') === 0) {
+        const licenseInfo = audit.extra_info;
+
+        switch (actionURL) {
+        case '/license/add':
+            if (licenseInfo === 'attempt') {
+                auditDesc = formatMessage(holders.attemptedLicenseAdd);
+            } else if (licenseInfo === 'success') {
+                auditDesc = formatMessage(holders.successfullLicenseAdd);
+            } else if (licenseInfo === 'failed - expired or non-started license') {
+                auditDesc = formatMessage(holders.failedExpiredLicenseAdd);
+            } else if (licenseInfo === 'failed - invalid license') {
+                auditDesc = formatMessage(holders.failedInvalidLicenseAdd);
+            }
+
+            break;
+        case '/license/remove':
+            auditDesc = formatMessage(holders.licenseRemoved);
             break;
         default:
             break;
