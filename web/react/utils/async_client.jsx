@@ -549,7 +549,7 @@ export function getPosts(id) {
                 type: ActionTypes.RECEIVED_POSTS,
                 id: channelId,
                 before: true,
-                numRequested: Constants.POST_CHUNK_SIZE,
+                numRequested: 0,
                 post_list: data
             });
 
