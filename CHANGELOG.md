@@ -150,21 +150,31 @@ The following is for informational purposes only, no action needed. Mattermost a
 #### Known Issues
 
 - Navigating to a page with new messages containing inline images added via markdown causes the channel to scroll up and down while loading the inline images.
-- Microsoft Edge does not yet support drag and drop for file attachments. 
+- Microsoft Edge does not yet support drag and drop for file attachments.
+- No error message on IE11 when uploading more than 5 files or a file over 50 MB.
+- File name tooltip stays open after clicking to download.
 - Scroll bar does not appear in the center channel.
 - Unable to paste images into the text box on Firefox, Safari, and IE11.
-- Importing from Slack fails to load messages in certain cases and breaks @mentions.
-- System Console > TEAMS > Statistics > Newly Created Users shows all users as created "just now".
-- Favicon does not turn red when @mentions and direct messages are received in an inactive browser tab.
+- Importing from Slack fails to load channels in certain cases.
+- System Console > Teams > Statistics > Newly Created Users shows all users as created "just now".
+- Username and email display on single line in System Console user management tab.
 - Searching for a phrase in quotations returns more than just the phrase on installations with a Postgres database.
 - Archived channels are not removed from the "More" menu for the person that archived the channel until after refresh.
+- First load of an empty channel does not display the introduction message.
 - Search results don't highlight searches for @username, non-latin characters, or terms inside Markdown code blocks.
 - Searching for a username or hashtag containing a dot returns a search where the dot is replaced with the "or" operator. 
+- Search term highlighting doesn't update on IE11 when search terms change but return the same posts.
 - Hashtags less than three characters long are not searchable.
-- Users remains in the channel counter after being deactivated.
-- Messages with symbols (<,>,-,+,=,%,^,#,*,|) directly before or after a hashtag are not searchable.
-- Permalinks for the second message or later consecutively sent in a group by the same author displaces the copy link popover or causes an error
-- Emoji smileys ending with a letter at the end of a message do not auto-complete as expected
+- Hashtags containing a dash incorrectly highlight in the search results.
+- Users remain in the channel counter after being deactivated.
+- Permalinks for the second message or later consecutively sent in a group by the same author displaces the copy link popover or causes an error.
+- Emoji smileys ending with a letter at the end of a message do not auto-complete as expected.
+- Logout slash command does not force a logout.
+- Incorrect formatting when a new line is added directly after a list.
+- Timestamps are displayed in 12-hour format when set to 24-hour format.
+- GIF links inside code blocks auto-post the GIFs.
+- Syntax highlighting code block is missing the label for Latex documents.
+- Deleted messages don't delete in the RHS until a page refresh.
 
 #### Contributors 
 

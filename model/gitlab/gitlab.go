@@ -67,6 +67,18 @@ func gitLabUserFromJson(data io.Reader) *GitLabUser {
 	}
 }
 
+func (glu *GitLabUser) IsValid() bool {
+	if glu.Id == 0 {
+		return false
+	}
+
+	if len(glu.Email) == 0 {
+		return false
+	}
+
+	return true
+}
+
 func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
@@ -76,9 +88,20 @@ func (m *GitLabProvider) GetIdentifier() string {
 }
 
 func (m *GitLabProvider) GetUserFromJson(data io.Reader) *model.User {
-	return userFromGitLabUser(gitLabUserFromJson(data))
+	glu := gitLabUserFromJson(data)
+	if glu.IsValid() {
+		return userFromGitLabUser(glu)
+	}
+
+	return &model.User{}
 }
 
 func (m *GitLabProvider) GetAuthDataFromJson(data io.Reader) string {
-	return gitLabUserFromJson(data).getAuthData()
+	glu := gitLabUserFromJson(data)
+
+	if glu.IsValid() {
+		return glu.getAuthData()
+	}
+
+	return ""
 }
