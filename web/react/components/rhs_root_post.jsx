@@ -21,6 +21,7 @@ export default class RhsRootPost extends React.Component {
         super(props);
 
         this.parseEmojis = this.parseEmojis.bind(this);
+        this.handlePermalink = this.handlePermalink.bind(this);
 
         this.state = {};
     }
@@ -30,6 +31,10 @@ export default class RhsRootPost extends React.Component {
             base: '',
             folder: Emoji.getImagePathForEmoticon()
         });
+    }
+    handlePermalink(e) {
+        e.preventDefault();
+        EventHelpers.showGetPostLinkModal(this.props.post);
     }
     componentDidMount() {
         this.parseEmojis();
@@ -82,6 +87,23 @@ export default class RhsRootPost extends React.Component {
         }
 
         var dropdownContents = [];
+
+        dropdownContents.push(
+            <li
+                key='rhs-root-permalink'
+                role='presentation'
+            >
+                <a
+                    href='#'
+                    onClick={this.handlePermalink}
+                >
+                    <FormattedMessage
+                        id='rhs_root.permalink'
+                        defaultMessage='Permalink'
+                    />
+                </a>
+            </li>
+        );
 
         if (isOwner) {
             dropdownContents.push(
