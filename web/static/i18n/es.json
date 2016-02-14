@@ -1173,7 +1173,7 @@
   "user.settings.hooks_in.add": "Agregar",
   "user.settings.hooks_in.addTitle": "Agregar un nuevo webhook de entrada",
   "user.settings.hooks_in.channel": "Canal: ",
-  "user.settings.hooks_in.description": "Crea webhook URLs para ser utilizados por integraciones externas. Por favor revisa <a href=\"http://mattermost.org/webhooks\">http://mattermost.org/webhooks</a> para conocer más.",
+  "user.settings.hooks_in.description": "Crea webhooks URLs para utilizarlos con integraciones externas. Por favor revisa <a href=\"http://mattermost.org/webhooks\" target=\"_blank\">http://mattermost.org/webhooks</a> para aprender más.",
   "user.settings.hooks_in.existing": "Webhooks de entrada existentes",
   "user.settings.hooks_in.none": "Ninguno",
   "user.settings.hooks_out.add": "Agregar",

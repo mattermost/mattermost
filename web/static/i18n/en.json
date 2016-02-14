@@ -1101,7 +1101,7 @@
   "user.settings.hooks_in.channel": "Channel: ",
   "user.settings.hooks_in.none": "None",
   "user.settings.hooks_in.existing": "Existing incoming webhooks",
-  "user.settings.hooks_in.description": "Create webhook URLs for use in external integrations. Please see<a href=\"http://mattermost.org/webhooks\" target=\"_blank\">http://mattermost.org/webhooks</a> to learn more.",
+  "user.settings.hooks_in.description": "Create webhook URLs for use in external integrations. Please see <a href=\"http://mattermost.org/webhooks\" target=\"_blank\">http://mattermost.org/webhooks</a> to learn more.",
   "user.settings.hooks_in.addTitle": "Add a new incoming webhook",
   "user.settings.hooks_in.add": "Add",
   "user.settings.languages.change": "Change interface language",
