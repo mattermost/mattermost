@@ -37,9 +37,9 @@ CommandSuggestion.propTypes = {
 };
 
 export default class CommandProvider {
-    handlePretextChanged(suggestionId, pretext) {
+    handlePretextChanged(suggestionId, pretext, channelId) {
         if (pretext.startsWith('/')) {
-            AsyncClient.getSuggestedCommands(pretext, suggestionId, CommandSuggestion);
+            AsyncClient.getSuggestedCommands(pretext, channelId, suggestionId, CommandSuggestion);
         }
     }
 }

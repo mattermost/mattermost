@@ -111,7 +111,7 @@ export default class SuggestionBox extends React.Component {
 
     handlePretextChanged(pretext) {
         for (const provider of this.props.providers) {
-            provider.handlePretextChanged(this.suggestionId, pretext);
+            provider.handlePretextChanged(this.suggestionId, pretext, this.props.channelId);
         }
     }
 

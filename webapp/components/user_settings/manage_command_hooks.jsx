@@ -59,6 +59,7 @@ export default class ManageCommandCmds extends React.Component {
         this.getCmds = this.getCmds.bind(this);
         this.addNewCmd = this.addNewCmd.bind(this);
         this.emptyCmd = this.emptyCmd.bind(this);
+        this.updateExternalManagement = this.updateExternalManagement.bind(this);
         this.updateTrigger = this.updateTrigger.bind(this);
         this.updateURL = this.updateURL.bind(this);
         this.updateMethod = this.updateMethod.bind(this);
@@ -99,7 +100,7 @@ export default class ManageCommandCmds extends React.Component {
     addNewCmd(e) {
         e.preventDefault();
 
-        if (this.state.cmd.trigger === '' || this.state.cmd.url === '') {
+        if (this.state.cmd.url === '' || (this.state.cmd.trigger === '' && !this.state.external_management)) {
             return;
         }
 
@@ -189,6 +190,12 @@ export default class ManageCommandCmds extends React.Component {
         );
     }
 
+    updateExternalManagement(e) {
+        var cmd = this.state.cmd;
+        cmd.external_management = e.target.checked;
+        this.setState(cmd);
+    }
+
     updateTrigger(e) {
         var cmd = this.state.cmd;
         cmd.trigger = e.target.value;
@@ -275,6 +282,14 @@ export default class ManageCommandCmds extends React.Component {
                     key={cmd.id}
                     className='webhook__item webcmd__item'
                 >
+                    <div className='padding-top x2'>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.external_management'
+                                defaultMessage='External management: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.external_management ? this.props.intl.formatMessage(holders.autocompleteYes) : this.props.intl.formatMessage(holders.autocompleteNo)}</span>
+                    </div>
                     {triggerDiv}
                     <div className='padding-top x2 webcmd__url'>
                         <strong>
@@ -416,7 +431,7 @@ export default class ManageCommandCmds extends React.Component {
             </div>
         );
 
-        const disableButton = this.state.cmd.trigger === '' || this.state.cmd.url === '';
+        const disableButton = this.state.cmd.url === '' || (this.state.cmd.trigger === '' && !this.state.external_management);
 
         return (
             <div key='addCommandCmd'>
@@ -432,6 +447,30 @@ export default class ManageCommandCmds extends React.Component {
                 </label></div>
                 <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.external_management'
+                                defaultMessage='External management: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <div className='checkbox'>
+                                <label>
+                                    <input
+                                        type='checkbox'
+                                        checked={this.state.cmd.external_management}
+                                        onChange={this.updateExternalManagement}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.cmds.external_management_help'
+                                        defaultMessage=' Let an external integration manage commands.'
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
 
                     <div className='padding-top x2'>
                         <label className='control-label'>
