@@ -92,11 +92,13 @@
         font-size: 1em;
     }
 
-    .date-separator.hovered--after:before, .new-separator.hovered--after:before {
+    .date-separator.hovered--before:after, .date-separator.hovered--after:before, .new-separator.hovered--after:before, .new-separator.hovered--before:after {
         background: none !important;
     }
 
     .post {
+
+        background: none !important;
 
         .post__dropdown {
             line-height: 9px;
@@ -112,6 +114,10 @@
                 top: -3px;
             }
 
+        }
+
+        .comment-icon__container {
+            visibility: visible;
         }
 
         .post-list__content & {
