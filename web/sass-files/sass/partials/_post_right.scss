@@ -11,7 +11,15 @@
 
 	.post-right-comments-container {
 		position: relative;
-		padding: 0.7em 0 0;
+
+		.post {
+
+			&:first-child {
+				padding-top: 15px;
+			}
+
+		}
+
 	}
 
 	.post {
@@ -19,6 +27,11 @@
 		&.post--root {
 			padding-bottom: 1.2em;
 			border-bottom: 1px solid #ddd;
+
+			.post__body {
+				background: transparent !important;
+			}
+
 		}
 
 		.post__header {
