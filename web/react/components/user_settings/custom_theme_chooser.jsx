@@ -156,8 +156,13 @@ class CustomThemeChooser extends React.Component {
     }
     toggleContent(e) {
         e.stopPropagation();
-        $(e.target).next().slideToggle();
-        $(e.target).toggleClass('open');
+        if ($(e.target).hasClass('theme-elements__header')) {
+            $(e.target).next().slideToggle();
+            $(e.target).toggleClass('open');
+        } else {
+            $(e.target).closest('.theme-elements__header').next().slideToggle();
+            $(e.target).closest('.theme-elements__header').toggleClass('open');
+        }
     }
     render() {
         const {formatMessage} = this.props.intl;

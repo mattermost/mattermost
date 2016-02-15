@@ -144,6 +144,9 @@
                     select {
                         padding-right: 25px;
                     }
+                    select::-ms-expand {
+                        display: none;
+                    }
                     &:before {
                         pointer-events: none;
                         position: absolute;
@@ -200,10 +203,6 @@
                 font-size: em(13.5px);
                 font-weight: 600;
                 cursor: pointer;
-
-                div, span {
-                    pointer-events: none;
-                }
 
                 .fa-minus {
                     display: none;
