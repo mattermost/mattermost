@@ -102,6 +102,7 @@ class CustomThemeChooser extends React.Component {
         this.onPickerChange = this.onPickerChange.bind(this);
         this.onInputChange = this.onInputChange.bind(this);
         this.pasteBoxChange = this.pasteBoxChange.bind(this);
+        this.toggleContent = this.toggleContent.bind(this);
 
         this.state = {};
     }
@@ -153,11 +154,23 @@ class CustomThemeChooser extends React.Component {
 
         this.props.updateTheme(theme);
     }
+    toggleContent(e) {
+        e.stopPropagation();
+        if ($(e.target).hasClass('theme-elements__header')) {
+            $(e.target).next().slideToggle();
+            $(e.target).toggleClass('open');
+        } else {
+            $(e.target).closest('.theme-elements__header').next().slideToggle();
+            $(e.target).closest('.theme-elements__header').toggleClass('open');
+        }
+    }
     render() {
         const {formatMessage} = this.props.intl;
         const theme = this.props.theme;
 
-        const elements = [];
+        const sidebarElements = [];
+        const centerChannelElements = [];
+        const linkAndButtonElements = [];
         let colors = '';
         Constants.THEME_ELEMENTS.forEach((element, index) => {
             if (element.id === 'codeTheme') {
@@ -187,9 +200,9 @@ class CustomThemeChooser extends React.Component {
                     </Popover>
                 );
 
-                elements.push(
+                centerChannelElements.push(
                     <div
-                        className='col-sm-4 form-group'
+                        className='col-sm-6 form-group'
                         key={'custom-theme-key' + index}
                     >
                         <label className='custom-label'>{formatMessage(messages[element.id])}</label>
@@ -219,10 +232,54 @@ class CustomThemeChooser extends React.Component {
                         </div>
                     </div>
                 );
-            } else {
-                elements.push(
+            } else if (element.group === 'centerChannelElements') {
+                centerChannelElements.push(
                     <div
-                        className='col-sm-4 form-group element'
+                        className='col-sm-6 form-group element'
+                        key={'custom-theme-key' + index}
+                    >
+                        <label className='custom-label'>{formatMessage(messages[element.id])}</label>
+                        <div
+                            className='input-group color-picker'
+                            id={element.id}
+                        >
+                            <input
+                                className='form-control'
+                                type='text'
+                                value={theme[element.id]}
+                                onChange={this.onInputChange}
+                            />
+                            <span className='input-group-addon'><i></i></span>
+                        </div>
+                    </div>
+                );
+            } else if (element.group === 'sidebarElements') {
+                sidebarElements.push(
+                    <div
+                        className='col-sm-6 form-group element'
+                        key={'custom-theme-key' + index}
+                    >
+                        <label className='custom-label'>{formatMessage(messages[element.id])}</label>
+                        <div
+                            className='input-group color-picker'
+                            id={element.id}
+                        >
+                            <input
+                                className='form-control'
+                                type='text'
+                                value={theme[element.id]}
+                                onChange={this.onInputChange}
+                            />
+                            <span className='input-group-addon'><i></i></span>
+                        </div>
+                    </div>
+                );
+
+                colors += theme[element.id] + ',';
+            } else {
+                linkAndButtonElements.push(
+                    <div
+                        className='col-sm-6 form-group element'
                         key={'custom-theme-key' + index}
                     >
                         <label className='custom-label'>{formatMessage(messages[element.id])}</label>
@@ -265,9 +322,51 @@ class CustomThemeChooser extends React.Component {
         );
 
         return (
-            <div className='appearance-section'>
+            <div className='appearance-section padding-top'>
+                <div className='theme-elements row'>
+                    <div
+                        className='theme-elements__header'
+                        onClick={this.toggleContent}
+                    >
+                        {'Sidebar Styles'}
+                        <div className='header__icon'>
+                            <i className='fa fa-plus'></i>
+                            <i className='fa fa-minus'></i>
+                        </div>
+                    </div>
+                    <div className='theme-elements__body'>
+                        {sidebarElements}
+                    </div>
+                </div>
+                <div className='theme-elements row'>
+                    <div
+                        className='theme-elements__header'
+                        onClick={this.toggleContent}
+                    >
+                        {'Center Channel Styles'}
+                        <div className='header__icon'>
+                            <i className='fa fa-plus'></i>
+                            <i className='fa fa-minus'></i>
+                        </div>
+                    </div>
+                    <div className='theme-elements__body'>
+                        {centerChannelElements}
+                    </div>
+                </div>
                 <div className='theme-elements row form-group'>
-                    {elements}
+                    <div
+                        className='theme-elements__header'
+                        onClick={this.toggleContent}
+                    >
+                        {'Link and Button Styles'}
+                        <div className='header__icon'>
+                            <i className='fa fa-plus'></i>
+                            <i className='fa fa-minus'></i>
+                        </div>
+                    </div>
+                    <div className='theme-elements__body'>
+                        {linkAndButtonElements}
+                    </div>
                 </div>
                 <div className='row'>
                     {pasteBox}

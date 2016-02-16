@@ -189,8 +189,8 @@ export default {
             sidebarHeaderTextColor: '#FFFFFF',
             onlineIndicator: '#7DBE00',
             awayIndicator: '#DCBD4E',
-            mentionBj: '#136197',
-            mentionColor: '#bfcde8',
+            mentionBj: '#FBFBFB',
+            mentionColor: '#2071A7',
             centerChannelBg: '#f2f4f8',
             centerChannelColor: '#333333',
             newMessageSeparator: '#FF8800',
@@ -276,86 +276,107 @@ export default {
     },
     THEME_ELEMENTS: [
         {
+            group: 'sidebarElements',
             id: 'sidebarBg',
             uiName: 'Sidebar BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarText',
             uiName: 'Sidebar Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarHeaderBg',
             uiName: 'Sidebar Header BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarHeaderTextColor',
             uiName: 'Sidebar Header Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarUnreadText',
             uiName: 'Sidebar Unread Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextHoverBg',
             uiName: 'Sidebar Text Hover BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextActiveBorder',
             uiName: 'Sidebar Text Active Border'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextActiveColor',
             uiName: 'Sidebar Text Active Color'
         },
         {
+            group: 'sidebarElements',
             id: 'onlineIndicator',
             uiName: 'Online Indicator'
         },
         {
+            group: 'sidebarElements',
             id: 'awayIndicator',
             uiName: 'Away Indicator'
         },
         {
+            group: 'sidebarElements',
             id: 'mentionBj',
             uiName: 'Mention Jewel BG'
         },
         {
+            group: 'sidebarElements',
             id: 'mentionColor',
             uiName: 'Mention Jewel Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'centerChannelBg',
             uiName: 'Center Channel BG'
         },
         {
+            group: 'centerChannelElements',
             id: 'centerChannelColor',
             uiName: 'Center Channel Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'newMessageSeparator',
             uiName: 'New Message Separator'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'linkColor',
             uiName: 'Link Color'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'buttonBg',
             uiName: 'Button BG'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'buttonColor',
             uiName: 'Button Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'mentionHighlightBg',
             uiName: 'Mention Highlight BG'
         },
         {
+            group: 'centerChannelElements',
             id: 'mentionHighlightLink',
             uiName: 'Mention Highlight Link'
         },
         {
+            group: 'centerChannelElements',
             id: 'codeTheme',
             uiName: 'Code Theme',
             themes: [

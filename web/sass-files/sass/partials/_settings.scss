@@ -144,7 +144,11 @@
                     select {
                         padding-right: 25px;
                     }
+                    select::-ms-expand {
+                        display: none;
+                    }
                     &:before {
+                        pointer-events: none;
                         position: absolute;
                         top: 11px;
                         right: 50px;
@@ -181,12 +185,57 @@
 
             .theme-elements {
                 padding-left:15px;
+
                 .element {
                     margin-right:10px;
+
+                    &:nth-child(2n) {
+                        margin-right: 0;
+                    }
+
                 }
             }
 
+            .theme-elements__header {
+                margin: 10px 20px 0px 0;
+                border-bottom: 1px solid #ccc;
+                padding: 5px 0 10px;
+                font-size: em(13.5px);
+                font-weight: 600;
+                cursor: pointer;
+
+                .fa-minus {
+                    display: none;
+                }
+
+                &.open {
+                    .fa-minus {
+                        display: inline-block;
+                    }
+                    .fa-plus {
+                        display: none;
+                    }
+                }
+
+                .header__icon {
+                    float: right;
+                    @include opacity(0.5);
+                }
+
+            }
+
+            .theme-elements__body {
+                padding-top: 5px;
+                display: none;
+                @include legacy-pie-clearfix;
+                background: rgba(255, 255, 255, 0.05);
+                padding: 20px 0 0 20px;
+                margin: 0 20px 0 0;
+                @include border-radius(0 0 3px 3px);
+            }
+
             .custom-label {
+                white-space: nowrap;
                 font-weight: normal;
                 font-size: 12px;
                 width: 100%;

@@ -396,8 +396,8 @@ body.ios {
 	.post-list__content {
 		display: table-cell;
 		vertical-align: bottom;
-		> div:last-child {
-			.dropdown-menu {
+		.dropdown-menu {
+			&.bottom {
 				top: auto;
 				bottom: 25px;
 			}
