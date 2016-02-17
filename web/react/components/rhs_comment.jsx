@@ -97,22 +97,24 @@ class RhsComment extends React.Component {
 
         var dropdownContents = [];
 
-        dropdownContents.push(
-            <li
-                key='rhs-root-permalink'
-                role='presentation'
-            >
-                <a
-                    href='#'
-                    onClick={this.handlePermalink}
+        if (!Utils.isMobile()) {
+            dropdownContents.push(
+                <li
+                    key='rhs-root-permalink'
+                    role='presentation'
                 >
-                    <FormattedMessage
-                        id='rhs_comment.permalink'
-                        defaultMessage='Permalink'
-                    />
-                </a>
-            </li>
-        );
+                    <a
+                        href='#'
+                        onClick={this.handlePermalink}
+                    >
+                        <FormattedMessage
+                            id='rhs_comment.permalink'
+                            defaultMessage='Permalink'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (isOwner) {
             dropdownContents.push(
