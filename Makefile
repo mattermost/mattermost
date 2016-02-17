@@ -1,4 +1,4 @@
-.PHONY: all dist dist-local dist-travis start-docker build-server package build-client test travis-init build-container stop-docker clean-docker clean nuke run stop setup-mac cleandb docker-build docker-run
+.PHONY: all dist dist-local dist-travis start-docker build-server package build-client test travis-init build-container stop-docker clean-docker clean nuke run run-client run-server stop stop-client stop-server setup-mac cleandb docker-build docker-run restart-server
 
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
@@ -263,7 +263,13 @@ nuke: | clean clean-docker
 
 	touch $@
 
-run: start-docker .prepare-go .prepare-jsx
+run: start-docker run-server run-client
+
+run-server: .prepare-go
+	@echo Starting go web server
+	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
+
+run-client: .prepare-jsx
 	mkdir -p web/static/js
 
 	@echo Starting react processo
@@ -279,28 +285,10 @@ run: start-docker .prepare-go .prepare-jsx
 		sed -i'.bak' 's|_BUILD_ENTERPRISE_READY_|false|g' ./model/version.go; \
 	fi
 
-	@echo Starting go web server
-	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
-
 	@echo Starting compass watch
 	cd web/sass-files && compass compile && compass watch &
 
-stop:
-	@for PID in $$(ps -ef | grep [c]ompass | awk '{ print $$2 }'); do \
-		echo stopping css watch $$PID; \
-		kill $$PID; \
-	done
-
-	@for PID in $$(ps -ef | grep [n]pm | awk '{ print $$2 }'); do \
-		echo stopping watchify $$PID; \
-		kill $$PID; \
-	done
-
-	@for PID in $$(ps -ef | grep [m]atterm | grep -v VirtualBox | awk '{ print $$2 }'); do \
-		echo stopping go web $$PID; \
-		kill $$PID; \
-	done
-
+stop: stop-client stop-server
 	@if [ $(shell docker ps -a | grep -ci ${DOCKER_CONTAINER_NAME}) -eq 1 ]; then \
 		echo removing dev docker container; \
 		docker stop ${DOCKER_CONTAINER_NAME} > /dev/null; \
@@ -312,6 +300,30 @@ stop:
 		mv ./mattermost.go.bak ./mattermost.go 2> /dev/null || true; \
 		mv ./model/version.go.bak ./model/version.go 2> /dev/null || true; \
 	fi
+
+stop-client:
+	@for PID in $$(ps -ef | grep [c]ompass | awk '{ print $$2 }'); do \
+		echo stopping css watch $$PID; \
+		kill $$PID; \
+	done
+
+	@for PID in $$(ps -ef | grep [n]pm | awk '{ print $$2 }'); do \
+		echo stopping watchify $$PID; \
+		kill $$PID; \
+	done
+
+stop-server:
+	@for PID in $$(ps -ef | grep "go run [m]attermost.go" | awk '{ print $$2 }'); do \
+		echo stopping go $$PID; \
+		kill $$PID; \
+	done
+
+	@for PID in $$(ps -ef | grep "go-build.*/[m]attermost" | awk '{ print $$2 }'); do \
+		echo stopping mattermost $$PID; \
+		kill $$PID; \
+	done
+
+restart-server: stop-server run-server
 
 setup-mac:
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
