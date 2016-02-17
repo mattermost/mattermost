@@ -286,7 +286,7 @@ class CreatePost extends React.Component {
 
             if (index !== -1) {
                 uploadsInProgress.splice(index, 1);
-                this.refs.fileUpload.cancelUpload(id);
+                this.refs.fileUpload.getWrappedInstance().cancelUpload(id);
             }
         } else {
             previews.splice(index, 1);
