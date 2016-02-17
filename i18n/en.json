@@ -1165,7 +1165,7 @@
   },
   {
     "id": "api.templates.password_change_body.title",
-    "translation": "You updated your password"
+    "translation": "Your password has been updated"
   },
   {
     "id": "api.templates.password_change_subject",
