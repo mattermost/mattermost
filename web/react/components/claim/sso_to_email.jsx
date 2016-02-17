@@ -86,69 +86,67 @@ class SSOToEmail extends React.Component {
         const uiType = Utils.toTitleCase(this.props.currentType) + ' SSO';
 
         return (
-            <div className='col-sm-12'>
-                <div className='signup-team__container'>
-                    <h3>
+            <div>
+                <h3>
+                    <FormattedMessage
+                        id='claim.sso_to_email.title'
+                        defaultMessage='Switch {type} Account to Email'
+                        values={{
+                            type: uiType
+                        }}
+                    />
+                </h3>
+                <form onSubmit={this.submit}>
+                    <p>
                         <FormattedMessage
-                            id='claim.sso_to_email.title'
-                            defaultMessage='Switch {type} Account to Email'
+                            id='claim.sso_to_email.description'
+                            defaultMessage='Upon changing your account type, you will only be able to login with your email and password.'
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='claim.sso_to_email_newPwd'
+                            defaultMessage='Enter a new password for your {team} {site} account'
+                            values={{
+                                team: this.props.teamDisplayName,
+                                site: global.window.mm_config.SiteName
+                            }}
+                        />
+                    </p>
+                    <div className={formClass}>
+                        <input
+                            type='password'
+                            className='form-control'
+                            name='password'
+                            ref='password'
+                            placeholder={formatMessage(holders.newPwd)}
+                            spellCheck='false'
+                        />
+                    </div>
+                    <div className={formClass}>
+                        <input
+                            type='password'
+                            className='form-control'
+                            name='passwordconfirm'
+                            ref='passwordconfirm'
+                            placeholder={formatMessage(holders.confirm)}
+                            spellCheck='false'
+                        />
+                    </div>
+                    {error}
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                    >
+                        <FormattedMessage
+                            id='claim.sso_to_email.switchTo'
+                            defaultMessage='Switch {type} to email and password'
                             values={{
                                 type: uiType
                             }}
                         />
-                    </h3>
-                    <form onSubmit={this.submit}>
-                        <p>
-                            <FormattedMessage
-                                id='claim.sso_to_email.description'
-                                defaultMessage='Upon changing your account type, you will only be able to login with your email and password.'
-                            />
-                        </p>
-                        <p>
-                            <FormattedMessage
-                                id='claim.sso_to_email_newPwd'
-                                defaultMessage='Enter a new password for your {team} {site} account'
-                                values={{
-                                    team: this.props.teamDisplayName,
-                                    site: global.window.mm_config.SiteName
-                                }}
-                            />
-                        </p>
-                        <div className={formClass}>
-                            <input
-                                type='password'
-                                className='form-control'
-                                name='password'
-                                ref='password'
-                                placeholder={formatMessage(holders.newPwd)}
-                                spellCheck='false'
-                            />
-                        </div>
-                        <div className={formClass}>
-                            <input
-                                type='password'
-                                className='form-control'
-                                name='passwordconfirm'
-                                ref='passwordconfirm'
-                                placeholder={formatMessage(holders.confirm)}
-                                spellCheck='false'
-                            />
-                        </div>
-                        {error}
-                        <button
-                            type='submit'
-                            className='btn btn-primary'
-                        >
-                            <FormattedMessage
-                                id='claim.sso_to_email.switchTo'
-                                defaultMessage='Switch {type} to email and password'
-                                values={{
-                                    type: uiType
-                                }}
-                            />
-                        </button>
-                    </form>
-                </div>
+                    </button>
+                </form>
             </div>
         );
     }

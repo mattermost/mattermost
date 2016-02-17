@@ -70,62 +70,69 @@ class EmailToSSO extends React.Component {
         const uiType = Utils.toTitleCase(this.props.type) + ' SSO';
 
         return (
-            <div className='col-sm-12'>
-                <div className='signup-team__container'>
-                    <h3>
+            <div>
+                <h3>
+                    <FormattedMessage
+                        id='claim.email_to_sso.title'
+                        defaultMessage='Switch Email/Password Account to {uiType}'
+                        values={{
+                            uiType: uiType
+                        }}
+                    />
+                </h3>
+                <form onSubmit={this.submit}>
+                    <p>
                         <FormattedMessage
-                            id='claim.email_to_sso.title'
-                            defaultMessage='Switch Email/Password Account to {uiType}'
+                            id='claim.email_to_sso.ssoType'
+                            defaultMessage='Upon claiming your account, you will only be able to login with {type} SSO. You must already have a valid {type} account'
+                            values={{
+                                type: Utils.toTitleCase(this.props.type)
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='claim.email_to_sso.ssoNote'
+                            defaultMessage='You must already have a valid {type} account'
+                            values={{
+                                type: Utils.toTitleCase(this.props.type)
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='claim.email_to_sso.enterPwd'
+                            defaultMessage='Enter the password for your {team} {site} account'
+                            values={{
+                                team: this.props.teamDisplayName,
+                                site: global.window.mm_config.SiteName
+                            }}
+                        />
+                    </p>
+                    <div className={formClass}>
+                        <input
+                            type='password'
+                            className='form-control'
+                            name='password'
+                            ref='password'
+                            placeholder={this.props.intl.formatMessage(holders.pwd)}
+                            spellCheck='false'
+                        />
+                    </div>
+                    {error}
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                    >
+                        <FormattedMessage
+                            id='claim.email_to_sso.switchTo'
+                            defaultMessage='Switch account to {uiType}'
                             values={{
                                 uiType: uiType
                             }}
                         />
-                    </h3>
-                    <form onSubmit={this.submit}>
-                        <p>
-                            <FormattedMessage
-                                id='claim.email_to_sso.ssoType'
-                                defaultMessage='Upon claiming your account, you will only be able to login with {type} SSO'
-                                values={{
-                                    type: Utils.toTitleCase(this.props.type)
-                                }}
-                            />
-                        </p>
-                        <p>
-                            <FormattedMessage
-                                id='claim.email_to_sso.enterPwd'
-                                defaultMessage='Enter the password for your {team} {site} account'
-                                values={{
-                                    team: this.props.teamDisplayName,
-                                    site: global.window.mm_config.SiteName
-                                }}
-                            />
-                        </p>
-                        <div className={formClass}>
-                            <input
-                                type='password'
-                                className='form-control'
-                                name='password'
-                                ref='password'
-                                placeholder={this.props.intl.formatMessage(holders.pwd)}
-                                spellCheck='false'
-                            />
-                        </div>
-                        {error}
-                        <button
-                            type='submit'
-                            className='btn btn-primary'
-                        >
-                            <FormattedMessage
-                                id='claim.email_to_sso.switchTo'
-                                defaultMessage='Switch account to {uiType}'
-                                values={{
-                                    uiType: uiType
-                                }}
-                            />
-                        </button>
-                    </form>
-                </div>
+                    </button>
+                </form>
             </div>
         );
     }
