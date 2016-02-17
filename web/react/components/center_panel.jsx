@@ -27,20 +27,24 @@ export default class CenterPanel extends React.Component {
 
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onChannelChange = this.onChannelChange.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
 
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         this.state = {
             showTutorialScreens: tutorialStep === TutorialSteps.INTRO_SCREENS,
-            showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS
+            showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS,
+            user: UserStore.getCurrentUser()
         };
     }
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         ChannelStore.addChangeListener(this.onChannelChange);
+        UserStore.addChangeListener(this.onUserChange);
     }
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         ChannelStore.removeChangeListener(this.onChannelChange);
+        UserStore.removeChangeListener(this.onUserChange);
     }
     onPreferenceChange() {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
@@ -48,6 +52,9 @@ export default class CenterPanel extends React.Component {
     }
     onChannelChange() {
         this.setState({showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS});
+    }
+    onUserChange() {
+        this.setState({user: UserStore.getCurrentUser()});
     }
     render() {
         const channel = ChannelStore.getCurrent();
@@ -108,7 +115,9 @@ export default class CenterPanel extends React.Component {
                         className='app__content'
                     >
                         <div id='channel-header'>
-                            <ChannelHeader/>
+                            <ChannelHeader
+                                user={this.state.user}
+                            />
                         </div>
                         {postsContainer}
                         {createPost}
