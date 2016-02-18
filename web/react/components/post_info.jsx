@@ -65,22 +65,24 @@ export default class PostInfo extends React.Component {
              );
         }
 
-        dropdownContents.push(
-            <li
-                key='copyLink'
-                role='presentation'
-            >
-                <a
-                    href='#'
-                    onClick={this.handlePermalink}
+        if (!Utils.isMobile()) {
+            dropdownContents.push(
+                <li
+                    key='copyLink'
+                    role='presentation'
                 >
-                    <FormattedMessage
-                        id='post_info.permalink'
-                        defaultMessage='Permalink'
-                    />
-                </a>
-            </li>
-        );
+                    <a
+                        href='#'
+                        onClick={this.handlePermalink}
+                    >
+                        <FormattedMessage
+                            id='post_info.permalink'
+                            defaultMessage='Permalink'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (isOwner || isAdmin) {
             dropdownContents.push(
