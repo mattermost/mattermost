@@ -289,7 +289,7 @@ func (me *LoadTestProvider) UrlCommand(c *Context, channelId string, message str
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
 	if !strings.HasPrefix(url, "http") {
-		url = "https://raw.githubusercontent.com/mattermost/platform/master/doc/developer/tests/" + url
+		url = "https://raw.githubusercontent.com/mattermost/platform/master/tests/" + url
 
 		if path.Ext(url) == "" {
 			url += ".md"
