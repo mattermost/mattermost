@@ -5,6 +5,7 @@ import MsgTyping from './msg_typing.jsx';
 import Textbox from './textbox.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
+import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -64,6 +65,8 @@ class CreatePost extends React.Component {
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
+        this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
+        this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -77,7 +80,8 @@ class CreatePost extends React.Component {
             submitting: false,
             initialText: draft.messageText,
             ctrlSend: false,
-            showTutorialTip: false
+            showTutorialTip: false,
+            showPostDeletedModal: false
         };
     }
     getCurrentDraft() {
@@ -157,7 +161,6 @@ class CreatePost extends React.Component {
         post.pending_post_id = `${userId}:${time}`;
         post.user_id = userId;
         post.create_at = time;
-        post.root_id = this.state.rootId;
         post.parent_id = this.state.parentId;
 
         const channel = ChannelStore.get(this.state.channelId);
@@ -177,20 +180,19 @@ class CreatePost extends React.Component {
                 EventHelpers.emitPostRecievedEvent(data);
             },
             (err) => {
-                const state = {};
-
                 if (err.id === 'api.post.create_post.root_id.app_error') {
-                    if ($('#post_deleted').length > 0) {
-                        $('#post_deleted').modal('show');
-                    }
+                    // this should never actually happen since you can't reply from this textbox
+                    this.showPostDeletedModal();
+
                     PostStore.removePendingPost(post.pending_post_id);
                 } else {
                     post.state = Constants.POST_FAILED;
                     PostStore.updatePendingPost(post);
                 }
 
-                state.submitting = false;
-                this.setState(state);
+                this.setState({
+                    submitting: false
+                });
             }
         );
     }
@@ -374,6 +376,16 @@ class CreatePost extends React.Component {
             });
         }
     }
+    showPostDeletedModal() {
+        this.setState({
+            showPostDeletedModal: true
+        });
+    }
+    hidePostDeletedModal() {
+        this.setState({
+            showPostDeletedModal: false
+        });
+    }
     createTutorialTip() {
         const screens = [];
 
@@ -479,6 +491,10 @@ class CreatePost extends React.Component {
                         {serverError}
                     </div>
                 </div>
+                <PostDeletedModal
+                    show={this.state.showPostDeletedModal}
+                    onHide={this.hidePostDeletedModal}
+                />
             </form>
         );
     }
