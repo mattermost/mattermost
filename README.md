@@ -41,7 +41,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - [Feature Ideas Forum](http://www.mattermost.org/feature-requests/) - For sharing ideas for future versions 
 - [Contribution Guidelines](https://github.com/mattermost/platform/blob/master/CONTRIBUTING.md) - For contributing code or feedback to the project
 
-Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq), or talk to the core team on our [daily builds server](https://pre-release.mattermost.com/core) via [this invite link](https://pre-release.mattermost.com/signup_user_complete/?id=rcgiyftm7jyrxnma1osd8zswby). 
+Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq), or talk to the core team by creating an account on our [daily builds server](https://pre-release.mattermost.com/core). 
 
 ## Installing Mattermost
 
