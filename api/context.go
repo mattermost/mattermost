@@ -161,7 +161,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Instruct the browser not to display us in an iframe for anti-clickjacking
 	if !h.isApi {
 		w.Header().Set("X-Frame-Options", "DENY")
-		w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+		w.Header().Set("Content-Security-Policy", "frame-ancestors 'none'")
 	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
