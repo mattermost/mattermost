@@ -8,7 +8,6 @@ import * as Client from '../utils/client.jsx';
 
 import GetPostLinkModal from '../components/get_post_link_modal.jsx';
 import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
-import RenameChannelModal from '../components/rename_channel_modal.jsx';
 import EditPostModal from '../components/edit_post_modal.jsx';
 import DeletePostModal from '../components/delete_post_modal.jsx';
 import MoreChannelsModal from '../components/more_channels.jsx';
@@ -73,7 +72,6 @@ class Root extends React.Component {
                     <InviteMemberModal/>
                     <ImportThemeModal/>
                     <TeamSettingsModal/>
-                    <RenameChannelModal/>
                     <MoreChannelsModal/>
                     <EditPostModal/>
                     <DeletePostModal/>

@@ -11,6 +11,7 @@ import ChannelInviteModal from './channel_invite_modal.jsx';
 import ChannelMembersModal from './channel_members_modal.jsx';
 import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
+import RenameChannelModal from './rename_channel_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 
 import ChannelStore from '../stores/channel_store.jsx';
@@ -39,10 +40,13 @@ export default class ChannelHeader extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleLeave = this.handleLeave.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
+        this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
+        this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
         state.showMembersModal = false;
+        state.showRenameChannelModal = false;
         this.state = state;
     }
     getStateFromStores() {
@@ -118,6 +122,18 @@ export default class ChannelHeader extends React.Component {
             term: terms,
             do_search: true,
             is_mention_search: true
+        });
+    }
+    showRenameChannelModal(e) {
+        e.preventDefault();
+
+        this.setState({
+            showRenameChannelModal: true
+        });
+    }
+    hideRenameChannelModal() {
+        this.setState({
+            showRenameChannelModal: false
         });
     }
     render() {
@@ -326,11 +342,7 @@ export default class ChannelHeader extends React.Component {
                         <a
                             role='menuitem'
                             href='#'
-                            data-toggle='modal'
-                            data-target='#rename_channel'
-                            data-display={channel.display_name}
-                            data-name={channel.name}
-                            data-channelid={channel.id}
+                            onClick={this.showRenameChannelModal}
                         >
                             <FormattedMessage
                                 id='channel_header.rename'
@@ -468,6 +480,11 @@ export default class ChannelHeader extends React.Component {
                 <ChannelMembersModal
                     show={this.state.showMembersModal}
                     onModalDismissed={() => this.setState({showMembersModal: false})}
+                    channel={channel}
+                />
+                <RenameChannelModal
+                    show={this.state.showRenameChannelModal}
+                    onHide={this.hideRenameChannelModal}
                     channel={channel}
                 />
             </div>
