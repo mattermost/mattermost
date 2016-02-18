@@ -553,6 +553,7 @@
   "claim.email_to_sso.pwd": "Password",
   "claim.email_to_sso.title": "Switch Email/Password Account to {uiType}",
   "claim.email_to_sso.ssoType": "Upon claiming your account, you will only be able to login with {type} SSO",
+  "claim.email_to_sso.ssoNote": "You must already have a valid {type} account",
   "claim.email_to_sso.enterPwd": "Enter the password for your {team} {site} account",
   "claim.email_to_sso.switchTo": "Switch account to {uiType}",
   "claim.sso_to_email.enterPwd": "Please enter a password.",
