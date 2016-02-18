@@ -7,6 +7,7 @@ import * as AsyncClient from '../utils/async_client.jsx';
 import SocketStore from '../stores/socket_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
+import PostDeletedModal from './post_deleted_modal.jsx';
 import PostStore from '../stores/post_store.jsx';
 import PreferenceStore from '../stores/preference_store.jsx';
 import Textbox from './textbox.jsx';
@@ -60,6 +61,8 @@ class CreateComment extends React.Component {
         this.handleResize = this.handleResize.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
+        this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
+        this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
 
         PostStore.clearCommentDraftUploads();
 
@@ -70,7 +73,8 @@ class CreateComment extends React.Component {
             previews: draft.previews,
             submitting: false,
             windowWidth: Utils.windowWidth(),
-            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            showPostDeletedModal: false
         };
     }
     componentDidMount() {
@@ -141,8 +145,10 @@ class CreateComment extends React.Component {
         PostStore.storePendingPost(post);
         PostStore.storeCommentDraft(this.props.rootId, null);
 
-        Client.createPost(post, ChannelStore.getCurrent(),
-            function handlePostSuccess(data) {
+        Client.createPost(
+            post,
+            ChannelStore.getCurrent(),
+            (data) => {
                 AsyncClient.getPosts(this.props.channelId);
 
                 const channel = ChannelStore.get(this.props.channelId);
@@ -155,27 +161,30 @@ class CreateComment extends React.Component {
                     type: ActionTypes.RECEIVED_POST,
                     post: data
                 });
-            }.bind(this),
-            function handlePostError(err) {
-                let state = {};
-
+            },
+            (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
-                    PostStore.removePendingPost(post.channel_id, post.pending_post_id);
+                    this.showPostDeletedModal();
 
-                    if ($('#post_deleted').length > 0) {
-                        $('#post_deleted').modal('show');
-                    }
+                    PostStore.removePendingPost(post.channel_id, post.pending_post_id);
                 } else {
                     post.state = Constants.POST_FAILED;
                     PostStore.updatePendingPost(post);
                 }
 
-                state.submitting = false;
-                this.setState(state);
-            }.bind(this)
+                this.setState({
+                    submitting: false
+                });
+            }
         );
 
-        this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
+        this.setState({
+            messageText: '',
+            submitting: false,
+            postError: null,
+            previews: [],
+            serverError: null
+        });
     }
     commentMsgKeyPress(e) {
         if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
@@ -312,6 +321,16 @@ class CreateComment extends React.Component {
             this.refs.textbox.focus();
         }
     }
+    showPostDeletedModal() {
+        this.setState({
+            showPostDeletedModal: true
+        });
+    }
+    hidePostDeletedModal() {
+        this.setState({
+            showPostDeletedModal: false
+        });
+    }
     render() {
         let serverError = null;
         if (this.state.serverError) {
@@ -411,6 +430,10 @@ class CreateComment extends React.Component {
                         {serverError}
                     </div>
                 </div>
+                <PostDeletedModal
+                    show={this.state.showPostDeletedModal}
+                    onHide={this.hidePostDeletedModal}
+                />
             </form>
         );
     }

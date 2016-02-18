@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import UserStore from '../stores/user_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
 
@@ -9,20 +8,22 @@ import {FormattedMessage} from 'mm-intl';
 
 var ActionTypes = Constants.ActionTypes;
 
+const Modal = ReactBootstrap.Modal;
+
 export default class PostDeletedModal extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleClose = this.handleClose.bind(this);
+        this.handleHide = this.handleHide.bind(this);
+    }
 
-        this.state = {};
+    shouldComponentUpdate(nextProps) {
+        return nextProps.show !== this.props.show;
     }
-    componentDidMount() {
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', () => {
-            this.handleClose();
-        });
-    }
-    handleClose() {
+
+    handleHide(e) {
+        e.preventDefault();
+
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_SEARCH,
             results: null
@@ -39,67 +40,50 @@ export default class PostDeletedModal extends React.Component {
             type: ActionTypes.RECEIVED_POST_SELECTED,
             results: null
         });
+
+        this.props.onHide();
     }
+
     render() {
-        var currentUser = UserStore.getCurrentUser();
-
-        if (currentUser != null) {
-            return (
-                <div
-                    className='modal fade'
-                    ref='modal'
-                    id='post_deleted'
-                    tabIndex='-1'
-                    role='dialog'
-                    aria-hidden='true'
-                >
-                    <div className='modal-dialog'>
-                        <div className='modal-content'>
-                            <div className='modal-header'>
-                                <button
-                                    type='button'
-                                    className='close'
-                                    data-dismiss='modal'
-                                    aria-label='Close'
-                                >
-                                    <span aria-hidden='true'>{'×'}</span>
-                                </button>
-                                <h4
-                                    className='modal-title'
-                                    id='myModalLabel'
-                                >
-                                    <FormattedMessage
-                                        id='post_delete.notPosted'
-                                        defaultMessage='Comment could not be posted'
-                                    />
-                                </h4>
-                            </div>
-                            <div className='modal-body'>
-                                <p>
-                                    <FormattedMessage
-                                        id='post_delete.someone'
-                                        defaultMessage='Someone deleted the message on which you tried to post a comment.'
-                                    />
-                                </p>
-                            </div>
-                            <div className='modal-footer'>
-                                <button
-                                    type='button'
-                                    className='btn btn-primary'
-                                    data-dismiss='modal'
-                                >
-                                    <FormattedMessage
-                                        id='post_delete.okay'
-                                        defaultMessage='Okay'
-                                    />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        return <div/>;
+        return (
+            <Modal
+                show={this.props.show}
+                onHide={this.handleHide}
+            >
+                <Modal.Header closeButton={true}>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='post_delete.notPosted'
+                            defaultMessage='Comment could not be posted'
+                        />
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>
+                        <FormattedMessage
+                            id='post_delete.someone'
+                            defaultMessage='Someone deleted the message on which you tried to post a comment.'
+                        />
+                    </p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <button
+                        type='button'
+                        className='btn btn-primary'
+                        onClick={this.handleHide}
+                    >
+                        <FormattedMessage
+                            id='post_delete.okay'
+                            defaultMessage='Okay'
+                        />
+                    </button>
+                </Modal.Footer>
+            </Modal>
+        );
     }
 }
+
+PostDeletedModal.propTypes = {
+    show: React.PropTypes.bool.isRequired,
+    onHide: React.PropTypes.func.isRequired
+};

@@ -12,7 +12,6 @@ import RenameChannelModal from '../components/rename_channel_modal.jsx';
 import EditPostModal from '../components/edit_post_modal.jsx';
 import DeletePostModal from '../components/delete_post_modal.jsx';
 import MoreChannelsModal from '../components/more_channels.jsx';
-import PostDeletedModal from '../components/post_deleted_modal.jsx';
 import TeamSettingsModal from '../components/team_settings_modal.jsx';
 import RemovedFromChannelModal from '../components/removed_from_channel_modal.jsx';
 import RegisterAppModal from '../components/register_app_modal.jsx';
@@ -79,7 +78,6 @@ class Root extends React.Component {
                     <MoreChannelsModal />
                     <EditPostModal />
                     <DeletePostModal />
-                    <PostDeletedModal />
                     <RemovedFromChannelModal />
                     <RegisterAppModal />
                 </div>
