@@ -47,7 +47,7 @@ Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq), or ta
 
 Latest stable release of Mattermost is available from http://www.mattermost.org/download/, including binary distribution, and from install guides below. 
 
-If you use Docker, you can [install Mattermost in a single-container preview in one line](https://github.com/mattermost/platform/blob/master/doc/install/Docker-Single-Container.md#one-line-docker-install). 
+If you use Docker, you can [install Mattermost in a single-container preview in one line](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install). 
 
 #### Quick Start Install for Product Evaluation 
 
