@@ -159,7 +159,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 						nonUsernameKeys = append(nonUsernameKeys, key)
 					}
 				}
-				user.NotifyProps["mention_keys"] = strings.Join(nonUsernameKeys, ",") + user.Username + ",@" + user.Username
+				user.NotifyProps["mention_keys"] = strings.Join(nonUsernameKeys, ",") + "," + user.Username + ",@" + user.Username
 			}
 
 			if count, err := us.GetMaster().Update(user); err != nil {
