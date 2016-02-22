@@ -24,7 +24,7 @@ class AtMentionSuggestion extends React.Component {
                     defaultMessage='Notifies everyone in the team'
                 />
             );
-            icon = <i className='mention-img fa fa-users fa-2x' />;
+            icon = <i className='mention-img fa fa-users fa-2x'/>;
         } else if (item.username === 'channel') {
             username = 'channel';
             description = (
@@ -33,7 +33,7 @@ class AtMentionSuggestion extends React.Component {
                     defaultMessage='Notifies everyone in the channel'
                 />
             );
-            icon = <i className='mention-img fa fa-users fa-2x' />;
+            icon = <i className='mention-img fa fa-users fa-2x'/>;
         } else {
             username = item.username;
             description = Utils.getFullName(item);

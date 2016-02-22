@@ -380,7 +380,7 @@ export default class Navbar extends React.Component {
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
-                    <NotifyCounts />
+                    <NotifyCounts/>
                 </button>
             );
 
@@ -393,7 +393,7 @@ export default class Navbar extends React.Component {
                     data-target='#sidebar-nav'
                     onClick={this.toggleRightSidebar}
                 >
-                    <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}} />
+                    <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}/>
                 </button>
             );
         }
@@ -502,7 +502,7 @@ export default class Navbar extends React.Component {
                 className='navbar-toggle pull-right'
                 onClick={this.showSearch}
             >
-                <span className='glyphicon glyphicon-search icon--white' />
+                <span className='glyphicon glyphicon-search icon--white'/>
             </button>
         );
 

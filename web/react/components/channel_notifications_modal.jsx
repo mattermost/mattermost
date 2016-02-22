@@ -168,7 +168,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[1]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'all')}
                             />
-                            <FormattedMessage id='channel_notifications.allActivity' />
+                            <FormattedMessage id='channel_notifications.allActivity'/>
                         </label>
                         <br/>
                     </div>
@@ -179,7 +179,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[2]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'mention')}
                             />
-                            <FormattedMessage id='channel_notifications.onlyMentions' />
+                            <FormattedMessage id='channel_notifications.onlyMentions'/>
                         </label>
                         <br/>
                     </div>
@@ -190,7 +190,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[3]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'none')}
                             />
-                            <FormattedMessage id='channel_notifications.never' />
+                            <FormattedMessage id='channel_notifications.never'/>
                         </label>
                     </div>
                 </div>
@@ -234,11 +234,11 @@ export default class ChannelNotificationsModal extends React.Component {
                 />
             );
         } else if (this.state.notifyLevel === 'mention') {
-            describe = (<FormattedMessage id='channel_notifications.onlyMentions' />);
+            describe = (<FormattedMessage id='channel_notifications.onlyMentions'/>);
         } else if (this.state.notifyLevel === 'all') {
-            describe = (<FormattedMessage id='channel_notifications.allActivity' />);
+            describe = (<FormattedMessage id='channel_notifications.allActivity'/>);
         } else {
-            describe = (<FormattedMessage id='channel_notifications.never' />);
+            describe = (<FormattedMessage id='channel_notifications.never'/>);
         }
 
         handleUpdateSection = function updateSection(e) {
@@ -311,7 +311,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                     defaultMessage='For all unread messages'
                                 />
                         </label>
-                        <br />
+                        <br/>
                     </div>
                     <div className='radio'>
                         <label>
@@ -320,9 +320,9 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={this.state.markUnreadLevel === 'mention'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'mention')}
                             />
-                            <FormattedMessage id='channel_notifications.onlyMentions' />
+                            <FormattedMessage id='channel_notifications.onlyMentions'/>
                         </label>
-                        <br />
+                        <br/>
                     </div>
                 </div>
             )];
@@ -363,7 +363,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     />
                 );
             } else {
-                describe = (<FormattedMessage id='channel_notifications.onlyMentions' />);
+                describe = (<FormattedMessage id='channel_notifications.onlyMentions'/>);
             }
 
             const handleUpdateSection = function handleUpdateSection(e) {

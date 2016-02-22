@@ -196,12 +196,12 @@ export default class RhsThread extends React.Component {
         var currentId = UserStore.getCurrentId();
         var searchForm;
         if (currentId != null) {
-            searchForm = <SearchBox />;
+            searchForm = <SearchBox/>;
         }
 
         return (
             <div className='post-right__container'>
-                <FileUploadOverlay overlayType='right' />
+                <FileUploadOverlay overlayType='right'/>
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
                     <RhsHeaderPost

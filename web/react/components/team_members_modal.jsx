@@ -56,7 +56,7 @@ export default class TeamMembersModal extends React.Component {
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
                     <div className='team-member-list'>
-                        <MemberListTeam />
+                        <MemberListTeam/>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>

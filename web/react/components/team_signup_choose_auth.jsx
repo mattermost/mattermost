@@ -23,7 +23,7 @@ export default class ChooseAuthPage extends React.Component {
                             }.bind(this)
                         }
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='choose_auth_page.gitlabCreate'
@@ -47,7 +47,7 @@ export default class ChooseAuthPage extends React.Component {
                             }
                         }
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='choose_auth_page.googleCreate'
@@ -71,7 +71,7 @@ export default class ChooseAuthPage extends React.Component {
                             }.bind(this)
                         }
                     >
-                        <span className='fa fa-envelope' />
+                        <span className='fa fa-envelope'/>
                         <span>
                             <FormattedMessage
                                 id='choose_auth_page.emailCreate'

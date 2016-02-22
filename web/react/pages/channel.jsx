@@ -68,18 +68,17 @@ class Root extends React.Component {
                     <ChannelLoader/>
                     <ErrorBar/>
                     <ChannelView/>
-
-                    <GetPostLinkModal />
-                    <GetTeamInviteLinkModal />
-                    <InviteMemberModal />
-                    <ImportThemeModal />
-                    <TeamSettingsModal />
-                    <RenameChannelModal />
-                    <MoreChannelsModal />
-                    <EditPostModal />
-                    <DeletePostModal />
-                    <RemovedFromChannelModal />
-                    <RegisterAppModal />
+                    <GetPostLinkModal/>
+                    <GetTeamInviteLinkModal/>
+                    <InviteMemberModal/>
+                    <ImportThemeModal/>
+                    <TeamSettingsModal/>
+                    <RenameChannelModal/>
+                    <MoreChannelsModal/>
+                    <EditPostModal/>
+                    <DeletePostModal/>
+                    <RemovedFromChannelModal/>
+                    <RegisterAppModal/>
                 </div>
             </IntlProvider>
         );
@@ -94,7 +93,7 @@ global.window.setup_channel_page = function setup(props, team, channel) {
     }
 
     ReactDOM.render(
-        <Root map={props} />,
+        <Root map={props}/>,
         document.getElementById('channel_view')
     );
 };

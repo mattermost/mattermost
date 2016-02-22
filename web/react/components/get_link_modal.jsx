@@ -48,8 +48,8 @@ export default class GetLinkModal extends React.Component {
             helpText = (
                 <p>
                     {this.props.helpText}
-                    <br />
-                    <br />
+                    <br/>
+                    <br/>
                 </p>
             );
         }

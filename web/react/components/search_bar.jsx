@@ -169,7 +169,7 @@ class SearchBar extends React.Component {
                     style={{overflow: 'visible'}}
                     autoComplete='off'
                 >
-                    <span className='glyphicon glyphicon-search sidebar__search-icon' />
+                    <span className='glyphicon glyphicon-search sidebar__search-icon'/>
                     <SuggestionBox
                         ref='search'
                         className='form-control search-bar'

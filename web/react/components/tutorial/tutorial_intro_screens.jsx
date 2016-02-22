@@ -58,6 +58,7 @@ export default class TutorialIntroScreens extends React.Component {
         case 2:
             return this.createScreenThree();
         }
+        return null;
     }
     createScreenOne() {
         const circles = this.createCircles();

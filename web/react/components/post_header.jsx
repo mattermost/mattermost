@@ -15,7 +15,7 @@ export default class PostHeader extends React.Component {
     render() {
         var post = this.props.post;
 
-        let userProfile = <UserProfile userId={post.user_id} />;
+        let userProfile = <UserProfile userId={post.user_id}/>;
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {

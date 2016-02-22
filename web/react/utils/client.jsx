@@ -1430,7 +1430,7 @@ export function listIncomingHooks(success, error) {
 
 export function getAllPreferences(success, error) {
     $.ajax({
-        url: `/api/v1/preferences/`,
+        url: '/api/v1/preferences/',
         dataType: 'json',
         type: 'GET',
         success,

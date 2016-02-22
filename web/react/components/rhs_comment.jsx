@@ -246,7 +246,7 @@ class RhsComment extends React.Component {
                     <div>
                         <ul className='post__header'>
                             <li className='col__name'>
-                                <strong><UserProfile userId={post.user_id} /></strong>
+                                <strong><UserProfile userId={post.user_id}/></strong>
                             </li>
                             <li className='col'>
                                 <time className='post__time'>

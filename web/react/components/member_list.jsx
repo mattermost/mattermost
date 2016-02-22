@@ -4,10 +4,6 @@
 import MemberListItem from './member_list_item.jsx';
 
 export default class MemberList extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         var members = [];
 

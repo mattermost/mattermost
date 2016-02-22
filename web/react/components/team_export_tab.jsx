@@ -36,7 +36,7 @@ export default class TeamExportTab extends React.Component {
         case 'in-progress':
             messageSection = (
                 <p className='confirm-import alert alert-warning'>
-                    <i className='fa fa-spinner fa-pulse' />
+                    <i className='fa fa-spinner fa-pulse'/>
                     <FormattedMessage
                         id='team_export_tab.exporting'
                         defaultMessage=' Exporting...'
@@ -47,7 +47,7 @@ export default class TeamExportTab extends React.Component {
         case 'ready':
             messageSection = (
                 <p className='confirm-import alert alert-success'>
-                    <i className='fa fa-check' />
+                    <i className='fa fa-check'/>
                     <FormattedMessage
                         id='team_export_tab.ready'
                         defaultMessage=' Ready for '
@@ -67,7 +67,7 @@ export default class TeamExportTab extends React.Component {
         case 'failure':
             messageSection = (
                 <p className='confirm-import alert alert-warning'>
-                    <i className='fa fa-warning' />
+                    <i className='fa fa-warning'/>
                     <FormattedMessage
                         id='team_export_tab.unable'
                         defaultMessage=' Unable to export: {error}'

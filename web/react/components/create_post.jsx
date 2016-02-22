@@ -477,7 +477,7 @@ class CreatePost extends React.Component {
                             className='send-button theme'
                             onClick={this.handleSubmit}
                         >
-                            <i className='fa fa-paper-plane' />
+                            <i className='fa fa-paper-plane'/>
                         </a>
                         {tutorialTip}
                     </div>

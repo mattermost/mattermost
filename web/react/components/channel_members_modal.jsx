@@ -172,7 +172,7 @@ export default class ChannelMembersModal extends React.Component {
 
         let content;
         if (this.state.loading) {
-            content = (<LoadingScreen />);
+            content = (<LoadingScreen/>);
         } else {
             content = (
                 <div className='team-member-list'>

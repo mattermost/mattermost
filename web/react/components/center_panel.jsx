@@ -55,10 +55,10 @@ export default class CenterPanel extends React.Component {
         let postsContainer;
         let createPost;
         if (this.state.showTutorialScreens) {
-            postsContainer = <TutorialIntroScreens />;
+            postsContainer = <TutorialIntroScreens/>;
             createPost = null;
         } else if (this.state.showPostFocus) {
-            postsContainer = <PostFocusView />;
+            postsContainer = <PostFocusView/>;
 
             handleClick = function clickHandler(e) {
                 e.preventDefault();
@@ -80,13 +80,13 @@ export default class CenterPanel extends React.Component {
                 </div>
             );
         } else {
-            postsContainer = <PostsViewContainer />;
+            postsContainer = <PostsViewContainer/>;
             createPost = (
                 <div
                     className='post-create__container'
                     id='post-create'
                 >
-                    <CreatePost />
+                    <CreatePost/>
                 </div>
             );
         }
@@ -108,7 +108,7 @@ export default class CenterPanel extends React.Component {
                         className='app__content'
                     >
                         <div id='channel-header'>
-                            <ChannelHeader />
+                            <ChannelHeader/>
                         </div>
                         {postsContainer}
                         {createPost}

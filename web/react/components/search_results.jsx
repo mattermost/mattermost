@@ -97,7 +97,7 @@ export default class SearchResults extends React.Component {
         var currentId = UserStore.getCurrentId();
         var searchForm = null;
         if (currentId) {
-            searchForm = <SearchBox />;
+            searchForm = <SearchBox/>;
         }
         var noResults = (!results || !results.order || !results.order.length);
         var searchTerm = SearchStore.getSearchTerm();
@@ -151,7 +151,7 @@ export default class SearchResults extends React.Component {
             <div className='sidebar--right__content'>
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
-                    <SearchResultsHeader isMentionSearch={this.props.isMentionSearch} />
+                    <SearchResultsHeader isMentionSearch={this.props.isMentionSearch}/>
                     <div
                         id='search-items-container'
                         className='search-items-container'

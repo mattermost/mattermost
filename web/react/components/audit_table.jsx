@@ -207,9 +207,6 @@ const holders = defineMessages({
 });
 
 class AuditTable extends React.Component {
-    constructor(props) {
-        super(props);
-    }
     render() {
         var accessList = [];
 

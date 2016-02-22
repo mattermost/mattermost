@@ -254,7 +254,7 @@ class SignupUserComplete extends React.Component {
                         key='gitlab'
                         href={'/' + this.props.teamName + '/signup/gitlab' + window.location.search}
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='signup_user_completed.gitlab'
@@ -272,7 +272,7 @@ class SignupUserComplete extends React.Component {
                     key='google'
                     href={'/' + this.props.teamName + '/signup/google' + window.location.search}
                 >
-                    <span className='icon' />
+                    <span className='icon'/>
                     <span>
                         <FormattedMessage
                             id='signup_user_completed.google'

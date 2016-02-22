@@ -305,7 +305,7 @@ class FileUpload extends React.Component {
                 className='btn btn-file'
             >
                 <span>
-                    <i className='glyphicon glyphicon-paperclip' />
+                    <i className='glyphicon glyphicon-paperclip'/>
                 </span>
                 <input
                     ref='fileInput'

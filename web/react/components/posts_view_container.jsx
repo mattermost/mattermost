@@ -173,7 +173,9 @@ export default class PostsViewContainer extends React.Component {
                     scrollPostId={this.state.scrollPost}
                     postViewScrolled={this.handlePostsViewScroll}
                     loadMorePostsTopClicked={this.loadMorePostsTop}
-                    loadMorePostsBottomClicked={() => {}}
+                    loadMorePostsBottomClicked={() => {
+                        // Do Nothing
+                    }}
                     showMoreMessagesTop={!this.state.atTop[this.state.currentChannelIndex]}
                     showMoreMessagesBottom={false}
                     introText={channel ? createChannelIntroMessage(channel) : null}

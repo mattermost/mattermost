@@ -138,7 +138,7 @@ export default class ChannelInviteModal extends React.Component {
 
         var content;
         if (this.state.loading) {
-            content = (<LoadingScreen />);
+            content = (<LoadingScreen/>);
         } else {
             content = (
                 <MemberList

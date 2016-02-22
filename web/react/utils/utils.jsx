@@ -142,6 +142,7 @@ export function getCookie(name) {
     if (parts.length === 2) {
         return parts.pop().split(';').shift();
     }
+    return '';
 }
 
 var requestedNotificationPermission = false;
@@ -188,7 +189,10 @@ export function ding() {
         var audio = new Audio('/static/images/bing.mp3');
         audio.play();
         canDing = false;
-        setTimeout(() => canDing = true, 3000);
+        setTimeout(() => {
+            canDing = true;
+            return;
+        }, 3000);
     }
 }
 

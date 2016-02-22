@@ -47,7 +47,7 @@ export default class Logs extends React.Component {
         var content = null;
 
         if (this.state.logs === null) {
-            content = <LoadingScreen />;
+            content = <LoadingScreen/>;
         } else {
             content = [];
 
@@ -61,7 +61,7 @@ export default class Logs extends React.Component {
                     style.color = 'red';
                 }
 
-                content.push(<br key={'br_' + i} />);
+                content.push(<br key={'br_' + i}/>);
                 content.push(
                     <span
                         key={'log_' + i}

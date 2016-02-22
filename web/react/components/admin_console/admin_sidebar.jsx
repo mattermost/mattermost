@@ -236,7 +236,7 @@ export default class AdminSidebar extends React.Component {
         return (
             <div className='sidebar--left sidebar--collapsable'>
                 <div>
-                    <AdminSidebarHeader />
+                    <AdminSidebarHeader/>
                     <div className='nav-pills__container'>
                         <ul className='nav nav-pills nav-stacked'>
                             <li>

@@ -10,9 +10,6 @@ var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
 export default class TimeSince extends React.Component {
-    constructor(props) {
-        super(props);
-    }
     componentDidMount() {
         this.intervalId = setInterval(() => {
             this.forceUpdate();
@@ -51,7 +48,7 @@ export default class TimeSince extends React.Component {
                 overlay={tooltip}
             >
                 <time className='post__time'>
-                    <FormattedRelative value={this.props.eventTime} />
+                    <FormattedRelative value={this.props.eventTime}/>
                 </time>
             </OverlayTrigger>
         );

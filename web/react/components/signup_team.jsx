@@ -130,21 +130,21 @@ export default class TeamSignUp extends React.Component {
             return (
                 <div>
                     {teamListing}
-                    <EmailSignUpPage />
+                    <EmailSignUpPage/>
                 </div>
             );
         } else if (this.state.page === 'gitlab') {
             return (
                 <div>
                     {teamListing}
-                    <SSOSignupPage service={Constants.GITLAB_SERVICE} />
+                    <SSOSignupPage service={Constants.GITLAB_SERVICE}/>
                 </div>
             );
         } else if (this.state.page === 'google') {
             return (
                 <div>
                     {teamListing}
-                    <SSOSignupPage service={Constants.GOOGLE_SERVICE} />
+                    <SSOSignupPage service={Constants.GOOGLE_SERVICE}/>
                 </div>
             );
         } else if (this.state.page === 'none') {
@@ -157,6 +157,8 @@ export default class TeamSignUp extends React.Component {
                 </div>
             );
         }
+
+        return null;
     }
 }
 
