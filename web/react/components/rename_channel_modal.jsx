@@ -4,10 +4,11 @@
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
-import ChannelStore from '../stores/channel_store.jsx';
 import Constants from '../utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+
+const Modal = ReactBootstrap.Modal;
 
 const holders = defineMessages({
     required: {
@@ -44,33 +45,81 @@ export default class RenameChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleShow = this.handleShow.bind(this);
+        this.handleHide = this.handleHide.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
+
         this.onNameChange = this.onNameChange.bind(this);
         this.onDisplayNameChange = this.onDisplayNameChange.bind(this);
         this.displayNameKeyUp = this.displayNameKeyUp.bind(this);
-        this.handleClose = this.handleClose.bind(this);
-        this.handleShow = this.handleShow.bind(this);
-        this.handleShown = this.handleShown.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
-            displayName: '',
-            channelName: '',
-            channelId: '',
+            displayName: props.channel.display_name,
+            channelName: props.channel.name,
             serverError: '',
             nameError: '',
             displayNameError: '',
             invalid: false
         };
     }
+
+    componentWillReceiveProps(nextProps) {
+        if (!Utils.areObjectsEqual(nextProps.channel, this.props.channel)) {
+            this.setState({
+                displayName: nextProps.channel.display_name,
+                channelName: nextProps.channel.name
+            });
+        }
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (!nextProps.show && !this.props.show) {
+            return false;
+        }
+
+        if (!Utils.areObjectsEqual(nextState, this.state)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextProps, this.props)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.show && this.props.show) {
+            this.handleShow();
+        }
+    }
+
+    handleShow() {
+        const textbox = ReactDOM.findDOMNode(this.refs.displayName);
+        textbox.focus();
+        Utils.placeCaretAtEnd(textbox);
+    }
+
+    handleHide(e) {
+        if (e) {
+            e.preventDefault();
+        }
+
+        this.props.onHide();
+
+        this.setState({
+            serverError: '',
+            nameError: '',
+            displayNameError: '',
+            invalid: false
+        });
+    }
+
     handleSubmit(e) {
         e.preventDefault();
 
-        if (this.state.channelId.length !== 26) {
-            return;
-        }
-
-        const channel = ChannelStore.get(this.state.channelId);
+        const channel = Object.assign({}, this.props.channel);
         const oldName = channel.name;
         const oldDisplayName = channel.displayName;
         const state = {serverError: ''};
@@ -110,29 +159,40 @@ export default class RenameChannelModal extends React.Component {
             return;
         }
 
-        Client.updateChannel(channel,
+        Client.updateChannel(
+            channel,
             () => {
-                $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
-
                 AsyncClient.getChannel(channel.id);
                 Utils.updateAddressBar(channel.name);
 
-                ReactDOM.findDOMNode(this.refs.displayName).value = '';
-                ReactDOM.findDOMNode(this.refs.channelName).value = '';
+                this.handleHide();
             },
             (err) => {
-                state.serverError = err.message;
-                state.invalid = true;
-                this.setState(state);
+                this.setState({
+                    serverError: err.message,
+                    invalid: true
+                });
             }
         );
     }
+
+    handleCancel(e) {
+        this.setState({
+            displayName: this.props.channel.display_name,
+            channelName: this.props.channel.name
+        });
+
+        this.handleHide(e);
+    }
+
     onNameChange() {
         this.setState({channelName: ReactDOM.findDOMNode(this.refs.channelName).value});
     }
+
     onDisplayNameChange() {
         this.setState({displayName: ReactDOM.findDOMNode(this.refs.displayName).value});
     }
+
     displayNameKeyUp() {
         if (this.state.channelName !== Constants.DEFAULT_CHANNEL) {
             const displayName = ReactDOM.findDOMNode(this.refs.displayName).value.trim();
@@ -141,32 +201,7 @@ export default class RenameChannelModal extends React.Component {
             this.setState({channelName: channelName});
         }
     }
-    handleClose() {
-        this.setState({
-            displayName: '',
-            channelName: '',
-            channelId: '',
-            serverError: '',
-            nameError: '',
-            displayNameError: '',
-            invalid: false
-        });
-    }
-    handleShow(e) {
-        const button = $(e.relatedTarget);
-        this.setState({displayName: button.attr('data-display'), channelName: button.attr('data-name'), channelId: button.attr('data-channelid')});
-    }
-    handleShown() {
-        $('#rename_channel #display_name').focus();
-    }
-    componentDidMount() {
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.handleShow);
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.handleShown);
-    }
-    componentWillUnmount() {
-        $(ReactDOM.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
-    }
+
     render() {
         let displayNameError = null;
         let displayNameClass = 'form-group';
@@ -199,107 +234,89 @@ export default class RenameChannelModal extends React.Component {
         }
 
         return (
-            <div
-                className='modal fade'
-                ref='modal'
-                id='rename_channel'
-                tabIndex='-1'
-                role='dialog'
-                aria-hidden='true'
+            <Modal
+                show={this.props.show}
+                onHide={this.handleCancel}
             >
-                <div className='modal-dialog'>
-                    <div className='modal-content'>
-                        <div className='modal-header'>
-                            <button
-                                type='button'
-                                className='close'
-                                data-dismiss='modal'
-                            >
-                                <span aria-hidden='true'>{'×'}</span>
-                                <span className='sr-only'>
-                                    <FormattedMessage
-                                        id='rename_channel.close'
-                                        defaultMessage='Close'
-                                    />
-                                </span>
-                            </button>
-                        <h4 className='modal-title'>
-                            <FormattedMessage
-                                id='rename_channel.title'
-                                defaultMessage='Rename Channel'
+                <Modal.Header closeButton={true}>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='rename_channel.title'
+                            defaultMessage='Rename Channel'
+                        />
+                    </Modal.Title>
+                </Modal.Header>
+                <form role='form'>
+                    <Modal.Body>
+                        <div className={displayNameClass}>
+                            <label className='control-label'>
+                                <FormattedMessage
+                                    id='rename_channel.displayName'
+                                    defaultMessage='Display Name'
+                                />
+                            </label>
+                            <input
+                                onKeyUp={this.displayNameKeyUp}
+                                onChange={this.onDisplayNameChange}
+                                type='text'
+                                ref='displayName'
+                                id='display_name'
+                                className='form-control'
+                                placeholder={formatMessage(holders.displayNameHolder)}
+                                value={this.state.displayName}
+                                maxLength='64'
                             />
-                        </h4>
+                            {displayNameError}
                         </div>
-                        <form role='form'>
-                            <div className='modal-body'>
-                                <div className={displayNameClass}>
-                                    <label className='control-label'>
-                                        <FormattedMessage
-                                            id='rename_channel.displayName'
-                                            defaultMessage='Display Name'
-                                        />
-                                    </label>
-                                    <input
-                                        onKeyUp={this.displayNameKeyUp}
-                                        onChange={this.onDisplayNameChange}
-                                        type='text'
-                                        ref='displayName'
-                                        id='display_name'
-                                        className='form-control'
-                                        placeholder={formatMessage(holders.displayNameHolder)}
-                                        value={this.state.displayName}
-                                        maxLength='64'
-                                    />
-                                    {displayNameError}
-                                </div>
-                                <div className={nameClass}>
-                                    <label className='control-label'>{handleInputLabel}</label>
-                                    <input
-                                        onChange={this.onNameChange}
-                                        type='text'
-                                        className={handleInputClass}
-                                        ref='channelName'
-                                        placeholder={formatMessage(holders.handleHolder)}
-                                        value={this.state.channelName}
-                                        maxLength='64'
-                                        readOnly={readOnlyHandleInput}
-                                    />
-                                    {nameError}
-                                </div>
-                                {serverError}
-                            </div>
-                            <div className='modal-footer'>
-                                <button
-                                    type='button'
-                                    className='btn btn-default'
-                                    data-dismiss='modal'
-                                >
-                                    <FormattedMessage
-                                        id='rename_channel.cancel'
-                                        defaultMessage='Cancel'
-                                    />
-                                </button>
-                                <button
-                                    onClick={this.handleSubmit}
-                                    type='submit'
-                                    className='btn btn-primary'
-                                >
-                                    <FormattedMessage
-                                        id='rename_channel.save'
-                                        defaultMessage='Save'
-                                    />
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                        <div className={nameClass}>
+                            <label className='control-label'>{handleInputLabel}</label>
+                            <input
+                                onChange={this.onNameChange}
+                                type='text'
+                                className={handleInputClass}
+                                ref='channelName'
+                                placeholder={formatMessage(holders.handleHolder)}
+                                value={this.state.channelName}
+                                maxLength='64'
+                                readOnly={readOnlyHandleInput}
+                            />
+                            {nameError}
+                        </div>
+                        {serverError}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <button
+                            type='button'
+                            className='btn btn-default'
+                            onClick={this.handleCancel}
+                        >
+                            <FormattedMessage
+                                id='rename_channel.cancel'
+                                defaultMessage='Cancel'
+                            />
+                        </button>
+                        <button
+                            onClick={this.handleSubmit}
+                            type='submit'
+                            className='btn btn-primary'
+                        >
+                            <FormattedMessage
+                                id='rename_channel.save'
+                                defaultMessage='Save'
+                            />
+                        </button>
+                    </Modal.Footer>
+                </form>
+            </Modal>
         );
     }
 }
 
 RenameChannelModal.propTypes = {
-    intl: intlShape.isRequired
+    intl: intlShape.isRequired,
+    show: React.PropTypes.bool.isRequired,
+    onHide: React.PropTypes.func.isRequired,
+    channel: React.PropTypes.object.isRequired
 };
 
 export default injectIntl(RenameChannelModal);
