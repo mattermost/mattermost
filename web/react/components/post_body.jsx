@@ -33,7 +33,6 @@ class PostBody extends React.Component {
 
         this.isImgLoading = false;
 
-        this.handleUserChange = this.handleUserChange.bind(this);
         this.parseEmojis = this.parseEmojis.bind(this);
         this.createEmbed = this.createEmbed.bind(this);
         this.createImageEmbed = this.createImageEmbed.bind(this);
@@ -80,24 +79,10 @@ class PostBody extends React.Component {
 
     componentDidMount() {
         this.parseEmojis();
-
-        UserStore.addChangeListener(this.handleUserChange);
     }
 
     componentDidUpdate() {
         this.parseEmojis();
-    }
-
-    componentWillUnmount() {
-        UserStore.removeChangeListener(this.handleUserChange);
-    }
-
-    handleUserChange() {
-        if (!this.state.hasProfiles) {
-            const profiles = UserStore.getProfiles();
-
-            this.setState({hasProfiles: profiles && Object.keys(profiles).length > 1});
-        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -357,7 +342,8 @@ PostBody.propTypes = {
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired
+    handleCommentClick: React.PropTypes.func.isRequired,
+    hasProfiles: React.PropTypes.bool
 };
 
 export default injectIntl(PostBody);

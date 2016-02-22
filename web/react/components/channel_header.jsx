@@ -147,8 +147,8 @@ export default class ChannelHeader extends React.Component {
             </Popover>
         );
         let channelTitle = channel.display_name;
-        const currentId = this.prop.user.id;
-        const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || Utils.isAdmin(this.state.memberTeam.roles);
+        const currentId = this.props.user.id;
+        const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || Utils.isAdmin(this.props.user.roles);
         const isDirect = (this.state.channel.type === 'D');
 
         if (isDirect) {

@@ -99,6 +99,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.hasProfiles !== this.props.hasProfiles) {
+            return true;
+        }
+
         return false;
     }
     getCommentCount(props) {
@@ -223,6 +227,7 @@ export default class Post extends React.Component {
                                 posts={posts}
                                 handleCommentClick={this.handleCommentClick}
                                 retryPost={this.retryPost}
+                                hasProfiles={this.props.hasProfiles}
                             />
                         </div>
                     </div>
@@ -233,7 +238,7 @@ export default class Post extends React.Component {
 }
 
 Post.propTypes = {
-    post: React.PropTypes.object,
+    post: React.PropTypes.object.isRequired,
     posts: React.PropTypes.object,
     parentPost: React.PropTypes.object,
     sameUser: React.PropTypes.bool,
@@ -241,5 +246,6 @@ Post.propTypes = {
     hideProfilePic: React.PropTypes.bool,
     isLastComment: React.PropTypes.bool,
     shouldHighlight: React.PropTypes.bool,
-    displayNameType: React.PropTypes.string
+    displayNameType: React.PropTypes.string,
+    hasProfiles: React.PropTypes.bool
 };

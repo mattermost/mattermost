@@ -28,6 +28,7 @@ export default class PostsView extends React.Component {
         this.handleResize = this.handleResize.bind(this);
         this.scrollToBottom = this.scrollToBottom.bind(this);
         this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
@@ -38,7 +39,8 @@ export default class PostsView extends React.Component {
         this.state = {
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             isScrolling: false,
-            topPostId: null
+            topPostId: null,
+            hasProfiles: false
         };
     }
     static get SCROLL_TYPE_FREE() {
@@ -242,6 +244,7 @@ export default class PostsView extends React.Component {
                     shouldHighlight={shouldHighlight}
                     onClick={() => EventHelpers.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
                     displayNameType={this.state.displayNameType}
+                    hasProfiles={this.state.hasProfiles}
                 />
             );
 
@@ -367,9 +370,11 @@ export default class PostsView extends React.Component {
         if (this.props.postList != null) {
             this.updateScrolling();
         }
+        UserStore.addChangeListener(this.onUserChange);
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
+        UserStore.removeChangeListener(this.onUserChange);
         window.removeEventListener('resize', this.handleResize);
     }
     componentDidUpdate() {
@@ -413,8 +418,18 @@ export default class PostsView extends React.Component {
         if (this.state.isScrolling !== nextState.isScrolling) {
             return true;
         }
+        if (this.state.hasProfiles !== nextState.hasProfiles) {
+            return true;
+        }
 
         return false;
+    }
+    onUserChange() {
+        if (!this.state.hasProfiles) {
+            const profiles = UserStore.getProfiles();
+
+            this.setState({hasProfiles: profiles && Object.keys(profiles).length > 1});
+        }
     }
     render() {
         let posts = [];
