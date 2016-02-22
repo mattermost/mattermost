@@ -58,7 +58,7 @@ class Root extends React.Component {
 
 global.window.setup_signup_team_confirm_page = function setup(props) {
     ReactDOM.render(
-        <Root map={props} />,
+        <Root map={props}/>,
         document.getElementById('signup-team-confirm')
     );
 };

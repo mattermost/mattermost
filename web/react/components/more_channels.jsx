@@ -82,7 +82,7 @@ export default class MoreChannels extends React.Component {
         if (this.state.channels != null) {
             var channels = this.state.channels;
             if (channels.loading) {
-                moreChannels = <LoadingScreen />;
+                moreChannels = <LoadingScreen/>;
             } else if (channels.length) {
                 moreChannels = (
                     <table className='more-table table'>

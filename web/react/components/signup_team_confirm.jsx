@@ -4,10 +4,6 @@
 import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
 
 export default class SignupTeamConfirm extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         return (
             <div className='signup-team__container'>

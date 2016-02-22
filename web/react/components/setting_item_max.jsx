@@ -61,7 +61,7 @@ export default class SettingItemMax extends React.Component {
                             {extraInfo}
                         </li>
                         <li className='setting-list-item'>
-                            <hr />
+                            <hr/>
                             {serverError}
                             {clientError}
                             {submit}

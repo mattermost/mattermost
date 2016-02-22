@@ -54,7 +54,7 @@ export default class Audits extends React.Component {
         }
 
         if (this.state.audits === null) {
-            content = <LoadingScreen />;
+            content = <LoadingScreen/>;
         } else {
             content = (
                 <div style={{margin: '10px'}}>

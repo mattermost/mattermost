@@ -112,7 +112,7 @@ export default class MemberListItem extends React.Component {
                         </div>
                     );
         } else {
-            invite = (<div className='member-role text-capitalize'><span className='fa fa-pencil hidden'></span>{member.roles || <FormattedMessage id='member_item.member' />}</div>);
+            invite = (<div className='member-role text-capitalize'><span className='fa fa-pencil hidden'></span>{member.roles || <FormattedMessage id='member_item.member'/>}</div>);
         }
 
         return (

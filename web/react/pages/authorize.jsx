@@ -29,6 +29,7 @@ class Root extends React.Component {
                     translations: data,
                     loaded: true
                 });
+                return;
             },
             () => {
                 this.setState({
@@ -64,7 +65,7 @@ class Root extends React.Component {
 
 global.window.setup_authorize_page = function setup(props) {
     ReactDOM.render(
-        <Root map={props} />,
+        <Root map={props}/>,
         document.getElementById('authorize')
     );
 };

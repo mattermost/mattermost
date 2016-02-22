@@ -135,9 +135,9 @@ class EditPostModal extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
     render() {
-        var error = (<div className='form-group'><br /></div>);
+        var error = (<div className='form-group'><br/></div>);
         if (this.state.error) {
-            error = (<div className='form-group has-error'><br /><label className='control-label'>{this.state.error}</label></div>);
+            error = (<div className='form-group has-error'><br/><label className='control-label'>{this.state.error}</label></div>);
         }
 
         return (

@@ -130,47 +130,47 @@ export default class AdminController extends React.Component {
     }
 
     render() {
-        var tab = <LoadingScreen />;
+        var tab = <LoadingScreen/>;
 
         if (this.state.config != null) {
             if (this.state.selected === 'email_settings') {
-                tab = <EmailSettingsTab config={this.state.config} />;
+                tab = <EmailSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'log_settings') {
-                tab = <LogSettingsTab config={this.state.config} />;
+                tab = <LogSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'logs') {
-                tab = <LogsTab />;
+                tab = <LogsTab/>;
             } else if (this.state.selected === 'audits') {
-                tab = <AuditsTab />;
+                tab = <AuditsTab/>;
             } else if (this.state.selected === 'image_settings') {
-                tab = <FileSettingsTab config={this.state.config} />;
+                tab = <FileSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'privacy_settings') {
-                tab = <PrivacySettingsTab config={this.state.config} />;
+                tab = <PrivacySettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'rate_settings') {
-                tab = <RateSettingsTab config={this.state.config} />;
+                tab = <RateSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'gitlab_settings') {
-                tab = <GitLabSettingsTab config={this.state.config} />;
+                tab = <GitLabSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'sql_settings') {
-                tab = <SqlSettingsTab config={this.state.config} />;
+                tab = <SqlSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'team_settings') {
-                tab = <TeamSettingsTab config={this.state.config} />;
+                tab = <TeamSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'service_settings') {
-                tab = <ServiceSettingsTab config={this.state.config} />;
+                tab = <ServiceSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'legal_and_support_settings') {
-                tab = <LegalAndSupportSettingsTab config={this.state.config} />;
+                tab = <LegalAndSupportSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'ldap_settings') {
-                tab = <LdapSettingsTab config={this.state.config} />;
+                tab = <LdapSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'license') {
-                tab = <LicenseSettingsTab config={this.state.config} />;
+                tab = <LicenseSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'team_users') {
                 if (this.state.teams) {
-                    tab = <TeamUsersTab team={this.state.teams[this.state.selectedTeam]} />;
+                    tab = <TeamUsersTab team={this.state.teams[this.state.selectedTeam]}/>;
                 }
             } else if (this.state.selected === 'team_analytics') {
                 if (this.state.teams) {
-                    tab = <TeamAnalyticsTab team={this.state.teams[this.state.selectedTeam]} />;
+                    tab = <TeamAnalyticsTab team={this.state.teams[this.state.selectedTeam]}/>;
                 }
             } else if (this.state.selected === 'system_analytics') {
-                tab = <SystemAnalyticsTab />;
+                tab = <SystemAnalyticsTab/>;
             }
         }
 

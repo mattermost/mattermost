@@ -178,8 +178,8 @@ export default class DeletePostModal extends React.Component {
                             term: (postTerm)
                         }}
                     />
-                    <br />
-                    <br />
+                    <br/>
+                    <br/>
                     {commentWarning}
                     {error}
                 </Modal.Body>

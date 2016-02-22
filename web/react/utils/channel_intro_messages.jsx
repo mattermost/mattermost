@@ -23,6 +23,7 @@ export function createChannelIntroMessage(channel) {
     } else if (channel.type === 'O' || channel.type === 'P') {
         return createStandardIntroMessage(channel);
     }
+    return null;
 }
 
 export function createDMIntroMessage(channel) {
@@ -46,7 +47,7 @@ export function createDMIntroMessage(channel) {
                 </div>
                 <div className='channel-intro-profile'>
                     <strong>
-                        <UserProfile userId={teammate.id} />
+                        <UserProfile userId={teammate.id}/>
                     </strong>
                 </div>
                 <p className='channel-intro-text'>

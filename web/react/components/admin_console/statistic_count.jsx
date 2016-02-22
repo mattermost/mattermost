@@ -4,10 +4,6 @@
 import {FormattedMessage} from 'mm-intl';
 
 export default class StatisticCount extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         let loading = (
             <FormattedMessage

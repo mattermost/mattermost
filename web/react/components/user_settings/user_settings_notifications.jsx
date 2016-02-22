@@ -445,7 +445,7 @@ class NotificationsTab extends React.Component {
                     title={formatMessage(holders.desktopSounds)}
                     describe={describe}
                     updateSection={handleUpdateSoundSection}
-                    disableOpen = {!this.state.soundNeeded}
+                    disableOpen={!this.state.soundNeeded}
                 />
             );
         }

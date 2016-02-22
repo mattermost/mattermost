@@ -46,6 +46,7 @@ export default class PostAttachmentOEmbed extends React.Component {
                 }
             });
         }
+        return null;
     }
 
     render() {

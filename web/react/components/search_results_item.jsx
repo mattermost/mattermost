@@ -60,7 +60,7 @@ export default class SearchResultsItem extends React.Component {
         return (
             <div className='search-item__container'>
                 <div className='date-separator'>
-                    <hr className='separator__hr' />
+                    <hr className='separator__hr'/>
                     <div className='separator__text'>
                         <FormattedDate
                             value={this.props.post.create_at}
@@ -84,7 +84,7 @@ export default class SearchResultsItem extends React.Component {
                         </div>
                         <div>
                             <ul className='post__header'>
-                                <li className='col__name'><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
+                                <li className='col__name'><strong><UserProfile userId={this.props.post.user_id}/></strong></li>
                                 <li className='col'>
                                     <time className='search-item-time'>
                                         <FormattedDate

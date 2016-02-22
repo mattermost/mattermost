@@ -28,7 +28,7 @@ export default class Login extends React.Component {
                         key='gitlab'
                         href={'/' + teamName + '/login/gitlab'}
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='login.gitlab'
@@ -46,7 +46,7 @@ export default class Login extends React.Component {
                         key='google'
                         href={'/' + teamName + '/login/google'}
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='login.google'
@@ -80,7 +80,7 @@ export default class Login extends React.Component {
             if (msg != null) {
                 extraBox = (
                     <div className='alert alert-success'>
-                        <i className='fa fa-check' />
+                        <i className='fa fa-check'/>
                         {msg}
                     </div>
                 );

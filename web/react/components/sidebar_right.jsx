@@ -87,6 +87,7 @@ export default class SidebarRight extends React.Component {
                 $('.sidebar__overlay').remove();
             });
             }, 500);*/
+        return null;
     }
     componentDidUpdate() {
         this.doStrangeThings();
@@ -115,7 +116,7 @@ export default class SidebarRight extends React.Component {
         var content = '';
 
         if (this.state.search_visible) {
-            content = <SearchResults isMentionSearch={this.state.is_mention_search} />;
+            content = <SearchResults isMentionSearch={this.state.is_mention_search}/>;
         } else if (this.state.post_right_visible) {
             content = (
                 <RhsThread

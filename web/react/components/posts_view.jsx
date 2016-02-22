@@ -252,7 +252,7 @@ export default class PostsView extends React.Component {
                         key={currentPostDay.toDateString()}
                         className='date-separator'
                     >
-                        <hr className='separator__hr' />
+                        <hr className='separator__hr'/>
                         <div className='separator__text'>
                             <FormattedDate
                                 value={currentPostDay}
@@ -455,7 +455,7 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsBottom}
                     >
-                        <FormattedMessage id='posts_view.loadMore' />
+                        <FormattedMessage id='posts_view.loadMore'/>
                     </a>
                 );
             } else {
@@ -528,11 +528,11 @@ PostsView.propTypes = {
 function FloatingTimestamp({isScrolling, post}) {
     // only show on mobile
     if ($(window).width() > 768) {
-        return <noscript />;
+        return <noscript/>;
     }
 
     if (!post) {
-        return <noscript />;
+        return <noscript/>;
     }
 
     const dateString = (
@@ -557,10 +557,15 @@ function FloatingTimestamp({isScrolling, post}) {
     );
 }
 
+FloatingTimestamp.propTypes = {
+    isScrolling: React.PropTypes.bool.isRequired,
+    post: React.PropTypes.object
+};
+
 function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
     // only show on mobile
     if ($(window).width() > 768) {
-        return <noscript />;
+        return <noscript/>;
     }
 
     let className = 'post-list__arrows';
@@ -573,7 +578,13 @@ function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
             className={className}
             onClick={onClick}
         >
-            <span dangerouslySetInnerHTML={{__html: Constants.SCROLL_BOTTOM_ICON}} />
+            <span dangerouslySetInnerHTML={{__html: Constants.SCROLL_BOTTOM_ICON}}/>
         </div>
     );
 }
+
+ScrollToBottomArrows.propTypes = {
+    isScrolling: React.PropTypes.bool.isRequired,
+    atBottom: React.PropTypes.bool.isRequired,
+    onClick: React.PropTypes.func.isRequired
+};

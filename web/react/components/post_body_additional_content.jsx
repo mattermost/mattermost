@@ -52,7 +52,7 @@ export default class PostBodyAdditionalContent extends React.Component {
     render() {
         let content = [];
 
-        if (Boolean(this.props.post.type)) {
+        if (this.props.post.type) {
             const component = this.getComponent();
 
             if (component) {

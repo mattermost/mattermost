@@ -203,7 +203,9 @@ class ViewImageModal extends React.Component {
                     window.open(serverData.public_link);
                 }
             },
-            () => {}
+            () => {
+                //Do Nothing on error
+            }
         );
     }
 
@@ -383,6 +385,11 @@ function LoadingImagePreview({progress, loading}) {
     );
 }
 
+LoadingImagePreview.propTypes = {
+    progress: React.PropTypes.number,
+    loading: React.PropTypes.string
+};
+
 function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
     let previewUrl;
     if (fileInfo.has_preview_image) {
@@ -404,5 +411,12 @@ function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
         </a>
     );
 }
+
+ImagePreview.propTypes = {
+    filename: React.PropTypes.string.isRequired,
+    fileUrl: React.PropTypes.string.isRequired,
+    fileInfo: React.PropTypes.object.isRequired,
+    maxHeight: React.PropTypes.number.isRequired
+};
 
 export default injectIntl(ViewImageModal);

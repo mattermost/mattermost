@@ -185,7 +185,7 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        let userProfile = <UserProfile userId={post.user_id} />;
+        let userProfile = <UserProfile userId={post.user_id}/>;
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {

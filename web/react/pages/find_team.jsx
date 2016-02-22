@@ -48,7 +48,7 @@ class Root extends React.Component {
                 locale={this.props.map.Locale}
                 messages={this.state.translations}
             >
-                <FindTeam />
+                <FindTeam/>
             </IntlProvider>
         );
     }
@@ -56,7 +56,7 @@ class Root extends React.Component {
 
 global.window.setup_find_team_page = function setup(props) {
     ReactDOM.render(
-        <Root map={props} />,
+        <Root map={props}/>,
         document.getElementById('find-team')
     );
 };

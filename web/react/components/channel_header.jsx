@@ -408,7 +408,7 @@ export default class ChannelHeader extends React.Component {
                                             aria-expanded='true'
                                         >
                                             <strong className='heading'>{channelTitle} </strong>
-                                            <span className='glyphicon glyphicon-chevron-down header-dropdown__icon' />
+                                            <span className='glyphicon glyphicon-chevron-down header-dropdown__icon'/>
                                         </a>
                                         <ul
                                             className='dropdown-menu'
@@ -439,7 +439,7 @@ export default class ChannelHeader extends React.Component {
                                     channelId={channel.id}
                                 />
                             </th>
-                            <th className='search-bar__container'><NavbarSearchBox /></th>
+                            <th className='search-bar__container'><NavbarSearchBox/></th>
                             <th>
                                 <div className='dropdown channel-header__links'>
                                     <OverlayTrigger

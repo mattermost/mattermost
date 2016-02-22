@@ -48,7 +48,7 @@ class Root extends React.Component {
                 locale={this.props.map.Locale}
                 messages={this.state.translations}
             >
-                <Docs site={this.props.map.Site} />
+                <Docs site={this.props.map.Site}/>
             </IntlProvider>
         );
     }
@@ -58,7 +58,7 @@ global.window.mm_user = global.window.mm_user || {};
 
 global.window.setup_documentation_page = function setup(props) {
     ReactDOM.render(
-        <Root map={props} />,
+        <Root map={props}/>,
         document.getElementById('docs')
     );
 };

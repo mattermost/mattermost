@@ -199,7 +199,7 @@ export default class ActivityLogModal extends React.Component {
                     className='activity-log__table'
                 >
                     <div className='activity-log__report'>
-                        <div className='report__platform'><i className={devicePicture} />{devicePlatform}</div>
+                        <div className='report__platform'><i className={devicePicture}/>{devicePlatform}</div>
                         <div className='report__info'>
                             <div>
                                 <FormattedMessage
@@ -231,7 +231,7 @@ export default class ActivityLogModal extends React.Component {
 
         let content;
         if (this.state.sessions.loading) {
-            content = <LoadingScreen />;
+            content = <LoadingScreen/>;
         } else {
             content = <form role='form'>{activityList}</form>;
         }

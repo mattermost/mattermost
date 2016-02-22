@@ -183,7 +183,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                             <FormattedMessage
                                 id='team_signup_send_invites.next'
                                 defaultMessage='Next'
-                            /><i className='glyphicon glyphicon-chevron-right' />
+                            /><i className='glyphicon glyphicon-chevron-right'/>
                         </button>
                     </div>
                 </form>

@@ -57,7 +57,7 @@ class UserSettingsIntegrationsTab extends React.Component {
         if (global.window.mm_config.EnableIncomingWebhooks === 'true') {
             if (this.props.activeSection === 'incoming-hooks') {
                 inputs.push(
-                    <ManageIncomingHooks key='incoming-hook-ui' />
+                    <ManageIncomingHooks key='incoming-hook-ui'/>
                 );
 
                 incomingHooksSection = (
@@ -88,7 +88,7 @@ class UserSettingsIntegrationsTab extends React.Component {
         if (global.window.mm_config.EnableOutgoingWebhooks === 'true') {
             if (this.props.activeSection === 'outgoing-hooks') {
                 inputs.push(
-                    <ManageOutgoingHooks key='outgoing-hook-ui' />
+                    <ManageOutgoingHooks key='outgoing-hook-ui'/>
                 );
 
                 outgoingHooksSection = (
@@ -119,7 +119,7 @@ class UserSettingsIntegrationsTab extends React.Component {
         if (global.window.mm_config.EnableCommands === 'true') {
             if (this.props.activeSection === 'command-hooks') {
                 inputs.push(
-                    <ManageCommandHooks key='command-hook-ui' />
+                    <ManageCommandHooks key='command-hook-ui'/>
                 );
 
                 commandHooksSection = (
