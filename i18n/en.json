@@ -3356,6 +3356,10 @@
     "translation": "Find Team"
   },
   {
+    "id": "web.header.back",
+    "translation": "Back"
+  },
+  {
     "id": "web.footer.about",
     "translation": "About"
   },
