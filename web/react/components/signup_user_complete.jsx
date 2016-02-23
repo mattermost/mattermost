@@ -351,12 +351,10 @@ class SignupUserComplete extends React.Component {
                 <div>
                     {signupMessage}
                     <div className='or__container'>
-                        <span>
-                            <FormattedMessage
-                                id='signup_user_completed.or'
-                                defaultMessage='or'
-                            />
-                        </span>
+                        <FormattedMessage
+                            id='signup_user_completed.or'
+                            defaultMessage='or'
+                        />
                     </div>
                 </div>
             );
