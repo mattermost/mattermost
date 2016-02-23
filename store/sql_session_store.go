@@ -22,7 +22,7 @@ func NewSqlSessionStore(sqlStore *SqlStore) SessionStore {
 		table.ColMap("Token").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("TeamId").SetMaxSize(26)
-		table.ColMap("DeviceId").SetMaxSize(128)
+		table.ColMap("DeviceId").SetMaxSize(512)
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(1000)
 	}
@@ -31,6 +31,11 @@ func NewSqlSessionStore(sqlStore *SqlStore) SessionStore {
 }
 
 func (me SqlSessionStore) UpgradeSchemaIfNeeded() {
+	// ADDED for 2.1 REMOVE for 2.5
+	deviceIdLength := me.GetMaxLengthOfColumnIfExists("Sessions", "DeviceId")
+	if len(deviceIdLength) > 0 && deviceIdLength != "512" {
+		me.AlterColumnTypeIfExists("Sessions", "DeviceId", "VARCHAR(512)", "VARCHAR(512)")
+	}
 }
 
 func (me SqlSessionStore) CreateIndexesIfNotExists() {
@@ -239,7 +244,7 @@ func (me SqlSessionStore) UpdateDeviceId(id, deviceId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id}); err != nil {
-			result.Err = model.NewLocAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, "")
+			result.Err = model.NewLocAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error())
 		} else {
 			result.Data = deviceId
 		}

@@ -2360,6 +2360,10 @@
     "translation": "Failed to create index %v"
   },
   {
+    "id": "store.sql.remove_index.critical",
+    "translation": "Failed to remove index %v"
+  },
+  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "Failed to create index because of missing driver"
   },
@@ -2402,6 +2406,14 @@
   {
     "id": "store.sql.rename_column.critical",
     "translation": "Failed to rename column %v"
+  },
+  {
+    "id": "store.sql.alter_column_type.critical",
+    "translation": "Failed to alter column type %v"
+  },
+  {
+    "id": "store.sql.maxlength_column.critical",
+    "translation": "Failed to get max length of column %v"
   },
   {
     "id": "store.sql.schema_out_of_date.warn",
