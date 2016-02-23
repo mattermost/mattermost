@@ -5,8 +5,12 @@ export default class PostImageEmbed extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleLoadComplete = this.handleLoadComplete.bind(this);
+        this.handleLoadError = this.handleLoadError.bind(this);
+
         this.state = {
-            loaded: false
+            loaded: false,
+            errored: false
         };
     }
 
@@ -17,7 +21,8 @@ export default class PostImageEmbed extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps.link !== this.props.link) {
             this.setState({
-                loaded: false
+                loaded: false,
+                errored: false
             });
         }
     }
@@ -30,15 +35,29 @@ export default class PostImageEmbed extends React.Component {
 
     loadImg(src) {
         const img = new Image();
-        img.onload = () => {
-            this.setState({
-                loaded: true
-            });
-        };
+        img.onload = this.handleLoadComplete;
+        img.onerror = this.handleLoadError;
         img.src = src;
     }
 
+    handleLoadComplete() {
+        this.setState({
+            loaded: true
+        });
+    }
+
+    handleLoadError() {
+        this.setState({
+            errored: true,
+            loaded: true
+        });
+    }
+
     render() {
+        if (this.state.errored) {
+            return null;
+        }
+
         if (!this.state.loaded) {
             return (
                 <img
