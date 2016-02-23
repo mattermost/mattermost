@@ -101,12 +101,10 @@ export default class Login extends React.Component {
                 <div>
                     {loginMessage}
                     <div className='or__container'>
-                        <span>
-                            <FormattedMessage
-                                id='login.or'
-                                defaultMessage='or'
-                            />
-                        </span>
+                        <FormattedMessage
+                            id='login.or'
+                            defaultMessage='or'
+                        />
                     </div>
                 </div>
             );
