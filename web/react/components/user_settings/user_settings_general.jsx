@@ -22,7 +22,7 @@ const holders = defineMessages({
     },
     usernameRestrictions: {
         id: 'user.settings.general.usernameRestrictions',
-        defaultMessage: "'Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'."
+        defaultMessage: "Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'."
     },
     validEmail: {
         id: 'user.settings.general.validEmail',

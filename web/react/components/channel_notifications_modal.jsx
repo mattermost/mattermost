@@ -153,7 +153,7 @@ export default class ChannelNotificationsModal extends React.Component {
                             />
                             <FormattedMessage
                                 id='channel_notifications.globalDefault'
-                                defaultMessage='Global default ({notifyLevel}'
+                                defaultMessage='Global default ({notifyLevel})'
                                 values={{
                                     notifyLevel: (globalNotifyLevelName)
                                 }}

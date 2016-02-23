@@ -1617,7 +1617,7 @@
   },
   {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "deteniendo todas las conexiones"
+    "translation": "deteniendo conexiones %v"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -3354,6 +3354,10 @@
   {
     "id": "web.find_team.title",
     "translation": "Encontrar Equipo"
+  },
+  {
+    "id": "web.header.back",
+    "translation": "Atrás"
   },
   {
     "id": "web.footer.about",
