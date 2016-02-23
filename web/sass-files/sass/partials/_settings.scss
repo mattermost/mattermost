@@ -354,6 +354,9 @@
                 border-radius: 0;
                 font-weight: 400;
                 position: relative;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         }
     }
