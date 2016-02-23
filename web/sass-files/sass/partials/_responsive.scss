@@ -118,6 +118,12 @@
 
         .comment-icon__container {
             visibility: visible;
+            display: none;
+
+                &.icon--show {
+                    display: inline-block;
+                }
+
         }
 
         .post-list__content & {
@@ -610,8 +616,21 @@
             top: 13px;
         }
         .team__header {
-            display: none;
             @include clearfix;
+            pointer-events: none;
+
+            .user__name {
+                display: none;
+            }
+
+            .team__name {
+                margin: 10px 0;
+            }
+
+            .navbar-right {
+                display: none;
+            }
+
         }
         .search__form {
             display: block;
