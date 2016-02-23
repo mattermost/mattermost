@@ -68,7 +68,7 @@ export default class DeletePostModal extends React.Component {
 
                         AppDispatcher.handleServerAction({
                             type: ActionTypes.RECEIVED_POST_SELECTED,
-                            results: null
+                            postId: null
                         });
                     } else if (selectedPost.id === this.state.post.id && this.state.root_id) {
                         if (selectedPost.root_id && selectedPost.root_id.length > 0 && selectedList.posts[selectedPost.root_id]) {
@@ -77,7 +77,7 @@ export default class DeletePostModal extends React.Component {
 
                             AppDispatcher.handleServerAction({
                                 type: ActionTypes.RECEIVED_POST_SELECTED,
-                                post_list: selectedList
+                                postId: selectedPost.root_id
                             });
 
                             AppDispatcher.handleServerAction({

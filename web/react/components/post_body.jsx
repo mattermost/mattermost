@@ -39,12 +39,10 @@ class PostBody extends React.Component {
         this.loadImg = this.loadImg.bind(this);
 
         const linkData = Utils.extractLinks(this.props.post.message);
-        const profiles = UserStore.getProfiles();
 
         this.state = {
             links: linkData.links,
-            post: this.props.post,
-            hasUserProfiles: profiles && Object.keys(profiles).length > 1
+            post: this.props.post
         };
     }
 

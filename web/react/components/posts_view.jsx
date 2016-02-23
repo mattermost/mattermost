@@ -28,7 +28,6 @@ export default class PostsView extends React.Component {
         this.handleResize = this.handleResize.bind(this);
         this.scrollToBottom = this.scrollToBottom.bind(this);
         this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
-        this.onUserChange = this.onUserChange.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
@@ -39,8 +38,7 @@ export default class PostsView extends React.Component {
         this.state = {
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             isScrolling: false,
-            topPostId: null,
-            hasProfiles: false
+            topPostId: null
         };
     }
     static get SCROLL_TYPE_FREE() {
@@ -147,6 +145,7 @@ export default class PostsView extends React.Component {
         const postCtls = [];
         let previousPostDay = new Date(0);
         const userId = UserStore.getCurrentId();
+        const profiles = this.props.profiles;
 
         let renderedLastViewed = false;
 
@@ -230,6 +229,13 @@ export default class PostsView extends React.Component {
 
             const shouldHighlight = this.props.postsToHighlight && this.props.postsToHighlight.hasOwnProperty(post.id);
 
+            let profile;
+            if (UserStore.getCurrentId() === post.user_id) {
+                profile = UserStore.getCurrentUser();
+            } else {
+                profile = profiles[post.user_id];
+            }
+
             const postCtl = (
                 <Post
                     key={keyPrefix + 'postKey'}
@@ -244,7 +250,8 @@ export default class PostsView extends React.Component {
                     shouldHighlight={shouldHighlight}
                     onClick={() => EventHelpers.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
                     displayNameType={this.state.displayNameType}
-                    hasProfiles={this.state.hasProfiles}
+                    hasProfiles={profiles && Object.keys(profiles).length > 1}
+                    user={profile}
                 />
             );
 
@@ -370,11 +377,9 @@ export default class PostsView extends React.Component {
         if (this.props.postList != null) {
             this.updateScrolling();
         }
-        UserStore.addChangeListener(this.onUserChange);
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
-        UserStore.removeChangeListener(this.onUserChange);
         window.removeEventListener('resize', this.handleResize);
     }
     componentDidUpdate() {
@@ -418,18 +423,11 @@ export default class PostsView extends React.Component {
         if (this.state.isScrolling !== nextState.isScrolling) {
             return true;
         }
-        if (this.state.hasProfiles !== nextState.hasProfiles) {
+        if (!Utils.areObjectsEqual(this.props.profiles, nextProps.profiles)) {
             return true;
         }
 
         return false;
-    }
-    onUserChange() {
-        if (!this.state.hasProfiles) {
-            const profiles = UserStore.getProfiles();
-
-            this.setState({hasProfiles: profiles && Object.keys(profiles).length > 1});
-        }
     }
     render() {
         let posts = [];
@@ -528,6 +526,7 @@ PostsView.defaultProps = {
 PostsView.propTypes = {
     isActive: React.PropTypes.bool,
     postList: React.PropTypes.object,
+    profiles: React.PropTypes.object,
     scrollPostId: React.PropTypes.string,
     scrollType: React.PropTypes.number,
     postViewScrolled: React.PropTypes.func.isRequired,

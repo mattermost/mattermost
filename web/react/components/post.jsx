@@ -3,15 +3,18 @@
 
 import PostHeader from './post_header.jsx';
 import PostBody from './post_body.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Constants from '../utils/constants.jsx';
+
 import UserStore from '../stores/user_store.jsx';
 import PostStore from '../stores/post_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
-import * as client from '../utils/client.jsx';
+
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
+
+import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
-var ActionTypes = Constants.ActionTypes;
-import * as utils from '../utils/utils.jsx';
+import * as Utils from '../utils/utils.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 
 export default class Post extends React.Component {
     constructor(props) {
@@ -26,13 +29,9 @@ export default class Post extends React.Component {
     handleCommentClick(e) {
         e.preventDefault();
 
-        var data = {};
-        data.order = [this.props.post.id];
-        data.posts = this.props.posts;
-
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_POST_SELECTED,
-            post_list: data
+            postId: Utils.getRootId(this.props.post)
         });
 
         AppDispatcher.handleServerAction({
@@ -48,14 +47,14 @@ export default class Post extends React.Component {
         e.preventDefault();
 
         var post = this.props.post;
-        client.createPost(post, post.channel_id,
+        Client.createPost(post, post.channel_id,
             (data) => {
                 AsyncClient.getPosts();
 
                 var channel = ChannelStore.get(post.channel_id);
                 var member = ChannelStore.getMember(post.channel_id);
                 member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = utils.getTimestamp();
+                member.last_viewed_at = Utils.getTimestamp();
                 ChannelStore.setChannelMember(member);
 
                 AppDispatcher.handleServerAction({
@@ -75,7 +74,7 @@ export default class Post extends React.Component {
         this.forceUpdate();
     }
     shouldComponentUpdate(nextProps) {
-        if (!utils.areObjectsEqual(nextProps.post, this.props.post)) {
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
 
@@ -129,6 +128,7 @@ export default class Post extends React.Component {
         const post = this.props.post;
         const parentPost = this.props.parentPost;
         const posts = this.props.posts;
+        const user = this.props.user || {};
 
         if (!post.props) {
             post.props = {};
@@ -156,15 +156,13 @@ export default class Post extends React.Component {
         }
 
         let currentUserCss = '';
-        if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook && !utils.isSystemMessage(post)) {
+        if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook && !Utils.isSystemMessage(post)) {
             currentUserCss = 'current--user';
         }
 
-        const userProfile = UserStore.getProfile(post.user_id);
-
-        let timestamp = UserStore.getCurrentUser().update_at;
-        if (userProfile) {
-            timestamp = userProfile.update_at;
+        let timestamp = user.update_at;
+        if (timestamp == null) {
+            timestamp = UserStore.getCurrentUser().update_at;
         }
 
         let sameUserClass = '';
@@ -178,18 +176,18 @@ export default class Post extends React.Component {
         }
 
         let systemMessageClass = '';
-        if (utils.isSystemMessage(post)) {
+        if (Utils.isSystemMessage(post)) {
             systemMessageClass = 'post--system';
         }
 
         let profilePic = null;
         if (!this.props.hideProfilePic) {
-            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex();
+            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex();
             if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
                 if (post.props.override_icon_url) {
                     src = post.props.override_icon_url;
                 }
-            } else if (utils.isSystemMessage(post)) {
+            } else if (Utils.isSystemMessage(post)) {
                 src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;
             }
 
@@ -219,6 +217,7 @@ export default class Post extends React.Component {
                                 handleCommentClick={this.handleCommentClick}
                                 isLastComment={this.props.isLastComment}
                                 sameUser={this.props.sameUser}
+                                user={this.props.user}
                             />
                             <PostBody
                                 post={post}
@@ -241,6 +240,7 @@ Post.propTypes = {
     post: React.PropTypes.object.isRequired,
     posts: React.PropTypes.object,
     parentPost: React.PropTypes.object,
+    user: React.PropTypes.object,
     sameUser: React.PropTypes.bool,
     sameRoot: React.PropTypes.bool,
     hideProfilePic: React.PropTypes.bool,

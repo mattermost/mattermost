@@ -27,7 +27,7 @@ export default class RhsHeaderPost extends React.Component {
 
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_POST_SELECTED,
-            results: null
+            postId: null
         });
     }
     handleBack(e) {
@@ -42,7 +42,7 @@ export default class RhsHeaderPost extends React.Component {
 
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_POST_SELECTED,
-            results: null
+            postId: null
         });
     }
     render() {

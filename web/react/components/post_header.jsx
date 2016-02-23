@@ -13,16 +13,17 @@ export default class PostHeader extends React.Component {
         this.state = {};
     }
     render() {
-        var post = this.props.post;
+        const post = this.props.post;
+        const user = this.props.user;
 
-        let userProfile = <UserProfile userId={post.user_id}/>;
+        let userProfile = <UserProfile user={user}/>;
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
                     <UserProfile
-                        userId={post.user_id}
+                        user={user}
                         overwriteName={post.props.override_username}
                         disablePopover={true}
                     />
@@ -33,7 +34,7 @@ export default class PostHeader extends React.Component {
         } else if (Utils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
-                    userId={''}
+                    user={{}}
                     overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
@@ -68,6 +69,7 @@ PostHeader.defaultProps = {
 };
 PostHeader.propTypes = {
     post: React.PropTypes.object,
+    user: React.PropTypes.object,
     commentCount: React.PropTypes.number,
     isLastComment: React.PropTypes.bool,
     handleCommentClick: React.PropTypes.func,

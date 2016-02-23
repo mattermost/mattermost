@@ -20,72 +20,7 @@ const SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 class PostStoreClass extends EventEmitter {
     constructor() {
         super();
-
-        this.emitChange = this.emitChange.bind(this);
-        this.addChangeListener = this.addChangeListener.bind(this);
-        this.removeChangeListener = this.removeChangeListener.bind(this);
-
-        this.emitEditPost = this.emitEditPost.bind(this);
-        this.addEditPostListener = this.addEditPostListener.bind(this);
-        this.removeEditPostListener = this.removeEditPostListner.bind(this);
-
-        this.emitPostsViewJump = this.emitPostsViewJump.bind(this);
-        this.addPostsViewJumpListener = this.addPostsViewJumpListener.bind(this);
-        this.removePostsViewJumpListener = this.removePostsViewJumpListener.bind(this);
-
-        this.emitPostFocused = this.emitPostFocused.bind(this);
-        this.addPostFocusedListener = this.addPostFocusedListener.bind(this);
-        this.removePostFocusedListener = this.removePostFocusedListener.bind(this);
-
-        this.makePostsInfo = this.makePostsInfo.bind(this);
-
-        this.getPost = this.getPost.bind(this);
-        this.getAllPosts = this.getAllPosts.bind(this);
-        this.getEarliestPost = this.getEarliestPost.bind(this);
-        this.getLatestPost = this.getLatestPost.bind(this);
-        this.getVisiblePosts = this.getVisiblePosts.bind(this);
-        this.getVisibilityAtTop = this.getVisibilityAtTop.bind(this);
-        this.getVisibilityAtBottom = this.getVisibilityAtBottom.bind(this);
-        this.requestVisibilityIncrease = this.requestVisibilityIncrease.bind(this);
-        this.getFocusedPostId = this.getFocusedPostId.bind(this);
-
-        this.storePosts = this.storePosts.bind(this);
-        this.storePost = this.storePost.bind(this);
-        this.storeFocusedPost = this.storeFocusedPost.bind(this);
-        this.checkBounds = this.checkBounds.bind(this);
-
-        this.clearFocusedPost = this.clearFocusedPost.bind(this);
-        this.clearChannelVisibility = this.clearChannelVisibility.bind(this);
-
-        this.deletePost = this.deletePost.bind(this);
-        this.removePost = this.removePost.bind(this);
-
-        this.getPendingPosts = this.getPendingPosts.bind(this);
-        this.storePendingPost = this.storePendingPost.bind(this);
-        this.removePendingPost = this.removePendingPost.bind(this);
-        this.clearPendingPosts = this.clearPendingPosts.bind(this);
-        this.updatePendingPost = this.updatePendingPost.bind(this);
-
-        // These functions are bad and work should be done to remove this system when the RHS dies
-        this.storeSelectedPost = this.storeSelectedPost.bind(this);
-        this.getSelectedPost = this.getSelectedPost.bind(this);
-        this.emitSelectedPostChange = this.emitSelectedPostChange.bind(this);
-        this.addSelectedPostChangeListener = this.addSelectedPostChangeListener.bind(this);
-        this.removeSelectedPostChangeListener = this.removeSelectedPostChangeListener.bind(this);
-        this.selectedPost = null;
-
-        this.getEmptyDraft = this.getEmptyDraft.bind(this);
-        this.storeCurrentDraft = this.storeCurrentDraft.bind(this);
-        this.getCurrentDraft = this.getCurrentDraft.bind(this);
-        this.storeDraft = this.storeDraft.bind(this);
-        this.getDraft = this.getDraft.bind(this);
-        this.storeCommentDraft = this.storeCommentDraft.bind(this);
-        this.getCommentDraft = this.getCommentDraft.bind(this);
-        this.clearDraftUploads = this.clearDraftUploads.bind(this);
-        this.clearCommentDraftUploads = this.clearCommentDraftUploads.bind(this);
-        this.getCurrentUsersLatestPost = this.getCurrentUsersLatestPost.bind(this);
-        this.getCommentCount = this.getCommentCount.bind(this);
-
+        this.selectedPostId = null;
         this.postsInfo = {};
         this.currentFocusedPostId = null;
     }
@@ -421,12 +356,59 @@ class PostStoreClass extends EventEmitter {
         this.emitChange();
     }
 
-    storeSelectedPost(postList) {
-        this.selectedPost = postList;
+    storeSelectedPostId(postId) {
+        this.selectedPostId = postId;
+    }
+
+    getSelectedPostId() {
+        return this.selectedPostId;
     }
 
     getSelectedPost() {
-        return this.selectedPost;
+        if (this.selectedPostId == null) {
+            return null;
+        }
+
+        for (const k in this.postsInfo) {
+            if (this.postsInfo[k].postList.posts.hasOwnProperty(this.selectedPostId)) {
+                return this.postsInfo[k].postList.posts[this.selectedPostId];
+            }
+        }
+
+        return null;
+    }
+
+    getSelectedPostThread() {
+        if (this.selectedPostId == null) {
+            return null;
+        }
+
+        let posts;
+        let pendingPosts;
+        for (const k in this.postsInfo) {
+            if (this.postsInfo[k].postList.posts.hasOwnProperty(this.selectedPostId)) {
+                posts = this.postsInfo[k].postList.posts;
+                if (this.postsInfo[k].pendingPosts != null) {
+                    pendingPosts = this.postsInfo[k].pendingPosts.posts;
+                }
+            }
+        }
+
+        const threadPosts = {};
+        const rootId = this.selectedPostId;
+        for (const k in posts) {
+            if (posts[k].root_id === rootId) {
+                threadPosts[k] = JSON.parse(JSON.stringify(posts[k]));
+            }
+        }
+
+        for (const k in pendingPosts) {
+            if (pendingPosts[k].root_id === rootId) {
+                threadPosts[k] = JSON.parse(JSON.stringify(pendingPosts[k]));
+            }
+        }
+
+        return threadPosts;
     }
 
     emitSelectedPostChange(fromSearch) {
@@ -565,7 +547,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         PostStore.emitChange();
         break;
     case ActionTypes.RECEIVED_POST_SELECTED:
-        PostStore.storeSelectedPost(action.post_list);
+        PostStore.storeSelectedPostId(action.postId);
         PostStore.emitSelectedPostChange(action.from_search);
         break;
     default:
