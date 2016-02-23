@@ -16,30 +16,10 @@ export default class PostBodyAdditionalContent extends React.Component {
 
         this.getSlackAttachment = this.getSlackAttachment.bind(this);
         this.getOEmbedProvider = this.getOEmbedProvider.bind(this);
-
-        this.state = {
-            link: Utils.extractLinks(props.post.message)[0]
-        };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props.post.message !== nextProps.post.message) {
-            this.setState({
-                link: Utils.extractLinks(nextProps.post.message)[0]
-            });
-        }
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (nextState.link !== this.state.link) {
-            return true;
-        }
-
-        if (nextProps.post.type !== this.props.post.type) {
-            return true;
-        }
-
-        if (!Utils.areObjectsEqual(nextProps.post.props, this.props.post.props)) {
+    shouldComponentUpdate(nextProps) {
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
 
@@ -76,7 +56,7 @@ export default class PostBodyAdditionalContent extends React.Component {
             return this.getSlackAttachment();
         }
 
-        const link = this.state.link;
+        const link = Utils.extractLinks(this.props.post.message)[0];
         if (!link) {
             return null;
         }
