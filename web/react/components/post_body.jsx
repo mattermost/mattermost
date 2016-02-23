@@ -41,7 +41,7 @@ class PostBody extends React.Component {
         const linkData = Utils.extractLinks(this.props.post.message);
 
         this.state = {
-            links: linkData.links,
+            links: linkData,
             post: this.props.post
         };
     }
@@ -86,10 +86,10 @@ class PostBody extends React.Component {
     componentWillReceiveProps(nextProps) {
         const linkData = Utils.extractLinks(nextProps.post.message);
         if (this.props.post.filenames.length === 0 && this.state.links && this.state.links.length > 0) {
-            this.embed = this.createEmbed(linkData.links[0]);
+            this.embed = this.createEmbed(linkData[0]);
         }
         this.setState({
-            links: linkData.links
+            links: linkData
         });
     }
 

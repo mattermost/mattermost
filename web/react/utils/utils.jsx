@@ -313,41 +313,17 @@ export function getTimestamp() {
 // extracts links not styled by Markdown
 export function extractLinks(text) {
     const links = [];
-    let replaceText = text;
+    let inText = text;
 
-    // pull out the Markdown code blocks
-    const codeBlocks = [];
-    const splitText = replaceText.split('`'); // also handles ```
-    for (let i = 1; i < splitText.length; i += 2) {
-        if (splitText[i].trim() !== '') {
-            codeBlocks.push(splitText[i]);
-        }
-    }
+    // strip out code blocks
+    inText = inText.replace(/`[^`]*`/g, '');
+
+    // strip out inline markdown images
+    inText = inText.replace(/!\[[^\]]*\]\([^\)]*\)/g, '');
 
     function replaceFn(autolinker, match) {
         let link = '';
         const matchText = match.getMatchedText();
-        const tempText = replaceText;
-
-        const start = replaceText.indexOf(matchText);
-        const end = start + matchText.length;
-
-        replaceText = replaceText.substring(0, start) + replaceText.substring(end);
-
-        // if it's a Markdown link, just skip it
-        if (start > 1) {
-            if (tempText.charAt(start - 2) === ']' && tempText.charAt(start - 1) === '(' && tempText.charAt(end) === ')') {
-                return;
-            }
-        }
-
-        // if it's in a Markdown code block, skip it
-        for (const i in codeBlocks) {
-            if (codeBlocks[i].indexOf(matchText) === 0) {
-                codeBlocks[i] = codeBlocks[i].replace(matchText, '');
-                return;
-            }
-        }
 
         if (matchText.trim().indexOf('http') === 0) {
             link = matchText;
@@ -358,16 +334,19 @@ export function extractLinks(text) {
         links.push(link);
     }
 
-    Autolinker.link(text, {
-        replaceFn,
-        urls: {schemeMatches: true, wwwMatches: true, tldMatches: false},
-        emails: false,
-        twitter: false,
-        phone: false,
-        hashtag: false
-    });
+    Autolinker.link(
+        inText,
+        {
+            replaceFn,
+            urls: {schemeMatches: true, wwwMatches: true, tldMatches: false},
+            emails: false,
+            twitter: false,
+            phone: false,
+            hashtag: false
+        }
+    );
 
-    return {links, text};
+    return links;
 }
 
 export function escapeRegExp(string) {
