@@ -106,7 +106,7 @@ func TestAlertDbCmds(t *testing.T) {
 	maxLen := sqlStore.GetMaxLengthOfColumnIfExists("Systems", "Test")
 
 	if maxLen != "50" {
-		t.Fatal("Failed to get max length")
+		t.Fatal("Failed to get max length found " + maxLen)
 	}
 
 	if !sqlStore.AlterColumnTypeIfExists("Systems", "Test", "VARCHAR(25)", "VARCHAR(25)") {

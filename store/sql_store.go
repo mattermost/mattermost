@@ -389,7 +389,7 @@ func (ss SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName str
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		result, err = ss.GetMaster().SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + tableName + "' AND column_name = '" + columnName + "'")
+		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
 	}
 
 	if err != nil {
@@ -410,7 +410,7 @@ func (ss SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " TYPE " + mySqlColType)
+		_, err = ss.GetMaster().Exec("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
 	}
 
 	if err != nil {
