@@ -19,39 +19,25 @@ export default class RhsThread extends React.Component {
 
         this.mounted = false;
 
-        this.onChange = this.onChange.bind(this);
-        this.onChangeAll = this.onChangeAll.bind(this);
+        this.onPostChange = this.onPostChange.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
-        const state = this.getStateFromStores();
+        const state = {};
         state.windowWidth = Utils.windowWidth();
         state.windowHeight = Utils.windowHeight();
+        state.selected = PostStore.getSelectedPost();
+        state.posts = PostStore.getSelectedPostThread();
+        state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
+
         this.state = state;
     }
-    getStateFromStores() {
-        var postList = PostStore.getSelectedPost();
-        if (!postList || postList.order.length < 1 || !postList.posts[postList.order[0]]) {
-            return {postList: {}};
-        }
-
-        var channelId = postList.posts[postList.order[0]].channel_id;
-        var pendingPostsList = PostStore.getPendingPosts(channelId);
-
-        if (pendingPostsList) {
-            for (var pid in pendingPostsList.posts) {
-                if (pendingPostsList.posts.hasOwnProperty(pid)) {
-                    postList.posts[pid] = pendingPostsList.posts[pid];
-                }
-            }
-        }
-
-        return {postList: postList};
-    }
     componentDidMount() {
-        PostStore.addSelectedPostChangeListener(this.onChange);
-        PostStore.addChangeListener(this.onChangeAll);
+        PostStore.addSelectedPostChangeListener(this.onPostChange);
+        PostStore.addChangeListener(this.onPostChange);
         PreferenceStore.addChangeListener(this.forceUpdateInfo);
+        UserStore.addChangeListener(this.onUserChange);
 
         this.resize();
         window.addEventListener('resize', this.handleResize);
@@ -65,13 +51,29 @@ export default class RhsThread extends React.Component {
         this.resize();
     }
     componentWillUnmount() {
-        PostStore.removeSelectedPostChangeListener(this.onChange);
-        PostStore.removeChangeListener(this.onChangeAll);
+        PostStore.removeSelectedPostChangeListener(this.onPostChange);
+        PostStore.removeChangeListener(this.onPostChange);
         PreferenceStore.removeChangeListener(this.forceUpdateInfo);
+        UserStore.removeChangeListener(this.onUserChange);
 
         window.removeEventListener('resize', this.handleResize);
 
         this.mounted = false;
+    }
+    shouldComponentUpdate(nextProps, nextState) {
+        if (!Utils.areObjectsEqual(nextState.posts, this.state.posts)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextState.selected, this.state.selected)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextState.profiles, this.state.profiles)) {
+            return true;
+        }
+
+        return false;
     }
     forceUpdateInfo() {
         if (this.state.postList) {
@@ -88,49 +90,14 @@ export default class RhsThread extends React.Component {
             windowHeight: Utils.windowHeight()
         });
     }
-    onChange() {
-        var newState = this.getStateFromStores();
-        if (this.mounted && !Utils.areObjectsEqual(newState, this.state)) {
-            this.setState(newState);
-        }
+    onPostChange() {
+        const selected = PostStore.getSelectedPost();
+        const posts = PostStore.getSelectedPostThread();
+        this.setState({posts, selected});
     }
-    onChangeAll() {
-        // if something was changed in the channel like adding a
-        // comment or post then lets refresh the sidebar list
-        var currentSelected = PostStore.getSelectedPost();
-        if (!currentSelected || currentSelected.order.length === 0 || !currentSelected.posts[currentSelected.order[0]]) {
-            return;
-        }
-
-        var currentPosts = PostStore.getVisiblePosts(currentSelected.posts[currentSelected.order[0]].channel_id);
-
-        if (!currentPosts || currentPosts.order.length === 0) {
-            return;
-        }
-
-        if (currentPosts.posts[currentPosts.order[0]].channel_id === currentSelected.posts[currentSelected.order[0]].channel_id) {
-            for (var key in currentSelected.posts) {
-                if (currentSelected.posts.hasOwnProperty(key)) {
-                    var post = currentSelected.posts[key];
-                    if (post.pending_post_id) {
-                        Reflect.deleteProperty(currentSelected.posts, key);
-                    }
-                }
-            }
-
-            for (var postId in currentPosts.posts) {
-                if (currentPosts.posts.hasOwnProperty(postId)) {
-                    currentSelected.posts[postId] = currentPosts.posts[postId];
-                }
-            }
-
-            PostStore.storeSelectedPost(currentSelected);
-        }
-
-        var newState = this.getStateFromStores();
-        if (this.mounted && !Utils.areObjectsEqual(newState, this.state)) {
-            this.setState(newState);
-        }
+    onUserChange() {
+        const profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
+        this.setState({profiles});
     }
     resize() {
         $('.post-right__scroll').scrollTop(100000);
@@ -140,29 +107,21 @@ export default class RhsThread extends React.Component {
         }
     }
     render() {
-        var postList = this.state.postList;
+        const posts = this.state.posts;
+        const selected = this.state.selected;
 
-        if (postList == null || !postList.order) {
+        if (posts == null || selected == null) {
             return (
                 <div></div>
             );
         }
 
-        var selectedPost = postList.posts[postList.order[0]];
-        var rootPost = null;
-
-        if (selectedPost.root_id === '') {
-            rootPost = selectedPost;
-        } else {
-            rootPost = postList.posts[selectedPost.root_id];
-        }
-
         var postsArray = [];
 
-        for (var postId in postList.posts) {
-            if (postList.posts.hasOwnProperty(postId)) {
-                var cpost = postList.posts[postId];
-                if (cpost.root_id === rootPost.id) {
+        for (const id in posts) {
+            if (posts.hasOwnProperty(id)) {
+                const cpost = posts[id];
+                if (cpost.root_id === selected.id) {
                     postsArray.push(cpost);
                 }
             }
@@ -199,6 +158,13 @@ export default class RhsThread extends React.Component {
             searchForm = <SearchBox/>;
         }
 
+        let profile;
+        if (UserStore.getCurrentId() === selected.user_id) {
+            profile = UserStore.getCurrentUser();
+        } else {
+            profile = this.state.profiles[selected.user_id];
+        }
+
         return (
             <div className='post-right__container'>
                 <FileUploadOverlay overlayType='right'/>
@@ -210,26 +176,33 @@ export default class RhsThread extends React.Component {
                     />
                     <div className='post-right__scroll'>
                         <RootPost
-                            ref={rootPost.id}
-                            post={rootPost}
+                            ref={selected.id}
+                            post={selected}
                             commentCount={postsArray.length}
+                            user={profile}
                         />
                         <div className='post-right-comments-container'>
                         {postsArray.map(function mapPosts(comPost) {
+                            let p;
+                            if (UserStore.getCurrentId() === selected.user_id) {
+                                p = UserStore.getCurrentUser();
+                            } else {
+                                p = this.state.profiles[selected.user_id];
+                            }
                             return (
                                 <Comment
                                     ref={comPost.id}
                                     key={comPost.id + 'commentKey'}
                                     post={comPost}
-                                    selected={(comPost.id === selectedPost.id)}
+                                    user={p}
                                 />
                             );
                         })}
                         </div>
                         <div className='post-create__container'>
                             <CreateComment
-                                channelId={rootPost.channel_id}
-                                rootId={rootPost.id}
+                                channelId={selected.channel_id}
+                                rootId={selected.id}
                             />
                         </div>
                     </div>

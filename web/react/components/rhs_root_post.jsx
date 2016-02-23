@@ -50,10 +50,10 @@ export default class RhsRootPost extends React.Component {
         this.parseEmojis();
     }
     render() {
-        var post = this.props.post;
-        var currentUser = UserStore.getCurrentUser();
-        var isOwner = currentUser.id === post.user_id;
-        var isAdmin = Utils.isAdmin(currentUser.roles);
+        const post = this.props.post;
+        const user = this.props.user;
+        var isOwner = user.id === post.user_id;
+        var isAdmin = Utils.isAdmin(user.roles);
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
 
@@ -62,9 +62,9 @@ export default class RhsRootPost extends React.Component {
             type = 'Comment';
         }
 
-        var currentUserCss = '';
+        var userCss = '';
         if (UserStore.getCurrentId() === post.user_id) {
-            currentUserCss = 'current--user';
+            userCss = 'current--user';
         }
 
         var systemMessageClass = '';
@@ -185,14 +185,14 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        let userProfile = <UserProfile userId={post.user_id}/>;
+        let userProfile = <UserProfile user={user}/>;
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
                     <UserProfile
-                        userId={post.user_id}
+                        user={user}
                         overwriteName={post.props.override_username}
                         disablePopover={true}
                     />
@@ -203,7 +203,7 @@ export default class RhsRootPost extends React.Component {
         } else if (Utils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
-                    userId={''}
+                    user={{}}
                     overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
@@ -230,7 +230,7 @@ export default class RhsRootPost extends React.Component {
         );
 
         return (
-            <div className={'post post--root ' + currentUserCss + ' ' + systemMessageClass}>
+            <div className={'post post--root ' + userCss + ' ' + systemMessageClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
                 <div className='post__content'>
                     <div className='post__img'>
@@ -278,10 +278,10 @@ export default class RhsRootPost extends React.Component {
 }
 
 RhsRootPost.defaultProps = {
-    post: null,
     commentCount: 0
 };
 RhsRootPost.propTypes = {
-    post: React.PropTypes.object,
+    post: React.PropTypes.object.isRequired,
+    user: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number
 };

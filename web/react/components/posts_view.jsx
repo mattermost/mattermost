@@ -145,6 +145,7 @@ export default class PostsView extends React.Component {
         const postCtls = [];
         let previousPostDay = new Date(0);
         const userId = UserStore.getCurrentId();
+        const profiles = this.props.profiles;
 
         let renderedLastViewed = false;
 
@@ -228,6 +229,13 @@ export default class PostsView extends React.Component {
 
             const shouldHighlight = this.props.postsToHighlight && this.props.postsToHighlight.hasOwnProperty(post.id);
 
+            let profile;
+            if (UserStore.getCurrentId() === post.user_id) {
+                profile = UserStore.getCurrentUser();
+            } else {
+                profile = profiles[post.user_id];
+            }
+
             const postCtl = (
                 <Post
                     key={keyPrefix + 'postKey'}
@@ -242,6 +250,8 @@ export default class PostsView extends React.Component {
                     shouldHighlight={shouldHighlight}
                     onClick={() => EventHelpers.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
                     displayNameType={this.state.displayNameType}
+                    hasProfiles={profiles && Object.keys(profiles).length > 1}
+                    user={profile}
                 />
             );
 
@@ -413,6 +423,9 @@ export default class PostsView extends React.Component {
         if (this.state.isScrolling !== nextState.isScrolling) {
             return true;
         }
+        if (!Utils.areObjectsEqual(this.props.profiles, nextProps.profiles)) {
+            return true;
+        }
 
         return false;
     }
@@ -513,6 +526,7 @@ PostsView.defaultProps = {
 PostsView.propTypes = {
     isActive: React.PropTypes.bool,
     postList: React.PropTypes.object,
+    profiles: React.PropTypes.object,
     scrollPostId: React.PropTypes.string,
     scrollType: React.PropTypes.number,
     postViewScrolled: React.PropTypes.func.isRequired,

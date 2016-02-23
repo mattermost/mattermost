@@ -32,7 +32,7 @@ export default class SearchResultsHeader extends React.Component {
 
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_POST_SELECTED,
-            results: null
+            postId: null
         });
     }
 

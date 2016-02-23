@@ -6,6 +6,7 @@ import LoadingScreen from './loading_screen.jsx';
 
 import ChannelStore from '../stores/channel_store.jsx';
 import PostStore from '../stores/post_store.jsx';
+import UserStore from '../stores/user_store.jsx';
 
 import * as Utils from '../utils/utils.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
@@ -24,11 +25,13 @@ export default class PostsViewContainer extends React.Component {
         this.handlePostsViewScroll = this.handlePostsViewScroll.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.handlePostsViewJumpRequest = this.handlePostsViewJumpRequest.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
 
         const currentChannelId = ChannelStore.getCurrentId();
         const state = {
             scrollType: PostsView.SCROLL_TYPE_BOTTOM,
-            scrollPost: null
+            scrollPost: null,
+            profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))
         };
         if (currentChannelId) {
             Object.assign(state, {
@@ -54,12 +57,14 @@ export default class PostsViewContainer extends React.Component {
         ChannelStore.addLeaveListener(this.onChannelLeave);
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.handlePostsViewJumpRequest);
+        UserStore.addChangeListener(this.onUserChange);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChannelChange);
         ChannelStore.removeLeaveListener(this.onChannelLeave);
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.handlePostsViewJumpRequest);
+        UserStore.removeChangeListener(this.onUserChange);
     }
     handlePostsViewJumpRequest(type, post) {
         switch (type) {
@@ -135,6 +140,9 @@ export default class PostsViewContainer extends React.Component {
         atTop[this.state.currentChannelIndex] = PostStore.getVisibilityAtTop(currentChannelId);
         this.setState({postLists, atTop});
     }
+    onUserChange() {
+        this.setState({profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
+    }
     getChannelPosts(id) {
         return PostStore.getVisiblePosts(id);
     }
@@ -180,6 +188,7 @@ export default class PostsViewContainer extends React.Component {
                     showMoreMessagesBottom={false}
                     introText={channel ? createChannelIntroMessage(channel) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
+                    profiles={this.state.profiles}
                 />
             );
             if (!postLists[i] && isActive) {

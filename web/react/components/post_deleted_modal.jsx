@@ -38,7 +38,7 @@ export default class PostDeletedModal extends React.Component {
 
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_POST_SELECTED,
-            results: null
+            postId: null
         });
 
         this.props.onHide();

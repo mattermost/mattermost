@@ -55,7 +55,6 @@ export default class ChannelHeader extends React.Component {
         return {
             channel: ChannelStore.getCurrent(),
             memberChannel: ChannelStore.getCurrentMember(),
-            memberTeam: UserStore.getCurrentUser(),
             users: extraInfo.members,
             userCount: extraInfo.member_count,
             searchVisible: SearchStore.getSearchResults() !== null
@@ -65,14 +64,12 @@ export default class ChannelHeader extends React.Component {
         ChannelStore.addChangeListener(this.onListenerChange);
         ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
         SearchStore.addSearchChangeListener(this.onListenerChange);
-        UserStore.addChangeListener(this.onListenerChange);
         PreferenceStore.addChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
         ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
         SearchStore.removeSearchChangeListener(this.onListenerChange);
-        UserStore.removeChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
     }
     onListenerChange() {
@@ -101,11 +98,11 @@ export default class ChannelHeader extends React.Component {
     searchMentions(e) {
         e.preventDefault();
 
-        const user = UserStore.getCurrentUser();
+        const user = this.props.user;
 
         let terms = '';
         if (user.notify_props && user.notify_props.mention_keys) {
-            const termKeys = UserStore.getCurrentMentionKeys();
+            const termKeys = UserStore.getMentionKeys(user.id);
 
             if (user.notify_props.all === 'true' && termKeys.indexOf('@all') !== -1) {
                 termKeys.splice(termKeys.indexOf('@all'), 1);
@@ -166,8 +163,8 @@ export default class ChannelHeader extends React.Component {
             </Popover>
         );
         let channelTitle = channel.display_name;
-        const currentId = UserStore.getCurrentId();
-        const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || Utils.isAdmin(this.state.memberTeam.roles);
+        const currentId = this.props.user.id;
+        const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || Utils.isAdmin(this.props.user.roles);
         const isDirect = (this.state.channel.type === 'D');
 
         if (isDirect) {
@@ -491,3 +488,7 @@ export default class ChannelHeader extends React.Component {
         );
     }
 }
+
+ChannelHeader.propTypes = {
+    user: React.PropTypes.object.isRequired
+};
