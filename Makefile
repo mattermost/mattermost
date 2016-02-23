@@ -308,7 +308,12 @@ stop-client:
 	done
 
 	@for PID in $$(ps -ef | grep [n]pm | awk '{ print $$2 }'); do \
-		echo stopping watchify $$PID; \
+		echo stopping client $$PID; \
+		kill $$PID; \
+	done
+
+	@for PID in $$(ps -ef | grep [w]atchify | awk '{ print $$2 }'); do \
+		echo stopping client $$PID; \
 		kill $$PID; \
 	done
 
