@@ -20,6 +20,25 @@ export default class SettingItemMax extends React.Component {
             extraInfo = (<div className='setting-list__hint'>{this.props.extraInfo}</div>);
         }
 
+        var submitButton = '';
+        var submitTextId = this.props.submitTextId;
+        var submitTextDefault = this.props.submitTextDefault;
+        if (submitTextId && submitTextDefault) {
+            submitButton = (
+                <FormattedMessage
+                    id={submitTextId}
+                    defaultMessage={submitTextDefault}
+                />
+            );
+        } else {
+            submitButton = (
+                <FormattedMessage
+                    id='setting_item_max.save'
+                    defaultMessage='Save'
+                />
+            );
+        }
+
         var submit = '';
         if (this.props.submit) {
             submit = (
@@ -28,10 +47,7 @@ export default class SettingItemMax extends React.Component {
                     href='#'
                     onClick={this.props.submit}
                 >
-                    <FormattedMessage
-                        id='setting_item_max.save'
-                        defaultMessage='Save'
-                    />
+                {submitButton}
                 </a>
             );
         }
@@ -90,6 +106,8 @@ SettingItemMax.propTypes = {
     extraInfo: React.PropTypes.element,
     updateSection: React.PropTypes.func,
     submit: React.PropTypes.func,
+    submitTextId: React.PropTypes.node,
+    submitTextDefault: React.PropTypes.node,
     title: React.PropTypes.node,
     width: React.PropTypes.string
 };
