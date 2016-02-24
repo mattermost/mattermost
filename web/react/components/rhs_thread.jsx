@@ -188,7 +188,7 @@ export default class RhsThread extends React.Component {
                             if (UserStore.getCurrentId() === selected.user_id) {
                                 p = UserStore.getCurrentUser();
                             } else {
-                                p = profiles[selected.user_id];
+                                p = profiles[comPost.user_id];
                             }
                             return (
                                 <Comment
