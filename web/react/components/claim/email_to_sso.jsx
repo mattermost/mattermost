@@ -84,7 +84,7 @@ class EmailToSSO extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.email_to_sso.ssoType'
-                            defaultMessage='Upon claiming your account, you will only be able to login with {type} SSO. You must already have a valid {type} account'
+                            defaultMessage='Upon claiming your account, you will only be able to login with {type} SSO'
                             values={{
                                 type: Utils.toTitleCase(this.props.type)
                             }}
