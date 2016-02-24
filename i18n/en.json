@@ -2316,6 +2316,10 @@
     "translation": "could not decode"
   },
   {
+    "id": "store.sql.alter_column_type.critical",
+    "translation": "Failed to alter column type %v"
+  },
+  {
     "id": "store.sql.check_index.critical",
     "translation": "Failed to check index %v"
   },
@@ -2360,10 +2364,6 @@
     "translation": "Failed to create index %v"
   },
   {
-    "id": "store.sql.remove_index.critical",
-    "translation": "Failed to remove index %v"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "Failed to create index because of missing driver"
   },
@@ -2388,6 +2388,10 @@
     "translation": "Incorrect MAC for the given ciphertext"
   },
   {
+    "id": "store.sql.maxlength_column.critical",
+    "translation": "Failed to get max length of column %v"
+  },
+  {
     "id": "store.sql.open_conn.critical",
     "translation": "Failed to open sql connection to err:%v"
   },
@@ -2404,16 +2408,12 @@
     "translation": "Pinging sql %v database"
   },
   {
+    "id": "store.sql.remove_index.critical",
+    "translation": "Failed to remove index %v"
+  },
+  {
     "id": "store.sql.rename_column.critical",
     "translation": "Failed to rename column %v"
-  },
-  {
-    "id": "store.sql.alter_column_type.critical",
-    "translation": "Failed to alter column type %v"
-  },
-  {
-    "id": "store.sql.maxlength_column.critical",
-    "translation": "Failed to get max length of column %v"
   },
   {
     "id": "store.sql.schema_out_of_date.warn",
@@ -3368,10 +3368,6 @@
     "translation": "Find Team"
   },
   {
-    "id": "web.header.back",
-    "translation": "Back"
-  },
-  {
     "id": "web.footer.about",
     "translation": "About"
   },
@@ -3442,6 +3438,10 @@
   {
     "id": "web.get_access_token.revoking.error",
     "translation": "Encountered an error revoking an access token, err="
+  },
+  {
+    "id": "web.header.back",
+    "translation": "Back"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",

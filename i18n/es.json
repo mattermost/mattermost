@@ -2316,6 +2316,10 @@
     "translation": "no se puede decodificar"
   },
   {
+    "id": "store.sql.alter_column_type.critical",
+    "translation": "Falla al alterar el tipo de la columna %v"
+  },
+  {
     "id": "store.sql.check_index.critical",
     "translation": "Falla al revisar el indice %v"
   },
@@ -2384,6 +2388,10 @@
     "translation": "MAC incorrecto para el ciphertext dado"
   },
   {
+    "id": "store.sql.maxlength_column.critical",
+    "translation": "Falla al obtener la máxima longitud de la columna %v"
+  },
+  {
     "id": "store.sql.open_conn.critical",
     "translation": "Falla al abrir una conexión sql a err:%v"
   },
@@ -2398,6 +2406,10 @@
   {
     "id": "store.sql.pinging.info",
     "translation": "Verificando conexión con la base de datos sql %v"
+  },
+  {
+    "id": "store.sql.remove_index.critical",
+    "translation": "Falla al remover el índice %v"
   },
   {
     "id": "store.sql.rename_column.critical",
@@ -3356,10 +3368,6 @@
     "translation": "Encontrar Equipo"
   },
   {
-    "id": "web.header.back",
-    "translation": "Atrás"
-  },
-  {
     "id": "web.footer.about",
     "translation": "Acerca"
   },
@@ -3430,6 +3438,10 @@
   {
     "id": "web.get_access_token.revoking.error",
     "translation": "Se encontró un error al revocar el acceso del token, err="
+  },
+  {
+    "id": "web.header.back",
+    "translation": "Atrás"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
