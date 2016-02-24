@@ -19,7 +19,7 @@ import {FormattedTime} from 'mm-intl';
 export function isEmail(email) {
     // writing a regex to match all valid email addresses is really, really hard (see http://stackoverflow.com/a/201378)
     // so we just do a simple check and rely on a verification email to tell if it's a real address
-    return email.indexOf('@') !== -1;
+    return (/^.+@.+$/).test(email);
 }
 
 export function cleanUpUrlable(input) {
