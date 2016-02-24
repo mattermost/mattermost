@@ -51,8 +51,8 @@ func main() {
 
 	parseCmds()
 
-	utils.LoadConfig(flagConfigFile)
 	utils.InitTranslations()
+	utils.LoadConfig(flagConfigFile)
 
 	if flagRunCmds {
 		utils.ConfigureCmdLineLog()
