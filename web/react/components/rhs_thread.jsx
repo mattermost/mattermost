@@ -109,6 +109,7 @@ export default class RhsThread extends React.Component {
     render() {
         const posts = this.state.posts;
         const selected = this.state.selected;
+        const profiles = this.state.profiles || {};
 
         if (posts == null || selected == null) {
             return (
@@ -162,7 +163,7 @@ export default class RhsThread extends React.Component {
         if (UserStore.getCurrentId() === selected.user_id) {
             profile = UserStore.getCurrentUser();
         } else {
-            profile = this.state.profiles[selected.user_id];
+            profile = profiles[selected.user_id];
         }
 
         return (
@@ -187,7 +188,7 @@ export default class RhsThread extends React.Component {
                             if (UserStore.getCurrentId() === selected.user_id) {
                                 p = UserStore.getCurrentUser();
                             } else {
-                                p = this.state.profiles[selected.user_id];
+                                p = profiles[selected.user_id];
                             }
                             return (
                                 <Comment

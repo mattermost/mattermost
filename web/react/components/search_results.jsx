@@ -40,12 +40,14 @@ export default class SearchResults extends React.Component {
         this.mounted = false;
 
         this.onChange = this.onChange.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
         this.resize = this.resize.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         const state = getStateFromStores();
         state.windowWidth = Utils.windowWidth();
         state.windowHeight = Utils.windowHeight();
+        state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         this.state = state;
     }
 
@@ -53,6 +55,7 @@ export default class SearchResults extends React.Component {
         this.mounted = true;
         SearchStore.addSearchChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
+        UserStore.addChangeListener(this.onUserChange);
         this.resize();
         window.addEventListener('resize', this.handleResize);
     }
@@ -68,6 +71,7 @@ export default class SearchResults extends React.Component {
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
+        UserStore.removeChangeListener(this.onUserChange);
         this.mounted = false;
         window.removeEventListener('resize', this.handleResize);
     }
@@ -83,6 +87,10 @@ export default class SearchResults extends React.Component {
         if (this.mounted) {
             this.setState(getStateFromStores());
         }
+    }
+
+    onUserChange() {
+        this.setState({profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
 
     resize() {
@@ -101,6 +109,7 @@ export default class SearchResults extends React.Component {
         }
         var noResults = (!results || !results.order || !results.order.length);
         var searchTerm = SearchStore.getSearchTerm();
+        const profiles = this.state.profiles || {};
 
         var ctls = null;
 
@@ -140,6 +149,7 @@ export default class SearchResults extends React.Component {
                         key={post.id}
                         channel={this.state.channels.get(post.channel_id)}
                         post={post}
+                        user={profiles[post.user_id]}
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
                     />
