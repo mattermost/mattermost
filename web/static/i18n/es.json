@@ -582,7 +582,7 @@
   "claim.email_to_sso.pwd": "Contraseña",
   "claim.email_to_sso.pwdError": "Por favor introduce tu contraseña.",
   "claim.email_to_sso.ssoNote": "Debes tener una cuenta válida con {type}",
-  "claim.email_to_sso.ssoType": "Al reclamar tu cuenta, sólo podrás iniciar sesión con {type}. Debes tener una cuenta válida con {type}",
+  "claim.email_to_sso.ssoType": "Al reclamar tu cuenta, sólo podrás iniciar sesión con {type}",
   "claim.email_to_sso.switchTo": "Cambiar cuenta a {uiType}",
   "claim.email_to_sso.title": "Cambiar Cuenta de Correo/Contraseña a {uiType}",
   "claim.sso_to_email.confirm": "Confirmar Contraseña",
