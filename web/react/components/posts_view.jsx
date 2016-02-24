@@ -145,7 +145,7 @@ export default class PostsView extends React.Component {
         const postCtls = [];
         let previousPostDay = new Date(0);
         const userId = UserStore.getCurrentId();
-        const profiles = this.props.profiles;
+        const profiles = this.props.profiles || {};
 
         let renderedLastViewed = false;
 

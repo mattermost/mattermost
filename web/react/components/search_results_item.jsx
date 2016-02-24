@@ -36,9 +36,10 @@ export default class SearchResultsItem extends React.Component {
     }
 
     render() {
-        var channelName = null;
+        let channelName = null;
         const channel = this.props.channel;
-        var timestamp = UserStore.getCurrentUser().update_at;
+        const timestamp = UserStore.getCurrentUser().update_at;
+        const user = this.props.user || {};
 
         if (channel) {
             channelName = channel.display_name;
@@ -84,7 +85,7 @@ export default class SearchResultsItem extends React.Component {
                         </div>
                         <div>
                             <ul className='post__header'>
-                                <li className='col__name'><strong><UserProfile userId={this.props.post.user_id}/></strong></li>
+                                <li className='col__name'><strong><UserProfile user={user}/></strong></li>
                                 <li className='col'>
                                     <time className='search-item-time'>
                                         <FormattedDate
@@ -135,6 +136,7 @@ export default class SearchResultsItem extends React.Component {
 
 SearchResultsItem.propTypes = {
     post: React.PropTypes.object,
+    user: React.PropTypes.object,
     channel: React.PropTypes.object,
     isMentionSearch: React.PropTypes.bool,
     term: React.PropTypes.string
