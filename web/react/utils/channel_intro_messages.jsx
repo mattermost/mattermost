@@ -47,7 +47,7 @@ export function createDMIntroMessage(channel) {
                 </div>
                 <div className='channel-intro-profile'>
                     <strong>
-                        <UserProfile userId={teammate.id}/>
+                        <UserProfile user={teammate}/>
                     </strong>
                 </div>
                 <p className='channel-intro-text'>
