@@ -17,7 +17,7 @@
   "activity_log.moreInfo": "More info",
   "activity_log.os": "OS: {os}",
   "activity_log.sessionId": "Session ID: {id}",
-  "activity_log.sessionsDescription": "Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the 'Logout' button below to end a session.",
+  "activity_log.sessionsDescription": "Sessions are created when you log in to a new browser on a device. Sessions let you use Mattermost without having to log in again for a time period specified by the System Admin. If you want to log out sooner, use the 'Logout' button below to end a session.",
   "activity_log_modal.android": "Android",
   "activity_log_modal.androidNativeApp": "Android Native App",
   "activity_log_modal.iphoneNativeApp": "iPhone Native App",
