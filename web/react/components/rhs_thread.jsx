@@ -185,7 +185,7 @@ export default class RhsThread extends React.Component {
                         <div className='post-right-comments-container'>
                         {postsArray.map(function mapPosts(comPost) {
                             let p;
-                            if (UserStore.getCurrentId() === selected.user_id) {
+                            if (UserStore.getCurrentId() === comPost.user_id) {
                                 p = UserStore.getCurrentUser();
                             } else {
                                 p = profiles[comPost.user_id];
