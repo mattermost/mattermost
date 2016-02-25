@@ -5,7 +5,6 @@ import * as Client from '../utils/client.jsx';
 import PostStore from '../stores/post_store.jsx';
 import ModalStore from '../stores/modal_store.jsx';
 var Modal = ReactBootstrap.Modal;
-import * as Utils from '../utils/utils.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
