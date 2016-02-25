@@ -105,6 +105,7 @@ export default class PostFocusView extends React.Component {
                     introText={this.getIntroMessage()}
                     messageSeparatorTime={0}
                     postsToHighlight={postsToHighlight}
+                    profiles={this.props.profiles}
                 />
             </div>
         );
@@ -114,4 +115,5 @@ PostFocusView.defaultProps = {
 };
 
 PostFocusView.propTypes = {
+    profiles: React.PropTypes.object
 };

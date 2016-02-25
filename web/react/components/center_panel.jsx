@@ -33,7 +33,8 @@ export default class CenterPanel extends React.Component {
         this.state = {
             showTutorialScreens: tutorialStep === TutorialSteps.INTRO_SCREENS,
             showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS,
-            user: UserStore.getCurrentUser()
+            user: UserStore.getCurrentUser(),
+            profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))
         };
     }
     componentDidMount() {
@@ -54,7 +55,7 @@ export default class CenterPanel extends React.Component {
         this.setState({showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS});
     }
     onUserChange() {
-        this.setState({user: UserStore.getCurrentUser()});
+        this.setState({user: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
     render() {
         const channel = ChannelStore.getCurrent();
@@ -65,7 +66,7 @@ export default class CenterPanel extends React.Component {
             postsContainer = <TutorialIntroScreens/>;
             createPost = null;
         } else if (this.state.showPostFocus) {
-            postsContainer = <PostFocusView/>;
+            postsContainer = <PostFocusView profiles={this.state.profiles}/>;
 
             handleClick = function clickHandler(e) {
                 e.preventDefault();
@@ -87,7 +88,7 @@ export default class CenterPanel extends React.Component {
                 </div>
             );
         } else {
-            postsContainer = <PostsViewContainer/>;
+            postsContainer = <PostsViewContainer profiles={this.state.profiles}/>;
             createPost = (
                 <div
                     className='post-create__container'
