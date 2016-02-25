@@ -1511,7 +1511,7 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 		}
 
 		if extra := <-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
-			c.Err = exra.Err
+			c.Err = extra.Err
 		}
 
 		ruser := result.Data.([2]*model.User)[0]
