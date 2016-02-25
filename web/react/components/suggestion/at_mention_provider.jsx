@@ -83,7 +83,7 @@ export default class AtMentionProvider {
         if (captured) {
             const usernamePrefix = captured[1];
 
-            const users = UserStore.getProfiles();
+            const users = UserStore.getActiveOnlyProfiles(true);
             let filtered = [];
 
             for (const id of Object.keys(users)) {
