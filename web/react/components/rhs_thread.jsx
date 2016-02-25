@@ -91,9 +91,11 @@ export default class RhsThread extends React.Component {
         });
     }
     onPostChange() {
-        const selected = PostStore.getSelectedPost();
-        const posts = PostStore.getSelectedPostThread();
-        this.setState({posts, selected});
+        if (this.mounted) {
+            const selected = PostStore.getSelectedPost();
+            const posts = PostStore.getSelectedPostThread();
+            this.setState({posts, selected});
+        }
     }
     onUserChange() {
         const profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));

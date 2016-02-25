@@ -21,9 +21,6 @@ export default class DeletePostModal extends React.Component {
         this.handleDelete = this.handleDelete.bind(this);
         this.handleToggle = this.handleToggle.bind(this);
         this.handleHide = this.handleHide.bind(this);
-        this.onListenerChange = this.onListenerChange.bind(this);
-
-        this.selectedList = null;
 
         this.state = {
             show: false,
@@ -35,11 +32,9 @@ export default class DeletePostModal extends React.Component {
 
     componentDidMount() {
         ModalStore.addModalListener(ActionTypes.TOGGLE_DELETE_POST_MODAL, this.handleToggle);
-        PostStore.addSelectedPostChangeListener(this.onListenerChange);
     }
 
     componentWillUnmount() {
-        PostStore.removeSelectedPostChangeListener(this.onListenerChange);
         ModalStore.removeModalListener(ActionTypes.TOGGLE_DELETE_POST_MODAL, this.handleToggle);
     }
 
@@ -56,40 +51,15 @@ export default class DeletePostModal extends React.Component {
             this.state.post.channel_id,
             this.state.post.id,
             () => {
-                var selectedList = this.selectedList;
-
-                if (selectedList && selectedList.order && selectedList.order.length > 0) {
-                    var selectedPost = selectedList.posts[selectedList.order[0]];
-                    if ((selectedPost.id === this.state.post.id && !this.state.root_id) || selectedPost.root_id === this.state.post.id) {
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.RECEIVED_SEARCH,
-                            results: null
-                        });
-
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.RECEIVED_POST_SELECTED,
-                            postId: null
-                        });
-                    } else if (selectedPost.id === this.state.post.id && this.state.root_id) {
-                        if (selectedPost.root_id && selectedPost.root_id.length > 0 && selectedList.posts[selectedPost.root_id]) {
-                            selectedList.order = [selectedPost.root_id];
-                            delete selectedList.posts[selectedPost.id];
-
-                            AppDispatcher.handleServerAction({
-                                type: ActionTypes.RECEIVED_POST_SELECTED,
-                                postId: selectedPost.root_id
-                            });
-
-                            AppDispatcher.handleServerAction({
-                                type: ActionTypes.RECEIVED_SEARCH,
-                                results: null
-                            });
-                        }
-                    }
-                }
-
                 PostStore.deletePost(this.state.post);
                 AsyncClient.getPosts(this.state.post.channel_id);
+
+                if (this.state.post.id === PostStore.getSelectedPostId()) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_POST_SELECTED,
+                        postId: null
+                    });
+                }
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'deletePost');
@@ -110,13 +80,6 @@ export default class DeletePostModal extends React.Component {
 
     handleHide() {
         this.setState({show: false});
-    }
-
-    onListenerChange() {
-        var newList = PostStore.getSelectedPost();
-        if (!Utils.areObjectsEqual(this.selectedList, newList)) {
-            this.selectedList = newList;
-        }
     }
 
     render() {
