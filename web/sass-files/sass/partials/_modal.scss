@@ -434,3 +434,25 @@
 		max-height: 150px;
 	}
 }
+
+.user-list {
+    display: flex;
+    flex-direction: column;
+
+    .profile-img {
+        width: 38px;
+        height: 38px;
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+
+    .user-list-item__details {
+        flex-grow: 1;
+        flex-shrink: 1;
+    }
+
+    .user-list-item__actions {
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+}
