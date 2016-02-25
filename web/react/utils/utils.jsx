@@ -156,10 +156,6 @@ export function notifyMe(title, body, channel) {
         requestedNotificationPermission = true;
 
         Notification.requestPermission((permission) => {
-            if (Notification.permission !== permission) {
-                Notification.permission = permission;
-            }
-
             if (permission === 'granted') {
                 try {
                     var notification = new Notification(title, {body, tag: body, icon: '/static/images/icon50x50.png'});
