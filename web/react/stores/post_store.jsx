@@ -303,6 +303,20 @@ class PostStoreClass extends EventEmitter {
             postList.order.splice(index, 1);
         }
 
+        for (const pid in postList.posts) {
+            if (!postList.posts.hasOwnProperty(pid)) {
+                continue;
+            }
+
+            if (postList.posts[pid].root_id === post.id) {
+                Reflect.deleteProperty(postList.posts, pid);
+                const commentIndex = postList.order.indexOf(pid);
+                if (commentIndex !== -1) {
+                    postList.order.splice(commentIndex, 1);
+                }
+            }
+        }
+
         this.postsInfo[channelId].postList = postList;
     }
 
