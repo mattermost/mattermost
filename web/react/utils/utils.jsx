@@ -737,7 +737,7 @@ export function applyTheme(theme) {
         changeCss('.post:hover, .modal .more-table tbody>tr:hover td, .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.date-separator.hovered--before:after, .date-separator.hovered--after:before, .new-separator.hovered--after:before, .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.command-name:hover, .mentions-name:hover, .suggestion--selected, .dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover, .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
-        changeCss('code', 'background:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
+        changeCss('code, .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
         changeCss('@media(min-width: 960px){.post.current--user:hover .post__body ', 'background: none;', 1);
         changeCss('.sidebar--right', 'color:' + theme.centerChannelColor, 2);
         changeCss('.search-help-popover .search-autocomplete__item:hover, .settings-modal .settings-table .settings-content .appearance-section .theme-elements__body', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
