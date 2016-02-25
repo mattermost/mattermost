@@ -229,7 +229,6 @@ export default class RenameChannelModal extends React.Component {
         let readOnlyHandleInput = false;
         if (this.state.channelName === Constants.DEFAULT_CHANNEL) {
             handleInputLabel += formatMessage(holders.defaultError);
-            handleInputClass += ' disabled-input';
             readOnlyHandleInput = true;
         }
 

@@ -383,6 +383,10 @@ body.ios {
 			min-height: 25px;
 			display: block;
 			@include opacity(0.7);
+			white-space: nowrap;
+			width: 80%;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 	}
 }
