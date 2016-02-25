@@ -1,5 +1,8 @@
-/* perfect-scrollbar v0.6.10 */
+/* perfect-scrollbar v0.6.7 */
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var ps = require('../main')
@@ -45,6 +48,9 @@ if (typeof define === 'function' && define.amd) {
 module.exports = mountJQuery;
 
 },{"../main":7,"../plugin/instances":18}],2:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 function oldAdd(element, className) {
@@ -89,6 +95,9 @@ exports.list = function (element) {
 };
 
 },{}],3:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var DOM = {};
@@ -175,6 +184,9 @@ DOM.queryChildren = function (element, selector) {
 module.exports = DOM;
 
 },{}],4:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var EventElement = function (element) {
@@ -248,6 +260,9 @@ EventManager.prototype.once = function (element, eventName, handler) {
 module.exports = EventManager;
 
 },{}],5:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 module.exports = (function () {
@@ -263,6 +278,9 @@ module.exports = (function () {
 })();
 
 },{}],6:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var cls = require('./class')
@@ -346,6 +364,9 @@ exports.env = {
 };
 
 },{"./class":2,"./dom":3}],7:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var destroy = require('./plugin/destroy')
@@ -359,6 +380,9 @@ module.exports = {
 };
 
 },{"./plugin/destroy":9,"./plugin/initialize":17,"./plugin/update":21}],8:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 module.exports = {
@@ -374,11 +398,13 @@ module.exports = {
   useKeyboard: true,
   useSelectionScroll: false,
   wheelPropagation: false,
-  wheelSpeed: 1,
-  theme: 'default'
+  wheelSpeed: 1
 };
 
 },{}],9:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var d = require('../lib/dom')
@@ -403,6 +429,9 @@ module.exports = function (element) {
 };
 
 },{"../lib/dom":3,"../lib/helper":6,"./instances":18}],10:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var h = require('../../lib/helper')
@@ -422,7 +451,7 @@ function bindClickRailHandler(element, i) {
   }
   i.event.bind(i.scrollbarYRail, 'click', function (e) {
     var halfOfScrollbarLength = h.toInt(i.scrollbarYHeight / 2);
-    var positionTop = i.railYRatio * (e.pageY - window.pageYOffset - pageOffset(i.scrollbarYRail).top - halfOfScrollbarLength);
+    var positionTop = i.railYRatio * (e.pageY - window.scrollY - pageOffset(i.scrollbarYRail).top - halfOfScrollbarLength);
     var maxPositionTop = i.railYRatio * (i.railYHeight - i.scrollbarYHeight);
     var positionRatio = positionTop / maxPositionTop;
 
@@ -445,7 +474,7 @@ function bindClickRailHandler(element, i) {
   }
   i.event.bind(i.scrollbarXRail, 'click', function (e) {
     var halfOfScrollbarLength = h.toInt(i.scrollbarXWidth / 2);
-    var positionLeft = i.railXRatio * (e.pageX - window.pageXOffset - pageOffset(i.scrollbarXRail).left - halfOfScrollbarLength);
+    var positionLeft = i.railXRatio * (e.pageX - window.scrollX - pageOffset(i.scrollbarXRail).left - halfOfScrollbarLength);
     var maxPositionLeft = i.railXRatio * (i.railXWidth - i.scrollbarXWidth);
     var positionRatio = positionLeft / maxPositionLeft;
 
@@ -468,6 +497,9 @@ module.exports = function (element) {
 };
 
 },{"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],11:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var d = require('../../lib/dom')
@@ -482,7 +514,7 @@ function bindMouseScrollXHandler(element, i) {
 
   function updateScrollLeft(deltaX) {
     var newLeft = currentLeft + (deltaX * i.railXRatio);
-    var maxLeft = Math.max(0, i.scrollbarXRail.getBoundingClientRect().left) + (i.railXRatio * (i.railXWidth - i.scrollbarXWidth));
+    var maxLeft = i.scrollbarXRail.getBoundingClientRect().left + (i.railXRatio * (i.railXWidth - i.scrollbarXWidth));
 
     if (newLeft < 0) {
       i.scrollbarXLeft = 0;
@@ -527,7 +559,7 @@ function bindMouseScrollYHandler(element, i) {
 
   function updateScrollTop(deltaY) {
     var newTop = currentTop + (deltaY * i.railYRatio);
-    var maxTop = Math.max(0, i.scrollbarYRail.getBoundingClientRect().top) + (i.railYRatio * (i.railYHeight - i.scrollbarYHeight));
+    var maxTop = i.scrollbarYRail.getBoundingClientRect().top + (i.railYRatio * (i.railYHeight - i.scrollbarYHeight));
 
     if (newTop < 0) {
       i.scrollbarYTop = 0;
@@ -573,10 +605,12 @@ module.exports = function (element) {
 };
 
 },{"../../lib/dom":3,"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],12:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var h = require('../../lib/helper')
-  , d = require('../../lib/dom')
   , instances = require('../instances')
   , updateGeometry = require('../update-geometry')
   , updateScroll = require('../update-scroll');
@@ -619,10 +653,7 @@ function bindKeyboardHandler(element, i) {
       return;
     }
 
-    var focused = d.matches(i.scrollbarX, ':focus') ||
-                  d.matches(i.scrollbarY, ':focus');
-
-    if (!hovered && !focused) {
+    if (!hovered) {
       return;
     }
 
@@ -700,10 +731,14 @@ module.exports = function (element) {
   bindKeyboardHandler(element, i);
 };
 
-},{"../../lib/dom":3,"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],13:[function(require,module,exports){
+},{"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],13:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
-var instances = require('../instances')
+var h = require('../../lib/helper')
+  , instances = require('../instances')
   , updateGeometry = require('../update-geometry')
   , updateScroll = require('../update-scroll');
 
@@ -780,6 +815,13 @@ function bindMouseWheelHandler(element, i) {
   }
 
   function mousewheelHandler(e) {
+    // FIXME: this is a quick fix for the select problem in FF and IE.
+    // If there comes an effective way to deal with the problem,
+    // this lines should be removed.
+    if (!h.env.isWebKit && element.querySelector('select:focus')) {
+      return;
+    }
+
     var delta = getDeltaFromEvent(e);
 
     var deltaX = delta[0];
@@ -836,7 +878,10 @@ module.exports = function (element) {
   bindMouseWheelHandler(element, i);
 };
 
-},{"../instances":18,"../update-geometry":19,"../update-scroll":20}],14:[function(require,module,exports){
+},{"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],14:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var instances = require('../instances')
@@ -854,6 +899,9 @@ module.exports = function (element) {
 };
 
 },{"../instances":18,"../update-geometry":19}],15:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var h = require('../../lib/helper')
@@ -965,6 +1013,9 @@ module.exports = function (element) {
 };
 
 },{"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],16:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var instances = require('../instances')
@@ -1135,6 +1186,9 @@ module.exports = function (element, supportsTouch, supportsIePointer) {
 };
 
 },{"../instances":18,"../update-geometry":19,"../update-scroll":20}],17:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var cls = require('../lib/class')
@@ -1160,7 +1214,6 @@ module.exports = function (element, userSettings) {
   var i = instances.add(element);
 
   i.settings = h.extend(i.settings, userSettings);
-  cls.add(element, 'ps-theme-' + i.settings.theme);
 
   clickRailHandler(element);
   dragScrollbarHandler(element);
@@ -1182,10 +1235,12 @@ module.exports = function (element, userSettings) {
 };
 
 },{"../lib/class":2,"../lib/helper":6,"./handler/click-rail":10,"./handler/drag-scrollbar":11,"./handler/keyboard":12,"./handler/mouse-wheel":13,"./handler/native-scroll":14,"./handler/selection":15,"./handler/touch":16,"./instances":18,"./update-geometry":19}],18:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
-var cls = require('../lib/class')
-  , d = require('../lib/dom')
+var d = require('../lib/dom')
   , defaultSettings = require('./default-setting')
   , EventManager = require('../lib/event-manager')
   , guid = require('../lib/guid')
@@ -1215,19 +1270,8 @@ function Instance(element) {
   i.event = new EventManager();
   i.ownerDocument = element.ownerDocument || document;
 
-  function focus() {
-    cls.add(element, 'ps-focus');
-  }
-
-  function blur() {
-    cls.remove(element, 'ps-focus');
-  }
-
   i.scrollbarXRail = d.appendTo(d.e('div', 'ps-scrollbar-x-rail'), element);
   i.scrollbarX = d.appendTo(d.e('div', 'ps-scrollbar-x'), i.scrollbarXRail);
-  i.scrollbarX.setAttribute('tabindex', 0);
-  i.event.bind(i.scrollbarX, 'focus', focus);
-  i.event.bind(i.scrollbarX, 'blur', blur);
   i.scrollbarXActive = null;
   i.scrollbarXWidth = null;
   i.scrollbarXLeft = null;
@@ -1244,9 +1288,6 @@ function Instance(element) {
 
   i.scrollbarYRail = d.appendTo(d.e('div', 'ps-scrollbar-y-rail'), element);
   i.scrollbarY = d.appendTo(d.e('div', 'ps-scrollbar-y'), i.scrollbarYRail);
-  i.scrollbarY.setAttribute('tabindex', 0);
-  i.event.bind(i.scrollbarY, 'focus', focus);
-  i.event.bind(i.scrollbarY, 'blur', blur);
   i.scrollbarYActive = null;
   i.scrollbarYHeight = null;
   i.scrollbarYTop = null;
@@ -1302,7 +1343,10 @@ exports.get = function (element) {
   return instances[getId(element)];
 };
 
-},{"../lib/class":2,"../lib/dom":3,"../lib/event-manager":4,"../lib/guid":5,"../lib/helper":6,"./default-setting":8}],19:[function(require,module,exports){
+},{"../lib/dom":3,"../lib/event-manager":4,"../lib/guid":5,"../lib/helper":6,"./default-setting":8}],19:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var cls = require('../lib/class')
@@ -1391,6 +1435,9 @@ module.exports = function (element) {
     i.scrollbarXLeft = h.toInt((i.negativeScrollAdjustment + element.scrollLeft) * (i.railXWidth - i.scrollbarXWidth) / (i.contentWidth - i.containerWidth));
   } else {
     i.scrollbarXActive = false;
+    i.scrollbarXWidth = 0;
+    i.scrollbarXLeft = 0;
+    element.scrollLeft = 0;
   }
 
   if (!i.settings.suppressScrollY && i.containerHeight + i.settings.scrollYMarginOffset < i.contentHeight) {
@@ -1401,6 +1448,9 @@ module.exports = function (element) {
     i.scrollbarYTop = h.toInt(element.scrollTop * (i.railYHeight - i.scrollbarYHeight) / (i.contentHeight - i.containerHeight));
   } else {
     i.scrollbarYActive = false;
+    i.scrollbarYHeight = 0;
+    i.scrollbarYTop = 0;
+    updateScroll(element, 'top', 0);
   }
 
   if (i.scrollbarXLeft >= i.railXWidth - i.scrollbarXWidth) {
@@ -1412,25 +1462,14 @@ module.exports = function (element) {
 
   updateCss(element, i);
 
-  if (i.scrollbarXActive) {
-    cls.add(element, 'ps-active-x');
-  } else {
-    cls.remove(element, 'ps-active-x');
-    i.scrollbarXWidth = 0;
-    i.scrollbarXLeft = 0;
-    updateScroll(element, 'left', 0);
-  }
-  if (i.scrollbarYActive) {
-    cls.add(element, 'ps-active-y');
-  } else {
-    cls.remove(element, 'ps-active-y');
-    i.scrollbarYHeight = 0;
-    i.scrollbarYTop = 0;
-    updateScroll(element, 'top', 0);
-  }
+  cls[i.scrollbarXActive ? 'add' : 'remove'](element, 'ps-active-x');
+  cls[i.scrollbarYActive ? 'add' : 'remove'](element, 'ps-active-y');
 };
 
 },{"../lib/class":2,"../lib/dom":3,"../lib/helper":6,"./instances":18,"./update-scroll":20}],20:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var instances = require('./instances');
@@ -1473,25 +1512,29 @@ module.exports = function (element, axis, value) {
   }
 
   if (axis === 'top' && value <= 0) {
-    element.scrollTop = value = 0; // don't allow negative scroll
+    element.scrollTop = 0;
     element.dispatchEvent(yStartEvent);
+    return; // don't allow negative scroll
   }
 
   if (axis === 'left' && value <= 0) {
-    element.scrollLeft = value = 0; // don't allow negative scroll
+    element.scrollLeft = 0;
     element.dispatchEvent(xStartEvent);
+    return; // don't allow negative scroll
   }
 
   var i = instances.get(element);
 
-  if (axis === 'top' && value >= i.contentHeight - i.containerHeight) {
-    element.scrollTop = value = i.contentHeight - i.containerHeight; // don't allow scroll past container
+  if (axis === 'top' && value > i.contentHeight - i.containerHeight) {
+    element.scrollTop = i.contentHeight - i.containerHeight;
     element.dispatchEvent(yEndEvent);
+    return; // don't allow scroll past container
   }
 
-  if (axis === 'left' && value >= i.contentWidth - i.containerWidth) {
-    element.scrollLeft = value = i.contentWidth - i.containerWidth; // don't allow scroll past container
+  if (axis === 'left' && value > i.contentWidth - i.containerWidth) {
+    element.scrollLeft = i.contentWidth - i.containerWidth;
     element.dispatchEvent(xEndEvent);
+    return; // don't allow scroll past container
   }
 
   if (!lastTop) {
@@ -1531,13 +1574,15 @@ module.exports = function (element, axis, value) {
 };
 
 },{"./instances":18}],21:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
 'use strict';
 
 var d = require('../lib/dom')
   , h = require('../lib/helper')
   , instances = require('./instances')
-  , updateGeometry = require('./update-geometry')
-  , updateScroll = require('./update-scroll');
+  , updateGeometry = require('./update-geometry');
 
 module.exports = function (element) {
   var i = instances.get(element);
@@ -1561,12 +1606,8 @@ module.exports = function (element) {
 
   updateGeometry(element);
 
-  // Update top/left scroll to trigger events
-  updateScroll(element, 'top', element.scrollTop);
-  updateScroll(element, 'left', element.scrollLeft);
-
   d.css(i.scrollbarXRail, 'display', '');
   d.css(i.scrollbarYRail, 'display', '');
 };
 
-},{"../lib/dom":3,"../lib/helper":6,"./instances":18,"./update-geometry":19,"./update-scroll":20}]},{},[1]);
+},{"../lib/dom":3,"../lib/helper":6,"./instances":18,"./update-geometry":19}]},{},[1]);
