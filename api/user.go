@@ -1510,7 +1510,9 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 			RevokeAllSession(c, user.Id)
 		}
 
-		<-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis())
+		if extra := <-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
+			c.Err = exra.Err
+		}
 
 		ruser := result.Data.([2]*model.User)[0]
 		options := utils.Cfg.GetSanitizeOptions()
