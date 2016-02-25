@@ -924,3 +924,25 @@ func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) S
 
 	return storeChannel
 }
+
+func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec(
+			`UPDATE Channels SET ExtraUpdateAt = :Time
+			WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId);`,
+			map[string]interface{}{"UserId": userId, "Time": time})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.extraUpdated", "store.sql_channel.extra_updated.app_error", nil, "user_id="+userId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
