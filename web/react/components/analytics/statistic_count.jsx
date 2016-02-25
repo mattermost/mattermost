@@ -7,7 +7,7 @@ export default class StatisticCount extends React.Component {
     render() {
         let loading = (
             <FormattedMessage
-                id='admin.analytics.loading'
+                id='analytics.chart.loading'
                 defaultMessage='Loading...'
             />
         );
@@ -27,7 +27,7 @@ export default class StatisticCount extends React.Component {
 }
 
 StatisticCount.propTypes = {
-    title: React.PropTypes.string.isRequired,
+    title: React.PropTypes.node.isRequired,
     icon: React.PropTypes.string.isRequired,
     count: React.PropTypes.number
 };

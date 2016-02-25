@@ -200,3 +200,28 @@ func TestSessionStoreUpdateLastActivityAt(t *testing.T) {
 	}
 
 }
+
+func TestSessionCount(t *testing.T) {
+	Setup()
+
+	s1 := model.Session{}
+	s1.UserId = model.NewId()
+	s1.TeamId = model.NewId()
+	Must(store.Session().Save(&s1))
+
+	if r1 := <-store.Session().AnalyticsSessionCount(""); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(int64) == 0 {
+			t.Fatal("should have at least 1 session")
+		}
+	}
+
+	if r2 := <-store.Session().AnalyticsSessionCount(s1.TeamId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if r2.Data.(int64) != 1 {
+			t.Fatal("should have 1 session")
+		}
+	}
+}

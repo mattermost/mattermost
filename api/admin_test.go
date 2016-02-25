@@ -254,6 +254,16 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
+
+		if rows[4].Name != "team_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[4].Value == 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
 	}
 
 	if result, err := Client.GetSystemAnalytics("standard"); err != nil {
@@ -297,6 +307,16 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 		}
 
 		if rows[3].Value == 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[4].Name != "team_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[4].Value == 0 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -469,6 +489,26 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
+
+		if rows[4].Name != "command_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[4].Value != 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[5].Name != "session_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[5].Value == 0 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
 	}
 
 	if result, err := Client.GetSystemAnalytics("extra_counts"); err != nil {
@@ -497,6 +537,16 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 		}
 
 		if rows[3].Name != "outgoing_webhook_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[4].Name != "command_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[5].Name != "session_count" {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}

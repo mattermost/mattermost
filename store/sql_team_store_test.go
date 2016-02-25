@@ -261,3 +261,23 @@ func TestDelete(t *testing.T) {
 		t.Fatal(r1.Err)
 	}
 }
+
+func TestTeamCount(t *testing.T) {
+	Setup()
+
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.AllowTeamListing = true
+	Must(store.Team().Save(&o1))
+
+	if r1 := <-store.Team().AnalyticsTeamCount(); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(int64) == 0 {
+			t.Fatal("should be at least 1 team")
+		}
+	}
+}

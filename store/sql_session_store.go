@@ -255,3 +255,32 @@ func (me SqlSessionStore) UpdateDeviceId(id, deviceId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (me SqlSessionStore) AnalyticsSessionCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`SELECT
+                COUNT(*)
+            FROM
+                Sessions`
+
+		if len(teamId) > 0 {
+			query += " WHERE TeamId = :TeamId"
+		}
+
+		if c, err := me.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlSessionStore.AnalyticsSessionCount", "store.sql_session.analytics_session_count.app_error", nil, err.Error())
+		} else {
+			result.Data = c
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

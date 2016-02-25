@@ -184,16 +184,18 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := params["name"]
 
 	if name == "standard" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 4)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 5)
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
 		rows[3] = &model.AnalyticsRow{"unique_user_count", 0}
+		rows[4] = &model.AnalyticsRow{"team_count", 0}
 
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
 		postChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
 		userChan := Srv.Store.User().AnalyticsUniqueUserCount(teamId)
+		teamChan := Srv.Store.Team().AnalyticsTeamCount()
 
 		if r := <-openChan; r.Err != nil {
 			c.Err = r.Err
@@ -223,6 +225,13 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			rows[3].Value = float64(r.Data.(int64))
 		}
 
+		if r := <-teamChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[4].Value = float64(r.Data.(int64))
+		}
+
 		w.Write([]byte(rows.ToJson()))
 	} else if name == "post_counts_day" {
 		if r := <-Srv.Store.Post().AnalyticsPostCountsByDay(teamId); r.Err != nil {
@@ -239,16 +248,20 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
 		}
 	} else if name == "extra_counts" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 4)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
 		rows[0] = &model.AnalyticsRow{"file_post_count", 0}
 		rows[1] = &model.AnalyticsRow{"hashtag_post_count", 0}
 		rows[2] = &model.AnalyticsRow{"incoming_webhook_count", 0}
 		rows[3] = &model.AnalyticsRow{"outgoing_webhook_count", 0}
+		rows[4] = &model.AnalyticsRow{"command_count", 0}
+		rows[5] = &model.AnalyticsRow{"session_count", 0}
 
 		fileChan := Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
 		hashtagChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
 		iHookChan := Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
 		oHookChan := Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
+		commandChan := Srv.Store.Command().AnalyticsCommandCount(teamId)
+		sessionChan := Srv.Store.Session().AnalyticsSessionCount(teamId)
 
 		if r := <-fileChan; r.Err != nil {
 			c.Err = r.Err
@@ -276,6 +289,20 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			rows[3].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-commandChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[4].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-sessionChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[5].Value = float64(r.Data.(int64))
 		}
 
 		w.Write([]byte(rows.ToJson()))
