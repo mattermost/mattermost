@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import MemberList from './member_list.jsx';
+import FilteredUserList from './filtered_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
 import UserStore from '../stores/user_store.jsx';
@@ -21,6 +21,8 @@ export default class ChannelInviteModal extends React.Component {
 
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleInvite = this.handleInvite.bind(this);
+
+        this.createInviteButton = this.createInviteButton.bind(this);
 
         // the state gets populated when the modal is shown
         this.state = {};
@@ -78,12 +80,13 @@ export default class ChannelInviteModal extends React.Component {
         };
     }
     onShow() {
-        if ($(window).width() > 768) {
+        // TODO ugh
+        /*if ($(window).width() > 768) {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
             $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
         } else {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
-        }
+        }*/
     }
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
@@ -108,9 +111,10 @@ export default class ChannelInviteModal extends React.Component {
             this.setState(newState);
         }
     }
-    handleInvite(userId) {
-        var data = {};
-        data.user_id = userId;
+    handleInvite(user) {
+        const data = {
+            user_id: user.id
+        };
 
         Client.addChannelMember(
             this.props.channel.id,
@@ -124,16 +128,24 @@ export default class ChannelInviteModal extends React.Component {
             }
         );
     }
+    createInviteButton({user}) {
+        return (
+            <a
+                onClick={this.handleInvite.bind(this, user)}
+                className='btn btn-sm btn-primary'
+            >
+                <i className='glyphicon glyphicon-envelope'/>
+                <FormattedMessage
+                    id='member_item.add'
+                    defaultMessage=' Add'
+                />
+            </a>
+        );
+    }
     render() {
         var inviteError = null;
         if (this.state.inviteError) {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
-        }
-
-        var currentMember = ChannelStore.getCurrentMember();
-        var isAdmin = false;
-        if (currentMember) {
-            isAdmin = Utils.isAdmin(currentMember.roles) || Utils.isAdmin(UserStore.getCurrentUser().roles);
         }
 
         var content;
@@ -141,10 +153,9 @@ export default class ChannelInviteModal extends React.Component {
             content = (<LoadingScreen/>);
         } else {
             content = (
-                <MemberList
-                    memberList={this.state.nonmembers}
-                    isAdmin={isAdmin}
-                    handleInvite={this.handleInvite}
+                <FilteredUserList
+                    users={this.state.nonmembers}
+                    actions={[this.createInviteButton]}
                 />
             );
         }
