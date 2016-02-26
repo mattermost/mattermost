@@ -61,7 +61,15 @@ export default class SearchResults extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return !Utils.areObjectsEqual(this.props, nextProps) || !Utils.areObjectsEqual(this.state, nextState);
+        if (!Utils.areObjectsEqual(this.props, nextProps)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(this.state, nextState)) {
+            return true;
+        }
+
+        return false;
     }
 
     componentDidUpdate() {
@@ -143,13 +151,19 @@ export default class SearchResults extends React.Component {
             );
         } else {
             ctls = results.order.map(function mymap(id) {
-                var post = results.posts[id];
+                const post = results.posts[id];
+                let profile;
+                if (UserStore.getCurrentId() === post.user_id) {
+                    profile = UserStore.getCurrentUser();
+                } else {
+                    profile = profiles[post.user_id];
+                }
                 return (
                     <SearchResultsItem
                         key={post.id}
                         channel={this.state.channels.get(post.channel_id)}
                         post={post}
-                        user={profiles[post.user_id]}
+                        user={profile}
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
                     />

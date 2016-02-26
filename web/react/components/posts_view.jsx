@@ -321,7 +321,7 @@ export default class PostsView extends React.Component {
                 if (this.refs.newMessageSeparator) {
                     var objDiv = this.refs.postlist;
                     objDiv.scrollTop = this.refs.newMessageSeparator.offsetTop; //scrolls node to top of Div
-                } else {
+                } else if (this.refs.postlist) {
                     this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
                 }
             });
