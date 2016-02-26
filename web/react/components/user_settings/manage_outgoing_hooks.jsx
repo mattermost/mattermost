@@ -284,7 +284,7 @@ class ManageOutgoingHooks extends React.Component {
             <div key='addOutgoingHook'>
                 <FormattedHTMLMessage
                     id='user.settings.hooks_out.addDescription'
-                    defaultMessage='Create webhooks to send new message events to an external integration. Please see <a href="http://docs.mattermost.com/developer/webhooks-outgoing.html" target="_blank">outgoing webhooks documentation</a>  to learn more.'
+                    defaultMessage='Create webhooks to send new message events to an external integration. Please see <a href="http://docs.mattermost.com/developer/webhooks-outgoing.html" target="_blank">outgoing webhooks documentation</a>  to learn more. View all outgoing webhooks configured on this team below.'
                 />
                 <div><label className='control-label padding-top x2'>
                     <FormattedMessage
