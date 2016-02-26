@@ -361,7 +361,7 @@ export default class UserItem extends React.Component {
                         width='36'
                     />
                     <span className='more-name'>{Utils.getDisplayName(user)}</span>
-                    <span className='more-description'>{email}</span>
+                    <span className='more-description'> &lt;{email}&gt;</span>
                     <div className='dropdown member-drop'>
                         <a
                             href='#'
