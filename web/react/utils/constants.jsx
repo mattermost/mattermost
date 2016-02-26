@@ -479,6 +479,10 @@ export default {
         EMBED_PREVIEW: {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
+        },
+        EMBED_TOGGLE: {
+            label: 'embed_toggle',
+            description: 'Show toggle for all embed previews'
         }
     },
     OVERLAY_TIME_DELAY: 400,
