@@ -266,13 +266,14 @@ func (me SqlSessionStore) AnalyticsSessionCount(teamId string) StoreChannel {
 			`SELECT
                 COUNT(*)
             FROM
-                Sessions`
+                Sessions
+            WHERE ExpiresAt > :Time`
 
 		if len(teamId) > 0 {
-			query += " WHERE TeamId = :TeamId"
+			query += " AND TeamId = :TeamId"
 		}
 
-		if c, err := me.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
+		if c, err := me.GetReplica().SelectInt(query, map[string]interface{}{"Time": model.GetMillis(), "TeamId": teamId}); err != nil {
 			result.Err = model.NewLocAppError("SqlSessionStore.AnalyticsSessionCount", "store.sql_session.analytics_session_count.app_error", nil, err.Error())
 		} else {
 			result.Data = c
