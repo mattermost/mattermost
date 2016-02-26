@@ -58,6 +58,10 @@ class SocketStoreClass extends EventEmitter {
 
             if (this.failCount === 0) {
                 console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
+                if (ErrorStore.getConnectionErrorCount() > 0) {
+                    ErrorStore.setConnectionErrorCount(0);
+                    ErrorStore.emitChange();
+                }
             }
             conn = new WebSocket(connUrl);
 
