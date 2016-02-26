@@ -16,14 +16,26 @@ export default class PostBodyAdditionalContent extends React.Component {
 
         this.getSlackAttachment = this.getSlackAttachment.bind(this);
         this.getOEmbedProvider = this.getOEmbedProvider.bind(this);
+        this.generateEmbed = this.generateEmbed.bind(this);
+        this.toggleEmbedVisibility = this.toggleEmbedVisibility.bind(this);
+
+        this.state = {
+            embedVisible: true
+        };
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
-
+        if (nextState.embedVisible !== this.state.embedVisible) {
+            return true;
+        }
         return false;
+    }
+
+    toggleEmbedVisibility() {
+        this.setState({embedVisible: !this.state.embedVisible});
     }
 
     getSlackAttachment() {
@@ -51,7 +63,7 @@ export default class PostBodyAdditionalContent extends React.Component {
         return null;
     }
 
-    render() {
+    generateEmbed() {
         if (this.props.post.type === 'slack_attachment') {
             return this.getSlackAttachment();
         }
@@ -96,6 +108,28 @@ export default class PostBodyAdditionalContent extends React.Component {
             }
         }
 
+        return null;
+    }
+
+    render() {
+        var generateEmbed = this.generateEmbed();
+        if (generateEmbed) {
+            return (
+                <div>
+                    <a className='post__embed-visibility'
+                        data-expanded={this.state.embedVisible}
+                        aria-label='Toggle Embed Visibility'
+                        onClick={this.toggleEmbedVisibility}
+                    >
+                    </a>
+                    <div className='post__embed-container'
+                        hidden={!this.state.embedVisible}
+                    >
+                    {generateEmbed}
+                    </div>
+                </div>
+                );
+        }
         return null;
     }
 }

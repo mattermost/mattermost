@@ -1058,6 +1058,7 @@
   "tutorial_tip.out": "Opt out of these tips.",
   "tutorial_tip.seen": "Seen this before? ",
   "upload_overlay.info": "Drop a file to upload it.",
+  "user.settings.advance.embed_toggle": "Show toggle for all embed previews",
   "user.settings.advance.embed_preview": "Show preview snippet of links below message",
   "user.settings.advance.enabled": "enabled",
   "user.settings.advance.feature": " Feature ",
