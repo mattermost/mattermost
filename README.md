@@ -42,7 +42,8 @@ Learn More:
 - **End User Help** - View our [guide for new users to Mattermost](http://docs.mattermost.com/help/getting-started/signing-in.html).  
 - **Install Guides** - See [step-by-step setup on Ubuntu, RHEL/Oracle Linux/CentOS, Debian, plus Docker for preview](http://docs.mattermost.com/install/requirements.html)
 - **Deployment Guide** - Review [Mattermost components and deployment on a single-machine or cluster](http://docs.mattermost.com/deployment/deployment.html).  
-- **Developer Guide** - Learn [how developers can extend Mattermost](http://docs.mattermost.com/developer/api.html).  
+- **Developer Guide** - Learn [how developers can extend Mattermost](http://docs.mattermost.com/developer/developer-setup.html).  
+- **API Options** - Underestand API options via [webhooks, slash commands, drivers and RESTful Web Service](http://docs.mattermost.com/developer/api.html).
 - **Localization Guide** - Learn [how Mattermost supports different languages](http://docs.mattermost.com/developer/localization.html).  
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!
