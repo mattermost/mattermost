@@ -28,16 +28,7 @@ function handleError(methodName, xhr, status, err) {
         msg = 'error in ' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
 
         if (xhr.status === 0) {
-            let errorCount = 1;
-            const oldError = ErrorStore.getLastError();
-            let connectError = 'There appears to be a problem with your internet connection';
-
-            if (oldError && oldError.connErrorCount) {
-                errorCount += oldError.connErrorCount;
-                connectError = 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.';
-            }
-
-            e = {message: connectError, connErrorCount: errorCount};
+            e = {message: 'There appears to be a problem with your internet connection'};
         } else {
             e = {message: 'We received an unexpected status code from the server (' + xhr.status + ')'};
         }
@@ -279,7 +270,7 @@ export function logout() {
     var currentTeamUrl = TeamStore.getCurrentTeamUrl();
     BrowserStore.signalLogout();
     BrowserStore.clear();
-    ErrorStore.storeLastError(null);
+    ErrorStore.clearLastError();
     window.location.href = currentTeamUrl + '/logout';
 }
 

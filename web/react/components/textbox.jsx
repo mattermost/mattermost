@@ -59,9 +59,9 @@ export default class Textbox extends React.Component {
     }
 
     onRecievedError() {
-        const errorState = ErrorStore.getLastError();
+        const errorCount = ErrorStore.getConnectionErrorCount();
 
-        if (errorState && errorState.connErrorCount > 0) {
+        if (errorCount > 0) {
             this.setState({connection: 'bad-connection'});
         } else {
             this.setState({connection: ''});
