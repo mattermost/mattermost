@@ -66,7 +66,7 @@ class SocketStoreClass extends EventEmitter {
                     console.log('websocket re-established connection'); //eslint-disable-line no-console
 
                     if (ErrorStore.getLastError()) {
-                        ErrorStore.storeLastError(null);
+                        ErrorStore.clearLastError();
                         ErrorStore.emitChange();
                     }
 
@@ -86,7 +86,11 @@ class SocketStoreClass extends EventEmitter {
 
                 this.failCount = this.failCount + 1;
 
-                ErrorStore.storeLastError({connErrorCount: this.failCount, message: this.translations.socketError});
+                if (this.failCount > 7) {
+                    ErrorStore.storeLastError({message: this.translations.socketError});
+                }
+
+                ErrorStore.setConnectionErrorCount(this.failCount);
                 ErrorStore.emitChange();
 
                 setTimeout(

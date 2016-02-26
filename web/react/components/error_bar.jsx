@@ -38,23 +38,7 @@ export default class ErrorBar extends React.Component {
             return false;
         }
 
-        if (s.connErrorCount && s.connErrorCount >= 1 && s.connErrorCount < 7) {
-            return false;
-        }
-
         return true;
-    }
-
-    isConnectionError(s) {
-        if (!s.connErrorCount || s.connErrorCount === 0) {
-            return false;
-        }
-
-        if (s.connErrorCount > 7) {
-            return true;
-        }
-
-        return false;
     }
 
     componentWillMount() {

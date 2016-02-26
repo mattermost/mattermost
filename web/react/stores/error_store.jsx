@@ -18,7 +18,6 @@ class ErrorStoreClass extends EventEmitter {
         this.emitChange = this.emitChange.bind(this);
         this.addChangeListener = this.addChangeListener.bind(this);
         this.removeChangeListener = this.removeChangeListener.bind(this);
-        this.handledError = this.handledError.bind(this);
         this.getLastError = this.getLastError.bind(this);
         this.storeLastError = this.storeLastError.bind(this);
     }
@@ -35,10 +34,6 @@ class ErrorStoreClass extends EventEmitter {
         this.removeListener(CHANGE_EVENT, callback);
     }
 
-    handledError() {
-        BrowserStore.removeItem('last_error');
-    }
-
     getLastError() {
         return BrowserStore.getItem('last_error');
     }
@@ -47,8 +42,23 @@ class ErrorStoreClass extends EventEmitter {
         BrowserStore.setItem('last_error', error);
     }
 
+    getConnectionErrorCount() {
+        var count = BrowserStore.getItem('last_error_conn');
+
+        if (count == null) {
+            return 0;
+        }
+
+        return count;
+    }
+
+    setConnectionErrorCount(count) {
+        BrowserStore.setItem('last_error_conn', count);
+    }
+
     clearLastError() {
         BrowserStore.removeItem('last_error');
+        BrowserStore.removeItem('last_error_conn');
     }
 }
 
