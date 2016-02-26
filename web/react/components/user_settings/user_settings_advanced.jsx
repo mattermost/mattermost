@@ -40,6 +40,10 @@ const holders = defineMessages({
         id: 'user.settings.advance.enabled',
         defaultMessage: 'enabled'
     },
+    MANUAL_READ_FLAG: {
+        id: 'user.settings.advance.manual_read_flag',
+        defaultMessage: 'Explicit mark as read instead of every click'
+    },
     MARKDOWN_PREVIEW: {
         id: 'user.settings.advance.markdown_preview',
         defaultMessage: 'Show markdown preview option in message input box'

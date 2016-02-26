@@ -140,7 +140,7 @@
                     text-decoration: underline;
                 }
                 &.unread-title {
-                    font-weight: 600;
+                    font-weight: 600 !important;
                 }
             }
             &.active {

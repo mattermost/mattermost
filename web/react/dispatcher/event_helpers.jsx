@@ -7,6 +7,7 @@ import PostStore from '../stores/post_store.jsx';
 import SearchStore from '../stores/search_store.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
@@ -14,7 +15,10 @@ import * as Utils from '../utils/utils.jsx';
 export function emitChannelClickEvent(channel) {
     AsyncClient.getChannels(true);
     AsyncClient.getChannelExtraInfo(channel.id);
-    AsyncClient.updateLastViewedAt(channel.id);
+    if (!Utils.isFeatureEnabled(PreReleaseFeatures.MANUAL_READ_FLAG)) {
+        AsyncClient.updateLastViewedAt(channel.id);
+    }
+
     AsyncClient.getPosts(channel.id);
 
     AppDispatcher.handleViewAction({

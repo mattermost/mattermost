@@ -472,6 +472,10 @@ export default {
     },
     FeatureTogglePrefix: 'feature_enabled_',
     PRE_RELEASE_FEATURES: {
+        MANUAL_READ_FLAG: {
+            label: 'manual_read_flag',
+            description: 'Explicit mark as read instead of every click'
+        },
         MARKDOWN_PREVIEW: {
             label: 'markdown_preview', // github issue: https://github.com/mattermost/platform/pull/1389
             description: 'Show markdown preview option in message input box'
