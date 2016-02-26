@@ -91,9 +91,11 @@ export default class RhsThread extends React.Component {
         });
     }
     onPostChange() {
-        const selected = PostStore.getSelectedPost();
-        const posts = PostStore.getSelectedPostThread();
-        this.setState({posts, selected});
+        if (this.mounted) {
+            const selected = PostStore.getSelectedPost();
+            const posts = PostStore.getSelectedPostThread();
+            this.setState({posts, selected});
+        }
     }
     onUserChange() {
         const profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
@@ -185,7 +187,7 @@ export default class RhsThread extends React.Component {
                         <div className='post-right-comments-container'>
                         {postsArray.map(function mapPosts(comPost) {
                             let p;
-                            if (UserStore.getCurrentId() === selected.user_id) {
+                            if (UserStore.getCurrentId() === comPost.user_id) {
                                 p = UserStore.getCurrentUser();
                             } else {
                                 p = profiles[comPost.user_id];
