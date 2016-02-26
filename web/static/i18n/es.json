@@ -17,6 +17,7 @@
   "activity_log.moreInfo": "Mas información",
   "activity_log.os": "Sistema Operativo: {os}",
   "activity_log.sessionId": "Sesión ID: {id}",
+  "activity_log.sessionsDescription": "Las sesiones son creadas cuando inicias sesión con tus credenciales en un nuevo navegador desde cualquier dispositivo. Las sesiones te permiten utilizar Mattermost por el período especificado por un Administrador del Sistema sin tener que iniciar sesión nuevamente. Si quieres cerrar tu sesión antes de ese tiempo, utiliza el botón de 'Cerrar Sesión' en la parte de abajo.",
   "activity_log_modal.android": "Android",
   "activity_log_modal.androidNativeApp": "Android App Nativa",
   "activity_log_modal.iphoneNativeApp": "iPhone App Nativa",
