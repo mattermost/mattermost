@@ -2,6 +2,8 @@
 // See License.txt for license information.
 
 import * as Client from '../../utils/client.jsx';
+import UserStore from '../../stores/user_store.jsx';
+import ConfirmModal from '../confirm_modal.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from '../../utils/constants.jsx';
@@ -47,6 +49,26 @@ const holders = defineMessages({
     EMBED_PREVIEW: {
         id: 'user.settings.advance.embed_preview',
         defaultMessage: 'Show preview snippet of links below message'
+    },
+    deactivateTitle: {
+        id: 'user.settings.advance.deactivateTitle',
+        defaultMessage: 'Deactivate Account'
+    },
+    deactivateDesc: {
+        id: 'user.settings.advance.deactivateDesc',
+        defaultMessage: 'This will deactivate your account and remove your ability to log into this team site. You will no longer receive email or mobile notifications if you have those enabled.'
+    },
+    deactivateButton: {
+        id: 'user.settings.advance.deactivateButton',
+        defaultMessage: 'Disable'
+    },
+    confirmDeactivateDesc: {
+        id: 'user.settings.advance.confirmDeactivateDesc',
+        defaultMessage: 'Are you sure you want to deactivate your account? This can only be reversed by your System Administrator.'
+    },
+    deactivateConfirmationButton: {
+        id: 'user.settings.advance.deactivateConfirmationButton',
+        defaultMessage: 'Yes, deactivate my account'
     }
 });
 
@@ -58,6 +80,9 @@ class AdvancedSettingsDisplay extends React.Component {
         this.updateSetting = this.updateSetting.bind(this);
         this.toggleFeature = this.toggleFeature.bind(this);
         this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
+        this.handleDeactivation = this.handleDeactivation.bind(this);
+        this.handleDeactivationCancel = this.handleDeactivationCancel.bind(this);
+        this.showConfirmation = this.showConfirmation.bind(this);
 
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeatures);
         const advancedSettings = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS);
@@ -82,7 +107,7 @@ class AdvancedSettingsDisplay extends React.Component {
             });
         });
 
-        this.state = {preReleaseFeatures: PreReleaseFeatures, settings, preReleaseFeaturesKeys, enabledFeatures};
+        this.state = {preReleaseFeatures: PreReleaseFeatures, settings, preReleaseFeaturesKeys, enabledFeatures, showModal: false};
     }
 
     updateSetting(setting, value) {
@@ -116,6 +141,26 @@ class AdvancedSettingsDisplay extends React.Component {
         this.handleSubmit(features);
     }
 
+    showConfirmation() {
+        this.setState({showModal: true});
+    }
+
+    handleDeactivation() {
+        const currentUser = UserStore.getCurrentUser();
+        Client.updateActive(currentUser.id, false,
+            () => {
+                window.location.href = '/';
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
+    }
+
+    handleDeactivationCancel() {
+        this.setState({showModal: false});
+    }
+
     handleSubmit(settings) {
         const preferences = [];
 
@@ -147,8 +192,13 @@ class AdvancedSettingsDisplay extends React.Component {
     render() {
         const serverError = this.state.serverError || null;
         const {formatMessage} = this.props.intl;
-        let ctrlSendSection;
 
+        let sectionDivider;
+        sectionDivider = (
+            <div className='divider-light'/>
+        );
+
+        let ctrlSendSection;
         if (this.props.activeSection === 'advancedCtrlSend') {
             const ctrlSendActive = [
                 this.state.settings.send_on_ctrl_enter === 'true',
@@ -218,12 +268,7 @@ class AdvancedSettingsDisplay extends React.Component {
         }
 
         let previewFeaturesSection;
-        let previewFeaturesSectionDivider;
         if (this.state.preReleaseFeaturesKeys.length > 0) {
-            previewFeaturesSectionDivider = (
-                <div className='divider-light'/>
-            );
-
             if (this.props.activeSection === 'advancedPreviewFeatures') {
                 const inputs = [];
 
@@ -280,6 +325,44 @@ class AdvancedSettingsDisplay extends React.Component {
             }
         }
 
+        let deactivateAccountSection;
+        if (this.props.activeSection === 'handleDeactivation') {
+            deactivateAccountSection = (
+                <SettingItemMax
+                    title={formatMessage(holders.deactivateTitle)}
+                    inputs={formatMessage(holders.deactivateDesc)}
+                    submit={this.showConfirmation}
+                    submitTextId={holders.deactivateButton.id}
+                    submitTextDefault={holders.deactivateButton.defaultMessage}
+                    server_error={serverError}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            deactivateAccountSection = (
+                <SettingItemMin
+                    title={formatMessage(holders.deactivateTitle)}
+                    describe={formatMessage(holders.deactivateDesc)}
+                    updateSection={() => this.props.updateSection('handleDeactivation')}
+                />
+            );
+        }
+
+        let makeConfirmationModal;
+        makeConfirmationModal = (
+            <ConfirmModal
+                show={this.state.showModal}
+                title={formatMessage(holders.deactivateTitle)}
+                message={[formatMessage(holders.confirmDeactivateDesc), serverError]}
+                confirm_button={formatMessage(holders.deactivateConfirmationButton)}
+                onConfirm={this.handleDeactivation}
+                onCancel={this.handleDeactivationCancel}
+            />
+        );
+
         return (
             <div>
                 <div className='modal-header'>
@@ -315,9 +398,12 @@ class AdvancedSettingsDisplay extends React.Component {
                     </h3>
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
-                    {previewFeaturesSectionDivider}
+                    {sectionDivider}
                     {previewFeaturesSection}
+                    {sectionDivider}
+                    {deactivateAccountSection}
                     <div className='divider-dark'/>
+                    {makeConfirmationModal}
                 </div>
             </div>
         );
