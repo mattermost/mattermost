@@ -446,9 +446,20 @@
         flex-shrink: 0;
     }
 
+
     .user-list-item__details {
         flex-grow: 1;
         flex-shrink: 1;
+        overflow:hidden;
+        text-overflow: ellipsis;
+
+        .more-name {
+            white-space: nowrap;
+        }
+
+        .more-description {
+            white-space: nowrap;
+        }
     }
 
     .user-list-item__actions {
