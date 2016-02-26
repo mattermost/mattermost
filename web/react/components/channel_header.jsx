@@ -194,15 +194,15 @@ export default class ChannelHeader extends React.Component {
             );
         }
 
-        const popoverListMembers = [];
+        let popoverListMembers;
         if (!isDirect) {
-            popoverListMembers.push(
+            popoverListMembers = (
                 <PopoverListMembers
                     members={this.state.users}
                     memberCount={this.state.userCount}
                     channelId={channel.id}
                 />
-               );
+            );
         }
 
         const dropdownContents = [];
