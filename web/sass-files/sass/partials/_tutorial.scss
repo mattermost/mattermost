@@ -32,7 +32,7 @@
     &.tip-overlay--sidebar {
         max-width: 75%;
         margin: 50px 0 0 10px;
-        min-height: 310px;
+        min-height: 330px;
         .tutorial__footer {
             position: absolute;
             width: 100%;
@@ -165,16 +165,15 @@
         .tutorial__steps {
             position: relative;
             max-width: 310px;
-            min-height: 350px;
+            min-height: 370px;
             margin-bottom: 50px;
             text-align: left;
             display: inline-block;
-            padding-bottom: 30px;
         }
-        .btn-primary {
-            position: absolute;
-            bottom: 0px;
-        }
+    }
+    .tutorial__footer {
+        position: absolute;
+        bottom: 0;
     }
     h1 {
         font-size: em(40px);
@@ -191,9 +190,7 @@
         bottom: 40px;
     }
     .tutorial-skip {
-        position: absolute;
-        bottom: 7px;
-        left: 80px;
+        margin-left: 13px;
     }
 }
 
