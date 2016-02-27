@@ -28,12 +28,13 @@ export default class TeamMembersModal extends React.Component {
     }
 
     onShow() {
-        if ($(window).width() > 768) {
+        // TODO ugh
+        /*if ($(window).width() > 768) {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
             $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
         } else {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
-        }
+        }*/
     }
 
     render() {
@@ -41,7 +42,7 @@ export default class TeamMembersModal extends React.Component {
 
         return (
             <Modal
-                dialogClassName='team-members-modal'
+                dialogClassName='more-modal'
                 show={this.props.show}
                 onHide={this.props.onHide}
             >
@@ -54,10 +55,8 @@ export default class TeamMembersModal extends React.Component {
                         }}
                     />
                 </Modal.Header>
-                <Modal.Body ref='modalBody'>
-                    <div className='team-member-list'>
-                        <MemberListTeam/>
-                    </div>
+                <Modal.Body>
+                    <MemberListTeam/>
                 </Modal.Body>
                 <Modal.Footer>
                     <button

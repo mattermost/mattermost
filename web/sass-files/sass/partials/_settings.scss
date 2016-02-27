@@ -399,10 +399,6 @@ h3 {
 }
 
 .member-role, .member-drop {
-    position:absolute;
-    right: 15px;
-    top: 8px;
-
     .fa {
         margin-right: 5px;
         @include opacity(0.5);
@@ -413,7 +409,6 @@ h3 {
         top: -50%;
         right: 110%;
     }
-
 }
 
 .member-invite {
