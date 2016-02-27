@@ -543,6 +543,8 @@
   "channel_loader.uploadedFile": " uploaded a file",
   "channel_loader.uploadedImage": " uploaded an image",
   "channel_loader.wrote": " wrote: ",
+  "channel_loader.connection_error": "There appears to be a problem with your internet connection.",
+  "channel_loader.unknown_error": "We received an unexpected status code from the server.",
   "channel_members_modal.addNew": " Add New Members",
   "channel_members_modal.close": "Close",
   "channel_memebers_modal.members": " Members",

@@ -69,10 +69,8 @@ class SocketStoreClass extends EventEmitter {
                 if (this.failCount > 0) {
                     console.log('websocket re-established connection'); //eslint-disable-line no-console
 
-                    if (ErrorStore.getLastError()) {
-                        ErrorStore.clearLastError();
-                        ErrorStore.emitChange();
-                    }
+                    ErrorStore.clearLastError();
+                    ErrorStore.emitChange();
 
                     AsyncClient.getChannels();
                     AsyncClient.getPosts(ChannelStore.getCurrentId());
