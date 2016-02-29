@@ -3037,11 +3037,11 @@
   },
   {
     "id": "store.sql_user.get_by_auth.app_error",
-    "translation": "No pudimos encontrar una cuenta existente que coincida con tu tipo de autenticación para este equipo. Es posible que necesites una invitación por aprte del dueño del equipo para unirte."
+    "translation": "No pudimos encontrar una cuenta existente que coincida con tu tipo de autenticación para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "No pudimos encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por aprte del dueño del equipo para unirte."
+    "translation": "No pudimos encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
   {
     "id": "store.sql_user.get_for_export.app_error",
