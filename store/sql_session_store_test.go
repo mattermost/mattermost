@@ -207,6 +207,7 @@ func TestSessionCount(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
+	s1.ExpiresAt = model.GetMillis() + 100000
 	Must(store.Session().Save(&s1))
 
 	if r1 := <-store.Session().AnalyticsSessionCount(""); r1.Err != nil {
