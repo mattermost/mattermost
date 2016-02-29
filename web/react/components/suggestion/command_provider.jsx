@@ -18,7 +18,7 @@ class CommandSuggestion extends React.Component {
                 onClick={onClick}
             >
                 <div className='command__title'>
-                    <string>{item.suggestion}</string>
+                    <string>{item.suggestion} {item.hint}</string>
                 </div>
                 <div className='command__desc'>
                     {item.description}
