@@ -1,32 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import Constants from '../utils/constants.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
 export default function UserListRow({user, actions}) {
-    const details = [];
+    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
 
-    const fullName = Utils.getFullName(user);
-    if (fullName) {
-        details.push(
-            <span
-                key={`${user.id}__full-name`}
-                className='full-name'
-            >
-                {fullName}
-            </span>
-        );
-    }
-
-    if (user.nickname) {
-        const separator = fullName ? ' - ' : '';
-        details.push(
-            <span
-                key={`${user.nickname}__nickname`}
-            >
-                {separator + user.nickname}
-            </span>
-        );
+    let name = user.username;
+    if (user.nickname && nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME) {
+        name = `${user.nickname} (${user.username})`;
+    } else if ((user.first_name || user.last_name) && (nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME || nameFormat === Constants.Preferences.DISPLAY_PREFER_FULL_NAME)) {
+        name = `${Utils.getFullName(user)} (${user.username})`;
     }
 
     const buttons = actions.map((Action, index) => {
@@ -53,10 +39,10 @@ export default function UserListRow({user, actions}) {
                     className='user-list-item__details'
                 >
                     <div className='more-name'>
-                        {user.username}
+                        {name}
                     </div>
                     <div className='more-description'>
-                        {details}
+                        {user.email}
                     </div>
                 </div>
                 <div

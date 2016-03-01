@@ -1082,9 +1082,9 @@ export function displayUsername(userId) {
 
     let username = '';
     if (user) {
-        if (nameFormat === 'nickname_full_name') {
+        if (nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME) {
             username = user.nickname || getFullName(user);
-        } else if (nameFormat === 'full_name') {
+        } else if (nameFormat === Constants.Preferences.DISPLAY_PREFER_FULL_NAME) {
             username = getFullName(user);
         }
         if (!username.trim().length) {
