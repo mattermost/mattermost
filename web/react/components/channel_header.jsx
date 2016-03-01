@@ -137,7 +137,6 @@ export default class ChannelHeader extends React.Component {
     }
     handleMarkReadClick(e) {
         e.preventDefault();
-        console.log('here');
         AsyncClient.updateLastViewedAt();
         ChannelStore.resetCounts(ChannelStore.getCurrentId());
         ChannelStore.emitChange();
