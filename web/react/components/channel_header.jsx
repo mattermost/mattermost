@@ -194,6 +194,17 @@ export default class ChannelHeader extends React.Component {
             );
         }
 
+        let popoverListMembers;
+        if (!isDirect) {
+            popoverListMembers = (
+                <PopoverListMembers
+                    members={this.state.users}
+                    memberCount={this.state.userCount}
+                    channelId={channel.id}
+                />
+            );
+        }
+
         const dropdownContents = [];
         if (isDirect) {
             dropdownContents.push(
@@ -442,11 +453,7 @@ export default class ChannelHeader extends React.Component {
                                 </div>
                             </th>
                             <th>
-                                <PopoverListMembers
-                                    members={this.state.users}
-                                    memberCount={this.state.userCount}
-                                    channelId={channel.id}
-                                />
+                                {popoverListMembers}
                             </th>
                             <th className='search-bar__container'><NavbarSearchBox/></th>
                             <th>
