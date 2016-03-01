@@ -39,6 +39,7 @@ type ServiceSettings struct {
 	EnableDeveloper                   *bool
 	EnableSecurityFixAlert            *bool
 	EnableInsecureOutgoingConnections *bool
+	AllowCorsFrom                     string
 	SessionLengthWebInDays            *int
 	SessionLengthMobileInDays         *int
 	SessionLengthSSOInDays            *int
