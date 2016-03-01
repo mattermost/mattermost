@@ -3,6 +3,8 @@
 
 import MemberListItem from './member_list_item.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class MemberList extends React.Component {
     render() {
         var members = [];
@@ -13,7 +15,14 @@ export default class MemberList extends React.Component {
 
         var message = null;
         if (members.length === 0) {
-            message = <tr><td>No users to add.</td></tr>;
+            message = (
+                <tr><td>
+                    <FormattedMessage
+                        id='member_list.noUsersAdd'
+                        defaultMessage='No users to add.'
+                    />
+                </td></tr>
+            );
         }
 
         return (
