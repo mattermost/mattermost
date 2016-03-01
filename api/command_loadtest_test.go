@@ -201,12 +201,12 @@ func TestLoadTestUrlCommands(t *testing.T) {
 		t.Fatal("/loadtest url for README.md should've executed")
 	}
 
-	command = "/loadtest url test-emoticons.md"
+	command = "/loadtest url test-emoticons1.md"
 	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
 		t.Fatal("/loadtest url for test-emoticons.md should've executed")
 	}
 
-	command = "/loadtest url test-emoticons"
+	command = "/loadtest url test-emoticons1"
 	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
 		t.Fatal("/loadtest url for test-emoticons should've executed")
 	}

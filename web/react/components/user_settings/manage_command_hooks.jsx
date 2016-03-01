@@ -420,7 +420,7 @@ export default class ManageCommandCmds extends React.Component {
             <div key='addCommandCmd'>
                 <FormattedHTMLMessage
                     id='user.settings.cmds.add_desc'
-                    defaultMessage='Create slash commands to send events to external integrations and receive a response. For example typing `/patient Joe Smith` could bring back search results from your internal health records management system for the name “Joe Smith”.  Please see <a href="http://docs.mattermost.com/developer/slash-commands.html">Slash commands documentation</a>  for detailed instructions.'
+                    defaultMessage='Create slash commands to send events to external integrations and receive a response. For example typing `/patient Joe Smith` could bring back search results from your internal health records management system for the name “Joe Smith”.  Please see <a href="http://docs.mattermost.com/developer/slash-commands.html">Slash commands documentation</a>  for detailed instructions. View all slash commands configured on this team below.'
                 />
                 <div><label className='control-label padding-top x2'>
                     <FormattedMessage

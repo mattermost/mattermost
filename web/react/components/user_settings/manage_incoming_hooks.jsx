@@ -183,7 +183,7 @@ export default class ManageIncomingHooks extends React.Component {
             <div key='addIncomingHook'>
                 <FormattedHTMLMessage
                     id='user.settings.hooks_in.description'
-                    defaultMessage='Create webhook URLs for use in external integrations. Please see <a href="http://docs.mattermost.com/developer/webhooks-incoming.html" target="_blank">incoming webhooks documentation</a> to learn more.'
+                    defaultMessage='Create webhook URLs for use in external integrations. Please see <a href="http://docs.mattermost.com/developer/webhooks-incoming.html" target="_blank">incoming webhooks documentation</a> to learn more. View all incoming webhooks configured on this team below.'
                 />
                 <div><label className='control-label padding-top x2'>
                     <FormattedMessage
