@@ -267,15 +267,8 @@ run: start-docker run-server run-client
 
 run-server: .prepare-go
 	@echo Starting go web server
-	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
 
-run-client: .prepare-jsx
-	mkdir -p web/static/js
-
-	@echo Starting react processo
-	cd web/react && npm start &
-
-	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
+    @if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
 		cp ./config/config.json ./config/config.json.bak; \
 		jq -s '.[0] * .[1]' ./config/config.json $(ENTERPRISE_DIR)/config/enterprise-config-additions.json > config.json.tmp; \
 		mv config.json.tmp ./config/config.json; \
@@ -284,6 +277,14 @@ run-client: .prepare-jsx
 	else \
 		sed -i'.bak' 's|_BUILD_ENTERPRISE_READY_|false|g' ./model/version.go; \
 	fi
+
+	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
+
+run-client: .prepare-jsx
+	mkdir -p web/static/js
+
+	@echo Starting react processo
+	cd web/react && npm start &
 
 	@echo Starting compass watch
 	cd web/sass-files && compass compile && compass watch &
