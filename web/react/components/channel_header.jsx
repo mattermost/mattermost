@@ -25,6 +25,7 @@ import * as TextFormatting from '../utils/text_formatting.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -42,6 +43,7 @@ export default class ChannelHeader extends React.Component {
         this.searchMentions = this.searchMentions.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
+        this.handleMarkReadClick = this.handleMarkReadClick.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -132,6 +134,12 @@ export default class ChannelHeader extends React.Component {
         this.setState({
             showRenameChannelModal: false
         });
+    }
+    handleMarkReadClick(e) {
+        e.preventDefault();
+        AsyncClient.updateLastViewedAt();
+        ChannelStore.resetCounts(ChannelStore.getCurrentId());
+        ChannelStore.emitChange();
     }
     render() {
         if (this.state.channel === null) {
@@ -411,6 +419,20 @@ export default class ChannelHeader extends React.Component {
             }
         }
 
+        var markRead = '';
+        if (Utils.isFeatureEnabled(PreReleaseFeatures.MANUAL_READ_FLAG)) {
+            markRead = (
+                <a
+                    href='#'
+                    className='dropdown-toggle navbar-markread theme'
+                    type='button'
+                    onClick={this.handleMarkReadClick}
+                >
+                    <span className='glyphicon glyphicon-check header-dropdown__icon'/>
+                </a>
+            );
+        }
+
         return (
             <div>
                 <table className='channel-header alt'>
@@ -437,6 +459,7 @@ export default class ChannelHeader extends React.Component {
                                         >
                                             {dropdownContents}
                                         </ul>
+                                        {markRead}
                                     </div>
                                     <OverlayTrigger
                                         trigger={'click'}

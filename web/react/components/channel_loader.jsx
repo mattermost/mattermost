@@ -15,6 +15,7 @@ import PreferenceStore from '../stores/preference_store.jsx';
 
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 import {intlShape, injectIntl, defineMessages} from 'mm-intl';
 
@@ -108,9 +109,13 @@ class ChannelLoader extends React.Component {
         window.isActive = true;
 
         $(window).on('focus', function windowFocus() {
-            AsyncClient.updateLastViewedAt();
-            ChannelStore.resetCounts(ChannelStore.getCurrentId());
+            if (!Utils.isFeatureEnabled(PreReleaseFeatures.MANUAL_READ_FLAG)) {
+                AsyncClient.updateLastViewedAt();
+                ChannelStore.resetCounts(ChannelStore.getCurrentId());
+            }
+
             ChannelStore.emitChange();
+
             window.isActive = true;
         });
 

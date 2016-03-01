@@ -8,6 +8,7 @@ var Utils;
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const NotificationPrefs = Constants.NotificationPrefs;
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 const CHANGE_EVENT = 'change';
 const LEAVE_EVENT = 'leave';
@@ -285,13 +286,21 @@ class ChannelStoreClass extends EventEmitter {
 var ChannelStore = new ChannelStoreClass();
 
 ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
+    if (!Utils) {
+        Utils = require('../utils/utils.jsx'); //eslint-disable-line global-require
+    }
+
     var action = payload.action;
     var currentId;
 
     switch (action.type) {
     case ActionTypes.CLICK_CHANNEL:
         ChannelStore.setCurrentId(action.id);
-        ChannelStore.resetCounts(action.id);
+
+        if (!Utils.isFeatureEnabled(PreReleaseFeatures.MANUAL_READ_FLAG)) {
+            ChannelStore.resetCounts(action.id);
+        }
+
         ChannelStore.setPostMode(ChannelStore.POST_MODE_CHANNEL);
         ChannelStore.emitChange();
         break;
@@ -322,7 +331,9 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         }
         currentId = ChannelStore.getCurrentId();
         if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
+            if (!Utils.isFeatureEnabled(PreReleaseFeatures.MANUAL_READ_FLAG)) {
+                ChannelStore.resetCounts(currentId);
+            }
         }
         ChannelStore.setUnreadCount(action.channel.id);
         ChannelStore.emitChange();

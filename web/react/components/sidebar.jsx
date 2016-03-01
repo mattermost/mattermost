@@ -17,6 +17,7 @@ import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
 
 import Constants from '../utils/constants.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
 
@@ -332,6 +333,10 @@ export default class Sidebar extends React.Component {
         let linkClass = '';
         if (channel.id === activeId) {
             linkClass = 'active';
+
+            if (!Utils.isFeatureEnabled(PreReleaseFeatures.MANUAL_READ_FLAG)) {
+                linkClass += ' unread-title';
+            }
         }
 
         let rowClass = 'sidebar-channel';

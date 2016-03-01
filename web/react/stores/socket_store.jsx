@@ -14,6 +14,7 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 const CHANGE_EVENT = 'change';
 
@@ -209,7 +210,9 @@ function handleNewPostEvent(msg, translations) {
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.channel_id) {
         if (window.isActive) {
-            AsyncClient.updateLastViewedAt();
+            if (!Utils.isFeatureEnabled(PreReleaseFeatures.MANUAL_READ_FLAG)) {
+                AsyncClient.updateLastViewedAt();
+            }
         } else {
             AsyncClient.getChannel(msg.channel_id);
         }
