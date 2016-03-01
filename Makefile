@@ -103,6 +103,21 @@ build-server:
 	$(GO) generate $(GOFLAGS) ./...
 	$(GO) install $(GOFLAGS) ./...
 
+	mkdir -p $(DIST_ROOT)/bin
+
+	@echo Building Linux binaries
+	env GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) github.com/mattermost/platform
+	mv platform $(DIST_ROOT)/bin/platform-linux-amd64
+
+	@echo Building OSX binaries
+	env GOOS=darwin GOARCH=amd64 $(GO) build $(GOFLAGS) github.com/mattermost/platform
+	mv platform $(DIST_ROOT)/bin/platform-osx-amd64
+
+	@echo Building Windows binaries
+	env GOOS=windows GOARCH=amd64 $(GO) build $(GOFLAGS) github.com/mattermost/platform
+	mv platform.exe  $(DIST_ROOT)/bin/platform-windows-amd64.exe
+
+
 package:
 	@ echo Packaging mattermost
 
@@ -155,6 +170,23 @@ package:
 	sudo mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json || echo 'nomv'
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
+
+	rm -Rf $(DIST_PATH)/bin/platform
+
+	@echo Building Linux distro
+	cp $(DIST_ROOT)/bin/platform-linux-amd64 $(DIST_PATH)/bin/platform
+	tar -C dist -czf $(DIST_PATH)-linux-amd64.tar.gz mattermost
+	rm -Rf $(DIST_PATH)/bin/platform
+
+	@echo Building OSX distro
+	cp $(DIST_ROOT)/bin/platform-osx-amd64 $(DIST_PATH)/bin/platform
+	tar -C dist -czf $(DIST_PATH)-osx-amd64.tar.gz mattermost
+	rm -Rf $(DIST_PATH)/bin/platform
+
+	@echo Building Windows distro
+	cp $(DIST_ROOT)/bin/platform-windows-amd64.exe $(DIST_PATH)/bin/platform.exe
+	tar -C dist -czf $(DIST_PATH)-windows-amd64-experimental.tar.gz mattermost
+	rm -Rf $(DIST_PATH)/bin/platform.exe
 
 build-client:
 	@echo Building mattermost web client
