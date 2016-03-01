@@ -89,7 +89,7 @@ export default class AtMentionProvider {
             for (const id of Object.keys(users)) {
                 const user = users[id];
 
-                if (user.username.startsWith(usernamePrefix)) {
+                if (user.username.startsWith(usernamePrefix) && user.delete_at <= 0) {
                     filtered.push(user);
                 }
 
