@@ -97,7 +97,7 @@
   "admin.email.testing": "Probando...",
   "admin.email.true": "verdadero",
   "admin.gitab.clientSecretDescription": "Utilizar este valor vía instrucciones suministradas anteriormente para iniciar sesión en GitLab.",
-  "admin.gitlab.EnableHtmlDesc": "<ol><li>Inicia sesión con tu cuenta en GitLab y dirigete a Applications -> Profile Settings.</li><li>Ingresa los URIs \"<tu-mattermost-url>/login/gitlab/complete\" (ejemplo: http://localhost:8065/login/gitlab/complete) y \"<tu-mattermost-url>/signup/gitlab/complete\". </li><li>Luego utiliza los valores de los campos \"Secret\" e \"Id\" de GitLab y completa las opciones que abajo se presentan.</li><li>Completa las dirección URLs abajo. </li></ol>",
+  "admin.gitlab.EnableHtmlDesc": "<ol><li>Inicia sesión con tu cuenta en GitLab y dirigete a Profile Settings -> Applications.</li><li>Ingresa los URIs \"<tu-mattermost-url>/login/gitlab/complete\" (ejemplo: http://localhost:8065/login/gitlab/complete) y \"<tu-mattermost-url>/signup/gitlab/complete\". </li><li>Luego utiliza los valores de los campos \"Secret\" e \"Id\" de GitLab y completa las opciones que abajo se presentan.</li><li>Completa las dirección URLs abajo. </li></ol>",
   "admin.gitlab.authDescription": "Ingresar <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize). Asegurate que si utilizas HTTPS o HTTPS tus URLS sean correctas",
   "admin.gitlab.authExample": "Ej \"\"",
   "admin.gitlab.authTitle": "URL para autentificación:",

@@ -167,7 +167,7 @@ class GitLabSettings extends React.Component {
                             <div className='help-text'>
                                 <FormattedHTMLMessage
                                     id='admin.gitlab.EnableHtmlDesc'
-                                    defaultMessage='<ol><li>Log in to your GitLab account and go to Applications -> Profile Settings.</li><li>Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". </li><li>Then use "Secret" and "Id" fields from GitLab to complete the options below.</li><li>Complete the Endpoint URLs below. </li></ol>'
+                                    defaultMessage='<ol><li>Log in to your GitLab account and go to Profile Settings -> Applications.</li><li>Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". </li><li>Then use "Secret" and "Id" fields from GitLab to complete the options below.</li><li>Complete the Endpoint URLs below. </li></ol>'
                                 />
                             </div>
                         </div>
