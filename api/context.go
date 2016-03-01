@@ -166,6 +166,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
 
+		if len(utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
+			w.Header().Set("Access-Control-Allow-Origin", utils.Cfg.ServiceSettings.AllowCorsFrom)
+		}
+
 		if r.Method == "GET" {
 			w.Header().Set("Expires", "0")
 		}
