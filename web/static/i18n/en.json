@@ -753,6 +753,7 @@
   "member_item.makeAdmin": "Make Admin",
   "member_item.member": "Member",
   "member_item.removeMember": "Remove Member",
+  "member_list.noUsersAdd": "No users to add.",
   "member_team_item.confirmDemoteDescription": "If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you'll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.",
   "member_team_item.confirmDemoteRoleTitle": "Confirm demotion from System Admin role",
   "member_team_item.confirmDemotion": "Confirm Demotion",
