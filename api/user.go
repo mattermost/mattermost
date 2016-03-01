@@ -53,6 +53,8 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
 	sr.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
 	sr.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
+	sr.Handle("/generate_mfa_qr", ApiUserRequired(generateMfaQrCode)).Methods("GET")
+	sr.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
 
 	sr.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 
@@ -399,13 +401,19 @@ func SendVerifyEmailAndForget(c *Context, userId, userEmail, teamName, teamDispl
 	}()
 }
 
-func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, password, deviceId string) *model.User {
+func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, password, mfaToken, deviceId string) *model.User {
 	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
 		c.Err = result.Err
 		return nil
 	} else {
 		user := result.Data.(*model.User)
-		if checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password) {
+
+		doLogin := checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password)
+		if doLogin && user.MfaActive {
+			doLogin = checkUserMfa(c, user, mfaToken)
+		}
+
+		if doLogin {
 			Login(c, w, r, user, deviceId)
 			return user
 		}
@@ -414,7 +422,7 @@ func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, passw
 	return nil
 }
 
-func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, deviceId string) *model.User {
+func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, mfaToken, deviceId string) *model.User {
 	var team *model.Team
 
 	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
@@ -437,7 +445,13 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 			return nil
 		}
 
-		if checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password) {
+		doLogin := checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password)
+		if doLogin && user.MfaActive {
+			doLogin = checkUserMfa(c, user, mfaToken)
+		}
+
+		if doLogin {
+			l4g.Debug("LOGGING IN")
 			Login(c, w, r, user, deviceId)
 			return user
 		}
@@ -446,7 +460,7 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 	return nil
 }
 
-func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, username, name, password, deviceId string) *model.User {
+func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, username, name, password, mfaToken, deviceId string) *model.User {
 	var team *model.Team
 
 	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
@@ -469,7 +483,12 @@ func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, usernam
 			return nil
 		}
 
-		if checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password) {
+		doLogin := checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password)
+		if doLogin && user.MfaActive {
+			doLogin = checkUserMfa(c, user, mfaToken)
+		}
+
+		if doLogin {
 			Login(c, w, r, user, deviceId)
 			return user
 		}
@@ -518,7 +537,6 @@ func checkUserLoginAttempts(c *Context, user *model.User) bool {
 }
 
 func checkUserPassword(c *Context, user *model.User, password string) bool {
-
 	if !model.ComparePassword(user.Password, password) {
 		c.LogAuditWithUserId(user.Id, "fail")
 		c.Err = model.NewLocAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id)
@@ -537,6 +555,22 @@ func checkUserPassword(c *Context, user *model.User, password string) bool {
 		return true
 	}
 
+}
+
+func checkUserMfa(c *Context, user *model.User, token string) bool {
+	mfaInterface := einterfaces.GetMfaInterface()
+	if mfaInterface == nil {
+		c.Err = model.NewLocAppError("checkUserMfa", "api.user.check_user_mfa.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return false
+	}
+
+	if ok, err := mfaInterface.ValidateToken(user.MfaSecret, token); err != nil {
+		c.Err = err
+		return false
+	} else {
+		return ok
+	}
 }
 
 // User MUST be validated before calling Login
@@ -662,11 +696,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var user *model.User
 	if len(props["id"]) != 0 {
-		user = LoginById(c, w, r, props["id"], props["password"], props["device_id"])
+		user = LoginById(c, w, r, props["id"], props["password"], props["token"], props["device_id"])
 	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
-		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
+		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["token"], props["device_id"])
 	} else if len(props["username"]) != 0 && len(props["name"]) != 0 {
-		user = LoginByUsername(c, w, r, props["username"], props["name"], props["password"], props["device_id"])
+		user = LoginByUsername(c, w, r, props["username"], props["name"], props["password"], props["token"], props["device_id"])
 	} else {
 		c.Err = model.NewLocAppError("login", "api.user.login.not_provided.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
@@ -2231,4 +2265,91 @@ func sendSignInChangeEmailAndForget(c *Context, email, teamDisplayName, teamURL,
 		}
 
 	}()
+}
+
+func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
+	uchan := Srv.Store.User().Get(c.Session.UserId)
+	tchan := Srv.Store.Team().Get(c.Session.TeamId)
+
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.generate_mfa_qr.get_user.app_error", nil, "")
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	var team *model.Team
+	if result := <-tchan; result.Err != nil {
+		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.generate_mfa_qr.get_team.app_error", nil, "")
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	mfaInterface := einterfaces.GetMfaInterface()
+	if mfaInterface == nil {
+		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	img, err := mfaInterface.GenerateQrCode(team, user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
+	w.Write(img)
+}
+
+func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+
+	activate, ok := props["activate"].(bool)
+	if !ok {
+		c.SetInvalidParam("updateMfa", "activate")
+		return
+	}
+
+	token := ""
+	if activate {
+		token = props["token"].(string)
+		if len(token) == 0 {
+			c.SetInvalidParam("updateMfa", "token")
+			return
+		}
+	}
+
+	mfaInterface := einterfaces.GetMfaInterface()
+	if mfaInterface == nil {
+		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.update_mfa.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if activate {
+		var user *model.User
+		if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+			c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.update_mfa.get_user.app_error", nil, "")
+			return
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		if err := mfaInterface.Activate(user, token); err != nil {
+			c.Err = err
+			return
+		}
+	} else {
+		if err := mfaInterface.Deactivate(c.Session.UserId); err != nil {
+			c.Err = err
+			return
+		}
+	}
+
+	rdata := map[string]string{}
+	rdata["status"] = "ok"
+	w.Write([]byte(model.MapToJson(rdata)))
 }

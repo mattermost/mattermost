@@ -1,9 +1,6 @@
 {
 	"ImportPath": "github.com/mattermost/platform",
-	"GoVersion": "go1.5.1",
-	"Packages": [
-		"./..."
-	],
+	"GoVersion": "go1.4",
 	"Deps": [
 		{
 			"ImportPath": "github.com/alecthomas/log4go",
@@ -17,6 +14,10 @@
 		{
 			"ImportPath": "github.com/cloudfoundry/jibber_jabber",
 			"Rev": "bcc4c8345a21301bf47c032ff42dd1aae2fe3027"
+		},
+		{
+			"ImportPath": "github.com/dgryski/dgoogauth",
+			"Rev": "67642ac6f9144f6610279e37e7be9af13f1cd668"
 		},
 		{
 			"ImportPath": "github.com/disintegration/imaging",
@@ -59,16 +60,6 @@
 			"Rev": "f29eb116deb328d02ee5c573f02d442ca67d5532"
 		},
 		{
-			"ImportPath": "github.com/golang/freetype/raster",
-			"Comment": "release-120-gf29eb11",
-			"Rev": "f29eb116deb328d02ee5c573f02d442ca67d5532"
-		},
-		{
-			"ImportPath": "github.com/golang/freetype/truetype",
-			"Comment": "release-120-gf29eb11",
-			"Rev": "f29eb116deb328d02ee5c573f02d442ca67d5532"
-		},
-		{
 			"ImportPath": "github.com/golang/groupcache/lru",
 			"Rev": "604ed5785183e59ae2789449d89e73f3a2a77987"
 		},
@@ -85,12 +76,15 @@
 			"Rev": "3986be78bf859e01f01af631ad76da5b269d270c"
 		},
 		{
-			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-63-g11fc39a",
-			"Rev": "11fc39a580a008f1f39bb3d11d984fb34ed778d9"
+			"ImportPath": "github.com/jwilander/rsc/gf256",
+			"Rev": "ff08dc4158452d81c5c15bd511fe94ce55832157"
 		},
 		{
-			"ImportPath": "github.com/lib/pq/oid",
+			"ImportPath": "github.com/jwilander/rsc/qr",
+			"Rev": "ff08dc4158452d81c5c15bd511fe94ce55832157"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
 			"Comment": "go1.0-cutoff-63-g11fc39a",
 			"Rev": "11fc39a580a008f1f39bb3d11d984fb34ed778d9"
 		},
@@ -101,21 +95,6 @@
 		},
 		{
 			"ImportPath": "github.com/nicksnyder/go-i18n/i18n",
-			"Comment": "v1.4.0",
-			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
-		},
-		{
-			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/bundle",
-			"Comment": "v1.4.0",
-			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
-		},
-		{
-			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/language",
-			"Comment": "v1.4.0",
-			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
-		},
-		{
-			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/translation",
 			"Comment": "v1.4.0",
 			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
 		},
@@ -160,10 +139,6 @@
 			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
 		},
 		{
-			"ImportPath": "golang.org/x/image/tiff/lzw",
-			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
-		},
-		{
 			"ImportPath": "gopkg.in/asn1-ber.v1",
 			"Comment": "v1.1",
 			"Rev": "4e86f4367175e39f69d9358a5f17b4dda270378d"
@@ -175,11 +150,6 @@
 		},
 		{
 			"ImportPath": "gopkg.in/throttled/throttled.v1",
-			"Comment": "v1.0.0",
-			"Rev": "74e328a1af88a9b54f9eca1397d74ad98572a6df"
-		},
-		{
-			"ImportPath": "gopkg.in/throttled/throttled.v1/store",
 			"Comment": "v1.0.0",
 			"Rev": "74e328a1af88a9b54f9eca1397d74ad98572a6df"
 		},

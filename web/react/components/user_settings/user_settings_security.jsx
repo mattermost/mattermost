@@ -41,6 +41,18 @@ const holders = defineMessages({
         id: 'user.settings.security.method',
         defaultMessage: 'Sign-in Method'
     },
+    mfa: {
+        id: 'user.settings.mfa.title',
+        defaultMessage: 'Multi-factor Authentication'
+    },
+    active: {
+        id: 'user.settings.security.active',
+        defaultMessage: 'Active'
+    },
+    inactive: {
+        id: 'user.settings.security.inactive',
+        defaultMessage: 'Inactive'
+    },
     close: {
         id: 'user.settings.security.close',
         defaultMessage: 'Close'
@@ -52,12 +64,16 @@ class SecurityTab extends React.Component {
         super(props);
 
         this.submitPassword = this.submitPassword.bind(this);
+        this.activateMfa = this.activateMfa.bind(this);
+        this.deactivateMfa = this.deactivateMfa.bind(this);
         this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
         this.updateNewPassword = this.updateNewPassword.bind(this);
         this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
+        this.updateMfaToken = this.updateMfaToken.bind(this);
         this.getDefaultState = this.getDefaultState.bind(this);
         this.createPasswordSection = this.createPasswordSection.bind(this);
         this.createSignInSection = this.createSignInSection.bind(this);
+        this.showQrCode = this.showQrCode.bind(this);
 
         this.state = this.getDefaultState();
     }
@@ -66,7 +82,9 @@ class SecurityTab extends React.Component {
             currentPassword: '',
             newPassword: '',
             confirmPassword: '',
-            authService: this.props.user.auth_service
+            authService: this.props.user.auth_service,
+            mfaShowQr: false,
+            mfaToken: ''
         };
     }
     submitPassword(e) {
@@ -117,6 +135,51 @@ class SecurityTab extends React.Component {
             }
         );
     }
+    activateMfa() {
+        const data = {};
+        data.activate = true;
+        data.token = this.state.mfaToken;
+
+        Client.updateMfa(data,
+            () => {
+                this.props.updateSection('');
+                AsyncClient.getMe();
+                this.setState(this.getDefaultState());
+            },
+            (err) => {
+                const state = this.getDefaultState();
+                if (err.message) {
+                    state.serverError = err.message;
+                } else {
+                    state.serverError = err;
+                }
+                state.mfaError = '';
+                this.setState(state);
+            }
+        );
+    }
+    deactivateMfa() {
+        const data = {};
+        data.activate = false;
+
+        Client.updateMfa(data,
+            () => {
+                this.props.updateSection('');
+                AsyncClient.getMe();
+                this.setState(this.getDefaultState());
+            },
+            (err) => {
+                const state = this.getDefaultState();
+                if (err.message) {
+                    state.serverError = err.message;
+                } else {
+                    state.serverError = err;
+                }
+                state.mfaError = '';
+                this.setState(state);
+            }
+        );
+    }
     updateCurrentPassword(e) {
         this.setState({currentPassword: e.target.value});
     }
@@ -125,6 +188,164 @@ class SecurityTab extends React.Component {
     }
     updateConfirmPassword(e) {
         this.setState({confirmPassword: e.target.value});
+    }
+    updateMfaToken(e) {
+        this.setState({mfaToken: e.target.value});
+    }
+    showQrCode(e) {
+        e.preventDefault();
+        this.setState({mfaShowQr: true});
+    }
+    createMfaSection() {
+        let updateSectionStatus;
+        let submit;
+        const {formatMessage} = this.props.intl;
+
+        if (this.props.activeSection === 'mfa') {
+            let content;
+            let extraInfo;
+            if (this.props.user.mfa_active) {
+                content = (
+                    <div key='mfaQrCode'>
+                        <a
+                            className='btn btn-primary'
+                            href='#'
+                            onClick={this.deactivateMfa}
+                        >
+                            <FormattedMessage
+                                id='user.settings.mfa.remove'
+                                defaultMessage='Remove MFA from your account'
+                            />
+                        </a>
+                        <br/>
+                    </div>
+                );
+
+                extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.mfa.removeHelp'
+                            defaultMessage='Removing multi-factor authentication will make your account more vulnerable to attacks.'
+                        />
+                    </span>
+                );
+            } else if (this.state.mfaShowQr) {
+                content = (
+                    <div key='mfaButton'>
+                        <label className='col-sm-5 control-label'>
+                            <FormattedMessage
+                                id='user.settings.mfa.qrCode'
+                                defaultMessage='QR Code'
+                            />
+                        </label>
+                        <div className='col-sm-7'>
+                            <img
+                                className='qr-code-img'
+                                src={'/api/v1/users/generate_mfa_qr?time=' + this.props.user.update_at}
+                            />
+                        </div>
+                        <br/>
+                        <label className='col-sm-5 control-label'>
+                            <FormattedMessage
+                                id='user.settings.mfa.enterToken'
+                                defaultMessage='Token'
+                            />
+                        </label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='text'
+                                onChange={this.updateMfaToken}
+                                value={this.state.mfaToken}
+                            />
+                        </div>
+                    </div>
+                );
+
+                extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.mfa.addHelp'
+                            defaultMessage='Please scan the QR code with the Google Authenticator app on your smartphone and fill in the token with one provided by the app.'
+                        />
+                    </span>
+                );
+
+                submit = this.activateMfa;
+            } else {
+                content = (
+                    <div key='mfaQrCode'>
+                        <a
+                            className='btn btn-primary'
+                            href='#'
+                            onClick={this.showQrCode}
+                        >
+                            <FormattedMessage
+                                id='user.settings.mfa.add'
+                                defaultMessage='Add MFA to your account'
+                            />
+                        </a>
+                        <br/>
+                    </div>
+                );
+
+                extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.mfa.addHelp'
+                            defaultMessage='To add multi-factor authentication to your account you must have a smartphone with Google Authenticator installed.'
+                        />
+                    </span>
+                );
+            }
+
+            const inputs = [];
+            inputs.push(
+                <div
+                    key='mfaSetting'
+                    className='form-group'
+                >
+                    {content}
+                </div>
+            );
+
+            updateSectionStatus = function resetSection(e) {
+                this.props.updateSection('');
+                this.setState({mfaToken: '', mfaShowQr: false, mfaError: null});
+                e.preventDefault();
+            }.bind(this);
+
+            return (
+                <SettingItemMax
+                    title={formatMessage(holders.mfa)}
+                    inputs={inputs}
+                    extraInfo={extraInfo}
+                    submit={submit}
+                    server_error={this.state.serverError}
+                    client_error={this.state.mfaError}
+                    updateSection={updateSectionStatus}
+                />
+            );
+        }
+
+        let describe;
+        if (this.props.user.mfa_active) {
+            describe = formatMessage(holders.active);
+        } else {
+            describe = formatMessage(holders.inactive);
+        }
+
+        updateSectionStatus = function updateSection() {
+            this.props.updateSection('mfa');
+        }.bind(this);
+
+        return (
+            <SettingItemMin
+                title={formatMessage(holders.mfa)}
+                describe={describe}
+                updateSection={updateSectionStatus}
+            />
+        );
     }
     createPasswordSection() {
         let updateSectionStatus;
@@ -242,7 +463,6 @@ class SecurityTab extends React.Component {
         const user = this.props.user;
 
         if (this.props.activeSection === 'signin') {
-            const inputs = [];
             const teamName = TeamStore.getCurrent().name;
 
             let emailOption;
@@ -299,6 +519,7 @@ class SecurityTab extends React.Component {
                 );
             }
 
+            const inputs = [];
             inputs.push(
                 <div key='userSignInOption'>
                    {emailOption}
@@ -363,15 +584,17 @@ class SecurityTab extends React.Component {
     }
     render() {
         const passwordSection = this.createPasswordSection();
-        let signInSection;
 
         let numMethods = 0;
         numMethods = global.window.mm_config.EnableSignUpWithGitLab === 'true' ? numMethods + 1 : numMethods;
         numMethods = global.window.mm_config.EnableSignUpWithGoogle === 'true' ? numMethods + 1 : numMethods;
 
-        if (global.window.mm_config.EnableSignUpWithEmail && numMethods > 0) {
+        let signInSection;
+        if (global.window.mm_config.EnableSignUpWithEmail === 'true' && numMethods > 0) {
             signInSection = this.createSignInSection();
         }
+
+        let mfaSection = this.createMfaSection();
 
         return (
             <div>
@@ -408,6 +631,8 @@ class SecurityTab extends React.Component {
                     </h3>
                     <div className='divider-dark first'/>
                     {passwordSection}
+                    <div className='divider-light'/>
+                    {mfaSection}
                     <div className='divider-light'/>
                     {signInSection}
                     <div className='divider-dark'/>

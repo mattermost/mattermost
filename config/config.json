@@ -18,7 +18,8 @@
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,
-        "SessionCacheInMinutes": 10
+        "SessionCacheInMinutes": 10,
+        "GoogleAuthSecret": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QVg"
     },
     "TeamSettings": {
         "SiteName": "Mattermost",

@@ -28,7 +28,9 @@ import (
 	_ "github.com/mattermost/platform/model/gitlab"
 
 	// Enterprise Deps
+	_ "github.com/dgryski/dgoogauth"
 	_ "github.com/go-ldap/ldap"
+	_ "github.com/jwilander/rsc/qr"
 )
 
 //ENTERPRISE_IMPORTS
