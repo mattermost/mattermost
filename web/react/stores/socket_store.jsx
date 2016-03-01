@@ -58,6 +58,10 @@ class SocketStoreClass extends EventEmitter {
 
             if (this.failCount === 0) {
                 console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
+                if (ErrorStore.getConnectionErrorCount() > 0) {
+                    ErrorStore.setConnectionErrorCount(0);
+                    ErrorStore.emitChange();
+                }
             }
             conn = new WebSocket(connUrl);
 
@@ -65,10 +69,8 @@ class SocketStoreClass extends EventEmitter {
                 if (this.failCount > 0) {
                     console.log('websocket re-established connection'); //eslint-disable-line no-console
 
-                    if (ErrorStore.getLastError()) {
-                        ErrorStore.storeLastError(null);
-                        ErrorStore.emitChange();
-                    }
+                    ErrorStore.clearLastError();
+                    ErrorStore.emitChange();
 
                     AsyncClient.getChannels();
                     AsyncClient.getPosts(ChannelStore.getCurrentId());
@@ -86,7 +88,11 @@ class SocketStoreClass extends EventEmitter {
 
                 this.failCount = this.failCount + 1;
 
-                ErrorStore.storeLastError({connErrorCount: this.failCount, message: this.translations.socketError});
+                if (this.failCount > 7) {
+                    ErrorStore.storeLastError({message: this.translations.socketError});
+                }
+
+                ErrorStore.setConnectionErrorCount(this.failCount);
                 ErrorStore.emitChange();
 
                 setTimeout(

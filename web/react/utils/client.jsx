@@ -4,6 +4,15 @@ import BrowserStore from '../stores/browser_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import ErrorStore from '../stores/error_store.jsx';
 
+let translations = {
+    connectionError: 'There appears to be a problem with your internet connection.',
+    unknownError: 'We received an unexpected status code from the server.'
+};
+
+export function setTranslations(messages) {
+    translations = messages;
+}
+
 export function track(category, action, label, property, value) {
     global.window.analytics.track(action, {category, label, property, value});
 }
@@ -23,23 +32,14 @@ function handleError(methodName, xhr, status, err) {
     var msg = '';
 
     if (e) {
-        msg = 'error in ' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
+        msg = 'method=' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
     } else {
-        msg = 'error in ' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
+        msg = 'method=' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
 
         if (xhr.status === 0) {
-            let errorCount = 1;
-            const oldError = ErrorStore.getLastError();
-            let connectError = 'There appears to be a problem with your internet connection';
-
-            if (oldError && oldError.connErrorCount) {
-                errorCount += oldError.connErrorCount;
-                connectError = 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.';
-            }
-
-            e = {message: connectError, connErrorCount: errorCount};
+            e = {message: translations.connectionError};
         } else {
-            e = {message: 'We received an unexpected status code from the server (' + xhr.status + ')'};
+            e = {message: translations.unknownError + ' (' + xhr.status + ')'};
         }
     }
 
@@ -279,7 +279,7 @@ export function logout() {
     var currentTeamUrl = TeamStore.getCurrentTeamUrl();
     BrowserStore.signalLogout();
     BrowserStore.clear();
-    ErrorStore.storeLastError(null);
+    ErrorStore.clearLastError();
     window.location.href = currentTeamUrl + '/logout';
 }
 

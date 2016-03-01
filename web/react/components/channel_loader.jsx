@@ -6,6 +6,7 @@
     AsyncClient with requests. */
 
 import * as AsyncClient from '../utils/async_client.jsx';
+import * as Client from '../utils/client.jsx';
 import SocketStore from '../stores/socket_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import PostStore from '../stores/post_store.jsx';
@@ -45,6 +46,14 @@ const holders = defineMessages({
     wrote: {
         id: 'channel_loader.wrote',
         defaultMessage: ' wrote: '
+    },
+    connectionError: {
+        id: 'channel_loader.connection_error',
+        defaultMessage: 'There appears to be a problem with your internet connection.'
+    },
+    unknownError: {
+        id: 'channel_loader.unknown_error',
+        defaultMessage: 'We received an unexpected status code from the server.'
     }
 });
 
@@ -65,6 +74,11 @@ class ChannelLoader extends React.Component {
             uploadedFile: formatMessage(holders.uploadedFile),
             something: formatMessage(holders.something),
             wrote: formatMessage(holders.wrote)
+        });
+
+        Client.setTranslations({
+            connectionError: formatMessage(holders.connectionError),
+            unknownError: formatMessage(holders.unknownError)
         });
 
         this.state = {};
