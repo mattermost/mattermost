@@ -787,11 +787,13 @@ export function getSuggestedCommands(command, suggestionId, component) {
             data.forEach((cmd) => {
                 if (('/' + cmd.trigger).indexOf(command) === 0) {
                     let s = '/' + cmd.trigger;
+                    let hint = '';
                     if (cmd.auto_complete_hint && cmd.auto_complete_hint.length !== 0) {
-                        s += ' ' + cmd.auto_complete_hint;
+                        hint = cmd.auto_complete_hint;
                     }
                     matches.push({
                         suggestion: s,
+                        hint,
                         description: cmd.auto_complete_desc
                     });
                 }
