@@ -668,7 +668,6 @@
   "file_upload.pasted": "Image Pasted at ",
   "filtered_user_list.count": "{count, number} {count, plural, one {member} other {members}}",
   "filtered_user_list.countTotal": "{count, number} {count, plural, one {member} other {members}} of {total} Total",
-  "filtered_user_list.member": "Member",
   "filtered_user_list.search": "Search members",
   "find_team.email": "Email",
   "find_team.findDescription": "An email was sent with links to any teams to which you are a member.",

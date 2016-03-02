@@ -141,7 +141,7 @@ export default class ChannelMembersModal extends React.Component {
                 onClick={this.handleRemove.bind(this, user)}
             >
                 <FormattedMessage
-                    id='channel_members_modal.remove'
+                    id='channel_members_modal.removeMember'
                     defaultMessage='Remove Member'
                 />
             </button>

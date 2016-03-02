@@ -668,7 +668,6 @@
   "file_upload.pasted": "Imagen Pegada el ",
   "filtered_user_list.count": "{count, number} {count, plural, one {Miembro} other {Miembros}}",
   "filtered_user_list.countTotal": "{count, number} {count, plural, one {Miembro} other {Miembros}} de {total} Total",
-  "filtered_user_list.member": "Miembro",
   "filtered_user_list.search": "Buscar miembros",
   "find_team.email": "Correo electrónico",
   "find_team.findDescription": "Enviamos un correo electrónico con los equipos a los que perteneces.",
