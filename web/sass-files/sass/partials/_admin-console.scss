@@ -235,4 +235,12 @@
             }
         }
     }
+
+    .member-list-holder {
+        .member-role, .member-drop {
+            position: absolute;
+            right: 15px;
+            top: 8px;
+        }
+    }
 }
