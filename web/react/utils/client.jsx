@@ -435,23 +435,16 @@ export function getConfig(success, error) {
     });
 }
 
-export function getTeamAnalytics(teamId, name, success, error) {
-    $.ajax({
-        url: '/api/v1/admin/analytics/' + teamId + '/' + name,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('getTeamAnalytics', xhr, status, err);
-            error(e);
-        }
-    });
-}
+export function getAnalytics(name, teamId, success, error) {
+    let url = '/api/v1/admin/analytics/';
+    if (teamId == null) {
+        url += name;
+    } else {
+        url += teamId + '/' + name;
+    }
 
-export function getSystemAnalytics(name, success, error) {
     $.ajax({
-        url: '/api/v1/admin/analytics/' + name,
+        url,
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',

@@ -2676,6 +2676,10 @@
     "translation": "We couldn't update the command"
   },
   {
+    "id": "store.sql_command.analytics_command_count.app_error",
+    "translation": "We couldn't count the commands"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "We encountered an error getting the license"
   },
@@ -2948,6 +2952,10 @@
     "translation": "We couldn't update the roles"
   },
   {
+    "id": "store.sql_session.analytics_session_count.app_error",
+    "translation": "We couldn't count the sessions"
+  },
+  {
     "id": "store.sql_system.get.app_error",
     "translation": "We encountered an error finding the system properties"
   },
@@ -3026,6 +3034,10 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "We couldn't update the team name"
+  },
+  {
+    "id": "store.sql_team.analytics_team_count.app_error",
+    "translation": "We couldn't count the teams"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",

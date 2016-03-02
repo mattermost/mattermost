@@ -39,7 +39,7 @@ export default class DoughnutChart extends React.Component {
         if (this.props.data == null) {
             content = (
                 <FormattedMessage
-                    id='admin.analytics.loading'
+                    id='analytics.chart.loading'
                     defaultMessage='Loading...'
                 />
             );
@@ -69,7 +69,7 @@ export default class DoughnutChart extends React.Component {
 }
 
 DoughnutChart.propTypes = {
-    title: React.PropTypes.string,
+    title: React.PropTypes.node,
     width: React.PropTypes.string,
     height: React.PropTypes.string,
     data: React.PropTypes.array,

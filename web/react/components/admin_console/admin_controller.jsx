@@ -21,10 +21,10 @@ import TeamSettingsTab from './team_settings.jsx';
 import ServiceSettingsTab from './service_settings.jsx';
 import LegalAndSupportSettingsTab from './legal_and_support_settings.jsx';
 import TeamUsersTab from './team_users.jsx';
-import TeamAnalyticsTab from './team_analytics.jsx';
+import TeamAnalyticsTab from '../analytics/team_analytics.jsx';
 import LdapSettingsTab from './ldap_settings.jsx';
 import LicenseSettingsTab from './license_settings.jsx';
-import SystemAnalyticsTab from './system_analytics.jsx';
+import SystemAnalyticsTab from '../analytics/system_analytics.jsx';
 
 export default class AdminController extends React.Component {
     constructor(props) {

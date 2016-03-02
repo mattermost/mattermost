@@ -947,7 +947,7 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 		result := StoreResult{}
 
 		query :=
-			`SELECT 
+			`SELECT
 			    COUNT(Posts.Id) AS Value
 			FROM
 			    Posts,
