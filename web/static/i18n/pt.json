@@ -699,7 +699,6 @@
   "get_link.copy": "Copiar Link",
   "get_post_link_modal.help": "O link abaixo permite que usuários autorizados possam ver seus posts.",
   "get_post_link_modal.title": "Copiar Permalink",
-  "get_team_invite_link_modal.help": "Enviar a equipe de trabalho o link abaixo para eles se inscreverem nesta equipe.",
   "get_team_invite_link_modal.helpDisabled": "Criação de usuários está desabilitada para sua equipe. Por favor peça ao administrador de equipe por detalhes.",
   "get_team_invite_link_modal.title": "Link para Convite de Equipe",
   "intro_messages.DM": "Este é o início do seu histórico de mensagens diretas com {teammate}.<br />Mensagens diretas e arquivos compartilhados aqui não são mostrados para pessoas de fora desta área.",
