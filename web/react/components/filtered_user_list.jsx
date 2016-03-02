@@ -27,6 +27,10 @@ class FilteredUserList extends React.Component {
         };
     }
 
+    componentDidMount() {
+        $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
+    }
+
     componentDidUpdate(prevProps, prevState) {
         if (prevState.filter !== this.state.filter) {
             $(ReactDOM.findDOMNode(this.refs.userList)).scrollTop(0);
@@ -86,7 +90,10 @@ class FilteredUserList extends React.Component {
         }
 
         return (
-            <div>
+            <div
+                className='filtered-user-list'
+                style={this.props.style}
+            >
                 <div className='filter-row'>
                     <div className='col-sm-6'>
                         <input
@@ -122,7 +129,8 @@ FilteredUserList.defaultProps = {
 FilteredUserList.propTypes = {
     intl: intlShape.isRequired,
     users: React.PropTypes.arrayOf(React.PropTypes.object),
-    actions: React.PropTypes.arrayOf(React.PropTypes.func)
+    actions: React.PropTypes.arrayOf(React.PropTypes.func),
+    style: React.PropTypes.object
 };
 
 export default injectIntl(FilteredUserList);

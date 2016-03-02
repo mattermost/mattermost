@@ -75,17 +75,6 @@ export default class ChannelMembersModal extends React.Component {
             loading: false
         };
     }
-    onShow() {
-        // TODO ugh
-        if ($(window).width() > 768) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
-        }
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
-    }
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addExtraInfoChangeListener(this.onChange);
@@ -148,17 +137,18 @@ export default class ChannelMembersModal extends React.Component {
         );
     }
     render() {
-        var maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
         let content;
         if (this.state.loading) {
             content = (<LoadingScreen/>);
         } else {
+            let maxHeight = 1000;
+            if (Utils.windowHeight() <= 1200) {
+                maxHeight = Utils.windowHeight() - 300;
+            }
+
             content = (
                 <FilteredUserList
+                    style={{maxHeight}}
                     users={this.state.memberList}
                     actions={[this.createRemoveMemberButton]}
                 />
@@ -197,7 +187,6 @@ export default class ChannelMembersModal extends React.Component {
                     </Modal.Header>
                     <Modal.Body
                         ref='modalBody'
-                        style={{maxHeight}}
                     >
                         {content}
                     </Modal.Body>

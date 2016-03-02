@@ -403,7 +403,6 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		margin-top: 10px;
-		max-height: 500px;
 		position: relative;
 	}
 
@@ -451,7 +450,6 @@
         flex-shrink: 0;
     }
 
-
     .user-list-item__details {
         flex-grow: 1;
         flex-shrink: 1;
@@ -470,5 +468,20 @@
     .user-list-item__actions {
         flex-grow: 0;
         flex-shrink: 0;
+    }
+}
+
+.filtered-user-list {
+    display: flex;
+    flex-direction: column;
+
+    .filter-row {
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+
+    .user-list {
+        flex-grow: 1;
+        flex-shrink: 1;
     }
 }

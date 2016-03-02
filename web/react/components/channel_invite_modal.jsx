@@ -25,7 +25,9 @@ export default class ChannelInviteModal extends React.Component {
         this.createInviteButton = this.createInviteButton.bind(this);
 
         // the state gets populated when the modal is shown
-        this.state = {};
+        this.state = {
+            loading: true
+        };
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!this.props.show && !nextProps.show) {
@@ -78,20 +80,6 @@ export default class ChannelInviteModal extends React.Component {
             nonmembers,
             loading: false
         };
-    }
-    onShow() {
-        // TODO ugh
-        /*if ($(window).width() > 768) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
-        } else {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
-        }*/
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
     }
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
@@ -152,8 +140,14 @@ export default class ChannelInviteModal extends React.Component {
         if (this.state.loading) {
             content = (<LoadingScreen/>);
         } else {
+            let maxHeight = 1000;
+            if (Utils.windowHeight() <= 1200) {
+                maxHeight = Utils.windowHeight() - 300;
+            }
+
             content = (
                 <FilteredUserList
+                    style={{maxHeight}}
                     users={this.state.nonmembers}
                     actions={[this.createInviteButton]}
                 />
@@ -175,9 +169,7 @@ export default class ChannelInviteModal extends React.Component {
                         <span className='name'>{this.props.channel.display_name}</span>
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body
-                    ref='modalBody'
-                >
+                <Modal.Body>
                     {inviteError}
                     {content}
                 </Modal.Body>

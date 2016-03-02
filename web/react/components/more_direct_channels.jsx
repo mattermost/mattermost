@@ -48,23 +48,6 @@ export default class MoreDirectChannels extends React.Component {
         UserStore.removeChangeListener(this.handleUserChange);
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.show && this.props.show) {
-            this.onShow();
-        }
-    }
-
-    onShow() {
-        // TODO ugh
-        /*if (Utils.isMobile()) {
-            $(ReactDOM.findDOMNode(this.refs.modal)).css('max-height', $(window).height() - 250);
-        } else {
-            console.log(ReactDOM.findDOMNode(this.refs.modal));
-            console.log($(ReactDOM.findDOMNode(this.refs.modal)));
-            $(ReactDOM.findDOMNode(this.refs.modal)).css('max-height', $(window).height() - 300);
-        }*/
-    }
-
     handleHide() {
         if (this.props.onModalDismissed) {
             this.props.onModalDismissed();
@@ -121,6 +104,11 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
+        let maxHeight = 1000;
+        if (Utils.windowHeight() <= 1200) {
+            maxHeight = Utils.windowHeight() - 300;
+        }
+
         return (
             <Modal
                 dialogClassName='more-modal more-direct-channels'
@@ -137,6 +125,7 @@ export default class MoreDirectChannels extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <FilteredUserList
+                        style={{maxHeight}}
                         users={this.state.users}
                         actions={[this.createJoinDirectChannelButton]}
                     />

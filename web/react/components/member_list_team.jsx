@@ -47,9 +47,14 @@ export default class MemberListTeam extends React.Component {
     render() {
         return (
             <FilteredUserList
+                style={this.props.style}
                 users={this.state.users}
                 actions={[TeamMembersDropdown]}
             />
         );
     }
 }
+
+MemberListTeam.propTypes = {
+    style: React.PropTypes.object
+};
