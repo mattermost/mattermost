@@ -55,20 +55,17 @@ class FilteredUserList extends React.Component {
             });
         }
 
-        let memberString = formatMessage(holders.member);
-        if (users.length !== 1) {
-            memberString += 's';
-        }
-
         let count;
         if (users.length === this.props.users.length) {
             count = (
                 <FormattedMessage
                     id='filtered_user_list.count'
-                    defaultMessage='{count} {member}'
+                    defaultMessage='{count} {count, plural,
+                        one {member}
+                        other {members}
+                    }'
                     values={{
-                        count: users.length,
-                        member: memberString
+                        count: users.length
                     }}
                 />
             );
@@ -76,10 +73,12 @@ class FilteredUserList extends React.Component {
             count = (
                 <FormattedMessage
                     id='filtered_user_list.countTotal'
-                    defaultMessage='{count} {member} of {total} Total'
+                    defaultMessage='{count} {count, plural,
+                        one {member}
+                        other {members}
+                    } of {total} Total'
                     values={{
                         count: users.length,
-                        member: memberString,
                         total: this.props.users.length
                     }}
                 />
