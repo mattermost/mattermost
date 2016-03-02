@@ -136,7 +136,7 @@ export default class ChannelInviteModal extends React.Component {
             >
                 <i className='glyphicon glyphicon-envelope'/>
                 <FormattedMessage
-                    id='member_item.add'
+                    id='channel_invite.add'
                     defaultMessage=' Add'
                 />
             </a>

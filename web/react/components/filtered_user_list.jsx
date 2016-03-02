@@ -7,11 +7,11 @@ import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
 const holders = defineMessages({
     member: {
-        id: 'more_direct_channels.member',
+        id: 'filtered_user_list.member',
         defaultMessage: 'Member'
     },
     search: {
-        id: 'more_direct_channels.search',
+        id: 'filtered_user_list.search',
         defaultMessage: 'Search members'
     }
 });
@@ -64,7 +64,7 @@ class FilteredUserList extends React.Component {
         if (users.length === this.props.users.length) {
             count = (
                 <FormattedMessage
-                    id='more_direct_channels.count'
+                    id='filtered_user_list.count'
                     defaultMessage='{count} {member}'
                     values={{
                         count: users.length,
@@ -75,7 +75,7 @@ class FilteredUserList extends React.Component {
         } else {
             count = (
                 <FormattedMessage
-                    id='more_direct_channels.countTotal'
+                    id='filtered_user_list.countTotal'
                     defaultMessage='{count} {member} of {total} Total'
                     values={{
                         count: users.length,

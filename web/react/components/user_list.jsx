@@ -24,7 +24,7 @@ export default class UserList extends React.Component {
                 <tr key='no-users-found'>
                     <td>
                         <FormattedMessage
-                            id='more_direct_channels.notFound'
+                            id='user_list.notFound'
                             defaultMessage='No users found :('
                         />
                     </td>

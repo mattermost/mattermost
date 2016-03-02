@@ -140,7 +140,7 @@ export default class TeamMembersDropdown extends React.Component {
         const user = this.props.user;
         let currentRoles = (
             <FormattedMessage
-                id='member_team_item.member'
+                id='team_members_dropdown.member'
                 defaultMessage='Member'
             />
         );
@@ -149,14 +149,14 @@ export default class TeamMembersDropdown extends React.Component {
             if (Utils.isSystemAdmin(user.roles)) {
                 currentRoles = (
                     <FormattedMessage
-                        id='member_team_item.systemAdmin'
+                        id='team_members_dropdown.systemAdmin'
                         defaultMessage='System Admin'
                     />
                 );
             } else if (Utils.isAdmin(user.roles)) {
                 currentRoles = (
                     <FormattedMessage
-                        id='member_team_item.teamAdmin'
+                        id='team_members_dropdown.teamAdmin'
                         defaultMessage='Team Admin'
                     />
                 );
@@ -173,7 +173,7 @@ export default class TeamMembersDropdown extends React.Component {
         if (user.delete_at > 0) {
             currentRoles = (
                 <FormattedMessage
-                    id='member_team_item.inactive'
+                    id='team_members_dropdown.inactive'
                     defaultMessage='Inactive'
                 />
             );
@@ -193,7 +193,7 @@ export default class TeamMembersDropdown extends React.Component {
                         onClick={this.handleMakeAdmin}
                     >
                         <FormattedMessage
-                            id='member_team_item.makeAdmin'
+                            id='team_members_dropdown.makeAdmin'
                             defaultMessage='Make Team Admin'
                         />
                     </a>
@@ -211,7 +211,7 @@ export default class TeamMembersDropdown extends React.Component {
                         onClick={this.handleMakeMember}
                     >
                         <FormattedMessage
-                            id='member_team_item.makeMember'
+                            id='team_members_dropdown.makeMember'
                             defaultMessage='Make Member'
                         />
                     </a>
@@ -229,7 +229,7 @@ export default class TeamMembersDropdown extends React.Component {
                         onClick={this.handleMakeActive}
                     >
                         <FormattedMessage
-                            id='member_team_item.makeActive'
+                            id='team_members_dropdown.makeActive'
                             defaultMessage='Make Active'
                         />
                     </a>
@@ -247,7 +247,7 @@ export default class TeamMembersDropdown extends React.Component {
                         onClick={this.handleMakeNotActive}
                     >
                         <FormattedMessage
-                            id='member_team_item.makeInactive'
+                            id='team_members_dropdown.makeInactive'
                             defaultMessage='Make Inactive'
                         />
                     </a>
@@ -259,20 +259,20 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id) {
             const title = (
                 <FormattedMessage
-                    id='member_team_item.confirmDemoteRoleTitle'
+                    id='team_members_dropdown.confirmDemoteRoleTitle'
                     defaultMessage='Confirm demotion from System Admin role'
                 />
             );
             const message = (
                 <div>
                     <FormattedMessage
-                        id='member_team_item.confirmDemoteDescription'
+                        id='team_members_dropdown.confirmDemoteDescription'
                         defaultMessage="If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you'll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command."
                     />
                     <br/>
                     <br/>
                     <FormattedMessage
-                        id='member_team_item.confirmDemotionCmd'
+                        id='team_members_dropdown.confirmDemotionCmd'
                         defaultMessage='platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"'
                     />
                     {serverError}
@@ -281,7 +281,7 @@ export default class TeamMembersDropdown extends React.Component {
 
             const confirmButton = (
                 <FormattedMessage
-                    id='member_team_item.confirmDemotion'
+                    id='team_members_dropdown.confirmDemotion'
                     defaultMessage='Confirm Demotion'
                 />
             );
