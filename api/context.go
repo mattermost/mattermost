@@ -238,6 +238,47 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (cw *CorsWrapper) ServeHTTP(
+	w http.ResponseWriter,
+	r *http.Request) {
+	allowedMethods := []string{
+		"POST",
+		"GET",
+		"OPTIONS",
+		"PUT",
+		"PATCH",
+		"DELETE",
+	}
+
+	allowedHeaders := []string{
+		"Accept",
+		"Content-Type",
+		"Content-Length",
+		"Accept-Encoding",
+		"Authorization",
+		"X-CSRF-Token",
+		"X-Auth-Token",
+	}
+
+	if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
+		w.Header().Set("Access-Control-Allow-Origin", *utils.Cfg.ServiceSettings.AllowCorsFrom)
+
+		w.Header().Set(
+			"Access-Control-Allow-Methods",
+			strings.Join(allowedMethods, ", "))
+
+		w.Header().Set(
+			"Access-Control-Allow-Headers",
+			strings.Join(allowedHeaders, ", "))
+	}
+
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	cw.router.ServeHTTP(w, r)
+}
+
 func GetProtocol(r *http.Request) string {
 	if r.Header.Get(model.HEADER_FORWARDED_PROTO) == "https" {
 		return "https"
