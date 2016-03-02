@@ -263,6 +263,7 @@ export default class TeamMembersDropdown extends React.Component {
                     defaultMessage='Confirm demotion from System Admin role'
                 />
             );
+
             const message = (
                 <div>
                     <FormattedMessage
