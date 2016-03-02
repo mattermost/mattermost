@@ -21,6 +21,10 @@ type Server struct {
 	Router *mux.Router
 }
 
+type CorsWrapper struct {
+	router *mux.Router
+}
+
 var Srv *Server
 
 func NewServer() {
@@ -65,7 +69,7 @@ func StartServer() {
 			throttled.DefaultDeniedHandler.ServeHTTP(w, r)
 		})
 
-		handler = th.Throttle(Srv.Router)
+		handler = th.Throttle(&CorsWrapper{Srv.Router})
 	}
 
 	go func() {
