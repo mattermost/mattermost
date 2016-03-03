@@ -192,7 +192,7 @@
 		"react/display-name": [2, { "ignoreTranspilerName": false }],
 		"react/no-deprecated": 2,
 		"react/no-is-mounted": 2,
-		"react/no-string-refs": 1,
+		"react/no-string-refs": 0,
 		"react/jsx-pascal-case": 2,
 		"react/jsx-indent": [1, 4],
 		"react/jsx-equals-spacing": [2, "never"],
