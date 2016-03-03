@@ -282,7 +282,7 @@ func cmdCreateTeam() {
 		team.DisplayName = flagTeamName
 		team.Name = flagTeamName
 		team.Email = flagEmail
-		team.Type = model.TEAM_INVITE
+		team.Type = model.TEAM_OPEN
 
 		api.CreateTeam(c, team)
 		if c.Err != nil {
