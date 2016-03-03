@@ -1228,7 +1228,6 @@
   "user.settings.integrations.outWebhooks": "Webhooks de salida",
   "user.settings.integrations.outWebhooksDescription": "Administra tus webhooks de salida",
   "user.settings.integrations.title": "Configuraciones de Integración",
-  "user.settings.languages": "Cambiar Idioma",
   "user.settings.languages.change": "Cambia el idioma con el que se muestra la intefaz de usuario",
   "user.settings.modal.advanced": "Avanzada",
   "user.settings.modal.confirmBtns": "Sí, Descartar",

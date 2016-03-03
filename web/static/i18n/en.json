@@ -1228,7 +1228,6 @@
   "user.settings.integrations.outWebhooks": "Outgoing Webhooks",
   "user.settings.integrations.outWebhooksDescription": "Manage your outgoing webhooks",
   "user.settings.integrations.title": "Integration Settings",
-  "user.settings.languages": "Set language",
   "user.settings.languages.change": "Change interface language",
   "user.settings.modal.advanced": "Advanced",
   "user.settings.modal.confirmBtns": "Yes, Discard",

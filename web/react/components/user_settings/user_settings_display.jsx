@@ -46,10 +46,6 @@ const holders = defineMessages({
     fontTitle: {
         id: 'user.settings.display.fontTitle',
         defaultMessage: 'Display Font'
-    },
-    language: {
-        id: 'user.settings.display.language',
-        defaultMessage: 'Language'
     }
 });
 
@@ -379,19 +375,9 @@ class UserSettingsDisplay extends React.Component {
         }
 
         if (this.props.activeSection === 'languages') {
-            var inputs = [];
-            inputs.push(
+            languagesSection = (
                 <ManageLanguages
                     user={this.props.user}
-                    key='languages-ui'
-                />
-            );
-
-            languagesSection = (
-                <SettingItemMax
-                    title={formatMessage(holders.language)}
-                    width='medium'
-                    inputs={inputs}
                     updateSection={(e) => {
                         this.updateSection('');
                         e.preventDefault();
@@ -408,7 +394,12 @@ class UserSettingsDisplay extends React.Component {
 
             languagesSection = (
                 <SettingItemMin
-                    title={formatMessage(holders.language)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.language'
+                            defaultMessage='Language'
+                        />
+                    }
                     width='medium'
                     describe={locale}
                     updateSection={() => {
