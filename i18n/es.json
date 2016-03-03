@@ -2648,6 +2648,10 @@
     "translation": "Encontramos un error actualizando el miembro del canal"
   },
   {
+    "id": "store.sql_command.analytics_command_count.app_error",
+    "translation": "No pudimos contar los comandos de barra"
+  },
+  {
     "id": "store.sql_command.save.delete.app_error",
     "translation": "No pudimos eliminar el comando"
   },
@@ -2896,6 +2900,10 @@
     "translation": "No pudimos actualizar la preferencia"
   },
   {
+    "id": "store.sql_session.analytics_session_count.app_error",
+    "translation": "No pudimos contar las sesiones"
+  },
+  {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",
     "translation": "Encontramos un error mientras se eliminaban las sesiones expiradas del usuario"
   },
@@ -2958,6 +2966,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "Encontramos un error actualizando las propiedades del sistema"
+  },
+  {
+    "id": "store.sql_team.analytics_team_count.app_error",
+    "translation": "No pudimos contar los equipos"
   },
   {
     "id": "store.sql_team.get.find.app_error",
