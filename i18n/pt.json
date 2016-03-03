@@ -2676,6 +2676,10 @@
     "translation": "Não foi possível atualizar o comando"
   },
   {
+    "id": "store.sql_command.analytics_command_count.app_error",
+    "translation": "Não foi possível contar os comandos"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "Encontramos um erro ao obter a licença"
   },
@@ -2948,6 +2952,10 @@
     "translation": "Não foi possível atualizar as funções"
   },
   {
+    "id": "store.sql_session.analytics_session_count.app_error",
+    "translation": "Não foi possível contar a sessão"
+  },
+  {
     "id": "store.sql_system.get.app_error",
     "translation": "Encontramos um erro ao procurar as propriedades de sistema"
   },
@@ -3026,6 +3034,10 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "Não foi possível atualizar o nome da equipe"
+  },
+  {
+    "id": "store.sql_team.analytics_team_count.app_error",
+    "translation": "Não foi possível contar as equipes"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
@@ -3517,7 +3529,7 @@
   },
   {
     "id": "web.root.singup_info",
-    "translation": "Toda comunicação da equipe em um lugar, pesquisavel e acessível em qualquer lugar"
+    "translation": "Toda comunicação da equipe em um lugar, pesquisável e acessível em qualquer lugar"
   },
   {
     "id": "web.root.singup_title",
