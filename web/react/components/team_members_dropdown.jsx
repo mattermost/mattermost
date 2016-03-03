@@ -9,28 +9,9 @@ import * as Utils from '../utils/utils.jsx';
 import ConfirmModal from './confirm_modal.jsx';
 import TeamStore from '../stores/team_store.jsx';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+import {FormattedMessage} from 'mm-intl';
 
-var holders = defineMessages({
-    confirmDemoteRoleTitle: {
-        id: 'member_team_item.confirmDemoteRoleTitle',
-        defaultMessage: 'Confirm demotion from System Admin role'
-    },
-    confirmDemotion: {
-        id: 'member_team_item.confirmDemotion',
-        defaultMessage: 'Confirm Demotion'
-    },
-    confirmDemoteDescription: {
-        id: 'member_team_item.confirmDemoteDescription',
-        defaultMessage: 'If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you\'ll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.'
-    },
-    confirmDemotionCmd: {
-        id: 'member_team_item.confirmDemotionCmd',
-        defaultMessage: 'platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"'
-    }
-});
-
-export default class MemberListTeamItem extends React.Component {
+export default class TeamMembersDropdown extends React.Component {
     constructor(props) {
         super(props);
 
@@ -159,24 +140,23 @@ export default class MemberListTeamItem extends React.Component {
         const user = this.props.user;
         let currentRoles = (
             <FormattedMessage
-                id='member_team_item.member'
+                id='team_members_dropdown.member'
                 defaultMessage='Member'
             />
         );
-        const timestamp = UserStore.getCurrentUser().update_at;
 
         if (user.roles.length > 0) {
             if (Utils.isSystemAdmin(user.roles)) {
                 currentRoles = (
                     <FormattedMessage
-                        id='member_team_item.systemAdmin'
+                        id='team_members_dropdown.systemAdmin'
                         defaultMessage='System Admin'
                     />
                 );
             } else if (Utils.isAdmin(user.roles)) {
                 currentRoles = (
                     <FormattedMessage
-                        id='member_team_item.teamAdmin'
+                        id='team_members_dropdown.teamAdmin'
                         defaultMessage='Team Admin'
                     />
                 );
@@ -185,7 +165,6 @@ export default class MemberListTeamItem extends React.Component {
             }
         }
 
-        const email = user.email;
         let showMakeMember = user.roles === 'admin' || user.roles === 'system_admin';
         let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
         let showMakeActive = false;
@@ -194,7 +173,7 @@ export default class MemberListTeamItem extends React.Component {
         if (user.delete_at > 0) {
             currentRoles = (
                 <FormattedMessage
-                    id='member_team_item.inactive'
+                    id='team_members_dropdown.inactive'
                     defaultMessage='Inactive'
                 />
             );
@@ -214,7 +193,7 @@ export default class MemberListTeamItem extends React.Component {
                         onClick={this.handleMakeAdmin}
                     >
                         <FormattedMessage
-                            id='member_team_item.makeAdmin'
+                            id='team_members_dropdown.makeAdmin'
                             defaultMessage='Make Team Admin'
                         />
                     </a>
@@ -232,7 +211,7 @@ export default class MemberListTeamItem extends React.Component {
                         onClick={this.handleMakeMember}
                     >
                         <FormattedMessage
-                            id='member_team_item.makeMember'
+                            id='team_members_dropdown.makeMember'
                             defaultMessage='Make Member'
                         />
                     </a>
@@ -250,7 +229,7 @@ export default class MemberListTeamItem extends React.Component {
                         onClick={this.handleMakeActive}
                     >
                         <FormattedMessage
-                            id='member_team_item.makeActive'
+                            id='team_members_dropdown.makeActive'
                             defaultMessage='Make Active'
                         />
                     </a>
@@ -268,7 +247,7 @@ export default class MemberListTeamItem extends React.Component {
                         onClick={this.handleMakeNotActive}
                     >
                         <FormattedMessage
-                            id='member_team_item.makeInactive'
+                            id='team_members_dropdown.makeInactive'
                             defaultMessage='Make Inactive'
                         />
                     </a>
@@ -276,15 +255,44 @@ export default class MemberListTeamItem extends React.Component {
             );
         }
         const me = UserStore.getCurrentUser();
-        const {formatMessage} = this.props.intl;
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
+            const title = (
+                <FormattedMessage
+                    id='team_members_dropdown.confirmDemoteRoleTitle'
+                    defaultMessage='Confirm demotion from System Admin role'
+                />
+            );
+
+            const message = (
+                <div>
+                    <FormattedMessage
+                        id='team_members_dropdown.confirmDemoteDescription'
+                        defaultMessage="If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you'll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command."
+                    />
+                    <br/>
+                    <br/>
+                    <FormattedMessage
+                        id='team_members_dropdown.confirmDemotionCmd'
+                        defaultMessage='platform -assign_role -team_name="yourteam" -email="name@yourcompany.com" -role="system_admin"'
+                    />
+                    {serverError}
+                </div>
+            );
+
+            const confirmButton = (
+                <FormattedMessage
+                    id='team_members_dropdown.confirmDemotion'
+                    defaultMessage='Confirm Demotion'
+                />
+            );
+
             makeDemoteModal = (
                 <ConfirmModal
                     show={this.state.showDemoteModal}
-                    title={formatMessage(holders.confirmDemoteRoleTitle)}
-                    message={[formatMessage(holders.confirmDemoteDescription), React.createElement('br'), React.createElement('br'), formatMessage(holders.confirmDemotionCmd), serverError]}
-                    confirm_button={formatMessage(holders.confirmDemotion)}
+                    title={title}
+                    message={message}
+                    confirmButton={confirmButton}
                     onConfirm={this.handleDemoteSubmit}
                     onCancel={this.handleDemoteCancel}
                 />
@@ -292,48 +300,33 @@ export default class MemberListTeamItem extends React.Component {
         }
 
         return (
-            <tr>
-                <td className='row member-div'>
-                    <img
-                        className='post-profile-img pull-left'
-                        src={`/api/v1/users/${user.id}/image?time=${timestamp}&${Utils.getSessionIndex()}`}
-                        height='36'
-                        width='36'
-                    />
-                    <span className='more-name'>{Utils.displayUsername(user.id)}</span>
-                    <span className='more-description'>{email}</span>
-                    <div className='dropdown member-drop'>
-                        <a
-                            href='#'
-                            className='dropdown-toggle theme'
-                            type='button'
-                            data-toggle='dropdown'
-                            aria-expanded='true'
-                        >
-                            <span className='fa fa-pencil'></span>
-                            <span>{currentRoles} </span>
-                        </a>
-                        <ul
-                            className='dropdown-menu member-menu'
-                            role='menu'
-                        >
-                            {makeAdmin}
-                            {makeMember}
-                            {makeActive}
-                            {makeNotActive}
-                        </ul>
-                    </div>
-                    {makeDemoteModal}
-                    {serverError}
-                </td>
-            </tr>
+            <div className='dropdown member-drop'>
+                <a
+                    href='#'
+                    className='dropdown-toggle theme'
+                    type='button'
+                    data-toggle='dropdown'
+                    aria-expanded='true'
+                >
+                    <span className='fa fa-pencil'></span>
+                    <span>{currentRoles} </span>
+                </a>
+                <ul
+                    className='dropdown-menu member-menu'
+                    role='menu'
+                >
+                    {makeAdmin}
+                    {makeMember}
+                    {makeActive}
+                    {makeNotActive}
+                </ul>
+                {makeDemoteModal}
+                {serverError}
+            </div>
         );
     }
 }
 
-MemberListTeamItem.propTypes = {
-    intl: intlShape.isRequired,
+TeamMembersDropdown.propTypes = {
     user: React.PropTypes.object.isRequired
 };
-
-export default injectIntl(MemberListTeamItem);

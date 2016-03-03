@@ -437,6 +437,8 @@ export default {
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings',
+        DISPLAY_PREFER_NICKNAME: 'nickname_full_name',
+        DISPLAY_PREFER_FULL_NAME: 'full_name',
         CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
         TUTORIAL_STEP: 'tutorial_step'
     },

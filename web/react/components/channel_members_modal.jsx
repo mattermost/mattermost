@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import FilteredUserList from './filtered_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
-import MemberList from './member_list.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
 
 import UserStore from '../stores/user_store.jsx';
@@ -23,6 +23,8 @@ export default class ChannelMembersModal extends React.Component {
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
+
+        this.createRemoveMemberButton = this.createRemoveMemberButton.bind(this);
 
         // the rest of the state gets populated when the modal is shown
         this.state = {
@@ -51,24 +53,10 @@ export default class ChannelMembersModal extends React.Component {
             };
         }
 
-        const users = UserStore.getActiveOnlyProfiles();
-        const memberList = extraInfo.members;
-
-        const nonmemberList = [];
-        for (const id in users) {
-            if (users.hasOwnProperty(id)) {
-                let found = false;
-                for (let i = 0; i < memberList.length; i++) {
-                    if (memberList[i].id === id) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    nonmemberList.push(users[id]);
-                }
-            }
-        }
+        // clone the member list since we mutate it later on
+        const memberList = extraInfo.members.map((member) => {
+            return Object.assign({}, member);
+        });
 
         function compareByUsername(a, b) {
             if (a.username < b.username) {
@@ -81,23 +69,11 @@ export default class ChannelMembersModal extends React.Component {
         }
 
         memberList.sort(compareByUsername);
-        nonmemberList.sort(compareByUsername);
 
         return {
-            nonmemberList,
             memberList,
             loading: false
         };
-    }
-    onShow() {
-        if ($(window).width() > 768) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
-        }
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
     }
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
@@ -116,41 +92,25 @@ export default class ChannelMembersModal extends React.Component {
             this.setState(newState);
         }
     }
-    handleRemove(userId) {
-        // Make sure the user is a member of the channel
-        const memberList = this.state.memberList;
-        let found = false;
-        for (let i = 0; i < memberList.length; i++) {
-            if (memberList[i].id === userId) {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
+    handleRemove(user) {
+        const userId = user.id;
 
         const data = {};
         data.user_id = userId;
 
-        Client.removeChannelMember(ChannelStore.getCurrentId(), data,
+        Client.removeChannelMember(
+            ChannelStore.getCurrentId(),
+            data,
             () => {
-                let oldMember;
+                const memberList = this.state.memberList.slice();
                 for (let i = 0; i < memberList.length; i++) {
                     if (userId === memberList[i].id) {
-                        oldMember = memberList[i];
                         memberList.splice(i, 1);
                         break;
                     }
                 }
 
-                const nonmemberList = this.state.nonmemberList;
-                if (oldMember) {
-                    nonmemberList.push(oldMember);
-                }
-
-                this.setState({memberList, nonmemberList});
+                this.setState({memberList});
                 AsyncClient.getChannelExtraInfo();
             },
             (err) => {
@@ -158,30 +118,40 @@ export default class ChannelMembersModal extends React.Component {
             }
          );
     }
+    createRemoveMemberButton({user}) {
+        if (user.id === UserStore.getCurrentId()) {
+            return null;
+        }
+
+        return (
+            <button
+                type='button'
+                className='btn btn-primary btn-message'
+                onClick={this.handleRemove.bind(this, user)}
+            >
+                <FormattedMessage
+                    id='channel_members_modal.removeMember'
+                    defaultMessage='Remove Member'
+                />
+            </button>
+        );
+    }
     render() {
-        var maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
-        const currentMember = ChannelStore.getCurrentMember();
-        let isAdmin = false;
-        if (currentMember) {
-            isAdmin = Utils.isAdmin(currentMember.roles) || Utils.isAdmin(UserStore.getCurrentUser().roles);
-        }
-
         let content;
         if (this.state.loading) {
             content = (<LoadingScreen/>);
         } else {
+            let maxHeight = 1000;
+            if (Utils.windowHeight() <= 1200) {
+                maxHeight = Utils.windowHeight() - 300;
+            }
+
             content = (
-                <div className='team-member-list'>
-                    <MemberList
-                        memberList={this.state.memberList}
-                        isAdmin={isAdmin}
-                        handleRemove={this.handleRemove}
-                    />
-                </div>
+                <FilteredUserList
+                    style={{maxHeight}}
+                    users={this.state.memberList}
+                    actions={[this.createRemoveMemberButton]}
+                />
             );
         }
 
@@ -217,7 +187,6 @@ export default class ChannelMembersModal extends React.Component {
                     </Modal.Header>
                     <Modal.Body
                         ref='modalBody'
-                        style={{maxHeight}}
                     >
                         {content}
                     </Modal.Body>
