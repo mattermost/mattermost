@@ -42,7 +42,7 @@ func StartServer() {
 	l4g.Info(utils.T("api.server.start_server.starting.info"))
 	l4g.Info(utils.T("api.server.start_server.listening.info"), utils.Cfg.ServiceSettings.ListenAddress)
 
-	var handler http.Handler = Srv.Router
+	var handler http.Handler = &CorsWrapper{Srv.Router}
 
 	if utils.Cfg.RateLimitSettings.EnableRateLimiter {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))

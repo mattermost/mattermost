@@ -21,6 +21,15 @@ import (
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
 
+var allowedMethods []string = []string{
+	"POST",
+	"GET",
+	"OPTIONS",
+	"PUT",
+	"PATCH",
+	"DELETE",
+}
+
 type Context struct {
 	Session           model.Session
 	RequestId         string
@@ -166,10 +175,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
 
-		if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
-			w.Header().Set("Access-Control-Allow-Origin", *utils.Cfg.ServiceSettings.AllowCorsFrom)
-		}
-
 		if r.Method == "GET" {
 			w.Header().Set("Expires", "0")
 		}
@@ -238,38 +243,22 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cw *CorsWrapper) ServeHTTP(
-	w http.ResponseWriter,
-	r *http.Request) {
-	allowedMethods := []string{
-		"POST",
-		"GET",
-		"OPTIONS",
-		"PUT",
-		"PATCH",
-		"DELETE",
-	}
-
-	allowedHeaders := []string{
-		"Accept",
-		"Content-Type",
-		"Content-Length",
-		"Accept-Encoding",
-		"Authorization",
-		"X-CSRF-Token",
-		"X-Auth-Token",
-	}
-
+func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
-		w.Header().Set("Access-Control-Allow-Origin", *utils.Cfg.ServiceSettings.AllowCorsFrom)
+		origin := r.Header.Get("Origin")
+		if *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*utils.Cfg.ServiceSettings.AllowCorsFrom, origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
 
-		w.Header().Set(
-			"Access-Control-Allow-Methods",
-			strings.Join(allowedMethods, ", "))
+			if r.Method == "OPTIONS" {
+				w.Header().Set(
+					"Access-Control-Allow-Methods",
+					strings.Join(allowedMethods, ", "))
 
-		w.Header().Set(
-			"Access-Control-Allow-Headers",
-			strings.Join(allowedHeaders, ", "))
+				w.Header().Set(
+					"Access-Control-Allow-Headers",
+					r.Header.Get("Access-Control-Request-Headers"))
+			}
+		}
 	}
 
 	if r.Method == "OPTIONS" {
