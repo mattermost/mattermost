@@ -291,6 +291,7 @@ var validHashtag = regexp.MustCompile(`^(#[A-Za-zäöüÄÖÜß]+[A-Za-z0-9äö�
 var puncStart = regexp.MustCompile(`^[.,()&$!\?\[\]{}':;\\<>\-+=%^*|]+`)
 var hashtagStart = regexp.MustCompile(`^#{2,}`)
 var puncEnd = regexp.MustCompile(`[.,()&$#!\?\[\]{}':;\\<>\-+=%^*|]+$`)
+var puncEndWildcard = regexp.MustCompile(`[.,()&$#!\?\[\]{}':;\\<>\-+=%^|]+$`)
 
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
