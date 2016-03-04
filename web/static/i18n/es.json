@@ -702,7 +702,6 @@
   "get_link.copy": "Copiar Enlace",
   "get_post_link_modal.help": "En enlace de abajo permite a los usuarios autorizados a ver tu mensaje.",
   "get_post_link_modal.title": "Copiar enlace Permanente",
-  "get_team_invite_link_modal.help": "Enviar a los compañeros de equipo el enlace que se muestra a continuación para permitirles registrarse a este equipo.",
   "get_team_invite_link_modal.helpDisabled": "La creación de usuario ha sido deshabilitada para tu equipo. Por favor solicita más detalles a tu administrador de equipo.",
   "get_team_invite_link_modal.title": "Enlace de Invitación al Equipo",
   "intro_messages.DM": "Este es el inicio de tu historial de mensajes directos con {teammate}.<br />Los mensajes directos y archivos que se comparten aquí no son mostrados a personas fuera de esta área.",

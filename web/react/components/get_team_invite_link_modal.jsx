@@ -15,7 +15,7 @@ const holders = defineMessages({
     },
     help: {
         id: 'get_team_invite_link_modal.help',
-        defaultMessage: 'Send teammates the link below for them to sign-up to this team site.'
+        defaultMessage: 'Send teammates the link below for them to sign-up to this team site. The Team Invite Link can be shared with multiple teammates as it does not change unless it\'s regenerated in Team Settings by a Team Admin.'
     },
     helpDisabled: {
         id: 'get_team_invite_link_modal.helpDisabled',
