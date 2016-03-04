@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as utils from '../utils/utils.jsx';
+import * as Utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
@@ -49,7 +49,7 @@ export default class MoreChannels extends React.Component {
     }
     onListenerChange() {
         var newState = getStateFromStores();
-        if (!utils.areObjectsEqual(newState.channels, this.state.channels)) {
+        if (!Utils.areObjectsEqual(newState.channels, this.state.channels)) {
             this.setState(newState);
         }
     }
@@ -59,7 +59,7 @@ export default class MoreChannels extends React.Component {
             () => {
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
                 AsyncClient.getChannel(channel.id);
-                utils.switchChannel(channel);
+                Utils.switchChannel(channel);
                 this.setState({joiningChannel: -1});
             },
             (err) => {
@@ -109,6 +109,11 @@ export default class MoreChannels extends React.Component {
         );
     }
     render() {
+        let maxHeight = 1000;
+        if (Utils.windowHeight() <= 1200) {
+            maxHeight = Utils.windowHeight() - 300;
+        }
+
         var serverError;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -195,7 +200,10 @@ export default class MoreChannels extends React.Component {
                                 onModalDismissed={() => this.setState({showNewChannelModal: false})}
                             />
                         </div>
-                        <div className='modal-body'>
+                        <div
+                            className='modal-body'
+                            style={{maxHeight}}
+                        >
                             {moreChannels}
                             {serverError}
                         </div>
