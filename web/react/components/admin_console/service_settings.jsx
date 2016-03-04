@@ -31,6 +31,10 @@ var holders = defineMessages({
         id: 'admin.service.sessionDaysEx',
         defaultMessage: 'Ex "30"'
     },
+    corsExample: {
+        id: 'admin.service.corsEx',
+        defaultMessage: 'http://example.com'
+    },
     saving: {
         id: 'admin.service.saving',
         defaultMessage: 'Saving Config...'
@@ -130,6 +134,8 @@ class ServiceSettings extends React.Component {
         }
         config.ServiceSettings.SessionCacheInMinutes = SessionCacheInMinutes;
         ReactDOM.findDOMNode(this.refs.SessionCacheInMinutes).value = SessionCacheInMinutes;
+
+        config.ServiceSettings.AllowCorsFrom = ReactDOM.findDOMNode(this.refs.AllowCorsFrom).value.trim();
 
         Client.saveConfig(
             config,
@@ -758,6 +764,35 @@ class ServiceSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.service.insecureTlsDesc'
                                     defaultMessage='When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='AllowCorsFrom'
+                        >
+                            <FormattedMessage
+                                id='admin.service.corsTitle'
+                                defaultMessage='Allow Cross-origin Requests from:'
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='AllowCorsFrom'
+                                ref='AllowCorsFrom'
+                                placeholder={formatMessage(holders.corsExample)}
+                                defaultValue={this.props.config.ServiceSettings.AllowCorsFrom}
+                                onChange={this.handleChange}
+                            />
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.service.corsDescription'
+                                    defaultMessage='Enable HTTP Cross origin request from a specific domain. Use "*" if you want to allow CORS from any domain or leave it blank to disable it.'
                                 />
                             </p>
                         </div>

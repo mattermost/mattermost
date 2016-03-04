@@ -39,6 +39,7 @@ type ServiceSettings struct {
 	EnableDeveloper                   *bool
 	EnableSecurityFixAlert            *bool
 	EnableInsecureOutgoingConnections *bool
+	AllowCorsFrom                     *string
 	SessionLengthWebInDays            *int
 	SessionLengthMobileInDays         *int
 	SessionLengthSSOInDays            *int
@@ -376,6 +377,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.WebsocketSecurePort == nil {
 		o.ServiceSettings.WebsocketSecurePort = new(int)
 		*o.ServiceSettings.WebsocketSecurePort = 443
+	}
+
+	if o.ServiceSettings.AllowCorsFrom == nil {
+		o.ServiceSettings.AllowCorsFrom = new(string)
+		*o.ServiceSettings.AllowCorsFrom = ""
 	}
 }
 
