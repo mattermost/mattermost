@@ -1113,7 +1113,7 @@
   },
   {
     "id": "api.templates.email_info",
-    "translation": "Any questions at all, mail us any time: <a href='mailto:{{.FeedbackEmail}}' style='text-decoration: none; color:#2389D7;'>{{.FeedbackEmail}}</a>.<br>Best wishes,<br>The {{.SiteName}} Team<br>"
+    "translation": "Any questions at all, mail us any time: <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Best wishes,<br>The {{.SiteName}} Team<br>"
   },
   {
     "id": "api.templates.error.link",
