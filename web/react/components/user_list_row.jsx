@@ -28,7 +28,6 @@ export default function UserListRow({user, actions}) {
         <tr>
             <td
                 key={user.id}
-                className='direct-channel'
                 style={{display: 'flex'}}
             >
                 <img

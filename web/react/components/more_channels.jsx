@@ -24,6 +24,7 @@ export default class MoreChannels extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleJoin = this.handleJoin.bind(this);
         this.handleNewChannel = this.handleNewChannel.bind(this);
+        this.createChannelRow = this.createChannelRow.bind(this);
 
         var initState = getStateFromStores();
         initState.channelType = '';
@@ -70,13 +71,49 @@ export default class MoreChannels extends React.Component {
         $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
         this.setState({showNewChannelModal: true});
     }
+    createChannelRow(channel, index) {
+        let joinButton;
+        if (this.state.joiningChannel === index) {
+            joinButton = (
+                <img
+                    className='join-channel-loading-gif'
+                    src='/static/images/load.gif'
+                />
+            );
+        } else {
+            joinButton = (
+                <button
+                    onClick={this.handleJoin.bind(self, channel, index)}
+                    className='btn btn-primary'
+                >
+                    <FormattedMessage
+                        id='more_channels.join'
+                        defaultMessage='Join'
+                    />
+                </button>
+            );
+        }
+
+        return (
+            <tr key={channel.id}>
+                <td className='more-row'>
+                    <div className='more-details'>
+                        <p className='more-name'>{channel.display_name}</p>
+                        <p className='more-description'>{channel.purpose}</p>
+                    </div>
+                    <div className='more-actions'>
+                        {joinButton}
+                    </div>
+                </td>
+            </tr>
+        );
+    }
     render() {
         var serverError;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
-        var self = this;
         var moreChannels;
 
         if (this.state.channels != null) {
@@ -87,41 +124,7 @@ export default class MoreChannels extends React.Component {
                 moreChannels = (
                     <table className='more-table table'>
                         <tbody>
-                            {channels.map(function cMap(channel, index) {
-                                var joinButton;
-                                if (self.state.joiningChannel === index) {
-                                    joinButton = (
-                                        <img
-                                            className='join-channel-loading-gif'
-                                            src='/static/images/load.gif'
-                                        />
-                                        );
-                                } else {
-                                    joinButton = (
-                                        <button
-                                            onClick={self.handleJoin.bind(self, channel, index)}
-                                            className='btn btn-primary'
-                                        >
-                                            <FormattedMessage
-                                                id='more_channels.join'
-                                                defaultMessage='Join'
-                                            />
-                                        </button>
-                                        );
-                                }
-
-                                return (
-                                    <tr key={channel.id}>
-                                        <td>
-                                            <p className='more-name'>{channel.display_name}</p>
-                                            <p className='more-description'>{channel.purpose}</p>
-                                        </td>
-                                        <td className='td--action'>
-                                            {joinButton}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            {channels.map(this.createChannelRow)}
                         </tbody>
                     </table>
                 );

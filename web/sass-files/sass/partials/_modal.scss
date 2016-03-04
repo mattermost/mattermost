@@ -23,17 +23,29 @@
 		border-radius: 50px;
 		margin-right: 8px;
 	}
+	.more-row {
+		display: flex;
+
+		.more-details {
+			flex-grow: 1;
+			flex-shrink: 1;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.more-actions {
+			flex-grow: 0;
+			flex-shrink: 0;
+		}
+	}
 	.more-name {
 		font-weight: 600;
 		font-size: 0.95em;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.more-description {
 		@include opacity(0.7);
 		display: block;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	tbody {
 		> tr {
