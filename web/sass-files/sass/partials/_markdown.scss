@@ -20,14 +20,25 @@
 
 .post-body--code {
 	position: relative;
+	overflow-x: auto;
+	overflow-y: hidden;
 
 	pre {
 		margin-bottom: 0;
-		word-break: normal;
-		overflow: auto;
-		word-wrap: normal;
+		box-shadow: .1em .1em .5em rgba(0,0,0,.45);
+		border-radius: .25em;
+		text-align: left;
+		white-space: nowrap;
 	}
 
+	code {
+		white-space: pre;
+	}
+
+	td {
+		padding: 0 .5em;
+		vertical-align: top;
+	}
 }
 
 .post-body--code__language {
@@ -41,6 +52,21 @@
 	font-size: 13px;
 	opacity: 0.7;
 	z-index: 5;
+	border-radius: 0 .25em;
+}
+
+.post-body--code__lineno {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+
+	-o-user-select: none;
+	user-select: none;
+
+	border-right: 1px solid #aaa;
+	color: #aaa;
+	margin-right: .5em;
+	text-align: right;
 }
 
 .post__body {
@@ -96,8 +122,8 @@ blockquote {
 	}
 }
 pre {
+	padding: 0;
 	border: none;
-	margin: 5px 0;
 	color: inherit;
 }
 code {
