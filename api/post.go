@@ -604,12 +604,12 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			year := fmt.Sprintf("%d", tm.Year())
 			zone, _ := tm.Zone()
 
-			subjectPage := NewServerTemplatePage("post_subject", c.Locale)
+			subjectPage := NewServerTemplatePage("post_subject", profileMap[id].Locale)
 			subjectPage.Props["Subject"] = userLocale("api.templates.post_subject",
 				map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
 					"Month": month[:3], "Day": day, "Year": year})
 
-			bodyPage := NewServerTemplatePage("post_body", c.Locale)
+			bodyPage := NewServerTemplatePage("post_body", profileMap[id].Locale)
 			bodyPage.Props["SiteURL"] = c.GetSiteURL()
 			bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 			bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
