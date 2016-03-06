@@ -58,20 +58,36 @@ body.ios {
 		box-shadow: none;
 		white-space: normal;
 	}
-	.textbox-preview-link, .textbox-help-link {
+	.textbox-help-link {
 		position: absolute;
 		z-index: 3;
 		bottom: -23px;
 		font-size: 13px;
 		cursor: pointer;
 	}
-	.textbox-preview-link {
-		right: 45px;
-	}
 	.textbox-help-link {
 		right: 0;
 	}
 	min-height:36px;
+}
+
+.help_format_text {
+	position: absolute;
+	z-index: 3;
+	bottom: -23px;
+	font-size: 0.7em;
+	right: 45px;
+	color: #999;
+	transition: visibility 0s, opacity 0.5s linear;
+
+	b, i, code {
+		margin-right: 3px;
+	}
+	.textbox-preview-link{
+		font-size: 13px;
+		cursor: pointer;
+		margin-left: 15px;
+	}
 }
 
 .date-separator, .new-separator {
