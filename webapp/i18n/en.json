@@ -1139,6 +1139,7 @@
   "user.settings.cmds.url_desc": "The callback URL to receive the HTTP POST or GET event request when the slash command is run.",
   "user.settings.cmds.username": "Response Username: ",
   "user.settings.cmds.username_desc": "Choose a username override for responses for this slash command. Usernames can consist of up to 22 characters consisting of lowercase letters, numbers and they symbols \"-\", \"_\", and \".\" .",
+  "user.settings.cmds.slashCmd_autocmp": "Enable external application to offer autocomplete",
   "user.settings.custom_theme.awayIndicator": "Away Indicator",
   "user.settings.custom_theme.buttonBg": "Button BG",
   "user.settings.custom_theme.buttonColor": "Button Text",

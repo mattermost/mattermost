@@ -463,8 +463,8 @@ export default class ManageCommandCmds extends React.Component {
                                     onChange={this.updateExternalManagement}
                                 />
                                 <FormattedMessage
-                                    id='user.settings.cmds.external_management_help'
-                                    defaultMessage=' Let an external integration manage commands.'
+                                    id='user.settings.cmds.slashCmd_autocmp'
+                                    defaultMessage='Enable external application to offer autocomplete'
                                 />
                             </label>
                         </div>
