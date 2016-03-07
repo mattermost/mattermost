@@ -561,7 +561,7 @@
   "channel_loader.wrote": " wrote: ",
   "channel_members_modal.addNew": " Add New Members",
   "channel_members_modal.close": "Close",
-  "channel_members_modal.removeMember": "Remove Member",
+  "channel_members_modal.remove": "Remove",
   "channel_memebers_modal.members": " Members",
   "channel_modal.cancel": "Cancel",
   "channel_modal.channel": "Channel",
