@@ -129,7 +129,7 @@ export default class Textbox extends React.Component {
     }
 
     render() {
-        const hastext = this.props.messageText.length > 0;
+        const hasText = this.props.messageText.length > 0;
 
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
@@ -153,9 +153,9 @@ export default class Textbox extends React.Component {
             );
         }
 
-        let helptext = (
+        let helpText = (
             <div
-                style={{visibility: hastext ? 'visible' : 'hidden', opacity: hastext ? '1' : '0'}}
+                style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '1' : '0'}}
                 className='help_format_text'
             >
                 <b>
@@ -229,7 +229,7 @@ export default class Textbox extends React.Component {
                     dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.messageText) : ''}}
                 >
                 </div>
-                {helptext}
+                {helpText}
                 <a
                     target='_blank'
                     href='http://docs.mattermost.com/help/getting-started/messaging-basics.html'
