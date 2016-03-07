@@ -27,7 +27,9 @@ export default class Authorize extends React.Component {
                     window.location.replace(data.redirect);
                 }
             },
-            () => {}
+            () => {
+                //Do nothing on error
+            }
         );
     }
     handleDeny() {

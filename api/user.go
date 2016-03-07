@@ -1510,6 +1510,10 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 			RevokeAllSession(c, user.Id)
 		}
 
+		if extra := <-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
+			c.Err = extra.Err
+		}
+
 		ruser := result.Data.([2]*model.User)[0]
 		options := utils.Cfg.GetSanitizeOptions()
 		options["passwordupdate"] = false

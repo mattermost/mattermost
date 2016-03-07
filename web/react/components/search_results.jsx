@@ -40,12 +40,14 @@ export default class SearchResults extends React.Component {
         this.mounted = false;
 
         this.onChange = this.onChange.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
         this.resize = this.resize.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         const state = getStateFromStores();
         state.windowWidth = Utils.windowWidth();
         state.windowHeight = Utils.windowHeight();
+        state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         this.state = state;
     }
 
@@ -53,12 +55,21 @@ export default class SearchResults extends React.Component {
         this.mounted = true;
         SearchStore.addSearchChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
+        UserStore.addChangeListener(this.onUserChange);
         this.resize();
         window.addEventListener('resize', this.handleResize);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return !Utils.areObjectsEqual(this.props, nextProps) || !Utils.areObjectsEqual(this.state, nextState);
+        if (!Utils.areObjectsEqual(this.props, nextProps)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(this.state, nextState)) {
+            return true;
+        }
+
+        return false;
     }
 
     componentDidUpdate() {
@@ -68,6 +79,7 @@ export default class SearchResults extends React.Component {
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
+        UserStore.removeChangeListener(this.onUserChange);
         this.mounted = false;
         window.removeEventListener('resize', this.handleResize);
     }
@@ -85,6 +97,10 @@ export default class SearchResults extends React.Component {
         }
     }
 
+    onUserChange() {
+        this.setState({profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
+    }
+
     resize() {
         $('#search-items-container').scrollTop(0);
         if (this.state.windowWidth > 768) {
@@ -97,10 +113,11 @@ export default class SearchResults extends React.Component {
         var currentId = UserStore.getCurrentId();
         var searchForm = null;
         if (currentId) {
-            searchForm = <SearchBox />;
+            searchForm = <SearchBox/>;
         }
         var noResults = (!results || !results.order || !results.order.length);
         var searchTerm = SearchStore.getSearchTerm();
+        const profiles = this.state.profiles || {};
 
         var ctls = null;
 
@@ -134,12 +151,19 @@ export default class SearchResults extends React.Component {
             );
         } else {
             ctls = results.order.map(function mymap(id) {
-                var post = results.posts[id];
+                const post = results.posts[id];
+                let profile;
+                if (UserStore.getCurrentId() === post.user_id) {
+                    profile = UserStore.getCurrentUser();
+                } else {
+                    profile = profiles[post.user_id];
+                }
                 return (
                     <SearchResultsItem
                         key={post.id}
                         channel={this.state.channels.get(post.channel_id)}
                         post={post}
+                        user={profile}
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
                     />
@@ -151,7 +175,7 @@ export default class SearchResults extends React.Component {
             <div className='sidebar--right__content'>
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
-                    <SearchResultsHeader isMentionSearch={this.props.isMentionSearch} />
+                    <SearchResultsHeader isMentionSearch={this.props.isMentionSearch}/>
                     <div
                         id='search-items-container'
                         className='search-items-container'

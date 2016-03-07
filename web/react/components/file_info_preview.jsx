@@ -37,7 +37,7 @@ export default function FileInfoPreview({filename, fileUrl, fileInfo, formatMess
                 href={fileUrl}
                 target='_blank'
             >
-                <span className='file-details__preview-helper' />
+                <span className='file-details__preview-helper'/>
                 <img src={Utils.getPreviewImagePath(filename)}/>
             </a>
             <div className='file-details'>
@@ -47,3 +47,10 @@ export default function FileInfoPreview({filename, fileUrl, fileInfo, formatMess
         </div>
     );
 }
+
+FileInfoPreview.propTypes = {
+    filename: React.PropTypes.string.isRequired,
+    fileUrl: React.PropTypes.string.isRequired,
+    fileInfo: React.PropTypes.object.isRequired,
+    formatMessage: React.PropTypes.func.isRequired
+};

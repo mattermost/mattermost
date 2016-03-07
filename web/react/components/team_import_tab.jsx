@@ -79,7 +79,7 @@ class TeamImportTab extends React.Component {
         case 'done':
             messageSection = (
                 <p className='confirm-import alert alert-success'>
-                    <i className='fa fa-check' />
+                    <i className='fa fa-check'/>
                     <FormattedMessage
                         id='team_import_tab.successful'
                         defaultMessage=' Import successful: '
@@ -99,7 +99,7 @@ class TeamImportTab extends React.Component {
         case 'fail':
             messageSection = (
                 <p className='confirm-import alert alert-warning'>
-                    <i className='fa fa-warning' />
+                    <i className='fa fa-warning'/>
                     <FormattedMessage
                         id='team_import_tab.failure'
                         defaultMessage=' Import failure: '

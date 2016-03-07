@@ -4,9 +4,6 @@
 import {FormattedMessage} from 'mm-intl';
 
 export default class ViewImagePopoverBar extends React.Component {
-    constructor(props) {
-        super(props);
-    }
     render() {
         var publicLink = '';
         if (global.window.mm_config.EnablePublicLink === 'true') {

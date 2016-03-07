@@ -24,7 +24,7 @@ class AtMentionSuggestion extends React.Component {
                     defaultMessage='Notifies everyone in the team'
                 />
             );
-            icon = <i className='mention-img fa fa-users fa-2x' />;
+            icon = <i className='mention-img fa fa-users fa-2x'/>;
         } else if (item.username === 'channel') {
             username = 'channel';
             description = (
@@ -33,7 +33,7 @@ class AtMentionSuggestion extends React.Component {
                     defaultMessage='Notifies everyone in the channel'
                 />
             );
-            icon = <i className='mention-img fa fa-users fa-2x' />;
+            icon = <i className='mention-img fa fa-users fa-2x'/>;
         } else {
             username = item.username;
             description = Utils.getFullName(item);
@@ -83,13 +83,13 @@ export default class AtMentionProvider {
         if (captured) {
             const usernamePrefix = captured[1];
 
-            const users = UserStore.getProfiles();
+            const users = UserStore.getActiveOnlyProfiles(true);
             let filtered = [];
 
             for (const id of Object.keys(users)) {
                 const user = users[id];
 
-                if (user.username.startsWith(usernamePrefix)) {
+                if (user.username.startsWith(usernamePrefix) && user.delete_at <= 0) {
                     filtered.push(user);
                 }
 

@@ -153,3 +153,31 @@ func TestCommandStoreUpdate(t *testing.T) {
 		t.Fatal(r2.Err)
 	}
 }
+
+func TestCommandCount(t *testing.T) {
+	Setup()
+
+	o1 := &model.Command{}
+	o1.CreatorId = model.NewId()
+	o1.Method = model.COMMAND_METHOD_POST
+	o1.TeamId = model.NewId()
+	o1.URL = "http://nowhere.com/"
+
+	o1 = (<-store.Command().Save(o1)).Data.(*model.Command)
+
+	if r1 := <-store.Command().AnalyticsCommandCount(""); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(int64) == 0 {
+			t.Fatal("should be at least 1 command")
+		}
+	}
+
+	if r2 := <-store.Command().AnalyticsCommandCount(o1.TeamId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if r2.Data.(int64) != 1 {
+			t.Fatal("should be 1 command")
+		}
+	}
+}

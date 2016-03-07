@@ -173,11 +173,14 @@ export default class PostsViewContainer extends React.Component {
                     scrollPostId={this.state.scrollPost}
                     postViewScrolled={this.handlePostsViewScroll}
                     loadMorePostsTopClicked={this.loadMorePostsTop}
-                    loadMorePostsBottomClicked={() => {}}
+                    loadMorePostsBottomClicked={() => {
+                        // Do Nothing
+                    }}
                     showMoreMessagesTop={!this.state.atTop[this.state.currentChannelIndex]}
                     showMoreMessagesBottom={false}
                     introText={channel ? createChannelIntroMessage(channel) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
+                    profiles={this.props.profiles}
                 />
             );
             if (!postLists[i] && isActive) {
@@ -197,3 +200,7 @@ export default class PostsViewContainer extends React.Component {
         );
     }
 }
+
+PostsViewContainer.propTypes = {
+    profiles: React.PropTypes.object
+};

@@ -40,7 +40,7 @@ export default class SettingsSidebar extends React.Component {
                         href='#'
                         onClick={this.handleClick.bind(null, tab)}
                     >
-                        <i className={tab.icon} />
+                        <i className={tab.icon}/>
                         {tab.uiName}
                     </a>
                 </li>

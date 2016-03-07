@@ -1113,7 +1113,7 @@
   },
   {
     "id": "api.templates.email_info",
-    "translation": "Si tienes alguna pregunta, escribenos en cualquier momento a: <a href=\"mailto:{{.FeedbackEmail}}\" style=\"text-decoration: none; color:#2389D7;\">{{.FeedbackEmail}}</a>.<br>Los mejores deseos,<br>El Equipo {{.SiteName}}<br>"
+    "translation": "Si tienes alguna pregunta, escribenos en cualquier momento a: <a href=\"mailto:{{.SupportEmail}}\" style=\"text-decoration: none; color:#2389D7;\">{{.SupportEmail}}</a>.<br>Los mejores deseos,<br>El Equipo {{.SiteName}}<br>"
   },
   {
     "id": "api.templates.error.link",
@@ -1165,7 +1165,7 @@
   },
   {
     "id": "api.templates.password_change_body.title",
-    "translation": "Haz cambiado tu contraseña"
+    "translation": "Tu contraseña ha sido actualizada"
   },
   {
     "id": "api.templates.password_change_subject",
@@ -1617,7 +1617,7 @@
   },
   {
     "id": "api.web_hub.start.stopping.debug",
-    "translation": "deteniendo todas las conexiones"
+    "translation": "deteniendo conexiones %v"
   },
   {
     "id": "api.web_socket.connect.error",
@@ -2316,6 +2316,10 @@
     "translation": "no se puede decodificar"
   },
   {
+    "id": "store.sql.alter_column_type.critical",
+    "translation": "Falla al alterar el tipo de la columna %v"
+  },
+  {
     "id": "store.sql.check_index.critical",
     "translation": "Falla al revisar el indice %v"
   },
@@ -2384,6 +2388,10 @@
     "translation": "MAC incorrecto para el ciphertext dado"
   },
   {
+    "id": "store.sql.maxlength_column.critical",
+    "translation": "Falla al obtener la máxima longitud de la columna %v"
+  },
+  {
     "id": "store.sql.open_conn.critical",
     "translation": "Falla al abrir una conexión sql a err:%v"
   },
@@ -2398,6 +2406,10 @@
   {
     "id": "store.sql.pinging.info",
     "translation": "Verificando conexión con la base de datos sql %v"
+  },
+  {
+    "id": "store.sql.remove_index.critical",
+    "translation": "Falla al remover el índice %v"
   },
   {
     "id": "store.sql.rename_column.critical",
@@ -2634,6 +2646,10 @@
   {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "Encontramos un error actualizando el miembro del canal"
+  },
+  {
+    "id": "store.sql_command.analytics_command_count.app_error",
+    "translation": "No pudimos contar los comandos de barra"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
@@ -2884,6 +2900,10 @@
     "translation": "No pudimos actualizar la preferencia"
   },
   {
+    "id": "store.sql_session.analytics_session_count.app_error",
+    "translation": "No pudimos contar las sesiones"
+  },
+  {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",
     "translation": "Encontramos un error mientras se eliminaban las sesiones expiradas del usuario"
   },
@@ -2946,6 +2966,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "Encontramos un error actualizando las propiedades del sistema"
+  },
+  {
+    "id": "store.sql_team.analytics_team_count.app_error",
+    "translation": "No pudimos contar los equipos"
   },
   {
     "id": "store.sql_team.get.find.app_error",
@@ -3025,11 +3049,11 @@
   },
   {
     "id": "store.sql_user.get_by_auth.app_error",
-    "translation": "No pudimos encontrar una cuenta existente que coincida con tu tipo de autenticación para este equipo. Es posible que necesites una invitación por aprte del dueño del equipo para unirte."
+    "translation": "No pudimos encontrar una cuenta existente que coincida con tu tipo de autenticación para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "No pudimos encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por aprte del dueño del equipo para unirte."
+    "translation": "No pudimos encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
   {
     "id": "store.sql_user.get_for_export.app_error",
@@ -3426,6 +3450,10 @@
   {
     "id": "web.get_access_token.revoking.error",
     "translation": "Se encontró un error al revocar el acceso del token, err="
+  },
+  {
+    "id": "web.header.back",
+    "translation": "Atrás"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",

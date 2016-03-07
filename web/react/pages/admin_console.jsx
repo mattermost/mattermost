@@ -56,7 +56,7 @@ class Root extends React.Component {
                         tab={this.props.map.ActiveTab}
                         teamId={this.props.map.TeamId}
                     />
-                    <SelectTeamModal />
+                    <SelectTeamModal/>
                 </div>
             </IntlProvider>
         );
@@ -65,7 +65,7 @@ class Root extends React.Component {
 
 global.window.setup_admin_console_page = function setup(props) {
     ReactDOM.render(
-        <Root map={props} />,
+        <Root map={props}/>,
         document.getElementById('admin_controller')
     );
 };

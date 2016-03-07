@@ -14,8 +14,16 @@ export default class PostInfo extends React.Component {
     constructor(props) {
         super(props);
 
+        this.dropdownPosition = this.dropdownPosition.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
         this.removePost = this.removePost.bind(this);
+    }
+    dropdownPosition(e) {
+        var position = $('#post-list').height() - $(e.target).offset().top;
+        var dropdown = $(e.target).next('.dropdown-menu');
+        if (position < dropdown.height()) {
+            dropdown.addClass('bottom');
+        }
     }
     createDropdown() {
         var post = this.props.post;
@@ -57,22 +65,24 @@ export default class PostInfo extends React.Component {
              );
         }
 
-        dropdownContents.push(
-            <li
-                key='copyLink'
-                role='presentation'
-            >
-                <a
-                    href='#'
-                    onClick={this.handlePermalink}
+        if (!Utils.isMobile()) {
+            dropdownContents.push(
+                <li
+                    key='copyLink'
+                    role='presentation'
                 >
-                    <FormattedMessage
-                        id='post_info.permalink'
-                        defaultMessage='Permalink'
-                    />
-                </a>
-            </li>
-        );
+                    <a
+                        href='#'
+                        onClick={this.handlePermalink}
+                    >
+                        <FormattedMessage
+                            id='post_info.permalink'
+                            defaultMessage='Permalink'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (isOwner || isAdmin) {
             dropdownContents.push(
@@ -133,6 +143,7 @@ export default class PostInfo extends React.Component {
                     type='button'
                     data-toggle='dropdown'
                     aria-expanded='false'
+                    onClick={this.dropdownPosition}
                 />
                 <ul
                     className='dropdown-menu'
@@ -144,7 +155,8 @@ export default class PostInfo extends React.Component {
         );
     }
 
-    handlePermalink() {
+    handlePermalink(e) {
+        e.preventDefault();
         EventHelpers.showGetPostLinkModal(this.props.post);
     }
 

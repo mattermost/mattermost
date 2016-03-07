@@ -8,11 +8,9 @@ import * as Client from '../utils/client.jsx';
 
 import GetPostLinkModal from '../components/get_post_link_modal.jsx';
 import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
-import RenameChannelModal from '../components/rename_channel_modal.jsx';
 import EditPostModal from '../components/edit_post_modal.jsx';
 import DeletePostModal from '../components/delete_post_modal.jsx';
 import MoreChannelsModal from '../components/more_channels.jsx';
-import PostDeletedModal from '../components/post_deleted_modal.jsx';
 import TeamSettingsModal from '../components/team_settings_modal.jsx';
 import RemovedFromChannelModal from '../components/removed_from_channel_modal.jsx';
 import RegisterAppModal from '../components/register_app_modal.jsx';
@@ -69,19 +67,16 @@ class Root extends React.Component {
                     <ChannelLoader/>
                     <ErrorBar/>
                     <ChannelView/>
-
-                    <GetPostLinkModal />
-                    <GetTeamInviteLinkModal />
-                    <InviteMemberModal />
-                    <ImportThemeModal />
-                    <TeamSettingsModal />
-                    <RenameChannelModal />
-                    <MoreChannelsModal />
-                    <EditPostModal />
-                    <DeletePostModal />
-                    <PostDeletedModal />
-                    <RemovedFromChannelModal />
-                    <RegisterAppModal />
+                    <GetPostLinkModal/>
+                    <GetTeamInviteLinkModal/>
+                    <InviteMemberModal/>
+                    <ImportThemeModal/>
+                    <TeamSettingsModal/>
+                    <MoreChannelsModal/>
+                    <EditPostModal/>
+                    <DeletePostModal/>
+                    <RemovedFromChannelModal/>
+                    <RegisterAppModal/>
                 </div>
             </IntlProvider>
         );
@@ -96,7 +91,7 @@ global.window.setup_channel_page = function setup(props, team, channel) {
     }
 
     ReactDOM.render(
-        <Root map={props} />,
+        <Root map={props}/>,
         document.getElementById('channel_view')
     );
 };

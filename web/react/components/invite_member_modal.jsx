@@ -376,7 +376,7 @@ class InviteMemberModal extends React.Component {
                 );
                 if (this.state.isSendingEmails) {
                     sendButtonLabel = (
-                        <span><i className='fa fa-spinner fa-spin' />
+                        <span><i className='fa fa-spinner fa-spin'/>
                             <FormattedMessage
                                 id='invite_member.sending'
                                 defaultMessage=' Sending'

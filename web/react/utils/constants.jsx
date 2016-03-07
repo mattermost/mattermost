@@ -71,6 +71,26 @@ export default {
         VIEW_ACTION: null
     }),
 
+    StatTypes: keyMirror({
+        TOTAL_USERS: null,
+        TOTAL_PUBLIC_CHANNELS: null,
+        TOTAL_PRIVATE_GROUPS: null,
+        TOTAL_POSTS: null,
+        TOTAL_TEAMS: null,
+        TOTAL_FILE_POSTS: null,
+        TOTAL_HASHTAG_POSTS: null,
+        TOTAL_IHOOKS: null,
+        TOTAL_OHOOKS: null,
+        TOTAL_COMMANDS: null,
+        TOTAL_SESSIONS: null,
+        POST_PER_DAY: null,
+        USERS_WITH_POSTS_PER_DAY: null,
+        RECENTLY_ACTIVE_USERS: null,
+        NEWLY_CREATED_USERS: null
+    }),
+    STAT_MAX_ACTIVE_USERS: 20,
+    STAT_MAX_NEW_USERS: 20,
+
     SocketEvents: {
         POSTED: 'posted',
         POST_EDITED: 'post_edited',
@@ -189,8 +209,8 @@ export default {
             sidebarHeaderTextColor: '#FFFFFF',
             onlineIndicator: '#7DBE00',
             awayIndicator: '#DCBD4E',
-            mentionBj: '#136197',
-            mentionColor: '#bfcde8',
+            mentionBj: '#FBFBFB',
+            mentionColor: '#2071A7',
             centerChannelBg: '#f2f4f8',
             centerChannelColor: '#333333',
             newMessageSeparator: '#FF8800',
@@ -276,86 +296,107 @@ export default {
     },
     THEME_ELEMENTS: [
         {
+            group: 'sidebarElements',
             id: 'sidebarBg',
             uiName: 'Sidebar BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarText',
             uiName: 'Sidebar Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarHeaderBg',
             uiName: 'Sidebar Header BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarHeaderTextColor',
             uiName: 'Sidebar Header Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarUnreadText',
             uiName: 'Sidebar Unread Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextHoverBg',
             uiName: 'Sidebar Text Hover BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextActiveBorder',
             uiName: 'Sidebar Text Active Border'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextActiveColor',
             uiName: 'Sidebar Text Active Color'
         },
         {
+            group: 'sidebarElements',
             id: 'onlineIndicator',
             uiName: 'Online Indicator'
         },
         {
+            group: 'sidebarElements',
             id: 'awayIndicator',
             uiName: 'Away Indicator'
         },
         {
+            group: 'sidebarElements',
             id: 'mentionBj',
             uiName: 'Mention Jewel BG'
         },
         {
+            group: 'sidebarElements',
             id: 'mentionColor',
             uiName: 'Mention Jewel Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'centerChannelBg',
             uiName: 'Center Channel BG'
         },
         {
+            group: 'centerChannelElements',
             id: 'centerChannelColor',
             uiName: 'Center Channel Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'newMessageSeparator',
             uiName: 'New Message Separator'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'linkColor',
             uiName: 'Link Color'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'buttonBg',
             uiName: 'Button BG'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'buttonColor',
             uiName: 'Button Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'mentionHighlightBg',
             uiName: 'Mention Highlight BG'
         },
         {
+            group: 'centerChannelElements',
             id: 'mentionHighlightLink',
             uiName: 'Mention Highlight Link'
         },
         {
+            group: 'centerChannelElements',
             id: 'codeTheme',
             uiName: 'Code Theme',
             themes: [
@@ -396,6 +437,8 @@ export default {
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings',
+        DISPLAY_PREFER_NICKNAME: 'nickname_full_name',
+        DISPLAY_PREFER_FULL_NAME: 'full_name',
         CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
         TUTORIAL_STEP: 'tutorial_step'
     },
@@ -458,6 +501,10 @@ export default {
         EMBED_PREVIEW: {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
+        },
+        EMBED_TOGGLE: {
+            label: 'embed_toggle',
+            description: 'Show toggle for all embed previews'
         }
     },
     OVERLAY_TIME_DELAY: 400,

@@ -43,11 +43,7 @@ export default class ClaimAccount extends React.Component {
             );
         }
 
-        return (
-            <div>
-                {content}
-            </div>
-        );
+        return content;
     }
 }
 

@@ -47,6 +47,10 @@ const holders = defineMessages({
     EMBED_PREVIEW: {
         id: 'user.settings.advance.embed_preview',
         defaultMessage: 'Show preview snippet of links below message'
+    },
+    EMBED_TOGGLE: {
+        id: 'user.settings.advance.embed_toggle',
+        defaultMessage: 'Show toggle for all embed previews'
     }
 });
 
@@ -240,7 +244,7 @@ class AdvancedSettingsDisplay extends React.Component {
                                             this.toggleFeature(feature.label, e.target.checked);
                                         }}
                                     />
-                                    {formatMessage({id: 'user.settings.advance.' + feature.label})}
+                                    {formatMessage(holders[key])}
                                 </label>
                             </div>
                         </div>

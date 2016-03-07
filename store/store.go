@@ -55,6 +55,7 @@ type TeamStore interface {
 	GetAllTeamListing() StoreChannel
 	GetByInviteId(inviteId string) StoreChannel
 	PermanentDelete(teamId string) StoreChannel
+	AnalyticsTeamCount() StoreChannel
 }
 
 type ChannelStore interface {
@@ -85,6 +86,7 @@ type ChannelStore interface {
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
+	ExtraUpdateByUser(userId string, time int64) StoreChannel
 }
 
 type PostStore interface {
@@ -140,6 +142,7 @@ type SessionStore interface {
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string) StoreChannel
+	AnalyticsSessionCount(teamId string) StoreChannel
 }
 
 type AuditStore interface {
@@ -195,6 +198,7 @@ type CommandStore interface {
 	Delete(commandId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	Update(hook *model.Command) StoreChannel
+	AnalyticsCommandCount(teamId string) StoreChannel
 }
 
 type PreferenceStore interface {

@@ -151,18 +151,49 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlCommandStore) Update(hook *model.Command) StoreChannel {
+func (s SqlCommandStore) Update(cmd *model.Command) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		hook.UpdateAt = model.GetMillis()
+		cmd.UpdateAt = model.GetMillis()
 
-		if _, err := s.GetMaster().Update(hook); err != nil {
-			result.Err = model.NewLocAppError("SqlCommandStore.Update", "store.sql_command.save.update.app_error", nil, "id="+hook.Id+", "+err.Error())
+		if _, err := s.GetMaster().Update(cmd); err != nil {
+			result.Err = model.NewLocAppError("SqlCommandStore.Update", "store.sql_command.save.update.app_error", nil, "id="+cmd.Id+", "+err.Error())
 		} else {
-			result.Data = hook
+			result.Data = cmd
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlCommandStore) AnalyticsCommandCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`SELECT
+			    COUNT(*)
+			FROM
+			    Commands
+			WHERE
+			    DeleteAt = 0`
+
+		if len(teamId) > 0 {
+			query += " AND TeamId = :TeamId"
+		}
+
+		if c, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlCommandStore.AnalyticsCommandCount", "store.sql_command.analytics_command_count.app_error", nil, err.Error())
+		} else {
+			result.Data = c
 		}
 
 		storeChannel <- result

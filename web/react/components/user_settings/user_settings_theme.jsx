@@ -182,7 +182,6 @@ export default class ThemeSetting extends React.Component {
         if (displayCustom) {
             custom = (
                 <div key='customThemeChooser'>
-                    <br/>
                     <CustomThemeChooser
                         theme={this.state.theme}
                         updateTheme={this.updateTheme}
@@ -241,7 +240,6 @@ export default class ThemeSetting extends React.Component {
                             defaultMessage='Custom Theme'
                         />
                     </label>
-                    <br/>
                 </div>
             );
 

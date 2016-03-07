@@ -34,6 +34,7 @@ class FileUpload extends React.Component {
         this.uploadFiles = this.uploadFiles.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleDrop = this.handleDrop.bind(this);
+        this.cancelUpload = this.cancelUpload.bind(this);
 
         this.state = {
             requests: {}
@@ -304,7 +305,7 @@ class FileUpload extends React.Component {
                 className='btn btn-file'
             >
                 <span>
-                    <i className='glyphicon glyphicon-paperclip' />
+                    <i className='glyphicon glyphicon-paperclip'/>
                 </span>
                 <input
                     ref='fileInput'
@@ -331,4 +332,4 @@ FileUpload.propTypes = {
     postType: React.PropTypes.string
 };
 
-export default injectIntl(FileUpload);
+export default injectIntl(FileUpload, {withRef: true});

@@ -51,8 +51,8 @@ func main() {
 
 	parseCmds()
 
-	utils.LoadConfig(flagConfigFile)
 	utils.InitTranslations()
+	utils.LoadConfig(flagConfigFile)
 
 	if flagRunCmds {
 		utils.ConfigureCmdLineLog()
@@ -276,15 +276,13 @@ func cmdCreateTeam() {
 			os.Exit(1)
 		}
 
-		c := &api.Context{}
-		c.RequestId = model.NewId()
-		c.IpAddress = "cmd_line"
+		c := getMockContext()
 
 		team := &model.Team{}
 		team.DisplayName = flagTeamName
 		team.Name = flagTeamName
 		team.Email = flagEmail
-		team.Type = model.TEAM_INVITE
+		team.Type = model.TEAM_OPEN
 
 		api.CreateTeam(c, team)
 		if c.Err != nil {
@@ -377,9 +375,7 @@ func cmdAssignRole() {
 			os.Exit(1)
 		}
 
-		c := &api.Context{}
-		c.RequestId = model.NewId()
-		c.IpAddress = "cmd_line"
+		c := getMockContext()
 
 		var team *model.Team
 		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
@@ -431,10 +427,6 @@ func cmdResetPassword() {
 			os.Exit(1)
 		}
 
-		c := &api.Context{}
-		c.RequestId = model.NewId()
-		c.IpAddress = "cmd_line"
-
 		var team *model.Team
 		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
@@ -474,9 +466,7 @@ func cmdPermDeleteUser() {
 			os.Exit(1)
 		}
 
-		c := &api.Context{}
-		c.RequestId = model.NewId()
-		c.IpAddress = "cmd_line"
+		c := getMockContext()
 
 		var team *model.Team
 		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
@@ -525,9 +515,7 @@ func cmdPermDeleteTeam() {
 			os.Exit(1)
 		}
 
-		c := &api.Context{}
-		c.RequestId = model.NewId()
-		c.IpAddress = "cmd_line"
+		c := getMockContext()
 
 		var team *model.Team
 		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
@@ -564,6 +552,15 @@ func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
 	os.Exit(code)
+}
+
+func getMockContext() *api.Context {
+	c := &api.Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	c.T = utils.TfuncWithFallback(model.DEFAULT_LOCALE)
+	c.Locale = model.DEFAULT_LOCALE
+	return c
 }
 
 var usage = `Mattermost commands to help configure the system

@@ -419,12 +419,13 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		ua := user_agent.New(r.UserAgent())
 		bname, _ := ua.Browser()
 
+		parts := strings.Split(filename, "/")
+		filePart := strings.Split(parts[len(parts)-1], "?")[0]
+		w.Header().Set("Content-Disposition", "attachment;filename=\""+filePart+"\"")
+
 		if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
 			// trim off anything before the final / so we just get the file's name
-			parts := strings.Split(filename, "/")
-
 			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Header().Set("Content-Disposition", "attachment;filename=\""+parts[len(parts)-1]+"\"")
 		}
 	}
 

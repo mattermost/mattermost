@@ -92,11 +92,13 @@
         font-size: 1em;
     }
 
-    .date-separator.hovered--after:before, .new-separator.hovered--after:before {
+    .date-separator.hovered--before:after, .date-separator.hovered--after:before, .new-separator.hovered--after:before, .new-separator.hovered--before:after {
         background: none !important;
     }
 
     .post {
+
+        background: none !important;
 
         .post__dropdown {
             line-height: 9px;
@@ -111,6 +113,16 @@
                 content: '...';
                 top: -3px;
             }
+
+        }
+
+        .comment-icon__container {
+            visibility: visible;
+            display: none;
+
+                &.icon--show {
+                    display: inline-block;
+                }
 
         }
 
@@ -560,8 +572,7 @@
             .glyphicon-refresh-animate {
                 right: 33px;
                 top: 15px;
-                color: #fff;
-                color: rgba(255,255,255,0.5);
+                color: #aaa;
             }
             .form-control {
                 border: none;
@@ -595,7 +606,7 @@
             @include translate3d(0, 0, 0);
         }
         > div {
-            padding-bottom: 0;
+            padding-bottom: 70px;
         }
         .nav-pills__unread-indicator-bottom {
             bottom: 10px;
@@ -604,8 +615,21 @@
             top: 13px;
         }
         .team__header {
-            display: none;
             @include clearfix;
+            pointer-events: none;
+
+            .user__name {
+                display: none;
+            }
+
+            .team__name {
+                margin: 10px 0;
+            }
+
+            .navbar-right {
+                display: none;
+            }
+
         }
         .search__form {
             display: block;
@@ -776,6 +800,24 @@
     }
 }
 @media screen and (max-width: 480px) {
+    .settings-modal {
+
+         .settings-table {
+
+            .security-links {
+                margin-bottom: 10px;
+                display: block;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+
+            }
+
+         }
+
+    }
+
     .tip-overlay.tip-overlay--sidebar {
         min-height: 350px;
     }

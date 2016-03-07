@@ -68,7 +68,7 @@ class AccessHistoryModal extends React.Component {
     render() {
         var content;
         if (this.state.audits.loading) {
-            content = (<LoadingScreen />);
+            content = (<LoadingScreen/>);
         } else {
             content = (
                 <AuditTable

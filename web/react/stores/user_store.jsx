@@ -17,50 +17,6 @@ const CHANGE_EVENT_STATUSES = 'change_statuses';
 class UserStoreClass extends EventEmitter {
     constructor() {
         super();
-
-        this.emitChange = this.emitChange.bind(this);
-        this.addChangeListener = this.addChangeListener.bind(this);
-        this.removeChangeListener = this.removeChangeListener.bind(this);
-        this.emitSessionsChange = this.emitSessionsChange.bind(this);
-        this.addSessionsChangeListener = this.addSessionsChangeListener.bind(this);
-        this.removeSessionsChangeListener = this.removeSessionsChangeListener.bind(this);
-        this.emitAuditsChange = this.emitAuditsChange.bind(this);
-        this.addAuditsChangeListener = this.addAuditsChangeListener.bind(this);
-        this.removeAuditsChangeListener = this.removeAuditsChangeListener.bind(this);
-        this.emitTeamsChange = this.emitTeamsChange.bind(this);
-        this.addTeamsChangeListener = this.addTeamsChangeListener.bind(this);
-        this.removeTeamsChangeListener = this.removeTeamsChangeListener.bind(this);
-        this.emitStatusesChange = this.emitStatusesChange.bind(this);
-        this.addStatusesChangeListener = this.addStatusesChangeListener.bind(this);
-        this.removeStatusesChangeListener = this.removeStatusesChangeListener.bind(this);
-        this.getCurrentId = this.getCurrentId.bind(this);
-        this.getCurrentUser = this.getCurrentUser.bind(this);
-        this.setCurrentUser = this.setCurrentUser.bind(this);
-        this.getLastEmail = this.getLastEmail.bind(this);
-        this.setLastEmail = this.setLastEmail.bind(this);
-        this.getLastUsername = this.getLastUsername.bind(this);
-        this.setLastUsername = this.setLastUsername.bind(this);
-        this.hasProfile = this.hasProfile.bind(this);
-        this.getProfile = this.getProfile.bind(this);
-        this.getProfileByUsername = this.getProfileByUsername.bind(this);
-        this.getProfilesUsernameMap = this.getProfilesUsernameMap.bind(this);
-        this.getProfiles = this.getProfiles.bind(this);
-        this.getActiveOnlyProfiles = this.getActiveOnlyProfiles.bind(this);
-        this.getActiveOnlyProfileList = this.getActiveOnlyProfileList.bind(this);
-        this.saveProfile = this.saveProfile.bind(this);
-        this.setSessions = this.setSessions.bind(this);
-        this.getSessions = this.getSessions.bind(this);
-        this.setAudits = this.setAudits.bind(this);
-        this.getAudits = this.getAudits.bind(this);
-        this.setTeams = this.setTeams.bind(this);
-        this.getTeams = this.getTeams.bind(this);
-        this.getCurrentMentionKeys = this.getCurrentMentionKeys.bind(this);
-        this.setStatuses = this.setStatuses.bind(this);
-        this.pSetStatuses = this.pSetStatuses.bind(this);
-        this.setStatus = this.setStatus.bind(this);
-        this.getStatuses = this.getStatuses.bind(this);
-        this.getStatus = this.getStatus.bind(this);
-
         this.profileCache = null;
     }
 
@@ -277,7 +233,11 @@ class UserStoreClass extends EventEmitter {
     }
 
     getCurrentMentionKeys() {
-        var user = this.getCurrentUser();
+        return this.getMentionKeys(this.getCurrentId());
+    }
+
+    getMentionKeys(id) {
+        var user = this.getProfile(id);
 
         var keys = [];
 
@@ -330,7 +290,7 @@ class UserStoreClass extends EventEmitter {
 }
 
 var UserStore = new UserStoreClass();
-UserStore.setMaxListeners(0);
+UserStore.setMaxListeners(15);
 
 UserStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;

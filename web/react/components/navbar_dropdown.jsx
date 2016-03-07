@@ -107,7 +107,7 @@ export default class NavbarDropdown extends React.Component {
                 </li>
             );
 
-            if (this.props.teamType === Constants.OPEN_TEAM) {
+            if (this.props.teamType === Constants.OPEN_TEAM && global.window.mm_config.EnableUserCreation === 'true') {
                 teamLink = (
                     <li>
                         <a

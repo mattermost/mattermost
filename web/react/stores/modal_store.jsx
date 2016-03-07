@@ -28,7 +28,7 @@ class ModalStoreClass extends EventEmitter {
 
     handleEventPayload(payload) {
         // toggle event handlers should accept a boolean show/hide value and can accept a map of arguments
-        const {type, value, ...args} = payload.action; //eslint-disable-line no-redeclare
+        const {type, value, ...args} = payload.action; //eslint-disable-line no-use-before-define
 
         switch (type) {
         case ActionTypes.TOGGLE_IMPORT_THEME_MODAL:

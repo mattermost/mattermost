@@ -6,13 +6,9 @@ import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import * as Emoji from '../utils/emoticons.jsx';
 import Constants from '../utils/constants.jsx';
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
-import YoutubeVideo from './youtube_video.jsx';
-
-import providers from './providers.json';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
@@ -31,22 +27,7 @@ class PostBody extends React.Component {
     constructor(props) {
         super(props);
 
-        this.isImgLoading = false;
-
-        this.handleUserChange = this.handleUserChange.bind(this);
         this.parseEmojis = this.parseEmojis.bind(this);
-        this.createEmbed = this.createEmbed.bind(this);
-        this.createImageEmbed = this.createImageEmbed.bind(this);
-        this.loadImg = this.loadImg.bind(this);
-
-        const linkData = Utils.extractLinks(this.props.post.message);
-        const profiles = UserStore.getProfiles();
-
-        this.state = {
-            links: linkData.links,
-            post: this.props.post,
-            hasUserProfiles: profiles && Object.keys(profiles).length > 1
-        };
     }
 
     getAllChildNodes(nodeIn) {
@@ -72,132 +53,8 @@ class PostBody extends React.Component {
         });
     }
 
-    componentWillMount() {
-        if (this.props.post.filenames.length === 0 && this.state.links && this.state.links.length > 0) {
-            this.embed = this.createEmbed(this.state.links[0]);
-        }
-    }
-
     componentDidMount() {
         this.parseEmojis();
-
-        UserStore.addChangeListener(this.handleUserChange);
-    }
-
-    componentDidUpdate() {
-        this.parseEmojis();
-    }
-
-    componentWillUnmount() {
-        UserStore.removeChangeListener(this.handleUserChange);
-    }
-
-    handleUserChange() {
-        if (!this.state.hasProfiles) {
-            const profiles = UserStore.getProfiles();
-
-            this.setState({hasProfiles: profiles && Object.keys(profiles).length > 1});
-        }
-    }
-
-    componentWillReceiveProps(nextProps) {
-        const linkData = Utils.extractLinks(nextProps.post.message);
-        if (this.props.post.filenames.length === 0 && this.state.links && this.state.links.length > 0) {
-            this.embed = this.createEmbed(linkData.links[0]);
-        }
-        this.setState({
-            links: linkData.links
-        });
-    }
-
-    createEmbed(link) {
-        const post = this.state.post;
-
-        if (!link) {
-            if (post.type === 'oEmbed') {
-                post.props.oEmbedLink = '';
-                post.type = '';
-            }
-            return null;
-        }
-
-        const trimmedLink = link.trim();
-
-        if (Utils.isFeatureEnabled(PreReleaseFeatures.EMBED_PREVIEW)) {
-            const provider = this.getOembedProvider(trimmedLink);
-            if (provider != null) {
-                post.props.oEmbedLink = trimmedLink;
-                post.type = 'oEmbed';
-                this.setState({post, provider});
-                return '';
-            }
-        }
-
-        if (YoutubeVideo.isYoutubeLink(link)) {
-            return (
-                <YoutubeVideo
-                    channelId={post.channel_id}
-                    link={link}
-                />
-            );
-        }
-
-        for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
-            const imageType = Constants.IMAGE_TYPES[i];
-            const suffix = link.substring(link.length - (imageType.length + 1));
-            if (suffix === '.' + imageType || suffix === '=' + imageType) {
-                return this.createImageEmbed(link, this.state.imgLoaded);
-            }
-        }
-
-        return null;
-    }
-
-    getOembedProvider(link) {
-        for (let i = 0; i < providers.length; i++) {
-            for (let j = 0; j < providers[i].patterns.length; j++) {
-                if (link.match(providers[i].patterns[j])) {
-                    return providers[i];
-                }
-            }
-        }
-        return null;
-    }
-
-    loadImg(src) {
-        if (this.isImgLoading) {
-            return;
-        }
-
-        this.isImgLoading = true;
-
-        const img = new Image();
-        img.onload = (
-            () => {
-                this.embed = this.createImageEmbed(src, true);
-                this.setState({imgLoaded: true});
-            }
-        );
-        img.src = src;
-    }
-
-    createImageEmbed(link, isLoaded) {
-        if (!isLoaded) {
-            this.loadImg(link);
-            return (
-                <img
-                    className='img-div placeholder'
-                    height='500px'
-                />
-            );
-        }
-
-        return (
-            <img
-                className='img-div'
-                src={link}
-            />
-        );
     }
 
     render() {
@@ -312,6 +169,7 @@ class PostBody extends React.Component {
         }
 
         let message;
+        let additionalContent = null;
         if (this.props.post.state === Constants.POST_DELETED) {
             message = (
                 <FormattedMessage
@@ -325,6 +183,10 @@ class PostBody extends React.Component {
                     onClick={TextFormatting.handleClick}
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message)}}
                 />
+            );
+
+            additionalContent = (
+                <PostBodyAdditionalContent post={this.props.post}/>
             );
         }
 
@@ -340,12 +202,8 @@ class PostBody extends React.Component {
                         {loading}
                         {message}
                     </div>
-                    <PostBodyAdditionalContent
-                        post={this.state.post}
-                        provider={this.state.provider}
-                    />
                     {fileAttachmentHolder}
-                    {this.embed}
+                    {additionalContent}
                 </div>
             </div>
         );
@@ -357,7 +215,8 @@ PostBody.propTypes = {
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired
+    handleCommentClick: React.PropTypes.func.isRequired,
+    hasProfiles: React.PropTypes.bool
 };
 
 export default injectIntl(PostBody);

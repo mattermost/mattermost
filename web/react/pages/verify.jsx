@@ -61,7 +61,7 @@ class Root extends React.Component {
 
 global.window.setupVerifyPage = function setup(props) {
     ReactDOM.render(
-        <Root map={props} />,
+        <Root map={props}/>,
         document.getElementById('verify')
     );
 };

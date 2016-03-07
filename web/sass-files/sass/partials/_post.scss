@@ -225,9 +225,6 @@ body.ios {
 		position: absolute;
 		height: 100%;
 		-webkit-overflow-scrolling: touch;
-		&::-webkit-scrollbar {
-			width: 0px !important;
-		}
 		&.active {
 			display: inline;
 		}
@@ -383,6 +380,10 @@ body.ios {
 			min-height: 25px;
 			display: block;
 			@include opacity(0.7);
+			white-space: nowrap;
+			width: 80%;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 	}
 }
@@ -396,8 +397,8 @@ body.ios {
 	.post-list__content {
 		display: table-cell;
 		vertical-align: bottom;
-		> div:last-child {
-			.dropdown-menu {
+		.dropdown-menu {
+			&.bottom {
 				top: auto;
 				bottom: 25px;
 			}
@@ -407,7 +408,7 @@ body.ios {
 
 .post {
 	word-wrap: break-word;
-	padding: 8px 1em 0;
+	padding: 8px .5em 0 1em;
 	position: relative;
 	max-width: 100%;
 	@include legacy-pie-clearfix;
@@ -456,7 +457,7 @@ body.ios {
 	&.same--root {
 
 		&.same--user {
-			padding: 0 1em;
+			padding: 0 .5em 0 1em;
 
 			&:hover {
 
@@ -628,6 +629,16 @@ body.ios {
 		}
 	}
 
+	.post__embed-container{
+		display: block;
+		max-height: 1000px;
+		transition: max-height .5s ease;
+		overflow: hidden;
+		&[hidden]{
+			max-height: 0;
+		}
+	}
+
 	.dropdown {
 		display: inline-block;
 		visibility: hidden;
@@ -686,7 +697,7 @@ body.ios {
 
 	.post__body {
 		word-wrap: break-word;
-		padding: 0.2em 0.5em 0em;
+		padding: 0.2em 0.5em;
 		@include legacy-pie-clearfix;
 		width: calc(100% - 75px);
 
@@ -752,7 +763,32 @@ body.ios {
 		white-space: nowrap;
 	}
 
-	.post__time {
+	.post__embed-visibility {
+		cursor: pointer;
+		display: block;
+		font: normal normal normal 14px/1 FontAwesome;
+		text-rendering: auto;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		font-size: 0;
+		width: 30px;
+		margin-top: -5px;
+
+		&:hover{
+			text-decoration: none;
+		}
+
+		&:before {
+			content: "\f065";
+			font-size: 14px;
+		}
+
+		&[data-expanded="true"]:before{
+			content: "\f066";
+		}
+	}
+
+	.post__time{
 		font-size: 0.9em;
 	}
 

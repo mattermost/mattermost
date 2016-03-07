@@ -21,6 +21,15 @@ import (
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
 
+var allowedMethods []string = []string{
+	"POST",
+	"GET",
+	"OPTIONS",
+	"PUT",
+	"PATCH",
+	"DELETE",
+}
+
 type Context struct {
 	Session           model.Session
 	RequestId         string
@@ -161,7 +170,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Instruct the browser not to display us in an iframe for anti-clickjacking
 	if !h.isApi {
 		w.Header().Set("X-Frame-Options", "DENY")
-		w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+		w.Header().Set("Content-Security-Policy", "frame-ancestors 'none'")
 	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
@@ -232,6 +241,31 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
+		origin := r.Header.Get("Origin")
+		if *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*utils.Cfg.ServiceSettings.AllowCorsFrom, origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+
+			if r.Method == "OPTIONS" {
+				w.Header().Set(
+					"Access-Control-Allow-Methods",
+					strings.Join(allowedMethods, ", "))
+
+				w.Header().Set(
+					"Access-Control-Allow-Headers",
+					r.Header.Get("Access-Control-Request-Headers"))
+			}
+		}
+	}
+
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	cw.router.ServeHTTP(w, r)
 }
 
 func GetProtocol(r *http.Request) string {
