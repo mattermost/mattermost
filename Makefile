@@ -6,6 +6,7 @@ BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 
+
 ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 
