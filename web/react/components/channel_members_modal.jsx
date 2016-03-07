@@ -44,6 +44,7 @@ export default class ChannelMembersModal extends React.Component {
     }
     getStateFromStores() {
         const extraInfo = ChannelStore.getCurrentExtraInfo();
+        const profiles = UserStore.getActiveOnlyProfiles();
 
         if (extraInfo.member_count !== extraInfo.members.length) {
             AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
@@ -53,9 +54,8 @@ export default class ChannelMembersModal extends React.Component {
             };
         }
 
-        // clone the member list since we mutate it later on
         const memberList = extraInfo.members.map((member) => {
-            return Object.assign({}, member);
+            return profiles[member.id];
         });
 
         function compareByUsername(a, b) {
