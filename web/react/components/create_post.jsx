@@ -130,7 +130,7 @@ class CreatePost extends React.Component {
                 post.message,
                 false,
                 (data) => {
-                    PostStore.storeDraft(data.channel_id, null);
+                    PostStore.storeDraft(this.state.channelId, null);
                     this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
                     if (data.goto_location && data.goto_location.length > 0) {
