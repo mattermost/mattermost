@@ -256,8 +256,8 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
+func (c *Client) GetProfiles(teamId string, offset int, limit int, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/profiles/%s/%d/%d", teamId, offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

@@ -883,7 +883,7 @@ func TestGetOutOfChannelMentions(t *testing.T) {
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
 	var allProfiles map[string]*model.User
-	if result := <-Srv.Store.User().GetProfiles(team1.Id); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(team1.Id, 100000, 0); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		allProfiles = result.Data.(map[string]*model.User)
@@ -934,7 +934,7 @@ func TestGetOutOfChannelMentions(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team2.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	if result := <-Srv.Store.User().GetProfiles(team2.Id); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(team2.Id, 100000, 0); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		allProfiles = result.Data.(map[string]*model.User)

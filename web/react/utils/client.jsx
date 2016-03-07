@@ -1203,10 +1203,26 @@ export function removeChannelMember(id, data, success, error) {
     track('api', 'api_channels_remove_member');
 }
 
-export function getProfiles(success, error) {
+export function getProfile(id, success, error) {
     $.ajax({
         cache: false,
-        url: '/api/v1/users/profiles',
+        url: '/api/v1/users/profile/' + id,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        ifModified: true,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getProfile', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function getProfiles(offset, limit, success, error) {
+    $.ajax({
+        cache: false,
+        url: '/api/v1/users/profiles/' + offset + '/' + limit,
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
@@ -1219,10 +1235,10 @@ export function getProfiles(success, error) {
     });
 }
 
-export function getProfilesForTeam(teamId, success, error) {
+export function getProfilesForTeam(teamId, offset, limit, success, error) {
     $.ajax({
         cache: false,
-        url: '/api/v1/users/profiles/' + teamId,
+        url: '/api/v1/users/profiles/' + teamId + '/' + offset + '/' + limit,
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',

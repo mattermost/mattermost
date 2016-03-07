@@ -58,8 +58,9 @@ func InitUser(r *mux.Router) {
 
 	sr.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
 	sr.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
-	sr.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
-	sr.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	sr.Handle("/profiles/{offset:[0-9]+}/{num:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	sr.Handle("/profiles/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{num:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	sr.Handle("/profile/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfile)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}", ApiUserRequired(getUser)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/audits", ApiUserRequired(getAudits)).Methods("GET")
@@ -341,7 +342,7 @@ func sendWelcomeEmailAndForget(c *Context, userId, email, teamName, teamDisplayN
 func addDirectChannelsAndForget(user *model.User) {
 	go func() {
 		var profiles map[string]*model.User
-		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
+		if result := <-Srv.Store.User().GetProfiles(user.TeamId, 10, 0); result.Err != nil {
 			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, user.TeamId, result.Err.Error())
 			return
 		} else {
@@ -923,6 +924,38 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getProfile(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	if !c.HasPermissionsToTeam(id, "getProfile") {
+		return
+	}
+
+	if result := <-Srv.Store.User().Get(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else if HandleEtag(result.Data.(*model.User).Etag(), w, r) {
+		return
+	} else {
+		profile := result.Data.(*model.User)
+		etag := profile.Etag()
+
+		options := utils.Cfg.GetSanitizeOptions()
+		options["passwordupdate"] = false
+		if c.IsSystemAdmin() {
+			options["fullname"] = true
+			options["email"] = true
+		}
+
+		profile.Sanitize(options)
+		profile.ClearNonProfileFields()
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(result.Data.(*model.User).ToJson()))
+		return
+	}
+}
+
 func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, ok := params["id"]
@@ -933,17 +966,28 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-
 	} else {
 		id = c.Session.TeamId
 	}
 
-	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
+	numProfiles, err := strconv.Atoi(params["num"])
+	if err != nil || numProfiles <= 0 {
+		c.SetInvalidParam("getProfiles", "num")
+		return
+	}
+
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil || offset < 0 {
+		c.SetInvalidParam("getProfiles", "offset")
+		return
+	}
+
+	etag := (<-Srv.Store.User().GetEtagForProfiles(id, numProfiles, offset)).Data.(string)
 	if HandleEtag(etag, w, r) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(id); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(id, numProfiles, offset); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1402,19 +1446,11 @@ func UpdateRoles(c *Context, user *model.User, roles string) *model.User {
 
 	if !model.IsInRole(roles, model.ROLE_SYSTEM_ADMIN) {
 		if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) && !model.IsInRole(roles, model.ROLE_TEAM_ADMIN) {
-			if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
+			if result := <-Srv.Store.User().GetRoleCount(user.TeamId, model.ROLE_TEAM_ADMIN); result.Err != nil {
 				c.Err = result.Err
 				return nil
 			} else {
-				activeAdmins := -1
-				profileUsers := result.Data.(map[string]*model.User)
-				for _, profileUser := range profileUsers {
-					if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_TEAM_ADMIN) {
-						activeAdmins = activeAdmins + 1
-					}
-				}
-
-				if activeAdmins <= 0 {
+				if result.Data.(int64) <= 0 {
 					c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.one_admin.app_error", nil, "")
 					return nil
 				}
@@ -1467,20 +1503,12 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// make sure there is at least 1 other active admin
 	if !active && model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) {
-		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
+		if result := <-Srv.Store.User().GetRoleCount(user.TeamId, model.ROLE_TEAM_ADMIN); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
-			activeAdmins := -1
-			profileUsers := result.Data.(map[string]*model.User)
-			for _, profileUser := range profileUsers {
-				if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_TEAM_ADMIN) {
-					activeAdmins = activeAdmins + 1
-				}
-			}
-
-			if activeAdmins <= 0 {
-				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.one_admin.app_error", nil, "userId="+user_id)
+			if result.Data.(int64) <= 0 {
+				c.Err = model.NewLocAppError("updateActive", "api.user.update_roles.one_admin.app_error", nil, "")
 				return
 			}
 		}
@@ -1869,7 +1897,7 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId, 1000, 0); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

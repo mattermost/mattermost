@@ -208,28 +208,31 @@ export function getChannelExtraInfo(id, memberLimit) {
     }
 }
 
-export function getProfiles() {
-    if (isCallInProgress('getProfiles')) {
+export function getProfile(id) {
+    if (isCallInProgress('getProfile')) {
         return;
     }
 
-    callTracker.getProfiles = utils.getTimestamp();
-    client.getProfiles(
-        function getProfilesSuccess(data, textStatus, xhr) {
-            callTracker.getProfiles = 0;
+    callTracker.getProfile = utils.getTimestamp();
+    client.getProfile(id,
+        (data, textStatus, xhr) => {
+            callTracker.getProfile = 0;
 
             if (xhr.status === 304 || !data) {
                 return;
             }
 
+            const profiles = {};
+            profiles[data.id] = data;
+
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
-                profiles: data
+                profiles: profiles
             });
         },
-        function getProfilesFailure(err) {
-            callTracker.getProfiles = 0;
-            dispatchError(err, 'getProfiles');
+        (err) => {
+            callTracker.getProfile = 0;
+            dispatchError(err, 'getProfile');
         }
     );
 }
@@ -496,8 +499,6 @@ export function getPostsPage(id, maxPosts) {
                     numRequested: numPosts,
                     post_list: data
                 });
-
-                getProfiles();
             },
             (err) => {
                 dispatchError(err, 'getPostsPage');
@@ -553,8 +554,6 @@ export function getPosts(id) {
                 numRequested: 0,
                 post_list: data
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPosts');
@@ -592,8 +591,6 @@ export function getPostsBefore(postId, offset, numPost) {
                 numRequested: numPost,
                 post_list: data
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPostsBefore');
@@ -631,8 +628,6 @@ export function getPostsAfter(postId, offset, numPost) {
                 numRequested: numPost,
                 post_list: data
             });
-
-            getProfiles();
         },
         (err) => {
             dispatchError(err, 'getPostsAfter');

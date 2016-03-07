@@ -1,10 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Client from '../../utils/client.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import UserItem from './user_item.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';
+
+import AnalyticsStore from '../../stores/analytics_store.jsx';
+
+import * as Client from '../../utils/client.jsx';
+import * as AsyncClient from '../../utils/async_client.jsx';
+import Constants from '../../utils/constants.jsx';
+const StatTypes = Constants.StatTypes;
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -17,62 +23,66 @@ export default class UserList extends React.Component {
         this.doPasswordReset = this.doPasswordReset.bind(this);
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
+        this.doLoadMore = this.doLoadMore.bind(this);
+        this.onAnalyticsChange = this.onAnalyticsChange.bind(this);
 
         this.state = {
             teamId: props.team.id,
             users: null,
             serverError: null,
             showPasswordModal: false,
-            user: null
+            user: null,
+            usersCount: AnalyticsStore.getTeamStat(props.team.id, StatTypes.TOTAL_USERS)
         };
     }
 
     componentDidMount() {
+        AnalyticsStore.addChangeListener(this.onAnalyticsChange);
         this.getCurrentTeamProfiles();
+        AsyncClient.getStandardAnalytics(this.props.team.id);
+    }
+
+    componentWillUnmount() {
+        AnalyticsStore.removeChangeListener(this.onAnalyticsChange);
+    }
+
+    componentWillReceiveProps(newProps) {
+        this.getTeamProfiles(newProps.team.id);
     }
 
     getCurrentTeamProfiles() {
         this.getTeamProfiles(this.props.team.id);
     }
 
+    onAnalyticsChange() {
+        this.setState({usersCount: AnalyticsStore.getTeamStat(this.props.team.id, StatTypes.TOTAL_USERS)});
+    }
+
     getTeamProfiles(teamId) {
+        const userList = this.state.users || [];
+
         Client.getProfilesForTeam(
             teamId,
+            userList.length,
+            Constants.USER_CHUNK_SIZE,
             (users) => {
-                var memberList = [];
+                const memberList = [];
                 for (var id in users) {
                     if (users.hasOwnProperty(id)) {
                         memberList.push(users[id]);
                     }
                 }
 
-                memberList.sort((a, b) => {
-                    if (a.username < b.username) {
-                        return -1;
-                    }
-
-                    if (a.username > b.username) {
-                        return 1;
-                    }
-
-                    return 0;
-                });
+                const newList = userList.concat(memberList);
 
                 this.setState({
-                    teamId: this.state.teamId,
-                    users: memberList,
-                    serverError: this.state.serverError,
-                    showPasswordModal: this.state.showPasswordModal,
-                    user: this.state.user
+                    users: newList,
+                    atEnd: memberList.length < Constants.USER_CHUNK_SIZE
                 });
             },
             (err) => {
                 this.setState({
-                    teamId: this.state.teamId,
-                    users: null,
-                    serverError: err.message,
-                    showPasswordModal: this.state.showPasswordModal,
-                    user: this.state.user
+                    serverError: err.message
                 });
             }
         );
@@ -80,9 +90,6 @@ export default class UserList extends React.Component {
 
     doPasswordReset(user) {
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: true,
             user
         });
@@ -90,9 +97,6 @@ export default class UserList extends React.Component {
 
     doPasswordResetDismiss() {
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: false,
             user: null
         });
@@ -100,20 +104,18 @@ export default class UserList extends React.Component {
 
     doPasswordResetSubmit() {
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: false,
             user: null
         });
     }
 
-    componentWillReceiveProps(newProps) {
-        this.getTeamProfiles(newProps.team.id);
+    doLoadMore(e) {
+        e.preventDefault();
+        this.getTeamProfiles(this.props.team.id);
     }
 
     render() {
-        var serverError = '';
+        let serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
@@ -136,7 +138,7 @@ export default class UserList extends React.Component {
             );
         }
 
-        var memberList = this.state.users.map((user) => {
+        const memberList = this.state.users.map((user) => {
             return (
                 <UserItem
                     key={'user_' + user.id}
@@ -146,6 +148,25 @@ export default class UserList extends React.Component {
                 />);
         });
 
+        let loadButton;
+        if (!this.state.atEnd) {
+            loadButton = (
+                <tr>
+                    <td className='row member-div padding--equal'>
+                        <a
+                            href='#'
+                            onClick={this.doLoadMore}
+                        >
+                            <FormattedMessage
+                                id='admin.userList.loadMore'
+                                defaultMessage='Load more users'
+                            />
+                        </a>
+                    </td>
+                </tr>
+            );
+        }
+
         return (
             <div className='wrapper--fixed'>
                 <h3>
@@ -154,7 +175,7 @@ export default class UserList extends React.Component {
                         defaultMessage='Users for {team} ({count})'
                         values={{
                             team: this.props.team.name,
-                            count: this.state.users.length
+                            count: this.state.usersCount
                         }}
                     />
                 </h3>
@@ -166,6 +187,7 @@ export default class UserList extends React.Component {
                     <table className='table more-table member-list-holder'>
                         <tbody>
                             {memberList}
+                            {loadButton}
                         </tbody>
                     </table>
                 </form>

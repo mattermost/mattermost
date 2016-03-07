@@ -233,7 +233,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		tchan := Srv.Store.Team().Get(c.Session.TeamId)
 		cchan := Srv.Store.Channel().Get(post.ChannelId)
 		uchan := Srv.Store.User().Get(post.UserId)
-		pchan := Srv.Store.User().GetProfiles(c.Session.TeamId)
+		pchan := Srv.Store.User().GetProfiles(c.Session.TeamId, 1000000, 0)
 		mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
 
 		var team *model.Team

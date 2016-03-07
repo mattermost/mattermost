@@ -411,6 +411,7 @@
   "admin.team.userCreationTitle": "Enable User Creation: ",
   "admin.team_analytics.activeUsers": "Active Users With Posts",
   "admin.team_analytics.totalPosts": "Total Posts",
+  "admin.userList.loadMore": "Load more users",
   "admin.userList.title": "Users for {team}",
   "admin.userList.title2": "Users for {team} ({count})",
   "admin.user_item.confirmDemoteDescription": "If you demote yourself from the System Admin role and there is not another user with System Admin privileges, you'll need to re-assign a System Admin by accessing the Mattermost server through a terminal and running the following command.",

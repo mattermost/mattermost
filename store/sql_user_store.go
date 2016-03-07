@@ -367,13 +367,13 @@ func (us SqlUserStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
+func (s SqlUserStore) GetEtagForProfiles(teamId string, limit, offset int) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users WHERE TeamId = :TeamId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
+		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM (SELECT * FROM Users WHERE TeamId = :TeamId ORDER BY Username ASC LIMIT :Limit OFFSET :Offset) AS T ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
@@ -387,7 +387,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
+func (us SqlUserStore) GetProfiles(teamId string, limit, offset int) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -396,7 +396,7 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
@@ -639,6 +639,25 @@ func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsUniqueUserCount", "store.sql_user.analytics_unique_user_count.app_error", nil, err.Error())
 		} else {
 			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlUserStore) GetRoleCount(teamId, role string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if count, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Users WHERE DeleteAt = 0 AND Roles = :Roles AND TeamId = :TeamId", map[string]interface{}{"TeamId": teamId, "Roles": role}); err != nil {
+			result.Data = 0
+		} else {
+			result.Data = count
 		}
 
 		storeChannel <- result
