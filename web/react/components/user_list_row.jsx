@@ -10,9 +10,9 @@ export default function UserListRow({user, actions}) {
 
     let name = user.username;
     if (user.nickname && nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME) {
-        name = `${user.nickname} (${user.username})`;
+        name = `${user.nickname} (@${user.username})`;
     } else if ((user.first_name || user.last_name) && (nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME || nameFormat === Constants.Preferences.DISPLAY_PREFER_FULL_NAME)) {
-        name = `${Utils.getFullName(user)} (${user.username})`;
+        name = `${Utils.getFullName(user)} (@${user.username})`;
     }
 
     const buttons = actions.map((Action, index) => {
