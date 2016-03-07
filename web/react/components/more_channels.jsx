@@ -136,18 +136,18 @@ export default class MoreChannels extends React.Component {
             } else {
                 moreChannels = (
                     <div className='no-channel-message'>
-                       <p className='primary-message'>
-                           <FormattedMessage
-                               id='more_channels.noMore'
-                               defaultMessage='No more channels to join'
-                           />
-                       </p>
-                       <p className='secondary-message'>
-                           <FormattedMessage
-                               id='more_channels.createClick'
-                               defaultMessage="Click 'Create New Channel' to make a new one"
-                           />
-                       </p>
+                        <p className='primary-message'>
+                            <FormattedMessage
+                                id='more_channels.noMore'
+                                defaultMessage='No more channels to join'
+                            />
+                        </p>
+                        <p className='secondary-message'>
+                            <FormattedMessage
+                                id='more_channels.createClick'
+                                defaultMessage="Click 'Create New Channel' to make a new one"
+                            />
+                        </p>
                     </div>
                 );
             }
