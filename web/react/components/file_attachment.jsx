@@ -19,12 +19,10 @@ class FileAttachment extends React.Component {
         super(props);
 
         this.loadFiles = this.loadFiles.bind(this);
-        this.playGif = this.playGif.bind(this);
-        this.stopGif = this.stopGif.bind(this);
         this.addBackgroundImage = this.addBackgroundImage.bind(this);
 
         this.canSetState = false;
-        this.state = {fileSize: -1, mime: '', playing: false, loading: false, format: ''};
+        this.state = {fileSize: -1};
     }
     componentDidMount() {
         this.loadFiles();
@@ -95,42 +93,6 @@ class FileAttachment extends React.Component {
 
         return true;
     }
-    playGif(e, filename) {
-        var img = new Image();
-        var fileUrl = utils.getFileUrl(filename);
-
-        this.setState({loading: true});
-        img.load(fileUrl);
-        img.onload = () => {
-            var state = {playing: true, loading: false};
-
-            switch (true) {
-            case img.width > img.height:
-                state.format = 'landscape';
-                break;
-            case img.height > img.width:
-                state.format = 'portrait';
-                break;
-            default:
-                state.format = 'quadrat';
-                break;
-            }
-
-            this.setState(state);
-
-            // keep displaying background image for a short moment while browser is
-            // loading gif, to prevent white background flashing through
-            setTimeout(() => this.removeBackgroundImage.bind(this)(filename), 100);
-        };
-        img.onError = () => this.setState({loading: false});
-
-        e.stopPropagation();
-    }
-    stopGif(e, filename) {
-        this.setState({playing: false});
-        this.addBackgroundImage(filename);
-        e.stopPropagation();
-    }
     getFileInfoFromName(name) {
         var fileInfo = utils.splitFileLocation(name);
 
@@ -167,71 +129,15 @@ class FileAttachment extends React.Component {
         var fileUrl = utils.getFileUrl(filename);
         var type = utils.getFileType(fileInfo.ext);
 
-        var playbackControls = '';
-        var loadedFile = '';
-        var loadingIndicator = '';
-        if (this.state.mime === 'image/gif') {
-            playbackControls = (
-                <div
-                    className='file-playback-controls play'
-                    onClick={(e) => this.playGif(e, filename)}
-                >
-                    {"►"}
-                </div>
-            );
-        }
-        if (this.state.playing) {
-            loadedFile = (
-                <img
-                    className={'file__loaded ' + this.state.format}
-                    src={fileUrl}
-                />
-            );
-            playbackControls = (
-                <div
-                    className='file-playback-controls stop'
-                    onClick={(e) => this.stopGif(e, filename)}
-                >
-                    {"■"}
-                </div>
-            );
-        }
-        if (this.state.loading) {
-            loadingIndicator = (
-                <img
-                    className='spinner file__loading'
-                    src='/static/images/load.gif'
-                />
-            );
-            playbackControls = '';
-        }
-
         var thumbnail;
         if (type === 'image') {
-            if (this.state.playing) {
-                thumbnail = (
-                    <div
-                        ref={filename}
-                        className='post__load'
-                        style={{backgroundImage: 'url(/static/images/load.gif)'}}
-                    >
-                        {playbackControls}
-                        {loadedFile}
-                    </div>
-                );
-            } else {
-                thumbnail = (
-                    <div
-                        ref={filename}
-                        className='post__load'
-                        style={{backgroundImage: 'url(/static/images/load.gif)'}}
-                    >
-                        {loadingIndicator}
-                        {playbackControls}
-                        {loadedFile}
-                    </div>
-                );
-            }
+            thumbnail = (
+                <div
+                    ref={filename}
+                    className='post__load'
+                    style={{backgroundImage: 'url(/static/images/load.gif)'}}
+                />
+            );
         } else {
             thumbnail = <div className={'file-icon ' + utils.getIconClassName(type)}/>;
         }
@@ -242,7 +148,7 @@ class FileAttachment extends React.Component {
                 filename,
                 function success(data) {
                     if (this.canSetState) {
-                        this.setState({fileSize: parseInt(data.size, 10), mime: data.mime});
+                        this.setState({fileSize: parseInt(data.size, 10)});
                     }
                 }.bind(this),
 				function error() {
