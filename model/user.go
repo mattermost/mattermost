@@ -54,6 +54,8 @@ type User struct {
 	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
 	FailedAttempts     int       `json:"failed_attempts,omitempty"`
 	Locale             string    `json:"locale"`
+	MfaActive          bool      `json:"mfa_active,omitempty"`
+	MfaSecret          string    `json:"mfa_secret,omitempty"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured

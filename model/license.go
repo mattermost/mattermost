@@ -34,6 +34,7 @@ type Customer struct {
 type Features struct {
 	Users     *int  `json:"users"`
 	LDAP      *bool `json:"ldap"`
+	MFA       *bool `json:"mfa"`
 	GoogleSSO *bool `json:"google_sso"`
 }
 
@@ -46,6 +47,11 @@ func (f *Features) SetDefaults() {
 	if f.LDAP == nil {
 		f.LDAP = new(bool)
 		*f.LDAP = true
+	}
+
+	if f.MFA == nil {
+		f.MFA = new(bool)
+		*f.MFA = true
 	}
 
 	if f.GoogleSSO == nil {

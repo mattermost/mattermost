@@ -35,6 +35,10 @@ var holders = defineMessages({
     pwd: {
         id: 'login_username.pwd',
         defaultMessage: 'Password'
+    },
+    mfa: {
+        id: 'login_username.mfa',
+        defaultMessage: 'MFA Token'
     }
 });
 
@@ -74,10 +78,12 @@ export default class LoginUsername extends React.Component {
             return;
         }
 
+        const token = this.refs.token.value.trim();
+
         state.serverError = '';
         this.setState(state);
 
-        Client.loginByUsername(name, username, password,
+        Client.loginByUsername(name, username, password, token,
             () => {
                 UserStore.setLastUsername(username);
 
@@ -152,6 +158,17 @@ export default class LoginUsername extends React.Component {
                             ref='password'
                             placeholder={formatMessage(holders.pwd)}
                             spellCheck='false'
+                        />
+                    </div>
+                    <div className={'form-group' + errorClass}>
+                        <input
+                            type='text'
+                            className='form-control'
+                            name='token'
+                            ref='token'
+                            placeholder={formatMessage(holders.mfa)}
+                            spellCheck='false'
+                            autoComplete='off'
                         />
                     </div>
                     <div className='form-group'>
