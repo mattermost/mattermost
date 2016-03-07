@@ -4,8 +4,12 @@
 import LoadingScreen from '../loading_screen.jsx';
 
 import * as Client from 'utils/client.jsx';
+import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 const holders = defineMessages({
     requestTypePost: {
@@ -277,11 +281,9 @@ export default class ManageCommandCmds extends React.Component {
                 );
             }
 
-            cmds.push(
-                <div
-                    key={cmd.id}
-                    className='webhook__item webcmd__item'
-                >
+            let slashCommandAutocompleteDiv;
+            if (Utils.isFeatureEnabled(PreReleaseFeatures.SLASHCMD_AUTOCMP)) {
+                slashCommandAutocompleteDiv = (
                     <div className='padding-top x2'>
                         <strong>
                             <FormattedMessage
@@ -290,6 +292,15 @@ export default class ManageCommandCmds extends React.Component {
                             />
                         </strong><span className='word-break--all'>{cmd.external_management ? this.props.intl.formatMessage(holders.autocompleteYes) : this.props.intl.formatMessage(holders.autocompleteNo)}</span>
                     </div>
+                );
+            }
+
+            cmds.push(
+                <div
+                    key={cmd.id}
+                    className='webhook__item webcmd__item'
+                >
+                    {slashCommandAutocompleteDiv}
                     {triggerDiv}
                     <div className='padding-top x2 webcmd__url'>
                         <strong>
@@ -433,6 +444,36 @@ export default class ManageCommandCmds extends React.Component {
 
         const disableButton = this.state.cmd.url === '' || (this.state.cmd.trigger === '' && !this.state.external_management);
 
+        let slashCommandAutocompleteCheckbox;
+        if (Utils.isFeatureEnabled(PreReleaseFeatures.SLASHCMD_AUTOCMP)) {
+            slashCommandAutocompleteCheckbox = (
+                <div className='padding-top x2'>
+                    <label className='control-label'>
+                        <FormattedMessage
+                            id='user.settings.cmds.external_management'
+                            defaultMessage='External management: '
+                        />
+                    </label>
+                    <div className='padding-top'>
+                        <div className='checkbox'>
+                            <label>
+                                <input
+                                    type='checkbox'
+                                    checked={this.state.cmd.external_management}
+                                    onChange={this.updateExternalManagement}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.cmds.external_management_help'
+                                    defaultMessage=' Let an external integration manage commands.'
+                                />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            );
+        }
+
         return (
             <div key='addCommandCmd'>
                 <FormattedHTMLMessage
@@ -449,30 +490,7 @@ export default class ManageCommandCmds extends React.Component {
                 <div className='padding-top'>
 
                     <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.external_management'
-                                defaultMessage='External management: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <div className='checkbox'>
-                                <label>
-                                    <input
-                                        type='checkbox'
-                                        checked={this.state.cmd.external_management}
-                                        onChange={this.updateExternalManagement}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.cmds.external_management_help'
-                                        defaultMessage=' Let an external integration manage commands.'
-                                    />
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className='padding-top x2'>
+                        {slashCommandAutocompleteCheckbox}
                         <label className='control-label'>
                             <FormattedMessage
                                 id='user.settings.cmds.trigger'

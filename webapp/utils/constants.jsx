@@ -560,6 +560,10 @@ export default {
         EMBED_TOGGLE: {
             label: 'embed_toggle',
             description: 'Show toggle for all embed previews'
+        },
+        SLASHCMD_AUTOCMP: {
+            label: 'slashCmd_autocmp',
+            description: 'Enable external application to offer slash command autocomplete'
         }
     },
     OVERLAY_TIME_DELAY: 400,
