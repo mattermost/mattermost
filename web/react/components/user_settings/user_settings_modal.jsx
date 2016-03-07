@@ -309,7 +309,7 @@ class UserSettingsModal extends React.Component {
                 <ConfirmModal
                     title={formatMessage(holders.confirmTitle)}
                     message={formatMessage(holders.confirmMsg)}
-                    confirm_button={formatMessage(holders.confirmBtns)}
+                    confirmButton={formatMessage(holders.confirmBtns)}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}
