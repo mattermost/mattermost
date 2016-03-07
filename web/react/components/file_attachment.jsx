@@ -126,7 +126,7 @@ class FileAttachment extends React.Component {
         var filename = this.props.filename;
 
         var fileInfo = utils.splitFileLocation(filename);
-        var fileUrl = utils.getFileUrl(filename);
+        var fileUrl = utils.getFileUrl(filename, true);
         var type = utils.getFileType(fileInfo.ext);
 
         var thumbnail;
