@@ -120,8 +120,7 @@ class LicenseSettings extends React.Component {
                         expires: Utils.displayDate(parseInt(global.window.mm_license.ExpiresAt, 10)),
                         ldap: global.window.mm_license.LDAP
                     }}
-                    defaultMessage='<div><p>This compiled release of Mattermost platform is provided under a <a href="http://mattermost.com" target="_blank">commercial license</a>
-                    from Mattermost, Inc. based on your subscription level and is subject to the <a href="{terms}" target="_blank">Terms of Service.</a></p>
+                    defaultMessage='<div><p>This compiled release of Mattermost platform is provided under a <a href="http://mattermost.com" target="_blank">commercial license</a> from Mattermost, Inc. based on your subscription level and is subject to the <a href="{terms}" target="_blank">Terms of Service.</a></p>
                     <p>Your subscription details are as follows:</p>
                     Name: {name}<br />
                     Company or organization name: {company}<br/>
@@ -152,9 +151,7 @@ class LicenseSettings extends React.Component {
                     <p className='help-text'>
                         <FormattedHTMLMessage
                             id='admin.licence.keyMigration'
-                            defaultMessage='If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start,
-                            <a href="http://mattermost.com" target="_blank">disable all Enterprise Edition features on this server</a>.
-                            This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.'
+                            defaultMessage='If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start, <a href="http://mattermost.com" target="_blank">disable all Enterprise Edition features on this server</a>. This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.'
                         />
                     </p>
                 </div>
