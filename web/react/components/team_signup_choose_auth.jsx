@@ -58,6 +58,30 @@ export default class ChooseAuthPage extends React.Component {
             );
         }
 
+        if (global.window.mm_config.EnableLdap === 'true') {
+            buttons.push(
+                    <a
+                        className='btn btn-custom-login ldap btn-full'
+                        key='ldap'
+                        href='#'
+                        onClick={
+                            (e) => {
+                                e.preventDefault();
+                                this.props.updatePage('ldap');
+                            }
+                        }
+                    >
+                        <span className='icon'/>
+                        <span>
+                            <FormattedMessage
+                                id='choose_auth_page.ldapCreate'
+                                defaultMessage='Create new team with LDAP Account'
+                            />
+                        </span>
+                    </a>
+            );
+        }
+
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             buttons.push(
                     <a

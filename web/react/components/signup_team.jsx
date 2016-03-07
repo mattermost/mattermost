@@ -4,6 +4,7 @@
 import ChoosePage from './team_signup_choose_auth.jsx';
 import EmailSignUpPage from './team_signup_with_email.jsx';
 import SSOSignupPage from './team_signup_with_sso.jsx';
+import LdapSignUpPage from './team_signup_with_ldap.jsx';
 import Constants from '../utils/constants.jsx';
 
 import {FormattedMessage} from 'mm-intl';
@@ -24,12 +25,18 @@ export default class TeamSignUp extends React.Component {
             count = count + 1;
         }
 
+        if (global.window.mm_config.EnableLdap === 'true') {
+            count = count + 1;
+        }
+
         if (count > 1) {
             this.state = {page: 'choose'};
         } else if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             this.state = {page: 'email'};
         } else if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             this.state = {page: 'gitlab'};
+        } else if (global.window.mm_config.EnableLdap === 'true') {
+            this.state = {page: 'ldap'};
         } else {
             this.state = {page: 'none'};
         }
@@ -131,6 +138,13 @@ export default class TeamSignUp extends React.Component {
                 <div>
                     {teamListing}
                     <EmailSignUpPage/>
+                </div>
+            );
+        } else if (this.state.page === 'ldap') {
+            return (
+                <div>
+                    {teamListing}
+                    <LdapSignUpPage/>
                 </div>
             );
         } else if (this.state.page === 'gitlab') {
