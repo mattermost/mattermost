@@ -966,7 +966,7 @@
   "sso_signup.team_error": "Please enter a team name",
   "suggestion.mention.all": "Notifies everyone in the team",
   "suggestion.mention.channel": "Notifies everyone in the channel",
-  "suggestion.search.private": "Public Groups",
+  "suggestion.search.private": "Private Groups",
   "suggestion.search.public": "Public Channels",
   "team_export_tab.download": "download",
   "team_export_tab.export": "Export",
