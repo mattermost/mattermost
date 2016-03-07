@@ -108,12 +108,12 @@ class FileUpload extends React.Component {
         }
     }
 
-    handleChange() {
-        var element = $(ReactDOM.findDOMNode(this.refs.fileInput));
+    handleChange(e) {
+        if (e.target.files.length > 0) {
+            this.uploadFiles(e.target.files);
 
-        this.uploadFiles(element.prop('files'));
-
-        Utils.clearFileInput(element[0]);
+            Utils.clearFileInput(e.target);
+        }
     }
 
     handleDrop(e) {
