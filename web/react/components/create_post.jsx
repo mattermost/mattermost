@@ -262,9 +262,7 @@ class CreatePost extends React.Component {
             message = err.message;
         }
 
-        if (clientId === -1) {
-            this.setState({serverError: message});
-        } else {
+        if (clientId !== -1) {
             const draft = PostStore.getDraft(this.state.channelId);
 
             const index = draft.uploadsInProgress.indexOf(clientId);
@@ -274,8 +272,10 @@ class CreatePost extends React.Component {
 
             PostStore.storeDraft(this.state.channelId, draft);
 
-            this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: message});
+            this.setState({uploadsInProgress: draft.uploadsInProgress});
         }
+
+        this.setState({serverError: message});
     }
     removePreview(id) {
         const previews = Object.assign([], this.state.previews);
