@@ -140,6 +140,12 @@ export default class Sidebar extends React.Component {
         TeamStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
 
+        // move when React Router goes in
+        const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
+        preferences.forEach((p) => {
+            AsyncClient.getProfile(p.name);
+        });
+
         this.updateTitle();
         this.updateUnreadIndicators();
 

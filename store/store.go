@@ -118,6 +118,7 @@ type UserStore interface {
 	UpdateAuthData(userId, service, authData, email string) StoreChannel
 	Get(id string) StoreChannel
 	GetProfiles(teamId string, limit, offset int) StoreChannel
+	GetProfilesFromList(userIds []string) StoreChannel
 	GetByEmail(teamId string, email string) StoreChannel
 	GetByAuth(teamId string, authData string, authService string) StoreChannel
 	GetByUsername(teamId string, username string) StoreChannel

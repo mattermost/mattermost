@@ -400,7 +400,51 @@ func (us SqlUserStore) GetProfiles(teamId string, limit, offset int) StoreChanne
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
-			userMap := make(map[string]*model.User)
+			userMap := model.UserMap{}
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetProfilesFromList(userIds []string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		query := "SELECT * FROM Users WHERE Id IN ("
+		params := map[string]interface{}{}
+		for index, id := range userIds {
+			key := fmt.Sprintf("UserId%d", index)
+			query += ":" + key
+			if index != len(userIds)-1 {
+				query += ", "
+			}
+			params[key] = id
+		}
+
+		query += ")"
+
+		if _, err := us.GetReplica().Select(&users, query, params); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesFromList", "store.sql_user.get_profiles_from_list.app_error", nil, err.Error())
+		} else {
+
+			userMap := model.UserMap{}
 
 			for _, u := range users {
 				u.Password = ""

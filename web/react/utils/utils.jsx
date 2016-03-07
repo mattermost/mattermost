@@ -965,17 +965,28 @@ export function isComment(post) {
 }
 
 export function getDirectTeammate(channelId) {
-    var userIds = ChannelStore.get(channelId).name.split('__');
-    var curUserId = UserStore.getCurrentId();
-    var teammate = {};
+    let teammate = {};
+
+    const teammateId = getDirectTeammateId(ChannelStore.get(channelId).name);
+    if (teammateId.length !== 0) {
+        teammate = UserStore.getProfile(teammateId);
+    }
+
+    return teammate;
+}
+
+export function getDirectTeammateId(channelName) {
+    const userIds = channelName.split('__');
+    const curUserId = UserStore.getCurrentId();
+    let teammate = '';
 
     if (userIds.length !== 2 || userIds.indexOf(curUserId) === -1) {
         return teammate;
     }
 
-    for (var idx in userIds) {
+    for (const idx in userIds) {
         if (userIds[idx] !== curUserId) {
-            teammate = UserStore.getProfile(userIds[idx]);
+            teammate = userIds[idx];
             break;
         }
     }

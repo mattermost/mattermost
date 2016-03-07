@@ -252,12 +252,12 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 			channel = result.Data.(*model.Channel)
 		}
 
-		var profiles map[string]*model.User
+		var profiles model.UserMap
 		if result := <-pchan; result.Err != nil {
 			l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.Session.TeamId, result.Err)
 			return
 		} else {
-			profiles = result.Data.(map[string]*model.User)
+			profiles = result.Data.(model.UserMap)
 		}
 
 		var members []model.ChannelMember
@@ -437,7 +437,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 
 }
 
-func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel, profileMap map[string]*model.User, members []model.ChannelMember) {
+func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel, profileMap model.UserMap, members []model.ChannelMember) {
 	var channelName string
 	var bodyText string
 	var subjectText string
@@ -474,7 +474,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	} else {
 		// Find out who is a member of the channel, only keep those profiles
-		tempProfileMap := make(map[string]*model.User)
+		tempProfileMap := model.UserMap{}
 		for _, member := range members {
 			tempProfileMap[member.UserId] = profileMap[member.UserId]
 		}
@@ -734,7 +734,7 @@ func updateMentionCountAndForget(channelId, userId string) {
 	}()
 }
 
-func checkForOutOfChannelMentions(c *Context, post *model.Post, channel *model.Channel, allProfiles map[string]*model.User, members []model.ChannelMember) {
+func checkForOutOfChannelMentions(c *Context, post *model.Post, channel *model.Channel, allProfiles model.UserMap, members []model.ChannelMember) {
 	// don't check for out of channel mentions in direct channels
 	if channel.Type == model.CHANNEL_DIRECT {
 		return
@@ -775,9 +775,9 @@ func checkForOutOfChannelMentions(c *Context, post *model.Post, channel *model.C
 }
 
 // Gets a list of users that were mentioned in a given post that aren't in the channel that the post was made in
-func getOutOfChannelMentions(post *model.Post, allProfiles map[string]*model.User, members []model.ChannelMember) []*model.User {
+func getOutOfChannelMentions(post *model.Post, allProfiles model.UserMap, members []model.ChannelMember) []*model.User {
 	// copy the profiles map since we'll be removing items from it
-	profiles := make(map[string]*model.User)
+	profiles := model.UserMap{}
 	for id, profile := range allProfiles {
 		profiles[id] = profile
 	}
@@ -916,18 +916,53 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pchan := Srv.Store.Post().GetPosts(id, offset, limit)
-
-	if result := <-pchan; result.Err != nil {
+	var postList *model.PostList
+	if result := <-Srv.Store.Post().GetPosts(id, offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		list := result.Data.(*model.PostList)
-
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-		w.Write([]byte(list.ToJson()))
+		postList = result.Data.(*model.PostList)
 	}
 
+	setProfilesForPostList(c, postList)
+	if c.Err != nil {
+		return
+	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	w.Write([]byte(postList.ToJson()))
+
+}
+
+func setProfilesForPostList(c *Context, postList *model.PostList) {
+	userIds := []string{}
+	used := map[string]bool{}
+	for _, p := range postList.Posts {
+		if _, found := used[p.UserId]; !found {
+			userIds = append(userIds, p.UserId)
+			used[p.UserId] = true
+		}
+	}
+
+	if len(userIds) > 0 {
+		if result := <-Srv.Store.User().GetProfilesFromList(userIds); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			profiles := result.Data.(model.UserMap)
+
+			options := utils.Cfg.GetSanitizeOptions()
+			options["passwordupdate"] = false
+			if c.IsSystemAdmin() {
+				options["fullname"] = true
+				options["email"] = true
+			}
+
+			(&profiles).ClearNonProfileFields(options)
+
+			postList.Profiles = profiles
+		}
+	}
 }
 
 func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -957,6 +992,10 @@ func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		list := result.Data.(*model.PostList)
+		setProfilesForPostList(c, list)
+		if c.Err != nil {
+			return
+		}
 
 		w.Write([]byte(list.ToJson()))
 	}
@@ -999,6 +1038,11 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		setProfilesForPostList(c, list)
+		if c.Err != nil {
+			return
+		}
+
 		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
 		w.Write([]byte(list.ToJson()))
 	}
@@ -1031,6 +1075,11 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if HandleEtag(list.Etag(), w, r) {
+			return
+		}
+
+		setProfilesForPostList(c, list)
+		if c.Err != nil {
 			return
 		}
 
@@ -1179,6 +1228,10 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 		return
 	} else {
 		list := result.Data.(*model.PostList)
+		setProfilesForPostList(c, list)
+		if c.Err != nil {
+			return
+		}
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(list.ToJson()))
@@ -1203,17 +1256,22 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	posts := &model.PostList{}
+	list := &model.PostList{}
 	for _, channel := range channels {
 		if result := <-channel; result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
 			data := result.Data.(*model.PostList)
-			posts.Extend(data)
+			list.Extend(data)
 		}
 	}
 
+	setProfilesForPostList(c, list)
+	if c.Err != nil {
+		return
+	}
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(posts.ToJson()))
+	w.Write([]byte(list.ToJson()))
 }

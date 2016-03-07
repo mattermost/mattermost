@@ -209,14 +209,14 @@ export function getChannelExtraInfo(id, memberLimit) {
 }
 
 export function getProfile(id) {
-    if (isCallInProgress('getProfile')) {
+    if (isCallInProgress('getProfile' + id)) {
         return;
     }
 
-    callTracker.getProfile = utils.getTimestamp();
+    callTracker['getProfile' + id] = utils.getTimestamp();
     client.getProfile(id,
         (data, textStatus, xhr) => {
-            callTracker.getProfile = 0;
+            callTracker['getProfile' + id] = 0;
 
             if (xhr.status === 304 || !data) {
                 return;
@@ -227,11 +227,11 @@ export function getProfile(id) {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
-                profiles: profiles
+                profiles
             });
         },
         (err) => {
-            callTracker.getProfile = 0;
+            callTracker['getProfile' + id] = 0;
             dispatchError(err, 'getProfile');
         }
     );
@@ -444,6 +444,13 @@ export function search(terms) {
                 type: ActionTypes.RECEIVED_SEARCH,
                 results: data
             });
+
+            if (data.profiles) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data.profiles
+                });
+            }
         },
         function searchFailure(err) {
             callTracker['search_' + String(terms)] = 0;
@@ -499,6 +506,13 @@ export function getPostsPage(id, maxPosts) {
                     numRequested: numPosts,
                     post_list: data
                 });
+
+                if (data.profiles) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_PROFILES,
+                        profiles: data.profiles
+                    });
+                }
             },
             (err) => {
                 dispatchError(err, 'getPostsPage');
@@ -554,6 +568,13 @@ export function getPosts(id) {
                 numRequested: 0,
                 post_list: data
             });
+
+            if (data.profiles) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data.profiles
+                });
+            }
         },
         (err) => {
             dispatchError(err, 'getPosts');
@@ -591,6 +612,13 @@ export function getPostsBefore(postId, offset, numPost) {
                 numRequested: numPost,
                 post_list: data
             });
+
+            if (data.profiles) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data.profiles
+                });
+            }
         },
         (err) => {
             dispatchError(err, 'getPostsBefore');
@@ -628,6 +656,13 @@ export function getPostsAfter(postId, offset, numPost) {
                 numRequested: numPost,
                 post_list: data
             });
+
+            if (data.profiles) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data.profiles
+                });
+            }
         },
         (err) => {
             dispatchError(err, 'getPostsAfter');

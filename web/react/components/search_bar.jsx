@@ -121,6 +121,13 @@ class SearchBar extends React.Component {
                         results: data,
                         is_mention_search: isMentionSearch
                     });
+
+                    if (data.profiles) {
+                        AppDispatcher.handleServerAction({
+                            type: ActionTypes.RECEIVED_PROFILES,
+                            profiles: data.profiles
+                        });
+                    }
                 },
                 (err) => {
                     this.setState({isSearching: false});

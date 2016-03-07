@@ -317,17 +317,17 @@ func TestGetUser(t *testing.T) {
 
 	if userMap, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 1000, ""); err != nil {
 		t.Fatal(err)
-	} else if len(userMap.Data.(map[string]*model.User)) != 2 {
+	} else if len(userMap.Data.(model.UserMap)) != 2 {
 		t.Fatal("should have been 2")
-	} else if userMap.Data.(map[string]*model.User)[rId].Id != rId {
+	} else if userMap.Data.(model.UserMap)[rId].Id != rId {
 		t.Fatal("should have been valid")
 	} else {
 
 		// test etag caching
 		if cache_result, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 1000, userMap.Etag); err != nil {
 			t.Fatal(err)
-		} else if cache_result.Data.(map[string]*model.User) != nil {
-			t.Log(model.UserMapToJson(cache_result.Data.(map[string]*model.User)))
+		} else if cache_result.Data.(model.UserMap) != nil {
+			t.Log(model.UserMapToJson(cache_result.Data.(model.UserMap)))
 			t.Fatal("cache should be empty")
 		}
 	}

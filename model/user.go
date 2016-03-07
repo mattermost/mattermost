@@ -56,6 +56,8 @@ type User struct {
 	Locale             string    `json:"locale"`
 }
 
+type UserMap map[string]*User
+
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
@@ -374,26 +376,6 @@ func UserFromJson(data io.Reader) *User {
 	}
 }
 
-func UserMapToJson(u map[string]*User) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
-}
-
-func UserMapFromJson(data io.Reader) map[string]*User {
-	decoder := json.NewDecoder(data)
-	var users map[string]*User
-	err := decoder.Decode(&users)
-	if err == nil {
-		return users
-	} else {
-		return nil
-	}
-}
-
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
 func HashPassword(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -465,4 +447,31 @@ func CleanUsername(s string) string {
 	}
 
 	return s
+}
+
+func (um *UserMap) ToJson() string {
+	b, err := json.Marshal(um)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func UserMapFromJson(data io.Reader) *UserMap {
+	decoder := json.NewDecoder(data)
+	var users UserMap
+	err := decoder.Decode(&users)
+	if err == nil {
+		return &users
+	} else {
+		return nil
+	}
+}
+
+func (um *UserMap) ClearNonProfileFields(sanitizeOptions map[string]bool) {
+	for _, p := range *um {
+		p.Sanitize(sanitizeOptions)
+		p.ClearNonProfileFields()
+	}
 }

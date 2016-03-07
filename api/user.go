@@ -341,12 +341,12 @@ func sendWelcomeEmailAndForget(c *Context, userId, email, teamName, teamDisplayN
 
 func addDirectChannelsAndForget(user *model.User) {
 	go func() {
-		var profiles map[string]*model.User
+		var profiles model.UserMap
 		if result := <-Srv.Store.User().GetProfiles(user.TeamId, 10, 0); result.Err != nil {
 			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, user.TeamId, result.Err.Error())
 			return
 		} else {
-			profiles = result.Data.(map[string]*model.User)
+			profiles = result.Data.(model.UserMap)
 		}
 
 		var preferences model.Preferences
@@ -928,10 +928,6 @@ func getProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	if !c.HasPermissionsToTeam(id, "getProfile") {
-		return
-	}
-
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -939,6 +935,12 @@ func getProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		profile := result.Data.(*model.User)
+
+		if profile.TeamId != c.Session.TeamId && !c.IsSystemAdmin() {
+			c.Err = model.NewLocAppError("getProfile", "api.user.get_profile.bad_permissions.app_error", nil, "")
+			return
+		}
+
 		etag := profile.Etag()
 
 		options := utils.Cfg.GetSanitizeOptions()
@@ -991,24 +993,19 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
+		profiles := result.Data.(model.UserMap)
 
-		for k, p := range profiles {
-			options := utils.Cfg.GetSanitizeOptions()
-			options["passwordupdate"] = false
-
-			if c.IsSystemAdmin() {
-				options["fullname"] = true
-				options["email"] = true
-			}
-
-			p.Sanitize(options)
-			p.ClearNonProfileFields()
-			profiles[k] = p
+		options := utils.Cfg.GetSanitizeOptions()
+		options["passwordupdate"] = false
+		if c.IsSystemAdmin() {
+			options["fullname"] = true
+			options["email"] = true
 		}
 
+		(&profiles).ClearNonProfileFields(options)
+
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-		w.Write([]byte(model.UserMapToJson(profiles)))
+		w.Write([]byte((&profiles).ToJson()))
 		return
 	}
 }
@@ -1901,7 +1898,7 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
+		profiles := result.Data.(model.UserMap)
 
 		statuses := map[string]string{}
 		for _, profile := range profiles {
