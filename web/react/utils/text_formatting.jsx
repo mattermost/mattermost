@@ -123,14 +123,13 @@ function autolinkAtMentions(text, tokens) {
         return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || UserStore.getProfileByUsername(u));
     }
 
-    function addToken(username, mention, extraText) {
+    function addToken(username, mention) {
         const index = tokens.size;
         const alias = `MM_ATMENTION${index}`;
 
         tokens.set(alias, {
             value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
-            originalText: mention,
-            extraText
+            originalText: mention
         });
         return alias;
     }
@@ -152,9 +151,9 @@ function autolinkAtMentions(text, tokens) {
                 usernameLower = usernameLower.substring(0, c - 1);
 
                 if (mentionExists(usernameLower)) {
-                    const extraText = originalUsername.substr(c - 1);
-                    const alias = addToken(usernameLower, '@' + usernameLower, extraText);
-                    return alias;
+                    const suffix = originalUsername.substr(c - 1);
+                    const alias = addToken(usernameLower, '@' + usernameLower);
+                    return alias + suffix;
                 }
             } else {
                 // If the last character is not punctuation, no point in going any further
@@ -188,7 +187,7 @@ function highlightCurrentMentions(text, tokens) {
             const newAlias = `MM_SELFMENTION${index}`;
 
             newTokens.set(newAlias, {
-                value: `<span class='mention-highlight'>${alias}</span>` + (token.extraText || ''),
+                value: `<span class='mention-highlight'>${alias}</span>`,
                 originalText: token.originalText
             });
             output = output.replace(alias, newAlias);
