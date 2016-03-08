@@ -151,9 +151,9 @@ class FileAttachment extends React.Component {
                         this.setState({fileSize: parseInt(data.size, 10)});
                     }
                 }.bind(this),
-				function error() {
-					// Do nothing
-				}
+                function error() {
+                    // Do nothing
+                }
             );
         } else {
             fileSizeString = utils.fileSizeToString(this.state.fileSize);

@@ -277,7 +277,7 @@ class UserSettingsModal extends React.Component {
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body bsClass='settings-modal__body modal' ref='modalBody'>
+                <Modal.Body ref='modalBody'>
                     <div className='settings-table'>
                         <div className='settings-links'>
                             <SettingsSidebar
