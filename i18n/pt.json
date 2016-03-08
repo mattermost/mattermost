@@ -2408,6 +2408,10 @@
     "translation": "Pingando banco de dados sql %v"
   },
   {
+    "id": "store.sql.read_replicas_not_licensed.critical",
+    "translation": "A funcionalidade de mais de uma replica está desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
+  },
+  {
     "id": "store.sql.remove_index.critical",
     "translation": "Falha ao remover o índice %v"
   },
