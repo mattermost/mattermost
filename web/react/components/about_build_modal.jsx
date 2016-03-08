@@ -22,7 +22,7 @@ export default class AboutBuildModal extends React.Component {
         let title = (
             <FormattedMessage
                 id='about.teamEdtion'
-                defaultMessage='Team Edition'
+                defaultMessage='Team Edition T0'
             />
         );
         let licensee;
