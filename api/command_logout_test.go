@@ -4,6 +4,7 @@
 package api
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/mattermost/platform/model"
@@ -26,7 +27,7 @@ func TestLogoutTestCommand(t *testing.T) {
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
 	rs1 := Client.Must(Client.Command(channel1.Id, "/logout", false)).Data.(*model.CommandResponse)
-	if rs1.GotoLocation != "/logout" {
+	if !strings.HasSuffix(rs1.GotoLocation, "logout") {
 		t.Fatal("failed to logout")
 	}
 }
