@@ -6,6 +6,7 @@ import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
 import AudioVideoPreview from './audio_video_preview.jsx';
 import Constants from '../utils/constants.jsx';
+import CodePreview from './code_preview.jsx';
 import FileInfoPreview from './file_info_preview.jsx';
 import FileStore from '../stores/file_store.jsx';
 import ViewImagePopoverBar from './view_image_popover_bar.jsx';
@@ -247,6 +248,15 @@ class ViewImageModal extends React.Component {
                         fileUrl={fileUrl}
                         fileInfo={this.state.fileInfo}
                         maxHeight={this.state.imgHeight}
+                        formatMessage={this.props.intl.formatMessage}
+                    />
+                );
+            } else if (CodePreview.support(filename)) {
+                content = (
+                    <CodePreview
+                        filename={filename}
+                        fileUrl={fileUrl}
+                        fileInfo={fileInfo}
                         formatMessage={this.props.intl.formatMessage}
                     />
                 );

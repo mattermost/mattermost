@@ -266,6 +266,7 @@
 				background: #FFF;
 				display: inline-block;
 				position: relative;
+				max-width: calc(100% - 80px);
 
 				&:hover .file-playback-controls.stop {
 					@include opacity(1);
