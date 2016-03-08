@@ -156,3 +156,7 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export default AdminStore;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.AdminStore = AdminStore;
+}

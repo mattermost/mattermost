@@ -57,4 +57,9 @@ class FileStore extends EventEmitter {
     }
 }
 
-export default new FileStore();
+const instance = new FileStore();
+export default instance;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.FileStore = instance;
+}
