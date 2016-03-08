@@ -175,7 +175,7 @@ class LicenseSettings extends React.Component {
             licenseKey = (
                 <div className='col-sm-8'>
                     <div className='file__upload'>
-                        <button className='btn btn-primary'>{'Choose File'}</button>
+                        <button className='btn btn-default'>{'Choose File'}</button>
                         <input
                             ref='fileInput'
                             type='file'
