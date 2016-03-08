@@ -91,7 +91,7 @@ class TeamSettingsModal extends React.Component {
                                 />
                             </h4>
                         </div>
-                        <div className='modal-body'>
+                        <div className='modal-body settings-modal__body'>
                             <div className='settings-table'>
                                 <div className='settings-links'>
                                     <SettingsSidebar

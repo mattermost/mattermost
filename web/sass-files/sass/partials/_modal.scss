@@ -61,7 +61,7 @@
 				width: 100%;
 				@include legacy-pie-clearfix;
 				text-overflow: ellipsis;
-				padding: 8px 8px 8px 15px;
+				padding: 8px 15px;
 				&.padding--equal {
 					padding: 8px;
 				}

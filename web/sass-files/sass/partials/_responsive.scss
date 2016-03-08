@@ -98,8 +98,6 @@
 
     .post {
 
-        background: none !important;
-
         .post__dropdown {
             line-height: 9px;
             text-decoration: none;
@@ -120,9 +118,9 @@
             visibility: visible;
             display: none;
 
-                &.icon--show {
-                    display: inline-block;
-                }
+            &.icon--show {
+                display: inline-block;
+            }
 
         }
 
@@ -310,6 +308,11 @@
             }
         }
     }
+    .row--invite {
+        .col-sm-6 {
+            padding: 0;
+        }
+    }
     .modal {
         .info__label {
             text-align: left;
@@ -318,6 +321,10 @@
         .modal-header {
             .modal-action {
                 margin-top: 10px;
+            }
+            button.close {
+                font-weight: normal;
+                font-size: 27px;
             }
             .modal-title {
                 float: none;
@@ -332,95 +339,89 @@
                 }
             }
         }
-    }
-    .row--invite {
-        .col-sm-6 {
-            padding: 0;
-        }
-    }
-    .settings-modal {
-        &.display--content {
-            .modal-header {
-                display: none;
+        .settings-modal {
+            &.display--content {
+                .modal-header {
+                    display: none;
+                }
+                .settings-table {
+                    display: block;
+                    .settings-content {
+                        &.minimize-settings {
+                            display: block;
+                        }
+                        .section-min:hover {
+                            background: none;
+                        }
+                        .no-padding--left {
+                            padding-left: 15px;
+                        }
+                    }
+                    .settings-links {
+                        display: none;
+                    }
+                    .modal-header {
+                        display: block;
+                        position: absolute;
+                        top: 0;
+                        width: 100%;
+                        z-index: 5;
+                        .modal-title {
+                            width: 100%;
+                            text-align: center;
+                        }
+                    }
+                    .user-settings {
+                        .tab-header {
+                            display: none;
+                        }
+                        .divider-dark.first {
+                            display: none;
+                        }
+                    }
+                }
             }
             .settings-table {
-                display: block;
+                padding: 0;
+                .nav {
+                    &.position--top {
+                        top: auto;
+                    }
+                    position: relative;
+                    top: auto;
+                    width: 100%;
+                }
                 .settings-content {
+                    .section-edit {
+                        position: absolute;
+                        top: 14px;
+                        right: 0;
+                        padding-right: 0;
+                        .fa {
+                            display: inline-block;
+                        }
+                    }
                     &.minimize-settings {
-                        display: block;
+                        padding: 0;
+                        display: none;
+                        .user-settings {
+                            padding: 70px 20px 30px;
+                        }
                     }
                     .section-min:hover {
-                        background: none;
-                    }
-                    .no-padding--left {
-                        padding-left: 15px;
+                        background: none !important;
                     }
                 }
-                .settings-links {
-                    display: none;
-                }
-                .modal-header {
-                    display: block;
-                    position: absolute;
-                    top: 0;
-                    width: 100%;
-                    z-index: 5;
-                }
-                .modal-title {
-                    padding-left: 20px;
-                }
-                .user-settings {
-                    .tab-header {
-                        display: none;
-                    }
-                    .divider-dark.first {
-                        display: none;
-                    }
-                }
-            }
-        }
-        .settings-table {
-            .nav {
-                &.position--top {
-                    top: auto;
-                }
-                position: relative;
-                top: auto;
-                width: 100%;
-            }
-            .settings-content {
-                .section-edit {
-                    position: absolute;
-                    top: 14px;
-                    right: 0;
-                    padding-right: 0;
-                    .fa {
-                        display: inline-block;
-                    }
-                }
-                &.minimize-settings {
-                    padding: 0;
-                    display: none;
-                    .user-settings {
-                        padding: 70px 20px 30px;
-                    }
-                }
-                .section-min:hover {
-                    background: none !important;
-                }
-            }
-            .settings-links {
-                background: #fff;
-            }
-            .nav {
-                > li {
-                    > a {
-                        border-top: 1px solid #ddd;
-                        font-size: 1.1em;
-                        line-height: 2.7;
-                        color: #555;
-                        .glyphicon {
-                            margin-left: 7px;
+                .nav {
+                    > li {
+                        > a {
+                            border-top: 1px solid #ddd;
+                            font-size: 1.1em;
+                            line-height: 2.7;
+                            color: #555;
+                            .glyphicon {
+                                margin-left: 7px;
+                            }
                         }
                     }
                 }
@@ -572,7 +573,8 @@
             .glyphicon-refresh-animate {
                 right: 33px;
                 top: 15px;
-                color: #aaa;
+                color: #fff;
+                color: rgba(255,255,255,0.5);
             }
             .form-control {
                 border: none;
@@ -800,22 +802,24 @@
     }
 }
 @media screen and (max-width: 480px) {
-    .settings-modal {
+    .modal {
+        .settings-modal {
 
-         .settings-table {
+            .settings-table {
 
-            .security-links {
-                margin-bottom: 10px;
-                display: block;
+                .security-links {
+                    margin-bottom: 10px;
+                    display: block;
 
-                &:last-child {
-                    margin-bottom: 0;
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+
                 }
 
             }
 
-         }
-
+        }
     }
 
     .tip-overlay.tip-overlay--sidebar {

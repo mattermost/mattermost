@@ -178,7 +178,6 @@ export default class ChannelMembersModal extends React.Component {
                                 this.props.onModalDismissed();
                             }}
                         >
-                            <i className='glyphicon glyphicon-envelope'/>
                             <FormattedMessage
                                 id='channel_members_modal.addNew'
                                 defaultMessage=' Add New Members'

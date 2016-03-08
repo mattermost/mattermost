@@ -131,7 +131,10 @@ class TeamImportTab extends React.Component {
                     <h4
                         className='modal-title'
                         ref='title'
-                    ><i className='modal-back'></i>
+                    >
+                        <div className='modal-back'>
+                            <i className='fa fa-angle-left'></i>
+                        </div>
                         <FormattedMessage
                             id='team_import_tab.import'
                             defaultMessage='Import'
