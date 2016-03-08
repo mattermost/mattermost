@@ -2428,6 +2428,10 @@
     "translation": "Attempting to upgrade the database schema version to %v"
   },
   {
+    "id": "store.sql.read_replicas_not_licensed.critical",
+    "translation": "More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
     "id": "store.sql.schema_version.critical",
     "translation": "The database schema version of %v cannot be upgraded.  You must not skip a version."
   },
