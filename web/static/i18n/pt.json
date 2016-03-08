@@ -672,6 +672,7 @@
   "file_upload.pasted": "Imagem Colada em ",
   "filtered_user_list.count": "{count, number} {count, plural, one {membro} other {membros}}",
   "filtered_user_list.countTotal": "{count, number} {count, plural, one {membro} other {membros}} de {total} Total",
+  "filtered_user_list.searchProfiles": "Procurar",
   "filtered_user_list.search": "Procurar membros",
   "find_team.email": "E-mail",
   "find_team.findDescription": "Foi enviado um e-mail com links para todas as equipes do qual você é membro.",

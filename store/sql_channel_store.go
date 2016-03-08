@@ -692,7 +692,7 @@ func (s SqlChannelStore) SearchExtraMembers(channelId, term string) StoreChannel
 					OR Users.Nickname LIKE :Term)`, map[string]interface{}{"ChannelId": channelId, "Term": "%" + term + "%"})
 
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.GetExtraMembers", "store.sql_channel.get_extra_members.app_error", nil, "channel_id="+channelId+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlChannelStore.SearchExtraMembers", "store.sql_channel.search_extra_members.app_error", nil, "channel_id="+channelId+", "+err.Error())
 		} else {
 			memberMap := map[string]*model.ExtraMember{}
 			for i := range members {

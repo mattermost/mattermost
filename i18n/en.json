@@ -1624,6 +1624,10 @@
     "translation": "Couldn't upload profile image"
   },
   {
+    "id": "api.user.get_profile.bad_permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
+  },
+  {
     "id": "api.web_conn.new_web_conn.last_activity.error",
     "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
   },
@@ -2540,6 +2544,10 @@
     "translation": "We couldn't get the extra info for channel members"
   },
   {
+    "id": "store.sql_channel.search_extra_members.app_error",
+    "translation": "We couldn't search the extra info for channel members"
+  },
+  {
     "id": "store.sql_channel.get_for_export.app_error",
     "translation": "We couldn't get all the channels"
   },
@@ -3082,6 +3090,14 @@
   {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_profiles_from_list.app_error",
+    "translation": "We encountered an error while finding user profiles from the provided list"
+  },
+  {
+    "id": "store.sql_user.search_profiles.app_error",
+    "translation": "We encountered an error while searching user profiles"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

@@ -671,6 +671,7 @@
   "file_upload.filesAbove": "Files above {max}MB could not be uploaded: {filenames}",
   "file_upload.limited": "Uploads limited to {count} files maximum. Please use additional posts for more files.",
   "file_upload.pasted": "Image Pasted at ",
+  "filtered_user_list.searchProfiles": "Search",
   "filtered_user_list.count": "{count, number} {count, plural, one {member} other {members}}",
   "filtered_user_list.countTotal": "{count, number} {count, plural, one {member} other {members}} of {total} Total",
   "filtered_user_list.search": "Search members",
