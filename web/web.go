@@ -1063,7 +1063,8 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if strings.Split(contentType, "; ")[0] == "application/json" {
 		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
 	} else {
-		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
+        payload := strings.Replace(r.FormValue("payload"),"\n","\\n",-1)
+		parsedRequest = model.IncomingWebhookRequestFromJson(payload)
 	}
 
 	if parsedRequest == nil {
