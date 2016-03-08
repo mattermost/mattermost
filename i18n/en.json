@@ -456,8 +456,24 @@
     "translation": "S3 is not supported for local storage export."
   },
   {
-    "id": "api.export.write_file.app_error",
-    "translation": "Unable to write to export file"
+    "id": "api.file.move_file.get_from_s3.app_error",
+    "translation": "Unable to get file from S3."
+  },
+  {
+    "id": "api.file.move_file.delete_from_s3.app_error",
+    "translation": "Unable to delete file from S3."
+  },
+  {
+    "id": "api.file.move_file.rename.app_error",
+    "translation": "Unable to move file locally."
+  },
+  {
+    "id": "api.file.move_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.file_upload.exceeds",
+    "translation": "File exceeds max image size."
   },
   {
     "id": "api.file.file_upload.exceeds",
