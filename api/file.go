@@ -547,6 +547,41 @@ func writeFile(f []byte, path string) *model.AppError {
 	return nil
 }
 
+func moveFile(oldPath, newPath string) *model.AppError {
+	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		fileData := make(chan []byte)
+		getFileAndForget(oldPath, fileData)
+		fileBytes := <-fileData
+
+		if fileBytes == nil {
+			return model.NewLocAppError("moveFile", "api.file.move_file.get_from_s3.app_error", nil, "")
+		}
+
+		var auth aws.Auth
+		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+
+		s := s3.New(auth, awsRegion())
+		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
+
+		if err := bucket.Del(oldPath); err != nil {
+			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
+		}
+
+		if err := writeFile(fileBytes, newPath); err != nil {
+			return err
+		}
+	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		if err := os.Rename(utils.Cfg.FileSettings.Directory+oldPath, utils.Cfg.FileSettings.Directory+newPath); err != nil {
+			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
+		}
+	} else {
+		return model.NewLocAppError("moveFile", "api.file.move_file.configured.app_error", nil, "")
+	}
+
+	return nil
+}
+
 func writeFileLocally(f []byte, path string) *model.AppError {
 	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
 		return model.NewLocAppError("writeFile", "api.file.write_file_locally.create_dir.app_error", nil, err.Error())

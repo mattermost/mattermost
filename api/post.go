@@ -1094,11 +1094,29 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		message.Add("post", post.ToJson())
 
 		PublishAndForget(message)
+		DeletePostFilesAndForget(c.Session.TeamId, post)
 
 		result := make(map[string]string)
 		result["id"] = postId
 		w.Write([]byte(model.MapToJson(result)))
 	}
+}
+
+func DeletePostFilesAndForget(teamId string, post *model.Post) {
+	go func() {
+		if len(post.Filenames) == 0 {
+			return
+		}
+
+		prefix := "teams/" + teamId + "/channels/" + post.ChannelId + "/users/" + post.UserId + "/"
+		for _, filename := range post.Filenames {
+			splitUrl := strings.Split(filename, "/")
+			oldPath := prefix + splitUrl[len(splitUrl)-2] + "/" + splitUrl[len(splitUrl)-1]
+			newPath := prefix + splitUrl[len(splitUrl)-2] + "/deleted_" + splitUrl[len(splitUrl)-1]
+			moveFile(oldPath, newPath)
+		}
+
+	}()
 }
 
 func getPostsBefore(c *Context, w http.ResponseWriter, r *http.Request) {
