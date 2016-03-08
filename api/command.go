@@ -69,16 +69,18 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Command().GetByTeam(c.Session.TeamId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		teamCmds := result.Data.([]*model.Command)
-		for _, cmd := range teamCmds {
-			if cmd.AutoComplete && !seen[cmd.Id] {
-				cmd.Sanitize()
-				seen[cmd.Trigger] = true
-				commands = append(commands, cmd)
+	if *utils.Cfg.ServiceSettings.EnableCommands {
+		if result := <-Srv.Store.Command().GetByTeam(c.Session.TeamId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			teamCmds := result.Data.([]*model.Command)
+			for _, cmd := range teamCmds {
+				if cmd.AutoComplete && !seen[cmd.Id] {
+					cmd.Sanitize()
+					seen[cmd.Trigger] = true
+					commands = append(commands, cmd)
+				}
 			}
 		}
 	}
@@ -114,6 +116,13 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		handleResponse(c, w, response, channelId, provider.GetCommand(c), true)
 		return
 	} else {
+
+		if !*utils.Cfg.ServiceSettings.EnableCommands {
+			c.Err = model.NewLocAppError("executeCommand", "api.command.disabled.app_error", nil, "")
+			c.Err.StatusCode = http.StatusNotImplemented
+			return
+		}
+
 		chanChan := Srv.Store.Channel().Get(channelId)
 		teamChan := Srv.Store.Team().Get(c.Session.TeamId)
 		userChan := Srv.Store.User().Get(c.Session.UserId)
