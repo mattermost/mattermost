@@ -145,6 +145,7 @@ export default class Sidebar extends React.Component {
         preferences.forEach((p) => {
             AsyncClient.getProfile(p.name);
         });
+        AsyncClient.getProfiles(0, Constants.USER_CHUNK_SIZE);
 
         this.updateTitle();
         this.updateUnreadIndicators();
@@ -545,7 +546,7 @@ export default class Sidebar extends React.Component {
                     >
                         <FormattedMessage
                             id='sidebar.more'
-                            defaultMessage='More ({count})'
+                            defaultMessage='More ({count}+)'
                             values={{
                                 count: this.state.hiddenDirectChannelCount
                             }}

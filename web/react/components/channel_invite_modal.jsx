@@ -10,6 +10,7 @@ import ChannelStore from '../stores/channel_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
+import Constants from '../utils/constants.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -77,6 +78,7 @@ export default class ChannelInviteModal extends React.Component {
             ChannelStore.addChangeListener(this.onListenerChange);
             UserStore.addChangeListener(this.onListenerChange);
             this.onListenerChange();
+            AsyncClient.getProfiles(0, Constants.USER_CHUNK_SIZE);
         } else if (this.props.show && !nextProps.show) {
             ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
             ChannelStore.removeChangeListener(this.onListenerChange);
