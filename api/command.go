@@ -111,7 +111,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if provider != nil {
 		response := provider.DoCommand(c, channelId, message)
-		handleResponse(c, w, response, channelId, provider.GetCommand(c))
+		handleResponse(c, w, response, channelId, provider.GetCommand(c), true)
 		return
 	} else {
 		chanChan := Srv.Store.Channel().Get(channelId)
@@ -193,7 +193,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 							if response == nil {
 								c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "")
 							} else {
-								handleResponse(c, w, response, channelId, cmd)
+								handleResponse(c, w, response, channelId, cmd, false)
 							}
 						} else {
 							body, _ := ioutil.ReadAll(resp.Body)
@@ -211,11 +211,14 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Err = model.NewLocAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "")
 }
 
-func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, channelId string, cmd *model.Command) {
+func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, channelId string, cmd *model.Command, builtIn bool) {
 
 	post := &model.Post{}
 	post.ChannelId = channelId
-	post.AddProp("from_webhook", "true")
+
+	if !builtIn {
+		post.AddProp("from_webhook", "true")
+	}
 
 	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
 		if len(cmd.Username) != 0 {
