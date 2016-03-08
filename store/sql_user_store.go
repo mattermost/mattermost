@@ -561,6 +561,37 @@ func (us SqlUserStore) GetByUsername(teamId string, username string) StoreChanne
 	return storeChannel
 }
 
+func (us SqlUserStore) SearchProfiles(teamId, term string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId AND (Username LIKE :Term OR FirstName LIKE :Term OR LastName LIKE :Term OR Nickname LIKE :Term) ORDER BY Username ASC LIMIT 100", map[string]interface{}{"TeamId": teamId, "Term": "%" + term + "%"}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.SearchProfiles", "store.sql_user.search_profiles.app_error", nil, err.Error())
+		} else {
+
+			userMap := model.UserMap{}
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

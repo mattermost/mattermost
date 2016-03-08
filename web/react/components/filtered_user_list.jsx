@@ -3,6 +3,13 @@
 
 import UserList from './user_list.jsx';
 
+import ChannelStore from '../stores/channel_store.jsx';
+
+import * as Client from '../utils/client.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
+
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
 const holders = defineMessages({
@@ -20,7 +27,7 @@ class FilteredUserList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleFilterChange = this.handleFilterChange.bind(this);
+        this.searchProfiles = this.searchProfiles.bind(this);
 
         this.state = {
             filter: ''
@@ -37,10 +44,47 @@ class FilteredUserList extends React.Component {
         }
     }
 
-    handleFilterChange(e) {
-        this.setState({
-            filter: e.target.value
-        });
+    searchProfiles() {
+        const rdata = {};
+        rdata.term = this.refs.filter.value;
+
+        if (!rdata.term || rdata.term.length === 0) {
+            this.setState({filter: ''});
+            return;
+        }
+
+        if (this.props.isChannelMembers) {
+            Client.searchChannelExtraInfo(
+                ChannelStore.getCurrentId(),
+                rdata,
+                (data) => {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO,
+                        extra_info: data
+                    });
+
+                    this.setState({filter: rdata.term});
+                },
+                () => {
+                    this.setState({filter: ''});
+                }
+            );
+        } else {
+            Client.searchProfiles(
+                rdata,
+                (data) => {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_PROFILES,
+                        profiles: data
+                    });
+
+                    this.setState({filter: rdata.term});
+                },
+                () => {
+                    this.setState({filter: ''});
+                }
+            );
+        }
     }
 
     render() {
@@ -48,6 +92,7 @@ class FilteredUserList extends React.Component {
 
         let users = this.props.users;
 
+        // this logic might be better placed in UserStore
         if (this.state.filter) {
             const filter = this.state.filter.toLowerCase();
 
@@ -100,10 +145,20 @@ class FilteredUserList extends React.Component {
                             ref='filter'
                             className='form-control filter-textbox'
                             placeholder={formatMessage(holders.search)}
-                            onInput={this.handleFilterChange}
                         />
                     </div>
-                    <div className='col-sm-6'>
+                    <div className='col-sm-2'>
+                        <button
+                            className='form-control btn btn-primary'
+                            onClick={this.searchProfiles}
+                        >
+                            <FormattedMessage
+                                id='filtered_user_list.searchProfiles'
+                                defaultMessage='Search'
+                            />
+                        </button>
+                    </div>
+                    <div className='col-sm-4'>
                         <span className='member-count'>{count}</span>
                     </div>
                 </div>
@@ -123,14 +178,16 @@ class FilteredUserList extends React.Component {
 
 FilteredUserList.defaultProps = {
     users: [],
-    actions: []
+    actions: [],
+    isChannelMembers: false
 };
 
 FilteredUserList.propTypes = {
     intl: intlShape.isRequired,
     users: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    style: React.PropTypes.object
+    style: React.PropTypes.object,
+    isChannelMembers: React.PropTypes.bool
 };
 
 export default injectIntl(FilteredUserList);

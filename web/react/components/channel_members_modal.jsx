@@ -44,18 +44,9 @@ export default class ChannelMembersModal extends React.Component {
     }
     getStateFromStores() {
         const extraInfo = ChannelStore.getCurrentExtraInfo();
-        const profiles = UserStore.getActiveOnlyProfiles();
 
-        if (extraInfo.member_count !== extraInfo.members.length) {
-            AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
-
-            return {
-                loading: true
-            };
-        }
-
-        const memberList = extraInfo.members.map((member) => {
-            return profiles[member.id];
+        const memberList = $.map(extraInfo.members, (el) => {
+            return el;
         });
 
         function compareByUsername(a, b) {
@@ -151,6 +142,7 @@ export default class ChannelMembersModal extends React.Component {
                     style={{maxHeight}}
                     users={this.state.memberList}
                     actions={[this.createRemoveMemberButton]}
+                    isChannelMembers={true}
                 />
             );
         }

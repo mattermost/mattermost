@@ -53,10 +53,18 @@ export default class Navbar extends React.Component {
         this.state = state;
     }
     getStateFromStores() {
+        let users;
+        const extraInfo = ChannelStore.getCurrentExtraInfo();
+        if (extraInfo && extraInfo.members) {
+            users = $.map(extraInfo.members, (el) => {
+                return el;
+            });
+        }
+
         return {
             channel: ChannelStore.getCurrent(),
             member: ChannelStore.getCurrentMember(),
-            users: ChannelStore.getCurrentExtraInfo().members
+            users
         };
     }
     componentDidMount() {

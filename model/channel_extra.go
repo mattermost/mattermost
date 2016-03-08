@@ -23,9 +23,9 @@ func (o *ExtraMember) Sanitize(options map[string]bool) {
 }
 
 type ChannelExtra struct {
-	Id          string        `json:"id"`
-	Members     []ExtraMember `json:"members"`
-	MemberCount int64         `json:"member_count"`
+	Id          string                  `json:"id"`
+	Members     map[string]*ExtraMember `json:"members"`
+	MemberCount int64                   `json:"member_count"`
 }
 
 func (o *ChannelExtra) ToJson() string {

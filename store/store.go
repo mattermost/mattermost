@@ -80,6 +80,7 @@ type ChannelStore interface {
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	GetExtraMembers(channelId string, limit int) StoreChannel
+	SearchExtraMembers(channelId, term string) StoreChannel
 	CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel
 	CheckOpenChannelPermissions(teamId string, channelId string) StoreChannel
 	CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel
@@ -122,6 +123,7 @@ type UserStore interface {
 	GetByEmail(teamId string, email string) StoreChannel
 	GetByAuth(teamId string, authData string, authService string) StoreChannel
 	GetByUsername(teamId string, username string) StoreChannel
+	SearchProfiles(teamId, term string) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForProfiles(teamId string, limit, offset int) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel

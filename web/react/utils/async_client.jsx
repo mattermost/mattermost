@@ -237,6 +237,34 @@ export function getProfile(id) {
     );
 }
 
+export function getProfiles(offset, limit) {
+    if (isCallInProgress('getProfiles')) {
+        return;
+    }
+
+    callTracker.getProfiles = utils.getTimestamp();
+    client.getProfiles(
+        offset,
+        limit,
+        (data, textStatus, xhr) => {
+            callTracker.getProfiles = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES,
+                profiles: data
+            });
+        },
+        (err) => {
+            callTracker.getProfiles = 0;
+            dispatchError(err, 'getProfiles');
+        }
+    );
+}
+
 export function getSessions() {
     if (isCallInProgress('getSessions')) {
         return;

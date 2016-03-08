@@ -458,12 +458,12 @@ func (um *UserMap) ToJson() string {
 	}
 }
 
-func UserMapFromJson(data io.Reader) *UserMap {
+func UserMapFromJson(data io.Reader) UserMap {
 	decoder := json.NewDecoder(data)
 	var users UserMap
 	err := decoder.Decode(&users)
 	if err == nil {
-		return &users
+		return users
 	} else {
 		return nil
 	}

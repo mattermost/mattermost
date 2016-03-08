@@ -53,21 +53,11 @@ export default class ChannelInviteModal extends React.Component {
             };
         }
 
-        // make sure we have all members of this channel before rendering
         const extraInfo = ChannelStore.getCurrentExtraInfo();
-        if (extraInfo.member_count !== extraInfo.members.length) {
-            AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
-
-            return {
-                loading: true
-            };
-        }
-
-        const memberIds = extraInfo.members.map((user) => user.id);
 
         var nonmembers = [];
         for (var id in users) {
-            if (memberIds.indexOf(id) === -1) {
+            if (!(id in extraInfo.members)) {
                 nonmembers.push(users[id]);
             }
         }

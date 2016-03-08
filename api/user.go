@@ -61,6 +61,7 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/profiles/{offset:[0-9]+}/{num:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	sr.Handle("/profiles/{id:[A-Za-z0-9]+}/{offset:[0-9]+}/{num:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	sr.Handle("/profile/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfile)).Methods("GET")
+	sr.Handle("/profiles/search", ApiUserRequired(searchProfiles)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}", ApiUserRequired(getUser)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/audits", ApiUserRequired(getAudits)).Methods("GET")
@@ -1005,6 +1006,35 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		(&profiles).ClearNonProfileFields(options)
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte((&profiles).ToJson()))
+		return
+	}
+}
+
+func searchProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	term := props["term"]
+	if len(term) == 0 {
+		c.SetInvalidParam("searchProfiles", "term")
+		return
+	}
+
+	if result := <-Srv.Store.User().SearchProfiles(c.Session.TeamId, term); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(model.UserMap)
+
+		options := utils.Cfg.GetSanitizeOptions()
+		options["passwordupdate"] = false
+		if c.IsSystemAdmin() {
+			options["fullname"] = true
+			options["email"] = true
+		}
+
+		(&profiles).ClearNonProfileFields(options)
+
 		w.Write([]byte((&profiles).ToJson()))
 		return
 	}

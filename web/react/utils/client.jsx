@@ -914,6 +914,21 @@ export function getChannelExtraInfo(id, memberLimit, success, error) {
     });
 }
 
+export function searchChannelExtraInfo(id, data, success, error) {
+    $.ajax({
+        url: '/api/v1/channels/' + id + '/extra_info/search',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('searchChannelExtraInfo', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function executeCommand(channelId, command, suggest, success, error) {
     $.ajax({
         url: '/api/v1/commands/execute',
@@ -1248,6 +1263,23 @@ export function getProfilesForTeam(teamId, offset, limit, success, error) {
             error(e);
         }
     });
+}
+
+export function searchProfiles(data, success, error) {
+    $.ajax({
+        url: '/api/v1/users/profiles/search',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('searchProfiles', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_users_search_profiles');
 }
 
 export function uploadFile(formData, success, error) {

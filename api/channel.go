@@ -34,6 +34,7 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info/{member_limit:-?[0-9]+}", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
+	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info/search", ApiUserRequired(searchChannelExtraInfo)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(join)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/leave", ApiUserRequired(leave)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/delete", ApiUserRequired(deleteChannel)).Methods("POST")
@@ -778,7 +779,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		member := cmresult.Data.(model.ChannelMember)
-		extraMembers := ecmresult.Data.([]model.ExtraMember)
+		extraMembers := ecmresult.Data.(map[string]*model.ExtraMember)
 		memberCount := ccmresult.Data.(int64)
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "getChannelExtraInfo") {
@@ -797,6 +798,41 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		data := model.ChannelExtra{Id: channel.Id, Members: extraMembers, MemberCount: memberCount}
 		w.Header().Set(model.HEADER_ETAG_SERVER, extraEtag)
+		w.Write([]byte(data.ToJson()))
+	}
+}
+
+func searchChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	props := model.MapFromJson(r.Body)
+
+	term := props["term"]
+	if len(term) == 0 {
+		c.SetInvalidParam("searchChannelExtraInfo", "term")
+		return
+	}
+
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+
+	if !c.HasPermissionsToChannel(cchan, "searchChannelExtraInfo") {
+		return
+	}
+
+	ccm := Srv.Store.Channel().GetMemberCount(id)
+	ecm := Srv.Store.Channel().SearchExtraMembers(id, term)
+	if ccmresult := <-ccm; ccmresult.Err != nil {
+		c.Err = ccmresult.Err
+		return
+	} else if ecmresult := <-ecm; ecmresult.Err != nil {
+		c.Err = ecmresult.Err
+		return
+	} else {
+		memberCount := ccmresult.Data.(int64)
+		extraMembers := ecmresult.Data.(map[string]*model.ExtraMember)
+
+		data := model.ChannelExtra{Id: id, Members: extraMembers, MemberCount: memberCount}
 		w.Write([]byte(data.ToJson()))
 	}
 }

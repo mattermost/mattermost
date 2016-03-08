@@ -327,7 +327,6 @@ func TestGetUser(t *testing.T) {
 		if cache_result, err := Client.GetProfiles(rteam.Data.(*model.Team).Id, 0, 1000, userMap.Etag); err != nil {
 			t.Fatal(err)
 		} else if cache_result.Data.(model.UserMap) != nil {
-			t.Log(model.UserMapToJson(cache_result.Data.(model.UserMap)))
 			t.Fatal("cache should be empty")
 		}
 	}
