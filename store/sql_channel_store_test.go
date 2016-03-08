@@ -363,7 +363,7 @@ func TestChannelMemberStore(t *testing.T) {
 		t.Fatal("should have go member")
 	}
 
-	extraMembers := (<-store.Channel().GetExtraMembers(o1.ChannelId, 20)).Data.([]model.ExtraMember)
+	extraMembers := (<-store.Channel().GetExtraMembers(o1.ChannelId, 20)).Data.(map[string]*model.ExtraMember)
 	if len(extraMembers) != 1 {
 		t.Fatal("should have 1 extra members")
 	}
@@ -386,7 +386,7 @@ func TestChannelMemberStore(t *testing.T) {
 
 	if result := <-store.Channel().GetExtraMembers(o1.ChannelId, 20); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if extraMembers := result.Data.([]model.ExtraMember); len(extraMembers) != 1 {
+	} else if extraMembers := result.Data.(map[string]*model.ExtraMember); len(extraMembers) != 1 {
 		t.Fatal("should have 1 extra members")
 	}
 }
@@ -915,8 +915,8 @@ func TestUpdateExtrasByUser(t *testing.T) {
 
 	if result := <-store.Channel().GetExtraMembers(c1.Id, -1); result.Err != nil {
 		t.Fatal("failed to get extras: %v", result.Err)
-	} else if len(result.Data.([]model.ExtraMember)) != 0 {
-		t.Fatal("got incorrect member count %v", len(result.Data.([]model.ExtraMember)))
+	} else if len(result.Data.(map[string]*model.ExtraMember)) != 0 {
+		t.Fatal("got incorrect member count %v", len(result.Data.(map[string]*model.ExtraMember)))
 	}
 
 	u1.DeleteAt = 0
@@ -928,7 +928,52 @@ func TestUpdateExtrasByUser(t *testing.T) {
 
 	if result := <-store.Channel().GetExtraMembers(c1.Id, -1); result.Err != nil {
 		t.Fatal("failed to get extras: %v", result.Err)
-	} else if len(result.Data.([]model.ExtraMember)) != 1 {
-		t.Fatal("got incorrect member count %v", len(result.Data.([]model.ExtraMember)))
+	} else if len(result.Data.(map[string]*model.ExtraMember)) != 1 {
+		t.Fatal("got incorrect member count %v", len(result.Data.(map[string]*model.ExtraMember)))
+	}
+}
+
+func TestSearchExtraMembersStore(t *testing.T) {
+	Setup()
+
+	c1 := model.Channel{}
+	c1.TeamId = model.NewId()
+	c1.DisplayName = "NameName"
+	c1.Name = "a" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	c1 = *Must(store.Channel().Save(&c1)).(*model.Channel)
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(&u1))
+
+	u2 := model.User{}
+	u2.TeamId = model.NewId()
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(&u2))
+
+	o1 := model.ChannelMember{}
+	o1.ChannelId = c1.Id
+	o1.UserId = u1.Id
+	o1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&o1))
+
+	o2 := model.ChannelMember{}
+	o2.ChannelId = c1.Id
+	o2.UserId = u2.Id
+	o2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&o2))
+
+	if result := <-store.Channel().SearchExtraMembers(c1.Id, u1.Nickname); result.Err != nil {
+		t.Fatal("failed to search: %v", result.Err)
+	} else {
+		members := result.Data.(map[string]*model.ExtraMember)
+
+		if len(members) != 1 {
+			t.Fatal("should have returned 1 member")
+		}
 	}
 }

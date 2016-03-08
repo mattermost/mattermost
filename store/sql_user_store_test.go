@@ -258,7 +258,7 @@ func TestUserStoreGetProfiles(t *testing.T) {
 	if r1 := <-store.User().GetProfiles(u1.TeamId, 60, 0); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.(model.UserMap)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
@@ -271,8 +271,65 @@ func TestUserStoreGetProfiles(t *testing.T) {
 	if r2 := <-store.User().GetProfiles("123", 60, 0); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
-		if len(r2.Data.(map[string]*model.User)) != 0 {
+		if len(r2.Data.(model.UserMap)) != 0 {
 			t.Fatal("should have returned empty map")
+		}
+	}
+}
+
+func TestUserStoreGetProfilesFromList(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(&u1))
+
+	u2 := model.User{}
+	u2.TeamId = u1.TeamId
+	u2.Email = model.NewId()
+	Must(store.User().Save(&u2))
+
+	ids := []string{u1.Id, u2.Id}
+
+	if r1 := <-store.User().GetProfilesFromList(ids); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(model.UserMap)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users")
+		}
+
+		if users[u1.Id].Id != u1.Id {
+			t.Fatal("invalid returned user")
+		}
+	}
+}
+
+func TestUserStoreSearchProfiles(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	u1.Username = model.NewId()
+	Must(store.User().Save(&u1))
+
+	u2 := model.User{}
+	u2.TeamId = u1.TeamId
+	u2.Email = model.NewId()
+	Must(store.User().Save(&u2))
+
+	if r1 := <-store.User().SearchProfiles(u1.TeamId, u1.Username); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(model.UserMap)
+		if len(users) != 1 {
+			t.Fatal("invalid returned users")
+		}
+
+		if users[u1.Id].Id != u1.Id {
+			t.Fatal("invalid returned user")
 		}
 	}
 }
