@@ -256,11 +256,25 @@
             }
 
             > div {
-                background: $white;
                 display: inline-block;
                 min-height: 100px;
                 min-width: 320px;
                 position: relative;
+            }
+
+            code {
+                min-height: 130px;
+                min-width: 330px;
+            }
+
+            pre, code {
+                display: inline-block;
+            }
+
+            .post-body--code {
+                max-height: calc(100vh - 80px);
+                max-width: calc(100vw - 80px);
+                overflow: auto;
             }
 
             img {

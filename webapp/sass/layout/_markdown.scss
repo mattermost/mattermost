@@ -22,27 +22,61 @@
 }
 
 .post-body--code {
+    overflow-x: auto;
+    overflow-y: hidden;
     position: relative;
 
     pre {
-        margin-bottom: 0;
-        overflow: auto;
-        word-break: normal;
-        word-wrap: normal;
+        border: 1px solid rgba(221,221,221,0.2);
+        border-radius: .25em;
+        margin: 0;
+        padding: 0px;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    code {
+        border: none;
+        white-space: pre;
+    }
+
+    td {
+        padding: 0 .5em;
+        vertical-align: top;
+    }
+
+    &:hover .post-body--code__language {
+        @include opacity(1);
     }
 }
 
 .post-body--code__language {
+    @include opacity(0);
     @include translate3d(0, 0, 0);
     background: #21586d;
+    border-radius: 0 .25em;
     color: $white;
-    font-size: 13px;
-    opacity: .7;
     padding: 4px 10px 5px;
     position: absolute;
     right: 0;
     top: 0;
+    -webkit-transition: opacity 0.6s;
+    -moz-transition: opacity 0.6s;
+    -o-transition: opacity 0.6s;
+    transition: opacity 0.6s;
     z-index: 5;
+}
+
+.post-body--code__lineno {
+    border-right: 1px solid #aaa;
+    color: #aaa;
+    margin-right: .5em;
+    text-align: right;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
 }
 
 .post__body {
@@ -108,9 +142,9 @@ blockquote {
 }
 
 pre {
-    border: none;
     color: inherit;
     margin: 5px 0;
+    padding: 0;
 }
 
 code {
