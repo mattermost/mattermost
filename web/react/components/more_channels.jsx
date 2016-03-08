@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as utils from '../utils/utils.jsx';
+import * as Utils from '../utils/utils.jsx';
 import * as client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
@@ -24,6 +24,7 @@ export default class MoreChannels extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleJoin = this.handleJoin.bind(this);
         this.handleNewChannel = this.handleNewChannel.bind(this);
+        this.createChannelRow = this.createChannelRow.bind(this);
 
         var initState = getStateFromStores();
         initState.channelType = '';
@@ -48,7 +49,7 @@ export default class MoreChannels extends React.Component {
     }
     onListenerChange() {
         var newState = getStateFromStores();
-        if (!utils.areObjectsEqual(newState.channels, this.state.channels)) {
+        if (!Utils.areObjectsEqual(newState.channels, this.state.channels)) {
             this.setState(newState);
         }
     }
@@ -58,7 +59,7 @@ export default class MoreChannels extends React.Component {
             () => {
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
                 AsyncClient.getChannel(channel.id);
-                utils.switchChannel(channel);
+                Utils.switchChannel(channel);
                 this.setState({joiningChannel: -1});
             },
             (err) => {
@@ -70,13 +71,54 @@ export default class MoreChannels extends React.Component {
         $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
         this.setState({showNewChannelModal: true});
     }
+    createChannelRow(channel, index) {
+        let joinButton;
+        if (this.state.joiningChannel === index) {
+            joinButton = (
+                <img
+                    className='join-channel-loading-gif'
+                    src='/static/images/load.gif'
+                />
+            );
+        } else {
+            joinButton = (
+                <button
+                    onClick={this.handleJoin.bind(self, channel, index)}
+                    className='btn btn-primary'
+                >
+                    <FormattedMessage
+                        id='more_channels.join'
+                        defaultMessage='Join'
+                    />
+                </button>
+            );
+        }
+
+        return (
+            <tr key={channel.id}>
+                <td className='more-row'>
+                    <div className='more-details'>
+                        <p className='more-name'>{channel.display_name}</p>
+                        <p className='more-description'>{channel.purpose}</p>
+                    </div>
+                    <div className='more-actions'>
+                        {joinButton}
+                    </div>
+                </td>
+            </tr>
+        );
+    }
     render() {
+        let maxHeight = 1000;
+        if (Utils.windowHeight() <= 1200) {
+            maxHeight = Utils.windowHeight() - 300;
+        }
+
         var serverError;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
-        var self = this;
         var moreChannels;
 
         if (this.state.channels != null) {
@@ -87,59 +129,25 @@ export default class MoreChannels extends React.Component {
                 moreChannels = (
                     <table className='more-table table'>
                         <tbody>
-                            {channels.map(function cMap(channel, index) {
-                                var joinButton;
-                                if (self.state.joiningChannel === index) {
-                                    joinButton = (
-                                        <img
-                                            className='join-channel-loading-gif'
-                                            src='/static/images/load.gif'
-                                        />
-                                        );
-                                } else {
-                                    joinButton = (
-                                        <button
-                                            onClick={self.handleJoin.bind(self, channel, index)}
-                                            className='btn btn-primary'
-                                        >
-                                            <FormattedMessage
-                                                id='more_channels.join'
-                                                defaultMessage='Join'
-                                            />
-                                        </button>
-                                        );
-                                }
-
-                                return (
-                                    <tr key={channel.id}>
-                                        <td>
-                                            <p className='more-name'>{channel.display_name}</p>
-                                            <p className='more-description'>{channel.purpose}</p>
-                                        </td>
-                                        <td className='td--action'>
-                                            {joinButton}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            {channels.map(this.createChannelRow)}
                         </tbody>
                     </table>
                 );
             } else {
                 moreChannels = (
                     <div className='no-channel-message'>
-                       <p className='primary-message'>
-                           <FormattedMessage
-                               id='more_channels.noMore'
-                               defaultMessage='No more channels to join'
-                           />
-                       </p>
-                       <p className='secondary-message'>
-                           <FormattedMessage
-                               id='more_channels.createClick'
-                               defaultMessage="Click 'Create New Channel' to make a new one"
-                           />
-                       </p>
+                        <p className='primary-message'>
+                            <FormattedMessage
+                                id='more_channels.noMore'
+                                defaultMessage='No more channels to join'
+                            />
+                        </p>
+                        <p className='secondary-message'>
+                            <FormattedMessage
+                                id='more_channels.createClick'
+                                defaultMessage="Click 'Create New Channel' to make a new one"
+                            />
+                        </p>
                     </div>
                 );
             }
@@ -192,7 +200,10 @@ export default class MoreChannels extends React.Component {
                                 onModalDismissed={() => this.setState({showNewChannelModal: false})}
                             />
                         </div>
-                        <div className='modal-body'>
+                        <div
+                            className='modal-body'
+                            style={{maxHeight}}
+                        >
                             {moreChannels}
                             {serverError}
                         </div>
