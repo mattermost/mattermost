@@ -45,3 +45,7 @@ class ModalStoreClass extends EventEmitter {
 
 const ModalStore = new ModalStoreClass();
 export default ModalStore;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.ModalStore = ModalStore;
+}

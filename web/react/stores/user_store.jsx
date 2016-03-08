@@ -325,3 +325,7 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export {UserStore as default};
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.UserStore = UserStore;
+}

@@ -258,4 +258,9 @@ class SuggestionStore extends EventEmitter {
     }
 }
 
-export default new SuggestionStore();
+const instance = new SuggestionStore();
+export default instance;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.SuggestionStore = instance;
+}

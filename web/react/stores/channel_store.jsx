@@ -350,3 +350,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export default ChannelStore;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.ChannelStore = ChannelStore;
+}
