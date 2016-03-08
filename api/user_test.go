@@ -1262,3 +1262,68 @@ func TestSwitchToEmail(t *testing.T) {
 		t.Fatal("should have failed - wrong user")
 	}
 }
+
+func TestGetProfile(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser, _ := Client.CreateUser(&user, "")
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
+
+	if _, err := Client.GetProfile(ruser.Data.(*model.User).Id, ""); err == nil {
+		t.Fatal("should have failed")
+	}
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	if result, err := Client.GetProfile(ruser.Data.(*model.User).Id, ""); err != nil {
+		t.Fatal(err.Error())
+	} else {
+		if result.Data.(*model.User).Id != ruser.Data.(*model.User).Id {
+			t.Fatal("invalid user returned")
+		}
+	}
+
+}
+
+func TestSearchProfiles(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	r1, _ := Client.CreateUser(&user, "")
+	ruser := r1.Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	data := map[string]string{}
+	data["term"] = ruser.Username
+
+	if _, err := Client.SearchProfiles(data); err == nil {
+		t.Fatal("should have failed")
+	}
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	if result, err := Client.SearchProfiles(data); err != nil {
+		t.Fatal(err.Error())
+	} else {
+		if len(result.Data.(model.UserMap)) != 1 {
+			t.Fatal("invalid results returned")
+		}
+	}
+
+	data["term"] = "junk"
+	if result, err := Client.SearchProfiles(data); err != nil {
+		t.Fatal(err.Error())
+	} else {
+		if len(result.Data.(model.UserMap)) != 0 {
+			t.Fatal("invalid results returned")
+		}
+	}
+
+}
