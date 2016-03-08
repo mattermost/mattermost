@@ -58,20 +58,35 @@ body.ios {
 		box-shadow: none;
 		white-space: normal;
 	}
-	.textbox-preview-link, .textbox-help-link {
+	.textbox-help-link {
 		position: absolute;
 		z-index: 3;
 		bottom: -23px;
 		font-size: 13px;
 		cursor: pointer;
 	}
-	.textbox-preview-link {
-		right: 45px;
-	}
 	.textbox-help-link {
 		right: 0;
 	}
 	min-height:36px;
+}
+
+.help_format_text {
+	position: absolute;
+	bottom: -23px;
+	right: 40px;
+	font-size: 0.85em;
+	@include opacity(0);
+	@include single-transition(all 0.2s ease);
+
+	b, i, code {
+		margin-right: 3px;
+	}
+	.textbox-preview-link{
+		font-size: 13px;
+		cursor: pointer;
+		margin-left: 15px;
+	}
 }
 
 .date-separator, .new-separator {
@@ -709,6 +724,12 @@ body.ios {
 			margin-top: 1.4em;
 		}
 
+		li {
+			> p {
+				margin-top: 10px;
+			}
+		}
+
 		img {
 			max-height: 400px;
 		}
@@ -765,14 +786,12 @@ body.ios {
 
 	.post__embed-visibility {
 		cursor: pointer;
-		display: block;
 		font: normal normal normal 14px/1 FontAwesome;
 		text-rendering: auto;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
-		font-size: 0;
-		width: 30px;
-		margin-top: -5px;
+		margin: 5px 0 10px;
+		display: inline-block;
 
 		&:hover{
 			text-decoration: none;

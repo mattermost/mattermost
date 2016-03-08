@@ -277,7 +277,7 @@ class UserSettingsModal extends React.Component {
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body ref='modalBody'>
+                <Modal.Body bsClass='settings-modal__body modal' ref='modalBody'>
                     <div className='settings-table'>
                         <div className='settings-links'>
                             <SettingsSidebar
@@ -309,7 +309,7 @@ class UserSettingsModal extends React.Component {
                 <ConfirmModal
                     title={formatMessage(holders.confirmTitle)}
                     message={formatMessage(holders.confirmMsg)}
-                    confirm_button={formatMessage(holders.confirmBtns)}
+                    confirmButton={formatMessage(holders.confirmBtns)}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}

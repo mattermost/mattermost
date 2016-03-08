@@ -41,8 +41,6 @@ export default class GetLinkModal extends React.Component {
     }
 
     render() {
-        const userCreationEnabled = global.window.mm_config.EnableUserCreation === 'true';
-
         let helpText = null;
         if (this.props.helpText) {
             helpText = (
@@ -55,7 +53,7 @@ export default class GetLinkModal extends React.Component {
         }
 
         let copyLink = null;
-        if (userCreationEnabled && document.queryCommandSupported('copy')) {
+        if (document.queryCommandSupported('copy')) {
             copyLink = (
                 <button
                     data-copy-btn='true'
@@ -71,17 +69,14 @@ export default class GetLinkModal extends React.Component {
             );
         }
 
-        let linkText = null;
-        if (userCreationEnabled) {
-            linkText = (
-                <textarea
-                    className='form-control no-resize min-height'
-                    readOnly='true'
-                    ref='textarea'
-                    value={this.props.link}
-                />
-            );
-        }
+        const linkText = (
+            <textarea
+                className='form-control no-resize min-height'
+                readOnly='true'
+                ref='textarea'
+                value={this.props.link}
+            />
+        );
 
         var copyLinkConfirm = null;
         if (this.state.copiedLink) {

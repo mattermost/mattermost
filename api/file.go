@@ -52,7 +52,7 @@ const (
 	RotatedCCWMirrored = 7
 	RotatedCW          = 8
 
-	MaxImageSize = 4096 * 2160 // 4k resolution
+	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 )
 
 var fileInfoCache *utils.Cache = utils.NewLru(1000)

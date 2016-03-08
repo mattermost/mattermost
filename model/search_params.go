@@ -89,9 +89,9 @@ func parseSearchFlags(input []string) ([]string, [][2]string) {
 		}
 
 		if !isFlag {
-			// trim off surrounding punctuation
+			// trim off surrounding punctuation (note that we leave trailing asterisks to allow wildcards)
 			word = puncStart.ReplaceAllString(word, "")
-			word = puncEnd.ReplaceAllString(word, "")
+			word = puncEndWildcard.ReplaceAllString(word, "")
 
 			// and remove extra pound #s
 			word = hashtagStart.ReplaceAllString(word, "#")

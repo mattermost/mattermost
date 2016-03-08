@@ -4,10 +4,6 @@
 import * as Utils from '../utils/utils.jsx';
 
 export default class SettingsSidebar extends React.Component {
-    componentDidUpdate() {
-        $('.settings-modal').find('.modal-body').scrollTop(0);
-        $('.settings-modal').find('.modal-body').perfectScrollbar('update');
-    }
     constructor(props) {
         super(props);
 
