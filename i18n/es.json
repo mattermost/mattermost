@@ -2408,6 +2408,10 @@
     "translation": "Verificando conexión con la base de datos sql %v"
   },
   {
+    "id": "store.sql.read_replicas_not_licensed.critical",
+    "translation": "La funcionalidad de más de 1 replica ha sido deshabilitada debido a la licencia actual. Por favor contacta a un administrador del sistema para realizar una actualización a la edición Enterprise."
+  },
+  {
     "id": "store.sql.remove_index.critical",
     "translation": "Falla al remover el índice %v"
   },
