@@ -33,5 +33,6 @@ func (me *LogoutProvider) GetCommand(c *Context) *model.Command {
 }
 
 func (me *LogoutProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
-	return &model.CommandResponse{GotoLocation: "/logout", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command_logout.success_message")}
+
+	return &model.CommandResponse{GotoLocation: c.GetTeamURL() + "/logout", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command_logout.success_message")}
 }
