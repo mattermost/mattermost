@@ -174,15 +174,17 @@ class LicenseSettings extends React.Component {
 
             licenseKey = (
                 <div className='col-sm-8'>
-                    <input
-                        className='pull-left'
-                        ref='fileInput'
-                        type='file'
-                        accept='.mattermost-license'
-                        onChange={this.handleChange}
-                    />
+                    <div className='file__upload'>
+                        <button className='btn btn-primary'>{'Choose File'}</button>
+                        <input
+                            ref='fileInput'
+                            type='file'
+                            accept='.mattermost-license'
+                            onChange={this.handleChange}
+                        />
+                    </div>
                     <button
-                        className={btnClass + ' pull-left'}
+                        className={btnClass}
                         disabled={!this.state.fileSelected}
                         onClick={this.handleSubmit}
                         id='upload-button'
@@ -193,11 +195,12 @@ class LicenseSettings extends React.Component {
                             defaultMessage='Upload'
                         />
                     </button>
-                    <br/>
-                    <br/>
+                    <div className='help-text no-margin'>
+                        {'No file uploaded'}
+                    </div>
                     <br/>
                     {serverError}
-                    <p className='help-text'>
+                    <p className='help-text no-margin'>
                         <FormattedHTMLMessage
                             id='admin.license.uploadDesc'
                             defaultMessage='Upload a license key for Mattermost Enterprise Edition to upgrade this server. <a href="http://mattermost.com" target="_blank">Visit us online</a> to learn more about the benefits of Enterprise Edition or to purchase a key.'
