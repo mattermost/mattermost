@@ -1292,6 +1292,8 @@ func TestGetProfile(t *testing.T) {
 func TestSearchProfiles(t *testing.T) {
 	Setup()
 
+	Client.Logout()
+
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
