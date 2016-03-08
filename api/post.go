@@ -958,7 +958,7 @@ func setProfilesForPostList(c *Context, postList *model.PostList) {
 				options["email"] = true
 			}
 
-			(&profiles).ClearNonProfileFields(options)
+			profiles.ClearNonProfileFields(options)
 
 			postList.Profiles = profiles
 		}

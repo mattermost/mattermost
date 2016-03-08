@@ -1003,10 +1003,10 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 			options["email"] = true
 		}
 
-		(&profiles).ClearNonProfileFields(options)
+		profiles.ClearNonProfileFields(options)
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-		w.Write([]byte((&profiles).ToJson()))
+		w.Write([]byte(profiles.ToJson()))
 		return
 	}
 }
@@ -1033,9 +1033,9 @@ func searchProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 			options["email"] = true
 		}
 
-		(&profiles).ClearNonProfileFields(options)
+		profiles.ClearNonProfileFields(options)
 
-		w.Write([]byte((&profiles).ToJson()))
+		w.Write([]byte(profiles.ToJson()))
 		return
 	}
 }
