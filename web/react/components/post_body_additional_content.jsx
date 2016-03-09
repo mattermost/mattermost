@@ -112,24 +112,32 @@ export default class PostBodyAdditionalContent extends React.Component {
     }
 
     render() {
-        var generateEmbed = this.generateEmbed();
+        const generateEmbed = this.generateEmbed();
+
         if (generateEmbed) {
-            return (
-                <div>
+            let toggle;
+            if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMBED_TOGGLE)) {
+                toggle = (
                     <a className='post__embed-visibility'
                         data-expanded={this.state.embedVisible}
                         aria-label='Toggle Embed Visibility'
                         onClick={this.toggleEmbedVisibility}
-                    >
-                    </a>
+                    />
+                );
+            }
+
+            return (
+                <div>
+                    {toggle}
                     <div className='post__embed-container'
                         hidden={!this.state.embedVisible}
                     >
                     {generateEmbed}
                     </div>
                 </div>
-                );
+            );
         }
+
         return null;
     }
 }
