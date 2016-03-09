@@ -40,4 +40,5 @@ Click on the linked hashtags below, and confirm that the search results match th
 
 #### Markdown surrounding a hashtag:
 
-*#markdown-hashtag*
+*#markdown* **#markdown** ~~#markdown~~
+##### #markdown
