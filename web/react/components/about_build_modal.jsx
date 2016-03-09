@@ -21,7 +21,7 @@ export default class AboutBuildModal extends React.Component {
 
         let title = (
             <FormattedMessage
-                id='about.teamEdtiont0'
+                id='about.teamEditiont0'
                 defaultMessage='Team Edition T0'
             />
         );
@@ -30,7 +30,7 @@ export default class AboutBuildModal extends React.Component {
         if (config.BuildEnterpriseReady === 'true') {
             title = (
                 <FormattedMessage
-                    id='about.teamEdtiont1'
+                    id='about.teamEditiont1'
                     defaultMessage='Team Edition T1'
                 />
             );
