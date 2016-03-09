@@ -1064,7 +1064,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
 	} else {
         payload := strings.Replace(r.FormValue("payload"),"\n","\\n",-1)
-		parsedRequest = model.IncomingWebhookRequestFromJson(payload)
+		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(payload))
 	}
 
 	if parsedRequest == nil {
