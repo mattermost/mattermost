@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 const emoticonPatterns = {
-    slightly_smiling_face: /(^|\s)(:-?\))(?=$|\s)/g, // :)
+    slight_smile: /(^|\s)(:-?\))(?=$|\s)/g, // :)
     wink: /(^|\s)(;-?\))(?=$|\s)/g, // ;)
     open_mouth: /(^|\s)(:o)(?=$|\s)/gi, // :o
     scream: /(^|\s)(:-o)(?=$|\s)/gi, // :-o
@@ -11,8 +11,8 @@ const emoticonPatterns = {
     stuck_out_tongue_closed_eyes: /(^|\s)(x-d)(?=$|\s)/gi, // x-d
     stuck_out_tongue: /(^|\s)(:-?p)(?=$|\s)/gi, // :p
     rage: /(^|\s)(:-?[\[@])(?=$|\s)/g, // :@
-    slightly_frowning_face: /(^|\s)(:-?\()(?=$|\s)/g, // :(
-    cry: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()(?=$|\s)/g, // :`(
+    slight_frown: /(^|\s)(:-?\()(?=$|\s)/g, // :(
+    cry: /(^|\s)(:['’]-?\(|:&#x27;\(|:&apos;\(|:&#39;\()(?=$|\s)/g, // :`(
     confused: /(^|\s)(:-?\/)(?=$|\s)/g, // :/
     confounded: /(^|\s)(:-?s)(?=$|\s)/gi, // :s
     neutral_face: /(^|\s)(:-?\|)(?=$|\s)/g, // :|
@@ -26,7 +26,7 @@ const emoticonPatterns = {
 
 function initializeEmoticonMap() {
     const emoticonNames =
-        ('+1,-1,100,1234,8ball,a,ab,abc,abcd,accept,aerial_tramway,airplane,alarm_clock,alien,ambulance,anchor,angel,' +
+        ('100,1234,8ball,a,ab,abc,abcd,accept,aerial_tramway,airplane,alarm_clock,alien,ambulance,anchor,angel,' +
         'anger,angry,anguished,ant,apple,aquarius,aries,arrow_backward,arrow_double_down,arrow_double_up,arrow_down,' +
         'arrow_down_small,arrow_forward,arrow_heading_down,arrow_heading_up,arrow_left,arrow_lower_left,' +
         'arrow_lower_right,arrow_right,arrow_right_hook,arrow_up,arrow_up_down,arrow_up_small,arrow_upper_left,' +
@@ -34,7 +34,7 @@ function initializeEmoticonMap() {
         'baby_bottle,baby_chick,baby_symbol,back,baggage_claim,balloon,ballot_box_with_check,bamboo,banana,bangbang,' +
         'bank,bar_chart,barber,baseball,basketball,bath,bathtub,battery,bear,bee,beer,beers,beetle,beginner,bell,bento,' +
         'bicyclist,bike,bikini,bird,birthday,black_circle,black_joker,black_medium_small_square,black_medium_square,' +
-        'black_large_square,black_nib,black_small_square,black_square,black_square_button,blossom,blowfish,blue_book,' +
+        'black_large_square,black_nib,black_small_square,black_square_button,blossom,blowfish,blue_book,' +
         'blue_car,blue_heart,blush,boar,boat,bomb,book,bookmark,bookmark_tabs,books,boom,boot,bouquet,bow,bowling,bowtie,' +
         'boy,bread,bride_with_veil,bridge_at_night,briefcase,broken_heart,bug,bulb,bullettrain_front,bullettrain_side,bus,' +
         'busstop,bust_in_silhouette,busts_in_silhouette,cactus,cake,calendar,calling,camel,camera,cancer,candy,capital_abcd,' +
@@ -92,7 +92,7 @@ function initializeEmoticonMap() {
         'rugby_football,runner,running,running_shirt_with_sash,sa,sagittarius,sailboat,sake,sandal,santa,satellite,' +
         'satisfied,saxophone,school,school_satchel,scissors,scorpius,scream,scream_cat,scroll,seat,secret,see_no_evil,' +
         'seedling,seven,shaved_ice,sheep,shell,ship,shipit,shirt,shit,shoe,shower,signal_strength,six,six_pointed_star,' +
-        'ski,skull,sleeping,sleepy,slightly_smiling_face,slightly_frowning_face,slot_machine,small_blue_diamond,' +
+        'ski,skull,sleeping,sleepy,slight_smile,slight_frown,slot_machine,small_blue_diamond,' +
         'small_orange_diamond,small_red_triangle,small_red_triangle_down,smile,smile_cat,smiley,smiley_cat,smiling_imp,' +
         'smirk,smirk_cat,smoking,snail,snake,snowboarder,snowflake,snowman,sob,soccer,soon,sos,sound,space_invader,spades,' +
         'spaghetti,sparkle,sparkler,sparkles,sparkling_heart,speak_no_evil,speaker,speech_balloon,speedboat,squirrel,star,' +
