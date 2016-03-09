@@ -94,10 +94,12 @@ class DeveloperTab extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i
-                            className='modal-back'
-                            onClick={this.props.collapseModal}
-                        />
+                        <div className='modal-back'>
+                            <i
+                                className='fa fa-angle-left'
+                                onClick={this.props.collapseModal}
+                            />
+                        </div>
                         <FormattedMessage
                             id='user.settings.developer.title'
                             defaultMessage='Developer Settings'

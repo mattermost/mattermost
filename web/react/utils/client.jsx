@@ -87,6 +87,21 @@ export function createTeamFromSignup(teamSignup, success, error) {
     });
 }
 
+export function createTeamWithLdap(teamSignup, success, error) {
+    $.ajax({
+        url: '/api/v1/teams/create_with_ldap',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(teamSignup),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('createTeamFromSignup', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function createTeamWithSSO(team, service, success, error) {
     $.ajax({
         url: '/api/v1/teams/create_with_sso/' + service,

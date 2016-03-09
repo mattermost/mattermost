@@ -83,3 +83,7 @@ AnalyticsStore.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export default AnalyticsStore;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.AnalyticsStore = AnalyticsStore;
+}

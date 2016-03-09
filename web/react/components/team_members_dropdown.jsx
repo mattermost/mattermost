@@ -308,8 +308,8 @@ export default class TeamMembersDropdown extends React.Component {
                     data-toggle='dropdown'
                     aria-expanded='true'
                 >
-                    <span className='fa fa-pencil'></span>
                     <span>{currentRoles} </span>
+                    <span className='fa fa-chevron-down'></span>
                 </a>
                 <ul
                     className='dropdown-menu member-menu'

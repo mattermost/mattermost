@@ -2408,6 +2408,10 @@
     "translation": "Pingando banco de dados sql %v"
   },
   {
+    "id": "store.sql.read_replicas_not_licensed.critical",
+    "translation": "A funcionalidade de mais de uma replica está desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
+  },
+  {
     "id": "store.sql.remove_index.critical",
     "translation": "Falha ao remover o índice %v"
   },
@@ -2648,6 +2652,10 @@
     "translation": "Encontramos um erro ao atualizar o membro do canal"
   },
   {
+    "id": "store.sql_command.analytics_command_count.app_error",
+    "translation": "Não foi possível contar os comandos"
+  },
+  {
     "id": "store.sql_command.save.delete.app_error",
     "translation": "Não foi possível deletar o comando"
   },
@@ -2674,10 +2682,6 @@
   {
     "id": "store.sql_command.save.update.app_error",
     "translation": "Não foi possível atualizar o comando"
-  },
-  {
-    "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Não foi possível contar os comandos"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -2900,6 +2904,10 @@
     "translation": "Não foi possível atualizar a preferência"
   },
   {
+    "id": "store.sql_session.analytics_session_count.app_error",
+    "translation": "Não foi possível contar a sessão"
+  },
+  {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",
     "translation": "Encontramos um erro enquanto deletava a sessão expirada do usuário"
   },
@@ -2952,10 +2960,6 @@
     "translation": "Não foi possível atualizar as funções"
   },
   {
-    "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Não foi possível contar a sessão"
-  },
-  {
     "id": "store.sql_system.get.app_error",
     "translation": "Encontramos um erro ao procurar as propriedades de sistema"
   },
@@ -2966,6 +2970,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "Encontramos um erro ao atualizar as propriedades de sistema"
+  },
+  {
+    "id": "store.sql_team.analytics_team_count.app_error",
+    "translation": "Não foi possível contar as equipes"
   },
   {
     "id": "store.sql_team.get.find.app_error",
@@ -3034,10 +3042,6 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "Não foi possível atualizar o nome da equipe"
-  },
-  {
-    "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Não foi possível contar as equipes"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",

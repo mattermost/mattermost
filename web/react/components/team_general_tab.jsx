@@ -611,7 +611,9 @@ class GeneralTab extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>
+                        <div className='modal-back'>
+                            <i className='fa fa-angle-left'></i>
+                        </div>
                         <FormattedMessage
                             id='general_tab.title'
                             defaultMessage='General Settings'

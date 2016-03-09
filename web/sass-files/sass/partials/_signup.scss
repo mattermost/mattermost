@@ -214,6 +214,15 @@
                     background-image: url("../images/googleLogo.png");
                 }
             }
+            &.ldap {
+                background: #dd4b39;
+                &:hover {
+                    background: darken(#dd4b39, 10%);
+                }
+                span {
+                    vertical-align: middle;
+                }
+            }
             &.email {
                 background: #2389D7;
                 &:hover {

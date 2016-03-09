@@ -608,3 +608,7 @@ function isPostListNull(pl) {
 
     return false;
 }
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.PostStore = PostStore;
+}

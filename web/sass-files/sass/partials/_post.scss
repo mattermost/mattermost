@@ -73,12 +73,11 @@ body.ios {
 
 .help_format_text {
 	position: absolute;
-	z-index: 3;
 	bottom: -23px;
-	font-size: 0.7em;
-	right: 45px;
-	color: #999;
-	transition: visibility 0s, opacity 0.5s linear;
+	right: 40px;
+	font-size: 0.85em;
+	@include opacity(0);
+	@include single-transition(all 0.2s ease);
 
 	b, i, code {
 		margin-right: 3px;
@@ -725,6 +724,12 @@ body.ios {
 			margin-top: 1.4em;
 		}
 
+		li {
+			> p {
+				margin-top: 10px;
+			}
+		}
+
 		img {
 			max-height: 400px;
 		}
@@ -781,14 +786,12 @@ body.ios {
 
 	.post__embed-visibility {
 		cursor: pointer;
-		display: block;
 		font: normal normal normal 14px/1 FontAwesome;
 		text-rendering: auto;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
-		font-size: 0;
-		width: 30px;
-		margin-top: -5px;
+		margin: 5px 0 10px;
+		display: inline-block;
 
 		&:hover{
 			text-decoration: none;
