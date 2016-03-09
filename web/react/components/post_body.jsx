@@ -215,8 +215,7 @@ PostBody.propTypes = {
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired,
-    hasProfiles: React.PropTypes.bool
+    handleCommentClick: React.PropTypes.func.isRequired
 };
 
 export default injectIntl(PostBody);

@@ -149,11 +149,15 @@ export default class PostsViewContainer extends React.Component {
         }
     }
     shouldComponentUpdate(nextProps, nextState) {
-        if (Utils.areObjectsEqual(this.state, nextState)) {
-            return false;
+        if (!Utils.areObjectsEqual(this.state, nextState)) {
+            return true;
         }
 
-        return true;
+        if (!Utils.areObjectsEqual(this.props, nextProps)) {
+            return true;
+        }
+
+        return false;
     }
     render() {
         const postLists = this.state.postLists;

@@ -98,7 +98,7 @@ export default class Post extends React.Component {
             return true;
         }
 
-        if (nextProps.hasProfiles !== this.props.hasProfiles) {
+        if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
         }
 
@@ -226,7 +226,6 @@ export default class Post extends React.Component {
                                 posts={posts}
                                 handleCommentClick={this.handleCommentClick}
                                 retryPost={this.retryPost}
-                                hasProfiles={this.props.hasProfiles}
                             />
                         </div>
                     </div>
@@ -246,6 +245,5 @@ Post.propTypes = {
     hideProfilePic: React.PropTypes.bool,
     isLastComment: React.PropTypes.bool,
     shouldHighlight: React.PropTypes.bool,
-    displayNameType: React.PropTypes.string,
-    hasProfiles: React.PropTypes.bool
+    displayNameType: React.PropTypes.string
 };
