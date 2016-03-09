@@ -185,6 +185,7 @@ class FileAttachment extends React.Component {
                         data-toggle='tooltip'
                         title={this.props.intl.formatMessage(holders.download) + ' \"' + filenameString + '\"'}
                         className='post-image__name'
+                        target='_blank'
                     >
                         {trimmedFilename}
                     </a>
@@ -193,6 +194,7 @@ class FileAttachment extends React.Component {
                             href={fileUrl}
                             download={filenameString}
                             className='post-image__download'
+                            target='_blank'
                         >
                             <span
                                 className='fa fa-download'
