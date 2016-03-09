@@ -208,6 +208,47 @@ export function getChannelExtraInfo(id, memberLimit) {
     }
 }
 
+export function searchChannelExtraInfo(term, id) {
+    let channelId;
+    if (id) {
+        channelId = id;
+    } else {
+        channelId = ChannelStore.getCurrentId();
+    }
+
+    const searchData = {};
+    searchData.term = term;
+
+    if (channelId != null) {
+        if (isCallInProgress('searchChannelExtraInfo' + channelId)) {
+            return;
+        }
+
+        callTracker['searchChannelExtraInfo' + channelId] = utils.getTimestamp();
+
+        client.searchChannelExtraInfo(
+            channelId,
+            searchData,
+            (data, textStatus, xhr) => {
+                callTracker['searchChannelExtraInfo' + channelId] = 0;
+
+                if (xhr.status === 304 || !data) {
+                    return;
+                }
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO,
+                    extra_info: data
+                });
+            },
+            (err) => {
+                callTracker['searchChannelExtraInfo' + channelId] = 0;
+                dispatchError(err, 'searchChannelExtraInfo');
+            }
+        );
+    }
+}
+
 export function getProfile(id) {
     if (isCallInProgress('getProfile' + id)) {
         return;
@@ -261,6 +302,36 @@ export function getProfiles(offset, limit) {
         (err) => {
             callTracker.getProfiles = 0;
             dispatchError(err, 'getProfiles');
+        }
+    );
+}
+
+export function searchProfiles(term) {
+    if (isCallInProgress('searchProfiles')) {
+        return;
+    }
+
+    const searchData = {};
+    searchData.term = term;
+
+    callTracker.searchProfiles = utils.getTimestamp();
+    client.searchProfiles(
+        searchData,
+        (data, textStatus, xhr) => {
+            callTracker.searchProfiles = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES,
+                profiles: data
+            });
+        },
+        (err) => {
+            callTracker.searchProfiles = 0;
+            dispatchError(err, 'searchProfiles');
         }
     );
 }

@@ -142,6 +142,9 @@ export default class ChannelInviteModal extends React.Component {
                     style={{maxHeight}}
                     users={this.state.nonmembers}
                     actions={[this.createInviteButton]}
+                    search={(term) => {
+                        AsyncClient.searchProfiles(term);
+                    }}
                 />
             );
         }

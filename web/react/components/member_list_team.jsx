@@ -55,6 +55,9 @@ export default class MemberListTeam extends React.Component {
                 style={this.props.style}
                 users={this.state.users}
                 actions={[TeamMembersDropdown]}
+                search={(term) => {
+                    AsyncClient.searchProfiles(term);
+                }}
             />
         );
     }

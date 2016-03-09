@@ -142,7 +142,9 @@ export default class ChannelMembersModal extends React.Component {
                     style={{maxHeight}}
                     users={this.state.memberList}
                     actions={[this.createRemoveMemberButton]}
-                    isChannelMembers={true}
+                    search={(term) => {
+                        AsyncClient.searchChannelExtraInfo(term);
+                    }}
                 />
             );
         }

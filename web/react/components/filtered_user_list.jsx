@@ -3,12 +3,8 @@
 
 import UserList from './user_list.jsx';
 
-import ChannelStore from '../stores/channel_store.jsx';
-
-import * as Client from '../utils/client.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
+const KeyCodes = Constants.KeyCodes;
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
@@ -28,6 +24,7 @@ class FilteredUserList extends React.Component {
         super(props);
 
         this.searchProfiles = this.searchProfiles.bind(this);
+        this.keyPress = this.keyPress.bind(this);
 
         this.state = {
             filter: ''
@@ -45,45 +42,20 @@ class FilteredUserList extends React.Component {
     }
 
     searchProfiles() {
-        const rdata = {};
-        rdata.term = this.refs.filter.value;
+        const filter = this.refs.filter.value;
 
-        if (!rdata.term || rdata.term.length === 0) {
+        if (!filter || filter.length === 0) {
             this.setState({filter: ''});
             return;
         }
 
-        if (this.props.isChannelMembers) {
-            Client.searchChannelExtraInfo(
-                ChannelStore.getCurrentId(),
-                rdata,
-                (data) => {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO,
-                        extra_info: data
-                    });
+        this.setState({filter});
+        this.props.search(filter);
+    }
 
-                    this.setState({filter: rdata.term});
-                },
-                () => {
-                    this.setState({filter: ''});
-                }
-            );
-        } else {
-            Client.searchProfiles(
-                rdata,
-                (data) => {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_PROFILES,
-                        profiles: data
-                    });
-
-                    this.setState({filter: rdata.term});
-                },
-                () => {
-                    this.setState({filter: ''});
-                }
-            );
+    keyPress(e) {
+        if (e.which === KeyCodes.ENTER) {
+            this.searchProfiles();
         }
     }
 
@@ -92,7 +64,6 @@ class FilteredUserList extends React.Component {
 
         let users = this.props.users;
 
-        // this logic might be better placed in UserStore
         if (this.state.filter) {
             const filter = this.state.filter.toLowerCase();
 
@@ -145,6 +116,7 @@ class FilteredUserList extends React.Component {
                             ref='filter'
                             className='form-control filter-textbox'
                             placeholder={formatMessage(holders.search)}
+                            onKeyPress={this.keyPress}
                         />
                     </div>
                     <div className='col-sm-2'>
@@ -178,8 +150,7 @@ class FilteredUserList extends React.Component {
 
 FilteredUserList.defaultProps = {
     users: [],
-    actions: [],
-    isChannelMembers: false
+    actions: []
 };
 
 FilteredUserList.propTypes = {
@@ -187,7 +158,7 @@ FilteredUserList.propTypes = {
     users: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     style: React.PropTypes.object,
-    isChannelMembers: React.PropTypes.bool
+    search: React.PropTypes.bool.isRequired
 };
 
 export default injectIntl(FilteredUserList);

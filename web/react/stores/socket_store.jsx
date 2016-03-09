@@ -300,7 +300,7 @@ function handlePostDeleteEvent(msg) {
 }
 
 function handleNewUserEvent() {
-    AsyncClient.getProfiles();
+    AsyncClient.getProfiles(0, Constants.USER_CHUNK_SIZE);
     AsyncClient.getChannelExtraInfo();
 }
 
