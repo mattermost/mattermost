@@ -58,23 +58,27 @@ body.ios {
 		box-shadow: none;
 		white-space: normal;
 	}
-	.textbox-help-link {
+	.help__text {
+		right: 0;
 		position: absolute;
 		z-index: 3;
 		bottom: -23px;
 		font-size: 13px;
 		cursor: pointer;
 	}
-	.textbox-help-link {
-		right: 0;
+	.textbox-preview-link {
+		margin-right: 8px;
 	}
 	min-height:36px;
 }
 
 .help_format_text {
+	display: none !important;
 	position: absolute;
 	bottom: -23px;
-	right: 40px;
+	left: 0px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	font-size: 0.85em;
 	@include opacity(0);
 	@include single-transition(all 0.2s ease);
@@ -391,15 +395,16 @@ body.ios {
 			top: -5px;
 			position: relative;
 		}
-		.msg-typing {
-			min-height: 25px;
-			display: block;
-			@include opacity(0.7);
-			white-space: nowrap;
-			width: 80%;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
+	}
+	.msg-typing {
+		display: block;
+		@include opacity(0.7);
+		white-space: nowrap;
+		margin-bottom: 5px;
+		overflow: hidden;
+		font-size: 0.95em;
+		text-overflow: ellipsis;
+		height: 20px;
 	}
 }
 
