@@ -194,7 +194,6 @@ export default class Textbox extends React.Component {
                         defaultMessage='>quote'
                     />
                 </span>
-                {previewLink}
             </div>
         );
 
@@ -230,16 +229,19 @@ export default class Textbox extends React.Component {
                 >
                 </div>
                 {helpText}
-                <a
-                    target='_blank'
-                    href='http://docs.mattermost.com/help/getting-started/messaging-basics.html'
-                    className='textbox-help-link'
-                >
-                    <FormattedMessage
-                        id='textbox.help'
-                        defaultMessage='Help'
-                    />
-                </a>
+                <div className='help__text'>
+                    {previewLink}
+                    <a
+                        target='_blank'
+                        href='http://docs.mattermost.com/help/getting-started/messaging-basics.html'
+                        className='textbox-help-link'
+                    >
+                        <FormattedMessage
+                            id='textbox.help'
+                            defaultMessage='Help'
+                        />
+                    </a>
+                </div>
             </div>
         );
     }
