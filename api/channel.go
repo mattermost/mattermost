@@ -832,8 +832,13 @@ func searchChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) 
 		memberCount := ccmresult.Data.(int64)
 		extraMembers := ecmresult.Data.(map[string]*model.ExtraMember)
 
-		data := model.ChannelExtra{Id: id, Members: extraMembers, MemberCount: memberCount}
-		w.Write([]byte(data.ToJson()))
+		extra := model.ChannelExtra{Id: id, Members: extraMembers, MemberCount: memberCount}
+
+		if HandleEtag(extra.Etag(), w, r) {
+			return
+		}
+
+		w.Write([]byte(extra.ToJson()))
 	}
 }
 

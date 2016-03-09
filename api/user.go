@@ -932,13 +932,15 @@ func getProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(), w, r) {
-		return
 	} else {
 		profile := result.Data.(*model.User)
 
 		if profile.TeamId != c.Session.TeamId && !c.IsSystemAdmin() {
 			c.Err = model.NewLocAppError("getProfile", "api.user.get_profile.bad_permissions.app_error", nil, "")
+			return
+		}
+
+		if HandleEtag(profile.Etag(), w, r) {
 			return
 		}
 
@@ -996,19 +998,24 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		profiles := result.Data.(model.UserMap)
 
-		options := utils.Cfg.GetSanitizeOptions()
-		options["passwordupdate"] = false
-		if c.IsSystemAdmin() {
-			options["fullname"] = true
-			options["email"] = true
-		}
-
-		profiles.ClearNonProfileFields(options)
+		profiles.ClearNonProfileFields(getSanitizeProfileOptions(c))
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(profiles.ToJson()))
 		return
 	}
+}
+
+func getSanitizeProfileOptions(c *Context) map[string]bool {
+	options := utils.Cfg.GetSanitizeOptions()
+	options["passwordupdate"] = false
+
+	if c.IsSystemAdmin() {
+		options["fullname"] = true
+		options["email"] = true
+	}
+
+	return options
 }
 
 func searchProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1026,14 +1033,11 @@ func searchProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		profiles := result.Data.(model.UserMap)
 
-		options := utils.Cfg.GetSanitizeOptions()
-		options["passwordupdate"] = false
-		if c.IsSystemAdmin() {
-			options["fullname"] = true
-			options["email"] = true
+		if HandleEtag(profiles.Etag(), w, r) {
+			return
 		}
 
-		profiles.ClearNonProfileFields(options)
+		profiles.ClearNonProfileFields(getSanitizeProfileOptions(c))
 
 		w.Write([]byte(profiles.ToJson()))
 		return

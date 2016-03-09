@@ -233,7 +233,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		tchan := Srv.Store.Team().Get(c.Session.TeamId)
 		cchan := Srv.Store.Channel().Get(post.ChannelId)
 		uchan := Srv.Store.User().Get(post.UserId)
-		pchan := Srv.Store.User().GetProfiles(c.Session.TeamId, 1000000, 0)
+		pchan := Srv.Store.User().GetProfiles(c.Session.TeamId, 1000000, 0) // large limit number so that we get all profiles
 		mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
 
 		var team *model.Team
@@ -951,14 +951,7 @@ func setProfilesForPostList(c *Context, postList *model.PostList) {
 		} else {
 			profiles := result.Data.(model.UserMap)
 
-			options := utils.Cfg.GetSanitizeOptions()
-			options["passwordupdate"] = false
-			if c.IsSystemAdmin() {
-				options["fullname"] = true
-				options["email"] = true
-			}
-
-			profiles.ClearNonProfileFields(options)
+			profiles.ClearNonProfileFields(getSanitizeProfileOptions(c))
 
 			postList.Profiles = profiles
 		}

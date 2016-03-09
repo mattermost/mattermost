@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
+	"crypto/md5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -474,4 +476,22 @@ func (um *UserMap) ClearNonProfileFields(sanitizeOptions map[string]bool) {
 		p.Sanitize(sanitizeOptions)
 		p.ClearNonProfileFields()
 	}
+}
+
+func (um *UserMap) Etag() string {
+	var latestUpdateAt int64 = 0
+	ids := []string{}
+
+	for _, p := range *um {
+		if p.UpdateAt > latestUpdateAt {
+			latestUpdateAt = p.UpdateAt
+		}
+		ids = append(ids, p.Id)
+	}
+
+	sort.Strings(ids)
+
+	md5Ids := fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(ids, ""))))
+
+	return fmt.Sprintf("%v.%v.%v", CurrentVersion, latestUpdateAt, md5Ids)
 }
