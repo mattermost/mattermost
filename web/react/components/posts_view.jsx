@@ -250,7 +250,6 @@ export default class PostsView extends React.Component {
                     shouldHighlight={shouldHighlight}
                     onClick={() => EventHelpers.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
                     displayNameType={this.state.displayNameType}
-                    hasProfiles={profiles && Object.keys(profiles).length > 1}
                     user={profile}
                 />
             );
