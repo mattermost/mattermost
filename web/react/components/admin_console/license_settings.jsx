@@ -27,6 +27,7 @@ class LicenseSettings extends React.Component {
 
         this.state = {
             fileSelected: false,
+            fileName: null,
             serverError: null
         };
     }
@@ -34,7 +35,7 @@ class LicenseSettings extends React.Component {
     handleChange() {
         const element = $(ReactDOM.findDOMNode(this.refs.fileInput));
         if (element.prop('files').length > 0) {
-            this.setState({fileSelected: true});
+            this.setState({fileSelected: true, fileName: element.prop('files')[0].name});
         }
     }
 
@@ -56,13 +57,13 @@ class LicenseSettings extends React.Component {
             () => {
                 Utils.clearFileInput(element[0]);
                 $('#upload-button').button('reset');
-                this.setState({serverError: null});
+                this.setState({fileSelected: false, fileName: null, serverError: null});
                 window.location.reload(true);
             },
             (error) => {
                 Utils.clearFileInput(element[0]);
                 $('#upload-button').button('reset');
-                this.setState({serverError: error.message});
+                this.setState({fileSelected: false, fileName: null, serverError: error.message});
             }
         );
     }
@@ -75,12 +76,12 @@ class LicenseSettings extends React.Component {
         Client.removeLicenseFile(
             () => {
                 $('#remove-button').button('reset');
-                this.setState({serverError: null});
+                this.setState({fileSelected: false, fileName: null, serverError: null});
                 window.location.reload(true);
             },
             (error) => {
                 $('#remove-button').button('reset');
-                this.setState({serverError: error.message});
+                this.setState({fileSelected: false, fileName: null, serverError: error.message});
             }
         );
     }
@@ -172,10 +173,27 @@ class LicenseSettings extends React.Component {
                 />
             );
 
+            let fileName;
+            if (this.state.fileName) {
+                fileName = this.state.fileName;
+            } else {
+                fileName = (
+                    <FormattedMessage
+                        id='admin.license.noFile'
+                        defaultMessage='No file uploaded'
+                    />
+                );
+            }
+
             licenseKey = (
                 <div className='col-sm-8'>
                     <div className='file__upload'>
-                        <button className='btn btn-default'>{'Choose File'}</button>
+                        <button className='btn btn-default'>
+                            <FormattedMessage
+                                id='admin.license.choose'
+                                defaultMessage='Choose File'
+                            />
+                        </button>
                         <input
                             ref='fileInput'
                             type='file'
@@ -196,7 +214,7 @@ class LicenseSettings extends React.Component {
                         />
                     </button>
                     <div className='help-text no-margin'>
-                        {'No file uploaded'}
+                        {fileName}
                     </div>
                     <br/>
                     {serverError}
