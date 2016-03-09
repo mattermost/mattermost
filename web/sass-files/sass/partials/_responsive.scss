@@ -96,6 +96,11 @@
         background: none !important;
     }
 
+    .help_format_text {
+        white-space: nowrap;
+        width: 70%;
+    }
+
     .post {
 
         .post__dropdown {
@@ -205,12 +210,6 @@
     .post-image__column {
         width: 200px;
         height: 95px;
-    }
-
-    .textarea-wrapper {
-        .textbox-preview-link, .textbox-help-link {
-            display: none;
-        }
     }
     .form-control {
         &.min-height {
@@ -429,20 +428,17 @@
         }
     }
     .post-create__container {
+        .msg-typing {
+            margin-left: 45px;
+        }
         .post-right__container & {
             padding: 0 1em;
-            .msg-typing {
-                display: none;
-            }
         }
         form {
             padding: 0.5em 0;
         }
         .post-create-footer {
             padding: 0 1em;
-            .msg-typing {
-                display: none;
-            }
             .control-label {
                 top: 0;
             }
@@ -473,7 +469,6 @@
         }
     }
     .preview-container {
-        margin: 5px 0 0;
         .preview-div {
             margin-top: 0;
         }
@@ -802,6 +797,20 @@
     }
 }
 @media screen and (max-width: 480px) {
+    #navbar {
+        .navbar-default {
+            .navbar-brand {
+                .heading {
+                    margin-right: 6px;
+                    display: inline-block;
+                    max-width: 45%;
+                    overflow: hidden;
+                    vertical-align: top;
+                    text-overflow: ellipsis;
+                }
+            }
+        }
+    }
     .modal {
         .settings-modal {
 

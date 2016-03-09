@@ -384,6 +384,10 @@ class CreateComment extends React.Component {
         const {formatMessage} = this.props.intl;
         return (
             <form onSubmit={this.handleSubmit}>
+                <MsgTyping
+                    channelId={this.props.channelId}
+                    parentId={this.props.rootId}
+                />
                 <div className='post-create'>
                     <div
                         id={this.props.rootId}
@@ -413,10 +417,6 @@ class CreateComment extends React.Component {
                             />
                         </div>
                     </div>
-                    <MsgTyping
-                        channelId={this.props.channelId}
-                        parentId={this.props.rootId}
-                    />
                     <div className={postFooterClassName}>
                         <input
                             type='button'
@@ -425,7 +425,7 @@ class CreateComment extends React.Component {
                             onClick={this.handleSubmit}
                         />
                         {uploadsInProgressText}
-                        {preview}
+                        <div className='preview-container'>{preview}</div>
                         {postError}
                         {serverError}
                     </div>

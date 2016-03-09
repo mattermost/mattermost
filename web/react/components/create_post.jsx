@@ -449,6 +449,10 @@ class CreatePost extends React.Component {
                 role='form'
                 onSubmit={this.handleSubmit}
             >
+                <MsgTyping
+                    channelId={this.state.channelId}
+                    parentId=''
+                />
                 <div className='post-create'>
                     <div className='post-create-body'>
                         <div className='post-body__cell'>
@@ -482,11 +486,7 @@ class CreatePost extends React.Component {
                         {tutorialTip}
                     </div>
                     <div className={postFooterClassName}>
-                        <MsgTyping
-                            channelId={this.state.channelId}
-                            parentId=''
-                        />
-                        {preview}
+                        <div className='preview-container'>{preview}</div>
                         {postError}
                         {serverError}
                     </div>
