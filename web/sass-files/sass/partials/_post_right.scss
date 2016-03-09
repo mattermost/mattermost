@@ -24,8 +24,16 @@
 
 
 	.help_format_text {
-		bottom: -63px;
+		bottom: -70px;
 		right: auto;
+		width: 230px;
+		height: 60px;
+
+		.textbox-preview-link {
+			display: inline-block;
+			margin-left: 0;
+			margin-top: 5px;
+		}
 	}
 
 	.post {
@@ -62,7 +70,6 @@
 
 	.post-create__container {
 		width: 100%;
-		margin-top: 10px;
 		.textarea-wrapper {
 			min-height: 100px;
 		}
@@ -72,20 +79,9 @@
 		.custom-textarea {
 			min-height: 100px;
 		}
-		.msg-typing {
-			@include opacity(0.7);
-			float: left;
-			margin-top: 3px;
-			font-size: 13px;
-			line-height: 20px;
-			min-width: 1px;
-			display: block;
-			height: 20px;
-			max-width: 230px;
-		}
 		.post-create-footer {
 			width: 100%;
-			padding: 5px 0 10px;
+			padding: 27px 0 10px;
 		}
 		.post-right-comments-upload-in-progress {
 			padding: 6px 0;

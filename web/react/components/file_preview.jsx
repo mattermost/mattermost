@@ -98,7 +98,7 @@ export default class FilePreview extends React.Component {
         });
 
         return (
-            <div className='preview-container'>
+            <div>
                 {previews}
             </div>
         );

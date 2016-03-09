@@ -2,13 +2,15 @@
 
 .preview-container {
   position: relative;
-  margin: 1px 0 10px;
+  margin: 30px 0px 10px;
   width: 100%;
   max-height: 100px;
-  height: 100px;
   white-space: nowrap;
   overflow-x: auto;
   overflow-y: hidden;
+  &:empty {
+    margin-top: 17px;
+  }
   .preview-div {
     display: inline-block;
     width: 120px;
