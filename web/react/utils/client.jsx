@@ -914,6 +914,21 @@ export function getChannelExtraInfo(id, memberLimit, success, error) {
     });
 }
 
+export function searchChannelExtraInfo(id, data, success, error) {
+    $.ajax({
+        url: '/api/v1/channels/' + id + '/extra_info/search',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('searchChannelExtraInfo', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function executeCommand(channelId, command, suggest, success, error) {
     $.ajax({
         url: '/api/v1/commands/execute',
@@ -1203,10 +1218,26 @@ export function removeChannelMember(id, data, success, error) {
     track('api', 'api_channels_remove_member');
 }
 
-export function getProfiles(success, error) {
+export function getProfile(id, success, error) {
     $.ajax({
         cache: false,
-        url: '/api/v1/users/profiles',
+        url: '/api/v1/users/profile/' + id,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        ifModified: true,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getProfile', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function getProfiles(offset, limit, success, error) {
+    $.ajax({
+        cache: false,
+        url: '/api/v1/users/profiles/' + offset + '/' + limit,
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
@@ -1219,10 +1250,10 @@ export function getProfiles(success, error) {
     });
 }
 
-export function getProfilesForTeam(teamId, success, error) {
+export function getProfilesForTeam(teamId, offset, limit, success, error) {
     $.ajax({
         cache: false,
-        url: '/api/v1/users/profiles/' + teamId,
+        url: '/api/v1/users/profiles/' + teamId + '/' + offset + '/' + limit,
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
@@ -1232,6 +1263,23 @@ export function getProfilesForTeam(teamId, success, error) {
             error(e);
         }
     });
+}
+
+export function searchProfiles(data, success, error) {
+    $.ajax({
+        url: '/api/v1/users/profiles/search',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('searchProfiles', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_users_search_profiles');
 }
 
 export function uploadFile(formData, success, error) {

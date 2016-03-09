@@ -41,7 +41,7 @@ export default class TeamMembersDropdown extends React.Component {
             };
             Client.updateRoles(data,
                 () => {
-                    AsyncClient.getProfiles();
+                    AsyncClient.getProfile(this.props.user.id);
                 },
                 (err) => {
                     this.setState({serverError: err.message});
@@ -52,7 +52,7 @@ export default class TeamMembersDropdown extends React.Component {
     handleMakeActive() {
         Client.updateActive(this.props.user.id, true,
             () => {
-                AsyncClient.getProfiles();
+                AsyncClient.getProfile(this.props.user.id);
                 AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
             },
             (err) => {
@@ -63,7 +63,7 @@ export default class TeamMembersDropdown extends React.Component {
     handleMakeNotActive() {
         Client.updateActive(this.props.user.id, false,
             () => {
-                AsyncClient.getProfiles();
+                AsyncClient.getProfile(this.props.user.id);
                 AsyncClient.getChannelExtraInfo(ChannelStore.getCurrentId());
             },
             (err) => {
@@ -83,7 +83,7 @@ export default class TeamMembersDropdown extends React.Component {
 
             Client.updateRoles(data,
                 () => {
-                    AsyncClient.getProfiles();
+                    AsyncClient.getProfile(this.props.user.id);
                 },
                 (err) => {
                     this.setState({serverError: err.message});

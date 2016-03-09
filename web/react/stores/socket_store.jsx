@@ -217,6 +217,11 @@ function handleNewPostEvent(msg, translations) {
         AsyncClient.getChannel(msg.channel_id);
     }
 
+    // Get profile if it's missing
+    if (UserStore.getProfile(post.user_id) == null) {
+        AsyncClient.getProfile(post.user_id);
+    }
+
     // Send desktop notification
     if ((UserStore.getCurrentId() !== msg.user_id || post.props.from_webhook === 'true') && !Utils.isSystemMessage(post)) {
         const msgProps = msg.props;
@@ -295,7 +300,7 @@ function handlePostDeleteEvent(msg) {
 }
 
 function handleNewUserEvent() {
-    AsyncClient.getProfiles();
+    AsyncClient.getProfiles(0, Constants.USER_CHUNK_SIZE);
     AsyncClient.getChannelExtraInfo();
 }
 

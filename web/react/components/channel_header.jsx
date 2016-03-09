@@ -52,10 +52,14 @@ export default class ChannelHeader extends React.Component {
     getStateFromStores() {
         const extraInfo = ChannelStore.getCurrentExtraInfo();
 
+        const users = $.map(extraInfo.members, (el) => {
+            return el;
+        });
+
         return {
             channel: ChannelStore.getCurrent(),
             memberChannel: ChannelStore.getCurrentMember(),
-            users: extraInfo.members,
+            users,
             userCount: extraInfo.member_count,
             searchVisible: SearchStore.getSearchResults() !== null
         };

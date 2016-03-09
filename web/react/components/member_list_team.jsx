@@ -3,7 +3,11 @@
 
 import FilteredUserList from './filtered_user_list.jsx';
 import TeamMembersDropdown from './team_members_dropdown.jsx';
+
 import UserStore from '../stores/user_store.jsx';
+
+import * as AsyncClient from '../utils/async_client.jsx';
+import Constants from '../utils/constants.jsx';
 
 export default class MemberListTeam extends React.Component {
     constructor(props) {
@@ -18,6 +22,7 @@ export default class MemberListTeam extends React.Component {
     }
 
     componentDidMount() {
+        AsyncClient.getProfiles(0, Constants.USER_CHUNK_SIZE);
         UserStore.addChangeListener(this.onChange);
     }
 
@@ -50,6 +55,9 @@ export default class MemberListTeam extends React.Component {
                 style={this.props.style}
                 users={this.state.users}
                 actions={[TeamMembersDropdown]}
+                search={(term) => {
+                    AsyncClient.searchProfiles(term);
+                }}
             />
         );
     }

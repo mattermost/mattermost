@@ -10,6 +10,7 @@ import ChannelStore from '../stores/channel_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
+import Constants from '../utils/constants.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -53,21 +54,11 @@ export default class ChannelInviteModal extends React.Component {
             };
         }
 
-        // make sure we have all members of this channel before rendering
         const extraInfo = ChannelStore.getCurrentExtraInfo();
-        if (extraInfo.member_count !== extraInfo.members.length) {
-            AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
-
-            return {
-                loading: true
-            };
-        }
-
-        const memberIds = extraInfo.members.map((user) => user.id);
 
         var nonmembers = [];
         for (var id in users) {
-            if (memberIds.indexOf(id) === -1) {
+            if (!(id in extraInfo.members)) {
                 nonmembers.push(users[id]);
             }
         }
@@ -87,6 +78,7 @@ export default class ChannelInviteModal extends React.Component {
             ChannelStore.addChangeListener(this.onListenerChange);
             UserStore.addChangeListener(this.onListenerChange);
             this.onListenerChange();
+            AsyncClient.getProfiles(0, Constants.USER_CHUNK_SIZE);
         } else if (this.props.show && !nextProps.show) {
             ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
             ChannelStore.removeChangeListener(this.onListenerChange);
@@ -150,6 +142,9 @@ export default class ChannelInviteModal extends React.Component {
                     style={{maxHeight}}
                     users={this.state.nonmembers}
                     actions={[this.createInviteButton]}
+                    search={(term) => {
+                        AsyncClient.searchProfiles(term);
+                    }}
                 />
             );
         }

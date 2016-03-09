@@ -4,6 +4,7 @@
 package api
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -49,6 +51,11 @@ var usage = `Mattermost load testing commands to help configure the system
 		Example:
 			/loadtest http://www.example.com/sample_file.md
 
+    WebSocket - Open a specified number of websocket connections
+		/loadtest websocket [close] <Num Connections>
+		
+		Example:
+			/loadtest websocket 10
 
 `
 
@@ -104,6 +111,10 @@ func (me *LoadTestProvider) DoCommand(c *Context, channelId string, message stri
 
 	if strings.HasPrefix(message, "url") {
 		return me.UrlCommand(c, channelId, message)
+	}
+
+	if strings.HasPrefix(message, "websocket") {
+		return me.SocketCommand(c, channelId, message)
 	}
 
 	return me.HelpCommand(c, channelId, message)
@@ -255,8 +266,8 @@ func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message s
 	}
 
 	var usernames []string
-	if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err == nil {
-		profileUsers := result.Data.(map[string]*model.User)
+	if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId, 1000, 0); result.Err == nil {
+		profileUsers := result.Data.(model.UserMap)
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {
@@ -328,6 +339,44 @@ func (me *LoadTestProvider) UrlCommand(c *Context, channelId string, message str
 	}
 
 	return &model.CommandResponse{Text: "Loading data...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+}
+
+var conns []*websocket.Conn
+
+func (me *LoadTestProvider) SocketCommand(c *Context, channelId string, message string) *model.CommandResponse {
+	if strings.Contains(message, "close") {
+		if conns != nil {
+			for _, c := range conns {
+				c.Close()
+			}
+			conns = nil
+		}
+		return &model.CommandResponse{Text: "Closed all test WebSocket connections.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	numConns, _ := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(message, "websocket")))
+
+	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/websocket"
+	header := http.Header{}
+	header.Set(model.HEADER_AUTH, "BEARER "+c.Session.Token)
+
+	start := 0
+	if conns == nil {
+		conns = make([]*websocket.Conn, numConns)
+	} else {
+		start = len(conns)
+		conns = append(conns, make([]*websocket.Conn, numConns)...)
+	}
+
+	var err error
+	for i := start; i < len(conns); i++ {
+		conns[i], _, err = websocket.DefaultDialer.Dial(url, header)
+		if err != nil {
+			l4g.Error(err.Error())
+		}
+	}
+
+	return &model.CommandResponse{Text: fmt.Sprintf("Created %d WebSocket connections.", numConns), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func parseRange(command string, cmd string) (utils.Range, bool) {

@@ -256,8 +256,26 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
+func (c *Client) GetProfiles(teamId string, offset int, limit int, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/profiles/%s/%d/%d", teamId, offset, limit), "", etag); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetProfile(userId string, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(fmt.Sprintf("/users/profile/%s", userId), "", etag); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) SearchProfiles(m map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/profiles/search", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -664,6 +682,15 @@ func (c *Client) UpdateLastViewedAt(channelId string) (*Result, *AppError) {
 
 func (c *Client) GetChannelExtraInfo(id string, memberLimit int, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/channels/"+id+"/extra_info/"+strconv.FormatInt(int64(memberLimit), 10), "", etag); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelExtraFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) SearchChannelExtraInfo(id string, m map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/channels/"+id+"/extra_info/search", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

@@ -140,6 +140,13 @@ export default class Sidebar extends React.Component {
         TeamStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
 
+        // move when React Router goes in
+        const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
+        preferences.forEach((p) => {
+            AsyncClient.getProfile(p.name);
+        });
+        AsyncClient.getProfiles(0, Constants.USER_CHUNK_SIZE);
+
         this.updateTitle();
         this.updateUnreadIndicators();
 
@@ -539,7 +546,7 @@ export default class Sidebar extends React.Component {
                     >
                         <FormattedMessage
                             id='sidebar.more'
-                            defaultMessage='More ({count})'
+                            defaultMessage='More ({count}+)'
                             values={{
                                 count: this.state.hiddenDirectChannelCount
                             }}

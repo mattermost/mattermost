@@ -208,14 +208,86 @@ export function getChannelExtraInfo(id, memberLimit) {
     }
 }
 
-export function getProfiles() {
+export function searchChannelExtraInfo(term, id) {
+    let channelId;
+    if (id) {
+        channelId = id;
+    } else {
+        channelId = ChannelStore.getCurrentId();
+    }
+
+    const searchData = {};
+    searchData.term = term;
+
+    if (channelId != null) {
+        if (isCallInProgress('searchChannelExtraInfo' + channelId)) {
+            return;
+        }
+
+        callTracker['searchChannelExtraInfo' + channelId] = utils.getTimestamp();
+
+        client.searchChannelExtraInfo(
+            channelId,
+            searchData,
+            (data, textStatus, xhr) => {
+                callTracker['searchChannelExtraInfo' + channelId] = 0;
+
+                if (xhr.status === 304 || !data) {
+                    return;
+                }
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO,
+                    extra_info: data
+                });
+            },
+            (err) => {
+                callTracker['searchChannelExtraInfo' + channelId] = 0;
+                dispatchError(err, 'searchChannelExtraInfo');
+            }
+        );
+    }
+}
+
+export function getProfile(id) {
+    if (isCallInProgress('getProfile' + id)) {
+        return;
+    }
+
+    callTracker['getProfile' + id] = utils.getTimestamp();
+    client.getProfile(id,
+        (data, textStatus, xhr) => {
+            callTracker['getProfile' + id] = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            const profiles = {};
+            profiles[data.id] = data;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES,
+                profiles
+            });
+        },
+        (err) => {
+            callTracker['getProfile' + id] = 0;
+            dispatchError(err, 'getProfile');
+        }
+    );
+}
+
+export function getProfiles(offset, limit) {
     if (isCallInProgress('getProfiles')) {
         return;
     }
 
     callTracker.getProfiles = utils.getTimestamp();
     client.getProfiles(
-        function getProfilesSuccess(data, textStatus, xhr) {
+        offset,
+        limit,
+        (data, textStatus, xhr) => {
             callTracker.getProfiles = 0;
 
             if (xhr.status === 304 || !data) {
@@ -227,9 +299,39 @@ export function getProfiles() {
                 profiles: data
             });
         },
-        function getProfilesFailure(err) {
+        (err) => {
             callTracker.getProfiles = 0;
             dispatchError(err, 'getProfiles');
+        }
+    );
+}
+
+export function searchProfiles(term) {
+    if (isCallInProgress('searchProfiles')) {
+        return;
+    }
+
+    const searchData = {};
+    searchData.term = term;
+
+    callTracker.searchProfiles = utils.getTimestamp();
+    client.searchProfiles(
+        searchData,
+        (data, textStatus, xhr) => {
+            callTracker.searchProfiles = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES,
+                profiles: data
+            });
+        },
+        (err) => {
+            callTracker.searchProfiles = 0;
+            dispatchError(err, 'searchProfiles');
         }
     );
 }
@@ -441,6 +543,13 @@ export function search(terms) {
                 type: ActionTypes.RECEIVED_SEARCH,
                 results: data
             });
+
+            if (data.profiles) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data.profiles
+                });
+            }
         },
         function searchFailure(err) {
             callTracker['search_' + String(terms)] = 0;
@@ -497,7 +606,12 @@ export function getPostsPage(id, maxPosts) {
                     post_list: data
                 });
 
-                getProfiles();
+                if (data.profiles) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_PROFILES,
+                        profiles: data.profiles
+                    });
+                }
             },
             (err) => {
                 dispatchError(err, 'getPostsPage');
@@ -554,7 +668,12 @@ export function getPosts(id) {
                 post_list: data
             });
 
-            getProfiles();
+            if (data.profiles) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data.profiles
+                });
+            }
         },
         (err) => {
             dispatchError(err, 'getPosts');
@@ -593,7 +712,12 @@ export function getPostsBefore(postId, offset, numPost) {
                 post_list: data
             });
 
-            getProfiles();
+            if (data.profiles) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data.profiles
+                });
+            }
         },
         (err) => {
             dispatchError(err, 'getPostsBefore');
@@ -632,7 +756,12 @@ export function getPostsAfter(postId, offset, numPost) {
                 post_list: data
             });
 
-            getProfiles();
+            if (data.profiles) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data.profiles
+                });
+            }
         },
         (err) => {
             dispatchError(err, 'getPostsAfter');

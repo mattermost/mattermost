@@ -20,29 +20,6 @@ class ChannelStoreClass extends EventEmitter {
 
         this.setMaxListeners(15);
 
-        this.emitChange = this.emitChange.bind(this);
-        this.addChangeListener = this.addChangeListener.bind(this);
-        this.removeChangeListener = this.removeChangeListener.bind(this);
-        this.emitMoreChange = this.emitMoreChange.bind(this);
-        this.addMoreChangeListener = this.addMoreChangeListener.bind(this);
-        this.removeMoreChangeListener = this.removeMoreChangeListener.bind(this);
-        this.emitExtraInfoChange = this.emitExtraInfoChange.bind(this);
-        this.addExtraInfoChangeListener = this.addExtraInfoChangeListener.bind(this);
-        this.removeExtraInfoChangeListener = this.removeExtraInfoChangeListener.bind(this);
-        this.emitLeave = this.emitLeave.bind(this);
-        this.addLeaveListener = this.addLeaveListener.bind(this);
-        this.removeLeaveListener = this.removeLeaveListener.bind(this);
-        this.findFirstBy = this.findFirstBy.bind(this);
-        this.get = this.get.bind(this);
-        this.getMember = this.getMember.bind(this);
-        this.getByName = this.getByName.bind(this);
-        this.setPostMode = this.setPostMode.bind(this);
-        this.getPostMode = this.getPostMode.bind(this);
-        this.setUnreadCount = this.setUnreadCount.bind(this);
-        this.setUnreadCounts = this.setUnreadCounts.bind(this);
-        this.getUnreadCount = this.getUnreadCount.bind(this);
-        this.getUnreadCounts = this.getUnreadCounts.bind(this);
-
         this.currentId = null;
         this.postMode = this.POST_MODE_CHANNEL;
         this.channels = [];
@@ -231,8 +208,29 @@ class ChannelStoreClass extends EventEmitter {
     getMoreChannels() {
         return this.moreChannels;
     }
-    storeExtraInfos(extraInfos) {
-        this.extraInfos = extraInfos;
+    storeExtraInfo(extraInfo) {
+        if (this.extraInfos == null) {
+            this.extraInfos = {};
+        }
+
+        if (this.extraInfos[extraInfo.id] == null) {
+            this.extraInfos[extraInfo.id] = extraInfo;
+            return;
+        }
+
+        if (this.extraInfos[extraInfo.id].members == null) {
+            this.extraInfos[extraInfo.id].members = {};
+        }
+
+        for (const id in extraInfo.members) {
+            if (!extraInfo.members.hasOwnProperty(id)) {
+                continue;
+            }
+
+            this.extraInfos[extraInfo.id].members[id] = extraInfo.members[id];
+        }
+
+        this.extraInfos[extraInfo.id].member_count = extraInfo.member_cound;
     }
     getExtraInfos() {
         return this.extraInfos;
@@ -334,9 +332,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO:
-        var extraInfos = ChannelStore.getExtraInfos();
-        extraInfos[action.extra_info.id] = action.extra_info;
-        ChannelStore.storeExtraInfos(extraInfos);
+        ChannelStore.storeExtraInfo(action.extra_info);
         ChannelStore.emitExtraInfoChange();
         break;
 

@@ -40,6 +40,14 @@ class AnalyticsStoreClass extends EventEmitter {
         return {};
     }
 
+    getTeamStat(id, statName) {
+        if (id in this.teamStats) {
+            return this.teamStats[id][statName];
+        }
+
+        return null;
+    }
+
     storeSystemStats(newStats) {
         for (const stat in newStats) {
             if (!newStats.hasOwnProperty(stat)) {

@@ -9,8 +9,9 @@ import (
 )
 
 type PostList struct {
-	Order []string         `json:"order"`
-	Posts map[string]*Post `json:"posts"`
+	Order    []string         `json:"order"`
+	Posts    map[string]*Post `json:"posts"`
+	Profiles UserMap          `json:"profiles"`
 }
 
 func (o *PostList) ToJson() string {

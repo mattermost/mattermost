@@ -93,12 +93,12 @@ func SlackParsePosts(data io.Reader) []SlackPost {
 	return posts
 }
 
-func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map[string]*model.User {
+func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) model.UserMap {
 	// Log header
 	log.WriteString(utils.T("api.slackimport.slack_add_users.created"))
 	log.WriteString("===============\r\n\r\n")
 
-	addedUsers := make(map[string]*model.User)
+	addedUsers := model.UserMap{}
 	for _, sUser := range slackusers {
 		firstName := ""
 		lastName := ""
@@ -131,7 +131,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 	return addedUsers
 }
 
-func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*model.User) {
+func SlackAddPosts(channel *model.Channel, posts []SlackPost, users model.UserMap) {
 	for _, sPost := range posts {
 		switch {
 		case sPost.Type == "message" && (sPost.SubType == "" || sPost.SubType == "file_share"):
@@ -174,7 +174,7 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 	}
 }
 
-func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, log *bytes.Buffer) map[string]*model.Channel {
+func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users model.UserMap, log *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
 	log.WriteString(utils.T("api.slackimport.slack_add_channels.added"))
 	log.WriteString("=================\r\n\r\n")

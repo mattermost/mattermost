@@ -1084,3 +1084,31 @@ func TestFuzzyChannel(t *testing.T) {
 		}
 	}
 }
+
+func TestSearchChannelExtraInfo(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	data := map[string]string{}
+	data["term"] = user.Nickname
+
+	if result, err := Client.SearchChannelExtraInfo(channel1.Id, data); err != nil {
+		t.Fatal(err.Error())
+	} else {
+		extraInfo := result.Data.(*model.ChannelExtra)
+		if len(extraInfo.Members) != 1 {
+			t.Fatal("invalid search results")
+		}
+	}
+}

@@ -82,7 +82,7 @@ class UserStoreClass extends EventEmitter {
 
     getCurrentUser() {
         if (this.getProfiles()[global.window.mm_user.id] == null) {
-            this.saveProfile(global.window.mm_user);
+            this.storeProfile(global.window.mm_user);
         }
 
         return global.window.mm_user;
@@ -93,7 +93,7 @@ class UserStoreClass extends EventEmitter {
 
         if (oldUser.id === user.id) {
             global.window.mm_user = user;
-            this.saveProfile(user);
+            this.storeProfile(user);
         } else {
             throw new Error('Problem with setCurrentUser old_user_id=' + oldUser.id + ' new_user_id=' + user.id);
         }
@@ -156,7 +156,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     getProfiles() {
-        if (this.profileCache !== null) {
+        if (this.profileCache != null) {
             return this.profileCache;
         }
 
@@ -191,21 +191,29 @@ class UserStoreClass extends EventEmitter {
         return profiles;
     }
 
-    saveProfile(profile) {
-        var ps = this.getProfiles();
+    storeProfile(profile) {
+        const ps = this.getProfiles();
         ps[profile.id] = profile;
         this.profileCache = ps;
         BrowserStore.setItem('profiles', ps);
     }
 
-    saveProfiles(profiles) {
+    storeProfiles(profiles) {
         const currentId = this.getCurrentId();
-        if (currentId in profiles) {
-            delete profiles[currentId];
+
+        if (this.profileCache == null) {
+            this.profileCache = {};
         }
 
-        this.profileCache = profiles;
-        BrowserStore.setItem('profiles', profiles);
+        for (const id in profiles) {
+            if (!profiles.hasOwnProperty(id) || id === currentId) {
+                continue;
+            }
+
+            this.profileCache[id] = profiles[id];
+        }
+
+        BrowserStore.setItem('profiles', this.profileCache);
     }
 
     setSessions(sessions) {
@@ -297,7 +305,7 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_PROFILES:
-        UserStore.saveProfiles(action.profiles);
+        UserStore.storeProfiles(action.profiles);
         UserStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ME:

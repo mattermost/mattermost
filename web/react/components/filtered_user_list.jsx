@@ -3,6 +3,9 @@
 
 import UserList from './user_list.jsx';
 
+import Constants from '../utils/constants.jsx';
+const KeyCodes = Constants.KeyCodes;
+
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
 const holders = defineMessages({
@@ -20,7 +23,8 @@ class FilteredUserList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleFilterChange = this.handleFilterChange.bind(this);
+        this.searchProfiles = this.searchProfiles.bind(this);
+        this.keyPress = this.keyPress.bind(this);
 
         this.state = {
             filter: ''
@@ -37,10 +41,22 @@ class FilteredUserList extends React.Component {
         }
     }
 
-    handleFilterChange(e) {
-        this.setState({
-            filter: e.target.value
-        });
+    searchProfiles() {
+        const filter = this.refs.filter.value;
+
+        if (!filter || filter.length === 0) {
+            this.setState({filter: ''});
+            return;
+        }
+
+        this.setState({filter});
+        this.props.search(filter);
+    }
+
+    keyPress(e) {
+        if (e.which === KeyCodes.ENTER) {
+            this.searchProfiles();
+        }
     }
 
     render() {
@@ -100,10 +116,21 @@ class FilteredUserList extends React.Component {
                             ref='filter'
                             className='form-control filter-textbox'
                             placeholder={formatMessage(holders.search)}
-                            onInput={this.handleFilterChange}
+                            onKeyPress={this.keyPress}
                         />
                     </div>
-                    <div className='col-sm-6'>
+                    <div className='col-sm-2'>
+                        <button
+                            className='form-control btn btn-primary'
+                            onClick={this.searchProfiles}
+                        >
+                            <FormattedMessage
+                                id='filtered_user_list.searchProfiles'
+                                defaultMessage='Search'
+                            />
+                        </button>
+                    </div>
+                    <div className='col-sm-4'>
                         <span className='member-count'>{count}</span>
                     </div>
                 </div>
@@ -130,7 +157,8 @@ FilteredUserList.propTypes = {
     intl: intlShape.isRequired,
     users: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    style: React.PropTypes.object
+    style: React.PropTypes.object,
+    search: React.PropTypes.bool.isRequired
 };
 
 export default injectIntl(FilteredUserList);

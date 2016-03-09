@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
+	"crypto/md5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -55,6 +57,8 @@ type User struct {
 	FailedAttempts     int       `json:"failed_attempts,omitempty"`
 	Locale             string    `json:"locale"`
 }
+
+type UserMap map[string]*User
 
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
@@ -374,26 +378,6 @@ func UserFromJson(data io.Reader) *User {
 	}
 }
 
-func UserMapToJson(u map[string]*User) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
-}
-
-func UserMapFromJson(data io.Reader) map[string]*User {
-	decoder := json.NewDecoder(data)
-	var users map[string]*User
-	err := decoder.Decode(&users)
-	if err == nil {
-		return users
-	} else {
-		return nil
-	}
-}
-
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
 func HashPassword(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -465,4 +449,49 @@ func CleanUsername(s string) string {
 	}
 
 	return s
+}
+
+func (um *UserMap) ToJson() string {
+	b, err := json.Marshal(um)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func UserMapFromJson(data io.Reader) UserMap {
+	decoder := json.NewDecoder(data)
+	var users UserMap
+	err := decoder.Decode(&users)
+	if err == nil {
+		return users
+	} else {
+		return nil
+	}
+}
+
+func (um *UserMap) ClearNonProfileFields(sanitizeOptions map[string]bool) {
+	for _, p := range *um {
+		p.Sanitize(sanitizeOptions)
+		p.ClearNonProfileFields()
+	}
+}
+
+func (um *UserMap) Etag() string {
+	var latestUpdateAt int64 = 0
+	ids := []string{}
+
+	for _, p := range *um {
+		if p.UpdateAt > latestUpdateAt {
+			latestUpdateAt = p.UpdateAt
+		}
+		ids = append(ids, p.Id)
+	}
+
+	sort.Strings(ids)
+
+	md5Ids := fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(ids, ""))))
+
+	return fmt.Sprintf("%v.%v.%v", CurrentVersion, latestUpdateAt, md5Ids)
 }

@@ -17,6 +17,10 @@ export function emitChannelClickEvent(channel) {
     AsyncClient.updateLastViewedAt(channel.id);
     AsyncClient.getPosts(channel.id);
 
+    if (channel.type === Constants.DM_CHANNEL) {
+        AsyncClient.getProfile(Utils.getDirectTeammateId(channel.name));
+    }
+
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
         name: channel.name,

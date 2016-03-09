@@ -611,7 +611,7 @@ func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChann
 	go func() {
 		result := StoreResult{}
 
-		var members []model.ExtraMember
+		var members []*model.ExtraMember
 		var err error
 
 		if limit != -1 {
@@ -650,10 +650,56 @@ func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChann
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetExtraMembers", "store.sql_channel.get_extra_members.app_error", nil, "channel_id="+channelId+", "+err.Error())
 		} else {
+			memberMap := map[string]*model.ExtraMember{}
 			for i := range members {
 				members[i].Sanitize(utils.Cfg.GetSanitizeOptions())
+				memberMap[members[i].Id] = members[i]
 			}
-			result.Data = members
+			result.Data = memberMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) SearchExtraMembers(channelId, term string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var members []*model.ExtraMember
+		var err error
+
+		_, err = s.GetReplica().Select(&members, `
+			SELECT
+				Id,
+				Nickname,
+				Email,
+				ChannelMembers.Roles,
+				Username
+			FROM
+				ChannelMembers,
+				Users
+			WHERE
+				ChannelMembers.UserId = Users.Id
+				AND Users.DeleteAt = 0
+				AND ChannelId = :ChannelId
+				AND (Users.Username LIKE :Term
+					OR Users.Nickname LIKE :Term)`, map[string]interface{}{"ChannelId": channelId, "Term": "%" + term + "%"})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.SearchExtraMembers", "store.sql_channel.search_extra_members.app_error", nil, "channel_id="+channelId+", "+err.Error())
+		} else {
+			memberMap := map[string]*model.ExtraMember{}
+			for i := range members {
+				members[i].Sanitize(utils.Cfg.GetSanitizeOptions())
+				memberMap[members[i].Id] = members[i]
+			}
+			result.Data = memberMap
 		}
 
 		storeChannel <- result

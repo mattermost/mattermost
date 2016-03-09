@@ -80,6 +80,7 @@ type ChannelStore interface {
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	GetExtraMembers(channelId string, limit int) StoreChannel
+	SearchExtraMembers(channelId, term string) StoreChannel
 	CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel
 	CheckOpenChannelPermissions(teamId string, channelId string) StoreChannel
 	CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel
@@ -117,12 +118,14 @@ type UserStore interface {
 	UpdatePassword(userId, newPassword string) StoreChannel
 	UpdateAuthData(userId, service, authData, email string) StoreChannel
 	Get(id string) StoreChannel
-	GetProfiles(teamId string) StoreChannel
+	GetProfiles(teamId string, limit, offset int) StoreChannel
+	GetProfilesFromList(userIds []string) StoreChannel
 	GetByEmail(teamId string, email string) StoreChannel
 	GetByAuth(teamId string, authData string, authService string) StoreChannel
 	GetByUsername(teamId string, username string) StoreChannel
+	SearchProfiles(teamId, term string) StoreChannel
 	VerifyEmail(userId string) StoreChannel
-	GetEtagForProfiles(teamId string) StoreChannel
+	GetEtagForProfiles(teamId string, limit, offset int) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetForExport(teamId string) StoreChannel
 	GetTotalUsersCount() StoreChannel
@@ -130,6 +133,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() StoreChannel
 	PermanentDelete(userId string) StoreChannel
 	AnalyticsUniqueUserCount(teamId string) StoreChannel
+	GetRoleCount(teamId, role string) StoreChannel
 }
 
 type SessionStore interface {

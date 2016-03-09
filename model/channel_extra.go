@@ -4,8 +4,13 @@
 package model
 
 import (
+	"crypto/md5"
 	"encoding/json"
+	"fmt"
 	"io"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 type ExtraMember struct {
@@ -23,9 +28,9 @@ func (o *ExtraMember) Sanitize(options map[string]bool) {
 }
 
 type ChannelExtra struct {
-	Id          string        `json:"id"`
-	Members     []ExtraMember `json:"members"`
-	MemberCount int64         `json:"member_count"`
+	Id          string                  `json:"id"`
+	Members     map[string]*ExtraMember `json:"members"`
+	MemberCount int64                   `json:"member_count"`
 }
 
 func (o *ChannelExtra) ToJson() string {
@@ -46,4 +51,18 @@ func ChannelExtraFromJson(data io.Reader) *ChannelExtra {
 	} else {
 		return nil
 	}
+}
+
+func (ce *ChannelExtra) Etag() string {
+	ids := []string{}
+
+	for _, m := range ce.Members {
+		ids = append(ids, m.Id)
+	}
+
+	sort.Strings(ids)
+
+	md5Ids := fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(ids, ""))))
+
+	return fmt.Sprintf("%v.%v.%v.%v", CurrentVersion, ce.Id, strconv.FormatInt(ce.MemberCount, 10), md5Ids)
 }
