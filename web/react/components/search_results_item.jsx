@@ -123,6 +123,7 @@ export default class SearchResultsItem extends React.Component {
                             </ul>
                             <div className='search-item-snippet'>
                                 <span
+                                    onClick={TextFormatting.handleClick}
                                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
                                 />
                             </div>
