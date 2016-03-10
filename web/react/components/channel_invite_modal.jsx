@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import MemberList from './member_list.jsx';
+import FilteredUserList from './filtered_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
 import UserStore from '../stores/user_store.jsx';
@@ -10,6 +10,8 @@ import ChannelStore from '../stores/channel_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
+
+import {FormattedMessage} from 'mm-intl';
 
 const Modal = ReactBootstrap.Modal;
 
@@ -20,8 +22,12 @@ export default class ChannelInviteModal extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleInvite = this.handleInvite.bind(this);
 
+        this.createInviteButton = this.createInviteButton.bind(this);
+
         // the state gets populated when the modal is shown
-        this.state = {};
+        this.state = {
+            loading: true
+        };
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!this.props.show && !nextProps.show) {
@@ -75,19 +81,6 @@ export default class ChannelInviteModal extends React.Component {
             loading: false
         };
     }
-    onShow() {
-        if ($(window).width() > 768) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
-        } else {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
-        }
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
-    }
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
@@ -106,9 +99,10 @@ export default class ChannelInviteModal extends React.Component {
             this.setState(newState);
         }
     }
-    handleInvite(userId) {
-        var data = {};
-        data.user_id = userId;
+    handleInvite(user) {
+        const data = {
+            user_id: user.id
+        };
 
         Client.addChannelMember(
             this.props.channel.id,
@@ -122,27 +116,40 @@ export default class ChannelInviteModal extends React.Component {
             }
         );
     }
+    createInviteButton({user}) {
+        return (
+            <a
+                onClick={this.handleInvite.bind(this, user)}
+                className='btn btn-sm btn-primary'
+            >
+                <i className='glyphicon glyphicon-envelope'/>
+                <FormattedMessage
+                    id='channel_invite.add'
+                    defaultMessage=' Add'
+                />
+            </a>
+        );
+    }
     render() {
         var inviteError = null;
         if (this.state.inviteError) {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
         }
 
-        var currentMember = ChannelStore.getCurrentMember();
-        var isAdmin = false;
-        if (currentMember) {
-            isAdmin = Utils.isAdmin(currentMember.roles) || Utils.isAdmin(UserStore.getCurrentUser().roles);
-        }
-
         var content;
         if (this.state.loading) {
-            content = (<LoadingScreen />);
+            content = (<LoadingScreen/>);
         } else {
+            let maxHeight = 1000;
+            if (Utils.windowHeight() <= 1200) {
+                maxHeight = Utils.windowHeight() - 300;
+            }
+
             content = (
-                <MemberList
-                    memberList={this.state.nonmembers}
-                    isAdmin={isAdmin}
-                    handleInvite={this.handleInvite}
+                <FilteredUserList
+                    style={{maxHeight}}
+                    users={this.state.nonmembers}
+                    actions={[this.createInviteButton]}
                 />
             );
         }
@@ -154,11 +161,15 @@ export default class ChannelInviteModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Add New Members to '}<span className='name'>{this.props.channel.display_name}</span></Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage
+                            id='channel_invite.addNewMembers'
+                            defaultMessage='Add New Members to '
+                        />
+                        <span className='name'>{this.props.channel.display_name}</span>
+                    </Modal.Title>
                 </Modal.Header>
-                <Modal.Body
-                    ref='modalBody'
-                >
+                <Modal.Body>
                     {inviteError}
                     {content}
                 </Modal.Body>
@@ -168,7 +179,10 @@ export default class ChannelInviteModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onHide}
                     >
-                        {'Close'}
+                        <FormattedMessage
+                            id='channel_invite.close'
+                            defaultMessage='Close'
+                        />
                     </button>
                 </Modal.Footer>
             </Modal>

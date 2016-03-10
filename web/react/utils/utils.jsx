@@ -14,10 +14,12 @@ import * as AsyncClient from './async_client.jsx';
 import * as client from './client.jsx';
 import Autolinker from 'autolinker';
 
+import {FormattedTime} from 'mm-intl';
+
 export function isEmail(email) {
     // writing a regex to match all valid email addresses is really, really hard (see http://stackoverflow.com/a/201378)
     // so we just do a simple check and rely on a verification email to tell if it's a real address
-    return email.indexOf('@') !== -1;
+    return (/^.+@.+$/).test(email);
 }
 
 export function cleanUpUrlable(input) {
@@ -140,28 +142,37 @@ export function getCookie(name) {
     if (parts.length === 2) {
         return parts.pop().split(';').shift();
     }
+    return '';
 }
 
-export function notifyMe(title, body, channel) {
-    if ('Notification' in window && Notification.permission !== 'denied') {
-        Notification.requestPermission(function onRequestPermission(permission) {
-            if (Notification.permission !== permission) {
-                Notification.permission = permission;
-            }
+var requestedNotificationPermission = false;
 
+export function notifyMe(title, body, channel) {
+    if (!('Notification' in window)) {
+        return;
+    }
+
+    if (Notification.permission === 'granted' || (Notification.permission === 'default' && !requestedNotificationPermission)) {
+        requestedNotificationPermission = true;
+
+        Notification.requestPermission((permission) => {
             if (permission === 'granted') {
-                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
-                notification.onclick = function onClick() {
-                    window.focus();
-                    if (channel) {
-                        switchChannel(channel);
-                    } else {
-                        window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
-                    }
-                };
-                setTimeout(function closeNotificationOnTimeout() {
-                    notification.close();
-                }, 5000);
+                try {
+                    var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
+                    notification.onclick = () => {
+                        window.focus();
+                        if (channel) {
+                            switchChannel(channel);
+                        } else {
+                            window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+                        }
+                    };
+                    setTimeout(() => {
+                        notification.close();
+                    }, 5000);
+                } catch (e) {
+                    console.error(e); //eslint-disable-line no-console
+                }
             }
         });
     }
@@ -174,7 +185,10 @@ export function ding() {
         var audio = new Audio('/static/images/bing.mp3');
         audio.play();
         canDing = false;
-        setTimeout(() => canDing = true, 3000);
+        setTimeout(() => {
+            canDing = true;
+            return;
+        }, 3000);
     }
 }
 
@@ -237,6 +251,23 @@ export function displayTime(ticks, utc) {
     return hours + ':' + minutes + ampm + timezone;
 }
 
+export function displayTimeFormatted(ticks) {
+    const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
+
+    return (
+        <FormattedTime
+            value={ticks}
+            hour='numeric'
+            minute='numeric'
+            hour12={!useMilitaryTime}
+        />
+    );
+}
+
+export function isMilitaryTime() {
+    return PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
+}
+
 export function displayDateTime(ticks) {
     var seconds = Math.floor((Date.now() - ticks) / 1000);
 
@@ -278,41 +309,17 @@ export function getTimestamp() {
 // extracts links not styled by Markdown
 export function extractLinks(text) {
     const links = [];
-    let replaceText = text;
+    let inText = text;
 
-    // pull out the Markdown code blocks
-    const codeBlocks = [];
-    const splitText = replaceText.split('`'); // also handles ```
-    for (let i = 1; i < splitText.length; i += 2) {
-        if (splitText[i].trim() !== '') {
-            codeBlocks.push(splitText[i]);
-        }
-    }
+    // strip out code blocks
+    inText = inText.replace(/`[^`]*`/g, '');
+
+    // strip out inline markdown images
+    inText = inText.replace(/!\[[^\]]*\]\([^\)]*\)/g, '');
 
     function replaceFn(autolinker, match) {
         let link = '';
         const matchText = match.getMatchedText();
-        const tempText = replaceText;
-
-        const start = replaceText.indexOf(matchText);
-        const end = start + matchText.length;
-
-        replaceText = replaceText.substring(0, start) + replaceText.substring(end);
-
-        // if it's a Markdown link, just skip it
-        if (start > 1) {
-            if (tempText.charAt(start - 2) === ']' && tempText.charAt(start - 1) === '(' && tempText.charAt(end) === ')') {
-                return;
-            }
-        }
-
-        // if it's in a Markdown code block, skip it
-        for (const i in codeBlocks) {
-            if (codeBlocks[i].indexOf(matchText) === 0) {
-                codeBlocks[i] = codeBlocks[i].replace(matchText, '');
-                return;
-            }
-        }
 
         if (matchText.trim().indexOf('http') === 0) {
             link = matchText;
@@ -323,16 +330,19 @@ export function extractLinks(text) {
         links.push(link);
     }
 
-    Autolinker.link(text, {
-        replaceFn,
-        urls: {schemeMatches: true, wwwMatches: true, tldMatches: false},
-        emails: false,
-        twitter: false,
-        phone: false,
-        hashtag: false
-    });
+    Autolinker.link(
+        inText,
+        {
+            replaceFn,
+            urls: {schemeMatches: true, wwwMatches: true, tldMatches: false},
+            emails: false,
+            twitter: false,
+            phone: false,
+            hashtag: false
+        }
+    );
 
-    return {links, text};
+    return links;
 }
 
 export function escapeRegExp(string) {
@@ -367,6 +377,10 @@ export function areObjectsEqual(x, y) {
        (x instanceof String && y instanceof String) ||
        (x instanceof Number && y instanceof Number)) {
         return x.toString() === y.toString();
+    }
+
+    if (x instanceof Map && y instanceof Map) {
+        return areMapsEqual(x, y);
     }
 
     // At last checking prototypes as good a we can
@@ -433,6 +447,24 @@ export function areObjectsEqual(x, y) {
     return true;
 }
 
+export function areMapsEqual(a, b) {
+    if (a.size !== b.size) {
+        return false;
+    }
+
+    for (const [key, value] of a) {
+        if (!b.has(key)) {
+            return false;
+        }
+
+        if (!areObjectsEqual(value, b.get(key))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export function replaceHtmlEntities(text) {
     var tagsToReplace = {
         '&amp;': '&',
@@ -467,7 +499,7 @@ export function insertHtmlEntities(text) {
 
 export function searchForTerm(term) {
     AppDispatcher.handleServerAction({
-        type: ActionTypes.RECIEVED_SEARCH_TERM,
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
         term: term,
         do_search: true
     });
@@ -574,16 +606,17 @@ export function toTitleCase(str) {
 
 export function applyTheme(theme) {
     if (theme.sidebarBg) {
-        changeCss('.sidebar--left, .settings-modal .settings-table .settings-links, .sidebar--menu', 'background:' + theme.sidebarBg, 1);
+        changeCss('.sidebar--left, .modal .settings-modal .settings-table .settings-links, .sidebar--menu', 'background:' + theme.sidebarBg, 1);
+        changeCss('body', 'scrollbar-face-color:' + theme.sidebarBg, 3);
     }
 
     if (theme.sidebarText) {
-        changeCss('.sidebar--left .nav-pills__container li>a, .sidebar--right, .settings-modal .nav-pills>li a, .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
-        changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
+        changeCss('.sidebar--left .nav-pills__container li>a, .sidebar--right, .modal .settings-modal .nav-pills>li a, .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
+        changeCss('@media(max-width: 768px){.modal .settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
         changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText, 1);
         changeCss('.sidebar--left .status .offline--icon, .sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText, 1);
-        changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 2);
+        changeCss('@media(max-width: 768px){.modal .settings-modal .settings-table .nav>li>a', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 2);
     }
 
     if (theme.sidebarUnreadText) {
@@ -591,16 +624,16 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarTextHoverBg) {
-        changeCss('.sidebar--left .nav-pills__container li>a:hover, .sidebar--left .nav-pills__container li>a:focus, .settings-modal .nav-pills>li:hover a, .settings-modal .nav-pills>li:focus a', 'background:' + theme.sidebarTextHoverBg, 1);
-        changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li:hover a', 'background:' + theme.sidebarTextHoverBg, 1);
+        changeCss('.sidebar--left .nav-pills__container li>a:hover, .sidebar--left .nav-pills__container li>a:focus, .modal .settings-modal .nav-pills>li:hover a, .modal .settings-modal .nav-pills>li:focus a', 'background:' + theme.sidebarTextHoverBg, 1);
+        changeCss('@media(max-width: 768px){.modal .settings-modal .settings-table .nav>li:hover a', 'background:' + theme.sidebarTextHoverBg, 1);
     }
 
     if (theme.sidebarTextActiveBorder) {
-        changeCss('.sidebar--left .nav li.active a:before, .settings-modal .nav-pills>li.active a:before', 'background:' + theme.sidebarTextActiveBorder, 1);
+        changeCss('.sidebar--left .nav li.active a:before, .modal .settings-modal .nav-pills>li.active a:before', 'background:' + theme.sidebarTextActiveBorder, 1);
     }
 
     if (theme.sidebarTextActiveColor) {
-        changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .settings-modal .nav-pills>li.active a, .settings-modal .nav-pills>li.active a:hover, .settings-modal .nav-pills>li.active a:active', 'color:' + theme.sidebarTextActiveColor, 2);
+        changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .modal .settings-modal .nav-pills>li.active a, .modal .settings-modal .nav-pills>li.active a:hover, .modal .settings-modal .nav-pills>li.active a:active', 'color:' + theme.sidebarTextActiveColor, 2);
         changeCss('.sidebar--left .nav li.active a, .sidebar--left .nav li.active a:hover, .sidebar--left .nav li.active a:focus', 'background:' + changeOpacity(theme.sidebarTextActiveColor, 0.1), 1);
     }
 
@@ -633,12 +666,12 @@ export function applyTheme(theme) {
 
     if (theme.mentionBj) {
         changeCss('.sidebar--left .nav-pills__unread-indicator', 'background:' + theme.mentionBj, 1);
-        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj, 1);
+        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj + '!important;', 1);
     }
 
     if (theme.mentionColor) {
         changeCss('.sidebar--left .nav-pills__unread-indicator', 'color:' + theme.mentionColor, 2);
-        changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor, 2);
+        changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor + '!important;', 2);
     }
 
     if (theme.centerChannelBg) {
@@ -654,9 +687,12 @@ export function applyTheme(theme) {
         changeCss('.popover.top>.arrow:after, .tip-overlay.tip-overlay--chat .arrow', 'border-top-color:' + theme.centerChannelBg, 1);
         changeCss('@media(min-width: 768px){.search-bar__container .search__form .search-bar, .form-control', 'background:' + theme.centerChannelBg, 1);
         changeCss('.attachment__content', 'background:' + theme.centerChannelBg, 1);
+        changeCss('body', 'scrollbar-face-color:' + theme.centerChannelBg, 2);
+        changeCss('body', 'scrollbar-track-color:' + theme.centerChannelBg, 2);
     }
 
     if (theme.centerChannelColor) {
+        changeCss('.post-list__arrows', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.sidebar--left, .sidebar--right .sidebar--right__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .command-name, .modal .modal-content, .dropdown-menu, .popover, .mentions-name, .tip-overlay', 'color:' + theme.centerChannelColor, 1);
         changeCss('#archive-link-home', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
@@ -672,7 +708,7 @@ export function applyTheme(theme) {
         changeCss('.markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.channel-header__info>div.dropdown .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
         changeCss('.channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
-        changeCss('.custom-textarea, .custom-textarea:focus, .preview-container .preview-div, .post-image__column .post-image__details, .sidebar--right .sidebar-right__body, .markdown__table th, .markdown__table td, .suggestion-content, .modal .modal-content, .settings-modal .settings-table .settings-content .divider-light, .webhooks__container, .dropdown-menu, .modal .modal-header, .popover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.custom-textarea, .custom-textarea:focus, .preview-container .preview-div, .post-image__column .post-image__details, .sidebar--right .sidebar-right__body, .markdown__table th, .markdown__table td, .suggestion-content, .modal .modal-content, .modal .settings-modal .settings-table .settings-content .divider-light, .webhooks__container, .dropdown-menu, .modal .modal-header, .popover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.search-help-popover .search-autocomplete__divider span', 'color:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
         changeCss('.popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
@@ -693,18 +729,20 @@ export function applyTheme(theme) {
         changeCss('.date-separator .separator__hr, .modal-footer, .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.search-item-container, .post-right__container .post.post--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
         changeCss('.modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
-        changeCss('.channel-intro, .settings-modal .settings-table .settings-content .divider-dark, hr, .settings-modal .settings-table .settings-links', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.channel-intro, .modal .settings-modal .settings-table .settings-content .divider-dark, hr, .modal .settings-modal .settings-table .settings-links, .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.post.current--user .post__body, .post.post--comment.other--root.current--user .post-comment, pre, .post-right__container .post.post--root', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.post.current--user .post__body, .post.post--comment.other--root.current--user .post-comment, .post.same--root.post--comment .post__body, .modal .more-table tbody>tr td, .member-div:first-child, .member-div, .access-history__table .access__report, .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 2);
         changeCss('@media(max-width: 1800px){.inner__wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
-        changeCss('.post:hover, .modal .more-table tbody>tr:hover td, .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.post:hover, .modal .more-table tbody>tr:hover td, .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.date-separator.hovered--before:after, .date-separator.hovered--after:before, .new-separator.hovered--after:before, .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.command-name:hover, .mentions-name:hover, .suggestion--selected, .dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover, .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
-        changeCss('code', 'background:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
+        changeCss('code, .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
         changeCss('@media(min-width: 960px){.post.current--user:hover .post__body ', 'background: none;', 1);
         changeCss('.sidebar--right', 'color:' + theme.centerChannelColor, 2);
-        changeCss('.search-help-popover .search-autocomplete__item:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
+        changeCss('.search-help-popover .search-autocomplete__item:hover, .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__body', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.search-help-popover .search-autocomplete__item.selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
+        changeCss('::-webkit-scrollbar-thumb', 'background:' + changeOpacity(theme.centerChannelColor, 0.4), 1);
+        changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor, 4);
     }
 
     if (theme.newMessageSeparator) {
@@ -1049,9 +1087,9 @@ export function displayUsername(userId) {
 
     let username = '';
     if (user) {
-        if (nameFormat === 'nickname_full_name') {
+        if (nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME) {
             username = user.nickname || getFullName(user);
-        } else if (nameFormat === 'full_name') {
+        } else if (nameFormat === Constants.Preferences.DISPLAY_PREFER_FULL_NAME) {
             username = getFullName(user);
         }
         if (!username.trim().length) {
@@ -1350,8 +1388,20 @@ export function languages() {
             },
             {
                 value: 'es',
-                name: 'Español'
+                name: 'Español (Beta)'
+            },
+            {
+                value: 'pt',
+                name: 'Portugues (Beta)'
             }
         ]
     );
+}
+
+export function isPostEphemeral(post) {
+    return post.type === Constants.POST_TYPE_EPHEMERAL || post.state === Constants.POST_DELETED;
+}
+
+export function getRootId(post) {
+    return post.root_id === '' ? post.id : post.root_id;
 }

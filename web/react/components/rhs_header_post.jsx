@@ -21,28 +21,28 @@ export default class RhsHeaderPost extends React.Component {
         e.preventDefault();
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_SEARCH,
+            type: ActionTypes.RECEIVED_SEARCH,
             results: null
         });
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_POST_SELECTED,
-            results: null
+            type: ActionTypes.RECEIVED_POST_SELECTED,
+            postId: null
         });
     }
     handleBack(e) {
         e.preventDefault();
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_SEARCH_TERM,
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
             term: this.props.fromSearch,
             do_search: true,
             is_mention_search: this.props.isMentionSearch
         });
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_POST_SELECTED,
-            results: null
+            type: ActionTypes.RECEIVED_POST_SELECTED,
+            postId: null
         });
     }
     render() {

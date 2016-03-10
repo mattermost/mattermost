@@ -150,7 +150,7 @@ class TeamSignupWelcomePage extends React.Component {
                         id='team_signup_welcome.confirm'
                         defaultMessage='Please confirm your email address:'
                     />
-                    <br />
+                    <br/>
                     <div className='inner__content'>
                         <div className='block--gray'>{this.props.state.team.email}</div>
                     </div>
@@ -176,7 +176,7 @@ class TeamSignupWelcomePage extends React.Component {
                     </button>
                     {storageError}
                 </div>
-                <hr />
+                <hr/>
                 <div className={emailDivContainerClass}>
                     <div className={emailDivClass}>
                         <div className='row'>

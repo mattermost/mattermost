@@ -96,7 +96,7 @@ export default class Sidebar extends React.Component {
             let directChannel = channels.find(Utils.isDirectChannelForUser.bind(null, teammateId));
 
             // a direct channel doesn't exist yet so create a fake one
-            if (!directChannel) {
+            if (directChannel == null) {
                 directChannel = {
                     name: Utils.getDirectChannelName(currentUserId, teammateId),
                     last_post_at: 0,
@@ -104,6 +104,8 @@ export default class Sidebar extends React.Component {
                     type: Constants.DM_CHANNEL,
                     fake: true
                 };
+            } else {
+                directChannel = JSON.parse(JSON.stringify(directChannel));
             }
 
             directChannel.display_name = Utils.displayUsername(teammateId);

@@ -115,7 +115,7 @@ class TeamSignupUsernamePage extends React.Component {
                                         className='form-control'
                                         placeholder=''
                                         defaultValue={this.props.state.user.username}
-                                        maxLength='128'
+                                        maxLength={Constants.MAX_USERNAME_LENGTH}
                                         spellCheck='false'
                                     />
                                     {nameHelpText}

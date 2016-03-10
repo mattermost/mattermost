@@ -134,7 +134,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             );
         } else if (usedLanguage === 'tex' || usedLanguage === 'latex') {
             try {
-                const html = katex.renderToString(TextFormatting.sanitizeHtml(code), {throwOnError: false, displayMode: true});
+                const html = katex.renderToString(code, {throwOnError: false, displayMode: true});
 
                 return '<div class="post-body--code tex">' + html + '</div>';
             } catch (e) {
@@ -149,6 +149,10 @@ class MattermostMarkdownRenderer extends marked.Renderer {
                 '</code>' +
             '</pre>'
         );
+    }
+
+    codespan(text) {
+        return '<span class="codespan__pre-wrap">' + super.codespan(text) + '</span>';
     }
 
     br() {
@@ -189,6 +193,16 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             outHref = outHref.substring(1, outHref.length - 1);
         }
 
+        try {
+            const unescaped = decodeURIComponent(unescape(href)).replace(/[^\w:]/g, '').toLowerCase();
+
+            if (unescaped.indexOf('javascript:') === 0 || unescaped.indexOf('vbscript:') === 0) { // eslint-disable-line no-script-url
+                return '';
+            }
+        } catch (e) {
+            return '';
+        }
+
         if (!(/[a-z+.-]+:/i).test(outHref)) {
             outHref = `http://${outHref}`;
         }
@@ -218,7 +232,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     table(header, body) {
-        return `<table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table>`;
+        return `<div class="table-responsive"><table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
     }
 
     listitem(text) {
@@ -544,3 +558,18 @@ export function format(text, options) {
     return new MattermostParser(markdownOptions).parse(tokens);
 }
 
+// Marked helper functions that should probably just be exported
+
+function unescape(html) {
+    return html.replace(/&([#\w]+);/g, (_, m) => {
+        const n = m.toLowerCase();
+        if (n === 'colon') {
+            return ':';
+        } else if (n.charAt(0) === '#') {
+            return n.charAt(1) === 'x' ?
+                String.fromCharCode(parseInt(n.substring(2), 16)) :
+                String.fromCharCode(+n.substring(1));
+        }
+        return '';
+    });
+}

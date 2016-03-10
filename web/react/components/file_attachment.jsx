@@ -5,17 +5,24 @@ import * as utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class FileAttachment extends React.Component {
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    download: {
+        id: 'file_attachment.download',
+        defaultMessage: 'Download'
+    }
+});
+
+class FileAttachment extends React.Component {
     constructor(props) {
         super(props);
 
         this.loadFiles = this.loadFiles.bind(this);
-        this.playGif = this.playGif.bind(this);
-        this.stopGif = this.stopGif.bind(this);
         this.addBackgroundImage = this.addBackgroundImage.bind(this);
 
         this.canSetState = false;
-        this.state = {fileSize: -1, mime: '', playing: false, loading: false, format: ''};
+        this.state = {fileSize: -1};
     }
     componentDidMount() {
         this.loadFiles();
@@ -86,42 +93,6 @@ export default class FileAttachment extends React.Component {
 
         return true;
     }
-    playGif(e, filename) {
-        var img = new Image();
-        var fileUrl = utils.getFileUrl(filename);
-
-        this.setState({loading: true});
-        img.load(fileUrl);
-        img.onload = () => {
-            var state = {playing: true, loading: false};
-
-            switch (true) {
-            case img.width > img.height:
-                state.format = 'landscape';
-                break;
-            case img.height > img.width:
-                state.format = 'portrait';
-                break;
-            default:
-                state.format = 'quadrat';
-                break;
-            }
-
-            this.setState(state);
-
-            // keep displaying background image for a short moment while browser is
-            // loading gif, to prevent white background flashing through
-            setTimeout(() => this.removeBackgroundImage.bind(this)(filename), 100);
-        };
-        img.onError = () => this.setState({loading: false});
-
-        e.stopPropagation();
-    }
-    stopGif(e, filename) {
-        this.setState({playing: false});
-        this.addBackgroundImage(filename);
-        e.stopPropagation();
-    }
     getFileInfoFromName(name) {
         var fileInfo = utils.splitFileLocation(name);
 
@@ -155,74 +126,18 @@ export default class FileAttachment extends React.Component {
         var filename = this.props.filename;
 
         var fileInfo = utils.splitFileLocation(filename);
-        var fileUrl = utils.getFileUrl(filename);
+        var fileUrl = utils.getFileUrl(filename, true);
         var type = utils.getFileType(fileInfo.ext);
-
-        var playbackControls = '';
-        var loadedFile = '';
-        var loadingIndicator = '';
-        if (this.state.mime === 'image/gif') {
-            playbackControls = (
-                <div
-                    className='file-playback-controls play'
-                    onClick={(e) => this.playGif(e, filename)}
-                >
-                    {"►"}
-                </div>
-            );
-        }
-        if (this.state.playing) {
-            loadedFile = (
-                <img
-                    className={'file__loaded ' + this.state.format}
-                    src={fileUrl}
-                />
-            );
-            playbackControls = (
-                <div
-                    className='file-playback-controls stop'
-                    onClick={(e) => this.stopGif(e, filename)}
-                >
-                    {"■"}
-                </div>
-            );
-        }
-        if (this.state.loading) {
-            loadingIndicator = (
-                <img
-                    className='spinner file__loading'
-                    src='/static/images/load.gif'
-                />
-            );
-            playbackControls = '';
-        }
 
         var thumbnail;
         if (type === 'image') {
-            if (this.state.playing) {
-                thumbnail = (
-                    <div
-                        ref={filename}
-                        className='post__load'
-                        style={{backgroundImage: 'url(/static/images/load.gif)'}}
-                    >
-                        {playbackControls}
-                        {loadedFile}
-                    </div>
-                );
-            } else {
-                thumbnail = (
-                    <div
-                        ref={filename}
-                        className='post__load'
-                        style={{backgroundImage: 'url(/static/images/load.gif)'}}
-                    >
-                        {loadingIndicator}
-                        {playbackControls}
-                        {loadedFile}
-                    </div>
-                );
-            }
+            thumbnail = (
+                <div
+                    ref={filename}
+                    className='post__load'
+                    style={{backgroundImage: 'url(/static/images/load.gif)'}}
+                />
+            );
         } else {
             thumbnail = <div className={'file-icon ' + utils.getIconClassName(type)}/>;
         }
@@ -233,10 +148,12 @@ export default class FileAttachment extends React.Component {
                 filename,
                 function success(data) {
                     if (this.canSetState) {
-                        this.setState({fileSize: parseInt(data.size, 10), mime: data.mime});
+                        this.setState({fileSize: parseInt(data.size, 10)});
                     }
                 }.bind(this),
-                function error() {}
+                function error() {
+                    // Do nothing
+                }
             );
         } else {
             fileSizeString = utils.fileSizeToString(this.state.fileSize);
@@ -266,8 +183,9 @@ export default class FileAttachment extends React.Component {
                         href={fileUrl}
                         download={filenameString}
                         data-toggle='tooltip'
-                        title={'Download \"' + filenameString + '\"'}
+                        title={this.props.intl.formatMessage(holders.download) + ' \"' + filenameString + '\"'}
                         className='post-image__name'
+                        target='_blank'
                     >
                         {trimmedFilename}
                     </a>
@@ -276,6 +194,7 @@ export default class FileAttachment extends React.Component {
                             href={fileUrl}
                             download={filenameString}
                             className='post-image__download'
+                            target='_blank'
                         >
                             <span
                                 className='fa fa-download'
@@ -291,6 +210,7 @@ export default class FileAttachment extends React.Component {
 }
 
 FileAttachment.propTypes = {
+    intl: intlShape.isRequired,
 
     // a list of file pathes displayed by the parent FileAttachmentList
     filename: React.PropTypes.string.isRequired,
@@ -301,3 +221,5 @@ FileAttachment.propTypes = {
     // handler for when the thumbnail is clicked passed the index above
     handleImageClick: React.PropTypes.func
 };
+
+export default injectIntl(FileAttachment);

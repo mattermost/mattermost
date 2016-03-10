@@ -28,10 +28,15 @@ class SocketStoreClass extends EventEmitter {
         this.addChangeListener = this.addChangeListener.bind(this);
         this.removeChangeListener = this.removeChangeListener.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
+        this.close = this.close.bind(this);
+
         this.failCount = 0;
+
+        this.translations = this.getDefaultTranslations();
 
         this.initialize();
     }
+
     initialize() {
         if (!UserStore.getCurrentId()) {
             return;
@@ -53,6 +58,10 @@ class SocketStoreClass extends EventEmitter {
 
             if (this.failCount === 0) {
                 console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
+                if (ErrorStore.getConnectionErrorCount() > 0) {
+                    ErrorStore.setConnectionErrorCount(0);
+                    ErrorStore.emitChange();
+                }
             }
             conn = new WebSocket(connUrl);
 
@@ -60,10 +69,11 @@ class SocketStoreClass extends EventEmitter {
                 if (this.failCount > 0) {
                     console.log('websocket re-established connection'); //eslint-disable-line no-console
 
-                    if (ErrorStore.getLastError()) {
-                        ErrorStore.storeLastError(null);
-                        ErrorStore.emitChange();
-                    }
+                    ErrorStore.clearLastError();
+                    ErrorStore.emitChange();
+
+                    AsyncClient.getChannels();
+                    AsyncClient.getPosts(ChannelStore.getCurrentId());
                 }
 
                 this.failCount = 0;
@@ -71,6 +81,20 @@ class SocketStoreClass extends EventEmitter {
 
             conn.onclose = () => {
                 conn = null;
+
+                if (this.failCount === 0) {
+                    console.log('websocket closed'); //eslint-disable-line no-console
+                }
+
+                this.failCount = this.failCount + 1;
+
+                if (this.failCount > 7) {
+                    ErrorStore.storeLastError({message: this.translations.socketError});
+                }
+
+                ErrorStore.setConnectionErrorCount(this.failCount);
+                ErrorStore.emitChange();
+
                 setTimeout(
                     () => {
                         this.initialize();
@@ -80,14 +104,10 @@ class SocketStoreClass extends EventEmitter {
             };
 
             conn.onerror = (evt) => {
-                if (this.failCount === 0) {
-                    console.log('websocket error ' + evt); //eslint-disable-line no-console
+                if (this.failCount <= 1) {
+                    console.log('websocket error'); //eslint-disable-line no-console
+                    console.log(evt); //eslint-disable-line no-console
                 }
-
-                this.failCount = this.failCount + 1;
-
-                ErrorStore.storeLastError({connErrorCount: this.failCount, message: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.'});
-                ErrorStore.emitChange();
             };
 
             conn.onmessage = (evt) => {
@@ -97,19 +117,24 @@ class SocketStoreClass extends EventEmitter {
             };
         }
     }
+
     emitChange(msg) {
         this.emit(CHANGE_EVENT, msg);
     }
+
     addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
     }
+
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
     }
+
     handleMessage(msg) {
         switch (msg.action) {
         case SocketEvents.POSTED:
-            handleNewPostEvent(msg);
+        case SocketEvents.EPHEMERAL_MESSAGE:
+            handleNewPostEvent(msg, this.translations);
             break;
 
         case SocketEvents.POST_EDITED:
@@ -143,6 +168,7 @@ class SocketStoreClass extends EventEmitter {
         default:
         }
     }
+
     sendMessage(msg) {
         if (conn && conn.readyState === WebSocket.OPEN) {
             conn.send(JSON.stringify(msg));
@@ -151,9 +177,31 @@ class SocketStoreClass extends EventEmitter {
             this.initialize();
         }
     }
+
+    setTranslations(messages) {
+        this.translations = messages;
+    }
+
+    getDefaultTranslations() {
+        return ({
+            socketError: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.',
+            someone: 'Someone',
+            posted: 'Posted',
+            uploadedImage: ' uploaded an image',
+            uploadedFile: ' uploaded a file',
+            something: ' did something new',
+            wrote: ' wrote: '
+        });
+    }
+
+    close() {
+        if (conn && conn.readyState === WebSocket.OPEN) {
+            conn.close();
+        }
+    }
 }
 
-function handleNewPostEvent(msg) {
+function handleNewPostEvent(msg, translations) {
     // Store post
     const post = JSON.parse(msg.props.post);
     EventHelpers.emitPostRecievedEvent(post);
@@ -162,6 +210,8 @@ function handleNewPostEvent(msg) {
     if (ChannelStore.getCurrentId() === msg.channel_id) {
         if (window.isActive) {
             AsyncClient.updateLastViewedAt();
+        } else {
+            AsyncClient.getChannel(msg.channel_id);
         }
     } else if (UserStore.getCurrentId() !== msg.user_id || post.type !== Constants.POST_TYPE_JOIN_LEAVE) {
         AsyncClient.getChannel(msg.channel_id);
@@ -176,7 +226,6 @@ function handleNewPostEvent(msg) {
             mentions = JSON.parse(msg.props.mentions);
         }
 
-        const channelType = msgProps.channel_type;
         const channel = ChannelStore.get(msg.channel_id);
         const user = UserStore.getCurrentUser();
         const member = ChannelStore.getMember(msg.channel_id);
@@ -188,18 +237,18 @@ function handleNewPostEvent(msg) {
 
         if (notifyLevel === 'none') {
             return;
-        } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channelType !== Constants.DM_CHANNEL) {
+        } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channel.type !== Constants.DM_CHANNEL) {
             return;
         }
 
-        let username = 'Someone';
+        let username = translations.someone;
         if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
             username = post.props.override_username;
         } else if (UserStore.hasProfile(msg.user_id)) {
             username = UserStore.getProfile(msg.user_id).username;
         }
 
-        let title = 'Posted';
+        let title = translations.posted;
         if (channel) {
             title = channel.display_name;
         }
@@ -211,14 +260,14 @@ function handleNewPostEvent(msg) {
 
         if (notifyText.length === 0) {
             if (msgProps.image) {
-                Utils.notifyMe(title, username + ' uploaded an image', channel);
+                Utils.notifyMe(title, username + translations.uploadedImage, channel);
             } else if (msgProps.otherFile) {
-                Utils.notifyMe(title, username + ' uploaded a file', channel);
+                Utils.notifyMe(title, username + translations.uploadedFile, channel);
             } else {
-                Utils.notifyMe(title, username + ' did something new', channel);
+                Utils.notifyMe(title, username + translations.something, channel);
             }
         } else {
-            Utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
+            Utils.notifyMe(title, username + translations.wrote + notifyText, channel);
         }
         if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
             Utils.ding();
@@ -293,12 +342,5 @@ function handlePreferenceChangedEvent(msg) {
 
 var SocketStore = new SocketStoreClass();
 
-/*SocketStore.dispatchToken = AppDispatcher.register((payload) => {
-    var action = payload.action;
-
-    switch (action.type) {
-    default:
-    }
-    });*/
-
 export default SocketStore;
+window.SocketStore = SocketStore;

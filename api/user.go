@@ -5,6 +5,7 @@ package api
 
 import (
 	"bytes"
+	"crypto/tls"
 	b64 "encoding/base64"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
@@ -30,6 +31,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func InitUser(r *mux.Router) {
@@ -444,6 +446,38 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 	return nil
 }
 
+func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, username, name, password, deviceId string) *model.User {
+	var team *model.Team
+
+	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+		c.Err = result.Err
+		return nil
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if result := <-Srv.Store.User().GetByUsername(team.Id, username); result.Err != nil {
+		c.Err = result.Err
+		c.Err.StatusCode = http.StatusForbidden
+		return nil
+	} else {
+		user := result.Data.(*model.User)
+
+		if len(user.AuthData) != 0 {
+			c.Err = model.NewLocAppError("LoginByUsername", "api.user.login_by_email.sign_in.app_error",
+				map[string]interface{}{"AuthService": user.AuthService}, "")
+			return nil
+		}
+
+		if checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password) {
+			Login(c, w, r, user, deviceId)
+			return user
+		}
+	}
+
+	return nil
+}
+
 func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team) *model.User {
 	authData := ""
 	provider := einterfaces.GetOauthProvider(service)
@@ -600,12 +634,14 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	}
 
 	multiToken = strings.TrimSpace(multiToken + " " + session.Token)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 
 	multiSessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    multiToken,
 		Path:     "/",
 		MaxAge:   maxAge,
+		Expires:  expiresAt,
 		HttpOnly: true,
 	}
 
@@ -629,6 +665,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = LoginById(c, w, r, props["id"], props["password"], props["device_id"])
 	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
 		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
+	} else if len(props["username"]) != 0 && len(props["name"]) != 0 {
+		user = LoginByUsername(c, w, r, props["username"], props["name"], props["password"], props["device_id"])
 	} else {
 		c.Err = model.NewLocAppError("login", "api.user.login.not_provided.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
@@ -758,7 +796,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(deviceId))
+	w.Write([]byte(model.MapToJson(props)))
 }
 
 func RevokeSessionById(c *Context, sessionId string) {
@@ -859,7 +897,6 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		result.Data.(*model.User).Sanitize(map[string]bool{})
 		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.User).Etag())
-		w.Header().Set("Expires", "-1")
 		w.Write([]byte(result.Data.(*model.User).ToJson()))
 		return
 	}
@@ -1473,6 +1510,10 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 			RevokeAllSession(c, user.Id)
 		}
 
+		if extra := <-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
+			c.Err = extra.Err
+		}
+
 		ruser := result.Data.([2]*model.User)[0]
 		options := utils.Cfg.GetSanitizeOptions()
 		options["passwordupdate"] = false
@@ -1505,6 +1546,10 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 	}
 
 	if result := <-Srv.Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Command().PermanentDeleteByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
@@ -1719,14 +1764,14 @@ func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, teamDisplayNa
 	go func() {
 
 		subjectPage := NewServerTemplatePage("email_change_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.email_change_body",
+		subjectPage.Props["Subject"] = c.T("api.templates.email_change_subject",
 			map[string]interface{}{"TeamDisplayName": teamDisplayName})
 
 		bodyPage := NewServerTemplatePage("email_change_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.email_change_body.title")
-		bodyPage.Props["Info"] = c.T("api.templates.email_change_body.info",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName, "NewEmail": newEmail})
+		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.email_change_body.info",
+			map[string]interface{}{"TeamDisplayName": teamDisplayName, "NewEmail": newEmail}))
 
 		if err := utils.SendMail(oldEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error(utils.T("api.user.send_email_change_email_and_forget.error"), err)
@@ -1922,7 +1967,10 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	p.Set("redirect_uri", redirectUri)
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+	}
+	client := &http.Client{Transport: tr}
 	req, _ := http.NewRequest("POST", sso.TokenEndpoint, strings.NewReader(p.Encode()))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -2053,13 +2101,16 @@ func switchToSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team, email string) {
 	authData := ""
+	ssoEmail := ""
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
 			map[string]interface{}{"Service": service}, "")
 		return
 	} else {
-		authData = provider.GetAuthDataFromJson(userData)
+		ssoUser := provider.GetUserFromJson(userData)
+		authData = ssoUser.AuthData
+		ssoEmail = ssoUser.Email
 	}
 
 	if len(authData) == 0 {
@@ -2086,7 +2137,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if result := <-Srv.Store.User().UpdateAuthData(user.Id, service, authData); result.Err != nil {
+	if result := <-Srv.Store.User().UpdateAuthData(user.Id, service, authData, ssoEmail); result.Err != nil {
 		c.Err = result.Err
 		return
 	}

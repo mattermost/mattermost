@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import SettingItemMax from '../setting_item_max.jsx';
+
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
@@ -69,7 +71,7 @@ export default class ManageLanguage extends React.Component {
                 </option>);
         });
 
-        return (
+        const input = (
             <div key='changeLanguage'>
                 <br/>
                 <label className='control-label'>
@@ -88,24 +90,28 @@ export default class ManageLanguage extends React.Component {
                         {options}
                     </select>
                     {serverError}
-                    <div className='padding-top'>
-                        <a
-                            className={'btn btn-sm btn-primary'}
-                            href='#'
-                            onClick={this.changeLanguage}
-                        >
-                            <FormattedMessage
-                                id='user.settings.languages'
-                                defaultMessage='Set language'
-                            />
-                        </a>
-                    </div>
                 </div>
             </div>
+        );
+
+        return (
+            <SettingItemMax
+                title={
+                    <FormattedMessage
+                        id='user.settings.display.language'
+                        defaultMessage='Language'
+                    />
+                }
+                width='medium'
+                submit={this.changeLanguage}
+                inputs={[input]}
+                updateSection={this.props.updateSection}
+            />
         );
     }
 }
 
 ManageLanguage.propTypes = {
-    user: React.PropTypes.object
+    user: React.PropTypes.object.isRequired,
+    updateSection: React.PropTypes.func.isRequired
 };

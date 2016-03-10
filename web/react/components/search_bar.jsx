@@ -74,20 +74,20 @@ class SearchBar extends React.Component {
         e.preventDefault();
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_SEARCH,
+            type: ActionTypes.RECEIVED_SEARCH,
             results: null
         });
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_SEARCH_TERM,
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
             term: null,
             do_search: false,
             is_mention_search: false
         });
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_POST_SELECTED,
-            results: null
+            type: ActionTypes.RECEIVED_POST_SELECTED,
+            postId: null
         });
     }
     handleUserInput(text) {
@@ -117,7 +117,7 @@ class SearchBar extends React.Component {
                     }
 
                     AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECIEVED_SEARCH,
+                        type: ActionTypes.RECEIVED_SEARCH,
                         results: data,
                         is_mention_search: isMentionSearch
                     });
@@ -169,7 +169,7 @@ class SearchBar extends React.Component {
                     style={{overflow: 'visible'}}
                     autoComplete='off'
                 >
-                    <span className='glyphicon glyphicon-search sidebar__search-icon' />
+                    <span className='glyphicon glyphicon-search sidebar__search-icon'/>
                     <SuggestionBox
                         ref='search'
                         className='form-control search-bar'

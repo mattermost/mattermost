@@ -70,7 +70,7 @@ export default class EmailVerify extends React.Component {
             );
             if (this.props.resendSuccess) {
                 resendConfirm = (
-                    <div><br /><p className='alert alert-success'><i className='fa fa-check'></i>
+                    <div><br/><p className='alert alert-success'><i className='fa fa-check'></i>
                         <FormattedMessage
                             id='email_verify.sent'
                             defaultMessage=' Verification email sent.'

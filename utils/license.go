@@ -1,19 +1,15 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package utils
 
 import (
-	"bytes"
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"io"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -22,37 +18,22 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
-const (
-	LICENSE_FILENAME = "active.dat"
-)
-
 var IsLicensed bool = false
 var License *model.License = &model.License{}
 var ClientLicense map[string]string = make(map[string]string)
 
-// test public key
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3/k3Al9q1Xe+xngQ/yGn
-0suaJopea3Cpf6NjIHdO8sYTwLlxqt0Mdb+qBR9LbCjZfcNmqc5mZONvsyCEoN/5
-VoLdlv1m9ao2BSAWphUxE2CPdUWdLOsDbQWliSc5//UhiYeR+67Xxon0Hg0LKXF6
-PumRIWQenRHJWqlUQZ147e7/1v9ySVRZksKpvlmMDzgq+kCH/uyM1uVP3z7YXhlN
-K7vSSQYbt4cghvWQxDZFwpLlsChoY+mmzClgq+Yv6FLhj4/lk94twdOZau/AeZFJ
-NxpC+5KFhU+xSeeklNqwCgnlOyZ7qSTxmdJHb+60SwuYnnGIYzLJhY4LYDr4J+KR
-1wIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZmShlU8Z8HdG0IWSZ8r
+tSyzyxrXkJjsFUf0Ke7bm/TLtIggRdqOcUF3XEWqQk5RGD5vuq7Rlg1zZqMEBk8N
+EZeRhkxyaZW8pLjxwuBUOnXfJew31+gsTNdKZzRjrvPumKr3EtkleuoxNdoatu4E
+HrKmR/4Yi71EqAvkhk7ZjQFuF0osSWJMEEGGCSUYQnTEqUzcZSh1BhVpkIkeu8Kk
+1wCtptODixvEujgqVe+SrE3UlZjBmPjC/CL+3cYmufpSNgcEJm2mwsdaXp2OPpfn
+a0v85XL6i9ote2P+fLZ3wX9EoioHzgdgB7arOxY50QRJO7OyCqpKFKv6lRWTXuSt
+hwIDAQAB
 -----END PUBLIC KEY-----`)
 
-func LoadLicense() {
-	file, err := os.Open(LicenseLocation())
-	if err != nil {
-		l4g.Warn(T("utils.license.load_license.open_find.warn"))
-		return
-	}
-	defer file.Close()
-
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-
-	if success, licenseStr := ValidateLicense(buf.Bytes()); success {
+func LoadLicense(licenseBytes []byte) {
+	if success, licenseStr := ValidateLicense(licenseBytes); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		SetLicense(license)
 		return
@@ -74,21 +55,10 @@ func SetLicense(license *model.License) bool {
 	return false
 }
 
-func LicenseLocation() string {
-	return filepath.Dir(CfgFileName) + "/" + LICENSE_FILENAME
-}
-
-func RemoveLicense() bool {
+func RemoveLicense() {
 	License = &model.License{}
 	IsLicensed = false
 	ClientLicense = getClientLicense(License)
-
-	if err := os.Remove(LicenseLocation()); err != nil {
-		l4g.Error(T("utils.license.remove_license.unable.error"), err.Error())
-		return false
-	}
-
-	return true
 }
 
 func ValidateLicense(signed []byte) (bool, string) {

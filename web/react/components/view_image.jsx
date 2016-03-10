@@ -9,10 +9,20 @@ import Constants from '../utils/constants.jsx';
 import FileInfoPreview from './file_info_preview.jsx';
 import FileStore from '../stores/file_store.jsx';
 import ViewImagePopoverBar from './view_image_popover_bar.jsx';
+
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
 const Modal = ReactBootstrap.Modal;
 const KeyCodes = Constants.KeyCodes;
 
-export default class ViewImageModal extends React.Component {
+const holders = defineMessages({
+    loading: {
+        id: 'view_image.loading',
+        defaultMessage: 'Loading '
+    }
+});
+
+class ViewImageModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -193,7 +203,9 @@ export default class ViewImageModal extends React.Component {
                     window.open(serverData.public_link);
                 }
             },
-            () => {}
+            () => {
+                //Do Nothing on error
+            }
         );
     }
 
@@ -235,6 +247,7 @@ export default class ViewImageModal extends React.Component {
                         fileUrl={fileUrl}
                         fileInfo={this.state.fileInfo}
                         maxHeight={this.state.imgHeight}
+                        formatMessage={this.props.intl.formatMessage}
                     />
                 );
             } else {
@@ -243,6 +256,7 @@ export default class ViewImageModal extends React.Component {
                         filename={filename}
                         fileUrl={fileUrl}
                         fileInfo={fileInfo}
+                        formatMessage={this.props.intl.formatMessage}
                     />
                 );
             }
@@ -250,7 +264,12 @@ export default class ViewImageModal extends React.Component {
             // display a progress indicator when the preview for an image is still loading
             const progress = Math.floor(this.state.progress[this.state.imgId]);
 
-            content = <LoadingImagePreview progress={progress} />;
+            content = (
+                <LoadingImagePreview
+                    progress={progress}
+                    loading={this.props.intl.formatMessage(holders.loading)}
+                />
+            );
         }
 
         let leftArrow = null;
@@ -335,6 +354,7 @@ ViewImageModal.defaultProps = {
     startId: 0
 };
 ViewImageModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
     filenames: React.PropTypes.array,
@@ -344,12 +364,12 @@ ViewImageModal.propTypes = {
     startId: React.PropTypes.number
 };
 
-function LoadingImagePreview({progress}) {
+function LoadingImagePreview({progress, loading}) {
     let progressView = null;
     if (progress) {
         progressView = (
             <span className='loader-percent'>
-                {'Loading ' + progress + '%'}
+                {loading + progress + '%'}
             </span>
         );
     }
@@ -364,6 +384,11 @@ function LoadingImagePreview({progress}) {
         </div>
     );
 }
+
+LoadingImagePreview.propTypes = {
+    progress: React.PropTypes.number,
+    loading: React.PropTypes.string
+};
 
 function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
     let previewUrl;
@@ -386,3 +411,12 @@ function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
         </a>
     );
 }
+
+ImagePreview.propTypes = {
+    filename: React.PropTypes.string.isRequired,
+    fileUrl: React.PropTypes.string.isRequired,
+    fileInfo: React.PropTypes.object.isRequired,
+    maxHeight: React.PropTypes.number.isRequired
+};
+
+export default injectIntl(ViewImageModal);

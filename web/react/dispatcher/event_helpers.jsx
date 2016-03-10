@@ -9,6 +9,7 @@ import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export function emitChannelClickEvent(channel) {
     AsyncClient.getChannels(true);
@@ -29,7 +30,7 @@ export function emitPostFocusEvent(postId) {
         postId,
         (data) => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_FOCUSED_POST,
+                type: ActionTypes.RECEIVED_FOCUSED_POST,
                 postId,
                 post_list: data
             });
@@ -46,13 +47,20 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
         post.id,
         (data) => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_POST_SELECTED,
-                post_list: data,
+                type: ActionTypes.RECEIVED_POSTS,
+                id: post.channel_id,
+                numRequested: 0,
+                post_list: data
+            });
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST_SELECTED,
+                postId: Utils.getRootId(post),
                 from_search: SearchStore.getSearchTerm()
             });
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_SEARCH,
+                type: ActionTypes.RECEIVED_SEARCH,
                 results: null,
                 is_mention_search: isMentionSearch
             });
@@ -88,7 +96,7 @@ export function emitLoadMorePostsFocusedBottomEvent() {
 
 export function emitPostRecievedEvent(post) {
     AppDispatcher.handleServerAction({
-        type: ActionTypes.RECIEVED_POST,
+        type: ActionTypes.RECEIVED_POST,
         post
     });
 }
@@ -113,6 +121,14 @@ export function showDeletePostModal(post, commentCount = 0) {
         value: true,
         post,
         commentCount
+    });
+}
+
+export function showGetPostLinkModal(post) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_GET_POST_LINK_MODAL,
+        value: true,
+        post
     });
 }
 
@@ -176,7 +192,31 @@ export function emitClearSuggestions(suggestionId) {
 
 export function emitPreferenceChangedEvent(preference) {
     AppDispatcher.handleServerAction({
-        type: Constants.ActionTypes.RECIEVED_PREFERENCE,
+        type: Constants.ActionTypes.RECEIVED_PREFERENCE,
         preference
     });
+}
+
+export function emitRemovePost(post) {
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.REMOVE_POST,
+        post
+    });
+}
+
+export function sendEphemeralPost(message, channelId) {
+    const timestamp = Utils.getTimestamp();
+    const post = {
+        id: Utils.generateId(),
+        user_id: '0',
+        channel_id: channelId || ChannelStore.getCurrentId(),
+        message,
+        type: Constants.POST_TYPE_EPHEMERAL,
+        create_at: timestamp,
+        update_at: timestamp,
+        filenames: [],
+        props: {}
+    };
+
+    emitPostRecievedEvent(post);
 }

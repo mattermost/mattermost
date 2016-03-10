@@ -244,120 +244,140 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
-    "id": "api.command.check_command.start.app_error",
-    "translation": "Command must start with /"
+    "id": "api.command.admin_only.app_error",
+    "translation": "Integrations have been limited to admins only."
   },
   {
-    "id": "api.command.echo_command.create.error",
-    "translation": "Unable to create /echo post, err=%v"
+    "id": "api.command.delete.app_error",
+    "translation": "Inappropriate permissions to delete command"
   },
   {
-    "id": "api.command.echo_command.description",
-    "translation": "Echo back text from your account, /echo \"message\" [delay in seconds]"
+    "id": "api.command.disabled.app_error",
+    "translation": "Commands have been disabled by the system admin."
   },
   {
-    "id": "api.command.echo_command.high_volume.app_error",
-    "translation": "High volume of echo request, cannot process request"
+    "id": "api.command.execute_command.debug",
+    "translation": "Executing cmd=%v userId=%v"
   },
   {
-    "id": "api.command.echo_command.under.app_error",
-    "translation": "Delays must be under 10000 seconds"
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "Command with a trigger of '{{.Trigger}}' failed"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "Command with a trigger of '{{.Trigger}}' returned an empty response"
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "Command with a trigger of '{{.Trigger}}' returned response {{.Status}}"
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "Command with a trigger of '{{.Trigger}}' not found"
+  },
+  {
+    "id": "api.command.execute_command.save.app_error",
+    "translation": "An error while saving the command response to the channel"
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "No command trigger found"
   },
   {
     "id": "api.command.init.debug",
     "translation": "Initializing command api routes"
   },
   {
-    "id": "api.command.load_test_channels_command.channel.description",
-    "translation": "Add a specified number of random channels to current team <MinChannels> <MaxChannels>"
+    "id": "api.command.regen.app_error",
+    "translation": "Inappropriate permissions to regenerate command token"
   },
   {
-    "id": "api.command.load_test_channels_command.fuzz.description",
-    "translation": "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>"
+    "id": "api.command_echo.create.app_error",
+    "translation": "Unable to create /echo post, err=%v"
   },
   {
-    "id": "api.command.load_test_command.description",
-    "translation": "Debug Load Testing"
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Delays must be under 10000 seconds"
   },
   {
-    "id": "api.command.load_test_posts_command.fuzz.description",
-    "translation": "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
+    "id": "api.command_echo.desc",
+    "translation": "Echo back text from your account"
   },
   {
-    "id": "api.command.load_test_posts_command.posts.description",
-    "translation": "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "High volume of echo request, cannot process request"
   },
   {
-    "id": "api.command.load_test_setup_command.create.error",
-    "translation": "Failed to create testing environment"
+    "id": "api.command_echo.hint",
+    "translation": "'message' [delay in seconds]"
   },
   {
-    "id": "api.command.load_test_setup_command.created.info",
-    "translation": "Team Created: %v"
+    "id": "api.command_echo.name",
+    "translation": "echo"
   },
   {
-    "id": "api.command.load_test_setup_command.description",
-    "translation": "Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"
-  },
-  {
-    "id": "api.command.load_test_setup_command.login.info",
-    "translation": "\t User to login: %v, %v"
-  },
-  {
-    "id": "api.command.load_test_url_command.create.error",
-    "translation": "Unable to create post, err=%v"
-  },
-  {
-    "id": "api.command.load_test_url_command.description",
-    "translation": "Add a post containing the text from a given url to current channel <Url>"
-  },
-  {
-    "id": "api.command.load_test_url_command.file.app_error",
-    "translation": "Unable to get file"
-  },
-  {
-    "id": "api.command.load_test_url_command.reading.app_error",
-    "translation": "Encountered error reading file"
-  },
-  {
-    "id": "api.command.load_test_url_command.url.app_error",
-    "translation": "Command must contain a url"
-  },
-  {
-    "id": "api.command.load_test_users_command.fuzz.description",
-    "translation": "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>"
-  },
-  {
-    "id": "api.command.load_test_users_command.users.description",
-    "translation": "Add a specified number of random users to current team <Min Users> <Max Users>"
-  },
-  {
-    "id": "api.command.logout_command.description",
-    "translation": "Logout"
-  },
-  {
-    "id": "api.command.me_command.create.error",
-    "translation": "Unable to create /me post post, err=%v"
-  },
-  {
-    "id": "api.command.me_command.description",
-    "translation": "Do an action, /me [message]"
-  },
-  {
-    "id": "api.command.no_implemented.app_error",
-    "translation": "Command not implemented"
-  },
-  {
-    "id": "api.command.shrug_command.create.error",
-    "translation": "Unable to create /shrug post post, err=%v"
-  },
-  {
-    "id": "api.command.shrug_command.description",
-    "translation": "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"
-  },
-  {
-    "id": "api.commmand.join_command.description",
+    "id": "api.command_join.desc",
     "translation": "Join the open channel"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "An error occured while joining the channel."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "[channel-name]"
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "An error occured while listing channels."
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "We couldn't find the channel"
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "join"
+  },
+  {
+    "id": "api.command_join.success",
+    "translation": "Joined channel."
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Logout of Mattermost"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "logout"
+  },
+  {
+    "id": "api.command_logout.success_message",
+    "translation": "Logging out..."
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "Do an action"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "me"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Adds ¯\\_(ツ)_/¯ to your message"
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "shrug"
   },
   {
     "id": "api.context.404.app_error",
@@ -436,8 +456,8 @@
     "translation": "S3 is not supported for local storage export."
   },
   {
-    "id": "api.export.write_file.app_error",
-    "translation": "Unable to write to export file"
+    "id": "api.file.file_upload.exceeds",
+    "translation": "File exceeds max image size."
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -486,6 +506,22 @@
   {
     "id": "api.file.init.debug",
     "translation": "Initializing file api routes"
+  },
+  {
+    "id": "api.file.move_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.move_file.delete_from_s3.app_error",
+    "translation": "Unable to delete file from S3."
+  },
+  {
+    "id": "api.file.move_file.get_from_s3.app_error",
+    "translation": "Unable to get file from S3."
+  },
+  {
+    "id": "api.file.move_file.rename.app_error",
+    "translation": "Unable to move file locally."
   },
   {
     "id": "api.file.open_file_write_stream.configured.app_error",
@@ -592,6 +628,10 @@
     "translation": "License did not save properly."
   },
   {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "Active license ID did not save properly."
+  },
+  {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
   },
@@ -656,6 +696,14 @@
     "translation": "Error getting access token from DB before deletion"
   },
   {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned, but they do not belong to this channel."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "{{.Username}} was mentioned, but does not belong to this channel."
+  },
+  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Bad filename discarded, filename=%v"
   },
@@ -684,12 +732,24 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.post.get_out_of_channel_mentions.regex.error",
+    "translation": "Failed to compile @mention regex user_id=%v, err=%v"
+  },
+  {
     "id": "api.post.get_post.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
   },
   {
     "id": "api.post.handle_post_events_and_forget.channel.error",
     "translation": "Encountered error getting channel, channel_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.members.error",
+    "translation": "Failed to get channel members channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.profiles.error",
+    "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
   },
   {
     "id": "api.post.handle_post_events_and_forget.team.error",
@@ -732,10 +792,6 @@
     "translation": "Failed to update direct channel preference user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.members.error",
-    "translation": "Failed to get channel members channel_id=%v err=%v"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.mention_body",
     "translation": "You have one new mention."
   },
@@ -766,10 +822,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Failed to send push notificationid=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.retrive_profiles.error",
-    "translation": "Failed to retrieve user profiles team_id=%v, err=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.send.error",
@@ -1077,7 +1129,7 @@
   },
   {
     "id": "api.templates.email_info",
-    "translation": "Any questions at all, mail us any time: <a href='mailto:{{.FeedbackEmail}}' style='text-decoration: none; color:#2389D7;'>{{.FeedbackEmail}}</a>.<br>Best wishes,<br>The {{.SiteName}} Team<br>"
+    "translation": "Any questions at all, mail us any time: <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Best wishes,<br>The {{.SiteName}} Team<br>"
   },
   {
     "id": "api.templates.error.link",
@@ -1129,7 +1181,7 @@
   },
   {
     "id": "api.templates.password_change_body.title",
-    "translation": "You updated your password"
+    "translation": "Your password has been updated"
   },
   {
     "id": "api.templates.password_change_subject",
@@ -1648,6 +1700,38 @@
     "translation": "Inappropriate permissions to regenerate outcoming webhook token"
   },
   {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "Unable to bind to LDAP server. Check BindUsername and BindPassword."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "Invalid Password"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "LDAP functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "Username given matches multiple users"
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "Failed to search LDAP server"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "Unable to connect to LDAP server"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_create_user.app_error",
+    "translation": "Credentials valid but unable to create user."
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "User not registered on LDAP server"
+  },
+  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Could not find channel: %v, %v possibilites searched"
   },
@@ -1694,6 +1778,10 @@
   {
     "id": "mattermost.entreprise_enabled",
     "translation": "Enterprise Enabled: %v"
+  },
+  {
+    "id": "mattermost.load_license.find.warn",
+    "translation": "Unable to find active license"
   },
   {
     "id": "mattermost.security_bulletin.error",
@@ -1838,6 +1926,46 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Authentication tokens didn't match"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "Invalid Method"
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "Invalid token"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "Invalid trigger"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "Invalid url"
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "Invalid URL. Must be a valid URL and start with http:// or https://"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -2204,6 +2332,10 @@
     "translation": "could not decode"
   },
   {
+    "id": "store.sql.alter_column_type.critical",
+    "translation": "Failed to alter column type %v"
+  },
+  {
     "id": "store.sql.check_index.critical",
     "translation": "Failed to check index %v"
   },
@@ -2272,6 +2404,10 @@
     "translation": "Incorrect MAC for the given ciphertext"
   },
   {
+    "id": "store.sql.maxlength_column.critical",
+    "translation": "Failed to get max length of column %v"
+  },
+  {
     "id": "store.sql.open_conn.critical",
     "translation": "Failed to open sql connection to err:%v"
   },
@@ -2286,6 +2422,14 @@
   {
     "id": "store.sql.pinging.info",
     "translation": "Pinging sql %v database"
+  },
+  {
+    "id": "store.sql.read_replicas_not_licensed.critical",
+    "translation": "More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
+    "id": "store.sql.remove_index.critical",
+    "translation": "Failed to remove index %v"
   },
   {
     "id": "store.sql.rename_column.critical",
@@ -2524,6 +2668,50 @@
     "translation": "We encountered an error updating the channel member"
   },
   {
+    "id": "store.sql_command.analytics_command_count.app_error",
+    "translation": "We couldn't count the commands"
+  },
+  {
+    "id": "store.sql_command.save.delete.app_error",
+    "translation": "We couldn't delete the command"
+  },
+  {
+    "id": "store.sql_command.save.delete_perm.app_error",
+    "translation": "We couldn't delete the command"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "We couldn't get the command"
+  },
+  {
+    "id": "store.sql_command.save.get_team.app_error",
+    "translation": "We couldn't get the commands"
+  },
+  {
+    "id": "store.sql_command.save.saving.app_error",
+    "translation": "We couldn't save the Command"
+  },
+  {
+    "id": "store.sql_command.save.saving_overwrite.app_error",
+    "translation": "You cannot overwrite an existing Command"
+  },
+  {
+    "id": "store.sql_command.save.update.app_error",
+    "translation": "We couldn't update the command"
+  },
+  {
+    "id": "store.sql_license.get.app_error",
+    "translation": "We encountered an error getting the license"
+  },
+  {
+    "id": "store.sql_license.get.missing.app_error",
+    "translation": "A license with that ID was not found"
+  },
+  {
+    "id": "store.sql_license.save.app_error",
+    "translation": "We encountered an error saving the license"
+  },
+  {
     "id": "store.sql_oauth.get_access_data.app_error",
     "translation": "We encountered an error finding the access token"
   },
@@ -2732,6 +2920,10 @@
     "translation": "We couldn't update the preference"
   },
   {
+    "id": "store.sql_session.analytics_session_count.app_error",
+    "translation": "We couldn't count the sessions"
+  },
+  {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",
     "translation": "We encountered an error while deleting expired user sessions"
   },
@@ -2794,6 +2986,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "We encountered an error updating the system property"
+  },
+  {
+    "id": "store.sql_team.analytics_team_count.app_error",
+    "translation": "We couldn't count the teams"
   },
   {
     "id": "store.sql_team.get.find.app_error",
@@ -2984,6 +3180,14 @@
     "translation": "Unable to update verify email field"
   },
   {
+    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
+    "translation": "We couldn't count the incoming webhooks"
+  },
+  {
+    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
+    "translation": "We couldn't count the outgoing webhooks"
+  },
+  {
     "id": "store.sql_webhooks.delete_incoming.app_error",
     "translation": "We couldn't delete the webhook"
   },
@@ -3009,10 +3213,6 @@
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "We couldn't get the webhooks"
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_creator.app_error",
     "translation": "We couldn't get the webhooks"
   },
   {
@@ -3078,10 +3278,6 @@
   {
     "id": "utils.license.load_license.invalid.warn",
     "translation": "No valid enterprise license found"
-  },
-  {
-    "id": "utils.license.load_license.open_find.warn",
-    "translation": "Unable to open/find license file"
   },
   {
     "id": "utils.license.remove_license.unable.error",
@@ -3276,6 +3472,10 @@
     "translation": "Encountered an error revoking an access token, err="
   },
   {
+    "id": "web.header.back",
+    "translation": "Back"
+  },
+  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Couldn't find the channel"
   },
@@ -3406,37 +3606,5 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
-  },
-  {
-    "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "LDAP functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
-  },
-  {
-    "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Unable to connect to LDAP server"
-  },
-  {
-    "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Unable to bind to LDAP server. Check BindUsername and BindPassword."
-  },
-  {
-    "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Failed to search LDAP server"
-  },
-  {
-    "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "User not registered on LDAP server"
-  },
-  {
-    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": "Username given matches multiple users"
-  },
-  {
-    "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": "Invalid Password"
-  },
-  {
-    "id": "ent.ldap.do_login.unable_to_create_user.app_error",
-    "translation": "Credentials valid but unable to create user."
   }
 ]

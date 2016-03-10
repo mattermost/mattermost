@@ -33,8 +33,8 @@ export default class TeamSignupSendInvitesPage extends React.Component {
             var emails = [];
 
             for (var i = 0; i < this.props.state.invites.length; i++) {
-                if (this.refs['email_' + i].validate(this.props.state.team.email)) {
-                    emails.push(this.refs['email_' + i].getValue());
+                if (this.refs['email_' + i].getWrappedInstance().validate(this.props.state.team.email)) {
+                    emails.push(this.refs['email_' + i].getWrappedInstance().getValue());
                 } else {
                     valid = false;
                 }
@@ -183,7 +183,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                             <FormattedMessage
                                 id='team_signup_send_invites.next'
                                 defaultMessage='Next'
-                            /><i className='glyphicon glyphicon-chevron-right' />
+                            /><i className='glyphicon glyphicon-chevron-right'/>
                         </button>
                     </div>
                 </form>

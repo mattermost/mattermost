@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import ChannelStore from '../stores/channel_store.jsx';
 import SearchStore from '../stores/search_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import SearchBox from './search_bar.jsx';
@@ -11,7 +12,25 @@ import SearchResultsItem from './search_results_item.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
 
 function getStateFromStores() {
-    return {results: SearchStore.getSearchResults()};
+    const results = SearchStore.getSearchResults();
+
+    const channels = new Map();
+
+    if (results && results.order) {
+        const channelIds = results.order.map((postId) => results.posts[postId].channel_id);
+        for (const id of channelIds) {
+            if (channels.has(id)) {
+                continue;
+            }
+
+            channels.set(id, ChannelStore.get(id));
+        }
+    }
+
+    return {
+        results,
+        channels
+    };
 }
 
 export default class SearchResults extends React.Component {
@@ -21,20 +40,36 @@ export default class SearchResults extends React.Component {
         this.mounted = false;
 
         this.onChange = this.onChange.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
         this.resize = this.resize.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         const state = getStateFromStores();
         state.windowWidth = Utils.windowWidth();
         state.windowHeight = Utils.windowHeight();
+        state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         this.state = state;
     }
 
     componentDidMount() {
         this.mounted = true;
         SearchStore.addSearchChangeListener(this.onChange);
+        ChannelStore.addChangeListener(this.onChange);
+        UserStore.addChangeListener(this.onUserChange);
         this.resize();
         window.addEventListener('resize', this.handleResize);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (!Utils.areObjectsEqual(this.props, nextProps)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(this.state, nextState)) {
+            return true;
+        }
+
+        return false;
     }
 
     componentDidUpdate() {
@@ -43,6 +78,8 @@ export default class SearchResults extends React.Component {
 
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onChange);
+        ChannelStore.removeChangeListener(this.onChange);
+        UserStore.removeChangeListener(this.onUserChange);
         this.mounted = false;
         window.removeEventListener('resize', this.handleResize);
     }
@@ -56,11 +93,12 @@ export default class SearchResults extends React.Component {
 
     onChange() {
         if (this.mounted) {
-            var newState = getStateFromStores();
-            if (!Utils.areObjectsEqual(newState, this.state)) {
-                this.setState(newState);
-            }
+            this.setState(getStateFromStores());
         }
+    }
+
+    onUserChange() {
+        this.setState({profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
 
     resize() {
@@ -75,10 +113,11 @@ export default class SearchResults extends React.Component {
         var currentId = UserStore.getCurrentId();
         var searchForm = null;
         if (currentId) {
-            searchForm = <SearchBox />;
+            searchForm = <SearchBox/>;
         }
         var noResults = (!results || !results.order || !results.order.length);
         var searchTerm = SearchStore.getSearchTerm();
+        const profiles = this.state.profiles || {};
 
         var ctls = null;
 
@@ -112,11 +151,19 @@ export default class SearchResults extends React.Component {
             );
         } else {
             ctls = results.order.map(function mymap(id) {
-                var post = results.posts[id];
+                const post = results.posts[id];
+                let profile;
+                if (UserStore.getCurrentId() === post.user_id) {
+                    profile = UserStore.getCurrentUser();
+                } else {
+                    profile = profiles[post.user_id];
+                }
                 return (
                     <SearchResultsItem
                         key={post.id}
+                        channel={this.state.channels.get(post.channel_id)}
                         post={post}
+                        user={profile}
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
                     />
@@ -128,7 +175,7 @@ export default class SearchResults extends React.Component {
             <div className='sidebar--right__content'>
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
-                    <SearchResultsHeader isMentionSearch={this.props.isMentionSearch} />
+                    <SearchResultsHeader isMentionSearch={this.props.isMentionSearch}/>
                     <div
                         id='search-items-container'
                         className='search-items-container'

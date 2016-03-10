@@ -44,7 +44,7 @@ export default class ConfirmModal extends React.Component {
                         className='btn btn-primary'
                         onClick={this.props.onConfirm}
                     >
-                        {this.props.confirm_button}
+                        {this.props.confirmButton}
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -55,13 +55,13 @@ export default class ConfirmModal extends React.Component {
 ConfirmModal.defaultProps = {
     title: '',
     message: '',
-    confirm_button: ''
+    confirmButton: ''
 };
 ConfirmModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    title: React.PropTypes.string,
-    message: React.PropTypes.string,
-    confirm_button: React.PropTypes.string,
+    title: React.PropTypes.node,
+    message: React.PropTypes.node,
+    confirmButton: React.PropTypes.node,
     onConfirm: React.PropTypes.func.isRequired,
     onCancel: React.PropTypes.func.isRequired
 };

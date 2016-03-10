@@ -52,7 +52,7 @@ const (
 	RotatedCCWMirrored = 7
 	RotatedCW          = 8
 
-	MaxImageSize = 4096 * 2160 // 4k resolution
+	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 )
 
 var fileInfoCache *utils.Cache = utils.NewLru(1000)
@@ -419,12 +419,13 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		ua := user_agent.New(r.UserAgent())
 		bname, _ := ua.Browser()
 
+		parts := strings.Split(filename, "/")
+		filePart := strings.Split(parts[len(parts)-1], "?")[0]
+		w.Header().Set("Content-Disposition", "attachment;filename=\""+filePart+"\"")
+
 		if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
 			// trim off anything before the final / so we just get the file's name
-			parts := strings.Split(filename, "/")
-
 			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Header().Set("Content-Disposition", "attachment;filename=\""+parts[len(parts)-1]+"\"")
 		}
 	}
 
@@ -541,6 +542,41 @@ func writeFile(f []byte, path string) *model.AppError {
 		}
 	} else {
 		return model.NewLocAppError("writeFile", "api.file.write_file.configured.app_error", nil, "")
+	}
+
+	return nil
+}
+
+func moveFile(oldPath, newPath string) *model.AppError {
+	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		fileData := make(chan []byte)
+		getFileAndForget(oldPath, fileData)
+		fileBytes := <-fileData
+
+		if fileBytes == nil {
+			return model.NewLocAppError("moveFile", "api.file.move_file.get_from_s3.app_error", nil, "")
+		}
+
+		var auth aws.Auth
+		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+
+		s := s3.New(auth, awsRegion())
+		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
+
+		if err := bucket.Del(oldPath); err != nil {
+			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
+		}
+
+		if err := writeFile(fileBytes, newPath); err != nil {
+			return err
+		}
+	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		if err := os.Rename(utils.Cfg.FileSettings.Directory+oldPath, utils.Cfg.FileSettings.Directory+newPath); err != nil {
+			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
+		}
+	} else {
+		return model.NewLocAppError("moveFile", "api.file.move_file.configured.app_error", nil, "")
 	}
 
 	return nil

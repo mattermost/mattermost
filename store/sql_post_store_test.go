@@ -887,7 +887,7 @@ func TestPostCountsByDay(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.Post().AnalyticsPostCount(t1.Id); r1.Err != nil {
+	if r1 := <-store.Post().AnalyticsPostCount(t1.Id, false, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(int64) != 4 {

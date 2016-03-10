@@ -7,9 +7,6 @@ import SidebarRight from '../components/sidebar_right.jsx';
 import SidebarRightMenu from '../components/sidebar_right_menu.jsx';
 
 export default class ChannelView extends React.Component {
-    constructor(props) {
-        super(props);
-    }
     render() {
         return (
             <div className='container-fluid'>
@@ -31,7 +28,7 @@ export default class ChannelView extends React.Component {
                 >
                     <Sidebar/>
                 </div>
-                <CenterPanel />
+                <CenterPanel/>
             </div>
         );
     }

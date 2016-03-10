@@ -21,6 +21,10 @@ type Server struct {
 	Router *mux.Router
 }
 
+type CorsWrapper struct {
+	router *mux.Router
+}
+
 var Srv *Server
 
 func NewServer() {
@@ -38,7 +42,7 @@ func StartServer() {
 	l4g.Info(utils.T("api.server.start_server.starting.info"))
 	l4g.Info(utils.T("api.server.start_server.listening.info"), utils.Cfg.ServiceSettings.ListenAddress)
 
-	var handler http.Handler = Srv.Router
+	var handler http.Handler = &CorsWrapper{Srv.Router}
 
 	if utils.Cfg.RateLimitSettings.EnableRateLimiter {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
@@ -65,7 +69,7 @@ func StartServer() {
 			throttled.DefaultDeniedHandler.ServeHTTP(w, r)
 		})
 
-		handler = th.Throttle(Srv.Router)
+		handler = th.Throttle(&CorsWrapper{Srv.Router})
 	}
 
 	go func() {

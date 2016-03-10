@@ -216,4 +216,8 @@ func TestParseSearchParams(t *testing.T) {
 	if sp := ParseSearchParams("##hashtag +#plus+"); len(sp) != 1 || sp[0].Terms != "#hashtag #plus" || sp[0].IsHashtag != true || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
 	}
+
+	if sp := ParseSearchParams("wildcar*"); len(sp) != 1 || sp[0].Terms != "wildcar*" || sp[0].IsHashtag != false || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
+	}
 }

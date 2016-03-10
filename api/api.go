@@ -36,7 +36,7 @@ func (me *ServerTemplatePage) Render() string {
 	T := utils.GetUserTranslations(me.Locale)
 	me.Props["Footer"] = T("api.templates.email_footer")
 	me.Html["EmailInfo"] = template.HTML(T("api.templates.email_info",
-		map[string]interface{}{"FeedbackEmail": me.ClientCfg["FeedbackEmail"], "SiteName": me.ClientCfg["SiteName"]}))
+		map[string]interface{}{"SupportEmail": me.ClientCfg["SupportEmail"], "SiteName": me.ClientCfg["SiteName"]}))
 
 	if err := ServerTemplates.ExecuteTemplate(&text, me.TemplateName, me); err != nil {
 		l4g.Error(utils.T("api.api.render.error"), me.TemplateName, err)

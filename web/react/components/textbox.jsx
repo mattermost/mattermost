@@ -20,6 +20,7 @@ export default class Textbox extends React.Component {
     constructor(props) {
         super(props);
 
+        this.focus = this.focus.bind(this);
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onRecievedError = this.onRecievedError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
@@ -58,9 +59,9 @@ export default class Textbox extends React.Component {
     }
 
     onRecievedError() {
-        const errorState = ErrorStore.getLastError();
+        const errorCount = ErrorStore.getConnectionErrorCount();
 
-        if (errorState && errorState.connErrorCount > 0) {
+        if (errorCount > 0) {
             this.setState({connection: 'bad-connection'});
         } else {
             this.setState({connection: ''});
@@ -81,6 +82,10 @@ export default class Textbox extends React.Component {
         }
     }
 
+    focus() {
+        this.refs.message.getTextbox().focus();
+    }
+
     resize() {
         const textbox = this.refs.message.getTextbox();
         const $textbox = $(textbox);
@@ -89,8 +94,6 @@ export default class Textbox extends React.Component {
         const padding = parseInt($textbox.css('padding-bottom'), 10) + parseInt($textbox.css('padding-top'), 10);
         const borders = parseInt($textbox.css('border-bottom-width'), 10) + parseInt($textbox.css('border-top-width'), 10);
         const maxHeight = parseInt($textbox.css('max-height'), 10) - borders;
-
-        const prevHeight = $textbox.height();
 
         // set the height to auto and remove the scrollbar so we can get the actual size of the contents
         $textbox.css('height', 'auto').css('overflow-y', 'hidden');
@@ -116,10 +119,6 @@ export default class Textbox extends React.Component {
         if (this.state.preview) {
             $(ReactDOM.findDOMNode(this.refs.preview)).height(height + borders);
         }
-
-        if (height !== prevHeight && this.props.onHeightChange) {
-            this.props.onHeightChange();
-        }
     }
 
     showPreview(e) {
@@ -129,20 +128,13 @@ export default class Textbox extends React.Component {
         this.resize();
     }
 
-    showHelp(e) {
-        e.preventDefault();
-        e.target.blur();
-
-        global.window.open('/docs/Messaging');
-    }
-
     render() {
+        const hasText = this.props.messageText.length > 0;
+
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
-            const previewLinkVisible = this.props.messageText.length > 0;
             previewLink = (
                 <a
-                    style={{visibility: previewLinkVisible ? 'visible' : 'hidden'}}
                     onClick={this.showPreview}
                     className='textbox-preview-link'
                 >
@@ -160,6 +152,50 @@ export default class Textbox extends React.Component {
                 </a>
             );
         }
+
+        let helpText = (
+            <div
+                style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '0.5' : '0'}}
+                className='help_format_text'
+            >
+                <b>
+                    <FormattedMessage
+                        id='textbox.bold'
+                        defaultMessage='**bold**'
+                    />
+                </b>
+                <i>
+                    <FormattedMessage
+                        id='textbox.italic'
+                        defaultMessage='_italic_'
+                    />
+                </i>
+                <span>~~<strike>
+                    <FormattedMessage
+                        id='textbox.strike'
+                        defaultMessage='strike'
+                    />
+                </strike>~~ </span>
+                <code>
+                    <FormattedMessage
+                        id='textbox.inlinecode'
+                        defaultMessage='`inline code`'
+                    />
+                </code>
+                <code>
+                    <FormattedMessage
+                        id='textbox.preformatted'
+                        defaultMessage='```preformatted```'
+                    />
+                </code>
+                <span>
+                    <FormattedMessage
+                        id='textbox.quote'
+                        defaultMessage='>quote'
+                    />
+                </span>
+            </div>
+        );
 
         return (
             <div
@@ -192,16 +228,20 @@ export default class Textbox extends React.Component {
                     dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.messageText) : ''}}
                 >
                 </div>
-                {previewLink}
-                <a
-                    onClick={this.showHelp}
-                    className='textbox-help-link'
-                >
-                    <FormattedMessage
-                        id='textbox.help'
-                        defaultMessage='Help'
-                    />
-                </a>
+                {helpText}
+                <div className='help__text'>
+                    {previewLink}
+                    <a
+                        target='_blank'
+                        href='http://docs.mattermost.com/help/getting-started/messaging-basics.html'
+                        className='textbox-help-link'
+                    >
+                        <FormattedMessage
+                            id='textbox.help'
+                            defaultMessage='Help'
+                        />
+                    </a>
+                </div>
             </div>
         );
     }
@@ -217,7 +257,6 @@ Textbox.propTypes = {
     messageText: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
-    onHeightChange: React.PropTypes.func,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,
     supportsCommands: React.PropTypes.bool.isRequired

@@ -145,12 +145,27 @@
             .form-group {
                 margin-bottom: 25px;
             }
-            .help-text {
-                ul, ol {
-                    padding-left: 23px;
+            .file__upload {
+                position: relative;
+                margin: 0 10px 10px 0;
+                display: inline-block;
+                input {
+                    position: absolute;
+                    @include opacity(0);
+                    width: 100%;
+                    height: 100%;
+                    z-index: 5;
+                    top: 0;
+                    left: 0;
                 }
             }
             .help-text {
+                &.no-margin {
+                    margin: 0;
+                }
+                ul, ol {
+                    padding-left: 23px;
+                }
                 margin: 10px 0 0 15px;
                 color: #777;
                 .help-link {
@@ -233,6 +248,14 @@
                     display: none;
                 }
             }
+        }
+    }
+
+    .member-list-holder {
+        .member-role, .member-drop {
+            position: absolute;
+            right: 15px;
+            top: 8px;
         }
     }
 }

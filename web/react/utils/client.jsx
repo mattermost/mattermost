@@ -4,6 +4,15 @@ import BrowserStore from '../stores/browser_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import ErrorStore from '../stores/error_store.jsx';
 
+let translations = {
+    connectionError: 'There appears to be a problem with your internet connection.',
+    unknownError: 'We received an unexpected status code from the server.'
+};
+
+export function setTranslations(messages) {
+    translations = messages;
+}
+
 export function track(category, action, label, property, value) {
     global.window.analytics.track(action, {category, label, property, value});
 }
@@ -23,23 +32,14 @@ function handleError(methodName, xhr, status, err) {
     var msg = '';
 
     if (e) {
-        msg = 'error in ' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
+        msg = 'method=' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
     } else {
-        msg = 'error in ' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
+        msg = 'method=' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
 
         if (xhr.status === 0) {
-            let errorCount = 1;
-            const oldError = ErrorStore.getLastError();
-            let connectError = 'There appears to be a problem with your internet connection';
-
-            if (oldError && oldError.connErrorCount) {
-                errorCount += oldError.connErrorCount;
-                connectError = 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.';
-            }
-
-            e = {message: connectError, connErrorCount: errorCount};
+            e = {message: translations.connectionError};
         } else {
-            e = {message: 'We received an unexpected status code from the server (' + xhr.status + ')'};
+            e = {message: translations.unknownError + ' (' + xhr.status + ')'};
         }
     }
 
@@ -75,6 +75,21 @@ export function getTranslations(locale, success, error) {
 export function createTeamFromSignup(teamSignup, success, error) {
     $.ajax({
         url: '/api/v1/teams/create_from_signup',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(teamSignup),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('createTeamFromSignup', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function createTeamWithLdap(teamSignup, success, error) {
+    $.ajax({
+        url: '/api/v1/teams/create_with_ldap',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
@@ -279,7 +294,7 @@ export function logout() {
     var currentTeamUrl = TeamStore.getCurrentTeamUrl();
     BrowserStore.signalLogout();
     BrowserStore.clear();
-    ErrorStore.storeLastError(null);
+    ErrorStore.clearLastError();
     window.location.href = currentTeamUrl + '/logout';
 }
 
@@ -300,6 +315,28 @@ export function loginByEmail(name, email, password, success, error) {
             track('api', 'api_users_login_fail', name, 'email', email);
 
             var e = handleError('loginByEmail', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function loginByUsername(name, username, password, success, error) {
+    $.ajax({
+        url: '/api/v1/users/login',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({name, username, password}),
+        success: function onSuccess(data, textStatus, xhr) {
+            track('api', 'api_users_login_success', data.team_id, 'username', data.username);
+            sessionStorage.removeItem(data.id + '_last_error');
+            BrowserStore.signalLogin();
+            success(data, textStatus, xhr);
+        },
+        error: function onError(xhr, status, err) {
+            track('api', 'api_users_login_fail', name, 'username', username);
+
+            var e = handleError('loginByUsername', xhr, status, err);
             error(e);
         }
     });
@@ -385,6 +422,20 @@ export function getLogs(success, error) {
     });
 }
 
+export function getServerAudits(success, error) {
+    $.ajax({
+        url: '/api/v1/admin/audits',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getServerAudits', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function getConfig(success, error) {
     $.ajax({
         url: '/api/v1/admin/config',
@@ -399,23 +450,16 @@ export function getConfig(success, error) {
     });
 }
 
-export function getTeamAnalytics(teamId, name, success, error) {
-    $.ajax({
-        url: '/api/v1/admin/analytics/' + teamId + '/' + name,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('getTeamAnalytics', xhr, status, err);
-            error(e);
-        }
-    });
-}
+export function getAnalytics(name, teamId, success, error) {
+    let url = '/api/v1/admin/analytics/';
+    if (teamId == null) {
+        url += name;
+    } else {
+        url += teamId + '/' + name;
+    }
 
-export function getSystemAnalytics(name, success, error) {
     $.ajax({
-        url: '/api/v1/admin/analytics/' + name,
+        url,
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
@@ -872,14 +916,86 @@ export function getChannelExtraInfo(id, memberLimit, success, error) {
 
 export function executeCommand(channelId, command, suggest, success, error) {
     $.ajax({
-        url: '/api/v1/command',
+        url: '/api/v1/commands/execute',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({channelId: channelId, command: command, suggest: '' + suggest}),
+        data: JSON.stringify({channelId, command, suggest: '' + suggest}),
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('executeCommand', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function addCommand(cmd, success, error) {
+    $.ajax({
+        url: '/api/v1/commands/create',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(cmd),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('addCommand', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function deleteCommand(data, success, error) {
+    $.ajax({
+        url: '/api/v1/commands/delete',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('deleteCommand', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function listTeamCommands(success, error) {
+    $.ajax({
+        url: '/api/v1/commands/list_team_commands',
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('listTeamCommands', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function regenCommandToken(data, success, error) {
+    $.ajax({
+        url: '/api/v1/commands/regen_token',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('regenCommandToken', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function listCommands(success, error) {
+    $.ajax({
+        url: '/api/v1/commands/list',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('listCommands', xhr, status, err);
             error(e);
         }
     });
@@ -1322,7 +1438,7 @@ export function listIncomingHooks(success, error) {
 
 export function getAllPreferences(success, error) {
     $.ajax({
-        url: `/api/v1/preferences/`,
+        url: '/api/v1/preferences/',
         dataType: 'json',
         type: 'GET',
         success,

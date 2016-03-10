@@ -150,6 +150,9 @@
         }
         .more-name {
             margin-left: 6px;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     }
 }

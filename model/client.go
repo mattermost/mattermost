@@ -280,6 +280,14 @@ func (c *Client) LoginByEmail(name string, email string, password string) (*Resu
 	return c.login(m)
 }
 
+func (c *Client) LoginByUsername(name string, username string, password string) (*Result, *AppError) {
+	m := make(map[string]string)
+	m["name"] = name
+	m["username"] = username
+	m["password"] = password
+	return c.login(m)
+}
+
 func (c *Client) LoginByEmailWithDevice(name string, email string, password string, deviceId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["name"] = name
@@ -372,11 +380,56 @@ func (c *Client) Command(channelId string, command string, suggest bool) (*Resul
 	m["command"] = command
 	m["channelId"] = channelId
 	m["suggest"] = strconv.FormatBool(suggest)
-	if r, err := c.DoApiPost("/command", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/commands/execute", MapToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), CommandResponseFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) ListCommands() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/commands/list", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), CommandListFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) ListTeamCommands() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/commands/list_team_commands", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), CommandListFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) CreateCommand(cmd *Command) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/commands/create", cmd.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), CommandFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) RegenCommandToken(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/commands/regen_token", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), CommandFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) DeleteCommand(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/commands/delete", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 
@@ -395,6 +448,15 @@ func (c *Client) GetLogs() (*Result, *AppError) {
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ArrayFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetAllAudits() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/admin/audits", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), AuditsFromJson(r.Body)}, nil
 	}
 }
 

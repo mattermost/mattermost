@@ -20,77 +20,7 @@ const SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 class PostStoreClass extends EventEmitter {
     constructor() {
         super();
-
-        this.emitChange = this.emitChange.bind(this);
-        this.addChangeListener = this.addChangeListener.bind(this);
-        this.removeChangeListener = this.removeChangeListener.bind(this);
-
-        this.emitEditPost = this.emitEditPost.bind(this);
-        this.addEditPostListener = this.addEditPostListener.bind(this);
-        this.removeEditPostListener = this.removeEditPostListner.bind(this);
-
-        this.emitPostsViewJump = this.emitPostsViewJump.bind(this);
-        this.addPostsViewJumpListener = this.addPostsViewJumpListener.bind(this);
-        this.removePostsViewJumpListener = this.removePostsViewJumpListener.bind(this);
-
-        this.emitPostFocused = this.emitPostFocused.bind(this);
-        this.addPostFocusedListener = this.addPostFocusedListener.bind(this);
-        this.removePostFocusedListener = this.removePostFocusedListener.bind(this);
-
-        this.makePostsInfo = this.makePostsInfo.bind(this);
-
-        this.getPost = this.getPost.bind(this);
-        this.getAllPosts = this.getAllPosts.bind(this);
-        this.getEarliestPost = this.getEarliestPost.bind(this);
-        this.getLatestPost = this.getLatestPost.bind(this);
-        this.getVisiblePosts = this.getVisiblePosts.bind(this);
-        this.getVisibilityAtTop = this.getVisibilityAtTop.bind(this);
-        this.getVisibilityAtBottom = this.getVisibilityAtBottom.bind(this);
-        this.requestVisibilityIncrease = this.requestVisibilityIncrease.bind(this);
-        this.getFocusedPostId = this.getFocusedPostId.bind(this);
-
-        this.storePosts = this.storePosts.bind(this);
-        this.storePost = this.storePost.bind(this);
-        this.storeFocusedPost = this.storeFocusedPost.bind(this);
-        this.checkBounds = this.checkBounds.bind(this);
-
-        this.clearFocusedPost = this.clearFocusedPost.bind(this);
-        this.clearChannelVisibility = this.clearChannelVisibility.bind(this);
-
-        this.removePost = this.removePost.bind(this);
-
-        this.getPendingPosts = this.getPendingPosts.bind(this);
-        this.storePendingPost = this.storePendingPost.bind(this);
-        this.removePendingPost = this.removePendingPost.bind(this);
-        this.clearPendingPosts = this.clearPendingPosts.bind(this);
-        this.updatePendingPost = this.updatePendingPost.bind(this);
-
-        this.storeUnseenDeletedPost = this.storeUnseenDeletedPost.bind(this);
-        this.getUnseenDeletedPosts = this.getUnseenDeletedPosts.bind(this);
-        this.clearUnseenDeletedPosts = this.clearUnseenDeletedPosts.bind(this);
-
-        // These functions are bad and work should be done to remove this system when the RHS dies
-        this.storeSelectedPost = this.storeSelectedPost.bind(this);
-        this.getSelectedPost = this.getSelectedPost.bind(this);
-        this.emitSelectedPostChange = this.emitSelectedPostChange.bind(this);
-        this.addSelectedPostChangeListener = this.addSelectedPostChangeListener.bind(this);
-        this.removeSelectedPostChangeListener = this.removeSelectedPostChangeListener.bind(this);
-        this.selectedPost = null;
-
-        this.getEmptyDraft = this.getEmptyDraft.bind(this);
-        this.storeCurrentDraft = this.storeCurrentDraft.bind(this);
-        this.getCurrentDraft = this.getCurrentDraft.bind(this);
-        this.storeDraft = this.storeDraft.bind(this);
-        this.getDraft = this.getDraft.bind(this);
-        this.storeCommentDraft = this.storeCommentDraft.bind(this);
-        this.getCommentDraft = this.getCommentDraft.bind(this);
-        this.clearDraftUploads = this.clearDraftUploads.bind(this);
-        this.clearCommentDraftUploads = this.clearCommentDraftUploads.bind(this);
-        this.storeLatestUpdate = this.storeLatestUpdate.bind(this);
-        this.getLatestUpdate = this.getLatestUpdate.bind(this);
-        this.getCurrentUsersLatestPost = this.getCurrentUsersLatestPost.bind(this);
-        this.getCommentCount = this.getCommentCount.bind(this);
-
+        this.selectedPostId = null;
         this.postsInfo = {};
         this.currentFocusedPostId = null;
     }
@@ -211,28 +141,6 @@ class PostStoreClass extends EventEmitter {
                 postList.order = this.postsInfo[id].pendingPosts.order.concat(postList.order);
             }
 
-            // Add deleted posts
-            if (this.postsInfo[id].hasOwnProperty('deletedPosts')) {
-                Object.assign(postList.posts, this.postsInfo[id].deletedPosts);
-
-                for (const postID in this.postsInfo[id].deletedPosts) {
-                    if (this.postsInfo[id].deletedPosts.hasOwnProperty(postID)) {
-                        postList.order.push(postID);
-                    }
-                }
-
-                // Merge would be faster
-                postList.order.sort((a, b) => {
-                    if (postList.posts[a].create_at > postList.posts[b].create_at) {
-                        return -1;
-                    }
-                    if (postList.posts[a].create_at < postList.posts[b].create_at) {
-                        return 1;
-                    }
-                    return 0;
-                });
-            }
-
             return postList;
         }
 
@@ -283,17 +191,8 @@ class PostStoreClass extends EventEmitter {
                 const np = newPosts.posts[pid];
                 if (np.delete_at === 0) {
                     combinedPosts.posts[pid] = np;
-                    if (combinedPosts.order.indexOf(pid) === -1) {
+                    if (combinedPosts.order.indexOf(pid) === -1 && newPosts.order.indexOf(pid) !== -1) {
                         combinedPosts.order.push(pid);
-                    }
-                } else {
-                    if (pid in combinedPosts.posts) {
-                        Reflect.deleteProperty(combinedPosts.posts, pid);
-                    }
-
-                    const index = combinedPosts.order.indexOf(pid);
-                    if (index !== -1) {
-                        combinedPosts.order.splice(index, 1);
                     }
                 }
             }
@@ -365,6 +264,28 @@ class PostStoreClass extends EventEmitter {
         this.postsInfo[id].atBottom = atBottom;
     }
 
+    deletePost(post) {
+        const postInfo = this.postsInfo[post.channel_id];
+        if (!postInfo) {
+            // the post that has been deleted is in a channel that we haven't seen so just ignore it
+            return;
+        }
+
+        const postList = this.postsInfo[post.channel_id].postList;
+
+        if (isPostListNull(postList)) {
+            return;
+        }
+
+        if (post.id in postList.posts) {
+            // make sure to copy the post so that component state changes work properly
+            postList.posts[post.id] = Object.assign({}, post, {
+                state: Constants.POST_DELETED,
+                filenames: []
+            });
+        }
+    }
+
     removePost(post) {
         const channelId = post.channel_id;
         this.makePostsInfo(channelId);
@@ -382,6 +303,20 @@ class PostStoreClass extends EventEmitter {
             postList.order.splice(index, 1);
         }
 
+        for (const pid in postList.posts) {
+            if (!postList.posts.hasOwnProperty(pid)) {
+                continue;
+            }
+
+            if (postList.posts[pid].root_id === post.id) {
+                Reflect.deleteProperty(postList.posts, pid);
+                const commentIndex = postList.order.indexOf(pid);
+                if (commentIndex !== -1) {
+                    postList.order.splice(commentIndex, 1);
+                }
+            }
+        }
+
         this.postsInfo[channelId].postList = postList;
     }
 
@@ -394,15 +329,16 @@ class PostStoreClass extends EventEmitter {
     }
 
     storePendingPost(post) {
-        post.state = Constants.POST_LOADING;
+        const copyPost = JSON.parse(JSON.stringify(post));
+        copyPost.state = Constants.POST_LOADING;
 
-        const postList = makePostListNonNull(this.getPendingPosts(post.channel_id));
+        const postList = makePostListNonNull(this.getPendingPosts(copyPost.channel_id));
 
-        postList.posts[post.pending_post_id] = post;
-        postList.order.unshift(post.pending_post_id);
+        postList.posts[copyPost.pending_post_id] = copyPost;
+        postList.order.unshift(copyPost.pending_post_id);
 
-        this.makePostsInfo(post.channel_id);
-        this.postsInfo[post.channel_id].pendingPosts = postList;
+        this.makePostsInfo(copyPost.channel_id);
+        this.postsInfo[copyPost.channel_id].pendingPosts = postList;
         this.emitChange();
     }
 
@@ -428,54 +364,71 @@ class PostStoreClass extends EventEmitter {
     }
 
     updatePendingPost(post) {
-        const postList = makePostListNonNull(this.getPendingPosts(post.channel_id));
+        const copyPost = JSON.parse(JSON.stringify(post));
+        const postList = makePostListNonNull(this.getPendingPosts(copyPost.channel_id));
 
-        if (postList.order.indexOf(post.pending_post_id) === -1) {
+        if (postList.order.indexOf(copyPost.pending_post_id) === -1) {
             return;
         }
 
-        postList.posts[post.pending_post_id] = post;
-        this.postsInfo[post.channel_id].pendingPosts = postList;
+        postList.posts[copyPost.pending_post_id] = copyPost;
+        this.postsInfo[copyPost.channel_id].pendingPosts = postList;
         this.emitChange();
     }
 
-    storeUnseenDeletedPost(post) {
-        let posts = this.getUnseenDeletedPosts(post.channel_id);
-
-        if (!posts) {
-            posts = {};
-        }
-
-        post.message = '(message deleted)';
-        post.state = Constants.POST_DELETED;
-        post.filenames = [];
-
-        posts[post.id] = post;
-
-        this.makePostsInfo(post.channel_id);
-        this.postsInfo[post.channel_id].deletedPosts = posts;
+    storeSelectedPostId(postId) {
+        this.selectedPostId = postId;
     }
 
-    getUnseenDeletedPosts(channelId) {
-        if (this.postsInfo.hasOwnProperty(channelId)) {
-            return this.postsInfo[channelId].deletedPosts;
+    getSelectedPostId() {
+        return this.selectedPostId;
+    }
+
+    getSelectedPost() {
+        if (this.selectedPostId == null) {
+            return null;
+        }
+
+        for (const k in this.postsInfo) {
+            if (this.postsInfo[k].postList.posts.hasOwnProperty(this.selectedPostId)) {
+                return this.postsInfo[k].postList.posts[this.selectedPostId];
+            }
         }
 
         return null;
     }
 
-    clearUnseenDeletedPosts(channelId) {
-        if (this.postsInfo.hasOwnProperty(channelId)) {
-            Reflect.deleteProperty(this.postsInfo[channelId], 'deletedPosts');
+    getSelectedPostThread() {
+        if (this.selectedPostId == null) {
+            return null;
         }
-    }
 
-    storeSelectedPost(postList) {
-        this.selectedPost = postList;
-    }
+        let posts;
+        let pendingPosts;
+        for (const k in this.postsInfo) {
+            if (this.postsInfo[k].postList.posts.hasOwnProperty(this.selectedPostId)) {
+                posts = this.postsInfo[k].postList.posts;
+                if (this.postsInfo[k].pendingPosts != null) {
+                    pendingPosts = this.postsInfo[k].pendingPosts.posts;
+                }
+            }
+        }
 
-    getSelectedPost() {
-        return this.selectedPost;
+        const threadPosts = {};
+        const rootId = this.selectedPostId;
+        for (const k in posts) {
+            if (posts[k].root_id === rootId) {
+                threadPosts[k] = JSON.parse(JSON.stringify(posts[k]));
+            }
+        }
+
+        for (const k in pendingPosts) {
+            if (pendingPosts[k].root_id === rootId) {
+                threadPosts[k] = JSON.parse(JSON.stringify(pendingPosts[k]));
+            }
+        }
+
+        return threadPosts;
     }
 
     emitSelectedPostChange(fromSearch) {
@@ -554,19 +507,6 @@ class PostStoreClass extends EventEmitter {
             }
         });
     }
-    storeLatestUpdate(channelId, time) {
-        if (!this.postsInfo.hasOwnProperty(channelId)) {
-            this.postsInfo[channelId] = {};
-        }
-        this.postsInfo[channelId].latestPost = time;
-    }
-    getLatestUpdate(channelId) {
-        if (this.postsInfo.hasOwnProperty(channelId) && this.postsInfo[channelId].hasOwnProperty('latestPost')) {
-            return this.postsInfo[channelId].latestPost;
-        }
-
-        return 0;
-    }
     getCommentCount(post) {
         const posts = this.getAllPosts(post.channel_id).posts;
 
@@ -589,30 +529,29 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_POSTS: {
+    case ActionTypes.RECEIVED_POSTS: {
         const id = PostStore.currentFocusedPostId == null ? action.id : PostStore.currentFocusedPostId;
         PostStore.checkBounds(id, action.numRequested, makePostListNonNull(action.post_list), action.before);
         PostStore.storePosts(id, makePostListNonNull(action.post_list));
         PostStore.emitChange();
         break;
     }
-    case ActionTypes.RECIEVED_FOCUSED_POST:
+    case ActionTypes.RECEIVED_FOCUSED_POST:
         PostStore.clearChannelVisibility(action.postId, false);
         PostStore.storeFocusedPost(action.postId, makePostListNonNull(action.post_list));
         PostStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_POST:
+    case ActionTypes.RECEIVED_POST:
         PostStore.storePost(action.post);
         PostStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_EDIT_POST:
+    case ActionTypes.RECEIVED_EDIT_POST:
         PostStore.emitEditPost(action);
         PostStore.emitChange();
         break;
     case ActionTypes.CLICK_CHANNEL:
         PostStore.clearFocusedPost();
         PostStore.clearChannelVisibility(action.id, true);
-        PostStore.clearUnseenDeletedPosts(action.prev);
         break;
     case ActionTypes.CREATE_POST:
         PostStore.storePendingPost(action.post);
@@ -620,12 +559,15 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         PostStore.jumpPostsViewToBottom();
         break;
     case ActionTypes.POST_DELETED:
-        PostStore.storeUnseenDeletedPost(action.post);
+        PostStore.deletePost(action.post);
+        PostStore.emitChange();
+        break;
+    case ActionTypes.REMOVE_POST:
         PostStore.removePost(action.post);
         PostStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_POST_SELECTED:
-        PostStore.storeSelectedPost(action.post_list);
+    case ActionTypes.RECEIVED_POST_SELECTED:
+        PostStore.storeSelectedPostId(action.postId);
         PostStore.emitSelectedPostChange(action.from_search);
         break;
     default:
@@ -665,4 +607,8 @@ function isPostListNull(pl) {
     }
 
     return false;
+}
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.PostStore = PostStore;
 }

@@ -50,6 +50,7 @@ export default class AdminSidebar extends React.Component {
 
     removeTeam(teamId, e) {
         e.preventDefault();
+        e.stopPropagation();
         Reflect.deleteProperty(this.props.selectedTeams, teamId);
         this.props.removeSelectedTeam(teamId);
 
@@ -214,10 +215,28 @@ export default class AdminSidebar extends React.Component {
             );
         }
 
+        let audits;
+        if (global.window.mm_license.IsLicensed === 'true') {
+            audits = (
+                <li>
+                    <a
+                        href='#'
+                        className={this.isSelected('audits')}
+                        onClick={this.handleClick.bind(this, 'audits', null)}
+                    >
+                        <FormattedMessage
+                            id='admin.sidebar.audits'
+                            defaultMessage='Compliance and Auditing'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
         return (
             <div className='sidebar--left sidebar--collapsable'>
                 <div>
-                    <AdminSidebarHeader />
+                    <AdminSidebarHeader/>
                     <div className='nav-pills__container'>
                         <ul className='nav nav-pills nav-stacked'>
                             <li>
@@ -436,6 +455,7 @@ export default class AdminSidebar extends React.Component {
                                 </ul>
                                 <ul className='nav nav__sub-menu padded'>
                                     {licenseSettings}
+                                    {audits}
                                     <li>
                                         <a
                                             href='#'

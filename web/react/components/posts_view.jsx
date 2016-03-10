@@ -8,6 +8,9 @@ import * as Utils from '../utils/utils.jsx';
 import Post from './post.jsx';
 import Constants from '../utils/constants.jsx';
 import DelayedAction from '../utils/delayed_action.jsx';
+
+import {FormattedDate, FormattedMessage} from 'mm-intl';
+
 const Preferences = Constants.Preferences;
 
 export default class PostsView extends React.Component {
@@ -91,7 +94,7 @@ export default class PostsView extends React.Component {
             });
         }
 
-        this.scrollStopAction.fireAfter(1000);
+        this.scrollStopAction.fireAfter(2000);
     }
     handleScrollStop() {
         this.setState({
@@ -142,6 +145,7 @@ export default class PostsView extends React.Component {
         const postCtls = [];
         let previousPostDay = new Date(0);
         const userId = UserStore.getCurrentId();
+        const profiles = this.props.profiles || {};
 
         let renderedLastViewed = false;
 
@@ -225,6 +229,13 @@ export default class PostsView extends React.Component {
 
             const shouldHighlight = this.props.postsToHighlight && this.props.postsToHighlight.hasOwnProperty(post.id);
 
+            let profile;
+            if (UserStore.getCurrentId() === post.user_id) {
+                profile = UserStore.getCurrentUser();
+            } else {
+                profile = profiles[post.user_id];
+            }
+
             const postCtl = (
                 <Post
                     key={keyPrefix + 'postKey'}
@@ -239,6 +250,7 @@ export default class PostsView extends React.Component {
                     shouldHighlight={shouldHighlight}
                     onClick={() => EventHelpers.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
                     displayNameType={this.state.displayNameType}
+                    user={profile}
                 />
             );
 
@@ -249,8 +261,16 @@ export default class PostsView extends React.Component {
                         key={currentPostDay.toDateString()}
                         className='date-separator'
                     >
-                        <hr className='separator__hr' />
-                        <div className='separator__text'>{currentPostDay.toDateString()}</div>
+                        <hr className='separator__hr'/>
+                        <div className='separator__text'>
+                            <FormattedDate
+                                value={currentPostDay}
+                                weekday='short'
+                                month='short'
+                                day='2-digit'
+                                year='numeric'
+                            />
+                        </div>
                     </div>
                 );
             }
@@ -276,7 +296,12 @@ export default class PostsView extends React.Component {
                         <hr
                             className='separator__hr'
                         />
-                        <div className='separator__text'>{'New Messages'}</div>
+                        <div className='separator__text'>
+                            <FormattedMessage
+                                id='posts_view.newMsg'
+                                defaultMessage='New Messages'
+                            />
+                        </div>
                     </div>
                 );
             }
@@ -295,7 +320,7 @@ export default class PostsView extends React.Component {
                 if (this.refs.newMessageSeparator) {
                     var objDiv = this.refs.postlist;
                     objDiv.scrollTop = this.refs.newMessageSeparator.offsetTop; //scrolls node to top of Div
-                } else {
+                } else if (this.refs.postlist) {
                     this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
                 }
             });
@@ -397,6 +422,9 @@ export default class PostsView extends React.Component {
         if (this.state.isScrolling !== nextState.isScrolling) {
             return true;
         }
+        if (!Utils.areObjectsEqual(this.props.profiles, nextProps.profiles)) {
+            return true;
+        }
 
         return false;
     }
@@ -420,7 +448,10 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsTop}
                     >
-                        {'Load more messages'}
+                        <FormattedMessage
+                            id='posts_view.loadMore'
+                            defaultMessage='Load more messages'
+                        />
                     </a>
                 );
             } else {
@@ -436,7 +467,7 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsBottom}
                     >
-                        {'Load more messages'}
+                        <FormattedMessage id='posts_view.loadMore'/>
                     </a>
                 );
             } else {
@@ -494,6 +525,7 @@ PostsView.defaultProps = {
 PostsView.propTypes = {
     isActive: React.PropTypes.bool,
     postList: React.PropTypes.object,
+    profiles: React.PropTypes.object,
     scrollPostId: React.PropTypes.string,
     scrollType: React.PropTypes.number,
     postViewScrolled: React.PropTypes.func.isRequired,
@@ -509,14 +541,22 @@ PostsView.propTypes = {
 function FloatingTimestamp({isScrolling, post}) {
     // only show on mobile
     if ($(window).width() > 768) {
-        return <noscript />;
+        return <noscript/>;
     }
 
     if (!post) {
-        return <noscript />;
+        return <noscript/>;
     }
 
-    const dateString = Utils.getDateForUnixTicks(post.create_at).toDateString();
+    const dateString = (
+        <FormattedDate
+            value={post.create_at}
+            weekday='short'
+            day='2-digit'
+            month='short'
+            year='numeric'
+        />
+    );
 
     let className = 'post-list__timestamp';
     if (isScrolling) {
@@ -530,10 +570,15 @@ function FloatingTimestamp({isScrolling, post}) {
     );
 }
 
+FloatingTimestamp.propTypes = {
+    isScrolling: React.PropTypes.bool.isRequired,
+    post: React.PropTypes.object
+};
+
 function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
     // only show on mobile
     if ($(window).width() > 768) {
-        return <noscript />;
+        return <noscript/>;
     }
 
     let className = 'post-list__arrows';
@@ -545,6 +590,14 @@ function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
         <div
             className={className}
             onClick={onClick}
-        />
+        >
+            <span dangerouslySetInnerHTML={{__html: Constants.SCROLL_BOTTOM_ICON}}/>
+        </div>
     );
 }
+
+ScrollToBottomArrows.propTypes = {
+    isScrolling: React.PropTypes.bool.isRequired,
+    atBottom: React.PropTypes.bool.isRequired,
+    onClick: React.PropTypes.func.isRequired
+};

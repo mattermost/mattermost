@@ -254,7 +254,7 @@ class SignupUserComplete extends React.Component {
                         key='gitlab'
                         href={'/' + this.props.teamName + '/signup/gitlab' + window.location.search}
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='signup_user_completed.gitlab'
@@ -272,7 +272,7 @@ class SignupUserComplete extends React.Component {
                     key='google'
                     href={'/' + this.props.teamName + '/signup/google' + window.location.search}
                 >
-                    <span className='icon' />
+                    <span className='icon'/>
                     <span>
                         <FormattedMessage
                             id='signup_user_completed.google'
@@ -303,7 +303,7 @@ class SignupUserComplete extends React.Component {
                                     ref='name'
                                     className='form-control'
                                     placeholder=''
-                                    maxLength='128'
+                                    maxLength={Constants.MAX_USERNAME_LENGTH}
                                     spellCheck='false'
                                 />
                                 {nameError}
@@ -351,13 +351,22 @@ class SignupUserComplete extends React.Component {
                 <div>
                     {signupMessage}
                     <div className='or__container'>
-                        <span>
-                            <FormattedMessage
-                                id='signup_user_completed.or'
-                                defaultMessage='or'
-                            />
-                        </span>
+                        <FormattedMessage
+                            id='signup_user_completed.or'
+                            defaultMessage='or'
+                        />
                     </div>
+                </div>
+            );
+        }
+
+        if (signupMessage.length === 0 && !emailSignup) {
+            emailSignup = (
+                <div>
+                    <FormattedMessage
+                        id='signup_user_completed.none'
+                        defaultMessage='No user creation method has been enabled.  Please contact an administrator for access.'
+                    />
                 </div>
             );
         }

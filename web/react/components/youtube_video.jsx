@@ -94,6 +94,7 @@ export default class YoutubeVideo extends React.Component {
             receivedYoutubeData: true,
             title: metadata.title
         });
+        return null;
     }
 
     play() {

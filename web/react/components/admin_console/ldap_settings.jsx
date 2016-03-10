@@ -20,7 +20,7 @@ var holders = defineMessages({
     },
     baseEx: {
         id: 'admin.ldap.baseEx',
-        defaultMessage: 'Ex "dc=mydomain,dc=com"'
+        defaultMessage: 'Ex "ou=Unit Name,dc=corp,dc=example,dc=com"'
     },
     firstnameAttrEx: {
         id: 'admin.ldap.firstnameAttrEx',
@@ -32,7 +32,7 @@ var holders = defineMessages({
     },
     emailAttrEx: {
         id: 'admin.ldap.emailAttrEx',
-        defaultMessage: 'Ex "mail"'
+        defaultMessage: 'Ex "mail" or "userPrincipalName"'
     },
     usernameAttrEx: {
         id: 'admin.ldap.usernameAttrEx',
@@ -164,7 +164,7 @@ class LdapSettings extends React.Component {
                     <div className='banner__content'>
                         <FormattedHTMLMessage
                             id='admin.ldap.noLicense'
-                            defaultMessage='<h4 className="banner__heading">Note:</h4><p>LDAP is an enterprise feature. Your current license does not support LDAP. Click <a href="http://mattermost.com"target="_blank">here</a> for information and pricing on enterprise licenses.</p>'
+                            defaultMessage='<h4 class="banner__heading">Note:</h4><p>LDAP is an enterprise feature. Your current license does not support LDAP. Click <a href="http://mattermost.com"target="_blank">here</a> for information and pricing on enterprise licenses.</p>'
                         />
                     </div>
                 </div>

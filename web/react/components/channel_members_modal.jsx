@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import FilteredUserList from './filtered_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
-import MemberList from './member_list.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
 
 import UserStore from '../stores/user_store.jsx';
@@ -11,6 +11,8 @@ import ChannelStore from '../stores/channel_store.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
+
+import {FormattedMessage} from 'mm-intl';
 
 const Modal = ReactBootstrap.Modal;
 
@@ -21,6 +23,8 @@ export default class ChannelMembersModal extends React.Component {
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
+
+        this.createRemoveMemberButton = this.createRemoveMemberButton.bind(this);
 
         // the rest of the state gets populated when the modal is shown
         this.state = {
@@ -40,6 +44,7 @@ export default class ChannelMembersModal extends React.Component {
     }
     getStateFromStores() {
         const extraInfo = ChannelStore.getCurrentExtraInfo();
+        const profiles = UserStore.getActiveOnlyProfiles();
 
         if (extraInfo.member_count !== extraInfo.members.length) {
             AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
@@ -49,24 +54,9 @@ export default class ChannelMembersModal extends React.Component {
             };
         }
 
-        const users = UserStore.getActiveOnlyProfiles();
-        const memberList = extraInfo.members;
-
-        const nonmemberList = [];
-        for (const id in users) {
-            if (users.hasOwnProperty(id)) {
-                let found = false;
-                for (let i = 0; i < memberList.length; i++) {
-                    if (memberList[i].id === id) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    nonmemberList.push(users[id]);
-                }
-            }
-        }
+        const memberList = extraInfo.members.map((member) => {
+            return profiles[member.id];
+        });
 
         function compareByUsername(a, b) {
             if (a.username < b.username) {
@@ -79,23 +69,11 @@ export default class ChannelMembersModal extends React.Component {
         }
 
         memberList.sort(compareByUsername);
-        nonmemberList.sort(compareByUsername);
 
         return {
-            nonmemberList,
             memberList,
             loading: false
         };
-    }
-    onShow() {
-        if ($(window).width() > 768) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
-        }
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
     }
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
@@ -114,41 +92,25 @@ export default class ChannelMembersModal extends React.Component {
             this.setState(newState);
         }
     }
-    handleRemove(userId) {
-        // Make sure the user is a member of the channel
-        const memberList = this.state.memberList;
-        let found = false;
-        for (let i = 0; i < memberList.length; i++) {
-            if (memberList[i].id === userId) {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
+    handleRemove(user) {
+        const userId = user.id;
 
         const data = {};
         data.user_id = userId;
 
-        Client.removeChannelMember(ChannelStore.getCurrentId(), data,
+        Client.removeChannelMember(
+            ChannelStore.getCurrentId(),
+            data,
             () => {
-                let oldMember;
+                const memberList = this.state.memberList.slice();
                 for (let i = 0; i < memberList.length; i++) {
                     if (userId === memberList[i].id) {
-                        oldMember = memberList[i];
                         memberList.splice(i, 1);
                         break;
                     }
                 }
 
-                const nonmemberList = this.state.nonmemberList;
-                if (oldMember) {
-                    nonmemberList.push(oldMember);
-                }
-
-                this.setState({memberList, nonmemberList});
+                this.setState({memberList});
                 AsyncClient.getChannelExtraInfo();
             },
             (err) => {
@@ -156,30 +118,40 @@ export default class ChannelMembersModal extends React.Component {
             }
          );
     }
+    createRemoveMemberButton({user}) {
+        if (user.id === UserStore.getCurrentId()) {
+            return null;
+        }
+
+        return (
+            <button
+                type='button'
+                className='btn btn-primary btn-message'
+                onClick={this.handleRemove.bind(this, user)}
+            >
+                <FormattedMessage
+                    id='channel_members_modal.remove'
+                    defaultMessage='Remove'
+                />
+            </button>
+        );
+    }
     render() {
-        var maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
-        const currentMember = ChannelStore.getCurrentMember();
-        let isAdmin = false;
-        if (currentMember) {
-            isAdmin = Utils.isAdmin(currentMember.roles) || Utils.isAdmin(UserStore.getCurrentUser().roles);
-        }
-
         let content;
         if (this.state.loading) {
-            content = (<LoadingScreen />);
+            content = (<LoadingScreen/>);
         } else {
+            let maxHeight = 1000;
+            if (Utils.windowHeight() <= 1200) {
+                maxHeight = Utils.windowHeight() - 300;
+            }
+
             content = (
-                <div className='team-member-list'>
-                    <MemberList
-                        memberList={this.state.memberList}
-                        isAdmin={isAdmin}
-                        handleRemove={this.handleRemove}
-                    />
-                </div>
+                <FilteredUserList
+                    style={{maxHeight}}
+                    users={this.state.memberList}
+                    actions={[this.createRemoveMemberButton]}
+                />
             );
         }
 
@@ -191,7 +163,13 @@ export default class ChannelMembersModal extends React.Component {
                     onHide={this.props.onModalDismissed}
                 >
                     <Modal.Header closeButton={true}>
-                        <Modal.Title><span className='name'>{this.props.channel.display_name}</span>{' Members'}</Modal.Title>
+                        <Modal.Title>
+                            <span className='name'>{this.props.channel.display_name}</span>
+                            <FormattedMessage
+                                id='channel_memebers_modal.members'
+                                defaultMessage=' Members'
+                            />
+                        </Modal.Title>
                         <a
                             className='btn btn-md btn-primary'
                             href='#'
@@ -200,12 +178,14 @@ export default class ChannelMembersModal extends React.Component {
                                 this.props.onModalDismissed();
                             }}
                         >
-                            <i className='glyphicon glyphicon-envelope'/>{' Add New Members'}
+                            <FormattedMessage
+                                id='channel_members_modal.addNew'
+                                defaultMessage=' Add New Members'
+                            />
                         </a>
                     </Modal.Header>
                     <Modal.Body
                         ref='modalBody'
-                        style={{maxHeight}}
                     >
                         {content}
                     </Modal.Body>
@@ -215,7 +195,10 @@ export default class ChannelMembersModal extends React.Component {
                             className='btn btn-default'
                             onClick={this.props.onModalDismissed}
                         >
-                            {'Close'}
+                            <FormattedMessage
+                                id='channel_members_modal.close'
+                                defaultMessage='Close'
+                            />
                         </button>
                     </Modal.Footer>
                 </Modal>

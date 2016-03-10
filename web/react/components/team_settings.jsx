@@ -55,7 +55,7 @@ export default class TeamSettings extends React.Component {
         case 'export':
             result = (
                 <div>
-                    <ExportTab />
+                    <ExportTab/>
                 </div>
             );
             break;

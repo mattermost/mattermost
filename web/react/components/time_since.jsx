@@ -4,28 +4,40 @@
 import Constants from '../utils/constants.jsx';
 import * as Utils from '../utils/utils.jsx';
 
+import {FormattedRelative, FormattedDate} from 'mm-intl';
+
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
 export default class TimeSince extends React.Component {
-    constructor(props) {
-        super(props);
-    }
     componentDidMount() {
         this.intervalId = setInterval(() => {
             this.forceUpdate();
-        }, 30000);
+        }, Constants.TIME_SINCE_UPDATE_INTERVAL);
     }
     componentWillUnmount() {
         clearInterval(this.intervalId);
     }
     render() {
-        const displayDate = Utils.displayDate(this.props.eventTime);
-        const displayTime = Utils.displayTime(this.props.eventTime);
+        if (this.props.sameUser) {
+            return (
+                <time className='post__time'>
+                    {Utils.displayTimeFormatted(this.props.eventTime)}
+                </time>
+            );
+        }
 
         const tooltip = (
             <Tooltip id={'time-since-tooltip-' + this.props.eventTime}>
-                {displayDate + ' at ' + displayTime}
+                <FormattedDate
+                    value={this.props.eventTime}
+                    month='long'
+                    day='numeric'
+                    year='numeric'
+                    hour12={true}
+                    hour='numeric'
+                    minute='2-digit'
+                />
             </Tooltip>
         );
 
@@ -36,16 +48,19 @@ export default class TimeSince extends React.Component {
                 overlay={tooltip}
             >
                 <time className='post__time'>
-                    {Utils.displayDateTime(this.props.eventTime)}
+                    <FormattedRelative value={this.props.eventTime}/>
                 </time>
             </OverlayTrigger>
         );
     }
 }
+
 TimeSince.defaultProps = {
-    eventTime: 0
+    eventTime: 0,
+    sameUser: false
 };
 
 TimeSince.propTypes = {
-    eventTime: React.PropTypes.number.isRequired
+    eventTime: React.PropTypes.number.isRequired,
+    sameUser: React.PropTypes.bool
 };

@@ -46,7 +46,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
-	// ADDED for 1.5 REMOVE for 1.8
+	// ADDED for 2.0 REMOVE for 2.4
 	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
 }
 
@@ -159,7 +159,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 						nonUsernameKeys = append(nonUsernameKeys, key)
 					}
 				}
-				user.NotifyProps["mention_keys"] = strings.Join(nonUsernameKeys, ",") + user.Username + ",@" + user.Username
+				user.NotifyProps["mention_keys"] = strings.Join(nonUsernameKeys, ",") + "," + user.Username + ",@" + user.Username
 			}
 
 			if count, err := us.GetMaster().Update(user); err != nil {
@@ -305,7 +305,7 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateAuthData(userId, service, authData string) StoreChannel {
+func (us SqlUserStore) UpdateAuthData(userId, service, authData, email string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -314,7 +314,24 @@ func (us SqlUserStore) UpdateAuthData(userId, service, authData string) StoreCha
 
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = '', LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, FailedAttempts = 0, AuthService = :AuthService, AuthData = :AuthData WHERE Id = :UserId", map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData}); err != nil {
+		query := `
+			UPDATE
+			     Users
+			SET
+			     Password = '',
+			     LastPasswordUpdate = :LastPasswordUpdate,
+			     UpdateAt = :UpdateAt,
+			     FailedAttempts = 0,
+			     AuthService = :AuthService,
+			     AuthData = :AuthData`
+
+		if len(email) != 0 {
+			query += ", Email = :Email"
+		}
+
+		query += " WHERE Id = :UserId"
+
+		if _, err := us.GetMaster().Exec(query, map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData, "Email": email}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdateAuthData", "store.sql_user.update_auth_data.app_error", nil, "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId

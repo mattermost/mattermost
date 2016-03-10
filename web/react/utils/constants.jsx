@@ -5,53 +5,56 @@ import keyMirror from 'keymirror';
 
 export default {
     ActionTypes: keyMirror({
-        RECIEVED_ERROR: null,
+        RECEIVED_ERROR: null,
 
         CLICK_CHANNEL: null,
         CREATE_CHANNEL: null,
         LEAVE_CHANNEL: null,
         CREATE_POST: null,
         POST_DELETED: null,
+        REMOVE_POST: null,
 
-        RECIEVED_CHANNELS: null,
-        RECIEVED_CHANNEL: null,
-        RECIEVED_MORE_CHANNELS: null,
-        RECIEVED_CHANNEL_EXTRA_INFO: null,
+        RECEIVED_CHANNELS: null,
+        RECEIVED_CHANNEL: null,
+        RECEIVED_MORE_CHANNELS: null,
+        RECEIVED_CHANNEL_EXTRA_INFO: null,
 
         FOCUS_POST: null,
-        RECIEVED_POSTS: null,
-        RECIEVED_FOCUSED_POST: null,
-        RECIEVED_POST: null,
-        RECIEVED_EDIT_POST: null,
-        RECIEVED_SEARCH: null,
-        RECIEVED_SEARCH_TERM: null,
-        RECIEVED_POST_SELECTED: null,
-        RECIEVED_MENTION_DATA: null,
-        RECIEVED_ADD_MENTION: null,
+        RECEIVED_POSTS: null,
+        RECEIVED_FOCUSED_POST: null,
+        RECEIVED_POST: null,
+        RECEIVED_EDIT_POST: null,
+        RECEIVED_SEARCH: null,
+        RECEIVED_SEARCH_TERM: null,
+        RECEIVED_POST_SELECTED: null,
+        RECEIVED_MENTION_DATA: null,
+        RECEIVED_ADD_MENTION: null,
 
-        RECIEVED_PROFILES: null,
-        RECIEVED_ME: null,
-        RECIEVED_SESSIONS: null,
-        RECIEVED_AUDITS: null,
-        RECIEVED_TEAMS: null,
-        RECIEVED_STATUSES: null,
-        RECIEVED_PREFERENCE: null,
-        RECIEVED_PREFERENCES: null,
-        RECIEVED_FILE_INFO: null,
+        RECEIVED_PROFILES: null,
+        RECEIVED_ME: null,
+        RECEIVED_SESSIONS: null,
+        RECEIVED_AUDITS: null,
+        RECEIVED_TEAMS: null,
+        RECEIVED_STATUSES: null,
+        RECEIVED_PREFERENCE: null,
+        RECEIVED_PREFERENCES: null,
+        RECEIVED_FILE_INFO: null,
 
-        RECIEVED_MSG: null,
+        RECEIVED_MSG: null,
 
-        RECIEVED_TEAM: null,
+        RECEIVED_TEAM: null,
 
-        RECIEVED_CONFIG: null,
-        RECIEVED_LOGS: null,
-        RECIEVED_ALL_TEAMS: null,
+        RECEIVED_CONFIG: null,
+        RECEIVED_LOGS: null,
+        RECEIVED_SERVER_AUDITS: null,
+        RECEIVED_ALL_TEAMS: null,
 
         SHOW_SEARCH: null,
 
         TOGGLE_IMPORT_THEME_MODAL: null,
         TOGGLE_INVITE_MEMBER_MODAL: null,
         TOGGLE_DELETE_POST_MODAL: null,
+        TOGGLE_GET_POST_LINK_MODAL: null,
         TOGGLE_GET_TEAM_INVITE_LINK_MODAL: null,
         TOGGLE_REGISTER_APP_MODAL: null,
 
@@ -68,6 +71,26 @@ export default {
         VIEW_ACTION: null
     }),
 
+    StatTypes: keyMirror({
+        TOTAL_USERS: null,
+        TOTAL_PUBLIC_CHANNELS: null,
+        TOTAL_PRIVATE_GROUPS: null,
+        TOTAL_POSTS: null,
+        TOTAL_TEAMS: null,
+        TOTAL_FILE_POSTS: null,
+        TOTAL_HASHTAG_POSTS: null,
+        TOTAL_IHOOKS: null,
+        TOTAL_OHOOKS: null,
+        TOTAL_COMMANDS: null,
+        TOTAL_SESSIONS: null,
+        POST_PER_DAY: null,
+        USERS_WITH_POSTS_PER_DAY: null,
+        RECENTLY_ACTIVE_USERS: null,
+        NEWLY_CREATED_USERS: null
+    }),
+    STAT_MAX_ACTIVE_USERS: 20,
+    STAT_MAX_NEW_USERS: 20,
+
     SocketEvents: {
         POSTED: 'posted',
         POST_EDITED: 'post_edited',
@@ -77,7 +100,8 @@ export default {
         USER_ADDED: 'user_added',
         USER_REMOVED: 'user_removed',
         TYPING: 'typing',
-        PREFERENCE_CHANGED: 'preference_changed'
+        PREFERENCE_CHANGED: 'preference_changed',
+        EPHEMERAL_MESSAGE: 'ephemeral_message'
     },
 
     //SPECIAL_MENTIONS: ['all', 'channel'],
@@ -125,6 +149,7 @@ export default {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
+    POST_TYPE_EPHEMERAL: 'system_ephemeral',
     POST_TYPE_JOIN_LEAVE: 'system_join_leave',
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SYSTEM_MESSAGE_PROFILE_NAME: 'System',
@@ -169,6 +194,7 @@ export default {
     MENU_ICON: "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'width='4px' height='16px' viewBox='0 0 8 32' enable-background='new 0 0 8 32' xml:space='preserve'> <g> <circle cx='4' cy='4.062' r='4'/> <circle cx='4' cy='16' r='4'/> <circle cx='4' cy='28' r='4'/> </g> </svg>",
     COMMENT_ICON: "<svg version='1.1' id='Layer_2' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'width='15px' height='15px' viewBox='1 1.5 15 15' enable-background='new 1 1.5 15 15' xml:space='preserve'> <g> <g> <path fill='#211B1B' d='M14,1.5H3c-1.104,0-2,0.896-2,2v8c0,1.104,0.896,2,2,2h1.628l1.884,3l1.866-3H14c1.104,0,2-0.896,2-2v-8 C16,2.396,15.104,1.5,14,1.5z M15,11.5c0,0.553-0.447,1-1,1H8l-1.493,2l-1.504-1.991L5,12.5H3c-0.552,0-1-0.447-1-1v-8 c0-0.552,0.448-1,1-1h11c0.553,0,1,0.448,1,1V11.5z'/> </g> </g> </svg>",
     REPLY_ICON: "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'viewBox='-158 242 18 18' style='enable-background:new -158 242 18 18;' xml:space='preserve'> <path d='M-142.2,252.6c-2-3-4.8-4.7-8.3-4.8v-3.3c0-0.2-0.1-0.3-0.2-0.3s-0.3,0-0.4,0.1l-6.9,6.2c-0.1,0.1-0.1,0.2-0.1,0.3 c0,0.1,0,0.2,0.1,0.3l6.9,6.4c0.1,0.1,0.3,0.1,0.4,0.1c0.1-0.1,0.2-0.2,0.2-0.4v-3.8c4.2,0,7.4,0.4,9.6,4.4c0.1,0.1,0.2,0.2,0.3,0.2 c0,0,0.1,0,0.1,0c0.2-0.1,0.3-0.3,0.2-0.4C-140.2,257.3-140.6,255-142.2,252.6z M-150.8,252.5c-0.2,0-0.4,0.2-0.4,0.4v3.3l-6-5.5 l6-5.3v2.8c0,0.2,0.2,0.4,0.4,0.4c3.3,0,6,1.5,8,4.5c0.5,0.8,0.9,1.6,1.2,2.3C-144,252.8-147.1,252.5-150.8,252.5z'/> </svg>",
+    SCROLL_BOTTOM_ICON: "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'viewBox='-239 239 21 23' style='enable-background:new -239 239 21 23;' xml:space='preserve'> <path d='M-239,241.4l2.4-2.4l8.1,8.2l8.1-8.2l2.4,2.4l-10.5,10.6L-239,241.4z M-228.5,257.2l8.1-8.2l2.4,2.4l-10.5,10.6l-10.5-10.6 l2.4-2.4L-228.5,257.2z'/> </svg>",
     UPDATE_TYPING_MS: 5000,
     THEMES: {
         default: {
@@ -183,8 +209,8 @@ export default {
             sidebarHeaderTextColor: '#FFFFFF',
             onlineIndicator: '#7DBE00',
             awayIndicator: '#DCBD4E',
-            mentionBj: '#136197',
-            mentionColor: '#bfcde8',
+            mentionBj: '#FBFBFB',
+            mentionColor: '#2071A7',
             centerChannelBg: '#f2f4f8',
             centerChannelColor: '#333333',
             newMessageSeparator: '#FF8800',
@@ -270,86 +296,107 @@ export default {
     },
     THEME_ELEMENTS: [
         {
+            group: 'sidebarElements',
             id: 'sidebarBg',
             uiName: 'Sidebar BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarText',
             uiName: 'Sidebar Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarHeaderBg',
             uiName: 'Sidebar Header BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarHeaderTextColor',
             uiName: 'Sidebar Header Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarUnreadText',
             uiName: 'Sidebar Unread Text'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextHoverBg',
             uiName: 'Sidebar Text Hover BG'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextActiveBorder',
             uiName: 'Sidebar Text Active Border'
         },
         {
+            group: 'sidebarElements',
             id: 'sidebarTextActiveColor',
             uiName: 'Sidebar Text Active Color'
         },
         {
+            group: 'sidebarElements',
             id: 'onlineIndicator',
             uiName: 'Online Indicator'
         },
         {
+            group: 'sidebarElements',
             id: 'awayIndicator',
             uiName: 'Away Indicator'
         },
         {
+            group: 'sidebarElements',
             id: 'mentionBj',
             uiName: 'Mention Jewel BG'
         },
         {
+            group: 'sidebarElements',
             id: 'mentionColor',
             uiName: 'Mention Jewel Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'centerChannelBg',
             uiName: 'Center Channel BG'
         },
         {
+            group: 'centerChannelElements',
             id: 'centerChannelColor',
             uiName: 'Center Channel Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'newMessageSeparator',
             uiName: 'New Message Separator'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'linkColor',
             uiName: 'Link Color'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'buttonBg',
             uiName: 'Button BG'
         },
         {
+            group: 'linkAndButtonElements',
             id: 'buttonColor',
             uiName: 'Button Text'
         },
         {
+            group: 'centerChannelElements',
             id: 'mentionHighlightBg',
             uiName: 'Mention Highlight BG'
         },
         {
+            group: 'centerChannelElements',
             id: 'mentionHighlightLink',
             uiName: 'Mention Highlight Link'
         },
         {
+            group: 'centerChannelElements',
             id: 'codeTheme',
             uiName: 'Code Theme',
             themes: [
@@ -390,6 +437,8 @@ export default {
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings',
+        DISPLAY_PREFER_NICKNAME: 'nickname_full_name',
+        DISPLAY_PREFER_FULL_NAME: 'full_name',
         CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
         TUTORIAL_STEP: 'tutorial_step'
     },
@@ -453,14 +502,16 @@ export default {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
         },
-        LOC_PREVIEW: {
-            label: 'loc_preview',
-            description: 'Show user language in display settings'
+        EMBED_TOGGLE: {
+            label: 'embed_toggle',
+            description: 'Show toggle for all embed previews'
         }
     },
     OVERLAY_TIME_DELAY: 400,
     MIN_USERNAME_LENGTH: 3,
-    MAX_USERNAME_LENGTH: 15,
+    MAX_USERNAME_LENGTH: 64,
     MIN_PASSWORD_LENGTH: 5,
-    MAX_PASSWORD_LENGTH: 50
+    MAX_PASSWORD_LENGTH: 50,
+    TIME_SINCE_UPDATE_INTERVAL: 30000,
+    MIN_HASHTAG_LINK_LENGTH: 3
 };

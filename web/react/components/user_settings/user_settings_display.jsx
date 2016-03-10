@@ -1,55 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {savePreferences} from '../../utils/client.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
-import Constants from '../../utils/constants.jsx';
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
-import PreferenceStore from '../../stores/preference_store.jsx';
 import ManageLanguages from './manage_languages.jsx';
+import ThemeSetting from './user_settings_theme.jsx';
+
+import PreferenceStore from '../../stores/preference_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+import Constants from '../../utils/constants.jsx';
 
-const holders = defineMessages({
-    normalClock: {
-        id: 'user.settings.display.normalClock',
-        defaultMessage: '12-hour clock (example: 4:00 PM)'
-    },
-    militaryClock: {
-        id: 'user.settings.display.militaryClock',
-        defaultMessage: '24-hour clock (example: 16:00)'
-    },
-    clockDisplay: {
-        id: 'user.settings.display.clockDisplay',
-        defaultMessage: 'Clock Display'
-    },
-    teammateDisplay: {
-        id: 'user.settings.display.teammateDisplay',
-        defaultMessage: 'Teammate Name Display'
-    },
-    showNickname: {
-        id: 'user.settings.display.showNickname',
-        defaultMessage: 'Show nickname if one exists, otherwise show first and last name'
-    },
-    showUsername: {
-        id: 'user.settings.display.showUsername',
-        defaultMessage: 'Show username (team default)'
-    },
-    showFullname: {
-        id: 'user.settings.display.showFullname',
-        defaultMessage: 'Show first and last name'
-    },
-    fontTitle: {
-        id: 'user.settings.display.fontTitle',
-        defaultMessage: 'Display Font'
-    },
-    language: {
-        id: 'user.settings.display.language',
-        defaultMessage: 'Language'
-    }
-});
+import {savePreferences} from '../../utils/client.jsx';
+import {FormattedMessage} from 'mm-intl';
 
 function getDisplayStateFromStores() {
     const militaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'});
@@ -63,7 +26,7 @@ function getDisplayStateFromStores() {
     };
 }
 
-class UserSettingsDisplay extends React.Component {
+export default class UserSettingsDisplay extends React.Component {
     constructor(props) {
         super(props);
 
@@ -117,7 +80,6 @@ class UserSettingsDisplay extends React.Component {
         this.updateState();
     }
     render() {
-        const {formatMessage} = this.props.intl;
         const serverError = this.state.serverError || null;
         let clockSection;
         let nameFormatSection;
@@ -179,7 +141,12 @@ class UserSettingsDisplay extends React.Component {
 
             clockSection = (
                 <SettingItemMax
-                    title={formatMessage(holders.clockDisplay)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.clockDisplay'
+                            defaultMessage='Clock Display'
+                        />
+                    }
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -187,11 +154,21 @@ class UserSettingsDisplay extends React.Component {
                 />
             );
         } else {
-            let describe = '';
+            let describe;
             if (this.state.militaryTime === 'true') {
-                describe = formatMessage(holders.militaryClock);
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.display.militaryClock'
+                        defaultMessage='24-hour clock (example: 16:00)'
+                    />
+                );
             } else {
-                describe = formatMessage(holders.normalClock);
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.display.normalClock'
+                        defaultMessage='12-hour clock (example: 4:00 PM)'
+                    />
+                );
             }
 
             const handleUpdateClockSection = () => {
@@ -200,7 +177,12 @@ class UserSettingsDisplay extends React.Component {
 
             clockSection = (
                 <SettingItemMin
-                    title={formatMessage(holders.clockDisplay)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.clockDisplay'
+                            defaultMessage='Clock Display'
+                        />
+                    }
                     describe={describe}
                     updateSection={handleUpdateClockSection}
                 />
@@ -282,7 +264,12 @@ class UserSettingsDisplay extends React.Component {
 
             nameFormatSection = (
                 <SettingItemMax
-                    title={formatMessage(holders.teammateDisplay)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.teammateDisplay'
+                            defaultMessage='Teammate Name Display'
+                        />
+                    }
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -293,18 +280,38 @@ class UserSettingsDisplay extends React.Component {
                 />
             );
         } else {
-            let describe = '';
+            let describe;
             if (this.state.nameFormat === 'username') {
-                describe = formatMessage(holders.showUsername);
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.display.showUsername'
+                        defaultMessage='Show username (team default)'
+                    />
+                );
             } else if (this.state.nameFormat === 'full_name') {
-                describe = formatMessage(holders.showFullName);
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.display.showFullname'
+                        defaultMessage='Show first and last name'
+                    />
+                );
             } else {
-                describe = formatMessage(holders.showNickname);
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.display.showNickname'
+                        defaultMessage='Show nickname if one exists, otherwise show first and last name'
+                    />
+                );
             }
 
             nameFormatSection = (
                 <SettingItemMin
-                    title={formatMessage(holders.teammateDisplay)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.teammateDisplay'
+                            defaultMessage='Teammate Name Display'
+                        />
+                    }
                     describe={describe}
                     updateSection={() => {
                         this.props.updateSection('name_format');
@@ -354,7 +361,12 @@ class UserSettingsDisplay extends React.Component {
 
             fontSection = (
                 <SettingItemMax
-                    title={formatMessage(holders.fontTitle)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.fontTitle'
+                            defaultMessage='Display Font'
+                        />
+                    }
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -367,7 +379,12 @@ class UserSettingsDisplay extends React.Component {
         } else {
             fontSection = (
                 <SettingItemMin
-                    title={formatMessage(holders.fontTitle)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.fontTitle'
+                            defaultMessage='Display Font'
+                        />
+                    }
                     describe={this.state.selectedFont}
                     updateSection={() => {
                         this.props.updateSection('font');
@@ -376,46 +393,39 @@ class UserSettingsDisplay extends React.Component {
             );
         }
 
-        if (Utils.isFeatureEnabled(PreReleaseFeatures.LOC_PREVIEW)) {
-            if (this.props.activeSection === 'languages') {
-                var inputs = [];
-                inputs.push(
-                    <ManageLanguages
-                        user={this.props.user}
-                        key='languages-ui'
-                    />
-                );
+        if (this.props.activeSection === 'languages') {
+            languagesSection = (
+                <ManageLanguages
+                    user={this.props.user}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            var locale = 'English';
+            Utils.languages().forEach((l) => {
+                if (l.value === this.props.user.locale) {
+                    locale = l.name;
+                }
+            });
 
-                languagesSection = (
-                    <SettingItemMax
-                        title={formatMessage(holders.language)}
-                        width='medium'
-                        inputs={inputs}
-                        updateSection={(e) => {
-                            this.updateSection('');
-                            e.preventDefault();
-                        }}
-                    />
-                );
-            } else {
-                var locale = 'English';
-                Utils.languages().forEach((l) => {
-                    if (l.value === this.props.user.locale) {
-                        locale = l.name;
+            languagesSection = (
+                <SettingItemMin
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.language'
+                            defaultMessage='Language'
+                        />
                     }
-                });
-
-                languagesSection = (
-                    <SettingItemMin
-                        title={formatMessage(holders.language)}
-                        width='medium'
-                        describe={locale}
-                        updateSection={() => {
-                            this.updateSection('languages');
-                        }}
-                    />
-                );
-            }
+                    width='medium'
+                    describe={locale}
+                    updateSection={() => {
+                        this.updateSection('languages');
+                    }}
+                />
+            );
         }
 
         return (
@@ -434,10 +444,12 @@ class UserSettingsDisplay extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i
-                            className='modal-back'
-                            onClick={this.props.collapseModal}
-                        />
+                        <div className='modal-back'>
+                            <i
+                                className='fa fa-angle-left'
+                                onClick={this.props.collapseModal}
+                            />
+                        </div>
                         <FormattedMessage
                             id='user.settings.display.title'
                             defaultMessage='Display Settings'
@@ -452,6 +464,13 @@ class UserSettingsDisplay extends React.Component {
                         />
                     </h3>
                     <div className='divider-dark first'/>
+                    <ThemeSetting
+                        selected={this.props.activeSection === 'theme'}
+                        updateSection={this.updateSection}
+                        setRequireConfirm={this.props.setRequireConfirm}
+                        setEnforceFocus={this.props.setEnforceFocus}
+                    />
+                    <div className='divider-dark'/>
                     {fontSection}
                     <div className='divider-dark'/>
                     {clockSection}
@@ -466,13 +485,12 @@ class UserSettingsDisplay extends React.Component {
 }
 
 UserSettingsDisplay.propTypes = {
-    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
     activeSection: React.PropTypes.string,
     closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired
+    collapseModal: React.PropTypes.func.isRequired,
+    setRequireConfirm: React.PropTypes.func.isRequired,
+    setEnforceFocus: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(UserSettingsDisplay);

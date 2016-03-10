@@ -11,6 +11,7 @@ import TeamStore from '../../stores/team_store.jsx';
 
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
+import * as Utils from '../../utils/utils.jsx';
 import Constants from '../../utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
@@ -88,7 +89,8 @@ class SecurityTab extends React.Component {
         }
 
         if (newPassword !== confirmPassword) {
-            this.setState({passwordError: formatMessage(holders.passwordMatchError), serverError: ''});
+            var defaultState = Object.assign(this.getDefaultState(), {passwordError: formatMessage(holders.passwordMatchError), serverError: ''});
+            this.setState(defaultState);
             return;
         }
 
@@ -215,15 +217,12 @@ class SecurityTab extends React.Component {
 
         var describe;
         var d = new Date(this.props.user.last_password_update);
-        var timeOfDay = ' am';
-        if (d.getHours() >= 12) {
-            timeOfDay = ' pm';
-        }
 
         const locale = global.window.mm_locale;
+        const hours12 = !Utils.isMilitaryTime();
         describe = formatMessage(holders.lastUpdated, {
             date: d.toLocaleDateString(locale, {month: 'short', day: '2-digit', year: 'numeric'}),
-            time: d.toLocaleTimeString(locale, {hours12: true, hour: '2-digit', minute: '2-digit'}) + timeOfDay
+            time: d.toLocaleTimeString(locale, {hour12: hours12, hour: '2-digit', minute: '2-digit'})
         });
 
         updateSectionStatus = function updateSection() {
@@ -390,10 +389,12 @@ class SecurityTab extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i
-                            className='modal-back'
-                            onClick={this.props.collapseModal}
-                        />
+                        <div className='modal-back'>
+                            <i
+                                className='fa fa-angle-left'
+                                onClick={this.props.collapseModal}
+                            />
+                        </div>
                         <FormattedMessage
                             id='user.settings.security.title'
                             defaultMessage='Security Settings'

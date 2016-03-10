@@ -24,24 +24,28 @@ const (
 )
 
 type ServiceSettings struct {
-	ListenAddress              string
-	MaximumLoginAttempts       int
-	SegmentDeveloperKey        string
-	GoogleDeveloperKey         string
-	EnableOAuthServiceProvider bool
-	EnableIncomingWebhooks     bool
-	EnableOutgoingWebhooks     bool
-	EnablePostUsernameOverride bool
-	EnablePostIconOverride     bool
-	EnableTesting              bool
-	EnableDeveloper            *bool
-	EnableSecurityFixAlert     *bool
-	SessionLengthWebInDays     *int
-	SessionLengthMobileInDays  *int
-	SessionLengthSSOInDays     *int
-	SessionCacheInMinutes      *int
-	WebsocketSecurePort        *int
-	WebsocketPort              *int
+	ListenAddress                     string
+	MaximumLoginAttempts              int
+	SegmentDeveloperKey               string
+	GoogleDeveloperKey                string
+	EnableOAuthServiceProvider        bool
+	EnableIncomingWebhooks            bool
+	EnableOutgoingWebhooks            bool
+	EnableCommands                    *bool
+	EnableOnlyAdminIntegrations       *bool
+	EnablePostUsernameOverride        bool
+	EnablePostIconOverride            bool
+	EnableTesting                     bool
+	EnableDeveloper                   *bool
+	EnableSecurityFixAlert            *bool
+	EnableInsecureOutgoingConnections *bool
+	AllowCorsFrom                     *string
+	SessionLengthWebInDays            *int
+	SessionLengthMobileInDays         *int
+	SessionLengthSSOInDays            *int
+	SessionCacheInMinutes             *int
+	WebsocketSecurePort               *int
+	WebsocketPort                     *int
 }
 
 type SSOSettings struct {
@@ -97,6 +101,8 @@ type FileSettings struct {
 
 type EmailSettings struct {
 	EnableSignUpWithEmail    bool
+	EnableSignInWithEmail    *bool
+	EnableSignInWithUsername *bool
 	SendEmailNotifications   bool
 	RequireEmailVerification bool
 	FeedbackName             string
@@ -160,7 +166,7 @@ type LdapSettings struct {
 	UsernameAttribute  *string
 	IdAttribute        *string
 
-	// Advansed
+	// Advanced
 	QueryTimeout *int
 }
 
@@ -248,6 +254,11 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.EnableSecurityFixAlert = true
 	}
 
+	if o.ServiceSettings.EnableInsecureOutgoingConnections == nil {
+		o.ServiceSettings.EnableInsecureOutgoingConnections = new(bool)
+		*o.ServiceSettings.EnableInsecureOutgoingConnections = false
+	}
+
 	if o.TeamSettings.RestrictTeamNames == nil {
 		o.TeamSettings.RestrictTeamNames = new(bool)
 		*o.TeamSettings.RestrictTeamNames = true
@@ -256,6 +267,21 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.EnableTeamListing == nil {
 		o.TeamSettings.EnableTeamListing = new(bool)
 		*o.TeamSettings.EnableTeamListing = false
+	}
+
+	if o.EmailSettings.EnableSignInWithEmail == nil {
+		o.EmailSettings.EnableSignInWithEmail = new(bool)
+
+		if o.EmailSettings.EnableSignUpWithEmail == true {
+			*o.EmailSettings.EnableSignInWithEmail = true
+		} else {
+			*o.EmailSettings.EnableSignInWithEmail = false
+		}
+	}
+
+	if o.EmailSettings.EnableSignInWithUsername == nil {
+		o.EmailSettings.EnableSignInWithUsername = new(bool)
+		*o.EmailSettings.EnableSignInWithUsername = false
 	}
 
 	if o.EmailSettings.SendPushNotifications == nil {
@@ -332,13 +358,30 @@ func (o *Config) SetDefaults() {
 		o.ServiceSettings.SessionCacheInMinutes = new(int)
 		*o.ServiceSettings.SessionCacheInMinutes = 10
 	}
+
+	if o.ServiceSettings.EnableCommands == nil {
+		o.ServiceSettings.EnableCommands = new(bool)
+		*o.ServiceSettings.EnableCommands = false
+	}
+
+	if o.ServiceSettings.EnableOnlyAdminIntegrations == nil {
+		o.ServiceSettings.EnableOnlyAdminIntegrations = new(bool)
+		*o.ServiceSettings.EnableOnlyAdminIntegrations = true
+	}
+
 	if o.ServiceSettings.WebsocketPort == nil {
 		o.ServiceSettings.WebsocketPort = new(int)
 		*o.ServiceSettings.WebsocketPort = 80
 	}
+
 	if o.ServiceSettings.WebsocketSecurePort == nil {
 		o.ServiceSettings.WebsocketSecurePort = new(int)
 		*o.ServiceSettings.WebsocketSecurePort = 443
+	}
+
+	if o.ServiceSettings.AllowCorsFrom == nil {
+		o.ServiceSettings.AllowCorsFrom = new(string)
+		*o.ServiceSettings.AllowCorsFrom = ""
 	}
 }
 

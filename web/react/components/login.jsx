@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import LoginEmail from './login_email.jsx';
+import LoginUsername from './login_username.jsx';
 import LoginLdap from './login_ldap.jsx';
 
 import * as Utils from '../utils/utils.jsx';
@@ -27,7 +28,7 @@ export default class Login extends React.Component {
                         key='gitlab'
                         href={'/' + teamName + '/login/gitlab'}
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='login.gitlab'
@@ -35,7 +36,7 @@ export default class Login extends React.Component {
                             />
                         </span>
                     </a>
-           );
+            );
         }
 
         if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
@@ -45,7 +46,7 @@ export default class Login extends React.Component {
                         key='google'
                         href={'/' + teamName + '/login/google'}
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='login.google'
@@ -79,7 +80,7 @@ export default class Login extends React.Component {
             if (msg != null) {
                 extraBox = (
                     <div className='alert alert-success'>
-                        <i className='fa fa-check' />
+                        <i className='fa fa-check'/>
                         {msg}
                     </div>
                 );
@@ -87,7 +88,7 @@ export default class Login extends React.Component {
         }
 
         let emailSignup;
-        if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
+        if (global.window.mm_config.EnableSignInWithEmail === 'true') {
             emailSignup = (
                 <LoginEmail
                     teamName={this.props.teamName}
@@ -100,12 +101,10 @@ export default class Login extends React.Component {
                 <div>
                     {loginMessage}
                     <div className='or__container'>
-                        <span>
-                            <FormattedMessage
-                                id='login.or'
-                                defaultMessage='or'
-                            />
-                        </span>
+                        <FormattedMessage
+                            id='login.or'
+                            defaultMessage='or'
+                        />
                     </div>
                 </div>
             );
@@ -189,6 +188,15 @@ export default class Login extends React.Component {
             );
         }
 
+        let usernameLogin = null;
+        if (global.window.mm_config.EnableSignInWithUsername === 'true') {
+            usernameLogin = (
+                <LoginUsername
+                    teamName={this.props.teamName}
+                />
+            );
+        }
+
         return (
             <div className='signup-team__container'>
                 <h5 className='margin--less'>
@@ -210,6 +218,7 @@ export default class Login extends React.Component {
                     {extraBox}
                     {loginMessage}
                     {emailSignup}
+                    {usernameLogin}
                     {ldapLogin}
                     {userSignUp}
                     {findTeams}
