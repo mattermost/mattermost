@@ -5,6 +5,11 @@
     line-height: 33px;
     padding: 0 1em 0.2em;
     background: #EEE;
+
+    .fa {
+        margin-right: 5px;
+    }
+
 }
 .signup-team__container {
     padding: 100px 0px 50px 0px;
@@ -110,7 +115,7 @@
 
     .signup-team-login {
         padding-bottom: 10px;
-        font-weight: 700;
+        font-weight: 600;
     }
 
     .signup-team__name {
@@ -207,6 +212,15 @@
                 }
                 .icon {
                     background-image: url("../images/googleLogo.png");
+                }
+            }
+            &.ldap {
+                background: #dd4b39;
+                &:hover {
+                    background: darken(#dd4b39, 10%);
+                }
+                span {
+                    vertical-align: middle;
                 }
             }
             &.email {

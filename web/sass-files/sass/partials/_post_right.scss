@@ -11,7 +11,21 @@
 
 	.post-right-comments-container {
 		position: relative;
-		padding: 0.7em 0 0;
+
+		.post {
+
+			&:first-child {
+				padding-top: 15px;
+			}
+
+		}
+
+	}
+
+
+	.help_format_text {
+		bottom: -63px;
+		right: auto;
 	}
 
 	.post {
@@ -19,6 +33,11 @@
 		&.post--root {
 			padding-bottom: 1.2em;
 			border-bottom: 1px solid #ddd;
+
+			.post__body {
+				background: transparent !important;
+			}
+
 		}
 
 		.post__header {
@@ -62,8 +81,7 @@
 			min-width: 1px;
 			display: block;
 			height: 20px;
-			max-width: 200px;
-			@include clearfix;
+			max-width: 230px;
 		}
 		.post-create-footer {
 			width: 100%;

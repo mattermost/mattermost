@@ -157,5 +157,5 @@ export function getImagePathForEmoticon(name) {
     if (name) {
         return `/static/images/emoji/${name}.png`;
     }
-    return `/static/images/emoji`;
+    return '/static/images/emoji';
 }

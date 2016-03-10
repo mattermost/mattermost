@@ -5,6 +5,7 @@ import MsgTyping from './msg_typing.jsx';
 import Textbox from './textbox.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
+import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -21,12 +22,29 @@ import SocketStore from '../stores/socket_store.jsx';
 
 import Constants from '../utils/constants.jsx';
 
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'mm-intl';
+
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-export default class CreatePost extends React.Component {
+const holders = defineMessages({
+    comment: {
+        id: 'create_post.comment',
+        defaultMessage: 'Comment'
+    },
+    post: {
+        id: 'create_post.post',
+        defaultMessage: 'Post'
+    },
+    write: {
+        id: 'create_post.write',
+        defaultMessage: 'Write a message...'
+    }
+});
+
+class CreatePost extends React.Component {
     constructor(props) {
         super(props);
 
@@ -36,7 +54,7 @@ export default class CreatePost extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
-        this.resizePostHolder = this.resizePostHolder.bind(this);
+        this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -45,8 +63,10 @@ export default class CreatePost extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleResize = this.handleResize.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
+        this.focusTextbox = this.focusTextbox.bind(this);
+        this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
+        this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -59,33 +79,10 @@ export default class CreatePost extends React.Component {
             previews: draft.previews,
             submitting: false,
             initialText: draft.messageText,
-            windowWidth: Utils.windowWidth(),
-            windowHeight: Utils.windowHeight(),
             ctrlSend: false,
-            showTutorialTip: false
+            showTutorialTip: false,
+            showPostDeletedModal: false
         };
-    }
-    handleResize() {
-        this.setState({
-            windowWidth: Utils.windowWidth(),
-            windowHeight: Utils.windowHeight()
-        });
-    }
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.previews.length !== this.state.previews.length) {
-            this.resizePostHolder();
-            return;
-        }
-
-        if (prevState.uploadsInProgress !== this.state.uploadsInProgress) {
-            this.resizePostHolder();
-            return;
-        }
-
-        if (prevState.windowWidth !== this.state.windowWidth || prevState.windowHeight !== this.state.windowHeight) {
-            this.resizePostHolder();
-            return;
-        }
     }
     getCurrentDraft() {
         const draft = PostStore.getCurrentDraft();
@@ -133,15 +130,10 @@ export default class CreatePost extends React.Component {
                 post.message,
                 false,
                 (data) => {
-                    if (data.response === 'not implemented') {
-                        this.sendMessage(post);
-                        return;
-                    }
-
-                    PostStore.storeDraft(data.channel_id, null);
+                    PostStore.storeDraft(this.state.channelId, null);
                     this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
-                    if (data.goto_location.length > 0) {
+                    if (data.goto_location && data.goto_location.length > 0) {
                         window.location.href = data.goto_location;
                     }
                 },
@@ -169,7 +161,6 @@ export default class CreatePost extends React.Component {
         post.pending_post_id = `${userId}:${time}`;
         post.user_id = userId;
         post.create_at = time;
-        post.root_id = this.state.rootId;
         post.parent_id = this.state.parentId;
 
         const channel = ChannelStore.get(this.state.channelId);
@@ -189,22 +180,26 @@ export default class CreatePost extends React.Component {
                 EventHelpers.emitPostRecievedEvent(data);
             },
             (err) => {
-                const state = {};
-
                 if (err.id === 'api.post.create_post.root_id.app_error') {
-                    if ($('#post_deleted').length > 0) {
-                        $('#post_deleted').modal('show');
-                    }
+                    // this should never actually happen since you can't reply from this textbox
+                    this.showPostDeletedModal();
+
                     PostStore.removePendingPost(post.pending_post_id);
                 } else {
                     post.state = Constants.POST_FAILED;
                     PostStore.updatePendingPost(post);
                 }
 
-                state.submitting = false;
-                this.setState(state);
+                this.setState({
+                    submitting: false
+                });
             }
         );
+    }
+    focusTextbox() {
+        if (!Utils.isMobile()) {
+            this.refs.textbox.focus();
+        }
     }
     postMsgKeyPress(e) {
         if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
@@ -228,10 +223,8 @@ export default class CreatePost extends React.Component {
         draft.message = messageText;
         PostStore.storeCurrentDraft(draft);
     }
-    resizePostHolder() {
-        if (this.state.windowWidth > 960) {
-            $('#post_textbox').focus();
-        }
+    handleUploadClick() {
+        this.focusTextbox();
     }
     handleUploadStart(clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
@@ -240,6 +233,10 @@ export default class CreatePost extends React.Component {
         PostStore.storeDraft(channelId, draft);
 
         this.setState({uploadsInProgress: draft.uploadsInProgress});
+
+        // this is a bit redundant with the code that sets focus when the file input is clicked,
+        // but this also resets the focus after a drag and drop
+        this.focusTextbox();
     }
     handleFileUploadComplete(filenames, clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);
@@ -265,9 +262,7 @@ export default class CreatePost extends React.Component {
             message = err.message;
         }
 
-        if (clientId === -1) {
-            this.setState({serverError: message});
-        } else {
+        if (clientId !== -1) {
             const draft = PostStore.getDraft(this.state.channelId);
 
             const index = draft.uploadsInProgress.indexOf(clientId);
@@ -277,8 +272,10 @@ export default class CreatePost extends React.Component {
 
             PostStore.storeDraft(this.state.channelId, draft);
 
-            this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: message});
+            this.setState({uploadsInProgress: draft.uploadsInProgress});
         }
+
+        this.setState({serverError: message});
     }
     removePreview(id) {
         const previews = Object.assign([], this.state.previews);
@@ -291,7 +288,7 @@ export default class CreatePost extends React.Component {
 
             if (index !== -1) {
                 uploadsInProgress.splice(index, 1);
-                this.refs.fileUpload.cancelUpload(id);
+                this.refs.fileUpload.getWrappedInstance().cancelUpload(id);
             }
         } else {
             previews.splice(index, 1);
@@ -316,13 +313,17 @@ export default class CreatePost extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-        this.resizePostHolder();
-        window.addEventListener('resize', this.handleResize);
+
+        this.focusTextbox();
+    }
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.channelId !== this.state.channelId) {
+            this.focusTextbox();
+        }
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
-        window.removeEventListener('resize', this.handleResize);
     }
     onChange() {
         const channelId = ChannelStore.getCurrentId();
@@ -361,10 +362,11 @@ export default class CreatePost extends React.Component {
             if (!lastPost) {
                 return;
             }
-            var type = (lastPost.root_id && lastPost.root_id.length > 0) ? 'Comment' : 'Post';
+            const {formatMessage} = this.props.intl;
+            var type = (lastPost.root_id && lastPost.root_id.length > 0) ? formatMessage(holders.comment) : formatMessage(holders.post);
 
             AppDispatcher.handleViewAction({
-                type: ActionTypes.RECIEVED_EDIT_POST,
+                type: ActionTypes.RECEIVED_EDIT_POST,
                 refocusId: '#post_textbox',
                 title: type,
                 message: lastPost.message,
@@ -374,14 +376,25 @@ export default class CreatePost extends React.Component {
             });
         }
     }
+    showPostDeletedModal() {
+        this.setState({
+            showPostDeletedModal: true
+        });
+    }
+    hidePostDeletedModal() {
+        this.setState({
+            showPostDeletedModal: false
+        });
+    }
     createTutorialTip() {
         const screens = [];
 
         screens.push(
             <div>
-                <h4>{'Sending Messages'}</h4>
-                <p>{'Type here to write a message and press '}<strong>{'Enter'}</strong>{' to post it.'}</p>
-                <p>{'Click the '}<strong>{'Attachment'}</strong>{' button to upload an image or a file.'}</p>
+                <FormattedHTMLMessage
+                    id='create_post.tutorialTip'
+                    defaultMessage='<h4>Sending Messages</h4><p>Type here to write a message and press <strong>Enter</strong> to post it.</p><p>Click the <strong>Attachment</strong> button to upload an image or a file.</p>'
+                />
             </div>
         );
 
@@ -443,9 +456,8 @@ export default class CreatePost extends React.Component {
                                 onUserInput={this.handleUserInput}
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
-                                onHeightChange={this.resizePostHolder}
                                 messageText={this.state.messageText}
-                                createMessage='Write a message...'
+                                createMessage={this.props.intl.formatMessage(holders.write)}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
                                 ref='textbox'
@@ -453,6 +465,7 @@ export default class CreatePost extends React.Component {
                             <FileUpload
                                 ref='fileUpload'
                                 getFileCount={this.getFileCount}
+                                onClick={this.handleUploadClick}
                                 onUploadStart={this.handleUploadStart}
                                 onFileUpload={this.handleFileUploadComplete}
                                 onUploadError={this.handleUploadError}
@@ -464,7 +477,7 @@ export default class CreatePost extends React.Component {
                             className='send-button theme'
                             onClick={this.handleSubmit}
                         >
-                            <i className='fa fa-paper-plane' />
+                            <i className='fa fa-paper-plane'/>
                         </a>
                         {tutorialTip}
                     </div>
@@ -478,7 +491,17 @@ export default class CreatePost extends React.Component {
                         {serverError}
                     </div>
                 </div>
+                <PostDeletedModal
+                    show={this.state.showPostDeletedModal}
+                    onHide={this.hidePostDeletedModal}
+                />
             </form>
         );
     }
 }
+
+CreatePost.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(CreatePost);

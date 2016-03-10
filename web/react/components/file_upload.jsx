@@ -34,6 +34,7 @@ class FileUpload extends React.Component {
         this.uploadFiles = this.uploadFiles.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleDrop = this.handleDrop.bind(this);
+        this.cancelUpload = this.cancelUpload.bind(this);
 
         this.state = {
             requests: {}
@@ -101,18 +102,18 @@ class FileUpload extends React.Component {
         } else if (tooLargeFiles.length > 1) {
             var tooLargeFilenames = tooLargeFiles.map((file) => file.name).join(', ');
 
-            this.props.onUploadError(formatMessage(holders.filesAbove, {max: (Constants.MAX_FILE_SIZE / 1000000), files: tooLargeFilenames}));
+            this.props.onUploadError(formatMessage(holders.filesAbove, {max: (Constants.MAX_FILE_SIZE / 1000000), filenames: tooLargeFilenames}));
         } else if (tooLargeFiles.length > 0) {
-            this.props.onUploadError(formatMessage(holders.fileAbove, {max: (Constants.MAX_FILE_SIZE / 1000000), file: tooLargeFiles[0].name}));
+            this.props.onUploadError(formatMessage(holders.fileAbove, {max: (Constants.MAX_FILE_SIZE / 1000000), filename: tooLargeFiles[0].name}));
         }
     }
 
-    handleChange() {
-        var element = $(ReactDOM.findDOMNode(this.refs.fileInput));
+    handleChange(e) {
+        if (e.target.files.length > 0) {
+            this.uploadFiles(e.target.files);
 
-        this.uploadFiles(element.prop('files'));
-
-        Utils.clearFileInput(element[0]);
+            Utils.clearFileInput(e.target);
+        }
     }
 
     handleDrop(e) {
@@ -304,12 +305,13 @@ class FileUpload extends React.Component {
                 className='btn btn-file'
             >
                 <span>
-                    <i className='glyphicon glyphicon-paperclip' />
+                    <i className='glyphicon glyphicon-paperclip'/>
                 </span>
                 <input
                     ref='fileInput'
                     type='file'
                     onChange={this.handleChange}
+                    onClick={this.props.onClick}
                     multiple={multiple}
                     accept={accept}
                 />
@@ -322,6 +324,7 @@ FileUpload.propTypes = {
     intl: intlShape.isRequired,
     onUploadError: React.PropTypes.func,
     getFileCount: React.PropTypes.func,
+    onClick: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
@@ -329,4 +332,4 @@ FileUpload.propTypes = {
     postType: React.PropTypes.string
 };
 
-export default injectIntl(FileUpload);
+export default injectIntl(FileUpload, {withRef: true});

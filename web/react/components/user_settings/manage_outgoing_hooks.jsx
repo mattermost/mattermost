@@ -18,6 +18,10 @@ const holders = defineMessages({
     callbackHolder: {
         id: 'user.settings.hooks_out.callbackHolder',
         defaultMessage: 'Each URL must start with http:// or https://'
+    },
+    select: {
+        id: 'user.settings.hooks_out.select',
+        defaultMessage: '--- Select a channel ---'
     }
 });
 
@@ -153,10 +157,7 @@ class ManageOutgoingHooks extends React.Component {
                 key='select-channel'
                 value=''
             >
-                <FormattedMessage
-                    id='user.settings.hooks_out.select'
-                    defaultMessage='--- Select a channel ---'
-                />
+                {this.props.intl.formatMessage(holders.select)}
             </option>
         );
 
@@ -283,7 +284,7 @@ class ManageOutgoingHooks extends React.Component {
             <div key='addOutgoingHook'>
                 <FormattedHTMLMessage
                     id='user.settings.hooks_out.addDescription'
-                    defaultMessage='Create webhooks to send new message events to an external integration. Please see <a href="http://mattermost.org/webhooks">http://mattermost.org/webhooks</a>  to learn more.'
+                    defaultMessage='Create webhooks to send new message events to an external integration. Please see <a href="http://docs.mattermost.com/developer/webhooks-outgoing.html" target="_blank">outgoing webhooks documentation</a>  to learn more. View all outgoing webhooks configured on this team below.'
                 />
                 <div><label className='control-label padding-top x2'>
                     <FormattedMessage

@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -10,6 +10,7 @@ import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const LOG_CHANGE_EVENT = 'log_change';
+const SERVER_AUDIT_CHANGE_EVENT = 'server_audit_change';
 const CONFIG_CHANGE_EVENT = 'config_change';
 const ALL_TEAMS_EVENT = 'all_team_change';
 
@@ -18,12 +19,17 @@ class AdminStoreClass extends EventEmitter {
         super();
 
         this.logs = null;
+        this.audits = null;
         this.config = null;
         this.teams = null;
 
         this.emitLogChange = this.emitLogChange.bind(this);
         this.addLogChangeListener = this.addLogChangeListener.bind(this);
         this.removeLogChangeListener = this.removeLogChangeListener.bind(this);
+
+        this.emitAuditChange = this.emitAuditChange.bind(this);
+        this.addAuditChangeListener = this.addAuditChangeListener.bind(this);
+        this.removeAuditChangeListener = this.removeAuditChangeListener.bind(this);
 
         this.emitConfigChange = this.emitConfigChange.bind(this);
         this.addConfigChangeListener = this.addConfigChangeListener.bind(this);
@@ -44,6 +50,18 @@ class AdminStoreClass extends EventEmitter {
 
     removeLogChangeListener(callback) {
         this.removeListener(LOG_CHANGE_EVENT, callback);
+    }
+
+    emitAuditChange() {
+        this.emit(SERVER_AUDIT_CHANGE_EVENT);
+    }
+
+    addAuditChangeListener(callback) {
+        this.on(SERVER_AUDIT_CHANGE_EVENT, callback);
+    }
+
+    removeAuditChangeListener(callback) {
+        this.removeListener(SERVER_AUDIT_CHANGE_EVENT, callback);
     }
 
     emitConfigChange() {
@@ -78,6 +96,14 @@ class AdminStoreClass extends EventEmitter {
         this.logs = logs;
     }
 
+    getAudits() {
+        return this.audits;
+    }
+
+    saveAudits(audits) {
+        this.audits = audits;
+    }
+
     getConfig() {
         return this.config;
     }
@@ -109,15 +135,19 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_LOGS:
+    case ActionTypes.RECEIVED_LOGS:
         AdminStore.saveLogs(action.logs);
         AdminStore.emitLogChange();
         break;
-    case ActionTypes.RECIEVED_CONFIG:
+    case ActionTypes.RECEIVED_SERVER_AUDITS:
+        AdminStore.saveAudits(action.audits);
+        AdminStore.emitAuditChange();
+        break;
+    case ActionTypes.RECEIVED_CONFIG:
         AdminStore.saveConfig(action.config);
         AdminStore.emitConfigChange();
         break;
-    case ActionTypes.RECIEVED_ALL_TEAMS:
+    case ActionTypes.RECEIVED_ALL_TEAMS:
         AdminStore.saveAllTeams(action.teams);
         AdminStore.emitAllTeamsChange();
         break;
@@ -126,3 +156,7 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export default AdminStore;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.AdminStore = AdminStore;
+}

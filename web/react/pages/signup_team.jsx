@@ -49,7 +49,7 @@ class Root extends React.Component {
                 locale={this.props.map.Locale}
                 messages={this.state.translations}
             >
-                <SignupTeam teams={this.props.teams} />
+                <SignupTeam teams={this.props.teams}/>
             </IntlProvider>
         );
     }

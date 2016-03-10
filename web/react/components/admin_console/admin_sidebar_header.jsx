@@ -61,7 +61,7 @@ export default class SidebarHeader extends React.Component {
                         </div>
                     </div>
                 </a>
-                <AdminNavbarDropdown ref='dropdown' />
+                <AdminNavbarDropdown ref='dropdown'/>
             </div>
         );
     }

@@ -17,48 +17,6 @@ const CHANGE_EVENT_STATUSES = 'change_statuses';
 class UserStoreClass extends EventEmitter {
     constructor() {
         super();
-
-        this.emitChange = this.emitChange.bind(this);
-        this.addChangeListener = this.addChangeListener.bind(this);
-        this.removeChangeListener = this.removeChangeListener.bind(this);
-        this.emitSessionsChange = this.emitSessionsChange.bind(this);
-        this.addSessionsChangeListener = this.addSessionsChangeListener.bind(this);
-        this.removeSessionsChangeListener = this.removeSessionsChangeListener.bind(this);
-        this.emitAuditsChange = this.emitAuditsChange.bind(this);
-        this.addAuditsChangeListener = this.addAuditsChangeListener.bind(this);
-        this.removeAuditsChangeListener = this.removeAuditsChangeListener.bind(this);
-        this.emitTeamsChange = this.emitTeamsChange.bind(this);
-        this.addTeamsChangeListener = this.addTeamsChangeListener.bind(this);
-        this.removeTeamsChangeListener = this.removeTeamsChangeListener.bind(this);
-        this.emitStatusesChange = this.emitStatusesChange.bind(this);
-        this.addStatusesChangeListener = this.addStatusesChangeListener.bind(this);
-        this.removeStatusesChangeListener = this.removeStatusesChangeListener.bind(this);
-        this.getCurrentId = this.getCurrentId.bind(this);
-        this.getCurrentUser = this.getCurrentUser.bind(this);
-        this.setCurrentUser = this.setCurrentUser.bind(this);
-        this.getLastEmail = this.getLastEmail.bind(this);
-        this.setLastEmail = this.setLastEmail.bind(this);
-        this.hasProfile = this.hasProfile.bind(this);
-        this.getProfile = this.getProfile.bind(this);
-        this.getProfileByUsername = this.getProfileByUsername.bind(this);
-        this.getProfilesUsernameMap = this.getProfilesUsernameMap.bind(this);
-        this.getProfiles = this.getProfiles.bind(this);
-        this.getActiveOnlyProfiles = this.getActiveOnlyProfiles.bind(this);
-        this.getActiveOnlyProfileList = this.getActiveOnlyProfileList.bind(this);
-        this.saveProfile = this.saveProfile.bind(this);
-        this.setSessions = this.setSessions.bind(this);
-        this.getSessions = this.getSessions.bind(this);
-        this.setAudits = this.setAudits.bind(this);
-        this.getAudits = this.getAudits.bind(this);
-        this.setTeams = this.setTeams.bind(this);
-        this.getTeams = this.getTeams.bind(this);
-        this.getCurrentMentionKeys = this.getCurrentMentionKeys.bind(this);
-        this.setStatuses = this.setStatuses.bind(this);
-        this.pSetStatuses = this.pSetStatuses.bind(this);
-        this.setStatus = this.setStatus.bind(this);
-        this.getStatuses = this.getStatuses.bind(this);
-        this.getStatus = this.getStatus.bind(this);
-
         this.profileCache = null;
     }
 
@@ -157,6 +115,14 @@ class UserStoreClass extends EventEmitter {
 
     setLastEmail(email) {
         BrowserStore.setGlobalItem('last_email', email);
+    }
+
+    getLastUsername() {
+        return BrowserStore.getGlobalItem('last_username', '');
+    }
+
+    setLastUsername(username) {
+        BrowserStore.setGlobalItem('last_username', username);
     }
 
     hasProfile(userId) {
@@ -267,7 +233,11 @@ class UserStoreClass extends EventEmitter {
     }
 
     getCurrentMentionKeys() {
-        var user = this.getCurrentUser();
+        return this.getMentionKeys(this.getCurrentId());
+    }
+
+    getMentionKeys(id) {
+        var user = this.getProfile(id);
 
         var keys = [];
 
@@ -320,33 +290,33 @@ class UserStoreClass extends EventEmitter {
 }
 
 var UserStore = new UserStoreClass();
-UserStore.setMaxListeners(0);
+UserStore.setMaxListeners(15);
 
 UserStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_PROFILES:
+    case ActionTypes.RECEIVED_PROFILES:
         UserStore.saveProfiles(action.profiles);
         UserStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_ME:
+    case ActionTypes.RECEIVED_ME:
         UserStore.setCurrentUser(action.me);
         UserStore.emitChange(action.me.id);
         break;
-    case ActionTypes.RECIEVED_SESSIONS:
+    case ActionTypes.RECEIVED_SESSIONS:
         UserStore.setSessions(action.sessions);
         UserStore.emitSessionsChange();
         break;
-    case ActionTypes.RECIEVED_AUDITS:
+    case ActionTypes.RECEIVED_AUDITS:
         UserStore.setAudits(action.audits);
         UserStore.emitAuditsChange();
         break;
-    case ActionTypes.RECIEVED_TEAMS:
+    case ActionTypes.RECEIVED_TEAMS:
         UserStore.setTeams(action.teams);
         UserStore.emitTeamsChange();
         break;
-    case ActionTypes.RECIEVED_STATUSES:
+    case ActionTypes.RECEIVED_STATUSES:
         UserStore.pSetStatuses(action.statuses);
         UserStore.emitStatusesChange();
         break;
@@ -355,3 +325,7 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export {UserStore as default};
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.UserStore = UserStore;
+}

@@ -1,7 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import MemberListTeamItem from './member_list_team_item.jsx';
+import FilteredUserList from './filtered_user_list.jsx';
+import TeamMembersDropdown from './team_members_dropdown.jsx';
 import UserStore from '../stores/user_store.jsx';
 
 export default class MemberListTeam extends React.Component {
@@ -44,21 +45,16 @@ export default class MemberListTeam extends React.Component {
     }
 
     render() {
-        const memberList = this.state.users.map((user) => {
-            return (
-                <MemberListTeamItem
-                    key={user.id}
-                    user={user}
-                />
-            );
-        });
-
         return (
-            <table className='table more-table member-list-holder'>
-                <tbody>
-                    {memberList}
-                </tbody>
-            </table>
+            <FilteredUserList
+                style={this.props.style}
+                users={this.state.users}
+                actions={[TeamMembersDropdown]}
+            />
         );
     }
 }
+
+MemberListTeam.propTypes = {
+    style: React.PropTypes.object
+};

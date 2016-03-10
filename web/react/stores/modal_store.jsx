@@ -28,12 +28,13 @@ class ModalStoreClass extends EventEmitter {
 
     handleEventPayload(payload) {
         // toggle event handlers should accept a boolean show/hide value and can accept a map of arguments
-        const {type, value, ...args} = payload.action; //eslint-disable-line no-redeclare
+        const {type, value, ...args} = payload.action; //eslint-disable-line no-use-before-define
 
         switch (type) {
         case ActionTypes.TOGGLE_IMPORT_THEME_MODAL:
         case ActionTypes.TOGGLE_INVITE_MEMBER_MODAL:
         case ActionTypes.TOGGLE_DELETE_POST_MODAL:
+        case ActionTypes.TOGGLE_GET_POST_LINK_MODAL:
         case ActionTypes.TOGGLE_GET_TEAM_INVITE_LINK_MODAL:
         case ActionTypes.TOGGLE_REGISTER_APP_MODAL:
             this.emit(type, value, args);
@@ -44,3 +45,7 @@ class ModalStoreClass extends EventEmitter {
 
 const ModalStore = new ModalStoreClass();
 export default ModalStore;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.ModalStore = ModalStore;
+}

@@ -75,7 +75,10 @@ func SlackParseUsers(data io.Reader) []SlackUser {
 
 	var users []SlackUser
 	if err := decoder.Decode(&users); err != nil {
-		return make([]SlackUser, 0)
+		// This actually returns errors that are ignored.
+		// In this case it is erroring because of a null that Slack
+		// introduced. So we just return the users here.
+		return users
 	}
 	return users
 }

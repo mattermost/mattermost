@@ -2,32 +2,35 @@
 // See License.txt for license information.
 
 import UserStore from '../stores/user_store.jsx';
-import TeamStore from '../stores/team_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import TimeSince from './time_since.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
 
-const Overlay = ReactBootstrap.Overlay;
-const Popover = ReactBootstrap.Popover;
+import {FormattedMessage} from 'mm-intl';
 
 export default class PostInfo extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            copiedLink: false,
-            show: false
-        };
 
-        this.handlePermalinkCopy = this.handlePermalinkCopy.bind(this);
+        this.dropdownPosition = this.dropdownPosition.bind(this);
+        this.handlePermalink = this.handlePermalink.bind(this);
+        this.removePost = this.removePost.bind(this);
+    }
+    dropdownPosition(e) {
+        var position = $('#post-list').height() - $(e.target).offset().top;
+        var dropdown = $(e.target).next('.dropdown-menu');
+        if (position < dropdown.height()) {
+            dropdown.addClass('bottom');
+        }
     }
     createDropdown() {
         var post = this.props.post;
         var isOwner = UserStore.getCurrentId() === post.user_id;
         var isAdmin = Utils.isAdmin(UserStore.getCurrentUser().roles);
 
-        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.state === Constants.POST_DELETED) {
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || Utils.isPostEphemeral(post)) {
             return '';
         }
 
@@ -53,25 +56,33 @@ export default class PostInfo extends React.Component {
                          href='#'
                          onClick={this.props.handleCommentClick}
                      >
-                         {'Reply'}
+                         <FormattedMessage
+                             id='post_info.reply'
+                             defaultMessage='Reply'
+                         />
                      </a>
                  </li>
              );
         }
 
-        dropdownContents.push(
-            <li
-                key='copyLink'
-                role='presentation'
-            >
-                <a
-                    href='#'
-                    onClick={(e) => this.setState({target: e.target, show: !this.state.show})}
+        if (!Utils.isMobile()) {
+            dropdownContents.push(
+                <li
+                    key='copyLink'
+                    role='presentation'
                 >
-                    {'Permalink'}
-                </a>
-            </li>
-        );
+                    <a
+                        href='#'
+                        onClick={this.handlePermalink}
+                    >
+                        <FormattedMessage
+                            id='post_info.permalink'
+                            defaultMessage='Permalink'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (isOwner || isAdmin) {
             dropdownContents.push(
@@ -84,7 +95,10 @@ export default class PostInfo extends React.Component {
                         role='menuitem'
                         onClick={() => EventHelpers.showDeletePostModal(post, dataComments)}
                     >
-                        {'Delete'}
+                        <FormattedMessage
+                            id='post_info.del'
+                            defaultMessage='Delete'
+                        />
                     </a>
                 </li>
             );
@@ -108,7 +122,10 @@ export default class PostInfo extends React.Component {
                         data-channelid={post.channel_id}
                         data-comments={dataComments}
                     >
-                        {'Edit'}
+                        <FormattedMessage
+                            id='post_info.edit'
+                            defaultMessage='Edit'
+                        />
                     </a>
                 </li>
             );
@@ -126,6 +143,7 @@ export default class PostInfo extends React.Component {
                     type='button'
                     data-toggle='dropdown'
                     aria-expanded='false'
+                    onClick={this.dropdownPosition}
                 />
                 <ul
                     className='dropdown-menu'
@@ -137,20 +155,29 @@ export default class PostInfo extends React.Component {
         );
     }
 
-    handlePermalinkCopy() {
-        const textBox = $(ReactDOM.findDOMNode(this.refs.permalinkbox));
-        textBox.select();
+    handlePermalink(e) {
+        e.preventDefault();
+        EventHelpers.showGetPostLinkModal(this.props.post);
+    }
 
-        try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                this.setState({copiedLink: true, show: false});
-            } else {
-                this.setState({copiedLink: false});
-            }
-        } catch (err) {
-            this.setState({copiedLink: false});
+    removePost() {
+        EventHelpers.emitRemovePost(this.props.post);
+    }
+    createRemovePostButton(post) {
+        if (!Utils.isPostEphemeral(post)) {
+            return null;
         }
+
+        return (
+            <a
+                href='#'
+                className='post__remove theme'
+                type='button'
+                onClick={this.removePost}
+            >
+                {'×'}
+            </a>
+        );
     }
     render() {
         var post = this.props.post;
@@ -164,7 +191,7 @@ export default class PostInfo extends React.Component {
             commentCountText = '';
         }
 
-        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && post.state !== Constants.POST_DELETED) {
+        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && !Utils.isPostEphemeral(post)) {
             comments = (
                 <a
                     href='#'
@@ -182,44 +209,12 @@ export default class PostInfo extends React.Component {
 
         var dropdown = this.createDropdown();
 
-        const permalink = TeamStore.getCurrentTeamUrl() + '/pl/' + post.id;
-        const copyButtonText = this.state.copiedLink ? (<div>{'Copy '}<i className='fa fa-check'/></div>) : 'Copy';
-        const permalinkOverlay = (
-            <Popover
-                id='permalink-overlay'
-                className='permalink-popover'
-                placement='left'
-                title=''
-            >
-                <div className='form-inline'>
-                    <input
-                        type='text'
-                        readOnly='true'
-                        ref='permalinkbox'
-                        className='permalink-text form-control no-resize'
-                        rows='1'
-                        value={permalink}
-                    />
-                    <button
-                        data-copy-btn='true'
-                        type='button'
-                        className='btn btn-primary'
-                        onClick={this.handlePermalinkCopy}
-                        data-clipboard-text={permalink}
-                    >
-                        {copyButtonText}
-                    </button>
-                </div>
-            </Popover>
-        );
-
-        const containerPadding = 20;
-
         return (
             <ul className='post__header post__header--info'>
                 <li className='col'>
                     <TimeSince
                         eventTime={post.create_at}
+                        sameUser={this.props.sameUser}
                     />
                 </li>
                 <li className='col col__reply'>
@@ -230,17 +225,7 @@ export default class PostInfo extends React.Component {
                         {dropdown}
                     </div>
                     {comments}
-                    <Overlay
-                        show={this.state.show}
-                        target={() => ReactDOM.findDOMNode(this.refs.dotMenu)}
-                        onHide={() => this.setState({show: false})}
-                        placement='left'
-                        container={this}
-                        containerPadding={containerPadding}
-                        rootClose={true}
-                    >
-                        {permalinkOverlay}
-                    </Overlay>
+                    {this.createRemovePostButton(post)}
                 </li>
             </ul>
         );
@@ -251,12 +236,14 @@ PostInfo.defaultProps = {
     post: null,
     commentCount: 0,
     isLastComment: false,
-    allowReply: false
+    allowReply: false,
+    sameUser: false
 };
 PostInfo.propTypes = {
     post: React.PropTypes.object,
     commentCount: React.PropTypes.number,
     isLastComment: React.PropTypes.bool,
     allowReply: React.PropTypes.string,
-    handleCommentClick: React.PropTypes.func
+    handleCommentClick: React.PropTypes.func,
+    sameUser: React.PropTypes.bool
 };

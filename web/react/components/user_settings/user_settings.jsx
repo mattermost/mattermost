@@ -6,7 +6,6 @@ import * as utils from '../../utils/utils.jsx';
 import NotificationsTab from './user_settings_notifications.jsx';
 import SecurityTab from './user_settings_security.jsx';
 import GeneralTab from './user_settings_general.jsx';
-import AppearanceTab from './user_settings_appearance.jsx';
 import DeveloperTab from './user_settings_developer.jsx';
 import IntegrationsTab from './user_settings_integrations.jsx';
 import DisplayTab from './user_settings_display.jsx';
@@ -85,21 +84,6 @@ export default class UserSettings extends React.Component {
                     />
                 </div>
             );
-        } else if (this.props.activeTab === 'appearance') {
-            return (
-                <div>
-                    <AppearanceTab
-                        ref='activeTab'
-                        activeSection={this.props.activeSection}
-                        updateSection={this.props.updateSection}
-                        updateTab={this.props.updateTab}
-                        closeModal={this.props.closeModal}
-                        collapseModal={this.props.collapseModal}
-                        setEnforceFocus={this.props.setEnforceFocus}
-                        setRequireConfirm={this.props.setRequireConfirm}
-                    />
-                </div>
-            );
         } else if (this.props.activeTab === 'developer') {
             return (
                 <div>
@@ -137,6 +121,8 @@ export default class UserSettings extends React.Component {
                         updateTab={this.props.updateTab}
                         closeModal={this.props.closeModal}
                         collapseModal={this.props.collapseModal}
+                        setEnforceFocus={this.props.setEnforceFocus}
+                        setRequireConfirm={this.props.setRequireConfirm}
                     />
                 </div>
             );

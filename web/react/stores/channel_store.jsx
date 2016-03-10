@@ -296,7 +296,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         ChannelStore.emitChange();
         break;
 
-    case ActionTypes.RECIEVED_FOCUSED_POST: {
+    case ActionTypes.RECEIVED_FOCUSED_POST: {
         const post = action.post_list.posts[action.postId];
         ChannelStore.setCurrentId(post.channel_id);
         ChannelStore.setPostMode(ChannelStore.POST_MODE_FOCUS);
@@ -304,36 +304,36 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     }
 
-    case ActionTypes.RECIEVED_CHANNELS:
+    case ActionTypes.RECEIVED_CHANNELS:
         ChannelStore.storeChannels(action.channels);
         ChannelStore.storeChannelMembers(action.members);
         currentId = ChannelStore.getCurrentId();
-        if (currentId) {
+        if (currentId && window.isActive) {
             ChannelStore.resetCounts(currentId);
         }
         ChannelStore.setUnreadCounts();
         ChannelStore.emitChange();
         break;
 
-    case ActionTypes.RECIEVED_CHANNEL:
+    case ActionTypes.RECEIVED_CHANNEL:
         ChannelStore.pStoreChannel(action.channel);
         if (action.member) {
             ChannelStore.pStoreChannelMember(action.member);
         }
         currentId = ChannelStore.getCurrentId();
-        if (currentId) {
+        if (currentId && window.isActive) {
             ChannelStore.resetCounts(currentId);
         }
         ChannelStore.setUnreadCount(action.channel.id);
         ChannelStore.emitChange();
         break;
 
-    case ActionTypes.RECIEVED_MORE_CHANNELS:
+    case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
         ChannelStore.emitMoreChange();
         break;
 
-    case ActionTypes.RECIEVED_CHANNEL_EXTRA_INFO:
+    case ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO:
         var extraInfos = ChannelStore.getExtraInfos();
         extraInfos[action.extra_info.id] = action.extra_info;
         ChannelStore.storeExtraInfos(extraInfos);
@@ -350,3 +350,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export default ChannelStore;
+
+if (window.mm_config.EnableDeveloper === 'true') {
+    window.ChannelStore = ChannelStore;
+}

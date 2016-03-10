@@ -486,13 +486,9 @@ class GeneralTab extends React.Component {
             inputs.push(
                 <div key='teamInviteSetting'>
                     <div className='row'>
-                        <label className='col-sm-5 control-label'>
-                            <FormattedMessage
-                                id='general_tab.codeTitle'
-                                defaultMessage='Invite Code'
-                            />
+                        <label className='col-sm-5 control-label visible-xs-block'>
                         </label>
-                        <div className='col-sm-7'>
+                        <div className='col-sm-12'>
                             <input
                                 className='form-control'
                                 type='text'
@@ -615,7 +611,9 @@ class GeneralTab extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>
+                        <div className='modal-back'>
+                            <i className='fa fa-angle-left'></i>
+                        </div>
                         <FormattedMessage
                             id='general_tab.title'
                             defaultMessage='General Settings'

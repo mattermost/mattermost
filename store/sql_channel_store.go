@@ -615,9 +615,36 @@ func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChann
 		var err error
 
 		if limit != -1 {
-			_, err = s.GetReplica().Select(&members, "SELECT Id, Nickname, Email, ChannelMembers.Roles, Username FROM ChannelMembers, Users WHERE ChannelMembers.UserId = Users.Id AND ChannelId = :ChannelId LIMIT :Limit", map[string]interface{}{"ChannelId": channelId, "Limit": limit})
+			_, err = s.GetReplica().Select(&members, `
+			SELECT
+				Id,
+				Nickname,
+				Email,
+				ChannelMembers.Roles,
+				Username
+			FROM
+				ChannelMembers,
+				Users
+			WHERE
+				ChannelMembers.UserId = Users.Id
+				AND Users.DeleteAt = 0
+				AND ChannelId = :ChannelId
+			LIMIT :Limit`, map[string]interface{}{"ChannelId": channelId, "Limit": limit})
 		} else {
-			_, err = s.GetReplica().Select(&members, "SELECT Id, Nickname, Email, ChannelMembers.Roles, Username FROM ChannelMembers, Users WHERE ChannelMembers.UserId = Users.Id AND ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+			_, err = s.GetReplica().Select(&members, `
+			SELECT
+				Id,
+				Nickname,
+				Email,
+				ChannelMembers.Roles,
+				Username
+			FROM
+				ChannelMembers,
+				Users
+			WHERE
+				ChannelMembers.UserId = Users.Id
+				AND Users.DeleteAt = 0
+				AND ChannelId = :ChannelId`, map[string]interface{}{"ChannelId": channelId})
 		}
 
 		if err != nil {
@@ -889,6 +916,28 @@ func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) S
 			result.Err = model.NewLocAppError("SqlChannelStore.AnalyticsTypeCount", "store.sql_channel.analytics_type_count.app_error", nil, err.Error())
 		} else {
 			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec(
+			`UPDATE Channels SET ExtraUpdateAt = :Time
+			WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId);`,
+			map[string]interface{}{"UserId": userId, "Time": time})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.extraUpdated", "store.sql_channel.extra_updated.app_error", nil, "user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result

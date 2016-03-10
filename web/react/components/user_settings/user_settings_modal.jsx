@@ -2,9 +2,14 @@
 // See License.txt for license information.
 
 import ConfirmModal from '../confirm_modal.jsx';
-const Modal = ReactBootstrap.Modal;
-import SettingsSidebar from '../settings_sidebar.jsx';
 import UserSettings from './user_settings.jsx';
+import SettingsSidebar from '../settings_sidebar.jsx';
+
+import UserStore from '../../stores/user_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
+import Constants from '../../utils/constants.jsx';
+
+const Modal = ReactBootstrap.Modal;
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
 
@@ -20,10 +25,6 @@ const holders = defineMessages({
     notifications: {
         id: 'user.settings.modal.notifications',
         defaultMessage: 'Notifications'
-    },
-    appearance: {
-        id: 'user.settings.modal.appearance',
-        defaultMessage: 'Appearance'
     },
     developer: {
         id: 'user.settings.modal.developer',
@@ -110,11 +111,13 @@ class UserSettingsModal extends React.Component {
             this.afterConfirm = () => this.handleHide();
             this.showConfirmModal();
 
-            return false;
+            return;
         }
 
+        this.resetTheme();
         this.deactivateTab();
         this.props.onModalDismissed();
+        return;
     }
 
     // called after the dialog is fully hidden and faded out
@@ -214,24 +217,47 @@ class UserSettingsModal extends React.Component {
         if (!skipConfirm && this.requireConfirm) {
             this.showConfirmModal(() => this.updateSection(section, true));
         } else {
+            if (this.state.active_section === 'theme' && section !== 'theme') {
+                this.resetTheme();
+            }
             this.setState({active_section: section});
+        }
+    }
+
+    resetTheme() {
+        const user = UserStore.getCurrentUser();
+        if (user.theme_props == null) {
+            Utils.applyTheme(Constants.THEMES.default);
+        } else {
+            Utils.applyTheme(user.theme_props);
         }
     }
 
     render() {
         const {formatMessage} = this.props.intl;
+        var currentUser = UserStore.getCurrentUser();
+        var isAdmin = Utils.isAdmin(currentUser.roles);
         var tabs = [];
+
         tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'glyphicon glyphicon-cog'});
         tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'glyphicon glyphicon-lock'});
         tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'glyphicon glyphicon-exclamation-sign'});
-        tabs.push({name: 'appearance', uiName: formatMessage(holders.appearance), icon: 'glyphicon glyphicon-wrench'});
         if (global.window.mm_config.EnableOAuthServiceProvider === 'true') {
             tabs.push({name: 'developer', uiName: formatMessage(holders.developer), icon: 'glyphicon glyphicon-th'});
         }
 
-        if (global.window.mm_config.EnableIncomingWebhooks === 'true' || global.window.mm_config.EnableOutgoingWebhooks === 'true') {
-            tabs.push({name: 'integrations', uiName: formatMessage(holders.integrations), icon: 'glyphicon glyphicon-transfer'});
+        if (global.window.mm_config.EnableIncomingWebhooks === 'true' || global.window.mm_config.EnableOutgoingWebhooks === 'true' || global.window.mm_config.EnableCommands === 'true') {
+            var show = global.window.mm_config.EnableOnlyAdminIntegrations !== 'true';
+
+            if (global.window.mm_config.EnableOnlyAdminIntegrations === 'true' && isAdmin) {
+                show = true;
+            }
+
+            if (show) {
+                tabs.push({name: 'integrations', uiName: formatMessage(holders.integrations), icon: 'glyphicon glyphicon-transfer'});
+            }
         }
+
         tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'glyphicon glyphicon-eye-open'});
         tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'glyphicon glyphicon-list-alt'});
 
@@ -270,7 +296,12 @@ class UserSettingsModal extends React.Component {
                                 closeModal={this.closeModal}
                                 collapseModal={this.collapseModal}
                                 setEnforceFocus={(enforceFocus) => this.setState({enforceFocus})}
-                                setRequireConfirm={(requireConfirm) => this.requireConfirm = requireConfirm}
+                                setRequireConfirm={
+                                    (requireConfirm) => {
+                                        this.requireConfirm = requireConfirm;
+                                        return;
+                                    }
+                                }
                             />
                         </div>
                     </div>
@@ -278,7 +309,7 @@ class UserSettingsModal extends React.Component {
                 <ConfirmModal
                     title={formatMessage(holders.confirmTitle)}
                     message={formatMessage(holders.confirmMsg)}
-                    confirm_button={formatMessage(holders.confirmBtns)}
+                    confirmButton={formatMessage(holders.confirmBtns)}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}

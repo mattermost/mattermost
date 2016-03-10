@@ -112,9 +112,6 @@ export default class UserList extends React.Component {
         this.getTeamProfiles(newProps.team.id);
     }
 
-    componentWillUnmount() {
-    }
-
     render() {
         var serverError = '';
         if (this.state.serverError) {
@@ -134,7 +131,7 @@ export default class UserList extends React.Component {
                         />
                     </h3>
                     {serverError}
-                    <LoadingScreen />
+                    <LoadingScreen/>
                 </div>
             );
         }

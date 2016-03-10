@@ -31,6 +31,10 @@ var holders = defineMessages({
         id: 'admin.service.sessionDaysEx',
         defaultMessage: 'Ex "30"'
     },
+    corsExample: {
+        id: 'admin.service.corsEx',
+        defaultMessage: 'http://example.com'
+    },
     saving: {
         id: 'admin.service.saving',
         defaultMessage: 'Saving Config...'
@@ -75,6 +79,9 @@ class ServiceSettings extends React.Component {
         config.ServiceSettings.EnableTesting = ReactDOM.findDOMNode(this.refs.EnableTesting).checked;
         config.ServiceSettings.EnableDeveloper = ReactDOM.findDOMNode(this.refs.EnableDeveloper).checked;
         config.ServiceSettings.EnableSecurityFixAlert = ReactDOM.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
+        config.ServiceSettings.EnableInsecureOutgoingConnections = ReactDOM.findDOMNode(this.refs.EnableInsecureOutgoingConnections).checked;
+        config.ServiceSettings.EnableCommands = ReactDOM.findDOMNode(this.refs.EnableCommands).checked;
+        config.ServiceSettings.EnableOnlyAdminIntegrations = ReactDOM.findDOMNode(this.refs.EnableOnlyAdminIntegrations).checked;
 
         //config.ServiceSettings.EnableOAuthServiceProvider = ReactDOM.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
 
@@ -127,6 +134,8 @@ class ServiceSettings extends React.Component {
         }
         config.ServiceSettings.SessionCacheInMinutes = SessionCacheInMinutes;
         ReactDOM.findDOMNode(this.refs.SessionCacheInMinutes).value = SessionCacheInMinutes;
+
+        config.ServiceSettings.AllowCorsFrom = ReactDOM.findDOMNode(this.refs.AllowCorsFrom).value.trim();
 
         Client.saveConfig(
             config,
@@ -284,9 +293,7 @@ class ServiceSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedHTMLMessage
                                     id='admin.service.googleDescription'
-                                    defaultMessage='Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at
-                                    <a href="https://www.youtube.com/watch?v=Im69kzhpR3I" target="_blank">https://www.youtube.com/watch?v=Im69kzhpR3I</a>.
-                                    Leaving the field blank disables the automatic generation of YouTube video previews from links.'
+                                    defaultMessage='Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at <a href="https://www.youtube.com/watch?v=Im69kzhpR3I" target="_blank">https://www.youtube.com/watch?v=Im69kzhpR3I</a>. Leaving the field blank disables the automatic generation of YouTube video previews from links.'
                                 />
                             </p>
                         </div>
@@ -389,11 +396,105 @@ class ServiceSettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
+                            htmlFor='EnableCommands'
+                        >
+                            <FormattedMessage
+                                id='admin.service.cmdsTitle'
+                                defaultMessage='Enable Slash Commands: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableCommands'
+                                    value='true'
+                                    ref='EnableCommands'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableCommands}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.true'
+                                        defaultMessage='true'
+                                    />
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableCommands'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableCommands}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.false'
+                                        defaultMessage='false'
+                                    />
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.service.cmdsDesc'
+                                    defaultMessage='When true, user created slash commands will be allowed.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableOnlyAdminIntegrations'
+                        >
+                            <FormattedMessage
+                                id='admin.service.integrationAdmin'
+                                defaultMessage='Enable Integrations for Admin Only: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOnlyAdminIntegrations'
+                                    value='true'
+                                    ref='EnableOnlyAdminIntegrations'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableOnlyAdminIntegrations}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.true'
+                                        defaultMessage='true'
+                                    />
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOnlyAdminIntegrations'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableOnlyAdminIntegrations}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.false'
+                                        defaultMessage='false'
+                                    />
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.service.integrationAdminDesc'
+                                    defaultMessage='When true, user created integrations can only be created by admins.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
                             htmlFor='EnablePostUsernameOverride'
                         >
                             <FormattedMessage
                                 id='admin.service.overrideTitle'
-                                defaultMessage='Enable Overriding Usernames from Webhooks: '
+                                defaultMessage='Enable Overriding Usernames from Webhooks and Slash Commands: '
                             />
                         </label>
                         <div className='col-sm-8'>
@@ -427,7 +528,7 @@ class ServiceSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.service.overrideDescription'
-                                    defaultMessage='When true, webhooks will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'
+                                    defaultMessage='When true, webhooks and slash commands will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'
                                 />
                             </p>
                         </div>
@@ -440,7 +541,7 @@ class ServiceSettings extends React.Component {
                         >
                             <FormattedMessage
                                 id='admin.service.iconTitle'
-                                defaultMessage='Enable Overriding Icon from Webhooks: '
+                                defaultMessage='Enable Overriding Icon from Webhooks and Slash Commands: '
                             />
                         </label>
                         <div className='col-sm-8'>
@@ -474,7 +575,7 @@ class ServiceSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.service.iconDescription'
-                                    defaultMessage='When true, webhooks will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'
+                                    defaultMessage='When true, webhooks and slash commands will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'
                                 />
                             </p>
                         </div>
@@ -616,6 +717,82 @@ class ServiceSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.service.securityDesc'
                                     defaultMessage='When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableInsecureOutgoingConnections'
+                        >
+                            <FormattedMessage
+                                id='admin.service.insecureTlsTitle'
+                                defaultMessage='Enable Insecure Outgoing Connections: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableInsecureOutgoingConnections'
+                                    value='true'
+                                    ref='EnableInsecureOutgoingConnections'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableInsecureOutgoingConnections}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.true'
+                                        defaultMessage='true'
+                                    />
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableInsecureOutgoingConnections'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableInsecureOutgoingConnections}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.service.false'
+                                        defaultMessage='false'
+                                    />
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.service.insecureTlsDesc'
+                                    defaultMessage='When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='AllowCorsFrom'
+                        >
+                            <FormattedMessage
+                                id='admin.service.corsTitle'
+                                defaultMessage='Allow Cross-origin Requests from:'
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='AllowCorsFrom'
+                                ref='AllowCorsFrom'
+                                placeholder={formatMessage(holders.corsExample)}
+                                defaultValue={this.props.config.ServiceSettings.AllowCorsFrom}
+                                onChange={this.handleChange}
+                            />
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.service.corsDescription'
+                                    defaultMessage='Enable HTTP Cross origin request from a specific domain. Use "*" if you want to allow CORS from any domain or leave it blank to disable it.'
                                 />
                             </p>
                         </div>

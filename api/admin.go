@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -21,6 +21,7 @@ func InitAdmin(r *mux.Router) {
 
 	sr := r.PathPrefix("/admin").Subrouter()
 	sr.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
+	sr.Handle("/audits", ApiUserRequired(getAllAudits)).Methods("GET")
 	sr.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
 	sr.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
 	sr.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
@@ -58,6 +59,32 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.ArrayToJson(lines)))
 }
 
+func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if !c.HasSystemAdminPermissions("getAllAudits") {
+		return
+	}
+
+	if result := <-Srv.Store.Audit().Get("", 200); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		audits := result.Data.(model.Audits)
+		etag := audits.Etag()
+
+		if HandleEtag(etag, w, r) {
+			return
+		}
+
+		if len(etag) > 0 {
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		}
+
+		w.Write([]byte(audits.ToJson()))
+		return
+	}
+}
+
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(utils.ClientCfg)))
 }
@@ -93,6 +120,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := model.ConfigFromJson(strings.NewReader(json))
 	json = cfg.ToJson()
 
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(json))
 }
 
@@ -156,15 +184,18 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	name := params["name"]
 
 	if name == "standard" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 4)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 5)
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
 		rows[3] = &model.AnalyticsRow{"unique_user_count", 0}
+		rows[4] = &model.AnalyticsRow{"team_count", 0}
+
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		postChan := Srv.Store.Post().AnalyticsPostCount(teamId)
+		postChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
 		userChan := Srv.Store.User().AnalyticsUniqueUserCount(teamId)
+		teamChan := Srv.Store.Team().AnalyticsTeamCount()
 
 		if r := <-openChan; r.Err != nil {
 			c.Err = r.Err
@@ -194,6 +225,13 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			rows[3].Value = float64(r.Data.(int64))
 		}
 
+		if r := <-teamChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[4].Value = float64(r.Data.(int64))
+		}
+
 		w.Write([]byte(rows.ToJson()))
 	} else if name == "post_counts_day" {
 		if r := <-Srv.Store.Post().AnalyticsPostCountsByDay(teamId); r.Err != nil {
@@ -209,6 +247,65 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
 		}
+	} else if name == "extra_counts" {
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
+		rows[0] = &model.AnalyticsRow{"file_post_count", 0}
+		rows[1] = &model.AnalyticsRow{"hashtag_post_count", 0}
+		rows[2] = &model.AnalyticsRow{"incoming_webhook_count", 0}
+		rows[3] = &model.AnalyticsRow{"outgoing_webhook_count", 0}
+		rows[4] = &model.AnalyticsRow{"command_count", 0}
+		rows[5] = &model.AnalyticsRow{"session_count", 0}
+
+		fileChan := Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
+		hashtagChan := Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
+		iHookChan := Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
+		oHookChan := Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
+		commandChan := Srv.Store.Command().AnalyticsCommandCount(teamId)
+		sessionChan := Srv.Store.Session().AnalyticsSessionCount(teamId)
+
+		if r := <-fileChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[0].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-hashtagChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[1].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-iHookChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[2].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-oHookChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[3].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-commandChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[4].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-sessionChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[5].Value = float64(r.Data.(int64))
+		}
+
+		w.Write([]byte(rows.ToJson()))
 	} else {
 		c.SetInvalidParam("getAnalytics", "name")
 	}

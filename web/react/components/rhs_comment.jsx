@@ -31,6 +31,7 @@ class RhsComment extends React.Component {
 
         this.retryComment = this.retryComment.bind(this);
         this.parseEmojis = this.parseEmojis.bind(this);
+        this.handlePermalink = this.handlePermalink.bind(this);
 
         this.state = {};
     }
@@ -49,7 +50,7 @@ class RhsComment extends React.Component {
                 ChannelStore.setChannelMember(member);
 
                 AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_POST,
+                    type: ActionTypes.RECEIVED_POST,
                     post: data
                 });
             },
@@ -66,6 +67,10 @@ class RhsComment extends React.Component {
     }
     parseEmojis() {
         twemoji.parse(ReactDOM.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+    }
+    handlePermalink(e) {
+        e.preventDefault();
+        EventHelpers.showGetPostLinkModal(this.props.post);
     }
     componentDidMount() {
         this.parseEmojis();
@@ -91,6 +96,25 @@ class RhsComment extends React.Component {
         var isAdmin = Utils.isAdmin(UserStore.getCurrentUser().roles);
 
         var dropdownContents = [];
+
+        if (!Utils.isMobile()) {
+            dropdownContents.push(
+                <li
+                    key='rhs-root-permalink'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.handlePermalink}
+                    >
+                        <FormattedMessage
+                            id='rhs_comment.permalink'
+                            defaultMessage='Permalink'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (isOwner) {
             dropdownContents.push(
@@ -170,8 +194,16 @@ class RhsComment extends React.Component {
 
         var timestamp = UserStore.getCurrentUser().update_at;
 
-        var loading;
-        var postClass = '';
+        let loading;
+        let postClass = '';
+        let message = (
+            <div
+                ref='message_holder'
+                onClick={TextFormatting.handleClick}
+                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
+            />
+        );
+
         if (post.state === Constants.POST_FAILED) {
             postClass += ' post-fail';
             loading = (
@@ -192,6 +224,13 @@ class RhsComment extends React.Component {
                 <img
                     className='post-loading-gif pull-right'
                     src='/static/images/load.gif'
+                />
+            );
+        } else if (this.props.post.state === Constants.POST_DELETED) {
+            message = (
+                <FormattedMessage
+                    id='post_body.deleted'
+                    defaultMessage='(message deleted)'
                 />
             );
         }
@@ -222,7 +261,7 @@ class RhsComment extends React.Component {
                     <div>
                         <ul className='post__header'>
                             <li className='col__name'>
-                                <strong><UserProfile userId={post.user_id} /></strong>
+                                <strong><UserProfile user={this.props.user}/></strong>
                             </li>
                             <li className='col'>
                                 <time className='post__time'>
@@ -244,11 +283,7 @@ class RhsComment extends React.Component {
                         <div className='post__body'>
                             <div className={postClass}>
                                 {loading}
-                                <div
-                                    ref='message_holder'
-                                    onClick={TextFormatting.handleClick}
-                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
-                                />
+                                {message}
                             </div>
                             {fileAttachment}
                         </div>
@@ -264,7 +299,8 @@ RhsComment.defaultProps = {
 };
 RhsComment.propTypes = {
     intl: intlShape.isRequired,
-    post: React.PropTypes.object
+    post: React.PropTypes.object,
+    user: React.PropTypes.object
 };
 
 export default injectIntl(RhsComment);

@@ -60,6 +60,11 @@
 
         &.move--left {
             @include translateX(0);
+
+            .search-bar__container {
+                padding-right: 8px;
+            }
+
         }
 
     }
@@ -68,6 +73,13 @@
 
         &.move--left {
             margin-right: 0;
+
+            .channel-header__links {
+                position: relative;
+                right: auto;
+                top: auto;
+            }
+
         }
 
     }
@@ -80,7 +92,7 @@
         font-size: 1em;
     }
 
-    .date-separator.hovered--after:before, .new-separator.hovered--after:before {
+    .date-separator.hovered--before:after, .date-separator.hovered--after:before, .new-separator.hovered--after:before, .new-separator.hovered--before:after {
         background: none !important;
     }
 
@@ -98,6 +110,16 @@
                 font-size: 20px;
                 content: '...';
                 top: -3px;
+            }
+
+        }
+
+        .comment-icon__container {
+            visibility: visible;
+            display: none;
+
+            &.icon--show {
+                display: inline-block;
             }
 
         }
@@ -148,6 +170,11 @@
 
             .col__name {
                 pointer-events: none;
+
+                .user-popover {
+                    max-width: 130px;
+                }
+
             }
 
         }
@@ -281,6 +308,11 @@
             }
         }
     }
+    .row--invite {
+        .col-sm-6 {
+            padding: 0;
+        }
+    }
     .modal {
         .info__label {
             text-align: left;
@@ -289,6 +321,10 @@
         .modal-header {
             .modal-action {
                 margin-top: 10px;
+            }
+            button.close {
+                font-weight: normal;
+                font-size: 27px;
             }
             .modal-title {
                 float: none;
@@ -303,95 +339,89 @@
                 }
             }
         }
-    }
-    .row--invite {
-        .col-sm-6 {
-            padding: 0;
-        }
-    }
-    .settings-modal {
-        &.display--content {
-            .modal-header {
-                display: none;
+        .settings-modal {
+            &.display--content {
+                .modal-header {
+                    display: none;
+                }
+                .settings-table {
+                    display: block;
+                    .settings-content {
+                        &.minimize-settings {
+                            display: block;
+                        }
+                        .section-min:hover {
+                            background: none;
+                        }
+                        .no-padding--left {
+                            padding-left: 15px;
+                        }
+                    }
+                    .settings-links {
+                        display: none;
+                    }
+                    .modal-header {
+                        display: block;
+                        position: absolute;
+                        top: 0;
+                        width: 100%;
+                        z-index: 5;
+                        .modal-title {
+                            width: 100%;
+                            text-align: center;
+                        }
+                    }
+                    .user-settings {
+                        .tab-header {
+                            display: none;
+                        }
+                        .divider-dark.first {
+                            display: none;
+                        }
+                    }
+                }
             }
             .settings-table {
-                display: block;
+                padding: 0;
+                .nav {
+                    &.position--top {
+                        top: auto;
+                    }
+                    position: relative;
+                    top: auto;
+                    width: 100%;
+                }
                 .settings-content {
+                    .section-edit {
+                        position: absolute;
+                        top: 14px;
+                        right: 0;
+                        padding-right: 0;
+                        .fa {
+                            display: inline-block;
+                        }
+                    }
                     &.minimize-settings {
-                        display: block;
+                        padding: 0;
+                        display: none;
+                        .user-settings {
+                            padding: 70px 20px 30px;
+                        }
                     }
                     .section-min:hover {
-                        background: none;
-                    }
-                    .no-padding--left {
-                        padding-left: 15px;
+                        background: none !important;
                     }
                 }
-                .settings-links {
-                    display: none;
-                }
-                .modal-header {
-                    display: block;
-                    position: absolute;
-                    top: 0;
-                    width: 100%;
-                    z-index: 5;
-                }
-                .modal-title {
-                    padding-left: 20px;
-                }
-                .user-settings {
-                    .tab-header {
-                        display: none;
-                    }
-                    .divider-dark.first {
-                        display: none;
-                    }
-                }
-            }
-        }
-        .settings-table {
-            .nav {
-                &.position--top {
-                    top: auto;
-                }
-                position: relative;
-                top: auto;
-                width: 100%;
-            }
-            .settings-content {
-                .section-edit {
-                    position: absolute;
-                    top: 14px;
-                    right: 0;
-                    padding-right: 0;
-                    .fa {
-                        display: inline-block;
-                    }
-                }
-                &.minimize-settings {
-                    padding: 0;
-                    display: none;
-                    .user-settings {
-                        padding: 70px 20px 30px;
-                    }
-                }
-                .section-min:hover {
-                    background: none !important;
-                }
-            }
-            .settings-links {
-                background: #fff;
-            }
-            .nav {
-                > li {
-                    > a {
-                        border-top: 1px solid #ddd;
-                        font-size: 1.1em;
-                        line-height: 2.7;
-                        color: #555;
-                        .glyphicon {
-                            margin-left: 7px;
+                .nav {
+                    > li {
+                        > a {
+                            border-top: 1px solid #ddd;
+                            font-size: 1.1em;
+                            line-height: 2.7;
+                            color: #555;
+                            .glyphicon {
+                                margin-left: 7px;
+                            }
                         }
                     }
                 }
@@ -578,7 +608,7 @@
             @include translate3d(0, 0, 0);
         }
         > div {
-            padding-bottom: 0;
+            padding-bottom: 70px;
         }
         .nav-pills__unread-indicator-bottom {
             bottom: 10px;
@@ -587,8 +617,21 @@
             top: 13px;
         }
         .team__header {
-            display: none;
             @include clearfix;
+            pointer-events: none;
+
+            .user__name {
+                display: none;
+            }
+
+            .team__name {
+                margin: 10px 0;
+            }
+
+            .navbar-right {
+                display: none;
+            }
+
         }
         .search__form {
             display: block;
@@ -759,6 +802,26 @@
     }
 }
 @media screen and (max-width: 480px) {
+    .modal {
+        .settings-modal {
+
+            .settings-table {
+
+                .security-links {
+                    margin-bottom: 10px;
+                    display: block;
+
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+
+                }
+
+            }
+
+        }
+    }
+
     .tip-overlay.tip-overlay--sidebar {
         min-height: 350px;
     }

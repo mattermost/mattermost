@@ -22,7 +22,7 @@ export default class ModalToggleButton extends React.Component {
     }
 
     render() {
-        const {children, dialogType, dialogProps, onClick, ...props} = this.props; // eslint-disable-line no-redeclare
+        const {children, dialogType, dialogProps, onClick, ...props} = this.props; // eslint-disable-line no-use-before-define
 
         // allow callers to provide an onClick which will be called before the modal is shown
         let clickHandler = this.show;

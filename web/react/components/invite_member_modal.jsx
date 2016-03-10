@@ -376,7 +376,7 @@ class InviteMemberModal extends React.Component {
                 );
                 if (this.state.isSendingEmails) {
                     sendButtonLabel = (
-                        <span><i className='fa fa-spinner fa-spin' />
+                        <span><i className='fa fa-spinner fa-spin'/>
                             <FormattedMessage
                                 id='invite_member.sending'
                                 defaultMessage=' Sending'
@@ -495,7 +495,7 @@ class InviteMemberModal extends React.Component {
                     <ConfirmModal
                         title={formatMessage(holders.modalTitle)}
                         message={formatMessage(holders.modalMessage)}
-                        confirm_button={formatMessage(holders.modalButton)}
+                        confirmButton={formatMessage(holders.modalButton)}
                         show={this.state.showConfirmModal}
                         onConfirm={this.handleHide.bind(this, false)}
                         onCancel={() => this.setState({showConfirmModal: false})}

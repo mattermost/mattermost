@@ -1,6 +1,9 @@
 {
 	"ImportPath": "github.com/mattermost/platform",
 	"GoVersion": "go1.5.1",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/alecthomas/log4go",
@@ -56,6 +59,16 @@
 			"Rev": "f29eb116deb328d02ee5c573f02d442ca67d5532"
 		},
 		{
+			"ImportPath": "github.com/golang/freetype/raster",
+			"Comment": "release-120-gf29eb11",
+			"Rev": "f29eb116deb328d02ee5c573f02d442ca67d5532"
+		},
+		{
+			"ImportPath": "github.com/golang/freetype/truetype",
+			"Comment": "release-120-gf29eb11",
+			"Rev": "f29eb116deb328d02ee5c573f02d442ca67d5532"
+		},
+		{
 			"ImportPath": "github.com/golang/groupcache/lru",
 			"Rev": "604ed5785183e59ae2789449d89e73f3a2a77987"
 		},
@@ -77,12 +90,32 @@
 			"Rev": "11fc39a580a008f1f39bb3d11d984fb34ed778d9"
 		},
 		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-63-g11fc39a",
+			"Rev": "11fc39a580a008f1f39bb3d11d984fb34ed778d9"
+		},
+		{
 			"ImportPath": "github.com/mssola/user_agent",
 			"Comment": "v0.4.1-5-g783ec61",
 			"Rev": "783ec61292aee3fc2f442ce740aa491e4849b794"
 		},
 		{
 			"ImportPath": "github.com/nicksnyder/go-i18n/i18n",
+			"Comment": "v1.4.0",
+			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
+		},
+		{
+			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/bundle",
+			"Comment": "v1.4.0",
+			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
+		},
+		{
+			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/language",
+			"Comment": "v1.4.0",
+			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
+		},
+		{
+			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/translation",
 			"Comment": "v1.4.0",
 			"Rev": "37e5c2de3e03e4b82693e3fcb4a6aa2cc4eb07e3"
 		},
@@ -127,6 +160,10 @@
 			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
 		},
 		{
+			"ImportPath": "golang.org/x/image/tiff/lzw",
+			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
+		},
+		{
 			"ImportPath": "gopkg.in/asn1-ber.v1",
 			"Comment": "v1.1",
 			"Rev": "4e86f4367175e39f69d9358a5f17b4dda270378d"
@@ -138,6 +175,11 @@
 		},
 		{
 			"ImportPath": "gopkg.in/throttled/throttled.v1",
+			"Comment": "v1.0.0",
+			"Rev": "74e328a1af88a9b54f9eca1397d74ad98572a6df"
+		},
+		{
+			"ImportPath": "gopkg.in/throttled/throttled.v1/store",
 			"Comment": "v1.0.0",
 			"Rev": "74e328a1af88a9b54f9eca1397d74ad98572a6df"
 		},

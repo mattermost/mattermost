@@ -4,10 +4,6 @@
 import PostAttachment from './post_attachment.jsx';
 
 export default class PostAttachmentList extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         let content = [];
         this.props.attachments.forEach((attachment, i) => {

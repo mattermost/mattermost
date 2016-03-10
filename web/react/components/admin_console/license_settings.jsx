@@ -27,6 +27,7 @@ class LicenseSettings extends React.Component {
 
         this.state = {
             fileSelected: false,
+            fileName: null,
             serverError: null
         };
     }
@@ -34,7 +35,7 @@ class LicenseSettings extends React.Component {
     handleChange() {
         const element = $(ReactDOM.findDOMNode(this.refs.fileInput));
         if (element.prop('files').length > 0) {
-            this.setState({fileSelected: true});
+            this.setState({fileSelected: true, fileName: element.prop('files')[0].name});
         }
     }
 
@@ -56,13 +57,13 @@ class LicenseSettings extends React.Component {
             () => {
                 Utils.clearFileInput(element[0]);
                 $('#upload-button').button('reset');
-                this.setState({serverError: null});
+                this.setState({fileSelected: false, fileName: null, serverError: null});
                 window.location.reload(true);
             },
             (error) => {
                 Utils.clearFileInput(element[0]);
                 $('#upload-button').button('reset');
-                this.setState({serverError: error.message});
+                this.setState({fileSelected: false, fileName: null, serverError: error.message});
             }
         );
     }
@@ -75,12 +76,12 @@ class LicenseSettings extends React.Component {
         Client.removeLicenseFile(
             () => {
                 $('#remove-button').button('reset');
-                this.setState({serverError: null});
+                this.setState({fileSelected: false, fileName: null, serverError: null});
                 window.location.reload(true);
             },
             (error) => {
                 $('#remove-button').button('reset');
-                this.setState({serverError: error.message});
+                this.setState({fileSelected: false, fileName: null, serverError: error.message});
             }
         );
     }
@@ -109,9 +110,18 @@ class LicenseSettings extends React.Component {
             );
             licenseType = (
                 <FormattedHTMLMessage
-                    id='admin.license.entrepriseType'
-                    defaultMessage='<div><p>This compiled release of Mattermost platform is provided under a <a href="http://mattermost.com" target="_blank">commercial license</a>
-                    from Mattermost, Inc. based on your subscription level and is subject to the <a href="{terms}" target="_blank">Terms of Service.</a></p>
+                    id='admin.license.enterpriseType'
+                    values={{
+                        terms: global.window.mm_config.TermsOfServiceLink,
+                        name: global.window.mm_license.Name,
+                        company: global.window.mm_license.Company,
+                        users: global.window.mm_license.Users,
+                        issued: Utils.displayDate(parseInt(global.window.mm_license.IssuedAt, 10)) + ' ' + Utils.displayTime(parseInt(global.window.mm_license.IssuedAt, 10), true),
+                        start: Utils.displayDate(parseInt(global.window.mm_license.StartsAt, 10)),
+                        expires: Utils.displayDate(parseInt(global.window.mm_license.ExpiresAt, 10)),
+                        ldap: global.window.mm_license.LDAP
+                    }}
+                    defaultMessage='<div><p>This compiled release of Mattermost platform is provided under a <a href="http://mattermost.com" target="_blank">commercial license</a> from Mattermost, Inc. based on your subscription level and is subject to the <a href="{terms}" target="_blank">Terms of Service.</a></p>
                     <p>Your subscription details are as follows:</p>
                     Name: {name}<br />
                     Company or organization name: {company}<br/>
@@ -126,6 +136,7 @@ class LicenseSettings extends React.Component {
             licenseKey = (
                 <div className='col-sm-8'>
                     <button
+                        disabled={this.props.config.LdapSettings.Enable}
                         className='btn btn-danger'
                         onClick={this.handleRemove}
                         id='remove-button'
@@ -141,9 +152,7 @@ class LicenseSettings extends React.Component {
                     <p className='help-text'>
                         <FormattedHTMLMessage
                             id='admin.licence.keyMigration'
-                            defaultMessage='If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start,
-                            <a href="http://mattermost.com" target="_blank">disable all Enterprise Edition features on this server</a>.
-                            This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.'
+                            defaultMessage='If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start, <a href="http://mattermost.com" target="_blank">disable all Enterprise Edition features on this server</a>. This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.'
                         />
                     </p>
                 </div>
@@ -164,17 +173,36 @@ class LicenseSettings extends React.Component {
                 />
             );
 
+            let fileName;
+            if (this.state.fileName) {
+                fileName = this.state.fileName;
+            } else {
+                fileName = (
+                    <FormattedMessage
+                        id='admin.license.noFile'
+                        defaultMessage='No file uploaded'
+                    />
+                );
+            }
+
             licenseKey = (
                 <div className='col-sm-8'>
-                    <input
-                        className='pull-left'
-                        ref='fileInput'
-                        type='file'
-                        accept='.mattermost-license'
-                        onChange={this.handleChange}
-                    />
+                    <div className='file__upload'>
+                        <button className='btn btn-default'>
+                            <FormattedMessage
+                                id='admin.license.choose'
+                                defaultMessage='Choose File'
+                            />
+                        </button>
+                        <input
+                            ref='fileInput'
+                            type='file'
+                            accept='.mattermost-license'
+                            onChange={this.handleChange}
+                        />
+                    </div>
                     <button
-                        className={btnClass + ' pull-left'}
+                        className={btnClass}
                         disabled={!this.state.fileSelected}
                         onClick={this.handleSubmit}
                         id='upload-button'
@@ -185,15 +213,15 @@ class LicenseSettings extends React.Component {
                             defaultMessage='Upload'
                         />
                     </button>
-                    <br/>
-                    <br/>
+                    <div className='help-text no-margin'>
+                        {fileName}
+                    </div>
                     <br/>
                     {serverError}
-                    <p className='help-text'>
+                    <p className='help-text no-margin'>
                         <FormattedHTMLMessage
                             id='admin.license.uploadDesc'
-                            defaultMessage='Upload a license key for Mattermost Enterprise Edition to upgrade this server. <a href="http://mattermost.com" target="_blank">Visit us online</a>
-                             to learn more about the benefits of Enterprise Edition or to purchase a key.'
+                            defaultMessage='Upload a license key for Mattermost Enterprise Edition to upgrade this server. <a href="http://mattermost.com" target="_blank">Visit us online</a> to learn more about the benefits of Enterprise Edition or to purchase a key.'
                         />
                     </p>
                 </div>
@@ -256,7 +284,8 @@ class LicenseSettings extends React.Component {
 }
 
 LicenseSettings.propTypes = {
-    intl: intlShape.isRequired
+    intl: intlShape.isRequired,
+    config: React.PropTypes.object
 };
 
 export default injectIntl(LicenseSettings);

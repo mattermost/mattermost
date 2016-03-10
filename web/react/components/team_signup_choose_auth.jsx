@@ -23,7 +23,7 @@ export default class ChooseAuthPage extends React.Component {
                             }.bind(this)
                         }
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='choose_auth_page.gitlabCreate'
@@ -47,11 +47,35 @@ export default class ChooseAuthPage extends React.Component {
                             }
                         }
                     >
-                        <span className='icon' />
+                        <span className='icon'/>
                         <span>
                             <FormattedMessage
                                 id='choose_auth_page.googleCreate'
                                 defaultMessage='Create new team with Google Apps Account'
+                            />
+                        </span>
+                    </a>
+            );
+        }
+
+        if (global.window.mm_config.EnableLdap === 'true') {
+            buttons.push(
+                    <a
+                        className='btn btn-custom-login ldap btn-full'
+                        key='ldap'
+                        href='#'
+                        onClick={
+                            (e) => {
+                                e.preventDefault();
+                                this.props.updatePage('ldap');
+                            }
+                        }
+                    >
+                        <span className='icon'/>
+                        <span>
+                            <FormattedMessage
+                                id='choose_auth_page.ldapCreate'
+                                defaultMessage='Create new team with LDAP Account'
                             />
                         </span>
                     </a>
@@ -71,7 +95,7 @@ export default class ChooseAuthPage extends React.Component {
                             }.bind(this)
                         }
                     >
-                        <span className='fa fa-envelope' />
+                        <span className='fa fa-envelope'/>
                         <span>
                             <FormattedMessage
                                 id='choose_auth_page.emailCreate'

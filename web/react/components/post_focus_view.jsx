@@ -7,6 +7,8 @@ import PostStore from '../stores/post_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
+import {FormattedMessage} from 'mm-intl';
+
 export default class PostFocusView extends React.Component {
     constructor(props) {
         super(props);
@@ -73,7 +75,12 @@ export default class PostFocusView extends React.Component {
     getIntroMessage() {
         return (
             <div className='channel-intro'>
-                <h4 className='channel-intro__title'>{'Beginning of Channel Archives'}</h4>
+                <h4 className='channel-intro__title'>
+                    <FormattedMessage
+                        id='post_focus_view.beginning'
+                        defaultMessage='Beginning of Channel Archives'
+                    />
+                </h4>
             </div>
         );
     }
@@ -98,6 +105,7 @@ export default class PostFocusView extends React.Component {
                     introText={this.getIntroMessage()}
                     messageSeparatorTime={0}
                     postsToHighlight={postsToHighlight}
+                    profiles={this.props.profiles}
                 />
             </div>
         );
@@ -107,4 +115,5 @@ PostFocusView.defaultProps = {
 };
 
 PostFocusView.propTypes = {
+    profiles: React.PropTypes.object
 };

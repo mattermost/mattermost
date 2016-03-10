@@ -317,3 +317,22 @@ func (s SqlTeamStore) PermanentDelete(teamId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlTeamStore) AnalyticsTeamCount() StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0", map[string]interface{}{}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error())
+		} else {
+			result.Data = c
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

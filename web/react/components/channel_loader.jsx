@@ -6,6 +6,7 @@
     AsyncClient with requests. */
 
 import * as AsyncClient from '../utils/async_client.jsx';
+import * as Client from '../utils/client.jsx';
 import SocketStore from '../stores/socket_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import PostStore from '../stores/post_store.jsx';
@@ -15,13 +16,70 @@ import PreferenceStore from '../stores/preference_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class ChannelLoader extends React.Component {
+import {intlShape, injectIntl, defineMessages} from 'mm-intl';
+
+const holders = defineMessages({
+    socketError: {
+        id: 'channel_loader.socketError',
+        defaultMessage: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.'
+    },
+    someone: {
+        id: 'channel_loader.someone',
+        defaultMessage: 'Someone'
+    },
+    posted: {
+        id: 'channel_loader.posted',
+        defaultMessage: 'Posted'
+    },
+    uploadedImage: {
+        id: 'channel_loader.uploadedImage',
+        defaultMessage: ' uploaded an image'
+    },
+    uploadedFile: {
+        id: 'channel_loader.uploadedFile',
+        defaultMessage: ' uploaded a file'
+    },
+    something: {
+        id: 'channel_loader.something',
+        defaultMessage: ' did something new'
+    },
+    wrote: {
+        id: 'channel_loader.wrote',
+        defaultMessage: ' wrote: '
+    },
+    connectionError: {
+        id: 'channel_loader.connection_error',
+        defaultMessage: 'There appears to be a problem with your internet connection.'
+    },
+    unknownError: {
+        id: 'channel_loader.unknown_error',
+        defaultMessage: 'We received an unexpected status code from the server.'
+    }
+});
+
+class ChannelLoader extends React.Component {
     constructor(props) {
         super(props);
 
         this.intervalId = null;
 
         this.onSocketChange = this.onSocketChange.bind(this);
+
+        const {formatMessage} = this.props.intl;
+        SocketStore.setTranslations({
+            socketError: formatMessage(holders.socketError),
+            someone: formatMessage(holders.someone),
+            posted: formatMessage(holders.posted),
+            uploadedImage: formatMessage(holders.uploadedImage),
+            uploadedFile: formatMessage(holders.uploadedFile),
+            something: formatMessage(holders.something),
+            wrote: formatMessage(holders.wrote)
+        });
+
+        Client.setTranslations({
+            connectionError: formatMessage(holders.connectionError),
+            unknownError: formatMessage(holders.unknownError)
+        });
 
         this.state = {};
     }
@@ -51,6 +109,8 @@ export default class ChannelLoader extends React.Component {
 
         $(window).on('focus', function windowFocus() {
             AsyncClient.updateLastViewedAt();
+            ChannelStore.resetCounts(ChannelStore.getCurrentId());
+            ChannelStore.emitChange();
             window.isActive = true;
         });
 
@@ -81,6 +141,16 @@ export default class ChannelLoader extends React.Component {
             } else {
                 $(this).parent('div').prev('.date-separator, .new-separator').removeClass('hovered--after');
                 $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--before');
+            }
+        });
+
+        $('body').on('mouseenter mouseleave', '.search-item__container .post', function mouseOver(ev) {
+            if (ev.type === 'mouseenter') {
+                $(this).closest('.search-item__container').find('.date-separator').addClass('hovered--after');
+                $(this).closest('.search-item__container').next('div').find('.date-separator').addClass('hovered--before');
+            } else {
+                $(this).closest('.search-item__container').find('.date-separator').removeClass('hovered--after');
+                $(this).closest('.search-item__container').next('div').find('.date-separator').removeClass('hovered--before');
             }
         });
 
@@ -126,3 +196,9 @@ export default class ChannelLoader extends React.Component {
         return <div/>;
     }
 }
+
+ChannelLoader.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(ChannelLoader);

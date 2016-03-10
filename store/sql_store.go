@@ -47,7 +47,9 @@ type SqlStore struct {
 	oauth      OAuthStore
 	system     SystemStore
 	webhook    WebhookStore
+	command    CommandStore
 	preference PreferenceStore
+	license    LicenseStore
 }
 
 func NewSqlStore() Store {
@@ -100,7 +102,9 @@ func NewSqlStore() Store {
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
 	sqlStore.system = NewSqlSystemStore(sqlStore)
 	sqlStore.webhook = NewSqlWebhookStore(sqlStore)
+	sqlStore.command = NewSqlCommandStore(sqlStore)
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
+	sqlStore.license = NewSqlLicenseStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
@@ -116,7 +120,9 @@ func NewSqlStore() Store {
 	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
 	sqlStore.system.(*SqlSystemStore).UpgradeSchemaIfNeeded()
 	sqlStore.webhook.(*SqlWebhookStore).UpgradeSchemaIfNeeded()
+	sqlStore.command.(*SqlCommandStore).UpgradeSchemaIfNeeded()
 	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
+	sqlStore.license.(*SqlLicenseStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -127,11 +133,13 @@ func NewSqlStore() Store {
 	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
 	sqlStore.system.(*SqlSystemStore).CreateIndexesIfNotExists()
 	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
+	sqlStore.command.(*SqlCommandStore).CreateIndexesIfNotExists()
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
+	sqlStore.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
-	if model.IsPreviousVersionsSupported(schemaVersion) {
+	if model.IsPreviousVersionsSupported(schemaVersion) && !model.IsCurrentVersion(schemaVersion) {
 		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
 		l4g.Warn(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
 	}
@@ -371,6 +379,49 @@ func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, 
 	return true
 }
 
+func (ss SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName string) string {
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return ""
+	}
+
+	var result string
+	var err error
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		result, err = ss.GetMaster().SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
+	}
+
+	if err != nil {
+		l4g.Critical(utils.T("store.sql.maxlength_column.critical"), err)
+		time.Sleep(time.Second)
+		panic(fmt.Sprintf(utils.T("store.sql.maxlength_column.critical"), err.Error()))
+	}
+
+	return result
+}
+
+func (ss SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
+
+	var err error
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		_, err = ss.GetMaster().Exec("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
+	}
+
+	if err != nil {
+		l4g.Critical(utils.T("store.sql.alter_column_type.critical"), err)
+		time.Sleep(time.Second)
+		panic(fmt.Sprintf(utils.T("store.sql.alter_column_type.critical"), err.Error()))
+	}
+
+	return true
+}
+
 func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
 	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT)
 }
@@ -432,25 +483,66 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 	}
 }
 
+func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
+
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
+		// It should fail if the index does not exist
+		if err == nil {
+			return
+		}
+
+		_, err = ss.GetMaster().Exec("DROP INDEX " + indexName)
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
+			time.Sleep(time.Second)
+			panic(fmt.Sprintf(utils.T("store.sql.remove_index.critical"), err.Error()))
+		}
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
+			time.Sleep(time.Second)
+			panic(fmt.Sprintf(utils.T("store.sql.check_index.critical"), err.Error()))
+		}
+
+		if count > 0 {
+			return
+		}
+
+		_, err = ss.GetMaster().Exec("DROP INDEX " + indexName + " ON " + tableName)
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
+			time.Sleep(time.Second)
+			panic(fmt.Sprintf(utils.T("store.sql.remove_index.critical"), err.Error()))
+		}
+	} else {
+		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
+		time.Sleep(time.Second)
+		panic(utils.T("store.sql.create_index_missing_driver.critical"))
+	}
+}
+
 func IsUniqueConstraintError(err string, mysql string, postgres string) bool {
 	unique := strings.Contains(err, "unique constraint") || strings.Contains(err, "Duplicate entry")
 	field := strings.Contains(err, mysql) || strings.Contains(err, postgres)
 	return unique && field
 }
 
-func (ss SqlStore) GetColumnDataType(tableName, columnName string) string {
-	dataType, err := ss.GetMaster().SelectStr("SELECT data_type FROM INFORMATION_SCHEMA.COLUMNS where table_name = :Tablename AND column_name = :Columnname", map[string]interface{}{
-		"Tablename":  tableName,
-		"Columnname": columnName,
-	})
-	if err != nil {
-		l4g.Critical(utils.T("store.sql.table_column_type.critical"), columnName, tableName, err.Error())
-		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.table_column_type.critical"), columnName, tableName, err.Error()))
-	}
+// func (ss SqlStore) GetColumnDataType(tableName, columnName string) string {
+// 	dataType, err := ss.GetMaster().SelectStr("SELECT data_type FROM INFORMATION_SCHEMA.COLUMNS where table_name = :Tablename AND column_name = :Columnname", map[string]interface{}{
+// 		"Tablename":  tableName,
+// 		"Columnname": columnName,
+// 	})
+// 	if err != nil {
+// 		l4g.Critical(utils.T("store.sql.table_column_type.critical"), columnName, tableName, err.Error())
+// 		time.Sleep(time.Second)
+// 		panic(fmt.Sprintf(utils.T("store.sql.table_column_type.critical"), columnName, tableName, err.Error()))
+// 	}
 
-	return dataType
-}
+// 	return dataType
+// }
 
 func (ss SqlStore) GetMaster() *gorp.DbMap {
 	return ss.master
@@ -511,8 +603,16 @@ func (ss SqlStore) Webhook() WebhookStore {
 	return ss.webhook
 }
 
+func (ss SqlStore) Command() CommandStore {
+	return ss.command
+}
+
 func (ss SqlStore) Preference() PreferenceStore {
 	return ss.preference
+}
+
+func (ss SqlStore) License() LicenseStore {
+	return ss.license
 }
 
 type mattermConverter struct{}

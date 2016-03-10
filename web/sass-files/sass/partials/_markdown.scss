@@ -20,9 +20,18 @@
 
 .post-body--code {
 	position: relative;
+
+	pre {
+		margin-bottom: 0;
+		word-break: normal;
+		overflow: auto;
+		word-wrap: normal;
+	}
+
 }
 
 .post-body--code__language {
+	-webkit-transform: translate3d(0,0,0);
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -31,6 +40,7 @@
 	padding: 4px 10px 5px 10px;
 	font-size: 13px;
 	opacity: 0.7;
+	z-index: 5;
 }
 
 .post__body {
@@ -43,7 +53,12 @@
 		@include opacity(0.2);
 	}
 	code {
-		white-space: pre-line;
+		white-space: pre;
+	}
+	.codespan__pre-wrap {
+		code {
+			white-space: pre-wrap;
+		}
 	}
 }
 .markdown__table {
