@@ -31,6 +31,7 @@ class SocketStoreClass extends EventEmitter {
         this.close = this.close.bind(this);
 
         this.failCount = 0;
+        this.isInitialize = false;
 
         this.translations = this.getDefaultTranslations();
 
@@ -58,24 +59,23 @@ class SocketStoreClass extends EventEmitter {
 
             if (this.failCount === 0) {
                 console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
-                if (ErrorStore.getConnectionErrorCount() > 0) {
-                    ErrorStore.setConnectionErrorCount(0);
-                    ErrorStore.emitChange();
-                }
             }
+
             conn = new WebSocket(connUrl);
 
             conn.onopen = () => {
                 if (this.failCount > 0) {
                     console.log('websocket re-established connection'); //eslint-disable-line no-console
-
-                    ErrorStore.clearLastError();
-                    ErrorStore.emitChange();
-
                     AsyncClient.getChannels();
                     AsyncClient.getPosts(ChannelStore.getCurrentId());
                 }
 
+                if (this.isInitialize) {
+                    ErrorStore.clearLastError();
+                    ErrorStore.emitChange();
+                }
+
+                this.isInitialize = true;
                 this.failCount = 0;
             };
 
