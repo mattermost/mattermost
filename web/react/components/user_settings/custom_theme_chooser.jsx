@@ -255,7 +255,6 @@ class CustomThemeChooser extends React.Component {
                 );
 
                 colors += theme[element.id] + ',';
-
             } else if (element.group === 'sidebarElements') {
                 sidebarElements.push(
                     <div
