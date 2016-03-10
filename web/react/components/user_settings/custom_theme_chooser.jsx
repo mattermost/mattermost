@@ -306,7 +306,6 @@ class CustomThemeChooser extends React.Component {
         });
 
         colors += theme.codeTheme;
-        console.log(colors);
 
         const pasteBox = (
             <div className='col-sm-12'>
