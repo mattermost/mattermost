@@ -895,3 +895,79 @@ func TestPostCountsByDay(t *testing.T) {
 		}
 	}
 }
+
+func TestComplianceExport(t *testing.T) {
+	Setup()
+
+	time.Sleep(100 * time.Millisecond)
+
+	t1 := &model.Team{}
+	t1.DisplayName = "DisplayName"
+	t1.Name = "a" + model.NewId() + "b"
+	t1.Email = model.NewId() + "@nowhere.com"
+	t1.Type = model.TEAM_OPEN
+	t1 = Must(store.Team().Save(t1)).(*model.Team)
+
+	u1 := &model.User{}
+	u1.TeamId = t1.Id
+	u1.Email = model.NewId()
+	u1.Username = model.NewId()
+	u1 = Must(store.User().Save(u1)).(*model.User)
+
+	c1 := &model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel2"
+	c1.Name = "a" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	c1 = Must(store.Channel().Save(c1)).(*model.Channel)
+
+	o1 := &model.Post{}
+	o1.ChannelId = c1.Id
+	o1.UserId = u1.Id
+	o1.CreateAt = model.GetMillis()
+	o1.Message = "a" + model.NewId() + "b"
+	o1 = Must(store.Post().Save(o1)).(*model.Post)
+
+	o1a := &model.Post{}
+	o1a.ChannelId = c1.Id
+	o1a.UserId = u1.Id
+	o1a.CreateAt = o1.CreateAt + 10
+	o1a.Message = "a" + model.NewId() + "b"
+	o1a = Must(store.Post().Save(o1a)).(*model.Post)
+
+	o2 := &model.Post{}
+	o2.ChannelId = c1.Id
+	o2.UserId = u1.Id
+	o2.CreateAt = o1.CreateAt + 20
+	o2.Message = "a" + model.NewId() + "b"
+	o2 = Must(store.Post().Save(o2)).(*model.Post)
+
+	o2a := &model.Post{}
+	o2a.ChannelId = c1.Id
+	o2a.UserId = u1.Id
+	o2a.CreateAt = o1.CreateAt + 30
+	o2a.Message = "a" + model.NewId() + "b"
+	o2a = Must(store.Post().Save(o2a)).(*model.Post)
+
+	time.Sleep(100 * time.Millisecond)
+
+	if r1 := <-store.Post().ComplianceExport(o1.CreateAt-1, o2a.CreateAt+1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		cposts := r1.Data.([]*model.CompliancePost)
+		t.Log(cposts)
+
+		if len(cposts) != 4 {
+			t.Fatal("return wrong results length")
+		}
+
+		if cposts[0].PostId != o1.Id {
+			t.Fatal("Wrong sort")
+		}
+
+		if cposts[3].PostId != o2a.Id {
+			t.Fatal("Wrong sort")
+		}
+
+	}
+}

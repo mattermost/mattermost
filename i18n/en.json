@@ -2772,6 +2772,10 @@
     "translation": "We couldn't get post counts"
   },
   {
+    "id": "store.sql_post.compliance_export.app_error",
+    "translation": "We couldn't get posts for compliance export"
+  },
+  {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
     "translation": "We couldn't get post counts by day"
   },

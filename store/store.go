@@ -105,6 +105,7 @@ type PostStore interface {
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
+	ComplianceExport(startTime int64, endTime int64) StoreChannel
 }
 
 type UserStore interface {
