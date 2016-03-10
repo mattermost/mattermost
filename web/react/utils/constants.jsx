@@ -371,21 +371,6 @@ export default {
             uiName: 'New Message Separator'
         },
         {
-            group: 'linkAndButtonElements',
-            id: 'linkColor',
-            uiName: 'Link Color'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonBg',
-            uiName: 'Button BG'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonColor',
-            uiName: 'Button Text'
-        },
-        {
             group: 'centerChannelElements',
             id: 'mentionHighlightBg',
             uiName: 'Mention Highlight BG'
@@ -417,6 +402,21 @@ export default {
                     uiName: 'Monokai'
                 }
             ]
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'linkColor',
+            uiName: 'Link Color'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonBg',
+            uiName: 'Button BG'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonColor',
+            uiName: 'Button Text'
         }
     ],
     DEFAULT_CODE_THEME: 'github',
