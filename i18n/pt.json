@@ -456,8 +456,8 @@
     "translation": "S3 não é suportado para o armazenamento local de exportação."
   },
   {
-    "id": "api.export.write_file.app_error",
-    "translation": "Não é possível gravar para exportar arquivo"
+    "id": "api.file.file_upload.exceeds",
+    "translation": "Arquivo excede o máximo de tamanho de imagem."
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -506,6 +506,22 @@
   {
     "id": "api.file.init.debug",
     "translation": "Inicializando file api routes"
+  },
+  {
+    "id": "api.file.move_file.configured.app_error",
+    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+  },
+  {
+    "id": "api.file.move_file.delete_from_s3.app_error",
+    "translation": "Não é possível deletar o arquivo a partir do S3."
+  },
+  {
+    "id": "api.file.move_file.get_from_s3.app_error",
+    "translation": "Não é possível obter o arquivo a partir do S3."
+  },
+  {
+    "id": "api.file.move_file.rename.app_error",
+    "translation": "Não foi possível mover o arquivo localmente."
   },
   {
     "id": "api.file.open_file_write_stream.configured.app_error",
