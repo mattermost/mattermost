@@ -87,6 +87,7 @@
         "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
         "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
         "SendPushNotifications": false,
+        "PushNotificationContents": "generic",
         "PushNotificationServer": ""
     },
     "RateLimitSettings": {

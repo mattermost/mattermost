@@ -421,3 +421,84 @@ func TestUserStoreUpdateAuthData(t *testing.T) {
 		}
 	}
 }
+
+func TestUserUnreadCount(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	c1 := model.Channel{}
+	c1.TeamId = teamId
+	c1.DisplayName = "Unread Messages"
+	c1.Name = "unread-messages"
+	c1.Type = model.CHANNEL_OPEN
+
+	c2 := model.Channel{}
+	c2.TeamId = teamId
+	c2.DisplayName = "Unread Direct"
+	c2.Name = "unread-direct"
+	c2.Type = model.CHANNEL_DIRECT
+
+	u1 := model.User{}
+	u1.Email = model.NewId()
+	u1.Username = "user1"
+	u1.TeamId = teamId
+	Must(store.User().Save(&u1))
+
+	u2 := model.User{}
+	u2.Email = model.NewId()
+	u2.Username = "user2"
+	u2.TeamId = teamId
+	Must(store.User().Save(&u2))
+
+	if err := (<-store.Channel().Save(&c1)).Err; err != nil {
+		t.Fatal("couldn't save item", err)
+	}
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = c1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = c1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	Must(store.Channel().SaveMember(&m1))
+	Must(store.Channel().SaveMember(&m2))
+
+	m1.ChannelId = c2.Id
+	m2.ChannelId = c2.Id
+
+	if err := (<-store.Channel().SaveDirectChannel(&c2, &m1, &m2)).Err; err != nil {
+		t.Fatal("couldn't save direct channel", err)
+	}
+
+	p1 := model.Post{}
+	p1.ChannelId = c1.Id
+	p1.UserId = u1.Id
+	p1.Message = "this is a message for @" + u2.Username
+
+	// Post one message with mention to open channel
+	Must(store.Post().Save(&p1))
+	Must(store.Channel().IncrementMentionCount(c1.Id, u2.Id))
+
+	// Post 2 messages without mention to direct channel
+	p2 := model.Post{}
+	p2.ChannelId = c2.Id
+	p2.UserId = u1.Id
+	p2.Message = "first message"
+	Must(store.Post().Save(&p2))
+
+	p3 := model.Post{}
+	p3.ChannelId = c2.Id
+	p3.UserId = u1.Id
+	p3.Message = "second message"
+	Must(store.Post().Save(&p3))
+
+	badge := (<-store.User().GetUnreadCount(u2.Id)).Data.(int64)
+	if badge != 3 {
+		t.Fatal("should have 3 unread messages")
+	}
+}

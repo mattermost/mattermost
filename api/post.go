@@ -670,8 +670,15 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 							alreadySeen[session.DeviceId] = session.DeviceId
 
 							msg := model.PushNotification{}
-							msg.Badge = 1
+							if badge := <-Srv.Store.User().GetUnreadCount(id); badge.Err != nil {
+								msg.Badge = 1
+								l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), id, badge.Err)
+							} else {
+								msg.Badge = int(badge.Data.(int64))
+							}
 							msg.ServerId = utils.CfgDiagnosticId
+							msg.ChannelId = channel.Id
+							msg.ChannelName = channel.Name
 
 							if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") {
 								msg.Platform = model.PUSH_NOTIFY_APPLE
@@ -681,10 +688,20 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 								msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")
 							}
 
-							if channel.Type == model.CHANNEL_DIRECT {
-								msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+							if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+								if channel.Type == model.CHANNEL_DIRECT {
+									msg.Category = model.CATEGORY_DM
+									msg.Message = "@" + senderName + ": " + model.ClearMentionTags(post.Message)
+								} else {
+									msg.Message = "@" + senderName + " @ " + channelName + ": " + model.ClearMentionTags(post.Message)
+								}
 							} else {
-								msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+								if channel.Type == model.CHANNEL_DIRECT {
+									msg.Category = model.CATEGORY_DM
+									msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+								} else {
+									msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+								}
 							}
 
 							tr := &http.Transport{

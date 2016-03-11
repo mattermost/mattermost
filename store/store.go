@@ -130,6 +130,8 @@ type UserStore interface {
 	GetSystemAdminProfiles() StoreChannel
 	PermanentDelete(userId string) StoreChannel
 	AnalyticsUniqueUserCount(teamId string) StoreChannel
+
+	GetUnreadCount(userId string) StoreChannel
 }
 
 type SessionStore interface {

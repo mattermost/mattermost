@@ -25,6 +25,9 @@ const (
 	WEBSERVER_MODE_REGULAR  = "regular"
 	WEBSERVER_MODE_GZIP     = "gzip"
 	WEBSERVER_MODE_DISABLED = "disabled"
+
+	GENERIC_NOTIFICATION = "generic"
+	FULL_NOTIFICATION    = "full"
 )
 
 type ServiceSettings struct {
@@ -121,6 +124,7 @@ type EmailSettings struct {
 	PasswordResetSalt        string
 	SendPushNotifications    *bool
 	PushNotificationServer   *string
+	PushNotificationContents *string
 }
 
 type RateLimitSettings struct {
@@ -297,6 +301,11 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.PushNotificationServer == nil {
 		o.EmailSettings.PushNotificationServer = new(string)
 		*o.EmailSettings.PushNotificationServer = ""
+	}
+
+	if o.EmailSettings.PushNotificationContents == nil {
+		o.EmailSettings.PushNotificationContents = new(string)
+		*o.EmailSettings.PushNotificationContents = GENERIC_NOTIFICATION
 	}
 
 	if o.SupportSettings.TermsOfServiceLink == nil {

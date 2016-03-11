@@ -58,6 +58,14 @@ var holders = defineMessages({
         id: 'admin.email.pushServerEx',
         defaultMessage: 'E.g.: "http://push-test.mattermost.com"'
     },
+    genericPush: {
+        id: 'admin.email.genericPushNotification',
+        defaultMessage: 'Send generic description with user and channel names'
+    },
+    fullPush: {
+        id: 'admin.email.fullPushNotification',
+        defaultMessage: 'Send full message snippet'
+    },
     testing: {
         id: 'admin.email.testing',
         defaultMessage: 'Testing...'
@@ -87,7 +95,8 @@ class EmailSettings extends React.Component {
             saveNeeded: false,
             serverError: null,
             emailSuccess: null,
-            emailFail: null
+            emailFail: null,
+            pushNotificationContents: this.props.config.EmailSettings.PushNotificationContents
         };
     }
 
@@ -125,6 +134,7 @@ class EmailSettings extends React.Component {
         config.EmailSettings.FeedbackEmail = ReactDOM.findDOMNode(this.refs.feedbackEmail).value.trim();
         config.EmailSettings.SMTPServer = ReactDOM.findDOMNode(this.refs.SMTPServer).value.trim();
         config.EmailSettings.PushNotificationServer = ReactDOM.findDOMNode(this.refs.PushNotificationServer).value.trim();
+        config.EmailSettings.PushNotificationContents = ReactDOM.findDOMNode(this.refs.PushNotificationContents).value;
         config.EmailSettings.SMTPPort = ReactDOM.findDOMNode(this.refs.SMTPPort).value.trim();
         config.EmailSettings.SMTPUsername = ReactDOM.findDOMNode(this.refs.SMTPUsername).value.trim();
         config.EmailSettings.SMTPPassword = ReactDOM.findDOMNode(this.refs.SMTPPassword).value.trim();
@@ -923,6 +933,38 @@ class EmailSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.email.pushServerDesc'
                                     defaultMessage='Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use http://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='pushNotificationContents'
+                        >
+                            <FormattedMessage
+                                id='admin.email.pushContentTitle'
+                                defaultMessage='Push Notification Contents:'
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <select
+                                className='form-control'
+                                id='pushNotificationContents'
+                                ref='PushNotificationContents'
+                                defaultValue={this.props.config.EmailSettings.PushNotificationContents}
+                                onChange={this.handleChange.bind(this, 'pushNotificationContents')}
+                                disabled={!this.state.sendPushNotifications}
+                            >
+                                <option value='generic'>{formatMessage(holders.genericPush)}</option>
+                                <option value='full'>{formatMessage(holders.fullPush)}</option>
+                            </select>
+                            <p className='help-text'>
+                                <FormattedHTMLMessage
+                                    id='admin.email.pushContentDesc'
+                                    defaultMessage='Selecting "Send generic description with user and channel names" provides push notifications with generic messages, including names of users and channels but no specific details from the message text.<br /><br />
+                                    Selecting "Send full message snippet" sends excerpts from messages triggering notifications with specifics and may include confidential information sent in messages. If your Push Notification Service is outside your firewall, it is HIGHLY RECOMMENDED this option only be used with an "https" protocol to encrypt the connection.'
                                 />
                             </p>
                         </div>
