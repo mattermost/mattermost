@@ -3052,7 +3052,7 @@
     "translation": "Encontramos um erro ao procurar a conta"
   },
   {
-    "id": "store.sql_user.get_by_auth.app_error",
+    "id": "store.sql_user.get_by_auth.missing_account.app_error",
     "translation": "Não foi possível encontrar uma conta correspondente ao seu tipo de autenticação para esta equipe. Esta equipe pode exigir um convite do dono da equipe para participar."
   },
   {

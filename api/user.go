@@ -246,7 +246,7 @@ func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppErro
 	}
 }
 
-func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team) *model.User {
+func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader, team *model.Team) *model.User {
 	var user *model.User
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
@@ -478,7 +478,10 @@ func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, usernam
 	return nil
 }
 
-func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team) *model.User {
+func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader, team *model.Team) *model.User {
+	buf := bytes.Buffer{}
+	buf.ReadFrom(userData)
+
 	authData := ""
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
@@ -486,7 +489,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 			map[string]interface{}{"Service": service}, "")
 		return nil
 	} else {
-		authData = provider.GetAuthDataFromJson(userData)
+		authData = provider.GetAuthDataFromJson(bytes.NewReader(buf.Bytes()))
 	}
 
 	if len(authData) == 0 {
@@ -497,6 +500,9 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 
 	var user *model.User
 	if result := <-Srv.Store.User().GetByAuth(team.Id, authData, service); result.Err != nil {
+		if result.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR && team.AllowOpenInvite {
+			return CreateOAuthUser(c, w, r, service, bytes.NewReader(buf.Bytes()), team)
+		}
 		c.Err = result.Err
 		return nil
 	} else {

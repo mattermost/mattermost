@@ -3068,7 +3068,7 @@
     "translation": "Encontramos un error buscando la cuenta"
   },
   {
-    "id": "store.sql_user.get_by_auth.app_error",
+    "id": "store.sql_user.get_by_auth.missing_account.app_error",
     "translation": "No pudimos encontrar una cuenta existente que coincida con tu tipo de autenticación para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
   {
