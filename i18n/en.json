@@ -1776,6 +1776,22 @@
     "translation": "Failed to read security bulletin details"
   },
   {
+    "id": "mattermost.compliance_init.info",
+    "translation": "Compliance running for the first time initializing to yesterday"
+  },
+  {
+    "id": "mattermost.compliance_run.info",
+    "translation": "Compliance export started for {{.Time}}"
+  },
+  {
+    "id": "mattermost.compliance_run_fail.error",
+    "translation": "Compliance export failed for {{.Time}} with err='{{.Error}}'"
+  },
+  {
+    "id": "mattermost.compliance_run_finish.info",
+    "translation": "Compliance export finished writing {{.Count}} items to {{.Filename}}"
+  },
+  {
     "id": "mattermost.security_checks.debug",
     "translation": "Checking for security update from Mattermost"
   },

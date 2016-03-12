@@ -19,6 +19,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/manualtesting"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -90,6 +91,10 @@ func main() {
 
 		setDiagnosticId()
 		runSecurityAndDiagnosticsJobAndForget()
+
+		if einterfaces.GetComplianceInterface() != nil {
+			einterfaces.GetComplianceInterface().StartComplianceJob()
+		}
 
 		// wait for kill signal before attempting to gracefully shutdown
 		// the running service
