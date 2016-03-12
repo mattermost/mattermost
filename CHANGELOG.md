@@ -20,15 +20,9 @@ Desktop Application
 
 - New [Desktop Application](https://github.com/mattermost/desktop) for Windows, Mac, and Linux now available as a beta release.
 
-
 Languages 
 
 - Added Portuguese language translation (Beta) available from **Account Settings** > **Display**.
-
-Active Directory/LDAP (Enterprise Edition)
-
-- Create new teams using Active Directory/LDAP. Team creation and Active Directory/LDAP must be enabled in the System Console from **Team Settings** > **Enable Team Creation** and **LDAP Settings** > **Enable LDAP**.
-- Added Active Directory/LDAP synchronization to check for deactivated users on the LDAP server.
 
 ### Improvements 
 
@@ -63,11 +57,6 @@ User Interface
 - Permalink option is now available from the [...] menu on messages and comments in the RHS.
 - Reply icon now only appears on-hover for messages that don’t have replies.
 - Scroll bar now appears in the center channel.
-
-Enterprise Edition
-
-- Access History now contains audits for adding and removing Enterprise licenses.
-
 
 #### Bug Fixes
 
@@ -122,7 +111,6 @@ Mattermost Android Application is for use with Mattermost platform v2.1 and high
 - Search term highlighting doesn't update on IE11 when search terms change but return the same posts.
 - Team creation via SSO fails when email domain is restricted.
 
-
 #### Contributors 
 
 Many thanks to all our external contributors. In no particular order:
@@ -136,8 +124,6 @@ Many thanks to all our external contributors. In no particular order:
 - [kernicPanel](https://github.com/kernicPanel) 
 - [timlyo](https://github.com/timlyo) 
 - [ttyniwa](https://github.com/ttyniwa) 
-
-
 
 ## Release v2.0.0
 
