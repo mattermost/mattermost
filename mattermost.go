@@ -93,7 +93,7 @@ func main() {
 		runSecurityAndDiagnosticsJobAndForget()
 
 		if einterfaces.GetComplianceInterface() != nil {
-			einterfaces.GetComplianceInterface().StartComplianceJob()
+			einterfaces.GetComplianceInterface().StartComplianceDailyJob()
 		}
 
 		// wait for kill signal before attempting to gracefully shutdown

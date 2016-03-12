@@ -6,7 +6,7 @@ package einterfaces
 import ()
 
 type ComplianceInterface interface {
-	StartComplianceJob()
+	StartComplianceDailyJob()
 }
 
 var theComplianceInterface ComplianceInterface
