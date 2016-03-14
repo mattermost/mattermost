@@ -70,7 +70,7 @@ func main() {
 	web.InitWeb()
 
 	if model.BuildEnterpriseReady == "true" {
-		loadLicense()
+		api.LoadLicense()
 	}
 
 	if !utils.IsLicensed && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
@@ -103,26 +103,6 @@ func main() {
 		<-c
 
 		api.StopServer()
-	}
-}
-
-func loadLicense() {
-	licenseId := ""
-	if result := <-api.Srv.Store.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
-	}
-
-	if len(licenseId) != 26 {
-		l4g.Warn(utils.T("mattermost.load_license.find.warn"))
-		return
-	}
-
-	if result := <-api.Srv.Store.License().Get(licenseId); result.Err == nil {
-		record := result.Data.(*model.LicenseRecord)
-		utils.LoadLicense([]byte(record.Bytes))
-	} else {
-		l4g.Warn(utils.T("mattermost.load_license.find.warn"))
 	}
 }
 

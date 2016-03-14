@@ -65,6 +65,17 @@ func CompliancePostHeader() []string {
 }
 
 func (me *CompliancePost) Row() []string {
+
+	postDeleteAt := ""
+	if me.PostDeleteAt > 0 {
+		postDeleteAt = time.Unix(0, me.PostDeleteAt*int64(1000*1000)).Format(time.RFC3339)
+	}
+
+	postUpdateAt := ""
+	if me.PostUpdateAt != me.PostCreateAt {
+		postUpdateAt = time.Unix(0, me.PostUpdateAt*int64(1000*1000)).Format(time.RFC3339)
+	}
+
 	return []string{
 		me.TeamName,
 		me.TeamDisplayName,
@@ -77,9 +88,10 @@ func (me *CompliancePost) Row() []string {
 		me.UserNickname,
 
 		me.PostId,
-		time.Unix(0, me.PostCreateAt*1000).Format(time.RFC3339),
-		time.Unix(0, me.PostUpdateAt*1000).Format(time.RFC3339),
-		time.Unix(0, me.PostDeleteAt*1000).Format(time.RFC3339),
+		time.Unix(0, me.PostCreateAt*int64(1000*1000)).Format(time.RFC3339),
+		postUpdateAt,
+		postDeleteAt,
+
 		me.PostRootId,
 		me.PostParentId,
 		me.PostOriginalId,

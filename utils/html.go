@@ -23,7 +23,16 @@ type HTMLTemplate struct {
 }
 
 func InitHTML() {
-	templatesDir := FindDir("templates")
+	InitHTMLWithDir("templates")
+}
+
+func InitHTMLWithDir(dir string) {
+
+	if htmlTemplates != nil {
+		return
+	}
+
+	templatesDir := FindDir(dir)
 	l4g.Debug(T("api.api.init.parsing_templates.debug"), templatesDir)
 	var err error
 	if htmlTemplates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {

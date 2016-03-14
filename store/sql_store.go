@@ -43,6 +43,7 @@ type SqlStore struct {
 	post       PostStore
 	user       UserStore
 	audit      AuditStore
+	compliance ComplianceStore
 	session    SessionStore
 	oauth      OAuthStore
 	system     SystemStore
@@ -98,6 +99,7 @@ func NewSqlStore() Store {
 	sqlStore.post = NewSqlPostStore(sqlStore)
 	sqlStore.user = NewSqlUserStore(sqlStore)
 	sqlStore.audit = NewSqlAuditStore(sqlStore)
+	sqlStore.compliance = NewSqlComplianceStore(sqlStore)
 	sqlStore.session = NewSqlSessionStore(sqlStore)
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
 	sqlStore.system = NewSqlSystemStore(sqlStore)
@@ -116,6 +118,7 @@ func NewSqlStore() Store {
 	sqlStore.post.(*SqlPostStore).UpgradeSchemaIfNeeded()
 	sqlStore.user.(*SqlUserStore).UpgradeSchemaIfNeeded()
 	sqlStore.audit.(*SqlAuditStore).UpgradeSchemaIfNeeded()
+	sqlStore.compliance.(*SqlComplianceStore).UpgradeSchemaIfNeeded()
 	sqlStore.session.(*SqlSessionStore).UpgradeSchemaIfNeeded()
 	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
 	sqlStore.system.(*SqlSystemStore).UpgradeSchemaIfNeeded()
@@ -129,6 +132,7 @@ func NewSqlStore() Store {
 	sqlStore.post.(*SqlPostStore).CreateIndexesIfNotExists()
 	sqlStore.user.(*SqlUserStore).CreateIndexesIfNotExists()
 	sqlStore.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
+	sqlStore.compliance.(*SqlComplianceStore).CreateIndexesIfNotExists()
 	sqlStore.session.(*SqlSessionStore).CreateIndexesIfNotExists()
 	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
 	sqlStore.system.(*SqlSystemStore).CreateIndexesIfNotExists()
@@ -589,6 +593,10 @@ func (ss SqlStore) Session() SessionStore {
 
 func (ss SqlStore) Audit() AuditStore {
 	return ss.audit
+}
+
+func (ss SqlStore) Compliance() ComplianceStore {
+	return ss.compliance
 }
 
 func (ss SqlStore) OAuth() OAuthStore {

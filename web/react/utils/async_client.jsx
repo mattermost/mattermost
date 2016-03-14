@@ -341,6 +341,32 @@ export function getServerAudits() {
     );
 }
 
+export function getComplianceReports() {
+    if (isCallInProgress('getComplianceReports')) {
+        return;
+    }
+
+    callTracker.getComplianceReports = utils.getTimestamp();
+    client.getComplianceReports(
+        (data, textStatus, xhr) => {
+            callTracker.getComplianceReports = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SERVER_COMPLIANCE_REPORTS,
+                complianceReports: data
+            });
+        },
+        (err) => {
+            callTracker.getComplianceReports = 0;
+            dispatchError(err, 'getComplianceReports');
+        }
+    );
+}
+
 export function getConfig() {
     if (isCallInProgress('getConfig')) {
         return;

@@ -13,6 +13,7 @@ const LOG_CHANGE_EVENT = 'log_change';
 const SERVER_AUDIT_CHANGE_EVENT = 'server_audit_change';
 const CONFIG_CHANGE_EVENT = 'config_change';
 const ALL_TEAMS_EVENT = 'all_team_change';
+const SERVER_COMPLIANCE_REPORT_CHANGE_EVENT = 'server_compliance_reports_change';
 
 class AdminStoreClass extends EventEmitter {
     constructor() {
@@ -22,6 +23,7 @@ class AdminStoreClass extends EventEmitter {
         this.audits = null;
         this.config = null;
         this.teams = null;
+        this.complianceReports = null;
 
         this.emitLogChange = this.emitLogChange.bind(this);
         this.addLogChangeListener = this.addLogChangeListener.bind(this);
@@ -30,6 +32,10 @@ class AdminStoreClass extends EventEmitter {
         this.emitAuditChange = this.emitAuditChange.bind(this);
         this.addAuditChangeListener = this.addAuditChangeListener.bind(this);
         this.removeAuditChangeListener = this.removeAuditChangeListener.bind(this);
+
+        this.emitComplianceReportsChange = this.emitComplianceReportsChange.bind(this);
+        this.addComplianceReportsChangeListener = this.addComplianceReportsChangeListener.bind(this);
+        this.removeComplianceReportsChangeListener = this.removeComplianceReportsChangeListener.bind(this);
 
         this.emitConfigChange = this.emitConfigChange.bind(this);
         this.addConfigChangeListener = this.addConfigChangeListener.bind(this);
@@ -62,6 +68,18 @@ class AdminStoreClass extends EventEmitter {
 
     removeAuditChangeListener(callback) {
         this.removeListener(SERVER_AUDIT_CHANGE_EVENT, callback);
+    }
+
+    emitComplianceReportsChange() {
+        this.emit(SERVER_COMPLIANCE_REPORT_CHANGE_EVENT);
+    }
+
+    addComplianceReportsChangeListener(callback) {
+        this.on(SERVER_COMPLIANCE_REPORT_CHANGE_EVENT, callback);
+    }
+
+    removeComplianceReportsChangeListener(callback) {
+        this.removeListener(SERVER_COMPLIANCE_REPORT_CHANGE_EVENT, callback);
     }
 
     emitConfigChange() {
@@ -102,6 +120,14 @@ class AdminStoreClass extends EventEmitter {
 
     saveAudits(audits) {
         this.audits = audits;
+    }
+
+    getComplianceReports() {
+        return this.complianceReports;
+    }
+
+    saveComplianceReports(complianceReports) {
+        this.complianceReports = complianceReports;
     }
 
     getConfig() {
@@ -146,6 +172,10 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_SERVER_AUDITS:
         AdminStore.saveAudits(action.audits);
         AdminStore.emitAuditChange();
+        break;
+    case ActionTypes.RECEIVED_SERVER_COMPLIANCE_REPORTS:
+        AdminStore.saveComplianceReports(action.complianceReports);
+        AdminStore.emitComplianceReportsChange();
         break;
     case ActionTypes.RECEIVED_CONFIG:
         AdminStore.saveConfig(action.config);

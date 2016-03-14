@@ -5,15 +5,18 @@ package api
 
 import (
 	"bufio"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
-
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mssola/user_agent"
 )
 
 func InitAdmin(r *mux.Router) {
@@ -27,8 +30,11 @@ func InitAdmin(r *mux.Router) {
 	sr.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
 	sr.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
 	sr.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
-	sr.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiAppHandler(getAnalytics)).Methods("GET")
-	sr.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiAppHandler(getAnalytics)).Methods("GET")
+	sr.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
+	sr.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
+	sr.Handle("/save_compliance_report", ApiUserRequired(saveComplianceReport)).Methods("POST")
+	sr.Handle("/compliance_reports", ApiUserRequired(getComplianceReports)).Methods("GET")
+	sr.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiUserRequired(downloadComplianceReport)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -142,6 +148,8 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.LogAudit("")
+
 	utils.SaveConfig(utils.CfgFileName, cfg)
 	utils.LoadConfig(utils.CfgFileName)
 	json := utils.Cfg.ToJson()
@@ -172,6 +180,104 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]string)
 	m["SUCCESS"] = "true"
 	w.Write([]byte(model.MapToJson(m)))
+}
+
+func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("getComplianceReports") {
+		return
+	}
+
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance {
+		c.Err = model.NewLocAppError("getComplianceReports", "ent.compliance.licence_disable.app_error", nil, "")
+		return
+	}
+
+	if result := <-Srv.Store.Compliance().GetAll(); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		crs := result.Data.(model.Compliances)
+		w.Write([]byte(crs.ToJson()))
+	}
+}
+
+func saveComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("getComplianceReports") {
+		return
+	}
+
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance || einterfaces.GetComplianceInterface() == nil {
+		c.Err = model.NewLocAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "")
+		return
+	}
+
+	job := model.ComplianceFromJson(r.Body)
+	if job == nil {
+		c.SetInvalidParam("saveComplianceReport", "compliance")
+		return
+	}
+
+	job.UserId = c.Session.UserId
+	job.Type = model.COMPLIANCE_TYPE_ADHOC
+
+	if result := <-Srv.Store.Compliance().Save(job); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		job = result.Data.(*model.Compliance)
+		go einterfaces.GetComplianceInterface().RunComplianceJob(job)
+	}
+
+	w.Write([]byte(job.ToJson()))
+}
+
+func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("downloadComplianceReport") {
+		return
+	}
+
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance || einterfaces.GetComplianceInterface() == nil {
+		c.Err = model.NewLocAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "")
+		return
+	}
+
+	params := mux.Vars(r)
+
+	id := params["id"]
+	if len(id) != 26 {
+		c.SetInvalidParam("downloadComplianceReport", "id")
+		return
+	}
+
+	if result := <-Srv.Store.Compliance().Get(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		job := result.Data.(*model.Compliance)
+		c.LogAudit("downloaded " + job.JobName())
+
+		if f, err := ioutil.ReadFile(*utils.Cfg.ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip"); err != nil {
+			c.Err = model.NewLocAppError("readFile", "api.file.read_file.reading_local.app_error", nil, err.Error())
+			return
+		} else {
+			w.Header().Set("Cache-Control", "max-age=2592000, public")
+			w.Header().Set("Content-Length", strconv.Itoa(len(f)))
+			w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
+
+			// attach extra headers to trigger a download on IE, Edge, and Safari
+			ua := user_agent.New(r.UserAgent())
+			bname, _ := ua.Browser()
+
+			w.Header().Set("Content-Disposition", "attachment;filename=\""+job.JobName()+".zip\"")
+
+			if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
+				// trim off anything before the final / so we just get the file's name
+				w.Header().Set("Content-Type", "application/octet-stream")
+			}
+
+			w.Write(f)
+		}
+	}
 }
 
 func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {

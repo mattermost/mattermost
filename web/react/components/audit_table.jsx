@@ -217,7 +217,12 @@ class AuditTable extends React.Component {
 
             let uContent;
             if (this.props.showUserId) {
-                uContent = <td>{auditInfo.userId}</td>;
+                var profile = UserStore.getProfile(auditInfo.userId);
+                if (profile) {
+                    uContent = <td>{profile.email}</td>;
+                } else {
+                    uContent = <td>{auditInfo.userId}</td>;
+                }
             }
 
             let iContent;
@@ -560,6 +565,8 @@ export function formatAuditInfo(audit, formatMessage) {
         default:
             break;
         }
+    } else if (actionURL.indexOf('/admin/download_compliance_report') === 0) {
+        auditDesc = Utils.toTitleCase(audit.extra_info);
     } else {
         switch (actionURL) {
         case '/logout':

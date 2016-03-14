@@ -170,19 +170,26 @@ type LdapSettings struct {
 	QueryTimeout *int
 }
 
+type ComplianceSettings struct {
+	Enable      *bool
+	Directory   *string
+	EnableDaily *bool
+}
+
 type Config struct {
-	ServiceSettings   ServiceSettings
-	TeamSettings      TeamSettings
-	SqlSettings       SqlSettings
-	LogSettings       LogSettings
-	FileSettings      FileSettings
-	EmailSettings     EmailSettings
-	RateLimitSettings RateLimitSettings
-	PrivacySettings   PrivacySettings
-	SupportSettings   SupportSettings
-	GitLabSettings    SSOSettings
-	GoogleSettings    SSOSettings
-	LdapSettings      LdapSettings
+	ServiceSettings    ServiceSettings
+	TeamSettings       TeamSettings
+	SqlSettings        SqlSettings
+	LogSettings        LogSettings
+	FileSettings       FileSettings
+	EmailSettings      EmailSettings
+	RateLimitSettings  RateLimitSettings
+	PrivacySettings    PrivacySettings
+	SupportSettings    SupportSettings
+	GitLabSettings     SSOSettings
+	GoogleSettings     SSOSettings
+	LdapSettings       LdapSettings
+	ComplianceSettings ComplianceSettings
 }
 
 func (o *Config) ToJson() string {
@@ -382,6 +389,21 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.AllowCorsFrom == nil {
 		o.ServiceSettings.AllowCorsFrom = new(string)
 		*o.ServiceSettings.AllowCorsFrom = ""
+	}
+
+	if o.ComplianceSettings.Enable == nil {
+		o.ComplianceSettings.Enable = new(bool)
+		*o.ComplianceSettings.Enable = false
+	}
+
+	if o.ComplianceSettings.Directory == nil {
+		o.ComplianceSettings.Directory = new(string)
+		*o.ComplianceSettings.Directory = "./data/"
+	}
+
+	if o.ComplianceSettings.EnableDaily == nil {
+		o.ComplianceSettings.EnableDaily = new(bool)
+		*o.ComplianceSettings.EnableDaily = false
 	}
 }
 

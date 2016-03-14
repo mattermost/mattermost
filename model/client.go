@@ -471,6 +471,42 @@ func (c *Client) TestEmail(config *Config) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetComplianceReports() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/admin/compliance_reports", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), CompliancesFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) SaveComplianceReport(job *Compliance) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/admin/save_compliance_report", job.ToJson()); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ComplianceFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) DownloadComplianceReport(id string) (*Result, *AppError) {
+	var rq *http.Request
+	rq, _ = http.NewRequest("GET", c.ApiUrl+"/admin/download_compliance_report/"+id, nil)
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, NewLocAppError("/admin/download_compliance_report", "model.client.connecting.app_error", nil, err.Error())
+	} else if rp.StatusCode >= 300 {
+		return nil, AppErrorFromJson(rp.Body)
+	} else {
+		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
+			rp.Header.Get(HEADER_ETAG_SERVER), rp.Body}, nil
+	}
+}
+
 func (c *Client) GetTeamAnalytics(teamId, name string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/analytics/"+teamId+"/"+name, "", ""); err != nil {
 		return nil, err
