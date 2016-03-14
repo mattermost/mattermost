@@ -77,7 +77,7 @@ function preRenderSetup(callwhendone) {
     );
 
     // Set these here so they don't fail in client.jsx track
-    global.window.analytics = {};
+    global.window.analytics = [];
     global.window.analytics.page = () => {
         // Do Nothing
     };
