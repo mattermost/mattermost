@@ -456,8 +456,8 @@
     "translation": "S3 não é suportado para o armazenamento local de exportação."
   },
   {
-    "id": "api.export.write_file.app_error",
-    "translation": "Não é possível gravar para exportar arquivo"
+    "id": "api.file.file_upload.exceeds",
+    "translation": "Arquivo excede o máximo de tamanho de imagem."
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -506,6 +506,22 @@
   {
     "id": "api.file.init.debug",
     "translation": "Inicializando file api routes"
+  },
+  {
+    "id": "api.file.move_file.configured.app_error",
+    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+  },
+  {
+    "id": "api.file.move_file.delete_from_s3.app_error",
+    "translation": "Não é possível deletar o arquivo a partir do S3."
+  },
+  {
+    "id": "api.file.move_file.get_from_s3.app_error",
+    "translation": "Não é possível obter o arquivo a partir do S3."
+  },
+  {
+    "id": "api.file.move_file.rename.app_error",
+    "translation": "Não foi possível mover o arquivo localmente."
   },
   {
     "id": "api.file.open_file_write_stream.configured.app_error",
@@ -1205,7 +1221,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": "Você atualizou seu método de acesso"
+    "translation": "Você atualizou seu método de login"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -1225,7 +1241,7 @@
   },
   {
     "id": "api.templates.singin_change_email.body.info",
-    "translation": "Você atualizou seu método de inscrição para {{.TeamDisplayName}} no {{ .TeamURL }} para {{.Method}}.<br>Se esta mudança não foi iniciada por você, por favor entre em contato com o administrador do sistema."
+    "translation": "Você atualizou seu método de login para {{.TeamDisplayName}} no {{ .TeamURL }} para {{.Method}}.<br>Se esta mudança não foi iniciada por você, por favor entre em contato com o administrador do sistema."
   },
   {
     "id": "api.templates.singin_change_email.subject",
@@ -1257,7 +1273,7 @@
   },
   {
     "id": "api.templates.welcome_body.info2",
-    "translation": "Você pode acessar sua nova equipe pelo endereço web:"
+    "translation": "Você pode fazer login sua nova equipe pelo endereço web:"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -1333,7 +1349,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "Está conta {{.Service}} já foi utilizada para logar na equipe {{.DisplayName}}"
+    "translation": "Está conta {{.Service}} já foi utilizada para se inscrever na equipe {{.DisplayName}}"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -1357,7 +1373,7 @@
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
-    "translation": "O email que você forneceu não pertence a um domínio aceito. Por favor contacte o seu administrador ou entre com um email diferente."
+    "translation": "O email que você forneceu não pertence a um domínio aceito. Por favor contacte o seu administrador ou se inscreve com um email diferente."
   },
   {
     "id": "api.user.create_user.joining.error",
@@ -1373,11 +1389,11 @@
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
-    "translation": "O link de acesso expirou"
+    "translation": "O link de inscrição expirou"
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "O link de acesso não parece ser válido"
+    "translation": "O link de inscrição não parece ser válido"
   },
   {
     "id": "api.user.create_user.team_name.app_error",

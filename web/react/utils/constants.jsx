@@ -270,7 +270,7 @@ export default {
             buttonColor: '#FFFFFF',
             mentionHighlightBg: '#984063',
             mentionHighlightLink: '#A4FFEB',
-            codeTheme: 'solarized_dark'
+            codeTheme: 'solarized-dark'
         },
         windows10: {
             type: 'Windows Dark',
@@ -374,21 +374,6 @@ export default {
             uiName: 'New Message Separator'
         },
         {
-            group: 'linkAndButtonElements',
-            id: 'linkColor',
-            uiName: 'Link Color'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonBg',
-            uiName: 'Button BG'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonColor',
-            uiName: 'Button Text'
-        },
-        {
             group: 'centerChannelElements',
             id: 'mentionHighlightBg',
             uiName: 'Mention Highlight BG'
@@ -404,11 +389,11 @@ export default {
             uiName: 'Code Theme',
             themes: [
                 {
-                    id: 'solarized_dark',
+                    id: 'solarized-dark',
                     uiName: 'Solarized Dark'
                 },
                 {
-                    id: 'solarized_light',
+                    id: 'solarized-light',
                     uiName: 'Solarized Light'
                 },
                 {
@@ -420,6 +405,21 @@ export default {
                     uiName: 'Monokai'
                 }
             ]
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'linkColor',
+            uiName: 'Link Color'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonBg',
+            uiName: 'Button BG'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonColor',
+            uiName: 'Button Text'
         }
     ],
     DEFAULT_CODE_THEME: 'github',

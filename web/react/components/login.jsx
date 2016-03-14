@@ -49,6 +49,8 @@ export default class Login extends React.Component {
 
         const teamDisplayName = currentTeam.display_name;
         const teamName = currentTeam.name;
+        const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
+        const usernameSigninEnabled = global.window.mm_config.EnableSignInWithUsername === 'true';
 
         let loginMessage = [];
         if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
@@ -209,12 +211,44 @@ export default class Login extends React.Component {
             );
         }
 
+        if (ldapEnabled && (loginMessage.length > 0 || emailSignup || usernameSigninEnabled)) {
+            ldapLogin = (
+                <div>
+                    <div className='or__container'>
+                        <FormattedMessage
+                            id='login.or'
+                            defaultMessage='or'
+                        />
+                    </div>
+                    <LoginLdap
+                        teamName={teamName}
+                    />
+                </div>
+            );
+        }
+
         let usernameLogin = null;
         if (global.window.mm_config.EnableSignInWithUsername === 'true') {
             usernameLogin = (
                 <LoginUsername
                     teamName={teamName}
                 />
+            );
+        }
+
+        if (usernameSigninEnabled && (loginMessage.length > 0 || emailSignup || ldapEnabled)) {
+            usernameLogin = (
+                <div>
+                    <div className='or__container'>
+                        <FormattedMessage
+                            id='login.or'
+                            defaultMessage='or'
+                        />
+                    </div>
+                    <LoginUsername
+                        teamName={teamName}
+                    />
+                </div>
             );
         }
 
