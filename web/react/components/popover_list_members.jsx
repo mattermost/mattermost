@@ -110,25 +110,25 @@ export default class PopoverListMembers extends React.Component {
                 if (name) {
                     popoverHtml.push(
                         <div
-                            className='text-nowrap'
+                            className='more-modal__row'
                             key={'popover-member-' + i}
                         >
 
                             <img
-                                className='profile-img rounded pull-left'
+                                className='more-modal__image'
                                 width='26px'
                                 height='26px'
                                 src={`/api/v1/users/${m.id}/image?time=${m.update_at}`}
                             />
-                            <div className='pull-left'>
+                            <div className='more-modal__details'>
                                 <div
-                                    className='more-name'
+                                    className='more-modal__name'
                                 >
                                     {name}
                                 </div>
                             </div>
                             <div
-                                className='pull-right'
+                                className='more-modal__actions'
                             >
                                 {button}
                             </div>
@@ -185,7 +185,7 @@ export default class PopoverListMembers extends React.Component {
                         title={title}
                         id='member-list-popover'
                     >
-                        {popoverHtml}
+                        <div className='more-modal__list'>{popoverHtml}</div>
                     </Popover>
                 </Overlay>
             </div>

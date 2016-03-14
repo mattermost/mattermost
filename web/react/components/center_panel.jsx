@@ -103,7 +103,7 @@ export default class CenterPanel extends React.Component {
         }
 
         return (
-            <div className='inner__wrap channel__wrap'>
+            <div className='inner-wrap channel__wrap'>
                 <div className='row header'>
                     <div id='navbar'>
                         <Navbar/>

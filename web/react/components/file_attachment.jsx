@@ -49,8 +49,8 @@ class FileAttachment extends React.Component {
                         if (name in self.refs) {
                             var imgDiv = ReactDOM.findDOMNode(self.refs[name]);
 
-                            $(imgDiv).removeClass('post__load');
-                            $(imgDiv).addClass('post__image');
+                            $(imgDiv).removeClass('post-image__load');
+                            $(imgDiv).addClass('post-image');
 
                             var width = this.width || $(this).width();
                             var height = this.height || $(this).height();
@@ -134,7 +134,7 @@ class FileAttachment extends React.Component {
             thumbnail = (
                 <div
                     ref={filename}
-                    className='post__load'
+                    className='post-image__load'
                     style={{backgroundImage: 'url(/static/images/load.gif)'}}
                 />
             );

@@ -164,7 +164,7 @@ class SearchBar extends React.Component {
                 </span>
                 <form
                     role='form'
-                    className='search__form relative-div'
+                    className='search__form'
                     onSubmit={this.handleSubmit}
                     style={{overflow: 'visible'}}
                     autoComplete='off'

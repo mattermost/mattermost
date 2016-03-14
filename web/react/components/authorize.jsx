@@ -38,7 +38,7 @@ export default class Authorize extends React.Component {
     render() {
         return (
             <div className='container-fluid'>
-                <div className='oauth-prompt'>
+                <div className='prompt'>
                     <div className='prompt__heading'>
                         <div className='prompt__app-icon'>
                             <img

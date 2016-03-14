@@ -1,0 +1,65 @@
+@charset 'UTF-8';
+
+@media screen and (max-width: 1800px) {
+    .inner-wrap {
+        &.move--left {
+            .date-separator,
+            .new-separator {
+                &.hovered--comment {
+                    &:before,
+                    &:after {
+                        background: none;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 1440px) {
+    .date-separator,
+    .new-separator {
+        &.hovered--comment {
+            &:before,
+            &:after {
+                background: none !important;
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 1140px) {
+    .tip-overlay {
+        &.tip-overlay--chat {
+            margin: -10px 0 0 -10px;
+            .arrow {
+                right: 15px;
+                left: auto;
+            }
+        }
+    }
+    .inner-wrap {
+        &.move--left {
+            .file-overlay {
+                font-size: em(18px);
+
+                .overlay__circle {
+                    width: 300px;
+                    height: 300px;
+                    margin: -150px 0 0 -150px;
+                }
+
+                .overlay__files {
+                    margin: 60px auto 15px;
+                    width: 150px;
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 992px) {
+    .modal-lg {
+        width: 700px;
+    }
+}

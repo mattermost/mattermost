@@ -5,7 +5,7 @@ import {FormattedMessage} from 'mm-intl';
 
 export default class NotLoggedIn extends React.Component {
     componentDidMount() {
-        $('body').attr('class', 'white');
+        $('body').attr('class', 'sticky');
         $('#root').attr('class', 'container-fluid');
     }
     componentWillUnmount() {
@@ -14,7 +14,7 @@ export default class NotLoggedIn extends React.Component {
     }
     render() {
         return (
-            <div className='inner__wrap'>
+            <div className='inner-wrap'>
                 <div className='row content'>
                     {this.props.children}
                     <div className='footer-push'></div>

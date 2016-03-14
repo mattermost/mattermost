@@ -95,17 +95,18 @@ export default class MoreChannels extends React.Component {
         }
 
         return (
-            <tr key={channel.id}>
-                <td className='more-row'>
-                    <div className='more-details'>
-                        <p className='more-name'>{channel.display_name}</p>
-                        <p className='more-description'>{channel.purpose}</p>
-                    </div>
-                    <div className='more-actions'>
-                        {joinButton}
-                    </div>
-                </td>
-            </tr>
+            <div
+                className='more-modal__row'
+                key={channel.id}
+            >
+                <div className='more-modal__details'>
+                    <p className='more-modal__name'>{channel.display_name}</p>
+                    <p className='more-modal__description'>{channel.purpose}</p>
+                </div>
+                <div className='more-modal__actions'>
+                    {joinButton}
+                </div>
+            </div>
         );
     }
     render() {
@@ -127,11 +128,9 @@ export default class MoreChannels extends React.Component {
                 moreChannels = <LoadingScreen/>;
             } else if (channels.length) {
                 moreChannels = (
-                    <table className='more-table table'>
-                        <tbody>
-                            {channels.map(this.createChannelRow)}
-                        </tbody>
-                    </table>
+                    <div className='more-modal__list'>
+                        {channels.map(this.createChannelRow)}
+                    </div>
                 );
             } else {
                 moreChannels = (

@@ -21,23 +21,19 @@ export default class UserList extends React.Component {
             });
         } else {
             content = (
-                <tr key='no-users-found'>
-                    <td>
-                        <FormattedMessage
-                            id='user_list.notFound'
-                            defaultMessage='No users found :('
-                        />
-                    </td>
-                </tr>
+                <div key='no-users-found'>
+                    <FormattedMessage
+                        id='user_list.notFound'
+                        defaultMessage='No users found :('
+                    />
+                </div>
             );
         }
 
         return (
-            <table className='more-table table'>
-                <tbody>
-                    {content}
-                </tbody>
-            </table>
+            <div>
+                {content}
+            </div>
         );
     }
 }

@@ -1,0 +1,8 @@
+@charset 'UTF-8';
+
+@mixin file-icon($path) {
+    background: #fff url($path);
+    background-position: center;
+    background-repeat: no-repeat;
+    @include background-size(60px auto);
+}

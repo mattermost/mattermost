@@ -163,7 +163,7 @@ export default class UserList extends React.Component {
                     className='form-horizontal'
                     role='form'
                 >
-                    <table className='table more-table member-list-holder'>
+                    <table className='more-modal__list member-list-holder'>
                         <tbody>
                             {memberList}
                         </tbody>
