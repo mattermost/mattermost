@@ -3,10 +3,13 @@
 
 package einterfaces
 
-import ()
+import (
+	"github.com/mattermost/platform/model"
+)
 
 type ComplianceInterface interface {
 	StartComplianceDailyJob()
+	RunComplianceJob(jobName string, dir string, filename string, startTime int64, endTime int64) *model.AppError
 }
 
 var theComplianceInterface ComplianceInterface

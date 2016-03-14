@@ -1019,7 +1019,7 @@ func (s SqlPostStore) ComplianceExport(startTime int64, endTime int64) StoreChan
 			        AND Posts.CreateAt > :StartTime
 			        AND Posts.CreateAt <= :EndTime
 			ORDER BY Posts.CreateAt
-			LIMIT 50000`
+			LIMIT 30000`
 
 		var cposts []*model.CompliancePost
 
