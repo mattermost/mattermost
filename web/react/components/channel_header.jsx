@@ -57,20 +57,33 @@ export default class ChannelHeader extends React.Component {
             memberChannel: ChannelStore.getCurrentMember(),
             users: extraInfo.members,
             userCount: extraInfo.member_count,
-            searchVisible: SearchStore.getSearchResults() !== null
+            searchVisible: SearchStore.getSearchResults() !== null,
+            currentUser: UserStore.getCurrentUser()
         };
+    }
+    validState() {
+        if (!this.state.channel ||
+            !this.state.memberChannel ||
+            !this.state.users ||
+            !this.state.userCount ||
+            !this.state.currentUser) {
+            return false;
+        }
+        return true;
     }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
         ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
         SearchStore.addSearchChangeListener(this.onListenerChange);
         PreferenceStore.addChangeListener(this.onListenerChange);
+        UserStore.addChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
         ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
         SearchStore.removeSearchChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
+        UserStore.removeChangeListener(this.onListenerChange);
     }
     onListenerChange() {
         const newState = this.getStateFromStores();
@@ -98,7 +111,7 @@ export default class ChannelHeader extends React.Component {
     searchMentions(e) {
         e.preventDefault();
 
-        const user = this.props.user;
+        const user = this.state.currentUser;
 
         let terms = '';
         if (user.notify_props && user.notify_props.mention_keys) {
@@ -134,7 +147,7 @@ export default class ChannelHeader extends React.Component {
         });
     }
     render() {
-        if (this.state.channel === null) {
+        if (!this.validState()) {
             return null;
         }
 
@@ -163,8 +176,8 @@ export default class ChannelHeader extends React.Component {
             </Popover>
         );
         let channelTitle = channel.display_name;
-        const currentId = this.props.user.id;
-        const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || Utils.isAdmin(this.props.user.roles);
+        const currentId = this.state.currentUser.id;
+        const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || Utils.isAdmin(this.state.currentUser.roles);
         const isDirect = (this.state.channel.type === 'D');
 
         if (isDirect) {
@@ -252,7 +265,7 @@ export default class ChannelHeader extends React.Component {
                         <ToggleModalButton
                             role='menuitem'
                             dialogType={ChannelInviteModal}
-                            dialogProps={{channel}}
+                            dialogProps={{channel, currentUser: this.state.currentUser}}
                         >
                             <FormattedMessage
                                 id='chanel_header.addMembers'
@@ -331,7 +344,11 @@ export default class ChannelHeader extends React.Component {
                     <ToggleModalButton
                         role='menuitem'
                         dialogType={ChannelNotificationsModal}
-                        dialogProps={{channel}}
+                        dialogProps={{
+                            channel,
+                            channelMember: this.state.memberChannel,
+                            currentUser: this.state.currentUser
+                        }}
                     >
                         <FormattedMessage
                             id='channel_header.notificationPreferences'
@@ -497,5 +514,4 @@ export default class ChannelHeader extends React.Component {
 }
 
 ChannelHeader.propTypes = {
-    user: React.PropTypes.object.isRequired
 };

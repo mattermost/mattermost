@@ -3400,22 +3400,6 @@
     "translation": "Encontrar Equipo"
   },
   {
-    "id": "web.footer.about",
-    "translation": "Acerca"
-  },
-  {
-    "id": "web.footer.help",
-    "translation": "Ayuda"
-  },
-  {
-    "id": "web.footer.privacy",
-    "translation": "Privacidad"
-  },
-  {
-    "id": "web.footer.terms",
-    "translation": "Términos"
-  },
-  {
     "id": "web.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: client_id malo"
   },
@@ -3546,10 +3530,6 @@
   {
     "id": "web.root.home_title",
     "translation": "Inicio"
-  },
-  {
-    "id": "web.root.singup_info",
-    "translation": "Todas las comunicaciones del equipo en un sólo lugar, con búsquedas y accesible desde cualquier parte"
   },
   {
     "id": "web.root.singup_title",

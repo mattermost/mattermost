@@ -3,7 +3,6 @@
 
 import AdminSidebarHeader from './admin_sidebar_header.jsx';
 import SelectTeamModal from './select_team_modal.jsx';
-import * as Utils from '../../utils/utils.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
@@ -30,8 +29,6 @@ export default class AdminSidebar extends React.Component {
     handleClick(name, teamId, e) {
         e.preventDefault();
         this.props.selectTab(name, teamId);
-        var tokenIndex = Utils.getUrlParameter('session_token_index');
-        history.pushState({name, teamId}, null, `/admin_console/${name}/${teamId || ''}?session_token_index=${tokenIndex}`);
     }
 
     isSelected(name, teamId) {
@@ -73,7 +70,6 @@ export default class AdminSidebar extends React.Component {
     }
 
     teamSelectedModal(teamId) {
-        this.props.selectedTeams[teamId] = 'true';
         this.setState({showSelectModal: false});
         this.props.addSelectedTeam(teamId);
         this.forceUpdate();

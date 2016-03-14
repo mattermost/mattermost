@@ -20,7 +20,7 @@ import (
 
 var IsLicensed bool = false
 var License *model.License = &model.License{}
-var ClientLicense map[string]string = make(map[string]string)
+var ClientLicense map[string]string = map[string]string{"IsLicensed": "false"}
 
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZmShlU8Z8HdG0IWSZ8r

@@ -108,37 +108,10 @@ func TestCreateTeam(t *testing.T) {
 	}
 }
 
-func TestFindTeamByEmail(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	if r1, err := Client.FindTeams(user.Email); err != nil {
-		t.Fatal(err)
-	} else {
-		teams := r1.Data.(map[string]*model.Team)
-		if teams[team.Id].Name != team.Name {
-			t.Fatal()
-		}
-		if teams[team.Id].DisplayName != team.DisplayName {
-			t.Fatal()
-		}
-	}
-
-	if _, err := Client.FindTeams("missing"); err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestGetAllTeams(t *testing.T) {
 	Setup()
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN, AllowTeamListing: true}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
@@ -147,8 +120,22 @@ func TestGetAllTeams(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
-	if _, err := Client.GetAllTeams(); err == nil {
-		t.Fatal("you shouldn't have permissions")
+	enableIncomingHooks := *utils.Cfg.TeamSettings.EnableTeamListing
+	defer func() {
+		*utils.Cfg.TeamSettings.EnableTeamListing = enableIncomingHooks
+	}()
+	*utils.Cfg.TeamSettings.EnableTeamListing = true
+
+	if r1, err := Client.GetAllTeams(); err != nil {
+		t.Fatal(err)
+	} else {
+		teams := r1.Data.(map[string]*model.Team)
+		if teams[team.Id].Name != team.Name {
+			t.Fatal()
+		}
+		if teams[team.Id].Email != "" {
+			t.Fatal("Non admin users shoudn't get full listings")
+		}
 	}
 
 	c := &Context{}
@@ -163,6 +150,9 @@ func TestGetAllTeams(t *testing.T) {
 	} else {
 		teams := r1.Data.(map[string]*model.Team)
 		if teams[team.Id].Name != team.Name {
+			t.Fatal()
+		}
+		if teams[team.Id].Email != team.Email {
 			t.Fatal()
 		}
 	}
@@ -205,75 +195,6 @@ func TestTeamPermDelete(t *testing.T) {
 	}
 
 	Client.ClearOAuthToken()
-}
-
-/*
-
-XXXXXX investigate and fix failing test
-
-func TestFindTeamByDomain(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	if r1, err := Client.FindTeamByDomain(team.Name, false); err != nil {
-		t.Fatal(err)
-	} else {
-		val := r1.Data.(bool)
-		if !val {
-			t.Fatal("should be a valid domain")
-		}
-	}
-
-	if r1, err := Client.FindTeamByDomain(team.Name, true); err != nil {
-		t.Fatal(err)
-	} else {
-		val := r1.Data.(bool)
-		if !val {
-			t.Fatal("should be a valid domain")
-		}
-	}
-
-	if r1, err := Client.FindTeamByDomain("a"+model.NewId()+"a", false); err != nil {
-		t.Fatal(err)
-	} else {
-		val := r1.Data.(bool)
-		if val {
-			t.Fatal("shouldn't be a valid domain")
-		}
-	}
-}
-
-*/
-
-func TestFindTeamByEmailSend(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if _, err := Client.FindTeamsSendEmail(user.Email); err != nil {
-		t.Fatal(err)
-	} else {
-	}
-
-	if _, err := Client.FindTeamsSendEmail("missing"); err != nil {
-
-		// It should actually succeed at sending the email since it doesn't exist
-		if !strings.Contains(err.DetailedError, "Failed to add to email address") {
-			t.Fatal(err)
-		}
-	}
 }
 
 func TestInviteMembers(t *testing.T) {

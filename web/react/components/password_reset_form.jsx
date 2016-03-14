@@ -2,24 +2,11 @@
 // See License.txt for license information.
 
 import * as Client from '../utils/client.jsx';
+import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
-
-const holders = defineMessages({
-    error: {
-        id: 'password_form.error',
-        defaultMessage: 'Please enter at least {chars} characters.'
-    },
-    update: {
-        id: 'password_form.update',
-        defaultMessage: 'Your password has been updated successfully.'
-    },
-    pwd: {
-        id: 'password_form.pwd',
-        defaultMessage: 'Password'
-    }
-});
+import {FormattedMessage} from 'mm-intl';
+import {browserHistory} from 'react-router';
 
 class PasswordResetForm extends React.Component {
     constructor(props) {
@@ -32,51 +19,50 @@ class PasswordResetForm extends React.Component {
     handlePasswordReset(e) {
         e.preventDefault();
 
-        const {formatMessage} = this.props.intl;
-        var state = {};
-
-        var password = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
-            state.error = formatMessage(holders.error, {chars: Constants.MIN_PASSWORD_LENGTH});
-            this.setState(state);
+            this.setState({
+                error: (
+                    <FormattedMessage
+                        id='password_form.error'
+                        defaultMessage='Please enter at least {chars} characters.'
+                        chars={Constants.MIN_PASSWORD_LENGTH}
+                    />
+                )
+            });
             return;
         }
 
-        state.error = null;
-        this.setState(state);
+        this.setState({
+            error: null
+        });
 
-        var data = {};
+        const data = {};
         data.new_password = password;
-        data.hash = this.props.hash;
-        data.data = this.props.data;
-        data.name = this.props.teamName;
+        data.hash = this.props.location.query.h;
+        data.data = this.props.location.query.d;
+        data.name = this.props.params.team;
 
         Client.resetPassword(data,
-            function resetSuccess() {
-                this.setState({error: null, updateText: formatMessage(holders.update)});
-            }.bind(this),
-            function resetFailure(err) {
-                this.setState({error: err.message, updateText: null});
-            }.bind(this)
+            () => {
+                this.setState({error: null});
+                browserHistory.push('/' + this.props.params.team + '/login');
+            },
+            (err) => {
+                this.setState({error: err.message});
+            }
         );
     }
     render() {
-        var updateText = null;
-        if (this.state.updateText) {
-            updateText = (<div className='form-group'><br/><label className='control-label reset-form'>{this.state.updateText}
-                <FormattedHTMLMessage
-                    id='password_form.click'
-                    defaultMessage='Click <a href={url}>here</a> to log in.'
-                    values={{
-                        url: '/' + this.props.teamName + '/login'
-                    }}
-                />
-                </label></div>);
-        }
-
         var error = null;
         if (this.state.error) {
-            error = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
+            error = (
+                <div className='form-group has-error'>
+                    <label className='control-label'>
+                        {this.state.error}
+                    </label>
+                </div>
+            );
         }
 
         var formClass = 'form-group';
@@ -84,7 +70,6 @@ class PasswordResetForm extends React.Component {
             formClass += ' has-error';
         }
 
-        const {formatMessage} = this.props.intl;
         return (
             <div className='col-sm-12'>
                 <div className='signup-team__container'>
@@ -98,9 +83,8 @@ class PasswordResetForm extends React.Component {
                         <p>
                             <FormattedMessage
                                 id='password_form.enter'
-                                defaultMessage='Enter a new password for your {teamDisplayName} {siteName} account.'
+                                defaultMessage='Enter a new password for your {siteName} account.'
                                 values={{
-                                    teamDisplayName: this.props.teamDisplayName,
                                     siteName: global.window.mm_config.SiteName
                                 }}
                             />
@@ -111,7 +95,10 @@ class PasswordResetForm extends React.Component {
                                 className='form-control'
                                 name='password'
                                 ref='password'
-                                placeholder={formatMessage(holders.pwd)}
+                                placeholder={Utils.localizeMessage(
+                                    'password_form.pwd',
+                                    'Password'
+                                )}
                                 spellCheck='false'
                             />
                         </div>
@@ -125,7 +112,6 @@ class PasswordResetForm extends React.Component {
                                 defaultMessage='Change my password'
                             />
                         </button>
-                        {updateText}
                     </form>
                 </div>
             </div>
@@ -134,17 +120,10 @@ class PasswordResetForm extends React.Component {
 }
 
 PasswordResetForm.defaultProps = {
-    teamName: '',
-    teamDisplayName: '',
-    hash: '',
-    data: ''
 };
 PasswordResetForm.propTypes = {
-    intl: intlShape.isRequired,
-    teamName: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string,
-    hash: React.PropTypes.string,
-    data: React.PropTypes.string
+    params: React.PropTypes.object.isRequired,
+    location: React.PropTypes.object.isRequired
 };
 
-export default injectIntl(PasswordResetForm);
+export default PasswordResetForm;

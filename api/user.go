@@ -53,10 +53,13 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
 	sr.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
 	sr.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
+	sr.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
+	sr.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 
 	sr.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 
 	sr.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
+	sr.Handle("/me_logged_in", ApiAppHandler(getMeLoggedIn)).Methods("GET")
 	sr.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
 	sr.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
 	sr.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
@@ -315,10 +318,10 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 func sendWelcomeEmailAndForget(c *Context, userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("welcome_subject", c.Locale)
+		subjectPage := utils.NewHTMLTemplate("welcome_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"TeamDisplayName": teamDisplayName})
 
-		bodyPage := NewServerTemplatePage("welcome_body", c.Locale)
+		bodyPage := utils.NewHTMLTemplate("welcome_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"TeamDisplayName": teamDisplayName})
 		bodyPage.Props["Info"] = c.T("api.templates.welcome_body.info")
@@ -328,7 +331,7 @@ func sendWelcomeEmailAndForget(c *Context, userId, email, teamName, teamDisplayN
 		bodyPage.Props["TeamURL"] = teamURL
 
 		if !verified {
-			link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, email)
+			link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, email)
 			bodyPage.Props["VerifyUrl"] = link
 		}
 
@@ -380,13 +383,13 @@ func addDirectChannelsAndForget(user *model.User) {
 func SendVerifyEmailAndForget(c *Context, userId, userEmail, teamName, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
-		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, userEmail)
+		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, userEmail)
 
-		subjectPage := NewServerTemplatePage("verify_subject", c.Locale)
+		subjectPage := utils.NewHTMLTemplate("verify_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.verify_subject",
 			map[string]interface{}{"TeamDisplayName": teamDisplayName, "SiteName": utils.ClientCfg["SiteName"]})
 
-		bodyPage := NewServerTemplatePage("verify_body", c.Locale)
+		bodyPage := utils.NewHTMLTemplate("verify_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.verify_body.title", map[string]interface{}{"TeamDisplayName": teamDisplayName})
 		bodyPage.Props["Info"] = c.T("api.templates.verify_body.info")
@@ -621,31 +624,17 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
-	tokens := GetMultiSessionCookieTokens(r)
-	multiToken := ""
-	seen := make(map[string]string)
-	seen[session.TeamId] = session.TeamId
-	for _, token := range tokens {
-		s := GetSession(token)
-		if s != nil && !s.IsExpired() && seen[s.TeamId] == "" {
-			multiToken += " " + token
-			seen[s.TeamId] = s.TeamId
-		}
-	}
-
-	multiToken = strings.TrimSpace(multiToken + " " + session.Token)
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
-
-	multiSessionCookie := &http.Cookie{
+	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    multiToken,
+		Value:    session.Token,
 		Path:     "/",
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: true,
 	}
 
-	http.SetCookie(w, multiSessionCookie)
+	http.SetCookie(w, sessionCookie)
 
 	c.Session = *session
 	c.LogAuditWithUserId(user.Id, "success")
@@ -900,6 +889,26 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(result.Data.(*model.User).ToJson()))
 		return
 	}
+}
+
+func getMeLoggedIn(c *Context, w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]string)
+	data["logged_in"] = "false"
+	data["team_name"] = ""
+
+	if len(c.Session.UserId) != 0 {
+		teamChan := Srv.Store.Team().Get(c.Session.TeamId)
+		var team *model.Team
+		if tr := <-teamChan; tr.Err != nil {
+			c.Err = tr.Err
+			return
+		} else {
+			team = tr.Data.(*model.Team)
+		}
+		data["logged_in"] = "true"
+		data["team_name"] = team.Name
+	}
+	w.Write([]byte(model.MapToJson(data)))
 }
 
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1622,12 +1631,12 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapToJson(newProps)
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.PasswordResetSalt))
 
-	link := fmt.Sprintf("%s/reset_password?d=%s&h=%s", c.GetTeamURLFromTeam(team), url.QueryEscape(data), url.QueryEscape(hash))
+	link := fmt.Sprintf("%s/reset_password_complete?d=%s&h=%s", c.GetTeamURLFromTeam(team), url.QueryEscape(data), url.QueryEscape(hash))
 
-	subjectPage := NewServerTemplatePage("reset_subject", c.Locale)
+	subjectPage := utils.NewHTMLTemplate("reset_subject", c.Locale)
 	subjectPage.Props["Subject"] = c.T("api.templates.reset_subject")
 
-	bodyPage := NewServerTemplatePage("reset_body", c.Locale)
+	bodyPage := utils.NewHTMLTemplate("reset_body", c.Locale)
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage.Props["Title"] = c.T("api.templates.reset_body.title")
 	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.reset_body.info"))
@@ -1743,11 +1752,11 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 func sendPasswordChangeEmailAndForget(c *Context, email, teamDisplayName, teamURL, siteURL, method string) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("password_change_subject", c.Locale)
+		subjectPage := utils.NewHTMLTemplate("password_change_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.password_change_subject",
 			map[string]interface{}{"TeamDisplayName": teamDisplayName, "SiteName": utils.ClientCfg["SiteName"]})
 
-		bodyPage := NewServerTemplatePage("password_change_body", c.Locale)
+		bodyPage := utils.NewHTMLTemplate("password_change_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.password_change_body.title")
 		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.password_change_body.info",
@@ -1763,11 +1772,12 @@ func sendPasswordChangeEmailAndForget(c *Context, email, teamDisplayName, teamUR
 func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, teamDisplayName, teamURL, siteURL string) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("email_change_subject", c.Locale)
+		subjectPage := utils.NewHTMLTemplate("email_change_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.email_change_subject",
 			map[string]interface{}{"TeamDisplayName": teamDisplayName})
+		subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
-		bodyPage := NewServerTemplatePage("email_change_body", c.Locale)
+		bodyPage := utils.NewHTMLTemplate("email_change_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.email_change_body.title")
 		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.email_change_body.info",
@@ -1785,11 +1795,12 @@ func SendEmailChangeVerifyEmailAndForget(c *Context, userId, newUserEmail, teamN
 
 		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, newUserEmail)
 
-		subjectPage := NewServerTemplatePage("email_change_verify_subject", c.Locale)
+		subjectPage := utils.NewHTMLTemplate("email_change_verify_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.email_change_verify_subject",
 			map[string]interface{}{"TeamDisplayName": teamDisplayName})
+		subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
-		bodyPage := NewServerTemplatePage("email_change_verify_body", c.Locale)
+		bodyPage := utils.NewHTMLTemplate("email_change_verify_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.email_change_verify_body.title")
 		bodyPage.Props["Info"] = c.T("api.templates.email_change_verify_body.info",
@@ -1918,7 +1929,7 @@ func GetAuthorizationCode(c *Context, service, teamName string, props map[string
 	props["team"] = teamName
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
-	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete" // Remove /signup after a few releases (~1.8)
+	redirectUri := c.GetSiteURL() + "/api/v1/oauth/" + service + "/complete"
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
@@ -2216,11 +2227,11 @@ func switchToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func sendSignInChangeEmailAndForget(c *Context, email, teamDisplayName, teamURL, siteURL, method string) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("signin_change_subject", c.Locale)
+		subjectPage := utils.NewHTMLTemplate("signin_change_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.singin_change_email.subject",
 			map[string]interface{}{"TeamDisplayName": teamDisplayName, "SiteName": utils.ClientCfg["SiteName"]})
 
-		bodyPage := NewServerTemplatePage("signin_change_body", c.Locale)
+		bodyPage := utils.NewHTMLTemplate("signin_change_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.signin_change_email.body.title")
 		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.singin_change_email.body.info",
@@ -2231,4 +2242,69 @@ func sendSignInChangeEmailAndForget(c *Context, email, teamDisplayName, teamURL,
 		}
 
 	}()
+}
+
+func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	userId := props["uid"]
+	if len(userId) != 26 {
+		c.SetInvalidParam("verifyEmail", "uid")
+		return
+	}
+
+	hashedId := props["hid"]
+	if len(hashedId) == 0 {
+		c.SetInvalidParam("verifyEmail", "hid")
+		return
+	}
+
+	if model.ComparePassword(hashedId, userId) {
+		if c.Err = (<-Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
+			return
+		} else {
+			c.LogAudit("Email Verified")
+			return
+		}
+	}
+
+	c.Err = model.NewLocAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "")
+	c.Err.StatusCode = http.StatusForbidden
+}
+
+func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	teamName := props["team_name"]
+	if len(teamName) == 0 {
+		c.SetInvalidParam("resendVerification", "team_name")
+		return
+	}
+
+	email := props["email"]
+	if len(email) == 0 {
+		c.SetInvalidParam("resendVerification", "email")
+		return
+	}
+
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user := result.Data.(*model.User)
+
+		if user.LastActivityAt > 0 {
+			SendEmailChangeVerifyEmailAndForget(c, user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+		} else {
+			SendVerifyEmailAndForget(c, user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+		}
+	}
 }

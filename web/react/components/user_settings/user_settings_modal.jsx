@@ -73,27 +73,35 @@ class UserSettingsModal extends React.Component {
 
         this.updateTab = this.updateTab.bind(this);
         this.updateSection = this.updateSection.bind(this);
+        this.onUserChanged = this.onUserChanged.bind(this);
 
         this.state = {
             active_tab: 'general',
             active_section: '',
             showConfirmModal: false,
-            enforceFocus: true
+            enforceFocus: true,
+            currentUser: UserStore.getCurrentUser()
         };
 
         this.requireConfirm = false;
+    }
+
+    onUserChanged() {
+        this.setState({currentUser: UserStore.getCurrentUser()});
     }
 
     componentDidMount() {
         if (this.props.show) {
             this.handleShow();
         }
+        UserStore.addChangeListener(this.onUserChanged);
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
             this.handleShow();
         }
+        UserStore.removeChangeListener(this.onUserChanged);
     }
 
     handleShow() {
@@ -235,8 +243,10 @@ class UserSettingsModal extends React.Component {
 
     render() {
         const {formatMessage} = this.props.intl;
-        var currentUser = UserStore.getCurrentUser();
-        var isAdmin = Utils.isAdmin(currentUser.roles);
+        if (this.state.currentUser == null) {
+            return (<div/>);
+        }
+        var isAdmin = Utils.isAdmin(this.state.currentUser.roles);
         var tabs = [];
 
         tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'glyphicon glyphicon-cog'});

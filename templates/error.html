@@ -1,0 +1,24 @@
+{{define "error"}}
+<!DOCTYPE html>
+<html>
+{{template "head" . }}
+<body class="white error">
+    <div class="container-fluid">
+        <div class="error__container">
+            <div class="error__icon">
+                <i class="fa fa-exclamation-triangle"/>
+            </div>
+            <h2>{{.Props.Title}}</h2>
+            <p>{{ .Props.Message }}</p>
+            <a href="{{.Props.SiteURL}}">{{.Props.Link}}</a>
+        </div>
+    </div>
+</body>
+<script>
+var details = {{ .Props.Details }};
+if (details.length > 0) {
+    console.log("error details: " + details);
+}
+</script>
+</html>
+{{end}}

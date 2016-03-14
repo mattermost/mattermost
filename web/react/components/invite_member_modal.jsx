@@ -5,7 +5,7 @@ import * as utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as Client from '../utils/client.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 import ModalStore from '../stores/modal_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
@@ -223,7 +223,7 @@ class InviteMemberModal extends React.Component {
     showGetTeamInviteLinkModal() {
         this.handleHide(false);
 
-        EventHelpers.showGetTeamInviteLinkModal();
+        GlobalActions.showGetTeamInviteLinkModal();
     }
 
     render() {

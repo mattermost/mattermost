@@ -8,7 +8,7 @@ const Modal = ReactBootstrap.Modal;
 import LoadingScreen from './loading_screen.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-import {FormattedMessage} from 'mm-intl';
+import {FormattedMessage, FormattedTime, FormattedDate} from 'mm-intl';
 
 export default class ActivityLogModal extends React.Component {
     constructor(props) {
@@ -144,8 +144,21 @@ export default class ActivityLogModal extends React.Component {
                                 id='activity_log.firstTime'
                                 defaultMessage='First time active: {date}, {time}'
                                 values={{
-                                    date: firstAccessTime.toLocaleDateString(global.window.mm_locale, {month: 'short', day: '2-digit', year: 'numeric'}),
-                                    time: lastAccessTime.toLocaleTimeString(global.window.mm_locale, {hour: '2-digit', minute: '2-digit'})
+                                    date: (
+                                        <FormattedDate
+                                            value={firstAccessTime}
+                                            day='2-digit'
+                                            month='long'
+                                            year='numeric'
+                                        />
+                                    ),
+                                    time: (
+                                        <FormattedTime
+                                            value={firstAccessTime}
+                                            hour='2-digit'
+                                            minute='2-digit'
+                                        />
+                                    )
                                 }}
                             />
                         </div>
@@ -206,8 +219,21 @@ export default class ActivityLogModal extends React.Component {
                                     id='activity_log.lastActivity'
                                     defaultMessage='Last activity: {date}, {time}'
                                     values={{
-                                        date: lastAccessTime.toLocaleDateString(global.window.mm_locale, {month: 'short', day: '2-digit', year: 'numeric'}),
-                                        time: lastAccessTime.toLocaleTimeString(global.window.mm_locale, {hour: '2-digit', minute: '2-digit'})
+                                        date: (
+                                            <FormattedDate
+                                                value={lastAccessTime}
+                                                day='2-digit'
+                                                month='long'
+                                                year='numeric'
+                                            />
+                                        ),
+                                        time: (
+                                            <FormattedTime
+                                                value={lastAccessTime}
+                                                hour='2-digit'
+                                                minute='2-digit'
+                                            />
+                                        )
                                     }}
                                 />
                             </div>

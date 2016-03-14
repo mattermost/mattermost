@@ -129,7 +129,9 @@ export default class Sidebar extends React.Component {
             directChannels,
             hiddenDirectChannelCount,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
-            showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER
+            showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
+            currentTeam: TeamStore.getCurrent(),
+            currentUser: UserStore.getCurrentUser()
         };
     }
 
@@ -179,7 +181,7 @@ export default class Sidebar extends React.Component {
     }
     updateTitle() {
         const channel = ChannelStore.getCurrent();
-        if (channel) {
+        if (channel && this.state.currentTeam) {
             let currentSiteName = '';
             if (global.window.mm_config.SiteName != null) {
                 currentSiteName = global.window.mm_config.SiteName;
@@ -196,7 +198,7 @@ export default class Sidebar extends React.Component {
             const unread = this.getTotalUnreadCount();
             const mentionTitle = unread.mentions > 0 ? '(' + unread.mentions + ') ' : '';
             const unreadTitle = unread.msgs > 0 ? '* ' : '';
-            document.title = mentionTitle + unreadTitle + currentChannelName + ' - ' + TeamStore.getCurrent().display_name + ' ' + currentSiteName;
+            document.title = mentionTitle + unreadTitle + currentChannelName + ' - ' + this.state.currentTeam.display_name + ' ' + currentSiteName;
         }
     }
     onScroll() {
@@ -401,7 +403,6 @@ export default class Sidebar extends React.Component {
         // set up click handler to switch channels (or create a new channel for non-existant ones)
         var handleClick = null;
         var href = '#';
-        var teamURL = TeamStore.getCurrentTeamUrl();
 
         if (!channel.fake) {
             handleClick = function clickHandler(e) {
@@ -413,7 +414,7 @@ export default class Sidebar extends React.Component {
 
                 e.preventDefault();
             };
-        } else if (channel.fake && teamURL) {
+        } else if (channel.fake) {
             // It's a direct message channel that doesn't exist yet so let's create it now
             var otherUserId = Utils.getUserIdFromChannelName(channel);
 
@@ -434,7 +435,7 @@ export default class Sidebar extends React.Component {
                             },
                             () => {
                                 this.setState({loadingDMChannel: -1});
-                                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+                                window.location.href = '/' + this.state.currentTeam.name;
                             }
                         );
                     }
@@ -497,6 +498,11 @@ export default class Sidebar extends React.Component {
         );
     }
     render() {
+        // Check if we have all info needed to render
+        if (this.state.currentTeam == null || this.state.currentUser == null) {
+            return (<div/>);
+        }
+
         this.badgesActive = false;
 
         // keep track of the first and last unread channels so we can use them to set the unread indicators
@@ -586,7 +592,10 @@ export default class Sidebar extends React.Component {
         );
 
         return (
-            <div>
+            <div
+                className='sidebar--left'
+                id='sidebar-left'
+            >
                 <NewChannelFlow
                     show={showChannelModal}
                     channelType={this.state.newChannelModalType}
@@ -598,9 +607,10 @@ export default class Sidebar extends React.Component {
                 />
 
                 <SidebarHeader
-                    teamDisplayName={TeamStore.getCurrent().display_name}
-                    teamName={TeamStore.getCurrent().name}
-                    teamType={TeamStore.getCurrent().type}
+                    teamDisplayName={this.state.currentTeam.display_name}
+                    teamName={this.state.currentTeam.name}
+                    teamType={this.state.currentTeam.type}
+                    currentUser={this.state.currentUser}
                 />
 
                 <UnreadChannelIndicator

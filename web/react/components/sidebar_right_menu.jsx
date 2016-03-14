@@ -5,11 +5,11 @@ import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import UserStore from '../stores/user_store.jsx';
-import * as client from '../utils/client.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
-import * as utils from '../utils/utils.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 import {FormattedMessage} from 'mm-intl';
+import {Link} from 'react-router';
 
 export default class SidebarRightMenu extends React.Component {
     componentDidMount() {
@@ -19,16 +19,9 @@ export default class SidebarRightMenu extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleLogoutClick = this.handleLogoutClick.bind(this);
-
         this.state = {
             showUserSettingsModal: false
         };
-    }
-
-    handleLogoutClick(e) {
-        e.preventDefault();
-        client.logout();
     }
 
     render() {
@@ -42,14 +35,14 @@ export default class SidebarRightMenu extends React.Component {
         var isSystemAdmin = false;
 
         if (currentUser != null) {
-            isAdmin = utils.isAdmin(currentUser.roles);
-            isSystemAdmin = utils.isSystemAdmin(currentUser.roles);
+            isAdmin = Utils.isAdmin(currentUser.roles);
+            isSystemAdmin = Utils.isSystemAdmin(currentUser.roles);
 
             inviteLink = (
                 <li>
                     <a
                         href='#'
-                        onClick={EventHelpers.showInviteMemberModal}
+                        onClick={GlobalActions.showInviteMemberModal}
                     >
                         <i className='fa fa-user'></i>
                         <FormattedMessage
@@ -65,7 +58,7 @@ export default class SidebarRightMenu extends React.Component {
                     <li>
                         <a
                             href='#'
-                            onClick={EventHelpers.showGetTeamInviteLinkModal}
+                            onClick={GlobalActions.showGetTeamInviteLinkModal}
                         >
                             <i className='glyphicon glyphicon-link'></i>
                             <FormattedMessage
@@ -107,13 +100,13 @@ export default class SidebarRightMenu extends React.Component {
             );
         }
 
-        if (isSystemAdmin && !utils.isMobile()) {
+        if (isSystemAdmin && !Utils.isMobile()) {
             consoleLink = (
                 <li>
                     <a
-                        href={'/admin_console?' + utils.getSessionIndex()}
+                        href={'/admin_console'}
                     >
-                    <i className='fa fa-wrench'></i>
+                        <i className='fa fa-wrench'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.console'
                             defaultMessage='System Console'
@@ -168,7 +161,10 @@ export default class SidebarRightMenu extends React.Component {
             );
         }
         return (
-            <div>
+            <div
+                className='sidebar--menu'
+                id='sidebar-menu'
+            >
                 <div className='team__header theme'>
                     <a
                         className='team__name'
@@ -196,16 +192,13 @@ export default class SidebarRightMenu extends React.Component {
                         {manageLink}
                         {consoleLink}
                         <li>
-                            <a
-                                href='#'
-                                onClick={this.handleLogoutClick}
-                            >
+                            <Link to={Utils.getTeamURLFromAddressBar() + '/logout'}>
                                 <i className='fa fa-sign-out'></i>
                                 <FormattedMessage
                                     id='sidebar_right_menu.logout'
                                     defaultMessage='Logout'
                                 />
-                            </a>
+                            </Link>
                         </li>
                         <li className='divider'></li>
                         {helpLink}

@@ -10,7 +10,7 @@ import * as Emoji from '../utils/emoticons.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
 import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 
 import Constants from '../utils/constants.jsx';
 
@@ -34,7 +34,7 @@ export default class RhsRootPost extends React.Component {
     }
     handlePermalink(e) {
         e.preventDefault();
-        EventHelpers.showGetPostLinkModal(this.props.post);
+        GlobalActions.showGetPostLinkModal(this.props.post);
     }
     componentDidMount() {
         this.parseEmojis();
@@ -142,7 +142,7 @@ export default class RhsRootPost extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        onClick={() => EventHelpers.showDeletePostModal(post, this.props.commentCount)}
+                        onClick={() => GlobalActions.showDeletePostModal(post, this.props.commentCount)}
                     >
                         <FormattedMessage
                             id='rhs_root.del'
@@ -211,7 +211,7 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex();
+        let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
         if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
             if (post.props.override_icon_url) {
                 src = post.props.override_icon_url;

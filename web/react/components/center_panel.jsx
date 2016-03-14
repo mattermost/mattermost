@@ -25,40 +25,43 @@ export default class CenterPanel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onPreferenceChange = this.onPreferenceChange.bind(this);
-        this.onChannelChange = this.onChannelChange.bind(this);
-        this.onUserChange = this.onUserChange.bind(this);
+        this.getStateFromStores = this.getStateFromStores.bind(this);
+        this.validState = this.validState.bind(this);
+        this.onStoresChange = this.onStoresChange.bind(this);
 
+        this.state = this.getStateFromStores();
+    }
+    getStateFromStores() {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
-        this.state = {
-            showTutorialScreens: tutorialStep === TutorialSteps.INTRO_SCREENS,
+        return {
+            showTutorialScreens: tutorialStep <= TutorialSteps.INTRO_SCREENS,
             showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS,
             user: UserStore.getCurrentUser(),
+            channel: ChannelStore.getCurrent(),
             profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))
         };
     }
+    validState() {
+        return this.state.user && this.state.channel && this.state.profiles;
+    }
+    onStoresChange() {
+        this.setState(this.getStateFromStores());
+    }
     componentDidMount() {
-        PreferenceStore.addChangeListener(this.onPreferenceChange);
-        ChannelStore.addChangeListener(this.onChannelChange);
-        UserStore.addChangeListener(this.onUserChange);
+        PreferenceStore.addChangeListener(this.onStoresChange);
+        ChannelStore.addChangeListener(this.onStoresChange);
+        UserStore.addChangeListener(this.onStoresChange);
     }
     componentWillUnmount() {
-        PreferenceStore.removeChangeListener(this.onPreferenceChange);
-        ChannelStore.removeChangeListener(this.onChannelChange);
-        UserStore.removeChangeListener(this.onUserChange);
-    }
-    onPreferenceChange() {
-        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
-        this.setState({showTutorialScreens: tutorialStep <= TutorialSteps.INTRO_SCREENS});
-    }
-    onChannelChange() {
-        this.setState({showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS});
-    }
-    onUserChange() {
-        this.setState({user: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
+        PreferenceStore.removeChangeListener(this.onStoresChange);
+        ChannelStore.removeChangeListener(this.onStoresChange);
+        UserStore.removeChangeListener(this.onStoresChange);
     }
     render() {
-        const channel = ChannelStore.getCurrent();
+        if (!this.validState()) {
+            return null;
+        }
+        const channel = this.state.channel;
         var handleClick = null;
         let postsContainer;
         let createPost;

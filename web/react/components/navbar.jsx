@@ -56,8 +56,12 @@ export default class Navbar extends React.Component {
         return {
             channel: ChannelStore.getCurrent(),
             member: ChannelStore.getCurrentMember(),
-            users: ChannelStore.getCurrentExtraInfo().members
+            users: ChannelStore.getCurrentExtraInfo().members,
+            currentUser: UserStore.getCurrentUser()
         };
+    }
+    stateValid() {
+        return this.state.channel && this.state.member && this.state.users && this.state.currentUser;
     }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
@@ -201,7 +205,7 @@ export default class Navbar extends React.Component {
                         <ToggleModalButton
                             role='menuitem'
                             dialogType={ChannelInviteModal}
-                            dialogProps={{channel}}
+                            dialogProps={{channel, currentUser: this.state.currentUser}}
                         >
                             <FormattedMessage
                                 id='navbar.addMembers'
@@ -286,7 +290,11 @@ export default class Navbar extends React.Component {
                         <ToggleModalButton
                             role='menuitem'
                             dialogType={ChannelNotificationsModal}
-                            dialogProps={{channel}}
+                            dialogProps={{
+                                channel,
+                                channelMember: this.state.member,
+                                currentUser: this.state.currentUser
+                            }}
                         >
                             <FormattedMessage
                                 id='navbar.preferences'
@@ -412,7 +420,11 @@ export default class Navbar extends React.Component {
         return buttons;
     }
     render() {
-        var currentId = UserStore.getCurrentId();
+        if (!this.stateValid()) {
+            return null;
+        }
+
+        var currentId = this.state.currentUser.id;
         var channel = this.state.channel;
         var channelTitle = this.props.teamDisplayName;
         var popoverContent;

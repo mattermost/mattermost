@@ -8,8 +8,7 @@ import ToggleModalButton from '../components/toggle_modal_button.jsx';
 import UserProfile from '../components/user_profile.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import Constants from '../utils/constants.jsx';
-import TeamStore from '../stores/team_store.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'mm-intl';
 
@@ -40,7 +39,7 @@ export function createDMIntroMessage(channel) {
                 <div className='post-profile-img__container channel-intro-img'>
                     <img
                         className='post-profile-img'
-                        src={'/api/v1/users/' + teammate.id + '/image?time=' + teammate.update_at + '&' + Utils.getSessionIndex()}
+                        src={'/api/v1/users/' + teammate.id + '/image?time=' + teammate.update_at}
                         height='50'
                         width='50'
                     />
@@ -93,37 +92,19 @@ export function createOffTopicIntroMessage(channel) {
 }
 
 export function createDefaultIntroMessage(channel) {
-    const team = TeamStore.getCurrent();
-    let inviteModalLink;
-    if (team.type === Constants.INVITE_TEAM) {
-        inviteModalLink = (
-            <a
-                className='intro-links'
-                href='#'
-                onClick={EventHelpers.showInviteMemberModal}
-            >
-                <i className='fa fa-user-plus'></i>
-                <FormattedMessage
-                    id='intro_messages.inviteOthers'
-                    defaultMessage='Invite others to this team'
-                />
-            </a>
-        );
-    } else {
-        inviteModalLink = (
-            <a
-                className='intro-links'
-                href='#'
-                onClick={EventHelpers.showGetTeamInviteLinkModal}
-            >
-                <i className='fa fa-user-plus'></i>
-                <FormattedMessage
-                    id='intro_messages.inviteOthers'
-                    defaultMessage='Invite others to this team'
-                />
-            </a>
-        );
-    }
+    const inviteModalLink = (
+        <a
+            className='intro-links'
+            href='#'
+            onClick={GlobalActions.showGetTeamInviteLinkModal}
+        >
+            <i className='fa fa-user-plus'></i>
+            <FormattedMessage
+                id='intro_messages.inviteOthers'
+                defaultMessage='Invite others to this team'
+            />
+        </a>
+    );
 
     return (
         <div className='channel-intro'>

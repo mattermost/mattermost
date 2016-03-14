@@ -14,7 +14,7 @@ import * as AsyncClient from '../utils/async_client.jsx';
 var ActionTypes = Constants.ActionTypes;
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import twemoji from 'twemoji';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedDate} from 'mm-intl';
 
@@ -70,7 +70,7 @@ class RhsComment extends React.Component {
     }
     handlePermalink(e) {
         e.preventDefault();
-        EventHelpers.showGetPostLinkModal(this.props.post);
+        GlobalActions.showGetPostLinkModal(this.props.post);
     }
     componentDidMount() {
         this.parseEmojis();
@@ -151,7 +151,7 @@ class RhsComment extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        onClick={() => EventHelpers.showDeletePostModal(post, 0)}
+                        onClick={() => GlobalActions.showDeletePostModal(post, 0)}
                     >
                         <FormattedMessage
                             id='rhs_comment.del'
@@ -253,7 +253,7 @@ class RhsComment extends React.Component {
                 <div className='post__content'>
                     <div className='post__img'>
                         <img
-                            src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex()}
+                            src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp}
                             height='36'
                             width='36'
                         />

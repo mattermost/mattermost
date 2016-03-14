@@ -6,7 +6,6 @@ import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
 
 import * as Client from '../utils/client.jsx';
-import UserStore from '../stores/user_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 
 import {FormattedMessage} from 'mm-intl';
@@ -15,7 +14,6 @@ export default class ChannelNotificationsModal extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onListenerChange = this.onListenerChange.bind(this);
         this.updateSection = this.updateSection.bind(this);
 
         this.handleSubmitNotifyLevel = this.handleSubmitNotifyLevel.bind(this);
@@ -26,58 +24,41 @@ export default class ChannelNotificationsModal extends React.Component {
         this.handleUpdateMarkUnreadLevel = this.handleUpdateMarkUnreadLevel.bind(this);
         this.createMarkUnreadLevelSection = this.createMarkUnreadLevelSection.bind(this);
 
-        const member = ChannelStore.getMember(props.channel.id);
         this.state = {
-            notifyLevel: member.notify_props.desktop,
-            markUnreadLevel: member.notify_props.mark_unread,
-            channelId: ChannelStore.getCurrentId(),
-            activeSection: ''
+            activeSection: '',
+            notifyLevel: '',
+            unreadLevel: ''
         };
-    }
-    componentWillReceiveProps(nextProps) {
-        if (!this.props.show && nextProps.show) {
-            this.onListenerChange();
-            ChannelStore.addChangeListener(this.onListenerChange);
-        } else {
-            ChannelStore.removeChangeListener(this.onListenerChange);
-        }
-    }
-    onListenerChange() {
-        const curChannelId = ChannelStore.getCurrentId();
-
-        if (!curChannelId) {
-            return;
-        }
-
-        const newState = {channelId: curChannelId};
-        const member = ChannelStore.getMember(curChannelId);
-
-        if (member.notify_props.desktop !== this.state.notifyLevel || member.notify_props.mark_unread !== this.state.mark_unread) {
-            newState.notifyLevel = member.notify_props.desktop;
-            newState.markUnreadLevel = member.notify_props.mark_unread;
-        }
-
-        this.setState(newState);
     }
     updateSection(section) {
         this.setState({activeSection: section});
     }
+    componentWillReceiveProps(nextProps) {
+        if (!this.props.show && nextProps.show) {
+            this.setState({
+                notifyLevel: nextProps.channelMember.notify_props.desktop,
+                unreadLevel: nextProps.channelMember.notify_props.mark_unread
+            });
+        }
+    }
     handleSubmitNotifyLevel() {
-        var channelId = this.state.channelId;
+        var channelId = this.props.channel.id;
         var notifyLevel = this.state.notifyLevel;
 
-        if (ChannelStore.getMember(channelId).notify_props.desktop === notifyLevel) {
+        if (this.props.channelMember.notify_props.desktop === notifyLevel) {
             this.updateSection('');
             return;
         }
 
         var data = {};
         data.channel_id = channelId;
-        data.user_id = UserStore.getCurrentId();
+        data.user_id = this.props.currentUser.id;
         data.desktop = notifyLevel;
 
+        //TODO: This should be moved to event_helpers
         Client.updateNotifyProps(data,
             () => {
+                // YUCK
                 var member = ChannelStore.getMember(channelId);
                 member.notify_props.desktop = notifyLevel;
                 ChannelStore.setChannelMember(member);
@@ -92,11 +73,8 @@ export default class ChannelNotificationsModal extends React.Component {
         this.setState({notifyLevel});
     }
     createNotifyLevelSection(serverError) {
-        var handleUpdateSection;
-
-        const user = UserStore.getCurrentUser();
-        const globalNotifyLevel = user.notify_props.desktop;
-
+        // Get glabal user setting for notifications
+        const globalNotifyLevel = this.props.currentUser.notify_props.desktop;
         let globalNotifyLevelName;
         if (globalNotifyLevel === 'all') {
             globalNotifyLevelName = (
@@ -128,13 +106,15 @@ export default class ChannelNotificationsModal extends React.Component {
             />
         );
 
+        const notificationLevel = this.state.notifyLevel;
+
         if (this.state.activeSection === 'desktop') {
-            var notifyActive = [false, false, false, false];
-            if (this.state.notifyLevel === 'default') {
+            const notifyActive = [false, false, false, false];
+            if (notificationLevel === 'default') {
                 notifyActive[0] = true;
-            } else if (this.state.notifyLevel === 'all') {
+            } else if (notificationLevel === 'all') {
                 notifyActive[1] = true;
-            } else if (this.state.notifyLevel === 'mention') {
+            } else if (notificationLevel === 'mention') {
                 notifyActive[2] = true;
             } else {
                 notifyActive[3] = true;
@@ -196,7 +176,7 @@ export default class ChannelNotificationsModal extends React.Component {
                 </div>
             );
 
-            handleUpdateSection = function updateSection(e) {
+            const handleUpdateSection = function updateSection(e) {
                 this.updateSection('');
                 this.onListenerChange();
                 e.preventDefault();
@@ -224,7 +204,7 @@ export default class ChannelNotificationsModal extends React.Component {
         }
 
         var describe;
-        if (this.state.notifyLevel === 'default') {
+        if (notificationLevel === 'default') {
             describe = (
                 <FormattedMessage
                     id='channel_notifications.globalDefault'
@@ -233,45 +213,44 @@ export default class ChannelNotificationsModal extends React.Component {
                     }}
                 />
             );
-        } else if (this.state.notifyLevel === 'mention') {
+        } else if (notificationLevel === 'mention') {
             describe = (<FormattedMessage id='channel_notifications.onlyMentions'/>);
-        } else if (this.state.notifyLevel === 'all') {
+        } else if (notificationLevel === 'all') {
             describe = (<FormattedMessage id='channel_notifications.allActivity'/>);
         } else {
             describe = (<FormattedMessage id='channel_notifications.never'/>);
         }
 
-        handleUpdateSection = function updateSection(e) {
-            this.updateSection('desktop');
-            e.preventDefault();
-        }.bind(this);
-
         return (
             <SettingItemMin
                 title={sendDesktop}
                 describe={describe}
-                updateSection={handleUpdateSection}
+                updateSection={() => {
+                    this.updateSection('desktop');
+                }}
             />
         );
     }
 
     handleSubmitMarkUnreadLevel() {
-        const channelId = this.state.channelId;
-        const markUnreadLevel = this.state.markUnreadLevel;
+        const channelId = this.props.channel.id;
+        const markUnreadLevel = this.state.unreadLevel;
 
-        if (ChannelStore.getMember(channelId).notify_props.mark_unread === markUnreadLevel) {
+        if (this.props.channelMember.notify_props.mark_unread === markUnreadLevel) {
             this.updateSection('');
             return;
         }
 
         const data = {
             channel_id: channelId,
-            user_id: UserStore.getCurrentId(),
+            user_id: this.props.currentUser.id,
             mark_unread: markUnreadLevel
         };
 
+        //TODO: This should be fixed, moved to event_helpers
         Client.updateNotifyProps(data,
             () => {
+                // Yuck...
                 var member = ChannelStore.getMember(channelId);
                 member.notify_props.mark_unread = markUnreadLevel;
                 ChannelStore.setChannelMember(member);
@@ -283,8 +262,8 @@ export default class ChannelNotificationsModal extends React.Component {
         );
     }
 
-    handleUpdateMarkUnreadLevel(markUnreadLevel) {
-        this.setState({markUnreadLevel});
+    handleUpdateMarkUnreadLevel(unreadLevel) {
+        this.setState({unreadLevel});
     }
 
     createMarkUnreadLevelSection(serverError) {
@@ -303,7 +282,7 @@ export default class ChannelNotificationsModal extends React.Component {
                         <label>
                             <input
                                 type='radio'
-                                checked={this.state.markUnreadLevel === 'all'}
+                                checked={this.state.unreadLevel === 'all'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'all')}
                             />
                                 <FormattedMessage
@@ -317,7 +296,7 @@ export default class ChannelNotificationsModal extends React.Component {
                         <label>
                             <input
                                 type='radio'
-                                checked={this.state.markUnreadLevel === 'mention'}
+                                checked={this.state.unreadLevel === 'mention'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'mention')}
                             />
                             <FormattedMessage id='channel_notifications.onlyMentions'/>
@@ -355,7 +334,7 @@ export default class ChannelNotificationsModal extends React.Component {
         } else {
             let describe;
 
-            if (!this.state.markUnreadLevel || this.state.markUnreadLevel === 'all') {
+            if (!this.state.unreadLevel || this.state.unreadLevel === 'all') {
                 describe = (
                     <FormattedMessage
                         id='channel_notifications.allUnread'
@@ -430,5 +409,7 @@ export default class ChannelNotificationsModal extends React.Component {
 ChannelNotificationsModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    channel: React.PropTypes.object.isRequired,
+    channelMember: React.PropTypes.object.isRequired,
+    currentUser: React.PropTypes.object.isRequired
 };

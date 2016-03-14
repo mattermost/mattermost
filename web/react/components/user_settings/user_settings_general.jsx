@@ -13,7 +13,7 @@ import Constants from '../../utils/constants.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedDate} from 'mm-intl';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -712,7 +712,7 @@ class UserSettingsGeneralTab extends React.Component {
                 <SettingPicture
                     title={formatMessage(holders.profilePicture)}
                     submit={this.submitPicture}
-                    src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update + '&' + Utils.getSessionIndex()}
+                    src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update}
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={(e) => {
@@ -729,7 +729,14 @@ class UserSettingsGeneralTab extends React.Component {
             let minMessage = formatMessage(holders.uploadImage);
             if (user.last_picture_update) {
                 minMessage = formatMessage(holders.imageUpdated, {
-                    date: new Date(user.last_picture_update).toLocaleDateString(global.window.mm_locale, {month: 'short', day: '2-digit', year: 'numeric'})
+                    date: (
+                        <FormattedDate
+                            value={new Date(user.last_picture_update)}
+                            day='2-digit'
+                            month='short'
+                            year='numeric'
+                        />
+                    )
                 });
             }
             pictureSection = (

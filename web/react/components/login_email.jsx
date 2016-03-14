@@ -4,6 +4,7 @@
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import UserStore from '../stores/user_store.jsx';
+import {browserHistory} from 'react-router';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
 
@@ -72,13 +73,7 @@ class LoginEmail extends React.Component {
         Client.loginByEmail(name, email, password,
             () => {
                 UserStore.setLastEmail(email);
-
-                const redirect = Utils.getUrlParameter('redirect');
-                if (redirect) {
-                    window.location.href = decodeURIComponent(redirect);
-                } else {
-                    window.location.href = '/' + name + '/channels/town-square';
-                }
+                browserHistory.push('/' + name + '/channels/town-square');
             },
             (err) => {
                 if (err.id === 'api.user.login.not_verified.app_error') {

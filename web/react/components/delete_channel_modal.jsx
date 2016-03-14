@@ -9,6 +9,8 @@ import Constants from '../utils/constants.jsx';
 
 import {FormattedMessage} from 'mm-intl';
 
+import {browserHistory} from 'react-router';
+
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {
         super(props);
@@ -21,11 +23,11 @@ export default class DeleteChannelModal extends React.Component {
             return;
         }
 
+        browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
         Client.deleteChannel(
             this.props.channel.id,
             () => {
                 AsyncClient.getChannels(true);
-                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleDelete');
