@@ -23,6 +23,7 @@
     "react-dom": "0.14.7",
     "react-intl": "2.0.0-rc-1",
     "react-router": "2.0.1",
+    "react-textarea-autosize": "3.3.0",
     "twemoji": "1.4.1",
     "velocity-animate": "1.2.3"
   },
