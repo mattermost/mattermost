@@ -1016,6 +1016,10 @@
     "translation": "Only a team admin can export data."
   },
   {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Invite is invalid because this is not an open team."
+  },
+  {
     "id": "api.team.import_team.admin.app_error",
     "translation": "Only a team admin can import data."
   },
@@ -3594,9 +3598,5 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
-  },
-  {
-    "id": "api.team.get_invite_info.not_open_team",
-    "translation": "Invite is invalid because this is not an open team."
   }
 ]

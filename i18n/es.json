@@ -1016,6 +1016,10 @@
     "translation": "Sólo un administrador del equipo puede exportar data."
   },
   {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "La invitación es inválida debido a que este no es un equipo abierto."
+  },
+  {
     "id": "api.team.import_team.admin.app_error",
     "translation": "Sólo un administrador del equipo puede importar data."
   },
@@ -1622,6 +1626,10 @@
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
     "translation": "No se pudo subir la imagen del perfil"
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "Enlace de verificación de correo electrónico errado."
   },
   {
     "id": "api.web_conn.new_web_conn.last_activity.error",
