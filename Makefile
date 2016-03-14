@@ -133,7 +133,11 @@ package:
 	cp -RL api/templates $(DIST_PATH)/api
 	cp -RL i18n $(DIST_PATH)
 
-	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
+	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
+		cp $(ENTERPRISE_DIR)/ENTERPRISE-EDITION-LICENSE.txt $(DIST_PATH); \
+	else \
+		cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH); \
+	fi
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
