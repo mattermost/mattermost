@@ -1049,7 +1049,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 
 	initial := string(strings.ToUpper(username)[0])
 
-	fontBytes, err := ioutil.ReadFile(utils.FindDir("web/static/fonts") + utils.Cfg.FileSettings.InitialFont)
+	fontBytes, err := ioutil.ReadFile(utils.FindDir("fonts") + utils.Cfg.FileSettings.InitialFont)
 	if err != nil {
 		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
 	}

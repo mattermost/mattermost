@@ -2,12 +2,14 @@
 logs
 .DS_Store
 node_modules
-dist
+/dist
+/webapp/dist
 npm-debug.log
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
 web/static/js/libs*.js
+.npminstall
 
 config/active.dat
 
