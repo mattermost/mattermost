@@ -221,24 +221,30 @@ class SecurityTab extends React.Component {
         var d = new Date(this.props.user.last_password_update);
 
         const hours12 = !Utils.isMilitaryTime();
-        describe = formatMessage(holders.lastUpdated, {
-            date: (
-                <FormattedDate
-                    value={d}
-                    day='2-digit'
-                    month='short'
-                    year='numeric'
-                />
-            ),
-            time: (
-                <FormattedTime
-                    value={d}
-                    hour12={hours12}
-                    hour='2-digit'
-                    minute='2-digit'
-                />
-            )
-        });
+        describe = (
+            <FormattedMessage
+                id='user.settings.security.lastUpdated'
+                defaultMessage='Last updated {date} at {time}'
+                values={{
+                    date: (
+                        <FormattedDate
+                            value={d}
+                            day='2-digit'
+                            month='short'
+                            year='numeric'
+                        />
+                    ),
+                    time: (
+                        <FormattedTime
+                            value={d}
+                            hour12={hours12}
+                            hour='2-digit'
+                            minute='2-digit'
+                        />
+                    )
+                }}
+            />
+        );
 
         updateSectionStatus = function updateSection() {
             this.props.updateSection('password');
