@@ -381,6 +381,21 @@ export default {
             uiName: 'Mention Highlight Link'
         },
         {
+            group: 'linkAndButtonElements',
+            id: 'linkColor',
+            uiName: 'Link Color'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonBg',
+            uiName: 'Button BG'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonColor',
+            uiName: 'Button Text'
+        },
+        {
             group: 'centerChannelElements',
             id: 'codeTheme',
             uiName: 'Code Theme',
@@ -402,21 +417,6 @@ export default {
                     uiName: 'Monokai'
                 }
             ]
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'linkColor',
-            uiName: 'Link Color'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonBg',
-            uiName: 'Button BG'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonColor',
-            uiName: 'Button Text'
         }
     ],
     DEFAULT_CODE_THEME: 'github',
