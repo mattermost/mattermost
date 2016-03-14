@@ -42,12 +42,14 @@ export default {
 
         RECEIVED_MSG: null,
 
-        RECEIVED_TEAM: null,
+        RECEIVED_MY_TEAM: null,
 
         RECEIVED_CONFIG: null,
         RECEIVED_LOGS: null,
         RECEIVED_SERVER_AUDITS: null,
         RECEIVED_ALL_TEAMS: null,
+
+        RECEIVED_LOCALE: null,
 
         SHOW_SEARCH: null,
 
@@ -143,6 +145,7 @@ export default {
     EMAIL_SERVICE: 'email',
     SIGNIN_CHANGE: 'signin_change',
     SIGNIN_VERIFIED: 'verified',
+    SESSION_EXPIRED: 'expired',
     POST_CHUNK_SIZE: 60,
     MAX_POST_CHUNKS: 3,
     POST_FOCUS_CONTEXT_RADIUS: 10,
@@ -267,7 +270,7 @@ export default {
             buttonColor: '#FFFFFF',
             mentionHighlightBg: '#984063',
             mentionHighlightLink: '#A4FFEB',
-            codeTheme: 'solarized_dark'
+            codeTheme: 'solarized-dark'
         },
         windows10: {
             type: 'Windows Dark',
@@ -371,21 +374,6 @@ export default {
             uiName: 'New Message Separator'
         },
         {
-            group: 'linkAndButtonElements',
-            id: 'linkColor',
-            uiName: 'Link Color'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonBg',
-            uiName: 'Button BG'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonColor',
-            uiName: 'Button Text'
-        },
-        {
             group: 'centerChannelElements',
             id: 'mentionHighlightBg',
             uiName: 'Mention Highlight BG'
@@ -401,11 +389,11 @@ export default {
             uiName: 'Code Theme',
             themes: [
                 {
-                    id: 'solarized_dark',
+                    id: 'solarized-dark',
                     uiName: 'Solarized Dark'
                 },
                 {
-                    id: 'solarized_light',
+                    id: 'solarized-light',
                     uiName: 'Solarized Light'
                 },
                 {
@@ -417,6 +405,21 @@ export default {
                     uiName: 'Monokai'
                 }
             ]
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'linkColor',
+            uiName: 'Link Color'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonBg',
+            uiName: 'Button BG'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonColor',
+            uiName: 'Button Text'
         }
     ],
     DEFAULT_CODE_THEME: 'github',

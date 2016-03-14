@@ -14,7 +14,7 @@ import * as AsyncClient from '../../utils/async_client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 import Constants from '../../utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedTime, FormattedDate} from 'mm-intl';
 
 const holders = defineMessages({
     currentPasswordError: {
@@ -218,11 +218,24 @@ class SecurityTab extends React.Component {
         var describe;
         var d = new Date(this.props.user.last_password_update);
 
-        const locale = global.window.mm_locale;
         const hours12 = !Utils.isMilitaryTime();
         describe = formatMessage(holders.lastUpdated, {
-            date: d.toLocaleDateString(locale, {month: 'short', day: '2-digit', year: 'numeric'}),
-            time: d.toLocaleTimeString(locale, {hour12: hours12, hour: '2-digit', minute: '2-digit'})
+            date: (
+                <FormattedDate
+                    value={d}
+                    day='2-digit'
+                    month='short'
+                    year='numeric'
+                />
+            ),
+            time: (
+                <FormattedTime
+                    value={d}
+                    hour12={hours12}
+                    hour='2-digit'
+                    minute='2-digit'
+                />
+            )
         });
 
         updateSectionStatus = function updateSection() {
@@ -251,7 +264,7 @@ class SecurityTab extends React.Component {
                     <div>
                         <a
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email)}
+                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchEmail'
@@ -269,7 +282,7 @@ class SecurityTab extends React.Component {
                     <div>
                         <a
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&new_type=' + Constants.GITLAB_SERVICE}
+                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchGitlab'
@@ -287,7 +300,7 @@ class SecurityTab extends React.Component {
                     <div>
                         <a
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&new_type=' + Constants.GOOGLE_SERVICE}
+                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GOOGLE_SERVICE}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchGoogle'

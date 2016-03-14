@@ -16,19 +16,17 @@ import (
 )
 
 const (
-	HEADER_REQUEST_ID             = "X-Request-ID"
-	HEADER_VERSION_ID             = "X-Version-ID"
-	HEADER_ETAG_SERVER            = "ETag"
-	HEADER_ETAG_CLIENT            = "If-None-Match"
-	HEADER_FORWARDED              = "X-Forwarded-For"
-	HEADER_REAL_IP                = "X-Real-IP"
-	HEADER_FORWARDED_PROTO        = "X-Forwarded-Proto"
-	HEADER_TOKEN                  = "token"
-	HEADER_BEARER                 = "BEARER"
-	HEADER_AUTH                   = "Authorization"
-	HEADER_MM_SESSION_TOKEN_INDEX = "X-MM-TokenIndex"
-	SESSION_TOKEN_INDEX           = "session_token_index"
-	API_URL_SUFFIX                = "/api/v1"
+	HEADER_REQUEST_ID      = "X-Request-ID"
+	HEADER_VERSION_ID      = "X-Version-ID"
+	HEADER_ETAG_SERVER     = "ETag"
+	HEADER_ETAG_CLIENT     = "If-None-Match"
+	HEADER_FORWARDED       = "X-Forwarded-For"
+	HEADER_REAL_IP         = "X-Real-IP"
+	HEADER_FORWARDED_PROTO = "X-Forwarded-Proto"
+	HEADER_TOKEN           = "token"
+	HEADER_BEARER          = "BEARER"
+	HEADER_AUTH            = "Authorization"
+	API_URL_SUFFIX         = "/api/v1"
 )
 
 type Result struct {
@@ -176,29 +174,6 @@ func (c *Client) FindTeamByName(name string, allServers bool) (*Result, *AppErro
 
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), val}, nil
-	}
-}
-
-func (c *Client) FindTeams(email string) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["email"] = email
-	if r, err := c.DoApiPost("/teams/find_teams", MapToJson(m)); err != nil {
-		return nil, err
-	} else {
-
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), TeamMapFromJson(r.Body)}, nil
-	}
-}
-
-func (c *Client) FindTeamsSendEmail(email string) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["email"] = email
-	if r, err := c.DoApiPost("/teams/email_teams", MapToJson(m)); err != nil {
-		return nil, err
-	} else {
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), ArrayFromJson(r.Body)}, nil
 	}
 }
 
@@ -938,7 +913,7 @@ func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*
 }
 
 func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
-	if r, err := c.DoPost("/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
+	if r, err := c.DoApiPost("/oauth/access_token", data.Encode()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -1056,4 +1031,22 @@ func (c *Client) RegenOutgoingWebhookToken(data map[string]string) (*Result, *Ap
 func (c *Client) MockSession(sessionToken string) {
 	c.AuthToken = sessionToken
 	c.AuthType = HEADER_BEARER
+}
+
+func (c *Client) GetClientLicenceConfig() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/license/client_config", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetMeLoggedIn() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/me_logged_in", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
 }

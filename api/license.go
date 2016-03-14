@@ -20,6 +20,7 @@ func InitLicense(r *mux.Router) {
 	sr := r.PathPrefix("/license").Subrouter()
 	sr.Handle("/add", ApiAdminSystemRequired(addLicense)).Methods("POST")
 	sr.Handle("/remove", ApiAdminSystemRequired(removeLicense)).Methods("POST")
+	sr.Handle("/client_config", ApiAppHandler(getClientLicenceConfig)).Methods("GET")
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -129,4 +130,23 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	config := utils.ClientLicense
+
+	var etag string
+	if config["IsLicensed"] == "false" {
+		etag = model.Etag(config["IsLicensed"])
+	} else {
+		etag = model.Etag(config["IsLicensed"], config["IssuedAt"])
+	}
+
+	if HandleEtag(etag, w, r) {
+		return
+	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+
+	w.Write([]byte(model.MapToJson(config)))
 }

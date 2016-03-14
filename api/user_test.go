@@ -1263,3 +1263,38 @@ func TestSwitchToEmail(t *testing.T) {
 		t.Fatal("should have failed - wrong user")
 	}
 }
+
+func TestMeLoggedIn(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	Client.AuthToken = "invalid"
+
+	if result, err := Client.GetMeLoggedIn(); err != nil {
+		t.Fatal(err)
+	} else {
+		meLoggedIn := result.Data.(map[string]string)
+
+		if val, ok := meLoggedIn["logged_in"]; !ok || val != "false" {
+			t.Fatal("Got: " + val)
+		}
+	}
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	if result, err := Client.GetMeLoggedIn(); err != nil {
+		t.Fatal(err)
+	} else {
+		meLoggedIn := result.Data.(map[string]string)
+
+		if val, ok := meLoggedIn["logged_in"]; !ok || val != "true" {
+			t.Fatal("Got: " + val)
+		}
+	}
+}

@@ -4,8 +4,8 @@
 import FilteredUserList from './filtered_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
-import UserStore from '../stores/user_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
+import UserStore from '../stores/user_store.jsx';
 
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
@@ -16,18 +16,15 @@ import {FormattedMessage} from 'mm-intl';
 const Modal = ReactBootstrap.Modal;
 
 export default class ChannelInviteModal extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleInvite = this.handleInvite.bind(this);
-
+        this.getStateFromStores = this.getStateFromStores.bind(this);
         this.createInviteButton = this.createInviteButton.bind(this);
 
-        // the state gets populated when the modal is shown
-        this.state = {
-            loading: true
-        };
+        this.state = this.getStateFromStores();
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!this.props.show && !nextProps.show) {
@@ -63,6 +60,20 @@ export default class ChannelInviteModal extends React.Component {
             };
         }
 
+        const currentUser = UserStore.getCurrentUser();
+        if (!currentUser) {
+            return {
+                loading: true
+            };
+        }
+
+        const currentMember = ChannelStore.getCurrentMember();
+        if (!currentMember) {
+            return {
+                loading: true
+            };
+        }
+
         const memberIds = extraInfo.members.map((user) => user.id);
 
         var nonmembers = [];
@@ -78,7 +89,9 @@ export default class ChannelInviteModal extends React.Component {
 
         return {
             nonmembers,
-            loading: false
+            loading: false,
+            currentUser,
+            currentMember
         };
     }
     componentWillReceiveProps(nextProps) {
@@ -92,6 +105,11 @@ export default class ChannelInviteModal extends React.Component {
             ChannelStore.removeChangeListener(this.onListenerChange);
             UserStore.removeChangeListener(this.onListenerChange);
         }
+    }
+    componentWillUnmount() {
+        ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.removeChangeListener(this.onListenerChange);
+        UserStore.removeChangeListener(this.onListenerChange);
     }
     onListenerChange() {
         var newState = this.getStateFromStores();
@@ -144,7 +162,6 @@ export default class ChannelInviteModal extends React.Component {
             if (Utils.windowHeight() <= 1200) {
                 maxHeight = Utils.windowHeight() - 300;
             }
-
             content = (
                 <FilteredUserList
                     style={{maxHeight}}

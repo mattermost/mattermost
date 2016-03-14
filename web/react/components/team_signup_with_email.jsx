@@ -5,6 +5,7 @@ import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'mm-intl';
+import {browserHistory} from 'react-router';
 
 const holders = defineMessages({
     emailError: {
@@ -47,9 +48,9 @@ class EmailSignUpPage extends React.Component {
         Client.signupTeam(team.email,
             (data) => {
                 if (data.follow_link) {
-                    window.location.href = data.follow_link;
+                    browserHistory.push(data.follow_link);
                 } else {
-                    window.location.href = `/signup_team_confirm/?email=${encodeURIComponent(team.email)}`;
+                    browserHistory.push(`/signup_team_confirm/?email=${encodeURIComponent(team.email)}`);
                 }
             },
             (err) => {

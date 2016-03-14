@@ -2,10 +2,7 @@
 // See License.txt for license information.
 
 import * as Utils from '../utils/utils.jsx';
-import * as client from '../utils/client.jsx';
-import UserStore from '../stores/user_store.jsx';
-import TeamStore from '../stores/team_store.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 
 import AboutBuildModal from './about_build_modal.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
@@ -15,38 +12,20 @@ import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import Constants from '../utils/constants.jsx';
 
 import {FormattedMessage} from 'mm-intl';
-
-function getStateFromStores() {
-    const teams = [];
-    const teamsObject = UserStore.getTeams();
-    for (const teamId in teamsObject) {
-        if (teamsObject.hasOwnProperty(teamId)) {
-            teams.push(teamsObject[teamId]);
-        }
-    }
-
-    teams.sort(Utils.sortByDisplayName);
-    return {teams};
-}
+import {Link} from 'react-router';
 
 export default class NavbarDropdown extends React.Component {
     constructor(props) {
         super(props);
         this.blockToggle = false;
 
-        this.handleLogoutClick = this.handleLogoutClick.bind(this);
         this.handleAboutModal = this.handleAboutModal.bind(this);
-        this.onListenerChange = this.onListenerChange.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
 
-        const state = getStateFromStores();
-        state.showUserSettingsModal = false;
-        state.showAboutModal = false;
-        this.state = state;
-    }
-    handleLogoutClick(e) {
-        e.preventDefault();
-        client.logout();
+        this.state = {
+            showUserSettingsModal: false,
+            showAboutModal: false
+        };
     }
     handleAboutModal() {
         this.setState({showAboutModal: true});
@@ -55,9 +34,6 @@ export default class NavbarDropdown extends React.Component {
         this.setState({showAboutModal: false});
     }
     componentDidMount() {
-        UserStore.addTeamsChangeListener(this.onListenerChange);
-        TeamStore.addChangeListener(this.onListenerChange);
-
         $(ReactDOM.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', () => {
             $('.sidebar--left .dropdown-menu').scrollTop(0);
             this.blockToggle = true;
@@ -67,16 +43,7 @@ export default class NavbarDropdown extends React.Component {
         });
     }
     componentWillUnmount() {
-        UserStore.removeTeamsChangeListener(this.onListenerChange);
-        TeamStore.removeChangeListener(this.onListenerChange);
-
         $(ReactDOM.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
-    }
-    onListenerChange() {
-        var newState = getStateFromStores();
-        if (!Utils.areObjectsEqual(newState, this.state)) {
-            this.setState(newState);
-        }
     }
     render() {
         var teamLink = '';
@@ -84,7 +51,7 @@ export default class NavbarDropdown extends React.Component {
         var manageLink = '';
         var sysAdminLink = '';
         var adminDivider = '';
-        var currentUser = UserStore.getCurrentUser();
+        var currentUser = this.props.currentUser;
         var isAdmin = false;
         var isSystemAdmin = false;
         var teamSettings = null;
@@ -97,7 +64,7 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <a
                         href='#'
-                        onClick={EventHelpers.showInviteMemberModal}
+                        onClick={GlobalActions.showInviteMemberModal}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.inviteMember'
@@ -112,7 +79,7 @@ export default class NavbarDropdown extends React.Component {
                     <li>
                         <a
                             href='#'
-                            onClick={EventHelpers.showGetTeamInviteLinkModal}
+                            onClick={GlobalActions.showGetTeamInviteLinkModal}
                         >
                             <FormattedMessage
                                 id='navbar_dropdown.teamLink'
@@ -158,7 +125,7 @@ export default class NavbarDropdown extends React.Component {
             sysAdminLink = (
                 <li>
                     <a
-                        href={'/admin_console?' + Utils.getSessionIndex()}
+                        href={'/admin_console'}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.console'
@@ -170,31 +137,6 @@ export default class NavbarDropdown extends React.Component {
         }
 
         var teams = [];
-
-        if (this.state.teams.length > 1) {
-            teams.push(
-                <li
-                    className='divider'
-                    key='div'
-                >
-                </li>
-            );
-
-            this.state.teams.forEach((team) => {
-                if (team.name !== this.props.teamName) {
-                    teams.push(
-                        <li key={team.name}><a href={Utils.getWindowLocationOrigin() + '/' + team.name}>
-                            <FormattedMessage
-                                id='navbar_dropdown.switchTeam'
-                                defaultMessage='Switch to {team}'
-                                values={{
-                                    team: team.display_name
-                                }}
-                            />
-                        </a></li>);
-                }
-            });
-        }
 
         if (global.window.mm_config.EnableTeamCreation === 'true') {
             teams.push(
@@ -283,15 +225,12 @@ export default class NavbarDropdown extends React.Component {
                         {inviteLink}
                         {teamLink}
                         <li>
-                            <a
-                                href='#'
-                                onClick={this.handleLogoutClick}
-                            >
+                            <Link to={'/' + this.props.teamName + '/logout'}>
                                 <FormattedMessage
                                     id='navbar_dropdown.logout'
                                     defaultMessage='Logout'
                                 />
-                            </a>
+                            </Link>
                         </li>
                         {adminDivider}
                         {teamSettings}
@@ -333,5 +272,6 @@ NavbarDropdown.defaultProps = {
 NavbarDropdown.propTypes = {
     teamType: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string,
-    teamName: React.PropTypes.string
+    teamName: React.PropTypes.string,
+    currentUser: React.PropTypes.object
 };

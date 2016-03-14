@@ -11,13 +11,13 @@ import BrowserStore from './browser_store.jsx';
 const CHANGE_EVENT = 'change';
 const CHANGE_EVENT_SESSIONS = 'change_sessions';
 const CHANGE_EVENT_AUDITS = 'change_audits';
-const CHANGE_EVENT_TEAMS = 'change_teams';
 const CHANGE_EVENT_STATUSES = 'change_statuses';
 
 class UserStoreClass extends EventEmitter {
     constructor() {
         super();
         this.profileCache = null;
+        this.currentUserId = '';
     }
 
     emitChange(userId) {
@@ -56,18 +56,6 @@ class UserStoreClass extends EventEmitter {
         this.removeListener(CHANGE_EVENT_AUDITS, callback);
     }
 
-    emitTeamsChange() {
-        this.emit(CHANGE_EVENT_TEAMS);
-    }
-
-    addTeamsChangeListener(callback) {
-        this.on(CHANGE_EVENT_TEAMS, callback);
-    }
-
-    removeTeamsChangeListener(callback) {
-        this.removeListener(CHANGE_EVENT_TEAMS, callback);
-    }
-
     emitStatusesChange() {
         this.emit(CHANGE_EVENT_STATUSES);
     }
@@ -81,26 +69,17 @@ class UserStoreClass extends EventEmitter {
     }
 
     getCurrentUser() {
-        if (this.getProfiles()[global.window.mm_user.id] == null) {
-            this.saveProfile(global.window.mm_user);
-        }
-
-        return global.window.mm_user;
+        return this.getProfiles()[this.currentUserId];
     }
 
     setCurrentUser(user) {
-        var oldUser = global.window.mm_user;
-
-        if (oldUser.id === user.id) {
-            global.window.mm_user = user;
-            this.saveProfile(user);
-        } else {
-            throw new Error('Problem with setCurrentUser old_user_id=' + oldUser.id + ' new_user_id=' + user.id);
-        }
+        this.saveProfile(user);
+        this.currentUserId = user.id;
+        global.window.mm_current_user_id = this.currentUserId;
     }
 
     getCurrentId() {
-        var user = global.window.mm_user;
+        var user = this.getCurrentUser();
 
         if (user) {
             return user.id;
@@ -200,11 +179,22 @@ class UserStoreClass extends EventEmitter {
 
     saveProfiles(profiles) {
         const currentId = this.getCurrentId();
-        if (currentId in profiles) {
-            delete profiles[currentId];
+        if (this.profileCache) {
+            const currentUser = this.profileCache[currentId];
+            if (currentUser) {
+                if (currentId in profiles) {
+                    delete profiles[currentId];
+                }
+
+                this.profileCache = profiles;
+                this.profileCache[currentId] = currentUser;
+            } else {
+                this.profileCache = profiles;
+            }
+        } else {
+            this.profileCache = profiles;
         }
 
-        this.profileCache = profiles;
         BrowserStore.setItem('profiles', profiles);
     }
 
@@ -222,14 +212,6 @@ class UserStoreClass extends EventEmitter {
 
     getAudits() {
         return BrowserStore.getItem('audits', {loading: true});
-    }
-
-    setTeams(teams) {
-        BrowserStore.setItem('teams', teams);
-    }
-
-    getTeams() {
-        return BrowserStore.getItem('teams', []);
     }
 
     getCurrentMentionKeys() {
@@ -311,10 +293,6 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_AUDITS:
         UserStore.setAudits(action.audits);
         UserStore.emitAuditsChange();
-        break;
-    case ActionTypes.RECEIVED_TEAMS:
-        UserStore.setTeams(action.teams);
-        UserStore.emitTeamsChange();
         break;
     case ActionTypes.RECEIVED_STATUSES:
         UserStore.pSetStatuses(action.statuses);

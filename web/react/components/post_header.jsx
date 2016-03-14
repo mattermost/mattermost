@@ -14,16 +14,15 @@ export default class PostHeader extends React.Component {
     }
     render() {
         const post = this.props.post;
-        const user = this.props.user;
 
-        let userProfile = <UserProfile user={user}/>;
+        let userProfile = <UserProfile user={this.props.user}/>;
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
                     <UserProfile
-                        user={user}
+                        user={this.props.user}
                         overwriteName={post.props.override_username}
                         disablePopover={true}
                     />
@@ -54,6 +53,7 @@ export default class PostHeader extends React.Component {
                         allowReply='true'
                         isLastComment={this.props.isLastComment}
                         sameUser={this.props.sameUser}
+                        currentUser={this.props.currentUser}
                     />
                 </li>
             </ul>
@@ -68,10 +68,11 @@ PostHeader.defaultProps = {
     sameUser: false
 };
 PostHeader.propTypes = {
-    post: React.PropTypes.object,
+    post: React.PropTypes.object.isRequired,
     user: React.PropTypes.object,
-    commentCount: React.PropTypes.number,
-    isLastComment: React.PropTypes.bool,
-    handleCommentClick: React.PropTypes.func,
-    sameUser: React.PropTypes.bool
+    currentUser: React.PropTypes.object.isRequired,
+    commentCount: React.PropTypes.number.isRequired,
+    isLastComment: React.PropTypes.bool.isRequired,
+    handleCommentClick: React.PropTypes.func.isRequired,
+    sameUser: React.PropTypes.bool.isRequired
 };

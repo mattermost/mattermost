@@ -159,7 +159,7 @@ SSOToEmail.propTypes = {
     currentType: React.PropTypes.string.isRequired,
     email: React.PropTypes.string.isRequired,
     teamName: React.PropTypes.string.isRequired,
-    teamDisplayName: React.PropTypes.string.isRequired
+    teamDisplayName: React.PropTypes.string
 };
 
 export default injectIntl(SSOToEmail);

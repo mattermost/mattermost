@@ -26,20 +26,25 @@ export default class UserProfile extends React.Component {
         }
     }
     render() {
-        var name = Utils.displayUsername(this.props.user.id);
+        let name = '...';
+        let email = '';
+        let profileImg = '';
+        if (this.props.user) {
+            name = Utils.displayUsername(this.props.user.id);
+            email = this.props.user.email;
+            profileImg = '/api/v1/users/' + this.props.user.id + '/image?time=' + this.props.user.update_at;
+        }
+
         if (this.props.overwriteName) {
             name = this.props.overwriteName;
-        } else if (!name) {
-            name = '...';
+        }
+
+        if (this.props.overwriteImage) {
+            profileImg = this.props.overwriteImage;
         }
 
         if (this.props.disablePopover) {
             return <div>{name}</div>;
-        }
-
-        var profileImg = '/api/v1/users/' + this.props.user.id + '/image?time=' + this.props.user.update_at + '&' + Utils.getSessionIndex();
-        if (this.props.overwriteImage) {
-            profileImg = this.props.overwriteImage;
         }
 
         var dataContent = [];
@@ -69,14 +74,14 @@ export default class UserProfile extends React.Component {
             dataContent.push(
                 <div
                     data-toggle='tooltip'
-                    title={this.props.user.email}
+                    title={email}
                     key='user-popover-email'
                 >
                     <a
-                        href={'mailto:' + this.props.user.email}
+                        href={'mailto:' + email}
                         className='text-nowrap text-lowercase user-popover__email'
                     >
-                        {this.props.user.email}
+                        {email}
                     </a>
                 </div>
             );
@@ -114,7 +119,7 @@ UserProfile.defaultProps = {
     disablePopover: false
 };
 UserProfile.propTypes = {
-    user: React.PropTypes.object.isRequired,
+    user: React.PropTypes.object,
     overwriteName: React.PropTypes.string,
     overwriteImage: React.PropTypes.string,
     disablePopover: React.PropTypes.bool

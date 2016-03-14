@@ -1,10 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import TimeSince from './time_since.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 
 import Constants from '../utils/constants.jsx';
 
@@ -27,8 +26,8 @@ export default class PostInfo extends React.Component {
     }
     createDropdown() {
         var post = this.props.post;
-        var isOwner = UserStore.getCurrentId() === post.user_id;
-        var isAdmin = Utils.isAdmin(UserStore.getCurrentUser().roles);
+        var isOwner = this.props.currentUser.id === post.user_id;
+        var isAdmin = Utils.isAdmin(this.props.currentUser.roles);
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || Utils.isPostEphemeral(post)) {
             return '';
@@ -47,21 +46,21 @@ export default class PostInfo extends React.Component {
 
         if (this.props.allowReply === 'true') {
             dropdownContents.push(
-                 <li
-                     key='replyLink'
-                     role='presentation'
-                 >
-                     <a
-                         className='link__reply theme'
-                         href='#'
-                         onClick={this.props.handleCommentClick}
-                     >
-                         <FormattedMessage
-                             id='post_info.reply'
-                             defaultMessage='Reply'
-                         />
-                     </a>
-                 </li>
+                <li
+                    key='replyLink'
+                    role='presentation'
+                >
+                    <a
+                        className='link__reply theme'
+                        href='#'
+                        onClick={this.props.handleCommentClick}
+                    >
+                        <FormattedMessage
+                            id='post_info.reply'
+                            defaultMessage='Reply'
+                        />
+                    </a>
+                </li>
              );
         }
 
@@ -93,7 +92,7 @@ export default class PostInfo extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        onClick={() => EventHelpers.showDeletePostModal(post, dataComments)}
+                        onClick={() => GlobalActions.showDeletePostModal(post, dataComments)}
                     >
                         <FormattedMessage
                             id='post_info.del'
@@ -157,11 +156,11 @@ export default class PostInfo extends React.Component {
 
     handlePermalink(e) {
         e.preventDefault();
-        EventHelpers.showGetPostLinkModal(this.props.post);
+        GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
     removePost() {
-        EventHelpers.emitRemovePost(this.props.post);
+        GlobalActions.emitRemovePost(this.props.post);
     }
     createRemovePostButton(post) {
         if (!Utils.isPostEphemeral(post)) {
@@ -240,10 +239,11 @@ PostInfo.defaultProps = {
     sameUser: false
 };
 PostInfo.propTypes = {
-    post: React.PropTypes.object,
-    commentCount: React.PropTypes.number,
-    isLastComment: React.PropTypes.bool,
-    allowReply: React.PropTypes.string,
-    handleCommentClick: React.PropTypes.func,
-    sameUser: React.PropTypes.bool
+    post: React.PropTypes.object.isRequired,
+    commentCount: React.PropTypes.number.isRequired,
+    isLastComment: React.PropTypes.bool.isRequired,
+    allowReply: React.PropTypes.string.isRequired,
+    handleCommentClick: React.PropTypes.func.isRequired,
+    sameUser: React.PropTypes.bool.isRequired,
+    currentUser: React.PropTypes.object.isRequired
 };

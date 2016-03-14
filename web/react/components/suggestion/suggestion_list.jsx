@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../../action_creators/global_actions.jsx';
 import SuggestionStore from '../../stores/suggestion_store.jsx';
 
 export default class SuggestionList extends React.Component {
@@ -36,7 +36,7 @@ export default class SuggestionList extends React.Component {
     }
 
     handleItemClick(term, e) {
-        EventHelpers.emitCompleteWordSuggestion(this.props.suggestionId, term);
+        GlobalActions.emitCompleteWordSuggestion(this.props.suggestionId, term);
 
         e.preventDefault();
     }

@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import * as client from './client.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
@@ -44,14 +45,18 @@ function isCallInProgress(callName) {
 
 export function getChannels(checkVersion) {
     if (isCallInProgress('getChannels')) {
-        return;
+        return null;
     }
 
     callTracker.getChannels = utils.getTimestamp();
 
-    client.getChannels(
+    return client.getChannels(
         (data, textStatus, xhr) => {
             callTracker.getChannels = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
 
             if (checkVersion) {
                 var serverVersion = xhr.getResponseHeader('X-Version-ID');
@@ -65,10 +70,6 @@ export function getChannels(checkVersion) {
                         console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
                     }
                 }
-            }
-
-            if (xhr.status === 304 || !data) {
-                return;
             }
 
             AppDispatcher.handleServerAction({
@@ -392,36 +393,6 @@ export function getAllTeams() {
     );
 }
 
-export function findTeams(email) {
-    if (isCallInProgress('findTeams_' + email)) {
-        return;
-    }
-
-    var user = UserStore.getCurrentUser();
-    if (user) {
-        callTracker['findTeams_' + email] = utils.getTimestamp();
-        client.findTeams(
-            user.email,
-            function findTeamsSuccess(data, textStatus, xhr) {
-                callTracker['findTeams_' + email] = 0;
-
-                if (xhr.status === 304 || !data) {
-                    return;
-                }
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_TEAMS,
-                    teams: data
-                });
-            },
-            function findTeamsFailure(err) {
-                callTracker['findTeams_' + email] = 0;
-                dispatchError(err, 'findTeams');
-            }
-        );
-    }
-}
-
 export function search(terms) {
     if (isCallInProgress('search_' + String(terms))) {
         return;
@@ -645,11 +616,11 @@ export function getPostsAfter(postId, offset, numPost) {
 
 export function getMe() {
     if (isCallInProgress('getMe')) {
-        return;
+        return null;
     }
 
     callTracker.getMe = utils.getTimestamp();
-    client.getMe(
+    return client.getMe(
         (data, textStatus, xhr) => {
             callTracker.getMe = 0;
 
@@ -661,6 +632,8 @@ export function getMe() {
                 type: ActionTypes.RECEIVED_ME,
                 me: data
             });
+
+            GlobalActions.newLocalizationSelected(data.locale);
         },
         (err) => {
             callTracker.getMe = 0;
@@ -706,11 +679,11 @@ export function getStatuses() {
 
 export function getMyTeam() {
     if (isCallInProgress('getMyTeam')) {
-        return;
+        return null;
     }
 
     callTracker.getMyTeam = utils.getTimestamp();
-    client.getMyTeam(
+    return client.getMyTeam(
         function getMyTeamSuccess(data, textStatus, xhr) {
             callTracker.getMyTeam = 0;
 
@@ -719,7 +692,7 @@ export function getMyTeam() {
             }
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_TEAM,
+                type: ActionTypes.RECEIVED_MY_TEAM,
                 team: data
             });
         },

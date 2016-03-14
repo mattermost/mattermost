@@ -28,6 +28,9 @@ export default class TeamSettings extends React.Component {
         }
     }
     render() {
+        if (!this.state.team) {
+            return null;
+        }
         var result;
         switch (this.props.activeTab) {
         case 'general':

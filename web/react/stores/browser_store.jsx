@@ -4,8 +4,8 @@
 import {generateId} from '../utils/utils.jsx';
 
 function getPrefix() {
-    if (global.window.mm_user) {
-        return global.window.mm_user.id + '_';
+    if (global.window.mm_current_user_id) {
+        return global.window.mm_current_user_id + '_';
     }
 
     return 'unknown_';
@@ -31,7 +31,9 @@ class BrowserStoreClass {
         this.isSignallingLogout = this.isSignallingLogout.bind(this);
         this.signalLogin = this.signalLogin.bind(this);
         this.isSignallingLogin = this.isSignallingLogin.bind(this);
+    }
 
+    checkVersion() {
         var currentVersion = sessionStorage.getItem('storage_version');
         if (currentVersion !== global.window.mm_config.Version) {
             sessionStorage.clear();

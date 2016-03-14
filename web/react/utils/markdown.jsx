@@ -193,6 +193,16 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             outHref = outHref.substring(1, outHref.length - 1);
         }
 
+        try {
+            const unescaped = decodeURIComponent(unescape(href)).replace(/[^\w:]/g, '').toLowerCase();
+
+            if (unescaped.indexOf('javascript:') === 0 || unescaped.indexOf('vbscript:') === 0) { // eslint-disable-line no-script-url
+                return '';
+            }
+        } catch (e) {
+            return '';
+        }
+
         if (!(/[a-z+.-]+:/i).test(outHref)) {
             outHref = `http://${outHref}`;
         }
@@ -548,3 +558,18 @@ export function format(text, options) {
     return new MattermostParser(markdownOptions).parse(tokens);
 }
 
+// Marked helper functions that should probably just be exported
+
+function unescape(html) {
+    return html.replace(/&([#\w]+);/g, (_, m) => {
+        const n = m.toLowerCase();
+        if (n === 'colon') {
+            return ':';
+        } else if (n.charAt(0) === '#') {
+            return n.charAt(1) === 'x' ?
+                String.fromCharCode(parseInt(n.substring(2), 16)) :
+                String.fromCharCode(+n.substring(1));
+        }
+        return '';
+    });
+}

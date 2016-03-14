@@ -21,29 +21,38 @@ export default class AboutBuildModal extends React.Component {
 
         let title = (
             <FormattedMessage
-                id='about.teamEdtion'
-                defaultMessage='Team Edition'
+                id='about.teamEditiont0'
+                defaultMessage='Team Edition T0'
             />
         );
+
         let licensee;
-        if (config.BuildEnterpriseReady === 'true' && license.IsLicensed === 'true') {
+        if (config.BuildEnterpriseReady === 'true') {
             title = (
                 <FormattedMessage
-                    id='about.enterpriseEdition'
-                    defaultMessage='Enterprise Edition'
+                    id='about.teamEditiont1'
+                    defaultMessage='Team Edition T1'
                 />
             );
-            licensee = (
-                <div className='row form-group'>
-                    <div className='col-sm-3 info__label'>
-                        <FormattedMessage
-                            id='about.licensed'
-                            defaultMessage='Licensed by:'
-                        />
+            if (license.IsLicensed === 'true') {
+                title = (
+                    <FormattedMessage
+                        id='about.enterpriseEditione1'
+                        defaultMessage='Enterprise Edition E1'
+                    />
+                );
+                licensee = (
+                    <div className='row form-group'>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.licensed'
+                                defaultMessage='Licensed by:'
+                            />
+                        </div>
+                        <div className='col-sm-9'>{license.Company}</div>
                     </div>
-                    <div className='col-sm-9'>{license.Company}</div>
-                </div>
-            );
+                );
+            }
         }
 
         return (

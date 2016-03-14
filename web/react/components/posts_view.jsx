@@ -1,9 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import UserStore from '../stores/user_store.jsx';
 import PreferenceStore from '../stores/preference_store.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Post from './post.jsx';
 import Constants from '../utils/constants.jsx';
@@ -144,7 +143,7 @@ export default class PostsView extends React.Component {
     createPosts(posts, order) {
         const postCtls = [];
         let previousPostDay = new Date(0);
-        const userId = UserStore.getCurrentId();
+        const userId = this.props.currentUser.id;
         const profiles = this.props.profiles || {};
 
         let renderedLastViewed = false;
@@ -230,8 +229,8 @@ export default class PostsView extends React.Component {
             const shouldHighlight = this.props.postsToHighlight && this.props.postsToHighlight.hasOwnProperty(post.id);
 
             let profile;
-            if (UserStore.getCurrentId() === post.user_id) {
-                profile = UserStore.getCurrentUser();
+            if (this.props.currentUser.id === post.user_id) {
+                profile = this.props.currentUser;
             } else {
                 profile = profiles[post.user_id];
             }
@@ -248,10 +247,10 @@ export default class PostsView extends React.Component {
                     hideProfilePic={hideProfilePic}
                     isLastComment={isLastComment}
                     shouldHighlight={shouldHighlight}
-                    onClick={() => EventHelpers.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
+                    onClick={() => GlobalActions.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
                     displayNameType={this.state.displayNameType}
-                    hasProfiles={profiles && Object.keys(profiles).length > 1}
                     user={profile}
+                    currentUser={this.props.currentUser}
                 />
             );
 
@@ -526,7 +525,7 @@ PostsView.defaultProps = {
 PostsView.propTypes = {
     isActive: React.PropTypes.bool,
     postList: React.PropTypes.object,
-    profiles: React.PropTypes.object,
+    profiles: React.PropTypes.object.isRequired,
     scrollPostId: React.PropTypes.string,
     scrollType: React.PropTypes.number,
     postViewScrolled: React.PropTypes.func.isRequired,
@@ -536,7 +535,8 @@ PostsView.propTypes = {
     showMoreMessagesBottom: React.PropTypes.bool,
     introText: React.PropTypes.element,
     messageSeparatorTime: React.PropTypes.number,
-    postsToHighlight: React.PropTypes.object
+    postsToHighlight: React.PropTypes.object,
+    currentUser: React.PropTypes.object.isRequired
 };
 
 function FloatingTimestamp({isScrolling, post}) {

@@ -4,7 +4,6 @@
 import PostHeader from './post_header.jsx';
 import PostBody from './post_body.jsx';
 
-import UserStore from '../stores/user_store.jsx';
 import PostStore from '../stores/post_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 
@@ -98,7 +97,7 @@ export default class Post extends React.Component {
             return true;
         }
 
-        if (nextProps.hasProfiles !== this.props.hasProfiles) {
+        if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
         }
 
@@ -128,7 +127,6 @@ export default class Post extends React.Component {
         const post = this.props.post;
         const parentPost = this.props.parentPost;
         const posts = this.props.posts;
-        const user = this.props.user || {};
 
         if (!post.props) {
             post.props = {};
@@ -156,13 +154,15 @@ export default class Post extends React.Component {
         }
 
         let currentUserCss = '';
-        if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook && !Utils.isSystemMessage(post)) {
+        if (this.props.currentUser.id === post.user_id && !post.props.from_webhook && !Utils.isSystemMessage(post)) {
             currentUserCss = 'current--user';
         }
 
-        let timestamp = user.update_at;
-        if (timestamp == null) {
-            timestamp = UserStore.getCurrentUser().update_at;
+        let timestamp = 0;
+        if (!this.props.user || this.props.user.update_at == null) {
+            timestamp = this.props.currentUser.update_at;
+        } else {
+            timestamp = this.props.user.update_at;
         }
 
         let sameUserClass = '';
@@ -182,7 +182,7 @@ export default class Post extends React.Component {
 
         let profilePic = null;
         if (!this.props.hideProfilePic) {
-            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex();
+            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
             if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
                 if (post.props.override_icon_url) {
                     src = post.props.override_icon_url;
@@ -218,6 +218,7 @@ export default class Post extends React.Component {
                                 isLastComment={this.props.isLastComment}
                                 sameUser={this.props.sameUser}
                                 user={this.props.user}
+                                currentUser={this.props.currentUser}
                             />
                             <PostBody
                                 post={post}
@@ -226,7 +227,6 @@ export default class Post extends React.Component {
                                 posts={posts}
                                 handleCommentClick={this.handleCommentClick}
                                 retryPost={this.retryPost}
-                                hasProfiles={this.props.hasProfiles}
                             />
                         </div>
                     </div>
@@ -247,5 +247,6 @@ Post.propTypes = {
     isLastComment: React.PropTypes.bool,
     shouldHighlight: React.PropTypes.bool,
     displayNameType: React.PropTypes.string,
-    hasProfiles: React.PropTypes.bool
+    hasProfiles: React.PropTypes.bool,
+    currentUser: React.PropTypes.object.isRequired
 };

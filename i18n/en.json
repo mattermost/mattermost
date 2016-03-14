@@ -456,8 +456,8 @@
     "translation": "S3 is not supported for local storage export."
   },
   {
-    "id": "api.export.write_file.app_error",
-    "translation": "Unable to write to export file"
+    "id": "api.file.file_upload.exceeds",
+    "translation": "File exceeds max image size."
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -506,6 +506,22 @@
   {
     "id": "api.file.init.debug",
     "translation": "Initializing file api routes"
+  },
+  {
+    "id": "api.file.move_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.file.move_file.delete_from_s3.app_error",
+    "translation": "Unable to delete file from S3."
+  },
+  {
+    "id": "api.file.move_file.get_from_s3.app_error",
+    "translation": "Unable to get file from S3."
+  },
+  {
+    "id": "api.file.move_file.rename.app_error",
+    "translation": "Unable to move file locally."
   },
   {
     "id": "api.file.open_file_write_stream.configured.app_error",
@@ -1606,6 +1622,10 @@
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
     "translation": "Couldn't upload profile image"
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "Bad verify email link."
   },
   {
     "id": "api.web_conn.new_web_conn.last_activity.error",
@@ -3405,22 +3425,6 @@
     "translation": "Find Team"
   },
   {
-    "id": "web.footer.about",
-    "translation": "About"
-  },
-  {
-    "id": "web.footer.help",
-    "translation": "Help"
-  },
-  {
-    "id": "web.footer.privacy",
-    "translation": "Privacy"
-  },
-  {
-    "id": "web.footer.terms",
-    "translation": "Terms"
-  },
-  {
     "id": "web.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Bad client_id"
   },
@@ -3553,10 +3557,6 @@
     "translation": "Home"
   },
   {
-    "id": "web.root.singup_info",
-    "translation": "All team communication in one place, searchable and accessible anywhere"
-  },
-  {
     "id": "web.root.singup_title",
     "translation": "Signup"
   },
@@ -3611,5 +3611,9 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Invite is invalid because this is not an open team."
   }
 ]

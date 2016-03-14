@@ -10,7 +10,7 @@ import EventEmitter from 'events';
 
 import * as Utils from '../utils/utils.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 
 import Constants from '../utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
@@ -31,6 +31,7 @@ class SocketStoreClass extends EventEmitter {
         this.close = this.close.bind(this);
 
         this.failCount = 0;
+        this.isInitialize = false;
 
         this.translations = this.getDefaultTranslations();
 
@@ -42,10 +43,6 @@ class SocketStoreClass extends EventEmitter {
             return;
         }
 
-        if (!global.window.hasOwnProperty('mm_session_token_index')) {
-            return;
-        }
-
         this.setMaxListeners(0);
 
         if (window.WebSocket && !conn) {
@@ -54,28 +51,27 @@ class SocketStoreClass extends EventEmitter {
                 protocol = 'wss://';
             }
 
-            var connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + '/api/v1/websocket?' + Utils.getSessionIndex();
+            var connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + '/api/v1/websocket';
 
             if (this.failCount === 0) {
                 console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
-                if (ErrorStore.getConnectionErrorCount() > 0) {
-                    ErrorStore.setConnectionErrorCount(0);
-                    ErrorStore.emitChange();
-                }
             }
+
             conn = new WebSocket(connUrl);
 
             conn.onopen = () => {
                 if (this.failCount > 0) {
                     console.log('websocket re-established connection'); //eslint-disable-line no-console
-
-                    ErrorStore.clearLastError();
-                    ErrorStore.emitChange();
-
                     AsyncClient.getChannels();
                     AsyncClient.getPosts(ChannelStore.getCurrentId());
                 }
 
+                if (this.isInitialize) {
+                    ErrorStore.clearLastError();
+                    ErrorStore.emitChange();
+                }
+
+                this.isInitialize = true;
                 this.failCount = 0;
             };
 
@@ -204,7 +200,7 @@ class SocketStoreClass extends EventEmitter {
 function handleNewPostEvent(msg, translations) {
     // Store post
     const post = JSON.parse(msg.props.post);
-    EventHelpers.emitPostRecievedEvent(post);
+    GlobalActions.emitPostRecievedEvent(post);
 
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.channel_id) {
@@ -291,7 +287,7 @@ function handlePostEditEvent(msg) {
 
 function handlePostDeleteEvent(msg) {
     const post = JSON.parse(msg.props.post);
-    EventHelpers.emitPostDeletedEvent(post);
+    GlobalActions.emitPostDeletedEvent(post);
 }
 
 function handleNewUserEvent() {
@@ -337,7 +333,7 @@ function handleChannelViewedEvent(msg) {
 
 function handlePreferenceChangedEvent(msg) {
     const preference = JSON.parse(msg.props.preference);
-    EventHelpers.emitPreferenceChangedEvent(preference);
+    GlobalActions.emitPreferenceChangedEvent(preference);
 }
 
 var SocketStore = new SocketStoreClass();

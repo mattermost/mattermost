@@ -118,7 +118,7 @@ export default class PopoverListMembers extends React.Component {
                                 className='profile-img rounded pull-left'
                                 width='26px'
                                 height='26px'
-                                src={`/api/v1/users/${m.id}/image?time=${m.update_at}&${Utils.getSessionIndex()}`}
+                                src={`/api/v1/users/${m.id}/image?time=${m.update_at}`}
                             />
                             <div className='pull-left'>
                                 <div

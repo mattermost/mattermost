@@ -2,83 +2,130 @@
 // See License.txt for license information.
 
 import * as Utils from '../utils/utils.jsx';
-import * as client from '../utils/client.jsx';
+import * as Client from '../utils/client.jsx';
 import UserStore from '../stores/user_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import Constants from '../utils/constants.jsx';
+import LoadingScreen from '../components/loading_screen.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
-
-const holders = defineMessages({
-    required: {
-        id: 'signup_user_completed.required',
-        defaultMessage: 'This field is required'
-    },
-    validEmail: {
-        id: 'signup_user_completed.validEmail',
-        defaultMessage: 'Please enter a valid email address'
-    },
-    reserved: {
-        id: 'signup_user_completed.reserved',
-        defaultMessage: 'This username is reserved, please choose a new one.'
-    },
-    usernameLength: {
-        id: 'signup_user_completed.usernameLength',
-        defaultMessage: 'Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\' and \'_\'.'
-    },
-    passwordLength: {
-        id: 'signup_user_completed.passwordLength',
-        defaultMessage: 'Please enter at least {min} characters'
-    }
-});
+import {FormattedMessage, FormattedHTMLMessage} from 'mm-intl';
+import {browserHistory} from 'react-router';
 
 class SignupUserComplete extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.inviteInfoRecieved = this.inviteInfoRecieved.bind(this);
 
-        var initialState = BrowserStore.getGlobalItem(this.props.hash);
+        this.state = {
+            data: '',
+            hash: '',
+            usedBefore: false,
+            email: '',
+            teamDisplayName: '',
+            teamName: '',
+            teamId: ''
+        };
+    }
+    componentWillMount() {
+        let data = this.props.location.query.d;
+        let hash = this.props.location.query.h;
+        const inviteId = this.props.location.query.id;
+        let usedBefore = false;
+        let email = '';
+        let teamDisplayName = '';
+        let teamName = '';
+        let teamId = '';
 
-        if (!initialState) {
-            initialState = {};
-            initialState.wizard = 'welcome';
-            initialState.user = {};
-            initialState.user.team_id = this.props.teamId;
-            initialState.user.email = this.props.email;
-            initialState.original_email = this.props.email;
+        // If we have a hash in the url then we are attempting to access a private team
+        if (hash) {
+            const parsedData = JSON.parse(data);
+            usedBefore = BrowserStore.getGlobalItem(hash);
+            email = parsedData.email;
+            teamDisplayName = parsedData.display_name;
+            teamName = parsedData.name;
+            teamId = parsedData.id;
+        } else {
+            Client.getInviteInfo(this.inviteInfoRecieved, null, inviteId);
+            data = '';
+            hash = '';
         }
 
-        this.state = initialState;
+        this.setState({
+            data,
+            hash,
+            usedBefore,
+            email,
+            teamDisplayName,
+            teamName,
+            teamId
+        });
+    }
+    inviteInfoRecieved(data) {
+        if (!data) {
+            return;
+        }
+
+        this.setState({
+            teamDisplayName: data.display_name,
+            teamName: data.name,
+            teamId: data.id
+        });
     }
     handleSubmit(e) {
         e.preventDefault();
 
-        const {formatMessage} = this.props.intl;
         const providedEmail = ReactDOM.findDOMNode(this.refs.email).value.trim();
         if (!providedEmail) {
-            this.setState({nameError: '', emailError: formatMessage(holders.required), passwordError: ''});
+            this.setState({
+                nameError: '',
+                emailError: (<FormattedMessage id='signup_user_completed.required'/>),
+                passwordError: '',
+                serverError: ''
+            });
             return;
         }
 
         if (!Utils.isEmail(providedEmail)) {
-            this.setState({nameError: '', emailError: formatMessage(holders.validEmail), passwordError: ''});
+            this.setState({
+                nameError: '',
+                emailError: (<FormattedMessage id='signup_user_completed.validEmail'/>),
+                passwordError: '',
+                serverError: ''
+            });
             return;
         }
 
         const providedUsername = ReactDOM.findDOMNode(this.refs.name).value.trim().toLowerCase();
         if (!providedUsername) {
-            this.setState({nameError: formatMessage(holders.required), emailError: '', passwordError: '', serverError: ''});
+            this.setState({
+                nameError: (<FormattedMessage id='signup_user_completed.required'/>),
+                emailError: '',
+                passwordError: '',
+                serverError: ''
+            });
             return;
         }
 
         const usernameError = Utils.isValidUsername(providedUsername);
         if (usernameError === 'Cannot use a reserved word as a username.') {
-            this.setState({nameError: formatMessage(holders.reserved), emailError: '', passwordError: '', serverError: ''});
+            this.setState({
+                nameError: (<FormattedMessage id='signup_user_completed.reserved'/>),
+                emailError: '',
+                passwordError: '',
+                serverError: ''
+            });
             return;
         } else if (usernameError) {
             this.setState({
-                nameError: formatMessage(holders.usernameLength, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH}),
+                nameError: (
+                    <FormattedMessage
+                        id='signup_user_completed.usernameLength'
+                        min={Constants.MIN_USERNAME_LENGTH}
+                        max={Constants.MAX_USERNAME_LENGTH}
+                    />
+                ),
                 emailError: '',
                 passwordError: '',
                 serverError: ''
@@ -88,41 +135,50 @@ class SignupUserComplete extends React.Component {
 
         const providedPassword = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!providedPassword || providedPassword.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({nameError: '', emailError: '', passwordError: formatMessage(holders.passwordLength, {min: Constants.MIN_PASSWORD_LENGTH}), serverError: ''});
+            this.setState({
+                nameError: '',
+                emailError: '',
+                passwordError: (
+                    <FormattedMessage
+                        id='signup_user_completed.passwordLength'
+                        min={Constants.MIN_PASSWORD_LENGTH}
+                    />
+                ),
+                serverError: ''
+            });
             return;
         }
 
-        const user = {
-            team_id: this.props.teamId,
-            email: providedEmail,
-            username: providedUsername,
-            password: providedPassword,
-            allow_marketing: true
-        };
-
         this.setState({
-            user,
             nameError: '',
             emailError: '',
             passwordError: '',
             serverError: ''
         });
 
-        client.createUser(user, this.props.data, this.props.hash,
-            () => {
-                client.track('signup', 'signup_user_02_complete');
+        const user = {
+            team_id: this.state.teamId,
+            email: providedEmail,
+            username: providedUsername,
+            password: providedPassword,
+            allow_marketing: true
+        };
 
-                client.loginByEmail(this.props.teamName, user.email, user.password,
+        Client.createUser(user, this.state.data, this.state.hash,
+            () => {
+                Client.track('signup', 'signup_user_02_complete');
+
+                Client.loginByEmail(this.state.teamName, user.email, user.password,
                     () => {
                         UserStore.setLastEmail(user.email);
-                        if (this.props.hash > 0) {
-                            BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: 'finished'}));
+                        if (this.state.hash > 0) {
+                            BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
                         }
-                        window.location.href = '/' + this.props.teamName + '/channels/town-square';
+                        browserHistory.push('/' + this.state.teamName + '/channels/town-square');
                     },
                     (err) => {
                         if (err.id === 'api.user.login.not_verified.app_error') {
-                            window.location.href = '/verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.props.teamName);
+                            browserHistory.push('/should_verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.state.teamName));
                         } else {
                             this.setState({serverError: err.message});
                         }
@@ -135,9 +191,10 @@ class SignupUserComplete extends React.Component {
         );
     }
     render() {
-        client.track('signup', 'signup_user_01_welcome');
+        Client.track('signup', 'signup_user_01_welcome');
 
-        if (this.state.wizard === 'finished') {
+        // If we have been used then just display a message
+        if (this.state.usedBefore) {
             return (
                 <div>
                     <FormattedMessage
@@ -146,6 +203,12 @@ class SignupUserComplete extends React.Component {
                     />
                 </div>
             );
+        }
+
+        // If we haven't got a team id yet we are waiting for
+        // the client so just show the standard loading screen
+        if (this.state.teamId === '') {
+            return (<LoadingScreen/>);
         }
 
         // set up error labels
@@ -160,7 +223,7 @@ class SignupUserComplete extends React.Component {
         );
         var emailDivStyle = 'form-group';
         if (this.state.emailError) {
-            emailError = <label className='control-label'>{this.state.emailError}</label>;
+            emailError = (<label className='control-label'>{this.state.emailError}</label>);
             emailHelpText = '';
             emailDivStyle += ' has-error';
         }
@@ -203,13 +266,13 @@ class SignupUserComplete extends React.Component {
 
         // set up the email entry and hide it if an email was provided
         var yourEmailIs = '';
-        if (this.state.user.email) {
+        if (this.state.email) {
             yourEmailIs = (
                 <FormattedHTMLMessage
                     id='signup_user_completed.emailIs'
                     defaultMessage="Your email address is <strong>{email}</strong>. You'll use this address to sign in to {siteName}."
                     values={{
-                        email: this.state.user.email,
+                        email: this.state.email,
                         siteName: global.window.mm_config.SiteName
                     }}
                 />
@@ -217,7 +280,7 @@ class SignupUserComplete extends React.Component {
         }
 
         var emailContainerStyle = 'margin--extra';
-        if (this.state.original_email) {
+        if (this.state.email) {
             emailContainerStyle = 'hidden';
         }
 
@@ -234,7 +297,7 @@ class SignupUserComplete extends React.Component {
                         type='email'
                         ref='email'
                         className='form-control'
-                        defaultValue={this.state.user.email}
+                        defaultValue={this.state.email}
                         placeholder=''
                         maxLength='128'
                         autoFocus={true}
@@ -249,20 +312,20 @@ class SignupUserComplete extends React.Component {
         var signupMessage = [];
         if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             signupMessage.push(
-                    <a
-                        className='btn btn-custom-login gitlab'
-                        key='gitlab'
-                        href={'/' + this.props.teamName + '/signup/gitlab' + window.location.search}
-                    >
-                        <span className='icon'/>
-                        <span>
-                            <FormattedMessage
-                                id='signup_user_completed.gitlab'
-                                defaultMessage='with GitLab'
-                            />
-                        </span>
-                    </a>
-           );
+                <a
+                    className='btn btn-custom-login gitlab'
+                    key='gitlab'
+                    href={'/api/v1/oauth/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                >
+                    <span className='icon'/>
+                    <span>
+                        <FormattedMessage
+                            id='signup_user_completed.gitlab'
+                            defaultMessage='with GitLab'
+                        />
+                    </span>
+                </a>
+            );
         }
 
         if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
@@ -270,7 +333,7 @@ class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login google'
                     key='google'
-                    href={'/' + this.props.teamName + '/signup/google' + window.location.search}
+                    href={'/api/v1/oauth/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -318,16 +381,16 @@ class SignupUserComplete extends React.Component {
                                 />
                             </strong></h5>
                             <div className={passwordDivStyle}>
-                            <input
-                                type='password'
-                                ref='password'
-                                className='form-control'
-                                placeholder=''
-                                maxLength='128'
-                                spellCheck='false'
-                            />
-                            {passwordError}
-                        </div>
+                                <input
+                                    type='password'
+                                    ref='password'
+                                    className='form-control'
+                                    placeholder=''
+                                    maxLength='128'
+                                    spellCheck='false'
+                                />
+                                {passwordError}
+                            </div>
                         </div>
                     </div>
                     <p className='margin--extra'>
@@ -373,58 +436,56 @@ class SignupUserComplete extends React.Component {
 
         return (
             <div>
-                <form>
-                    <img
-                        className='signup-team-logo'
-                        src='/static/images/logo.png'
-                    />
-                    <h5 className='margin--less'>
-                        <FormattedMessage
-                            id='signup_user_completed.welcome'
-                            defaultMessage='Welcome to:'
-                        />
-                    </h5>
-                    <h2 className='signup-team__name'>{this.props.teamDisplayName}</h2>
-                    <h2 className='signup-team__subdomain'>
-                        <FormattedMessage
-                            id='signup_user_completed.onSite'
-                            defaultMessage='on {siteName}'
-                            values={{
-                                siteName: global.window.mm_config.SiteName
-                            }}
-                        />
-                    </h2>
-                    <h4 className='color--light'>
-                        <FormattedMessage
-                            id='signup_user_completed.lets'
-                            defaultMessage="Let's create your account"
-                        />
-                    </h4>
-                    {signupMessage}
-                    {emailSignup}
-                    {serverError}
-                </form>
+                <div className='signup-header'>
+                    <a href='/'>
+                        <span classNameNameName='fa fa-chevron-left'/>
+                        <FormattedMessage id='web.header.back'/>
+                    </a>
+                </div>
+                <div className='col-sm-12'>
+                    <div className='signup-team__container padding--less'>
+                        <form>
+                            <img
+                                className='signup-team-logo'
+                                src='/static/images/logo.png'
+                            />
+                            <h5 className='margin--less'>
+                                <FormattedMessage
+                                    id='signup_user_completed.welcome'
+                                    defaultMessage='Welcome to:'
+                                />
+                            </h5>
+                            <h2 className='signup-team__name'>{this.state.teamName}</h2>
+                            <h2 className='signup-team__subdomain'>
+                                <FormattedMessage
+                                    id='signup_user_completed.onSite'
+                                    defaultMessage='on {siteName}'
+                                    values={{
+                                        siteName: global.window.mm_config.SiteName
+                                    }}
+                                />
+                            </h2>
+                            <h4 className='color--light'>
+                                <FormattedMessage
+                                    id='signup_user_completed.lets'
+                                    defaultMessage="Let's create your account"
+                                />
+                            </h4>
+                            {signupMessage}
+                            {emailSignup}
+                            {serverError}
+                        </form>
+                    </div>
+                </div>
             </div>
         );
     }
 }
 
 SignupUserComplete.defaultProps = {
-    teamName: '',
-    hash: '',
-    teamId: '',
-    email: '',
-    data: null,
-    teamDisplayName: ''
 };
 SignupUserComplete.propTypes = {
-    intl: intlShape.isRequired,
-    teamName: React.PropTypes.string,
-    hash: React.PropTypes.string,
-    teamId: React.PropTypes.string,
-    email: React.PropTypes.string,
-    data: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string
+    location: React.PropTypes.object
 };
 
-export default injectIntl(SignupUserComplete);
+export default SignupUserComplete;

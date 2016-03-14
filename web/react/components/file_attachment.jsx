@@ -43,7 +43,7 @@ class FileAttachment extends React.Component {
 
             if (type === 'image') {
                 var self = this; // Need this reference since we use the given "this"
-                $('<img/>').attr('src', fileInfo.path + '_thumb.jpg?' + utils.getSessionIndex()).load(function loadWrapper(path, name) {
+                $('<img/>').attr('src', fileInfo.path + '_thumb.jpg').load(function loadWrapper(path, name) {
                     return function loader() {
                         $(this).remove();
                         if (name in self.refs) {
@@ -114,7 +114,7 @@ class FileAttachment extends React.Component {
             var re3 = new RegExp('\\)', 'g');
             var url = fileUrl.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
 
-            $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg?' + utils.getSessionIndex() + ')');
+            $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg)');
         }
     }
     removeBackgroundImage(name) {
@@ -185,6 +185,7 @@ class FileAttachment extends React.Component {
                         data-toggle='tooltip'
                         title={this.props.intl.formatMessage(holders.download) + ' \"' + filenameString + '\"'}
                         className='post-image__name'
+                        target='_blank'
                     >
                         {trimmedFilename}
                     </a>
@@ -193,6 +194,7 @@ class FileAttachment extends React.Component {
                             href={fileUrl}
                             download={filenameString}
                             className='post-image__download'
+                            target='_blank'
                         >
                             <span
                                 className='fa fa-download'

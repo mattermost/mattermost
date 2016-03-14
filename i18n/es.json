@@ -456,8 +456,8 @@
     "translation": "S3 no está soportado para exportar al almacenamiento local."
   },
   {
-    "id": "api.export.write_file.app_error",
-    "translation": "No se puede escribir al archivo a exportar"
+    "id": "api.file.file_upload.exceeds",
+    "translation": "El archivo excede el tamaño máximo para una imagen."
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -506,6 +506,22 @@
   {
     "id": "api.file.init.debug",
     "translation": "Inicializando rutas del API para los archivos"
+  },
+  {
+    "id": "api.file.move_file.configured.app_error",
+    "translation": "No ha sido configurado apropiadamente el almacenamiento. Por favor configuralo para utilizar ya sea S3 o almacenamiento local."
+  },
+  {
+    "id": "api.file.move_file.delete_from_s3.app_error",
+    "translation": "No se pudo eliminar el archivo del S3."
+  },
+  {
+    "id": "api.file.move_file.get_from_s3.app_error",
+    "translation": "No se pudo obtener el archivo desde el S3."
+  },
+  {
+    "id": "api.file.move_file.rename.app_error",
+    "translation": "No se pudo mover el archivo localmente."
   },
   {
     "id": "api.file.open_file_write_stream.configured.app_error",
@@ -3384,22 +3400,6 @@
     "translation": "Encontrar Equipo"
   },
   {
-    "id": "web.footer.about",
-    "translation": "Acerca"
-  },
-  {
-    "id": "web.footer.help",
-    "translation": "Ayuda"
-  },
-  {
-    "id": "web.footer.privacy",
-    "translation": "Privacidad"
-  },
-  {
-    "id": "web.footer.terms",
-    "translation": "Términos"
-  },
-  {
     "id": "web.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: client_id malo"
   },
@@ -3530,10 +3530,6 @@
   {
     "id": "web.root.home_title",
     "translation": "Inicio"
-  },
-  {
-    "id": "web.root.singup_info",
-    "translation": "Todas las comunicaciones del equipo en un sólo lugar, con búsquedas y accesible desde cualquier parte"
   },
   {
     "id": "web.root.singup_title",

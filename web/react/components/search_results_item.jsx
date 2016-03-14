@@ -3,8 +3,7 @@
 
 import UserStore from '../stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
-import * as EventHelpers from '../dispatcher/event_helpers.jsx';
-import * as utils from '../utils/utils.jsx';
+import * as GlobalActions from '../action_creators/global_actions.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
 
 import Constants from '../utils/constants.jsx';
@@ -22,7 +21,7 @@ export default class SearchResultsItem extends React.Component {
     handleClick(e) {
         e.preventDefault();
 
-        EventHelpers.emitPostFocusEvent(this.props.post.id);
+        GlobalActions.emitPostFocusEvent(this.props.post.id);
 
         if ($(window).width() < 768) {
             $('.sidebar--right').removeClass('move--left');
@@ -32,7 +31,7 @@ export default class SearchResultsItem extends React.Component {
 
     handleFocusRHSClick(e) {
         e.preventDefault();
-        EventHelpers.emitPostFocusRightHandSideFromSearch(this.props.post, this.props.isMentionSearch);
+        GlobalActions.emitPostFocusRightHandSideFromSearch(this.props.post, this.props.isMentionSearch);
     }
 
     render() {
@@ -78,7 +77,7 @@ export default class SearchResultsItem extends React.Component {
                     <div className='post__content'>
                         <div className='post__img'>
                             <img
-                                src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex()}
+                                src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp}
                                 height='36'
                                 width='36'
                             />
@@ -123,6 +122,7 @@ export default class SearchResultsItem extends React.Component {
                             </ul>
                             <div className='search-item-snippet'>
                                 <span
+                                    onClick={TextFormatting.handleClick}
                                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
                                 />
                             </div>

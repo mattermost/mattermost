@@ -6,7 +6,6 @@ import EventEmitter from 'events';
 
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-import BrowserStore from '../stores/browser_store.jsx';
 
 const CHANGE_EVENT = 'change';
 
@@ -33,6 +32,9 @@ class TeamStoreClass extends EventEmitter {
         this.getCurrentTeamUrl = this.getCurrentTeamUrl.bind(this);
         this.getCurrentInviteLink = this.getCurrentInviteLink.bind(this);
         this.saveTeam = this.saveTeam.bind(this);
+
+        this.teams = {};
+        this.currentTeamId = '';
     }
 
     emitChange() {
@@ -65,11 +67,11 @@ class TeamStoreClass extends EventEmitter {
     }
 
     getAll() {
-        return BrowserStore.getItem('user_teams', {});
+        return this.teams;
     }
 
     getCurrentId() {
-        var team = global.window.mm_team;
+        var team = this.get(this.currentTeamId);
 
         if (team) {
             return team.id;
@@ -79,11 +81,13 @@ class TeamStoreClass extends EventEmitter {
     }
 
     getCurrent() {
-        if (global.window.mm_team != null && this.get(global.window.mm_team.id) == null) {
-            this.saveTeam(global.window.mm_team);
+        const team = this.teams[this.currentTeamId];
+
+        if (team) {
+            return team;
         }
 
-        return global.window.mm_team;
+        return null;
     }
 
     getCurrentTeamUrl() {
@@ -104,9 +108,16 @@ class TeamStoreClass extends EventEmitter {
     }
 
     saveTeam(team) {
-        var teams = this.getAll();
-        teams[team.id] = team;
-        BrowserStore.setItem('user_teams', teams);
+        this.teams[team.id] = team;
+    }
+
+    saveTeams(teams) {
+        this.teams = teams;
+    }
+
+    saveMyTeam(team) {
+        this.saveTeam(team);
+        this.currentTeamId = team.id;
     }
 }
 
@@ -116,11 +127,14 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECEIVED_TEAM:
-        TeamStore.saveTeam(action.team);
+    case ActionTypes.RECEIVED_MY_TEAM:
+        TeamStore.saveMyTeam(action.team);
         TeamStore.emitChange();
         break;
-
+    case ActionTypes.RECEIVED_ALL_TEAMS:
+        TeamStore.saveTeams(action.teams);
+        TeamStore.emitChange();
+        break;
     default:
     }
 });

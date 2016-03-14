@@ -20,17 +20,16 @@ import (
 
 var IsLicensed bool = false
 var License *model.License = &model.License{}
-var ClientLicense map[string]string = make(map[string]string)
+var ClientLicense map[string]string = map[string]string{"IsLicensed": "false"}
 
-// test public key
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3/k3Al9q1Xe+xngQ/yGn
-0suaJopea3Cpf6NjIHdO8sYTwLlxqt0Mdb+qBR9LbCjZfcNmqc5mZONvsyCEoN/5
-VoLdlv1m9ao2BSAWphUxE2CPdUWdLOsDbQWliSc5//UhiYeR+67Xxon0Hg0LKXF6
-PumRIWQenRHJWqlUQZ147e7/1v9ySVRZksKpvlmMDzgq+kCH/uyM1uVP3z7YXhlN
-K7vSSQYbt4cghvWQxDZFwpLlsChoY+mmzClgq+Yv6FLhj4/lk94twdOZau/AeZFJ
-NxpC+5KFhU+xSeeklNqwCgnlOyZ7qSTxmdJHb+60SwuYnnGIYzLJhY4LYDr4J+KR
-1wIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZmShlU8Z8HdG0IWSZ8r
+tSyzyxrXkJjsFUf0Ke7bm/TLtIggRdqOcUF3XEWqQk5RGD5vuq7Rlg1zZqMEBk8N
+EZeRhkxyaZW8pLjxwuBUOnXfJew31+gsTNdKZzRjrvPumKr3EtkleuoxNdoatu4E
+HrKmR/4Yi71EqAvkhk7ZjQFuF0osSWJMEEGGCSUYQnTEqUzcZSh1BhVpkIkeu8Kk
+1wCtptODixvEujgqVe+SrE3UlZjBmPjC/CL+3cYmufpSNgcEJm2mwsdaXp2OPpfn
+a0v85XL6i9ote2P+fLZ3wX9EoioHzgdgB7arOxY50QRJO7OyCqpKFKv6lRWTXuSt
+hwIDAQAB
 -----END PUBLIC KEY-----`)
 
 func LoadLicense(licenseBytes []byte) {

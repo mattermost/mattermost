@@ -5,11 +5,9 @@ package api
 
 import (
 	"fmt"
-	"html/template"
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -31,33 +29,16 @@ var allowedMethods []string = []string{
 }
 
 type Context struct {
-	Session           model.Session
-	RequestId         string
-	IpAddress         string
-	Path              string
-	Err               *model.AppError
-	teamURLValid      bool
-	teamURL           string
-	siteURL           string
-	SessionTokenIndex int64
-	T                 goi18n.TranslateFunc
-	Locale            string
-}
-
-type Page struct {
-	TemplateName      string
-	Props             map[string]string
-	Extra             map[string]string
-	Html              map[string]template.HTML
-	ClientCfg         map[string]string
-	ClientLicense     map[string]string
-	User              *model.User
-	Team              *model.Team
-	Channel           *model.Channel
-	Preferences       *model.Preferences
-	PostID            string
-	SessionTokenIndex int64
-	Locale            string
+	Session      model.Session
+	RequestId    string
+	IpAddress    string
+	Path         string
+	Err          *model.AppError
+	teamURLValid bool
+	teamURL      string
+	siteURL      string
+	T            goi18n.TranslateFunc
+	Locale       string
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -121,37 +102,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Attempt to parse the token from the cookie
 	if len(token) == 0 {
-		tokens := GetMultiSessionCookieTokens(r)
-		if len(tokens) > 0 {
-			// If there is only 1 token in the cookie then just use it like normal
-			if len(tokens) == 1 {
-				token = tokens[0]
-			} else {
-				// If it is a multi-session token then find the correct session
-				sessionTokenIndexStr := r.URL.Query().Get(model.SESSION_TOKEN_INDEX)
-				sessionTokenIndex := int64(-1)
-				if len(sessionTokenIndexStr) > 0 {
-					if index, err := strconv.ParseInt(sessionTokenIndexStr, 10, 64); err == nil {
-						sessionTokenIndex = index
-					}
-				} else {
-					sessionTokenIndexStr := r.Header.Get(model.HEADER_MM_SESSION_TOKEN_INDEX)
-					if len(sessionTokenIndexStr) > 0 {
-						if index, err := strconv.ParseInt(sessionTokenIndexStr, 10, 64); err == nil {
-							sessionTokenIndex = index
-						}
-					}
-				}
-
-				if sessionTokenIndex >= 0 && sessionTokenIndex < int64(len(tokens)) {
-					token = tokens[sessionTokenIndex]
-					c.SessionTokenIndex = sessionTokenIndex
-				} else {
-					c.SessionTokenIndex = -1
-				}
-			}
-		} else {
-			c.SessionTokenIndex = -1
+		if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
+			token = cookie.Value
 		}
 	}
 
@@ -185,8 +137,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if session == nil || session.IsExpired() {
 			c.RemoveSessionCookie(w, r)
-			c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
-			c.Err.StatusCode = http.StatusUnauthorized
+			if h.requireUser || h.requireSystemAdmin {
+				c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
+				c.Err.StatusCode = http.StatusUnauthorized
+			}
 		} else if !session.IsOAuth && isTokenFromQueryString {
 			c.Err = model.NewLocAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token)
 			c.Err.StatusCode = http.StatusUnauthorized
@@ -390,22 +344,6 @@ func (c *Context) IsTeamAdmin() bool {
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
-
-	// multiToken := ""
-	// if oldMultiCookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
-	// 	multiToken = oldMultiCookie.Value
-	// }
-
-	// multiCookie := &http.Cookie{
-	// 	Name:     model.SESSION_COOKIE_TOKEN,
-	// 	Value:    strings.TrimSpace(strings.Replace(multiToken, c.Session.Token, "", -1)),
-	// 	Path:     "/",
-	// 	MaxAge:   model.SESSION_TIME_WEB_IN_SECS,
-	// 	HttpOnly: true,
-	// }
-
-	//http.SetCookie(w, multiCookie)
-
 	cookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    "",
@@ -538,23 +476,25 @@ func IsPrivateIpAddress(ipAddress string) bool {
 }
 
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
-	props := make(map[string]string)
-	props["Message"] = err.Message
-	props["Details"] = err.DetailedError
+	T, locale := utils.GetTranslationsAndLocale(w, r)
+	page := utils.NewHTMLTemplate("error", locale)
+	page.Props["Message"] = err.Message
+	page.Props["Details"] = err.DetailedError
 
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) > 1 {
-		props["SiteURL"] = GetProtocol(r) + "://" + r.Host + "/" + pathParts[1]
+		page.Props["SiteURL"] = GetProtocol(r) + "://" + r.Host + "/" + pathParts[1]
 	} else {
-		props["SiteURL"] = GetProtocol(r) + "://" + r.Host
+		page.Props["SiteURL"] = GetProtocol(r) + "://" + r.Host
 	}
 
-	T, _ := utils.GetTranslationsAndLocale(w, r)
-	props["Title"] = T("api.templates.error.title", map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
-	props["Link"] = T("api.templates.error.link")
+	page.Props["Title"] = T("api.templates.error.title", map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+	page.Props["Link"] = T("api.templates.error.link")
 
 	w.WriteHeader(err.StatusCode)
-	ServerTemplates.ExecuteTemplate(w, "error.html", Page{Props: props, ClientCfg: utils.ClientCfg})
+	if rErr := page.RenderToWriter(w); rErr != nil {
+		l4g.Error("Failed to create error page: " + rErr.Error() + ", Original error: " + err.Error())
+	}
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
@@ -586,29 +526,6 @@ func GetSession(token string) *model.Session {
 	}
 
 	return session
-}
-
-func GetMultiSessionCookieTokens(r *http.Request) []string {
-	if multiCookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
-		multiToken := multiCookie.Value
-
-		if len(multiToken) > 0 {
-			return strings.Split(multiToken, " ")
-		}
-	}
-
-	return []string{}
-}
-
-func FindMultiSessionForTeamId(r *http.Request, teamId string) (int64, *model.Session) {
-	for index, token := range GetMultiSessionCookieTokens(r) {
-		s := GetSession(token)
-		if s != nil && !s.IsExpired() && s.TeamId == teamId {
-			return int64(index), s
-		}
-	}
-
-	return -1, nil
 }
 
 func AddSessionToCache(session *model.Session) {

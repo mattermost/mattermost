@@ -1,5 +1,130 @@
 # Mattermost Changelog
 
+## Release v2.1.0
+
+Expected release date: 2016-03-16
+
+### Highlights 
+
+- New Android application now available. 
+- New desktop applications for Windows, Mac and Linux now in beta.
+- Brazilian Portuguese translation added.
+
+### New Features
+
+Android Application 
+
+- New [Mattermost Android App](https://github.com/mattermost/android) supporting push notifications available for devices running Android 4.4.2+. Requires Mattermost server 2.1 and higher. See [list of tested devices](https://github.com/mattermost/android/blob/master/DEVICES.md). 
+
+Desktop Application 
+
+- New [Desktop Application](https://github.com/mattermost/desktop) for Windows, Mac, and Linux now available as a beta release.
+
+Languages 
+
+- Added Portuguese language translation (Beta) available from **Account Settings** > **Display**.
+
+### Improvements 
+
+System Console
+
+- Removed unused “Disable File Storage” option from the System Console as it is no longer relevant. 
+- Added a warning message if a system admin demotes themselves.
+- System Console statistics now use a client store instead of fetching data and storing it in state.
+
+Messaging
+
+- Custom slash commands now support temporary messages that appear only to the user that issued the command.
+- Username autocomplete list no longer suggests inactive users.
+
+Mobile
+
+- Significant responsiveness and speed improvements using [fastclick](https://github.com/ftlabs/fastclick).
+- Team name and username are now shown in the LHS header.
+- Added a button to go back to the team URL page from the login page.
+
+Files and Images
+
+- Increased the maximum size of image uploads to 24 megapixels.
+
+User Interface
+
+- Custom theme color selectors are now organized into categories.
+- Add Members and Manage Members dialogs can now be filtered using a search bar.
+- Deactivated members no longer appear in the channel members list.
+- Keyboard focus is set to the text input box in the RHS if a user clicks the reply icon.
+- Permalinks are now displayed in a Copy Permalink dialog instead of a popover.
+- Permalink option is now available from the [...] menu on messages and comments in the RHS.
+- Reply icon now only appears on-hover for messages that don’t have replies.
+- Scroll bar now appears in the center channel.
+
+#### Bug Fixes
+
+- System console user management tab now shows username and email on different lines.
+- Yellow text box error no longer appears when the system is connected.
+- Wildcard search on MySQL databases is now fixed.
+- Usernames in the center channel no longer appear as “...” on login.
+- Deleted messages now delete in the RHS and center channel without requiring a page refresh.
+- Contact us email address in the footer of notification emails now uses the SupportEmail config setting instead of FeedbackEmail. 
+- Email addresses are now required to have at least one letter before and after the @ sign.
+- Firefox desktop notifications are now fixed for some users experiencing missed notifications.
+- “User is typing” message containing long usernames no longer causes text wrapping.
+- Usernames appearing as “...” in the RHS when performing a search is fixed.
+- Links that end in image extensions but do not actually link to raw images no longer generate a blank image preview.
+- Channel handle field in the Rename Channel dialog is now visible on themes with dark backgrounds.
+- Autolinked images no longer persist after the post containing the link is deleted.
+- Code theme selector on IE11 now only shows one dropdown arrow and clicking directly on the arrow opens the dropdown.
+- Save/Cancel buttons for language selection in Account Settings are now formatted the same as other settings.
+- Inconsistent field spacing in the Channel Info dialog is fixed.
+- Recent mentions icon no longer jumps to the left of the search bar when the RHS is opened.
+- Custom slash command hints now show up in the autocomplete list.
+- GIF links inside code blocks no longer auto-post the GIFs.
+- Changing usernames no longer adds the old username to “words that trigger mentions”.
+- Notification email footer is now translated based on the sender’s language setting.
+- Slash command `/me` now posts as the user instead of a webhook message.
+- Logout slash command now forces logout.
+- Public links to file attachments on deleted posts no longer work.
+- Error message is now shown in IE11 when uploading more than 5 files or a file over 50 MB.
+
+
+### Compatibility  
+Changes from v2.0 to v2.1:
+
+**Android**  
+Mattermost Android Application is for use with Mattermost platform v2.1 and higher.
+
+#### Known Issues
+
+- File name tooltip stays open after clicking to download.
+- Unable to paste images into the text box on Firefox, Safari, and IE11.
+- Archived channels are not removed from the "More" menu for the person that archived the channel until after refresh.
+- First load of an empty channel does not display the introduction message.
+- Search results don't highlight searches for @username, non-latin characters, or terms inside Markdown code blocks.
+- Searching for a username or hashtag containing a dot returns a search where the dot is replaced with the "or" operator.
+- Hashtags containing a dash incorrectly highlight in the search results.
+- Emoji smileys ending with a letter at the end of a message do not auto-complete as expected.
+- Incorrect formatting when a new line is added directly after a list.
+- Timestamps are displayed in 12-hour format when set to 24-hour format.
+- Syntax highlighting code block is missing the label for Latex documents.
+- Posts from webhooks do not fire notifications to the user who created the webhook.
+- Theme color vector is not updated after making custom changes to a default theme.
+- Search term highlighting doesn't update on IE11 when search terms change but return the same posts.
+- Team creation via SSO fails when email domain is restricted.
+
+#### Contributors 
+
+Many thanks to all our external contributors. In no particular order:
+
+- [rodrigocorsi2](https://github.com/rodrigocorsi2)
+- [enahum](https://github.com/enahum)
+- [khoa-le](https://github.com/khoa-le)
+- [alanmoo](https://github.com/alanmoo) 
+- [daizenberg](https://github.com/daizenberg) 
+- [GuillaumeAmat](https://github.com/GuillaumeAmat) 
+- [kernicPanel](https://github.com/kernicPanel) 
+- [timlyo](https://github.com/timlyo) 
+- [ttyniwa](https://github.com/ttyniwa) 
+
 ## Release v2.0.0
 
 Expected Release date: 2016-02-16

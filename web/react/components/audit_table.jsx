@@ -5,7 +5,7 @@ import UserStore from '../stores/user_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'mm-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedDate, FormattedTime} from 'mm-intl';
 
 const holders = defineMessages({
     sessionRevoked: {
@@ -598,8 +598,23 @@ export function formatAuditInfo(audit, formatMessage) {
     }
 
     const date = new Date(audit.create_at);
-    let auditInfo = {};
-    auditInfo.timestamp = date.toLocaleDateString(global.window.mm_locale, {month: 'short', day: '2-digit', year: 'numeric'}) + ' - ' + date.toLocaleTimeString(global.window.mm_locale, {hour: '2-digit', minute: '2-digit'});
+    const auditInfo = {};
+    auditInfo.timestamp = (
+        <div>
+            <FormattedDate
+                value={date}
+                day='2-digit'
+                month='short'
+                year='numeric'
+            />
+            {' - '}
+            <FormattedTime
+                value={date}
+                hour='2-digit'
+                minute='2-digit'
+            />
+        </div>
+    );
     auditInfo.userId = audit.user_id;
     auditInfo.desc = auditDesc;
     auditInfo.ip = audit.ip_address;

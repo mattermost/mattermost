@@ -32,7 +32,7 @@ export default function UserListRow({user, actions}) {
             >
                 <img
                     className='profile-img'
-                    src={`/api/v1/users/${user.id}/image?time=${user.update_at}&${Utils.getSessionIndex()}`}
+                    src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
                 />
                 <div
                     className='user-list-item__details'

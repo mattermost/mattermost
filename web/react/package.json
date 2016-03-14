@@ -11,6 +11,8 @@
     "marked": "mattermost/marked#cb85e5cc81bc7937dbb73c3c53d9532b1b97e3ca",
     "mm-intl": "mattermost/mm-intl#805442fd474fa40cd586ddeda404dbbe8e60626d",
     "object-assign": "4.0.1",
+    "react": "0.14.3",
+    "react-router": "2.0.0",
     "twemoji": "1.4.1"
   },
   "devDependencies": {
