@@ -25,32 +25,32 @@ export default function UserListRow({user, actions}) {
     });
 
     return (
-        <tr>
-            <td
-                key={user.id}
-                style={{display: 'flex'}}
+        <div
+            key={user.id}
+            className='more-modal__row'
+        >
+            <img
+                className='more-modal__image'
+                width='38'
+                height='38'
+                src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
+            />
+            <div
+                className='more-modal__details'
             >
-                <img
-                    className='profile-img'
-                    src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
-                />
-                <div
-                    className='user-list-item__details'
-                >
-                    <div className='more-name'>
-                        {name}
-                    </div>
-                    <div className='more-description'>
-                        {user.email}
-                    </div>
+                <div className='more-modal__name'>
+                    {name}
                 </div>
-                <div
-                    className='user-list-item__actions'
-                >
-                    {buttons}
+                <div className='more-modal__description'>
+                    {user.email}
                 </div>
-            </td>
-        </tr>
+            </div>
+            <div
+                className='more-modal__actions'
+            >
+                {buttons}
+            </div>
+        </div>
     );
 }
 

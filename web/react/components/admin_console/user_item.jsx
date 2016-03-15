@@ -363,15 +363,15 @@ export default class UserItem extends React.Component {
 
         return (
             <tr>
-                <td className='row member-div padding--equal'>
+                <td className='more-modal__row'>
                     <img
-                        className='post-profile-img pull-left'
+                        className='more-modal__image pull-left'
                         src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
                         height='36'
                         width='36'
                     />
-                    <span className='more-name'>{Utils.getDisplayName(user)}</span>
-                    <span className='more-description'>{email}</span>
+                    <span className='more-modal__name'>{Utils.getDisplayName(user)}</span>
+                    <span className='more-modal__description'>{email}</span>
                     <div className='dropdown member-drop'>
                         <a
                             href='#'

@@ -1,0 +1,57 @@
+@charset 'UTF-8';
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    background: $bg--gray;
+    position: relative;
+
+    &.sticky {
+        background: $bg--white;
+
+        > .container-fluid {
+            overflow: auto;
+        }
+
+        .inner-wrap {
+            > .row.content {
+                min-height: 100%;
+                margin-bottom: -89px;
+            }
+        }
+    }
+}
+
+.inner-wrap {
+    height: 100%;
+
+    > .row.main {
+        height: 100%;
+        position: relative;
+    }
+}
+
+.container-fluid {
+    @include legacy-pie-clearfix;
+    height: 100%;
+    position: relative;
+}
+
+.channel-view {
+    @include clearfix;
+    height: 100%;
+    position: relative;
+}
+
+img {
+    max-width: 100%;
+
+    &.rounded {
+        @include border-radius(100%);
+    }
+}

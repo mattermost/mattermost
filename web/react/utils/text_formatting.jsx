@@ -187,7 +187,7 @@ function highlightCurrentMentions(text, tokens) {
             const newAlias = `MM_SELFMENTION${index}`;
 
             newTokens.set(newAlias, {
-                value: `<span class='mention-highlight'>${alias}</span>`,
+                value: `<span class='mention--highlight'>${alias}</span>`,
                 originalText: token.originalText
             });
             output = output.replace(alias, newAlias);
@@ -205,7 +205,7 @@ function highlightCurrentMentions(text, tokens) {
         const alias = `MM_SELFMENTION${index}`;
 
         tokens.set(alias, {
-            value: `<span class='mention-highlight'>${mention}</span>`,
+            value: `<span class='mention--highlight'>${mention}</span>`,
             originalText: mention
         });
 

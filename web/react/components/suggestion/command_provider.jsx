@@ -7,7 +7,7 @@ class CommandSuggestion extends React.Component {
     render() {
         const {item, isSelection, onClick} = this.props;
 
-        let className = 'command-name';
+        let className = 'command';
         if (isSelection) {
             className += ' suggestion--selected';
         }

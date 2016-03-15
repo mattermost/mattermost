@@ -27,10 +27,6 @@ class FilteredUserList extends React.Component {
         };
     }
 
-    componentDidMount() {
-        $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
-    }
-
     componentDidUpdate(prevProps, prevState) {
         if (prevState.filter !== this.state.filter) {
             $(ReactDOM.findDOMNode(this.refs.userList)).scrollTop(0);
@@ -109,7 +105,7 @@ class FilteredUserList extends React.Component {
                 </div>
                 <div
                     ref='userList'
-                    className='user-list'
+                    className='more-modal__list'
                 >
                     <UserList
                         users={users}

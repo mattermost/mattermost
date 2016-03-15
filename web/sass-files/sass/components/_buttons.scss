@@ -1,0 +1,23 @@
+@charset 'UTF-8';
+
+.btn {
+    @include single-transition(all, .25s, ease-in);
+    @include border-radius($border-rad);
+
+    &.btn-primary {
+        border-color: transparent;
+        background: $color--primary;
+
+        &:hover,
+        &:focus,
+        &:active {
+            background: $color--primary--hover;
+        }
+    }
+
+    &.btn-inactive {
+        border-color: transparent;
+        background: #707070;
+        color: #fff;
+    }
+}

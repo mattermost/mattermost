@@ -1,0 +1,16 @@
+@charset 'UTF-8';
+
+.dropdown-menu {
+    .divider {
+        @include opacity(.15);
+    }
+
+    > li > a {
+        color: inherit;
+
+        &:focus,
+        &:hover {
+            color: inherit;
+        }
+    }
+}

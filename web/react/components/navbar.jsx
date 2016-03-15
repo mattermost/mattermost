@@ -66,7 +66,7 @@ export default class Navbar extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
-        $('.inner__wrap').click(this.hideSidebars);
+        $('.inner-wrap').click(this.hideSidebars);
         attachFastClick(document.body);
     }
     componentWillUnmount() {
@@ -101,7 +101,7 @@ export default class Navbar extends React.Component {
             });
 
             if (e.target.className !== 'navbar-toggle' && e.target.className !== 'icon-bar') {
-                $('.inner__wrap').removeClass('move--right move--left move--left-small');
+                $('.inner-wrap').removeClass('move--right move--left move--left-small');
                 $('.sidebar--left').removeClass('move--right');
                 $('.sidebar--right').removeClass('move--left');
                 $('.sidebar--menu').removeClass('move--left');
@@ -109,11 +109,11 @@ export default class Navbar extends React.Component {
         }
     }
     toggleLeftSidebar() {
-        $('.inner__wrap').toggleClass('move--right');
+        $('.inner-wrap').toggleClass('move--right');
         $('.sidebar--left').toggleClass('move--right');
     }
     toggleRightSidebar() {
-        $('.inner__wrap').toggleClass('move--left-small');
+        $('.inner-wrap').toggleClass('move--left-small');
         $('.sidebar--menu').toggleClass('move--left');
     }
     showSearch() {

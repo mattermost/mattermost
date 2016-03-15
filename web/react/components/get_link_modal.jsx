@@ -81,7 +81,7 @@ export default class GetLinkModal extends React.Component {
         var copyLinkConfirm = null;
         if (this.state.copiedLink) {
             copyLinkConfirm = (
-                <p className='alert alert-success copy-link-confirm'>
+                <p className='alert alert-success alert--confirm'>
                     <i className='fa fa-check'></i>
                     <FormattedMessage
                         id='get_link.clipboard'

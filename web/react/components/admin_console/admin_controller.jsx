@@ -172,7 +172,10 @@ export default class AdminController extends React.Component {
         }
 
         return (
-            <div id='admin_controller'>
+            <div
+                id='admin_controller'
+                className='admin-controller'
+            >
                 <div
                     className='sidebar--menu'
                     id='sidebar-menu'
@@ -186,7 +189,7 @@ export default class AdminController extends React.Component {
                     removeSelectedTeam={this.removeSelectedTeam}
                     addSelectedTeam={this.addSelectedTeam}
                 />
-                <div className='inner__wrap channel__wrap'>
+                <div className='inner-wrap channel__wrap'>
                     <div className='row header'>
                     </div>
                     <div className='row main'>

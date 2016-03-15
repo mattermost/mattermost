@@ -25,7 +25,7 @@ export default class SearchResultsItem extends React.Component {
 
         if ($(window).width() < 768) {
             $('.sidebar--right').removeClass('move--left');
-            $('.inner__wrap').removeClass('move--left');
+            $('.inner-wrap').removeClass('move--left');
         }
     }
 

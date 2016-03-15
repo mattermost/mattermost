@@ -111,7 +111,7 @@ export default class SuggestionList extends React.Component {
             <div className='suggestion-list suggestion-list--top'>
                 <div
                     ref='content'
-                    className='suggestion-content suggestion-content--top'
+                    className='suggestion-list__content suggestion-list__content--top'
                 >
                     {items}
                 </div>

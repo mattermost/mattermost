@@ -41,15 +41,15 @@ export default class FilePreview extends React.Component {
                 previews.push(
                     <div
                         key={filename}
-                        className='preview-div'
+                        className='file-preview'
                         data-filename={originalFilename}
                     >
                         <img
-                            className='preview-img'
+                            className='file-preview__image'
                             src={filename}
                         />
                         <a
-                            className='remove-preview'
+                            className='file-preview__remove'
                             onClick={this.handleRemove}
                         >
                             <i className='glyphicon glyphicon-remove'/>
@@ -60,12 +60,12 @@ export default class FilePreview extends React.Component {
                 previews.push(
                     <div
                         key={filename}
-                        className='preview-div custom-file'
+                        className='file-preview custom-file'
                         data-filename={originalFilename}
                     >
                         <div className={'file-icon ' + Utils.getIconClassName(type)}/>
                         <a
-                            className='remove-preview'
+                            className='file-preview__remove'
                             onClick={this.handleRemove}
                         >
                             <i className='glyphicon glyphicon-remove'/>
@@ -80,7 +80,7 @@ export default class FilePreview extends React.Component {
                 <div
                     ref={clientId}
                     key={clientId}
-                    className='preview-div'
+                    className='file-preview'
                     data-client-id={clientId}
                 >
                     <img
@@ -88,7 +88,7 @@ export default class FilePreview extends React.Component {
                         src='/static/images/load.gif'
                     />
                     <a
-                        className='remove-preview'
+                        className='file-preview__remove'
                         onClick={this.handleRemove}
                     >
                         <i className='glyphicon glyphicon-remove'/>
@@ -98,7 +98,7 @@ export default class FilePreview extends React.Component {
         });
 
         return (
-            <div className='preview-container'>
+            <div className='file-preview__container'>
                 {previews}
             </div>
         );

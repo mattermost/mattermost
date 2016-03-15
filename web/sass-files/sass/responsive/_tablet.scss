@@ -1,0 +1,35 @@
+@charset 'UTF-8';
+
+@media screen and (max-width: 960px) {
+    .sidebar--right {
+        z-index: 5;
+        @include translateX(100%);
+        @include single-transition(all, .5s, ease);
+
+        &.move--left {
+            @include translateX(0);
+
+            .search-bar__container {
+                padding-right: 8px;
+            }
+        }
+    }
+
+    .inner-wrap {
+        &.move--left {
+            margin-right: 0;
+
+            .channel-header__links {
+                position: relative;
+                right: auto;
+                top: auto;
+            }
+        }
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .second-bar {
+        display: none;
+    }
+}
