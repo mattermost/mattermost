@@ -140,7 +140,7 @@
         "QueryTimeout": 60
     },
     "ComplianceSettings": {
-        "Enable": true,
+        "Enable": false,
         "Directory": "./data/",
         "EnableDaily": false
     }
