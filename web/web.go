@@ -14,13 +14,17 @@ import (
 	"github.com/mssola/user_agent"
 )
 
+const (
+	CLIENT_DIR = "webapp/dist"
+)
+
 func InitWeb() {
 	l4g.Debug(utils.T("web.init.debug"))
 
 	mainrouter := api.Srv.Router
 
-	staticDir := utils.FindDir("web/static")
-	l4g.Debug("Using static directory at %v", staticDir)
+	staticDir := utils.FindDir(CLIENT_DIR)
+	l4g.Debug("Using client directory at %v", staticDir)
 	mainrouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
 
 	mainrouter.Handle("/{anything:.*}", api.AppHandlerIndependent(root)).Methods("GET")
@@ -47,14 +51,8 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 }
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-
 	if !CheckBrowserCompatability(c, r) {
 		return
 	}
-
-	page := utils.NewHTMLTemplate("root", c.Locale)
-	page.Props["Title"] = c.T("web.root.home_title")
-	if err := page.RenderToWriter(w); err != nil {
-		c.SetUnknownError(page.TemplateName, err.Error())
-	}
+	http.ServeFile(w, r, utils.FindDir(CLIENT_DIR)+"root.html")
 }

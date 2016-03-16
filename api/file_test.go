@@ -43,7 +43,7 @@ func TestUploadFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	path := utils.FindDir("web/static/images")
+	path := utils.FindDir("tests")
 	file, err := os.Open(path + "/test.png")
 	defer file.Close()
 
@@ -159,7 +159,7 @@ func TestGetFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		path := utils.FindDir("web/static/images")
+		path := utils.FindDir("tests")
 		file, err := os.Open(path + "/test.png")
 		if err != nil {
 			t.Fatal(err)
@@ -342,7 +342,7 @@ func TestGetPublicLink(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		path := utils.FindDir("web/static/images")
+		path := utils.FindDir("tests")
 		file, err := os.Open(path + "/test.png")
 		if err != nil {
 			t.Fatal(err)

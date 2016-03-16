@@ -110,67 +110,33 @@ package:
 	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
 
 	cp -RL config $(DIST_PATH)/config
+	cp -RL fonts $(DIST_PATH)/fonts
 	touch $(DIST_PATH)/config/build.txt
 	echo $(BUILD_NUMBER) | tee -a $(DIST_PATH)/config/build.txt
 
 	mkdir -p $(DIST_PATH)/logs
 
-	mkdir -p $(DIST_PATH)/web/static/js
-	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
-	cp -L web/static/js/*.min.js.map $(DIST_PATH)/web/static/js/
-	cp -RL web/static/js/intl-1.0.0 $(DIST_PATH)/web/static/js/
-	cp -RL web/static/js/react-intl-2.0.0-beta-2 $(DIST_PATH)/web/static/js/
-	cp -RL web/static/i18n $(DIST_PATH)/web/static
-	cp -RL web/static/config $(DIST_PATH)/web/static
-	cp -RL web/static/css $(DIST_PATH)/web/static
-	cp -RL web/static/fonts $(DIST_PATH)/web/static
-	cp -RL web/static/help $(DIST_PATH)/web/static
-	cp -RL web/static/images $(DIST_PATH)/web/static
-	cp -RL web/static/js/jquery-dragster $(DIST_PATH)/web/static/js/
+	mkdir -p $(DIST_PATH)/webapp/dist
+	cp -RL webapp/dist $(DIST_PATH)/webapp
+
 	cp -RL templates $(DIST_PATH)
 
-	mkdir -p $(DIST_PATH)/api
 	cp -RL i18n $(DIST_PATH)
 
 	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
-	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
-	mv $(DIST_PATH)/web/static/js/libs.min.js $(DIST_PATH)/web/static/js/libs-$(BUILD_NUMBER).min.js
-
-	sed -i'.bak' 's|react-0.14.3.js|react-0.14.3.min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|react-dom-0.14.3.js|react-dom-0.14.3.min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|Intl.js|Intl.min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|react-intl.js|react-intl.min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|react-bootstrap-0.28.1.js|react-bootstrap-0.28.1.min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|perfect-scrollbar-0.6.7.jquery.js|perfect-scrollbar-0.6.7.jquery.min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/templates/head.html
-	sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/templates/head.html
-	rm $(DIST_PATH)/templates/*.bak
+	mv $(DIST_PATH)/webapp/dist/bundle.js $(DIST_PATH)/webapp/dist/bundle-$(BUILD_NUMBER).js
+	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).js|g' $(DIST_PATH)/webapp/dist/root.html
+	rm $(DIST_PATH)/webapp/dist/root.html.bak
 
 	sudo mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json || echo 'nomv'
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
 build-client:
-	@echo Building mattermost web client
-
-	cd web/react/ && npm install
-
-	@echo Checking for style guide compliance
-
-	@echo ESLint...
-	cd web/react && $(ESLINT) --ext ".jsx" --ignore-pattern node_modules --quiet .
-
-	cd web/react/ && npm run build-libs
-
-	mkdir -p web/static/js
-	cd web/react && npm run build
-
-	cd web/sass-files && compass compile -e production --force
+	cd webapp && make build
 
 go-test:
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
@@ -254,25 +220,14 @@ nuke: | clean clean-docker
 
 	touch $@
 
-.prepare-jsx: web/react/package.json
-	@echo Preparation for compiling jsx code
-
-	cd web/react/ && npm install
-	cd web/react/ && npm run build-libs
-
-	touch $@
-
 run: start-docker run-server run-client
 
 run-server: .prepare-go
 	@echo Starting go web server
 	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
 
-run-client: .prepare-jsx
-	mkdir -p web/static/js
-
+run-client: build-client
 	@echo Starting react processo
-	cd web/react && npm start &
 
 	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
 		cp ./config/config.json ./config/config.json.bak; \
@@ -284,10 +239,7 @@ run-client: .prepare-jsx
 		sed -i'.bak' 's|_BUILD_ENTERPRISE_READY_|false|g' ./model/version.go; \
 	fi
 
-	@echo Starting compass watch
-	cd web/sass-files && compass compile && compass watch &
-
-stop: stop-client stop-server
+stop: stop-server
 	@if [ $(shell docker ps -a | grep -ci ${DOCKER_CONTAINER_NAME}) -eq 1 ]; then \
 		echo removing dev docker container; \
 		docker stop ${DOCKER_CONTAINER_NAME} > /dev/null; \
@@ -299,22 +251,6 @@ stop: stop-client stop-server
 		mv ./mattermost.go.bak ./mattermost.go 2> /dev/null || true; \
 		mv ./model/version.go.bak ./model/version.go 2> /dev/null || true; \
 	fi
-
-stop-client:
-	@for PID in $$(ps -ef | grep [c]ompass | awk '{ print $$2 }'); do \
-		echo stopping css watch $$PID; \
-		kill $$PID; \
-	done
-
-	@for PID in $$(ps -ef | grep [n]pm | awk '{ print $$2 }'); do \
-		echo stopping client $$PID; \
-		kill $$PID; \
-	done
-
-	@for PID in $$(ps -ef | grep [w]atchify | awk '{ print $$2 }'); do \
-		echo stopping client $$PID; \
-		kill $$PID; \
-	done
 
 stop-server:
 	@for PID in $$(ps -ef | grep "go run [m]attermost.go" | awk '{ print $$2 }'); do \
