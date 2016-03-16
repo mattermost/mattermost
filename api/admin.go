@@ -254,7 +254,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	} else {
 		job := result.Data.(*model.Compliance)
-		c.LogAudit("downloaded " + job.JobName())
+		c.LogAudit("downloaded " + job.Desc)
 
 		if f, err := ioutil.ReadFile(*utils.Cfg.ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip"); err != nil {
 			c.Err = model.NewLocAppError("readFile", "api.file.read_file.reading_local.app_error", nil, err.Error())

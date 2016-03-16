@@ -12,11 +12,11 @@ import (
 func TestSqlComplianceStore(t *testing.T) {
 	Setup()
 
-	compliance1 := &model.Compliance{Desc: "Desc", UserId: model.NewId(), Status: "TestStatus1", StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1}
+	compliance1 := &model.Compliance{Desc: "Audit for federal subpoena case #22443", UserId: model.NewId(), Status: model.COMPLIANCE_STATUS_FAILED, StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1, Type: model.COMPLIANCE_TYPE_ADHOC}
 	Must(store.Compliance().Save(compliance1))
 	time.Sleep(100 * time.Millisecond)
 
-	compliance2 := &model.Compliance{Desc: "Desc", UserId: model.NewId(), Status: "TestStatus2", StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1}
+	compliance2 := &model.Compliance{Desc: "Audit for federal subpoena case #11458", UserId: model.NewId(), Status: model.COMPLIANCE_STATUS_RUNNING, StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1, Type: model.COMPLIANCE_TYPE_ADHOC}
 	Must(store.Compliance().Save(compliance2))
 	time.Sleep(100 * time.Millisecond)
 
@@ -24,18 +24,18 @@ func TestSqlComplianceStore(t *testing.T) {
 	result := <-c
 	compliances := result.Data.(model.Compliances)
 
-	if compliances[0].Status != "TestStatus2" && compliance2.Id != compliances[0].Id {
+	if compliances[0].Status != model.COMPLIANCE_STATUS_RUNNING && compliance2.Id != compliances[0].Id {
 		t.Fatal()
 	}
 
-	compliance2.Status = "TestUpdateStatus2"
+	compliance2.Status = model.COMPLIANCE_STATUS_FAILED
 	Must(store.Compliance().Update(compliance2))
 
 	c = store.Compliance().GetAll()
 	result = <-c
 	compliances = result.Data.(model.Compliances)
 
-	if compliances[0].Status != "TestUpdateStatus2" && compliance2.Id != compliances[0].Id {
+	if compliances[0].Status != model.COMPLIANCE_STATUS_FAILED && compliance2.Id != compliances[0].Id {
 		t.Fatal()
 	}
 
