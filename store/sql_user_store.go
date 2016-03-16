@@ -4,6 +4,7 @@
 package store
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -11,7 +12,8 @@ import (
 )
 
 const (
-	MISSING_ACCOUNT_ERROR = "store.sql_user.missing_account.const"
+	MISSING_ACCOUNT_ERROR      = "store.sql_user.missing_account.const"
+	MISSING_AUTH_ACCOUNT_ERROR = "store.sql_user.get_by_auth.missing_account.app_error"
 )
 
 type SqlUserStore struct {
@@ -481,8 +483,11 @@ func (us SqlUserStore) GetByAuth(teamId string, authData string, authService str
 		user := model.User{}
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"TeamId": teamId, "AuthData": authData, "AuthService": authService}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.app_error",
-				nil, "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
+			} else {
+				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
+			}
 		}
 
 		result.Data = &user
