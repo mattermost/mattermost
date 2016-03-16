@@ -118,5 +118,10 @@ func IsPreviousVersionsSupported(versionToCheck string) bool {
 		return true
 	}
 
+	// Current - 3 Supported
+	if versionsWithoutHotFixes[3] == versionToCheckStr {
+		return true
+	}
+
 	return false
 }
