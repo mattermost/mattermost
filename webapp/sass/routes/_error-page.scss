@@ -8,23 +8,23 @@ body {
         }
 
         .error__container {
-            max-width: 800px;
-            margin: 0 auto;
+            color: #555;
             display: table-cell;
-            vertical-align: top;
+            margin: 0 auto;
+            max-width: 800px;
             padding: 5em 0;
             text-align: left;
-            color: #555;
+            vertical-align: top;
         }
 
         .error__icon {
-            font-size: 4em;
             color: #ccc;
+            font-size: 4em;
         }
 
         h2 {
-            font-weight: 600;
             font-size: 1.5em;
+            font-weight: 600;
             margin: .8em 0 .5em;
         }
 

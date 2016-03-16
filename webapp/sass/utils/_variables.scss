@@ -1,10 +1,16 @@
 @charset 'UTF-8';
 
 // Color Variables
-$color--primary: rgb(35, 137, 215);
-$color--primary--hover: darken($color--primary, 10%);
+$primary-color: rgb(35, 137, 215);
+$primary-color--hover: darken($primary-color, 10%);
 $bg--gray: rgb(245, 245, 245);
-$bg--white: rgb(255, 255, 255);
+$white: rgb(255, 255, 255);
+$black: rgb(0, 0, 0);
+$red: rgb(229, 101, 101);
+$yellow: rgb(255, 255, 0);
+$light-gray: rgba(0, 0, 0, .06);
+$gray: rgba(0, 0, 0, .3);
+$dark-gray: rgba(0, 0, 0, .5);
 
 // Page Variables
 $border-gray: 1px solid #ddd;

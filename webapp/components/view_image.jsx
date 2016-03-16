@@ -311,15 +311,15 @@ class ViewImageModal extends React.Component {
             <Modal
                 show={this.props.show}
                 onHide={this.props.onModalDismissed}
-                className='image_modal'
+                className='modal-image'
                 dialogClassName='modal-image'
             >
                 <Modal.Body
-                    modalClassName='image-body'
+                    modalClassName='modal-image__body'
                     onClick={this.props.onModalDismissed}
                 >
                     <div
-                        className={'image-wrapper'}
+                        className={'modal-image__wrapper'}
                         onClick={this.props.onModalDismissed}
                     >
                         <div

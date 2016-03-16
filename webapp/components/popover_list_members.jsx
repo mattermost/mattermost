@@ -158,6 +158,7 @@ export default class PopoverListMembers extends React.Component {
                     <Popover
                         ref='memebersPopover'
                         title={title}
+                        className='member-list__popover'
                         id='member-list-popover'
                     >
                         <div className='more-modal__list'>{popoverHtml}</div>

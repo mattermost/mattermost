@@ -160,7 +160,7 @@ export default class MoreChannels extends React.Component {
 
         return (
             <div
-                className='modal fade'
+                className='modal fade more-channel__modal'
                 id='more_channels'
                 ref='modal'
                 tabIndex='-1'

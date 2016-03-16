@@ -2,45 +2,45 @@
 
 .team_statistics {
     .total-count {
+        @include border-radius(3px);
+        background: $white;
+        border: 1px solid $light-gray;
         margin: 1em 0;
         text-align: center;
-        background: #fff;
-        border: 1px solid #ddd;
         width: 100%;
-        @include border-radius(3px);
 
         .title {
+            border-bottom: 1px solid $light-gray;
+            font-size: 13px;
             font-weight: 400;
             padding: 7px 10px;
-            border-bottom: 1px solid #ddd;
             text-align: left;
-            font-size: 13px;
 
             .fa {
+                color: #555555;
                 float: right;
-                margin: 0px 0 0;
-                color: #555;
                 font-size: 16px;
+                margin: 0;
             }
         }
 
         .content {
+            color: #555555;
             font-size: 30px;
             font-weight: 600;
-            color: #555;
-            padding: .3em 0 .35em;
             overflow: auto;
+            padding: .3em 0 .35em;
         }
     }
 
     .total-count--day {
-        width: 760px;
-        height: 275px;
-        border: 1px solid #ddd;
-        padding: 5px 10px 10px 10px;
-        margin: 10px 10px 10px 10px;
-        background: #fff;
+        background: $white;
+        border: 1px solid $light-gray;
         clear: both;
+        height: 275px;
+        margin: 10px;
+        padding: 5px 10px 10px;
+        width: 760px;
 
         > div {
             font-size: 18px;
@@ -50,8 +50,8 @@
 
     .recent-active-users {
         table {
-            width: 100%;
             table-layout: fixed;
+            width: 100%;
         }
 
         .content {
@@ -68,14 +68,15 @@
             }
 
             td {
-                font-weight: 400;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                font-size: 13px;
-                border-left: 1px solid #ddd;
-                border-top: 1px solid #ddd;
-                padding: 5px 5px 6px;
                 @include clearfix;
+                border-left: 1px solid $light-gray;
+                border-top: 1px solid $light-gray;
+                font-size: 13px;
+                font-weight: 400;
+                padding: 5px 5px 6px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
                 &:first-child {
                     border-left: none;
                 }

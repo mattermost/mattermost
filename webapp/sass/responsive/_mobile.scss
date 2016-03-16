@@ -519,7 +519,7 @@
     .search-bar__container {
         padding: 0;
         @include flex(0 0 44px);
-        background: $color--primary;
+        background: $primary-color;
         color: #fff;
 
         &.focused {
@@ -756,9 +756,11 @@
     .app__content {
         padding-top: 45px;
         margin: 0;
+
         .channel__wrap & {
             padding-top: 45px;
         }
+
         #channel-header {
             display: none;
         }
@@ -774,11 +776,6 @@
 
     .post-comments {
         padding: 9px 21px 10px 10px !important;
-    }
-
-    .post-image__column .post-image .file-playback__controls.stop,
-    .image-wrapper > a .file-playback__controls.stop {
-        @include opacity(1);
     }
 }
 

@@ -1,19 +1,19 @@
 @charset 'UTF-8';
 
 .signup-header {
-    width: 100%;
+    background: $bg--gray;
     line-height: 33px;
     padding: 0 1em .2em;
-    background: $bg--gray;
+    width: 100%;
 
     .fa {
         margin-right: 5px;
     }
 }
 .signup-team__container {
-    padding: 100px 0px 50px 0px;
-    max-width: 380px;
     margin: 0 auto;
+    max-width: 380px;
+    padding: 100px 0 50px;
     position: relative;
 
     &.padding--less {
@@ -21,7 +21,7 @@
     }
 
     .form-control:focus {
-        @include box-shadow(inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6));
+        @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6));
     }
 
     h1,
@@ -39,16 +39,16 @@
     }
 
     h2 {
-        font-weight: 600;
-        margin-bottom: .8em;
-        letter-spacing: -.5px;
         font-size: em(30px);
+        font-weight: 600;
+        letter-spacing: -.5px;
+        margin-bottom: .8em;
     }
 
     h3 {
-        font-weight: 600;
-        margin: 0 0 1.3em 0;
         font-size: 1.5em;
+        font-weight: 600;
+        margin: 0 0 1.3em;
     }
 
     h4 {
@@ -66,7 +66,7 @@
     }
 
     p {
-        color: #555;
+        color: #555555;
         line-height: 1.5;
         margin-bottom: 1em;
     }
@@ -81,32 +81,32 @@
             }
 
             .form-control {
-                text-align: left;
                 display: table-cell;
+                text-align: left;
                 width: 100%;
             }
 
             .input-group-addon {
-                text-align: left;
-                width: 50%;
                 display: table-cell;
                 overflow: hidden;
+                text-align: left;
                 text-overflow: ellipsis;
+                width: 50%;
             }
         }
     }
 
     .inner__content {
-        padding: 0 1rem;
         margin: 30px 0 20px;
+        padding: 0 1rem;
     }
 
     .block--gray {
+        @include border-radius(3px);
         background: #f2f2f2;
         display: inline-block;
-        padding: .85em 1.2em;
         font-weight: 600;
-        @include border-radius(3px);
+        padding: .85em 1.2em;
     }
 
     form {
@@ -114,32 +114,32 @@
     }
 
     .signup-team-confirm__container {
-        padding: 100px 0px 100px 0px;
+        padding: 100px 0;
     }
 
     .signup-team-logo {
         display: none;
+        margin: 0 0 2em;
         width: 210px;
-        margin: 0 0 2em 0;
     }
 
     .signup-team-login {
-        padding-bottom: 10px;
         font-weight: 600;
+        padding-bottom: 10px;
     }
 
     .signup-team__name {
-        margin: .5em 0 0;
         font-size: 2.2em;
         font-weight: 600;
+        margin: .5em 0 0;
         padding-left: 1rem;
     }
 
     .signup-team__subdomain {
-        margin: .2em 0 1.2em;
         font-size: 1.5em;
-        padding-left: 1rem;
         font-weight: 300;
+        margin: .2em 0 1.2em;
+        padding-left: 1rem;
         text-transform: uppercase;
     }
 
@@ -148,21 +148,21 @@
     }
 
     .or__container {
+        background: #dddddd;
         height: 1px;
-        background: #ddd;
-        text-align: left;
         margin: 2em 0;
+        text-align: left;
 
         span {
-            width: 40px;
-            top: -10px;
-            position: relative;
-            font-size: 1.14286em;
-            line-height: 20px;
-            font-weight: 600;
-            background: #fff;
+            background: #ffffff;
             display: inline-block;
+            font-size: 1.14286em;
+            font-weight: 600;
+            line-height: 20px;
+            position: relative;
             text-align: center;
+            top: -10px;
+            width: 40px;
         }
     }
 
@@ -177,9 +177,9 @@
 
     .btn {
         font-size: 1em;
-        padding: em(7px) em(15px);
         font-weight: 600;
         margin-right: 5px;
+        padding: em(7px) em(15px);
 
         .fa {
             font-size: 17px;
@@ -187,29 +187,29 @@
         }
 
         .icon {
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
             @include background-size(100% 100%);
             display: inline-block;
+            height: 18px;
+            margin-right: 8px;
+            width: 18px;
         }
 
         &.btn-custom-login {
+            @include border-radius(2px);
+            color: $white;
             display: block;
-            min-width: 200px;
-            width: 200px;
-            padding: 0 1em;
-            margin: 1em 1rem;
             height: 40px;
             line-height: 34px;
-            color: #fff;
-            @include border-radius(2px);
+            margin: 1em 1rem;
+            min-width: 200px;
+            padding: 0 1em;
+            width: 200px;
 
             &.gitlab {
-                background: #548;
+                background: #554488;
 
                 &:hover {
-                    background: darken(#548, 10%);
+                    background: darken(#554488, 10%);
                 }
 
                 span {
@@ -250,10 +250,10 @@
             }
 
             &.email {
-                background: #2389d7;
+                background: $primary-color;
 
                 &:hover {
-                    background: darken(#2389d7, 10%);
+                    background: $primary-color--hover;
                 }
 
                 span {
@@ -269,15 +269,15 @@
         }
 
         &.btn-default {
-            color: #444;
+            color: #444444;
         }
 
         .glyphicon {
             &.glyphicon-ok,
             &.glyphicon-refresh {
-                margin-right: .5em;
-                left: -2px;
                 font-size: .9em;
+                left: -2px;
+                margin-right: .5em;
             }
 
             &.glyphicon-chevron-right {
@@ -296,28 +296,29 @@
 
     .has-error {
         .control-label {
-            background: #f2f2f2;
-            padding: .7em 1em;
             @include border-radius(3px);
-            margin: 1em 0 0;
+            background: #f2f2f2;
+            color: #999999;
             font-size: 14px;
             font-weight: normal;
-            color: #999;
+            margin: 1em 0 0;
+            padding: .7em 1em;
             width: 100%;
 
             &:before {
-                @extend .fa;
+                @extend %font-awesome;
+                color: #aaaaaa;
                 content: '\f071';
                 margin-right: 4px;
-                color: #aaa;
             }
         }
     }
 
     .reset-form {
         @include border-radius(3px);
-        position: relative;
         font-size: .95em;
+        position: relative;
+
         p {
             color: inherit;
         }
@@ -363,12 +364,12 @@
 
         .black,
         &.black {
-            color: #000;
+            color: #000000;
         }
     }
 
     .color--light {
-        color: #777;
+        color: #777777;
     }
 
     .margin--extra {
@@ -381,9 +382,10 @@
 }
 
 .signup-team-all {
-    margin: 0 0 20px;
-    border: 1px solid #ddd;
     @include border-radius(2px);
+    border: 1px solid #dddddd;
+    margin: 0 0 20px;
+
     .signup-team-dir {
         background: #fafafa;
         border-top: 1px solid #d5d5d5;
@@ -395,25 +397,25 @@
         a {
             color: inherit;
             display: block;
-            padding: 0 15px;
-            line-height: 3.5em;
-            height: 3.5em;
             font-size: 1.1em;
+            height: 3.5em;
+            line-height: 3.5em;
+            padding: 0 15px;
         }
     }
 
     .signup-team-dir__name {
-        white-space: nowrap;
         float: left;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
         width: 90%;
     }
 
     .signup-team-dir__arrow {
+        color: #999999;
         float: right;
         font-size: .9em;
-        color: #999;
         line-height: 3.5em;
     }
 }

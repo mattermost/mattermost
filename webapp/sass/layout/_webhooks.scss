@@ -1,11 +1,11 @@
 @charset 'UTF-8';
 
 .webhooks__container {
-    background: rgba(black, .1);
-    border: 1px solid;
     @include border-radius(3px);
-    padding: 0 13px 15px;
+    @include alpha-property(background, $black, .1);
+    border: 1px solid;
     margin-top: 10px;
+    padding: 0 13px 15px;
 }
 
 .webhook__item {
@@ -19,16 +19,16 @@
     }
 
     .webhook__remove {
-        position: absolute;
-        right: -7px;
-        top: 8px;
-        width: 30px;
-        height: 30px;
+        color: #e05f5d;
         font-size: 22px;
         font-weight: bold;
+        height: 30px;
+        position: absolute;
+        right: -7px;
         text-align: center;
         text-decoration: none;
-        color: #e05f5d;
+        top: 8px;
+        width: 30px;
     }
 
     .webhook__url {

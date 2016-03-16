@@ -16,8 +16,8 @@
 #post-list {
     .markdown-inline-img {
         -moz-force-broken-image-icon: 1;
-        max-height: 500px;
         height: 500px;
+        max-height: 500px;
     }
 }
 
@@ -26,33 +26,33 @@
 
     pre {
         margin-bottom: 0;
-        word-break: normal;
         overflow: auto;
+        word-break: normal;
         word-wrap: normal;
     }
 }
 
 .post-body--code__language {
-    -webkit-transform: translate3d(0,0,0);
-    position: absolute;
-    top: 0;
-    right: 0;
-    color: #fff;
+    @include translate3d(0, 0, 0);
     background: #21586d;
-    padding: 4px 10px 5px 10px;
+    color: $white;
     font-size: 13px;
     opacity: .7;
+    padding: 4px 10px 5px;
+    position: absolute;
+    right: 0;
+    top: 0;
     z-index: 5;
 }
 
 .post__body {
     hr {
-        height: 4px;
-        padding: 0;
-        margin: 15px 0 16px;
+        @include opacity(.2);
         background-color: #e7e7e7;
         border: 0 none;
-        @include opacity(.2);
+        height: 4px;
+        margin: 15px 0 16px;
+        padding: 0;
     }
 
     code {
@@ -67,50 +67,53 @@
 }
 
 .markdown__table {
-    background: #fff;
+    background: $white;
     margin: 5px 0 10px;
 
     th,
     td {
-        padding: 6px 13px;
         border: 1px solid #ddd;
+        padding: 6px 13px;
     }
 
     tbody tr {
-        background: #fff;
+        background: $white;
 
         &:nth-child(2n) {
             background-color: #f8f8f8;
         }
     }
 }
+
 blockquote {
     border: none;
-    position: relative;
     font-size: 16px;
-    padding: 10px 10px 10px 38px;
     margin-bottom: 0;
+    padding: 10px 10px 10px 38px;
+    position: relative;
 
     &:before {
-        font-family: FontAwesome;
-        font-weight: normal;
-        font-style: normal;
-        display: inline-block;
-        text-decoration: inherit;
-        content: '\f10d';
-        left: 8px;
-        top: 5px;
-        position: absolute;
-        font-size: 20px;
         @include opacity(.6);
+        content: '\f10d';
+        display: inline-block;
+        font-family: FontAwesome;
+        font-size: 20px;
+        font-style: normal;
+        font-weight: normal;
+        left: 8px;
+        position: absolute;
+        text-decoration: inherit;
+        top: 5px;
     }
 }
+
 pre {
     border: none;
-    margin: 5px 0;
     color: inherit;
+    margin: 5px 0;
 }
+
 code {
-    background: #fff;
+    background: $white;
     color: inherit;
 }

@@ -4,32 +4,32 @@
 
 .loading-screen {
     display: table;
-    width: 100%;
     height: 100%;
     padding: 60px;
     text-align: center;
+    width: 100%;
 
     .loading__content {
         display: table-cell;
-        vertical-align: middle;
         font-size: 0;
+        vertical-align: middle;
 
         h3 {
+            display: inline-block;
             font-size: 16px;
             font-weight: 400;
-            margin: 0 .2em 0;
-            display: inline-block;
+            margin: 0 .2em;
         }
 
         .round {
-            background-color: #444;
-            width: 4px;
-            height: 4px;
+            @include animation(move .75s infinite linear);
+            @include border-radius(10px);
+            background-color: #444444;
             display: inline-block;
+            height: 4px;
             margin: 0 2px;
             opacity: .1;
-            @include border-radius(10px);
-            @include animation(move .75s infinite linear);
+            width: 4px;
         }
 
         @for $i from 1 through 3 {
@@ -42,6 +42,7 @@
             from {
                 opacity: 1;
             }
+
             to {
                 opacity: .1;
             }

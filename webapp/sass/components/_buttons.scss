@@ -5,19 +5,19 @@
     @include border-radius($border-rad);
 
     &.btn-primary {
+        background: $primary-color;
         border-color: transparent;
-        background: $color--primary;
 
         &:hover,
         &:focus,
         &:active {
-            background: $color--primary--hover;
+            background: $primary-color--hover;
         }
     }
 
     &.btn-inactive {
+        background: $light-gray;
         border-color: transparent;
-        background: #707070;
-        color: #fff;
+        color: $white;
     }
 }

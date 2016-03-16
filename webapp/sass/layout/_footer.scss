@@ -1,22 +1,22 @@
 @charset 'UTF-8';
 
 .footer-pane {
-    background: #eee;
+    background: $light-gray;
     padding-bottom: 1em;
 
     .footer-link {
         padding: 0 1.5em;
 
         &.copyright {
-            color: #999;
+            color: $dark-gray;
             padding-right: 0;
         }
     }
 
     .footer-site-name {
-        padding: 1.5em 0 1em;
         font-size: 14px;
         font-weight: bold;
+        padding: 1.5em 0 1em;
         text-transform: uppercase;
     }
 }

@@ -1,29 +1,28 @@
 @charset 'UTF-8';
 
 .error-bar {
-    background-color: #09f;
-    text-align: center;
-    position: relative;
-    color: #fff;
+    background-color: darken($primary-color, 5%);
+    color: $white;
+    padding: 5px 30px;
     position: absolute;
+    text-align: center;
     top: 0;
     width: 100%;
     z-index: 9999;
-    padding: 5px 30px;
 
     &__close {
-        position: absolute;
-        right: 0;
-        top: 0;
-        color: #fff;
+        color: $white;
+        font-family: 'Open Sans', sans-serif;
         font-size: 20px;
         font-weight: 600;
-        text-decoration: none;
         padding: 0 10px;
-        font-family: 'Open Sans', sans-serif;
+        position: absolute;
+        right: 0;
+        text-decoration: none;
+        top: 0;
 
         &:hover {
-            color: #fff;
+            color: $white;
             text-decoration: none;
         }
     }
