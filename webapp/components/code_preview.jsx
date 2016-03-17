@@ -54,7 +54,7 @@ export default class CodePreview extends React.Component {
     }
 
     handleReceivedCode(data) {
-	const parsed = syntaxHightlighting.formatCode(this.state.lang, data, this.props.filename)
+        const parsed = syntaxHightlighting.formatCode(this.state.lang, data, this.props.filename);
         this.setState({code: parsed, loading: false, success: true});
     }
 

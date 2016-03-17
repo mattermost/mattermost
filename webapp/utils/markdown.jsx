@@ -9,9 +9,6 @@ import marked from 'marked';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
-import Constants from 'utils/constants.jsx';
-const HighlightedLanguages = Constants.HighlightedLanguages;
-
 function markdownImageLoaded(image) {
     image.style.height = 'auto';
 }
