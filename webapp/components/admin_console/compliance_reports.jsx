@@ -1,6 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import LoadingScreen from '../loading_screen.jsx';
 import * as Utils from '../../utils/utils.jsx';
 import AdminStore from '../../stores/admin_store.jsx';
@@ -12,6 +13,7 @@ import * as AsyncClient from '../../utils/async_client.jsx';
 import {FormattedMessage, FormattedDate, FormattedTime} from 'react-intl';
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 export default class ComplianceReports extends React.Component {
     constructor(props) {
