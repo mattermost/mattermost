@@ -3080,6 +3080,10 @@
     "translation": "No pudimos encontrar una cuenta existente que coincida con tu tipo de autenticación para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
   {
+    "id": "store.sql_user.get_by_auth.other.app_error",
+    "translation": "Encontramos un error tratando de identificar la cuenta con este tipo de autenticación."
+  },
+  {
     "id": "store.sql_user.get_by_username.app_error",
     "translation": "No pudimos encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
