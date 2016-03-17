@@ -200,6 +200,9 @@ export default class LoggedIn extends React.Component {
             content = this.props.children;
         } else {
             content.push(
+                this.props.navbar
+            );
+            content.push(
                 this.props.sidebar
             );
             content.push(
@@ -247,8 +250,9 @@ LoggedIn.defaultProps = {
 };
 
 LoggedIn.propTypes = {
-    children: React.PropTypes.object,
-    sidebar: React.PropTypes.object,
-    center: React.PropTypes.object,
+    children: React.PropTypes.arrayOf(React.PropTypes.element),
+    navbar: React.PropTypes.element,
+    sidebar: React.PropTypes.element,
+    center: React.PropTypes.element,
     params: React.PropTypes.object
 };

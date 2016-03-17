@@ -1,0 +1,68 @@
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
+import React from 'react';
+
+import {Link} from 'react-router';
+
+export default class BackstageCategory extends React.Component {
+    static get propTypes() {
+        return {
+            name: React.PropTypes.string.isRequired,
+            title: React.PropTypes.node.isRequired,
+            icon: React.PropTypes.string.isRequired,
+            parentLink: React.PropTypes.string,
+            children: React.PropTypes.arrayOf(React.PropTypes.element)
+        };
+    }
+
+    static get defaultProps() {
+        return {
+            parentLink: '',
+            children: []
+        };
+    }
+
+    static get contextTypes() {
+        return {
+            router: React.PropTypes.object.isRequired
+        };
+    }
+
+    render() {
+        const {name, title, icon, parentLink, children} = this.props;
+
+        const link = parentLink + '/' + name;
+
+        let clonedChildren = null;
+        if (children.length > 0 && this.context.router.isActive(link)) {
+            clonedChildren = (
+                <ul className='sections'>
+                    {
+                        React.Children.map(children, (child) => {
+                            return React.cloneElement(child, {
+                                parentLink: link
+                            });
+                        })
+                    }
+                </ul>
+            );
+        }
+
+        return (
+            <li className='backstage__sidebar__category'>
+                <Link
+                    to={link}
+                    className='category-title'
+                    activeClassName='category-title--active'
+                >
+                    <i className={'fa ' + icon}/>
+                    <span className='category-title__text'>
+                        {title}
+                    </span>
+                </Link>
+                {clonedChildren}
+            </li>
+        );
+    }
+}

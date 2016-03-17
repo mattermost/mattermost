@@ -36,6 +36,9 @@ import ShouldVerifyEmail from 'components/should_verify_email.jsx';
 import DoVerifyEmail from 'components/do_verify_email.jsx';
 import AdminConsole from 'components/admin_console/admin_controller.jsx';
 import TutorialView from 'components/tutorial/tutorial_view.jsx';
+import BackstageNavbar from 'components/backstage/backstage_navbar.jsx';
+import BackstageSidebar from 'components/backstage/backstage_sidebar.jsx';
+import InstalledIntegrations from 'components/backstage/installed_integrations.jsx';
 
 import SignupTeamComplete from 'components/signup_team_complete/components/signup_team_complete.jsx';
 import WelcomePage from 'components/signup_team_complete/components/team_signup_welcome_page.jsx';
@@ -241,6 +244,51 @@ function renderRootComponent() {
                         path=':team/logout'
                         onEnter={onLoggedOut}
                     />
+                    <Route
+                        path=':team/team_settings'
+                        components={{
+                            navbar: BackstageNavbar,
+                            sidebar: BackstageSidebar,
+                            center: null
+                        }}
+                    />
+                    <Route path=':team/integrations'>
+                        <IndexRedirect to='installed'/>
+                        <Route
+                            path='installed'
+                            components={{
+                                navbar: BackstageNavbar,
+                                sidebar: BackstageSidebar,
+                                center: InstalledIntegrations
+                            }}
+                        />
+                        <Route path='add'>
+                            <IndexRoute
+                                components={{
+                                    navbar: BackstageNavbar,
+                                    sidebar: BackstageSidebar,
+                                    center: null
+                                }}
+                            />
+                            <Route
+                                path='incoming_webhook'
+                                components={{
+                                    navbar: BackstageNavbar,
+                                    sidebar: BackstageSidebar,
+                                    center: null
+                                }}
+                            />
+                            <Route
+                                path='outgoing_webhook'
+                                components={{
+                                    navbar: BackstageNavbar,
+                                    sidebar: BackstageSidebar,
+                                    center: null
+                                }}
+                            />
+                        </Route>
+                    </Route>
+>>>>>>> Added initial backstage components and InstalledIntegrations page
                     <Route
                         path='admin_console'
                         component={AdminConsole}

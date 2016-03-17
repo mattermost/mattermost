@@ -68,6 +68,8 @@ export default {
         RECEIVED_PREFERENCE: null,
         RECEIVED_PREFERENCES: null,
         RECEIVED_FILE_INFO: null,
+        RECEIVED_INCOMING_WEBHOOKS: null,
+        RECEIVED_OUTGOING_WEBHOOKS: null,
 
         RECEIVED_MSG: null,
 

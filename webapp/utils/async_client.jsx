@@ -1121,3 +1121,49 @@ export function getRecentAndNewUsersAnalytics(teamId) {
         }
     );
 }
+
+export function listIncomingHooks() {
+    if (isCallInProgress('listIncomingHooks')) {
+        return;
+    }
+
+    callTracker.listIncomingHooks = utils.getTimestamp();
+
+    client.listIncomingHooks(
+        (data) => {
+            callTracker.listIncomingHooks = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_INCOMING_WEBHOOKS,
+                incomingWebhooks: data
+            });
+        },
+        (err) => {
+            callTracker.listIncomingHooks = 0;
+            dispatchError(err, 'getIncomingHooks');
+        }
+    );
+}
+
+export function listOutgoingHooks() {
+    if (isCallInProgress('listOutgoingHooks')) {
+        return;
+    }
+
+    callTracker.listOutgoingHooks = utils.getTimestamp();
+
+    client.listOutgoingHooks(
+        (data) => {
+            callTracker.listOutgoingHooks = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_OUTGOING_WEBHOOKS,
+                outgoingWebhooks: data
+            });
+        },
+        (err) => {
+            callTracker.listOutgoingHooks = 0;
+            dispatchError(err, 'getOutgoingHooks');
+        }
+    );
+}
