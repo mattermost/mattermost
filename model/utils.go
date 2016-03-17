@@ -367,3 +367,15 @@ func IsValidHttpUrl(rawUrl string) bool {
 
 	return true
 }
+
+func IsValidHttpsUrl(rawUrl string) bool {
+	if strings.Index(rawUrl, "https://") != 0 {
+		return false
+	}
+
+	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+		return false
+	}
+
+	return true
+}

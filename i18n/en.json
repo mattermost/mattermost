@@ -3108,6 +3108,10 @@
     "translation": "We could not count the users"
   },
   {
+    "id": "store.sql_user.get_unread_count.app_error",
+    "translation": "We could not get the unread message count for the user"
+  },
+  {
     "id": "store.sql_user.missing_account.const",
     "translation": "We couldn't find an existing account matching your email address for this team. This team may require an invite from the team owner to join."
   },

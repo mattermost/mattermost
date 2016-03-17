@@ -3108,6 +3108,10 @@
     "translation": "No pudimos contar los usuarios"
   },
   {
+    "id": "store.sql_user.get_unread_count.app_error",
+    "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario"
+  },
+  {
     "id": "store.sql_user.missing_account.const",
     "translation": "No pudimos encontrar una cuenta existente que coincida con tu dirección de correo electrónico para este equipo. Es posible que necesites una invitación del dueño del equipo para poder unirte."
   },
