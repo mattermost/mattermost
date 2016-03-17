@@ -1624,6 +1624,10 @@
     "translation": "Não foi possível enviar a imagem do perfil"
   },
   {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "Erro na verificação link de email."
+  },
+  {
     "id": "api.web_conn.new_web_conn.last_activity.error",
     "translation": "Falha ao atualizar LastActivityAt para o user_id=%v e session_id=%v, err=%v"
   },
@@ -3068,7 +3072,7 @@
     "translation": "Encontramos um erro ao procurar a conta"
   },
   {
-    "id": "store.sql_user.get_by_auth.app_error",
+    "id": "store.sql_user.get_by_auth.missing_account.app_error",
     "translation": "Não foi possível encontrar uma conta correspondente ao seu tipo de autenticação para esta equipe. Esta equipe pode exigir um convite do dono da equipe para participar."
   },
   {
@@ -3400,22 +3404,6 @@
     "translation": "Encontrar Equipe"
   },
   {
-    "id": "web.footer.about",
-    "translation": "Sobre"
-  },
-  {
-    "id": "web.footer.help",
-    "translation": "Ajuda"
-  },
-  {
-    "id": "web.footer.privacy",
-    "translation": "Privacidade"
-  },
-  {
-    "id": "web.footer.terms",
-    "translation": "Termos"
-  },
-  {
     "id": "web.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Bad client_id"
   },
@@ -3548,10 +3536,6 @@
     "translation": "Início"
   },
   {
-    "id": "web.root.singup_info",
-    "translation": "Toda comunicação da equipe em um lugar, pesquisável e acessível em qualquer lugar"
-  },
-  {
     "id": "web.root.singup_title",
     "translation": "Inscrever-se"
   },
@@ -3606,5 +3590,9 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Falha ao adicionar diretório observador %v"
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Convite é inválido devido a este não ser de uma equipe aberta."
   }
 ]

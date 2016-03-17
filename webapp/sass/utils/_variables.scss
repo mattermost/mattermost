@@ -1,0 +1,13 @@
+@charset 'UTF-8';
+
+// Color Variables
+$color--primary: rgb(35, 137, 215);
+$color--primary--hover: darken($color--primary, 10%);
+$bg--gray: rgb(245, 245, 245);
+$bg--white: rgb(255, 255, 255);
+
+// Page Variables
+$border-gray: 1px solid #ddd;
+
+// Random variables
+$border-rad: 1px;

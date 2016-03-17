@@ -201,21 +201,23 @@ func TestLoadTestUrlCommands(t *testing.T) {
 		t.Fatal("/loadtest url for README.md should've executed")
 	}
 
-	command = "/loadtest url test-emoticons1.md"
-	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
-		t.Fatal("/loadtest url for test-emoticons.md should've executed")
-	}
+	// Removing these tests since they break compatibilty with previous release branches because the url pulls from github master
 
-	command = "/loadtest url test-emoticons1"
-	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
-		t.Fatal("/loadtest url for test-emoticons should've executed")
-	}
+	// command = "/loadtest url test-emoticons1.md"
+	// if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
+	// 	t.Fatal("/loadtest url for test-emoticons.md should've executed")
+	// }
 
-	posts := Client.Must(Client.GetPosts(channel.Id, 0, 5, "")).Data.(*model.PostList)
-	// note that this may make more than 3 posts if files are too long to fit in an individual post
-	if len(posts.Order) < 3 {
-		t.Fatal("/loadtest url made too few posts, perhaps there needs to be a delay before GetPosts in the test?")
-	}
+	// command = "/loadtest url test-emoticons1"
+	// if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
+	// 	t.Fatal("/loadtest url for test-emoticons should've executed")
+	// }
+
+	// posts := Client.Must(Client.GetPosts(channel.Id, 0, 5, "")).Data.(*model.PostList)
+	// // note that this may make more than 3 posts if files are too long to fit in an individual post
+	// if len(posts.Order) < 3 {
+	// 	t.Fatal("/loadtest url made too few posts, perhaps there needs to be a delay before GetPosts in the test?")
+	// }
 
 	time.Sleep(2 * time.Second)
 }

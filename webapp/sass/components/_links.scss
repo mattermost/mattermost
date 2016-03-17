@@ -1,0 +1,23 @@
+@charset 'UTF-8';
+
+a {
+    cursor: pointer;
+    text-decoration: none;
+    word-break: break-word;
+    color: $color--primary;
+}
+
+a:focus,
+a:hover {
+    color: $color--primary--hover;
+}
+
+.text-danger,
+a.text-danger {
+    color: #e05f5d;
+
+    &:hover,
+    &:focus {
+        color: #e05f5d;
+    }
+}

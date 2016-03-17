@@ -1,0 +1,13 @@
+@charset 'UTF-8';
+
+.alert {
+    padding: 8px 12px;
+    @include border-radius($border-rad);
+}
+
+.alert--confirm {
+    display: inline-block;
+    float: left;
+    padding: 4px 10px;
+    margin: 1px 0 0 10px;
+}

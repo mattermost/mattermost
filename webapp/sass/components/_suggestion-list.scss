@@ -1,0 +1,41 @@
+@charset 'UTF-8';
+
+.suggestion-list {
+    width: 100%;
+    z-index: 100;
+    @extend %popover-box-shadow;
+}
+
+.suggestion-list--top {
+    position: absolute;
+}
+
+.suggestion-list__content {
+    width: 100%;
+    max-height: 292px;
+    background-color: #fff;
+    border: $border-gray;
+    overflow-x: hidden;
+    overflow-y: scroll;
+
+    .command {
+        position: relative;
+        width: 100%;
+        line-height: 24px;
+        padding: 5px 10px 8px;
+        z-index: 101;
+        font-size: .95em;
+        border-bottom: 1px solid #ddd;
+
+        .command__desc {
+            margin-left: 5px;
+            @include opacity(.5);
+            line-height: normal;
+        }
+    }
+}
+
+.suggestion-list__content--top {
+    position: absolute;
+    bottom: 0;
+}
