@@ -4,8 +4,12 @@
 import LoadingScreen from '../loading_screen.jsx';
 
 import * as Client from 'utils/client.jsx';
+import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 const holders = defineMessages({
     requestTypePost: {
@@ -59,6 +63,7 @@ export default class ManageCommandCmds extends React.Component {
         this.getCmds = this.getCmds.bind(this);
         this.addNewCmd = this.addNewCmd.bind(this);
         this.emptyCmd = this.emptyCmd.bind(this);
+        this.updateExternalManagement = this.updateExternalManagement.bind(this);
         this.updateTrigger = this.updateTrigger.bind(this);
         this.updateURL = this.updateURL.bind(this);
         this.updateMethod = this.updateMethod.bind(this);
@@ -99,7 +104,7 @@ export default class ManageCommandCmds extends React.Component {
     addNewCmd(e) {
         e.preventDefault();
 
-        if (this.state.cmd.trigger === '' || this.state.cmd.url === '') {
+        if (this.state.cmd.url === '' || (this.state.cmd.trigger === '' && !this.state.external_management)) {
             return;
         }
 
@@ -189,6 +194,12 @@ export default class ManageCommandCmds extends React.Component {
         );
     }
 
+    updateExternalManagement(e) {
+        var cmd = this.state.cmd;
+        cmd.external_management = e.target.checked;
+        this.setState(cmd);
+    }
+
     updateTrigger(e) {
         var cmd = this.state.cmd;
         cmd.trigger = e.target.value;
@@ -270,11 +281,26 @@ export default class ManageCommandCmds extends React.Component {
                 );
             }
 
+            let slashCommandAutocompleteDiv;
+            if (Utils.isFeatureEnabled(PreReleaseFeatures.SLASHCMD_AUTOCMP)) {
+                slashCommandAutocompleteDiv = (
+                    <div className='padding-top x2'>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.cmds.external_management'
+                                defaultMessage='External management: '
+                            />
+                        </strong><span className='word-break--all'>{cmd.external_management ? this.props.intl.formatMessage(holders.autocompleteYes) : this.props.intl.formatMessage(holders.autocompleteNo)}</span>
+                    </div>
+                );
+            }
+
             cmds.push(
                 <div
                     key={cmd.id}
                     className='webhook__item webcmd__item'
                 >
+                    {slashCommandAutocompleteDiv}
                     {triggerDiv}
                     <div className='padding-top x2 webcmd__url'>
                         <strong>
@@ -416,7 +442,170 @@ export default class ManageCommandCmds extends React.Component {
             </div>
         );
 
-        const disableButton = this.state.cmd.trigger === '' || this.state.cmd.url === '';
+        const disableButton = this.state.cmd.url === '' || (this.state.cmd.trigger === '' && !this.state.external_management);
+
+        let triggerInput;
+        if (!this.state.cmd.external_management) {
+            triggerInput = (
+                <div className='padding-top x2'>
+                    <label className='control-label'>
+                        <FormattedMessage
+                            id='user.settings.cmds.trigger'
+                            defaultMessage='Command Trigger Word: '
+                        />
+                    </label>
+                    <div className='padding-top'>
+                        <input
+                            ref='trigger'
+                            className='form-control'
+                            value={this.state.cmd.trigger}
+                            onChange={this.updateTrigger}
+                            placeholder={this.props.intl.formatMessage(holders.addTriggerPlaceholder)}
+                        />
+                    </div>
+                    <div className='padding-top'>
+                        <FormattedMessage
+                            id='user.settings.cmds.trigger_desc'
+                            defaultMessage='Examples: /patient, /client, /employee Reserved: /echo, /join, /logout, /me, /shrug'
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        let slashCommandAutocompleteCheckbox;
+        if (Utils.isFeatureEnabled(PreReleaseFeatures.SLASHCMD_AUTOCMP)) {
+            slashCommandAutocompleteCheckbox = (
+                <div className='padding-top x2'>
+                    <label className='control-label'>
+                        <FormattedMessage
+                            id='user.settings.cmds.external_management'
+                            defaultMessage='External management: '
+                        />
+                    </label>
+                    <div className='padding-top'>
+                        <div className='checkbox'>
+                            <label>
+                                <input
+                                    type='checkbox'
+                                    checked={this.state.cmd.external_management}
+                                    onChange={this.updateExternalManagement}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.cmds.slashCmd_autocmp'
+                                    defaultMessage='Enable external application to offer autocomplete'
+                                />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            );
+        }
+
+        let autoCompleteSettings;
+        if (!this.state.cmd.external_management) {
+            autoCompleteSettings = (
+                <div>
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete'
+                                defaultMessage='Autocomplete: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <div className='checkbox'>
+                                <label>
+                                    <input
+                                        type='checkbox'
+                                        checked={this.state.cmd.auto_complete}
+                                        onChange={this.updateAutoComplete}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.cmds.auto_complete_help'
+                                        defaultMessage=' Show this command in the autocomplete list.'
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_hint'
+                                defaultMessage='Autocomplete Hint: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <input
+                                ref='autoCompleteHint'
+                                className='form-control'
+                                value={this.state.cmd.auto_complete_hint}
+                                onChange={this.updateAutoCompleteHint}
+                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteHintPlaceholder)}
+                            />
+                        </div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_hint_desc'
+                                defaultMessage='Optional hint in the autocomplete list about parameters needed for command.'
+                            />
+                        </div>
+                    </div>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_desc'
+                                defaultMessage='Autocomplete Description: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <input
+                                ref='autoCompleteDesc'
+                                className='form-control'
+                                value={this.state.cmd.auto_complete_desc}
+                                onChange={this.updateAutoCompleteDesc}
+                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteDescPlaceholder)}
+                            />
+                        </div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.auto_complete_desc_desc'
+                                defaultMessage='Optional short description of slash command for the autocomplete list.'
+                            />
+                        </div>
+                    </div>
+
+                    <div className='padding-top x2'>
+                        <label className='control-label'>
+                            <FormattedMessage
+                                id='user.settings.cmds.display_name'
+                                defaultMessage='Descriptive Label: '
+                            />
+                        </label>
+                        <div className='padding-top'>
+                            <input
+                                ref='displayName'
+                                className='form-control'
+                                value={this.state.cmd.display_name}
+                                onChange={this.updateDisplayName}
+                                placeholder={this.props.intl.formatMessage(holders.addDisplayNamePlaceholder)}
+                            />
+                        </div>
+                        <div className='padding-top'>
+                            <FormattedMessage
+                                id='user.settings.cmds.cmd_display_name'
+                                defaultMessage='Brief description of slash command to show in listings.'
+                            />
+                        </div>
+                        {addError}
+                    </div>
+                </div>
+            );
+        }
 
         return (
             <div key='addCommandCmd'>
@@ -433,29 +622,8 @@ export default class ManageCommandCmds extends React.Component {
                 <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
 
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.trigger'
-                                defaultMessage='Command Trigger Word: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='trigger'
-                                className='form-control'
-                                value={this.state.cmd.trigger}
-                                onChange={this.updateTrigger}
-                                placeholder={this.props.intl.formatMessage(holders.addTriggerPlaceholder)}
-                            />
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.trigger_desc'
-                                defaultMessage='Examples: /patient, /client, /employee Reserved: /echo, /join, /logout, /me, /shrug'
-                            />
-                        </div>
-                    </div>
+                    {slashCommandAutocompleteCheckbox}
+                    {triggerInput}
 
                     <div className='padding-top x2'>
                         <label className='control-label'>
@@ -560,102 +728,7 @@ export default class ManageCommandCmds extends React.Component {
                         </div>
                     </div>
 
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete'
-                                defaultMessage='Autocomplete: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <div className='checkbox'>
-                                <label>
-                                    <input
-                                        type='checkbox'
-                                        checked={this.state.cmd.auto_complete}
-                                        onChange={this.updateAutoComplete}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.cmds.auto_complete_help'
-                                        defaultMessage=' Show this command in the autocomplete list.'
-                                    />
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_hint'
-                                defaultMessage='Autocomplete Hint: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='autoCompleteHint'
-                                className='form-control'
-                                value={this.state.cmd.auto_complete_hint}
-                                onChange={this.updateAutoCompleteHint}
-                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteHintPlaceholder)}
-                            />
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_hint_desc'
-                                defaultMessage='Optional hint in the autocomplete list about parameters needed for command.'
-                            />
-                        </div>
-                    </div>
-
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_desc'
-                                defaultMessage='Autocomplete Description: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='autoCompleteDesc'
-                                className='form-control'
-                                value={this.state.cmd.auto_complete_desc}
-                                onChange={this.updateAutoCompleteDesc}
-                                placeholder={this.props.intl.formatMessage(holders.addAutoCompleteDescPlaceholder)}
-                            />
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.auto_complete_desc_desc'
-                                defaultMessage='Optional short description of slash command for the autocomplete list.'
-                            />
-                        </div>
-                    </div>
-
-                    <div className='padding-top x2'>
-                        <label className='control-label'>
-                            <FormattedMessage
-                                id='user.settings.cmds.display_name'
-                                defaultMessage='Descriptive Label: '
-                            />
-                        </label>
-                        <div className='padding-top'>
-                            <input
-                                ref='displayName'
-                                className='form-control'
-                                value={this.state.cmd.display_name}
-                                onChange={this.updateDisplayName}
-                                placeholder={this.props.intl.formatMessage(holders.addDisplayNamePlaceholder)}
-                            />
-                        </div>
-                        <div className='padding-top'>
-                            <FormattedMessage
-                                id='user.settings.cmds.cmd_display_name'
-                                defaultMessage='Brief description of slash command to show in listings.'
-                            />
-                        </div>
-                        {addError}
-                    </div>
+                    {autoCompleteSettings}
 
                     <div className='padding-top x2 padding-bottom'>
                         <a
