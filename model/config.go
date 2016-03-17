@@ -21,6 +21,10 @@ const (
 
 	SERVICE_GITLAB = "gitlab"
 	SERVICE_GOOGLE = "google"
+
+	WEBSERVER_MODE_REGULAR  = "regular"
+	WEBSERVER_MODE_GZIP     = "gzip"
+	WEBSERVER_MODE_DISABLED = "disabled"
 )
 
 type ServiceSettings struct {
@@ -46,6 +50,7 @@ type ServiceSettings struct {
 	SessionCacheInMinutes             *int
 	WebsocketSecurePort               *int
 	WebsocketPort                     *int
+	WebserverMode                     *string
 }
 
 type SSOSettings struct {
@@ -382,6 +387,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.AllowCorsFrom == nil {
 		o.ServiceSettings.AllowCorsFrom = new(string)
 		*o.ServiceSettings.AllowCorsFrom = ""
+	}
+
+	if o.ServiceSettings.WebserverMode == nil {
+		o.ServiceSettings.WebserverMode = new(string)
+		*o.ServiceSettings.WebserverMode = "regular"
 	}
 }
 

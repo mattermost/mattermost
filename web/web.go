@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/NYTimes/gziphandler"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
@@ -23,11 +25,17 @@ func InitWeb() {
 
 	mainrouter := api.Srv.Router
 
-	staticDir := utils.FindDir(CLIENT_DIR)
-	l4g.Debug("Using client directory at %v", staticDir)
-	mainrouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
+	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
+		staticDir := utils.FindDir(CLIENT_DIR)
+		l4g.Debug("Using client directory at %v", staticDir)
+		if *utils.Cfg.ServiceSettings.WebserverMode == "gzip" {
+			mainrouter.PathPrefix("/static/").Handler(gziphandler.GzipHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))))
+		} else {
+			mainrouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
+		}
 
-	mainrouter.Handle("/{anything:.*}", api.AppHandlerIndependent(root)).Methods("GET")
+		mainrouter.Handle("/{anything:.*}", api.AppHandlerIndependent(root)).Methods("GET")
+	}
 }
 
 var browsersNotSupported string = "MSIE/8;MSIE/9;MSIE/10;Internet Explorer/8;Internet Explorer/9;Internet Explorer/10;Safari/7;Safari/8"

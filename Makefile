@@ -136,6 +136,7 @@ package:
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
 build-client:
+	mkdir -p webapp/dist/files
 	cd webapp && make build
 
 go-test:
@@ -196,15 +197,10 @@ clean: stop-docker
 	rm -Rf $(DIST_ROOT)
 	go clean $(GOFLAGS) -i ./...
 
-	rm -rf web/react/node_modules
-	rm -f web/static/js/bundle*.js
-	rm -f web/static/js/bundle*.js.map
-	rm -f web/static/js/libs*.js
-	rm -f web/static/css/styles.css
+	cd webapp && make clean
 
 	rm -rf api/data
 	rm -rf logs
-	rm -rf web/sass-files/.sass-cache
 
 	rm -rf Godeps/_workspace/pkg/
 
@@ -220,14 +216,17 @@ nuke: | clean clean-docker
 
 	touch $@
 
-run: start-docker run-server run-client
+run: | start-docker run-client run-server
 
 run-server: .prepare-go
 	@echo Starting go web server
 	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
 
-run-client: build-client
-	@echo Starting react processo
+run-client:
+	@echo Starting client
+
+	mkdir -p webapp/dist/files
+	cd webapp && make run
 
 	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
 		cp ./config/config.json ./config/config.json.bak; \
