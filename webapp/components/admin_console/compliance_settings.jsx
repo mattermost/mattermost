@@ -4,24 +4,14 @@
 import $ from 'jquery';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
+import * as Utils from '../../utils/utils.jsx';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-var holders = defineMessages({
-    saving: {
-        id: 'admin.compliance.saving',
-        defaultMessage: 'Saving Config...'
-    },
-    directoryExample: {
-        id: 'admin.compliance.directoryExample',
-        defaultMessage: 'Ex "./data/"'
-    }
-});
-
-class ComplianceSettings extends React.Component {
+export default class ComplianceSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -74,7 +64,6 @@ class ComplianceSettings extends React.Component {
         );
     }
     render() {
-        const {formatMessage} = this.props.intl;
         let serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -100,6 +89,9 @@ class ComplianceSettings extends React.Component {
                 </div>
             );
         }
+
+        //var exampleDir = Utils.localizeMessage('admin.compliance.directoryExample', 'Ex "./data/"');
+        //var saveButtonText = Utils.localizeMessage('admin.compliance.saving', 'Saving Config...');
 
         return (
             <div className='wrapper--fixed'>
@@ -179,7 +171,7 @@ class ComplianceSettings extends React.Component {
                                 className='form-control'
                                 id='Directory'
                                 ref='Directory'
-                                placeholder={formatMessage(holders.directoryExample)}
+                                placeholder={Utils.localizeMessage('admin.compliance.directoryExample', 'Ex "./data/"')}
                                 defaultValue={this.props.config.ComplianceSettings.Directory}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -250,7 +242,7 @@ class ComplianceSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(holders.saving)}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + Utils.localizeMessage('admin.compliance.saving', 'Saving Config...')}
                             >
                                 <FormattedMessage
                                     id='admin.compliance.save'
@@ -264,12 +256,8 @@ class ComplianceSettings extends React.Component {
         );
     }
 }
-ComplianceSettings.defaultProps = {
-};
 
 ComplianceSettings.propTypes = {
-    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
 
-export default injectIntl(ComplianceSettings);
