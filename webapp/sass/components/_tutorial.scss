@@ -1,72 +1,76 @@
 @charset 'UTF-8';
 
 .tip-backdrop {
-    background: rgba(black, .5);
+    background: alpha-color($black, .5);
+    height: 100%;
+    left: 0;
     position: absolute;
     top: 0;
-    left: 0;
     width: 100%;
-    height: 100%;
     z-index: 999;
 }
 
 .tip-overlay {
-    width: 350px;
-    max-width: 90%;
-    position: absolute;
-    background-color: #fff;
     @include border-radius(3px);
+    background-color: $white;
+    max-width: 90%;
     padding: 20px;
+    position: absolute;
+    width: 350px;
     z-index: 1000;
 
     .arrow {
-        border-width: 10px;
-        position: absolute;
-        display: block;
-        width: 0;
-        height: 0;
         border-color: transparent;
         border-style: solid;
+        border-width: 10px;
+        display: block;
+        height: 0;
+        position: absolute;
+        width: 0;
     }
 
     &.tip-overlay--sidebar {
-        max-width: 75%;
         margin: 50px 0 0 10px;
+        max-width: 75%;
         min-height: 330px;
+
         .tutorial__footer {
-            position: absolute;
-            width: 100%;
             bottom: 20px;
             left: 0;
             padding: 0 20px;
+            position: absolute;
+            width: 100%;
         }
+
         .arrow {
-            top: 80px;
+            border-left-width: 0;
+            border-right-color: $white;
             left: -10px;
             margin-top: -10px;
-            border-left-width: 0;
-            border-right-color: #fff;
+            top: 80px;
         }
     }
 
     &.tip-overlay--header {
         margin: 10px 0 0 10px;
+
         .arrow {
-            top: 15px;
-            left: -10px;
             border-left-width: 0;
-            border-right-color: #fff;
+            border-right-color: $white;
+            left: -10px;
+            top: 15px;
         }
     }
 
     &.tip-overlay--chat {
         margin-top: -10px;
+
         .arrow {
+            border-bottom-width: 0;
+            border-top-color: $white;
+            bottom: -10px;
             left: 50%;
             margin-left: -10px;
-            border-bottom-width: 0;
-            border-top-color: #fff;
-            bottom: -10px;
         }
     }
 
@@ -86,18 +90,18 @@
     }
 
     .btn {
-        background: #ccc;
-        color: #fff;
         @include border-radius(3px);
+        background: alpha-color($black, .3);
         border: none;
+        color: $white;
         margin: 10px 0;
 
         &:hover,
         &:active,
         &:focus {
-            color: #fff;
+            background: alpha-color($black, .4);
             border: none;
-            background: #bbb;
+            color: $white;
         }
     }
 
@@ -110,81 +114,88 @@
     }
 
     .tutorial__circles {
-        margin: 1.5em 0px -1.7em -4px;
+        margin: 1.5em 0 -1.7em -4px;
 
         .circle {
-            width: 7px;
             height: 7px;
             margin: 0 4px;
+            width: 7px;
         }
     }
 }
 
 .tip-button {
-    z-index: 998;
+    cursor: pointer;
+    position: relative;
     right: -10px;
     top: -10px;
-    position: relative;
-    cursor: pointer;
+    z-index: 998;
 }
 
 .tip-div {
     position: absolute;
-    top: 0px;
-    right: 0px;
+    right: 0;
+    top: 0;
 
     &.tip-overlay--header {
-        top: 21px;
         right: 2px;
+        top: 21px;
+
         .tip-button {
             @include opacity(.8);
         }
     }
 
     &.tip-overlay--sidebar {
-        left: 0;
         @include opacity(.8);
+        left: 0;
         top: -9px;
     }
 }
 
 .tutorial-steps__container {
-    text-align: center;
-    width: 100%;
     display: table;
     height: 100%;
+    text-align: center;
+    width: 100%;
+
     .tutorial__content {
         display: table-cell;
-        vertical-align: middle;
-        padding-bottom: 100px;
         padding: 20px 40px 40px;
+        vertical-align: middle;
+
         .tutorial__steps {
-            position: relative;
+            display: inline-block;
+            margin-bottom: 50px;
             max-width: 310px;
             min-height: 370px;
-            margin-bottom: 50px;
+            position: relative;
             text-align: left;
-            display: inline-block;
         }
     }
+
     .tutorial__footer {
-        position: absolute;
         bottom: 0;
+        position: absolute;
     }
+
     h1 {
         font-size: em(40px);
-        margin: -20px 0 30px;
         font-weight: 600;
+        margin: -20px 0 30px;
     }
+
     h3 {
         font-size: em(24px);
-        margin-bottom: 30px;
         font-weight: 600;
+        margin-bottom: 30px;
     }
+
     .tutorial__circles {
-        position: absolute;
         bottom: 40px;
+        position: absolute;
     }
+
     .tutorial-skip {
         margin-left: 13px;
     }
@@ -192,17 +203,19 @@
 
 .tutorial__circles {
     margin: 2em 0;
+
     .circle {
-        width: 9px;
-        height: 9px;
         @include border-radius(9px);
         @include opacity(.2);
-        background: #000;
+        background: $black;
         display: inline-block;
+        height: 9px;
         margin: 0 5px;
+        width: 9px;
+
         &.active {
-            background: $color--primary;
             @include opacity(1);
+            background: $primary-color;
         }
     }
 }

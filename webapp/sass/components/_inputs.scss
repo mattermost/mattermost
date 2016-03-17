@@ -15,12 +15,21 @@
     &.no-resize {
         resize: none;
     }
+
+    &[disabled],
+    [readonly] {
+        @include alpha-property(background, $white, .1);
+        color: inherit;
+        cursor: auto;
+    }
 }
 
-.form-control[disabled],
-.form-control[readonly],
-fieldset[disabled] .form-control {
-    cursor: auto;
-    background: rgba(#fff, .1);
-    color: inherit;
+fieldset {
+    &[disabled] {
+        .form-control {
+            @include alpha-property(background, $white, .1);
+            color: inherit;
+            cursor: auto;
+        }
+    }
 }

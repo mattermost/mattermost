@@ -1,15 +1,19 @@
 @charset 'UTF-8';
 
-#channel-header .search-bar__container {
-    padding: 0 9px 0 3px;
+.channel-header {
+    .search-bar__container {
+        padding: 0 9px 0 3px;
+    }
 }
 
 .search-bar__container {
-    padding: 12px 8px 0 0;
     @include flex(0 0 56px);
+    padding: 12px 8px 0 0;
 
-    .sidebar--right.move--left & {
-        padding-right: 42px;
+    .sidebar--right {
+        &.move--left & {
+            padding-right: 42px;
+        }
     }
 }
 
@@ -18,62 +22,60 @@
 }
 
 .search__clear {
-    display: none;
-    position: absolute;
-    right: 0;
-    line-height: 45px;
-    margin-right: 13px;
     @include single-transition(all, .2s, linear);
     @include translateX(60px);
-    z-index: 5;
     cursor: pointer;
+    display: none;
+    line-height: 45px;
+    margin-right: 13px;
+    position: absolute;
+    right: 0;
+    z-index: 5;
 }
 
 .search-item-snippet {
     @include clearfix;
     text-overflow: ellipsis;
-}
 
-.sidebar__collapse {
-    cursor: pointer;
-    z-index: 5;
-    fill: #fff;
-    position: absolute;
-    left: 0;
-    font-size: 35px;
-    width: 49px;
-    @include single-transition(all, .2s, linear);
-    @include translateX(0px);
-    text-align: center;
-    padding-left: 1px;
-    line-height: 40px;
-    display: none;
-}
-
-.search-item-snippet {
     ul,
     ol {
         padding-left: 20px;
     }
 }
 
+.sidebar__collapse {
+    @include single-transition(all, .2s, linear);
+    @include translateX(0);
+    cursor: pointer;
+    display: none;
+    fill: $white;
+    font-size: 35px;
+    left: 0;
+    line-height: 40px;
+    padding-left: 1px;
+    position: absolute;
+    text-align: center;
+    width: 49px;
+    z-index: 5;
+}
+
 .sidebar__search-icon {
+    @include opacity(.5);
+    color: $dark-gray;
+    display: none;
+    font-size: 14px;
+    margin-left: 10px;
     position: absolute;
     top: 15px;
-    margin-left: 10px;
-    font-size: 14px;
-    @include opacity(.5);
-    display: none;
-    color: #777;
 }
 
 .search__form {
     position: relative;
 
     .search-bar__container & {
-        margin: 0;
-        border: 1px solid #ddd;
         @include border-radius(2px);
+        border: 1px solid $light-gray;
+        margin: 0;
         width: 300px;
     }
 
@@ -82,21 +84,21 @@
     }
 
     .search-bar {
+        box-shadow: none;
         height: 40px;
         padding-right: 30px;
-        box-shadow: none;
 
         .search-bar__container & {
-            height: 30px;
             border: none;
+            height: 30px;
         }
     }
 
     .glyphicon-refresh-animate {
-        top: 27px;
+        color: $dark-gray;
         position: absolute;
         right: 27px;
-        color: #999;
+        top: 27px;
 
         .search-bar__container & {
             right: 7px;
@@ -106,30 +108,29 @@
 }
 
 .search-items-container {
-    position: relative;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
     @include flex(1 1 auto);
+    -webkit-overflow-scrolling: touch;
     height: calc(100% - 56px);
+    overflow: auto;
     padding-top: 10px;
+    position: relative;
 }
 
 .search-results-header {
+    border-bottom: $border-gray;
+    color: #999999;
     font-size: 1em;
-    text-transform: uppercase;
-    color: #999;
     font-weight: 400;
-    color: #888;
     height: 44px;
     line-height: 44px;
-    padding: 0 10px 0 10px;
-    border-bottom: $border-gray;
+    padding: 0 10px;
+    text-transform: uppercase;
 }
 
 .search-item__container {
     .post {
-        padding: 0 1em 1em;
         margin: 0;
+        padding: 0 1em 1em;
 
         &:first-child {
             border: none;
@@ -137,17 +138,17 @@
 
         .search-channel__name {
             font-weight: 600;
-            margin: 0 0 10px 0;
+            margin: 0 0 10px;
         }
     }
 }
 
 .search-item__jump {
+    @include opacity(.8);
+    font-size: 13px;
     position: absolute;
     right: 0;
-    top: 0px;
-    font-size: 13px;
-    @include opacity(.8);
+    top: 0;
 
     &:hover {
         @include opacity(1);
@@ -155,9 +156,9 @@
 }
 
 .search-item__comment {
+    margin-right: 35px;
     position: absolute;
     right: 0;
-    margin-right: 35px;
     top: 0;
 }
 
@@ -171,5 +172,5 @@
 }
 
 .search-highlight {
-    background-color: #fff2bb;
+    background-color: $yellow;
 }

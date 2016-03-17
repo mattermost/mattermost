@@ -1,6 +1,6 @@
 @charset 'UTF-8';
 
-#channel-header {
+.channel-header {
     @include flex(0 0 56px);
 }
 
@@ -15,8 +15,8 @@
 }
 
 .header-dropdown__icon {
-    font-size: 11px;
     color: inherit;
+    font-size: 11px;
     top: 3px;
 }
 
@@ -31,12 +31,12 @@
         word-break: break-word;
 
         &.dropdown {
+            float: left;
             max-width: 100%;
             padding-right: 1em;
-            float: left;
 
             .header-dropdown__icon {
-                color: #777;
+                color: $dark-gray;
             }
 
             a {
@@ -49,10 +49,11 @@
         }
 
         &.description {
-            overflow: hidden;
-            text-overflow: ellipsis;
             margin-top: 2px;
             max-height: 45px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
             .markdown-inline-img {
                 max-height: 45px;
             }
@@ -65,14 +66,14 @@
 }
 
 .channel-intro {
+    border-bottom: 1px solid $light-gray;
     margin: 0 auto 35px;
-    padding: 0 1em 5px;
     max-width: 1000px;
-    border-bottom: 1px solid lightgrey;
+    padding: 0 1em 5px;
 
     .intro-links {
-        margin: 0 1.5em 10px 0;
         display: inline-block;
+        margin: 0 1.5em 10px 0;
 
         .fa {
             margin-right: 5px;
@@ -80,28 +81,30 @@
     }
 
     .channel-intro-profile {
-        margin-top: 5px;
         margin-left: 63px;
+        margin-top: 5px;
     }
 
     .channel-intro-img {
         float: left;
+
         img {
             @include border-radius(100px);
         }
     }
 
     .channel-intro__title {
-        font-weight: 600;
         font-size: 20px;
+        font-weight: 600;
         margin-bottom: 15px;
     }
 
     .channel-intro__content {
-        background: #f7f7f7;
-        padding: 10px 15px;
         @include border-radius(3px);
+        background: $bg--gray;
+        padding: 10px 15px;
     }
+
     .channel-intro-text {
         margin-top: 35px;
     }
@@ -111,28 +114,28 @@
 .sidebar--left,
 .sidebar--menu {
     .team__header {
-        position: relative;
-        padding: 9px 10px;
         @include legacy-pie-clearfix;
+        padding: 9px 10px;
+        position: relative;
 
         &:before {
             @include single-transition(all, .05s, linear);
-            content: '';
             background: none;
-            top: 0;
-            left: 0;
-            width: 100%;
+            content: '';
             height: 100%;
+            left: 0;
             position: absolute;
+            top: 0;
+            width: 100%;
         }
 
         &:hover {
             &:before {
-                background: rgba(black, .1);
+                @include alpha-property(background, $black, .1);
             }
 
             .user__name {
-                color: #fff;
+                color: $white;
             }
 
             .navbar-right {
@@ -145,95 +148,88 @@
         .navbar-right {
             font-size: .85em;
             position: absolute;
-            top: 10px;
             right: 22px;
+            top: 10px;
             z-index: 5;
 
             .dropdown-toggle {
+                @include opacity(.8);
                 @include single-transition(all, .1s, linear);
                 padding: 10px;
-                @include opacity(.8);
             }
 
             .dropdown-menu {
-                li a {
+                a {
+                    overflow: hidden;
                     padding: 3px 20px;
                     text-overflow: ellipsis;
-                    overflow: hidden;
                 }
             }
 
             .dropdown__icon {
-                fill: #fff;
+                fill: $white;
             }
         }
 
-        .settings__link a:hover,
-        a:visited,
-        a:link,
-        a:active {
-            text-decoration: none;
-        }
-
         .user__picture {
-            width: 36px;
-            height: 36px;
-            float: left;
             @include border-radius(36px);
+            float: left;
+            height: 36px;
             margin-right: 6px;
+            width: 36px;
         }
 
         .header__info {
-            color: #fff;
             @include clearfix;
+            color: $white;
             padding-left: 2px;
-            z-index: 1;
             position: relative;
+            z-index: 1;
         }
 
         .team__name,
         .user__name {
             display: block;
-            font-weight: 600;
             font-size: 16px;
+            font-weight: 600;
             max-width: 85%;
             overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
             text-decoration: none;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .team__name {
+            float: left;
             line-height: 22px;
             margin-top: -2px;
-            float: left;
         }
 
         .user__name {
             @include single-transition(all, .1s, linear);
+            @include alpha-property(color, $white, .8);
             font-size: 14px;
-            line-height: 18px;
             font-weight: 400;
-            color: #eee;
-            color: rgba(#fff, .8);
+            line-height: 18px;
         }
 
         > .nav {
             > li {
                 > a {
+                    background: none;
                     float: right;
-                    background: none !important;
                     padding: 2px;
+                }
 
-                    &.dropdown-toggle {
-                        line-height: 1.8;
-                        font-size: 1em;
-                        color: #fff;
-                    }
+                .dropdown-toggle {
+                    color: $white;
+                    font-size: 1em;
+                    line-height: 1.8;
                 }
             }
         }
     }
+
     .search__clear {
         display: none;
     }
@@ -250,27 +246,29 @@
 }
 
 .channel-header {
-    width: 100%;
     border-left: none;
     font-size: 14px;
     line-height: 56px;
+    width: 100%;
 
     #member_popover {
-        width: 50px;
-        color: #999;
+        color: #999999;
         cursor: pointer;
+        width: 50px;
 
         .fa {
-            margin-left: 4px;
             font-size: 16px;
+            margin-left: 4px;
         }
     }
 
     &.alt {
         margin: 0;
+
         th {
             font-weight: normal !important;
         }
+
         td {
             border: none;
         }
@@ -278,37 +276,39 @@
 
     th {
         text-align: center;
+
         &:first-child {
-            text-align: left !important;
             border-left: none;
-            width: 100%;
             padding-left: 1em;
+            text-align: left !important;
+            width: 100%;
         }
+
         &:last-child {
             width: 8.9%;
         }
     }
 
     td {
-        padding: 5px 25px 5px !important;
         font-size: 13px;
+        padding: 5px 25px 5px !important;
         text-align: center !important;
+
         &:first-child {
             text-align: left !important;
         }
     }
 
     .heading {
-        margin: 0;
-        color: #555;
+        color: #555555;
+        display: inline-block;
         font-size: 1.3em;
         font-weight: 600;
+        margin: 0 4px 0 0;
+        max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 100%;
-        display: inline-block;
         vertical-align: middle;
-        margin-right: 4px;
     }
 
     .caret {
@@ -318,13 +318,13 @@
     .more {
         color: #81848b;
         display: inline-block;
-        vertical-align: top;
-        text-transform: capitalize;
         font-size: 13px;
+        text-transform: capitalize;
+        vertical-align: top;
     }
 
     .disabled {
-        color: #999;
+        color: #999999;
     }
 }
 
@@ -342,11 +342,11 @@
 
 .channel-header__links {
     font-family: 'Open Sans', sans-serif;
+    font-size: 22px;
     height: 30px;
-    width: 24px;
     line-height: 26px;
     margin-right: 9px;
-    font-size: 22px;
+    width: 24px;
 
     .channel__wrap.move--left & {
         position: absolute;
@@ -355,14 +355,15 @@
     }
 
     > a {
-        color: inherit;
-        text-decoration: none;
         @include opacity(.6);
         @include single-transition(all, .1s, ease-in);
+        color: inherit;
+        text-decoration: none;
 
         &:hover {
             @include opacity(1);
         }
+
         &:focus {
             color: inherit;
         }

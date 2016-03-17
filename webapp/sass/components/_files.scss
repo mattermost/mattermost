@@ -1,27 +1,31 @@
 @charset 'UTF-8';
 
 .file-preview__container {
-    position: relative;
-    margin: 1px 0 10px;
-    width: 100%;
-    max-height: 100px;
     height: 100px;
-    white-space: nowrap;
+    margin: 1px 0 10px;
+    max-height: 100px;
     overflow-x: auto;
     overflow-y: hidden;
+    position: relative;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .file-preview {
+    @include clearfix;
+    border: 1px solid $light-gray;
     display: inline-block;
-    width: 120px;
     height: 100px;
     margin: 0 0 0 10px;
     position: relative;
-    border: 1px solid #ddd;
-    @include clearfix;
+    width: 120px;
 
-    &:hover .file-preview__remove:after {
-        @include opacity(1);
+    &:hover {
+        .file-preview__remove {
+            &:after {
+                @include opacity(1);
+            }
+        }
     }
 
     &:first-child {
@@ -29,13 +33,13 @@
     }
 
     .spinner {
-        position: absolute;
-        top: 50%;
+        height: 32px;
         left: 50%;
         margin-left: -16px;
         margin-top: -16px;
+        position: absolute;
+        top: 50%;
         width: 32px;
-        height: 32px;
     }
 }
 
@@ -46,14 +50,15 @@
 }
 
 .file-preview__remove {
-    position: absolute;
-    width: 100%;
     height: 100%;
     left: 0;
+    position: absolute;
     top: 0;
+    width: 100%;
 
     &:after {
-        background: rgba(0, 0, 0, .4);
+        @include opacity(0);
+        @include alpha-property(background, $black, .4);
         content: '';
         height: 100%;
         left: 0;
@@ -61,33 +66,31 @@
         position: absolute;
         top: 0;
         width: 100%;
-        @include opacity(0);
     }
 
     i {
-        top: 5px;
-        right: 5px;
-        position: absolute;
-        color: #fff;
+        color: $white;
         cursor: pointer;
-        z-index: 5;
         opacity: inherit;
-        text-shadow: 0 0px 3px #444;
-        text-shadow: 0 0px 3px rgba(0, 0, 0, .7);
+        position: absolute;
+        right: 5px;
+        text-shadow: 0 0 3px alpha-color($black, .7);
+        top: 5px;
+        z-index: 5;
     }
 }
 
 .image-comment {
     background-position: left top;
     background-repeat: no-repeat;
-    width: 300px;
     height: 300px;
+    width: 300px;
 }
 
 
 .file-icon {
-    width: 100%;
     height: 100%;
+    width: 100%;
 
     &.audio {
         @include file-icon('../images/icons/audio.png');
@@ -131,36 +134,30 @@
 }
 
 .post-image__column {
+    border: 1px solid alpha-color($black, .2);
+    float: left;
+    height: 100px;
+    margin: 5px 10px 5px 0;
     position: relative;
     width: 240px;
-    height: 100px;
-    float: left;
-    margin: 5px 10px 5px 0;
-    border: 1px solid lightgrey;
-
-    a {
-        text-decoration: none;
-        color: grey;
-    }
 }
 
 .post-image__load {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
     height: 100%;
     width: 100%;
-    background-size: 20px 20px;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-image: url('~images/load.gif');
 }
 
 .post-image {
-    width: 100%;
-    height: 100%;
-    background-color: #fff;
+    background-color: $white;
     background-repeat: no-repeat;
+    height: 100%;
     overflow: hidden;
     position: relative;
     text-align: center;
+    width: 100%;
 
     &.small {
         background-position: center;
@@ -170,60 +167,59 @@
         background-position: top left;
     }
 
-    .spinner.file__loading {
-        position: absolute;
-        left: 50%;
-        margin-left: -16px;
-        top: 50%;
-        margin-top: -16px;
+    .spinner {
+        .file__loading {
+            left: 50%;
+            margin-left: -16px;
+            margin-top: -16px;
+            position: absolute;
+            top: 50%;
+        }
     }
 
     .file__loaded {
         max-width: initial;
+
         &.landscape,
         &.quadrat {
             height: 100px;
         }
+
         &.portrait {
             width: 120px;
         }
     }
-
-    &:hover .file-playback__controls.stop {
-        @include opacity(1);
-    }
 }
 
 .post-image__thumbnail {
+    @include cursor(zoom-in);
     float: left;
-    width: 50%;
     height: 100%;
-    cursor: zoom-in;
-    cursor: -webkit-zoom-in;
+    width: 50%;
 }
 
 .post-image__details {
-    float: left;
     @include clearfix;
-    word-break: break-word;
-    width: 50%;
-    height: 100%;
-    background: white;
-    border-left: 1px solid #ddd;
+    background: $white;
+    border-left: 1px solid $light-gray;
+    color: alpha-color($black, .8);
+    float: left;
     font-size: 13px;
+    height: 100%;
     padding: 7px;
-    color: #333;
+    width: 50%;
+    word-break: break-word;
 
     .post-image__name {
-        margin-bottom: 3px;
         display: block;
+        margin-bottom: 3px;
     }
 
     .post-image__download {
+        @include opacity(.7);
+        cursor: pointer;
         display: inline-block;
         padding-right: 7px;
-        cursor: pointer;
-        @include opacity(.7);
     }
 
     .post-image__type {
@@ -231,57 +227,55 @@
     }
 
     .post-image__size {
-        margin-left: 4px;
         @include opacity(.6);
+        margin-left: 4px;
     }
 }
 
 .file-details__container {
     @include display-flex;
-    display: -ms-flexbox;
 
     .file-details {
-        width: 320px;
         height: 270px;
         padding: 14px;
         text-align: left;
         vertical-align: top;
+        width: 320px;
 
         .file-details__name {
-            color: #333;
+            color: alpha-color($black, .9);
             font-size: 16px;
         }
 
         .file-details__info {
-            color: grey;
+            color: alpha-color($black, .5);
         }
     }
+
     .file-details__preview {
-        width: 320px;
+        border-right: 1px solid $light-gray;
         height: 270px;
-        border-right: 1px solid #ddd;
         vertical-align: center;
+        width: 320px;
 
         // helper to center the image icon in the preview window
         .file-details__preview-helper {
-            height: 100%;
             display: inline-block;
+            height: 100%;
             vertical-align: middle;
         }
     }
 }
 
 .file-playback__controls {
+    @include single-transition(opacity, .6s);
+    bottom: 0;
+    cursor: pointer;
+    font-size: 22px;
     position: absolute;
     right: 5px;
-    bottom: 0;
-    font-size: 22px;
-    cursor: pointer;
-    z-index: 2;
-    -webkit-transition: opacity .6s;
-    -moz-transition: opacity .6s;
-    -o-transition: opacity .6s;
     transition: opacity .6s;
+    z-index: 2;
 
     &.stop {
         @include opacity(0);
@@ -289,6 +283,6 @@
 }
 
 .view-image__loading {
-    background: black;
+    background: $black;
     min-height: 100px;
 }

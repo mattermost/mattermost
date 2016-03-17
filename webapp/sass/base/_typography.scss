@@ -6,20 +6,20 @@ strong {
 }
 
 a {
+    color: $primary-color;
     cursor: pointer;
     text-decoration: none;
     word-break: break-word;
-    color: $color--primary;
-}
 
-a:focus,
-a:hover {
-    color: $color--primary--hover;
+    &:focus,
+    &:hover {
+        color: $primary-color--hover;
+    }
 }
 
 body {
+    @include font-smoothing;
     font-family: 'Open Sans', sans-serif;
-    -webkit-font-smoothing: antialiased;
 }
 
 .word-break--all {

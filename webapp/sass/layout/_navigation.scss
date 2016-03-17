@@ -7,14 +7,14 @@
 
 #navbar {
     input {
-        margin: 0px 5px 0px 2px;
+        margin: 0 5px 0 2px;
     }
 
     .navbar-default {
-        position: absolute;
+        background: $primary-color;
         border: none;
         min-height: 45px;
-        background: $color--primary;
+        position: absolute;
 
         .navbar-nav {
             > li {
@@ -30,19 +30,19 @@
         }
 
         .navbar-toggle {
-            width: 43px;
-            float: left;
             border-color: transparent;
             border-radius: 0;
+            fill: $white;
+            float: left;
+            height: 44px;
+            line-height: 48px;
             margin: 0;
             padding: 0 10px;
-            line-height: 48px;
-            height: 44px;
+            width: 43px;
             z-index: 5;
-            fill: #fff;
 
             .icon-bar {
-                background: #fff;
+                background: $white;
                 width: 21px;
             }
 
@@ -51,7 +51,7 @@
             }
 
             .icon--white {
-                color: #fff;
+                color: $white;
             }
 
             &:hover,
@@ -62,16 +62,16 @@
         }
 
         .navbar-brand {
-            padding: 0 .5em;
-            height: 45px;
-            line-height: 45px;
             float: none;
             font-size: 16px;
+            height: 45px;
+            line-height: 45px;
+            padding: 0 .5em;
 
             .heading {
-                margin-right: 3px;
+                color: $white;
                 font-weight: 600;
-                color: #fff;
+                margin-right: 3px;
             }
 
             .header-dropdown__icon {
@@ -79,36 +79,36 @@
             }
 
             .dropdown-toggle {
-                color: #fff;
+                color: $white;
             }
 
             .description {
+                color: $white;
                 display: inline-block;
                 margin-right: .5em;
-                color: #fff;
 
                 &.info-popover {
-                    width: 19px;
-                    height: 19px;
-                    background: url('../images/info__icon.png');
                     @include background-size(100% 100%);
-                    vertical-align: middle;
-                    top: -1px;
-                    position: relative;
+                    background: url('../images/info__icon.png');
                     cursor: pointer;
+                    height: 19px;
+                    position: relative;
+                    top: -1px;
+                    vertical-align: middle;
+                    width: 19px;
                 }
             }
         }
     }
 
     .sidebar-channel {
-        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
 
         span {
-            white-space: nowrap;
             margin-left: 2px;
+            white-space: nowrap;
         }
     }
 
@@ -117,11 +117,13 @@
     }
 
     .more-channel-table {
-        width: 100%;
         border: 1px solid #dbdbdc;
+        width: 100%;
+
         td {
             padding: 7px;
         }
+
         button {
             width: 110px;
         }
@@ -129,9 +131,9 @@
 }
 
 .badge-notify {
-    background: red;
-    position: absolute;
+    background: $red;
     left: 4px;
+    position: absolute;
     top: 3px;
     z-index: 100;
 }

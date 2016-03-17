@@ -6,32 +6,32 @@
     }
 
     .form__label {
-        text-align: left;
-        padding-right: 3px;
-        font-weight: 600;
         font-size: 1.1em;
+        font-weight: 600;
+        padding-right: 3px;
+        text-align: left;
 
         &.light {
-            font-weight: normal;
-            color: #999;
+            color: $dark-gray;
             font-size: 1.05em;
             font-style: italic;
+            font-weight: normal;
             padding-top: 2px;
         }
     }
 
     .input__help {
+        @include opacity(.8);
         color: inherit;
         margin: 10px 0 0 10px;
         word-break: break-word;
-        @include opacity(.8);
 
         &.dark {
             @include opacity(1);
         }
 
         &.error {
-            color: #a94442;
+            color: darken($red, 20%);
         }
     }
 
@@ -49,13 +49,9 @@
 }
 
 .help-block {
+    color: $dark-gray;
     font-size: .95em;
     margin: 10px 0 0;
-    color: #999;
-}
-
-.disabled-input {
-    background-color: #ddd !important;
 }
 
 .form-group {

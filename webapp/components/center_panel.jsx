@@ -120,7 +120,10 @@ export default class CenterPanel extends React.Component {
                         id='app-content'
                         className='app__content'
                     >
-                        <div id='channel-header'>
+                        <div
+                            id='channel-header'
+                            className='channel-header'
+                        >
                             <ChannelHeader
                                 user={this.state.user}
                             />

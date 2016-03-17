@@ -1,9 +1,9 @@
 @charset 'UTF-8';
 
 .suggestion-list {
+    @extend %popover-box-shadow;
     width: 100%;
     z-index: 100;
-    @extend %popover-box-shadow;
 }
 
 .suggestion-list--top {
@@ -11,31 +11,31 @@
 }
 
 .suggestion-list__content {
-    width: 100%;
-    max-height: 292px;
-    background-color: #fff;
+    background-color: $white;
     border: $border-gray;
+    max-height: 292px;
     overflow-x: hidden;
     overflow-y: scroll;
+    width: 100%;
 
     .command {
-        position: relative;
-        width: 100%;
+        border-bottom: 1px solid $light-gray;
+        font-size: .95em;
         line-height: 24px;
         padding: 5px 10px 8px;
+        position: relative;
+        width: 100%;
         z-index: 101;
-        font-size: .95em;
-        border-bottom: 1px solid #ddd;
 
         .command__desc {
-            margin-left: 5px;
             @include opacity(.5);
             line-height: normal;
+            margin-left: 5px;
         }
     }
 }
 
 .suggestion-list__content--top {
-    position: absolute;
     bottom: 0;
+    position: absolute;
 }

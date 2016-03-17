@@ -15,21 +15,22 @@
 }
 
 .app__content {
-    height: 100%;
-    padding-top: 50px;
-    margin-left: 220px;
-    position: relative;
-    background: #fff;
     @include display-flex;
     @include flex-direction(column);
+    background: $white;
+    height: 100%;
+    margin-left: 220px;
+    padding-top: 50px;
+    position: relative;
 
     .channel__wrap & {
         padding-top: 0;
     }
 }
+
 #post-create {
     @include flex(0 0 auto);
-    background: #fff;
+    background: $white;
     width: 100%;
     z-index: 3;
 }
@@ -37,47 +38,17 @@
 #archive-link-home {
     @include flex(0 0 auto);
     cursor: pointer;
-    padding: 10px 20px;
     font-size: 13px;
+    padding: 10px 20px;
 
     .fa {
-        font-size: 11px;
         @include opacity(.7);
+        font-size: 11px;
     }
 
     a {
         color: inherit;
     }
-}
-
-.post-list {
-    .new-messages-hr {
-        margin-top: 5px;
-        margin-bottom: 0px;
-        border: 0;
-        border-top: 1px solid #f80;
-    }
-
-    .new-messages-text {
-        margin-top: 2px;
-        margin-bottom: 5px;
-        color: #f80;
-        text-align: center;
-    }
-}
-
-.new-messages-hr {
-    margin-top: 5px;
-    margin-bottom: 0px;
-    border: 0;
-    border-top: 1px solid #f80;
-}
-
-.new-messages-text {
-    margin-top: 2px;
-    margin-bottom: 5px;
-    color: #f80;
-    text-align: center;
 }
 
 .delete-message-text {
