@@ -131,7 +131,9 @@ package:
 	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).js|g' $(DIST_PATH)/webapp/dist/root.html
 	rm $(DIST_PATH)/webapp/dist/root.html.bak
 
-	sudo mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json || echo 'nomv'
+	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
+		sudo mv -f $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json || echo 'nomv'; \
+	fi
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
