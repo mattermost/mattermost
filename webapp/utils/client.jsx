@@ -413,6 +413,35 @@ export function getAudits(userId, success, error) {
     });
 }
 
+export function getComplianceReports(success, error) {
+    $.ajax({
+        url: '/api/v1/admin/compliance_reports',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getComplianceReports', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function saveComplianceReports(job, success, error) {
+    $.ajax({
+        url: '/api/v1/admin/save_compliance_report',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(job),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('saveComplianceReports', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function getLogs(success, error) {
     $.ajax({
         url: '/api/v1/admin/logs',

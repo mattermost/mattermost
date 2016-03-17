@@ -23,6 +23,7 @@ import LegalAndSupportSettingsTab from './legal_and_support_settings.jsx';
 import TeamUsersTab from './team_users.jsx';
 import TeamAnalyticsTab from '../analytics/team_analytics.jsx';
 import LdapSettingsTab from './ldap_settings.jsx';
+import ComplianceSettingsTab from './compliance_settings.jsx';
 import LicenseSettingsTab from './license_settings.jsx';
 import SystemAnalyticsTab from '../analytics/system_analytics.jsx';
 
@@ -159,6 +160,8 @@ export default class AdminController extends React.Component {
                 tab = <LegalAndSupportSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'ldap_settings') {
                 tab = <LdapSettingsTab config={this.state.config}/>;
+            } else if (this.state.selected === 'compliance_settings') {
+                tab = <ComplianceSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'license') {
                 tab = <LicenseSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'team_users') {

@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	SYSTEM_DIAGNOSTIC_ID      = "DiagnosticId"
-	SYSTEM_RAN_UNIT_TESTS     = "RanUnitTests"
-	SYSTEM_LAST_SECURITY_TIME = "LastSecurityTime"
-	SYSTEM_ACTIVE_LICENSE_ID  = "ActiveLicenseId"
+	SYSTEM_DIAGNOSTIC_ID        = "DiagnosticId"
+	SYSTEM_RAN_UNIT_TESTS       = "RanUnitTests"
+	SYSTEM_LAST_SECURITY_TIME   = "LastSecurityTime"
+	SYSTEM_ACTIVE_LICENSE_ID    = "ActiveLicenseId"
+	SYSTEM_LAST_COMPLIANCE_TIME = "LastComplianceTime"
 )
 
 type System struct {

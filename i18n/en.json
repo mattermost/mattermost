@@ -1800,6 +1800,26 @@
     "translation": "Failed to read security bulletin details"
   },
   {
+    "id": "ent.compliance.run_started.info",
+    "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "Compliance export failed for job '{{.JobName}}' at '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_limit.warning",
+    "translation": "Compliance export warning for job '{{.JobName}}' too many rows returned truncating to 30,000 at '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_finished.info",
+    "translation": "Compliance export finished for job '{{.JobName}}' exported {{.Count}} records to '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "Compliance functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
     "id": "mattermost.security_checks.debug",
     "translation": "Checking for security update from Mattermost"
   },
@@ -2220,6 +2240,30 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "Invalid description"
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "From must be a valid time"
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "To must be a valid time"
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "To must be greater than From"
+  },
+  {
     "id": "model.preference.is_valid.category.app_error",
     "translation": "Invalid category"
   },
@@ -2494,6 +2538,14 @@
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit"
+  },
+  {
+    "id": "store.sql_compliance.save.saving.app_error",
+    "translation": "We encountered an error saving the compliance report"
+  },
+  {
+    "id": "store.sql_compliance.get.finding.app_error",
+    "translation": "We encountered an error retrieving the compliance reports"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
@@ -2794,6 +2846,10 @@
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
     "translation": "We couldn't get post counts"
+  },
+  {
+    "id": "store.sql_post.compliance_export.app_error",
+    "translation": "We couldn't get posts for compliance export"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",

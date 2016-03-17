@@ -4,11 +4,10 @@
 package api
 
 import (
-	"testing"
-
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"testing"
 )
 
 func TestGetLogs(t *testing.T) {

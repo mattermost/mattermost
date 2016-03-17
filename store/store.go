@@ -33,6 +33,7 @@ type Store interface {
 	Post() PostStore
 	User() UserStore
 	Audit() AuditStore
+	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
 	System() SystemStore
@@ -151,6 +152,14 @@ type AuditStore interface {
 	Save(audit *model.Audit) StoreChannel
 	Get(user_id string, limit int) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
+}
+
+type ComplianceStore interface {
+	Save(compliance *model.Compliance) StoreChannel
+	Update(compliance *model.Compliance) StoreChannel
+	Get(id string) StoreChannel
+	GetAll() StoreChannel
+	ComplianceExport(compliance *model.Compliance) StoreChannel
 }
 
 type OAuthStore interface {

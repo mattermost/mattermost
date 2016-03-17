@@ -3,6 +3,7 @@
 
 import LoadingScreen from '../loading_screen.jsx';
 import AuditTable from '../audit_table.jsx';
+import ComplianceReports from './compliance_reports.jsx';
 
 import AdminStore from 'stores/admin_store.jsx';
 
@@ -60,36 +61,40 @@ export default class Audits extends React.Component {
         } else {
             content = (
                 <div style={{margin: '10px'}}>
-                <AuditTable
-                    audits={this.state.audits}
-                    showUserId={true}
-                    showIp={true}
-                    showSession={true}
-                />
+                    <AuditTable
+                        audits={this.state.audits}
+                        showUserId={true}
+                        showIp={true}
+                        showSession={true}
+                    />
                 </div>
             );
         }
 
         return (
-            <div className='panel'>
-                <h3>
-                    <FormattedMessage
-                        id='admin.audits.title'
-                        defaultMessage='User Activity'
-                    />
-                </h3>
-                <button
-                    type='submit'
-                    className='btn btn-primary'
-                    onClick={this.reload}
-                >
-                    <FormattedMessage
-                        id='admin.audits.reload'
-                        defaultMessage='Reload'
-                    />
-                </button>
-                <div className='log__panel'>
-                    {content}
+            <div>
+                <ComplianceReports/>
+
+                <div className='panel'>
+                    <h3>
+                        <FormattedMessage
+                            id='admin.audits.title'
+                            defaultMessage='User Activity'
+                        />
+                    </h3>
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                        onClick={this.reload}
+                    >
+                        <FormattedMessage
+                            id='admin.audits.reload'
+                            defaultMessage='Reload'
+                        />
+                    </button>
+                    <div className='audit__panel'>
+                        {content}
+                    </div>
                 </div>
             </div>
         );

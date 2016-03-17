@@ -76,6 +76,7 @@ export default {
         RECEIVED_CONFIG: null,
         RECEIVED_LOGS: null,
         RECEIVED_SERVER_AUDITS: null,
+        RECEIVED_SERVER_COMPLIANCE_REPORTS: null,
         RECEIVED_ALL_TEAMS: null,
 
         RECEIVED_LOCALE: null,

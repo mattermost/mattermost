@@ -129,16 +129,21 @@
     },
     "LdapSettings": {
         "Enable": false,
-        "LdapServer": null,
+        "LdapServer": "",
         "LdapPort": 389,
-        "BaseDN": null,
-        "BindUsername": null,
-        "BindPassword": null,
-        "FirstNameAttribute": null,
-        "LastNameAttribute": null,
-        "EmailAttribute": null,
-        "UsernameAttribute": null,
-        "IdAttribute": null,
+        "BaseDN": "",
+        "BindUsername": "",
+        "BindPassword": "",
+        "FirstNameAttribute": "",
+        "LastNameAttribute": "",
+        "EmailAttribute": "",
+        "UsernameAttribute": "",
+        "IdAttribute": "",
         "QueryTimeout": 60
+    },
+    "ComplianceSettings": {
+        "Enable": false,
+        "Directory": "./data/",
+        "EnableDaily": false
     }
 }

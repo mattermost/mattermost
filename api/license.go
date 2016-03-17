@@ -23,6 +23,26 @@ func InitLicense(r *mux.Router) {
 	sr.Handle("/client_config", ApiAppHandler(getClientLicenceConfig)).Methods("GET")
 }
 
+func LoadLicense() {
+	licenseId := ""
+	if result := <-Srv.Store.System().Get(); result.Err == nil {
+		props := result.Data.(model.StringMap)
+		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
+	}
+
+	if len(licenseId) != 26 {
+		l4g.Warn(utils.T("mattermost.load_license.find.warn"))
+		return
+	}
+
+	if result := <-Srv.Store.License().Get(licenseId); result.Err == nil {
+		record := result.Data.(*model.LicenseRecord)
+		utils.LoadLicense([]byte(record.Bytes))
+	} else {
+		l4g.Warn(utils.T("mattermost.load_license.find.warn"))
+	}
+}
+
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 	err := r.ParseMultipartForm(model.MAX_FILE_SIZE)

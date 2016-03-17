@@ -70,4 +70,5 @@ api/data/*
 .ctags
 tags
 
+model/version.go
 model/version.go.bak
