@@ -90,9 +90,6 @@ export default class ComplianceSettings extends React.Component {
             );
         }
 
-        //var exampleDir = Utils.localizeMessage('admin.compliance.directoryExample', 'Ex "./data/"');
-        //var saveButtonText = Utils.localizeMessage('admin.compliance.saving', 'Saving Config...');
-
         return (
             <div className='wrapper--fixed'>
                 {bannerContent}
