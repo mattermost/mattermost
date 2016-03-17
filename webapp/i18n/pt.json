@@ -1174,7 +1174,7 @@
   "user.settings.display.preferTime": "Selecione como você prefere que a hora seja mostrada.",
   "user.settings.display.showFullname": "Mostrar primeiro e último nome",
   "user.settings.display.showNickname": "Mostras apelidos se um existir, caso contrário mostrar o primeiro e último nome",
-  "user.settings.display.showUsername": "Mostrar nome de usuário (equipe padrão)",
+  "user.settings.display.showUsername": "Mostrar nome de usuário (padrão)",
   "user.settings.display.teammateDisplay": "Nome de Exibição da Equipe de Trabalho",
   "user.settings.display.theme.customTheme": "Tema Customizado",
   "user.settings.display.theme.describe": "Abrir para gerenciar seu tema",
