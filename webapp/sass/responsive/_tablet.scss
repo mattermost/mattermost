@@ -2,9 +2,9 @@
 
 @media screen and (max-width: 960px) {
     .sidebar--right {
-        z-index: 5;
-        @include translateX(100%);
         @include single-transition(all, .5s, ease);
+        @include translateX(100%);
+        z-index: 5;
 
         &.move--left {
             @include translateX(0);

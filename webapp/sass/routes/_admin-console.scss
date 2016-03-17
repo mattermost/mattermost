@@ -15,26 +15,25 @@
     }
 
     h3 {
-        font-weight: 600;
         border-bottom: 1px solid #ddd;
-        padding-bottom: .5em;
+        font-weight: 600;
         margin: 1em 0;
+        padding-bottom: .5em;
     }
 
     .table {
-        background: #fff;
+        background: $white;
     }
 
     .form-control {
-        background-color: #fff;
+        background-color: $white;
         border: 1px solid #ccc;
         color: #555;
 
         &:focus {
+            @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6));
             border-color: #66afe9;
             outline: 0;
-            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
-            box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
         }
     }
 
@@ -42,7 +41,7 @@
         color: #333;
 
         &.btn-primary {
-            background: #2389d7;
+            background: $primary-color;
 
             &:hover,
             &:focus,
@@ -53,7 +52,7 @@
     }
 
     .dropdown-menu {
-        background: #fff;
+        background: $white;
         border: 1px solid rgba(0,0,0,.15);
         color: inherit;
     }
@@ -86,38 +85,38 @@
 
                     > h4 {
                         background: #333;
-                        padding: 10px 10px;
                         margin: 1px 0 0;
+                        padding: 10px;
 
                         .menu-icon--right {
-                            top: 6px;
                             right: 12px;
+                            top: 6px;
                         }
                     }
                 }
 
                 .menu-icon--right {
-                    position: absolute;
-                    right: 10px;
-                    top: 3px;
                     font-size: 18px;
                     font-weight: 600;
-                    width: 20px;
                     height: 20px;
                     line-height: 20px;
+                    position: absolute;
+                    right: 10px;
                     text-align: center;
+                    top: 3px;
+                    width: 20px;
 
                     .fa {
+                        color: $white;
                         font-size: 13px;
-                        right: -2px;
                         position: relative;
-                        color: #fff;
+                        right: -2px;
                     }
                 }
 
                 &.nav__sub-menu {
+                    @include font-smoothing(initial);
                     background: #111;
-                    -webkit-font-smoothing: auto;
 
                     &.padded {
                         padding: 5px 0;
@@ -125,30 +124,31 @@
 
                     li {
                         > a {
-                            font-size: 13px;
-                            padding: 5px 35px 5px 15px;
                             background: transparent;
                             color: #bbb;
+                            font-size: 13px;
+                            padding: 5px 35px 5px 15px;
 
                             &:hover {
-                                color: lighten($color--primary, 10);
+                                color: lighten($primary-color, 10);
                             }
 
                             &.active {
-                                color: #fff;
+                                color: $white;
                                 font-weight: 600;
                             }
                         }
 
                         .nav-more {
-                            font-size: 13px;
-                            padding: 5px 15px;
                             background: transparent;
                             color: #bbb;
-                            display: block;
                             cursor: pointer;
+                            display: block;
+                            font-size: 13px;
+                            padding: 5px 15px;
+
                             &:hover {
-                                color: lighten($color--primary, 10);
+                                color: lighten($primary-color, 10);
                             }
                         }
                     }
@@ -166,13 +166,13 @@
     }
 
     .log__panel {
-        overflow: scroll;
-        width: 100%;
-        height: 800px;
-        border: 1px solid #ddd;
-        margin-top: 10px;
-        padding: 5px;
         background-color: white;
+        border: 1px solid #ddd;
+        height: 800px;
+        margin-top: 10px;
+        overflow: scroll;
+        padding: 5px;
+        width: 100%;
     }
 
     .compliance__panel {
@@ -199,10 +199,10 @@
         color: #333;
 
         &.admin {
-            overflow: auto;
             background-color: #f1f1f1;
-            padding: 0 20px 20px;
             min-height: 600px;
+            overflow: auto;
+            padding: 0 20px 20px;
         }
 
         .wrapper--fixed {
@@ -213,9 +213,9 @@
             margin-top: 40px;
 
             .control-label {
-                text-align: left;
-                padding-right: 0;
                 font-weight: 600;
+                padding-right: 0;
+                text-align: left;
             }
 
             .form-group {
@@ -223,22 +223,25 @@
             }
 
             .file__upload {
-                position: relative;
-                margin: 0 10px 10px 0;
                 display: inline-block;
+                margin: 0 10px 10px 0;
+                position: relative;
 
                 input {
-                    position: absolute;
                     @include opacity(0);
-                    width: 100%;
                     height: 100%;
-                    z-index: 5;
-                    top: 0;
                     left: 0;
+                    position: absolute;
+                    top: 0;
+                    width: 100%;
+                    z-index: 5;
                 }
             }
 
             .help-text {
+                color: #777;
+                margin: 10px 0 0 15px;
+
                 &.no-margin {
                     margin: 0;
                 }
@@ -247,9 +250,6 @@
                 ol {
                     padding-left: 23px;
                 }
-
-                margin: 10px 0 0 15px;
-                color: #777;
 
                 .help-link {
                     margin-right: 5px;
@@ -262,10 +262,10 @@
 
             .alert {
                 display: inline-block;
-                padding: 5px 7px;
                 margin: 1em 0 0;
-                top: 1px;
+                padding: 5px 7px;
                 position: relative;
+                top: 1px;
 
                 .fa {
                     margin-right: 5px;
@@ -274,11 +274,11 @@
         }
 
         .banner {
-            background: #fff;
+            background: $white;
             border: 1px solid #ddd;
-            padding: .7em 1.5em;
             font-size: .95em;
             margin: 2em 0;
+            padding: .7em 1.5em;
 
             .banner__heading {
                 font-size: 1.5em;
@@ -295,19 +295,19 @@
 
         .popover {
             border-radius: 3px;
-            width: 100%;
             font-size: .95em;
+            width: 100%;
         }
 
         .panel {
-            border: none;
             background-color: transparent;
+            border: none;
         }
 
         .panel-default {
             > .panel-heading {
-                padding: 10px 0;
                 background-color: transparent;
+                padding: 10px 0;
             }
 
             .panel-body {
@@ -324,9 +324,9 @@
             line-height: 1.5;
 
             a {
-                text-decoration: none;
-                display: block;
                 @include clearfix;
+                display: block;
+                text-decoration: none;
 
                 &.collapsed {
                     .fa-minus {
@@ -339,10 +339,10 @@
                 }
 
                 .fa {
-                    font-size: 18px;
-                    float: right;
-                    margin-top: 8px;
                     color: #aaa;
+                    float: right;
+                    font-size: 18px;
+                    margin-top: 8px;
                 }
 
                 .fa-plus {

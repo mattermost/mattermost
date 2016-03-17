@@ -32,21 +32,23 @@
     .tip-overlay {
         &.tip-overlay--chat {
             margin: -10px 0 0 -10px;
+
             .arrow {
-                right: 15px;
                 left: auto;
+                right: 15px;
             }
         }
     }
+
     .inner-wrap {
         &.move--left {
             .file-overlay {
                 font-size: em(18px);
 
                 .overlay__circle {
-                    width: 300px;
                     height: 300px;
                     margin: -150px 0 0 -150px;
+                    width: 300px;
                 }
 
                 .overlay__files {

@@ -680,7 +680,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelBg) {
-        changeCss('.app__content, .markdown__table, .markdown__table tbody tr, .suggestion-list__content, .modal .modal-content', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.app__content, .markdown__table, .markdown__table tbody tr, .suggestion-list__content, .modal .modal-content, .modal .modal-back', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
         changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
@@ -763,7 +763,6 @@ export function applyTheme(theme) {
     if (theme.buttonBg) {
         changeCss('.btn.btn-primary, .tutorial__circles .circle.active', 'background:' + theme.buttonBg, 1);
         changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background:' + changeColor(theme.buttonBg, -0.25), 1);
-        changeCss('.file-playback__controls', 'color:' + changeColor(theme.buttonBg, -0.25), 1);
     }
 
     if (theme.buttonColor) {

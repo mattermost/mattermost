@@ -781,12 +781,12 @@ export function savePreferences(preferences, success, error) {
     );
 }
 
-export function getSuggestedCommands(command, suggestionId, component) {
-    client.listCommands(
+export function getSuggestedCommands(command, channelId, suggestionId, component) {
+    client.listCommands({command: command, channelId: channelId},
         (data) => {
             var matches = [];
             data.forEach((cmd) => {
-                if (('/' + cmd.trigger).indexOf(command) === 0) {
+                if (('/' + cmd.trigger).indexOf(command) === 0 || cmd.external_management) {
                     let s = '/' + cmd.trigger;
                     let hint = '';
                     if (cmd.auto_complete_hint && cmd.auto_complete_hint.length !== 0) {

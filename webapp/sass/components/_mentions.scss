@@ -1,24 +1,24 @@
 @charset 'UTF-8';
 
 .mention {
-    color: #fff;
-    background: $color--primary;
+    @include border-radius(3px);
+    background: $primary-color;
+    color: $white;
+    padding-bottom: 2px;
     position: relative;
     z-index: 10;
-    padding-bottom: 2px;
-    @include border-radius(3px);
 }
 
 .mentions__name {
-    position: relative;
-    width: 100%;
-    height: 36px;
-    padding: 2px;
-    z-index: 101;
-    line-height: 36px;
-    font-size: 13px;
     cursor: pointer;
+    font-size: 13px;
+    height: 36px;
+    line-height: 36px;
+    padding: 2px;
+    position: relative;
     white-space: nowrap;
+    width: 100%;
+    z-index: 101;
 
     .mention-align {
         @include clearfix;
@@ -28,29 +28,29 @@
 }
 
 .mention__image {
-    margin-right: 6px;
-    height: 32px;
-    width: 32px;
-    line-height: 36px;
+    @include border-radius(32px);
     display: block;
     font-size: 20px;
+    height: 32px;
+    line-height: 36px;
+    margin-right: 6px;
     text-align: center;
-    @include border-radius(32px);
+    width: 32px;
 
     .mention--align {
+        display: inline-block;
         max-width: 80%;
         overflow: hidden;
-        display: inline-block;
-        white-space: nowrap;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
 .mention__fullname {
-    color: grey;
+    color: $dark-gray;
     padding-left: 10px;
 }
 
 .mention--highlight {
-    background-color: #fff2bb;
+    background-color: $yellow;
 }

@@ -3,32 +3,38 @@
 
 .popover {
     @include border-radius($border-rad);
-    color: #333;
+    color: lighten($black, 25%);
 
     &.bottom,
     &.right,
     &.top,
     &.left {
-        > .arrow:after {
-            border-color: transparent;
+        > .arrow {
+            &:after {
+                border-color: transparent;
+            }
         }
     }
 
     .popover-title {
-        background: rgba(black, .05);
+        background: alpha-color($black, .05);
         padding: 8px 10px;
     }
 
     .popover-content {
-        p:last-child {
-            margin-bottom: 5px;
+        p {
+            &:last-child {
+                margin-bottom: 5px;
+            }
         }
     }
 }
 
-.channel-header__info .popover-content {
-    max-height: 250px;
-    overflow: auto;
+.channel-header__info {
+    .popover-content {
+        max-height: 250px;
+        overflow: auto;
+    }
 }
 
 .user-popover {
@@ -36,32 +42,35 @@
     display: inline-block;
 }
 
-.code-popover .popover-content {
-    padding: 5px;
+.code-popover {
+    .popover-content {
+        padding: 5px;
+    }
 }
 
 .user-popover__image {
-    margin: 0 0 10px;
     @include border-radius(128px);
+    margin: 0 0 10px;
 }
 
 .user-popover__email {
+    display: block;
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: block;
 }
 
 .search-help-popover {
-    visibility: hidden;
-    max-width: none;
-    width: 100%;
-    top: 36px;
     @include single-transition(opacity, .3s, ease-in);
     font-size: em(13px);
+    max-width: none;
+    top: 36px;
+    visibility: hidden;
+    width: 100%;
 
     &.autocomplete {
         display: block;
+
         .popover-content {
             padding: 10px;
             position: relative;
@@ -69,65 +78,68 @@
     }
 
     .search-autocomplete__divider {
-        margin: 10px 0 5px;
         line-height: 21px;
+        margin: 10px 0 5px;
         position: relative;
+
         &:first-child {
             margin-top: 5px;
         }
-        span {
+
+        > span {
+            background: $white;
             display: inline-block;
             padding-right: 10px;
-            background: #fff;
-            z-index: 5;
             position: relative;
+            z-index: 5;
         }
+
         &:before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            background: #ddd;
-            top: 10px;
-            left: 0;
             @include opacity(.2);
+            background: $dark-gray;
+            content: '';
+            height: 1px;
+            left: 0;
+            position: absolute;
+            top: 10px;
+            width: 100%;
         }
     }
 
     .search-autocomplete__item {
-        cursor: pointer;
-        padding: 6px 8px;
-        margin: 3px 0 0 5px;
         @include border-radius(2px);
-        white-space: nowrap;
+        cursor: pointer;
+        margin: 3px 0 0 5px;
         overflow: hidden;
+        padding: 6px 8px;
         text-overflow: ellipsis;
+        white-space: nowrap;
 
         &:hover {
-            background: rgba(black, .1);
+            background: alpha-color($black, .1);
         }
 
         &.selected {
-            background: rgba(black, .2);
+            background: alpha-color($black, .2);
         }
 
         .fa {
-            margin-right: 5px;
             @include opacity(.5);
+            margin-right: 5px;
         }
 
         .profile-img {
-            margin-top: -1px;
             height: 16px;
             margin-right: 6px;
+            margin-top: -1px;
             width: 16px;
         }
     }
 
     &.bottom > .arrow {
-        top: -18px;
         border-width: 9px;
         left: 30px;
+        top: -18px;
     }
 
     .popover-content {
@@ -142,9 +154,11 @@
 
     ul {
         padding-left: 17px;
+
         span {
             @include opacity(.8);
         }
+
         strong,
         b {
             @include opacity(1);
@@ -156,25 +170,28 @@
     }
 
     &.visible {
-        visibility: visible;
         @include opacity(1);
+        visibility: visible;
     }
 }
 
-#member-list-popover {
+.member-list__popover {
     max-width: initial;
+
     .popover-content {
-        position: relative;
-        padding: 0;
-        width: 260px;
         max-height: 350px;
+        padding: 0;
+        position: relative;
+        width: 260px;
+
         .text-nowrap {
+            font-size: 13px;
+            line-height: 26px;
+            overflow: hidden;
             padding: 6px 10px;
             width: 100%;
-            overflow: hidden;
-            line-height: 26px;
-            font-size: 13px;
         }
+
         .more__name {
             margin-left: 6px;
             max-width: 140px;

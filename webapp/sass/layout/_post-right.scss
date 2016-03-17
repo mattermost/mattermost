@@ -27,8 +27,8 @@
 
     .post {
         &.post--root {
-            padding-bottom: 1.2em;
             border-bottom: 1px solid #ddd;
+            padding-bottom: 1.2em;
 
             .post__body {
                 background: transparent !important;
@@ -37,8 +37,8 @@
 
         .post__header {
             .col__reply {
-                top: 0;
                 text-align: right;
+                top: 0;
             }
         }
 
@@ -48,13 +48,13 @@
     }
 
     hr {
-        margin-bottom: 0;
         border: none;
+        margin-bottom: 0;
     }
 
     .post-create__container {
-        width: 100%;
         margin-top: 10px;
+        width: 100%;
 
         .textarea-wrapper {
             min-height: 100px;
@@ -70,48 +70,46 @@
 
         .msg-typing {
             @include opacity(.7);
-            float: left;
-            margin-top: 3px;
-            font-size: 13px;
-            line-height: 20px;
-            min-width: 1px;
             display: block;
+            float: left;
+            font-size: 13px;
             height: 20px;
+            line-height: 20px;
+            margin-top: 3px;
             max-width: 230px;
+            min-width: 1px;
         }
 
         .post-create-footer {
-            width: 100%;
             padding: 5px 0 10px;
+            width: 100%;
         }
 
         .post-right-comments-upload-in-progress {
-            padding: 6px 0;
             color: #a8adb7;
             margin-right: 10px;
+            padding: 6px 0;
         }
     }
 }
+
 .post-right-header {
-    font-size: 1em;
-    text-transform: uppercase;
+    border-bottom: $border-gray;
     color: #999;
+    font-size: 1em;
     font-weight: 400;
-    color: #888;
     height: 39px;
     padding: 10px 10px 0 15px;
-    border-bottom: $border-gray;
+    text-transform: uppercase;
 }
 
 .post-right-root-container {
+    border-bottom: $border-gray;
     padding: 5px 10px;
-    border-bottom: $border-gray;
-}
 
-.post-right-root-container {
     ul {
-        padding-left: 0;
         margin-bottom: 2px;
+        padding-left: 0;
     }
 }
 
@@ -131,19 +129,19 @@
 }
 
 .post-right-create-comment-container {
-    padding: 5px;
-    margin-bottom: 18px;
-    position: absolute;
     bottom: 0;
     left: 0;
+    margin-bottom: 18px;
+    padding: 5px;
+    position: absolute;
     width: 100%;
 }
 
 .post-right__scroll {
-    position: relative;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
     @include flex(1 1 auto);
+    -webkit-overflow-scrolling: touch;
+    overflow: auto;
+    position: relative;
 
     .file-preview__container {
         margin-top: 5px;

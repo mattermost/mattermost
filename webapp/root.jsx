@@ -3,11 +3,11 @@
 
 import $ from 'jquery';
 
-import 'sass/styles.scss';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'jasny-bootstrap/dist/css/jasny-bootstrap.css';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
 import 'google-fonts/google-fonts.css';
+import 'sass/styles.scss';
 
 import React from 'react';
 import ReactDOM from 'react-dom';

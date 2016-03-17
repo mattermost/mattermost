@@ -6,22 +6,24 @@ body {
 }
 
 body {
-    width: 100%;
-    height: 100%;
     background: $bg--gray;
+    height: 100%;
     position: relative;
+    width: 100%;
+}
 
-    &.sticky {
-        background: $bg--white;
+.sticky {
+    background: $white;
 
-        > .container-fluid {
-            overflow: auto;
-        }
+    > .container-fluid {
+        overflow: auto;
+    }
 
-        .inner-wrap {
-            > .row.content {
-                min-height: 100%;
+    .inner-wrap {
+        > .row {
+            &.content {
                 margin-bottom: -89px;
+                min-height: 100%;
             }
         }
     }
@@ -30,9 +32,11 @@ body {
 .inner-wrap {
     height: 100%;
 
-    > .row.main {
-        height: 100%;
-        position: relative;
+    > .row {
+        &.main {
+            height: 100%;
+            position: relative;
+        }
     }
 }
 

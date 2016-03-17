@@ -1,12 +1,24 @@
 @charset 'UTF-8';
 
-#channel_members_modal .modal-body {
-    min-height: 110px;
+.browser--ie {
+    .modal {
+        .modal-dialog {
+            @include translateY(0);
+        }
+    }
 }
 
 .modal-body {
-    padding: 20px 15px;
     overflow: auto;
+    padding: 20px 15px;
+
+    .edit-modal-body {
+        overflow: visible;
+
+        .suggestion-list__content {
+            max-height: 150px;
+        }
+    }
 }
 
 .more-table {
@@ -15,27 +27,23 @@
 }
 
 .modal {
+    color: alpha-color($black, .9);
     width: 100%;
-    color: #333;
 
-    body.browser--IE & {
-        .modal-dialog {
-            @include translateY(0);
-        }
-    }
-
-    &.image_modal {
-        .modal-backdrop.in {
-            @include opacity(.7);
+    &.modal-image {
+        .modal-backdrop {
+            &.in {
+                @include opacity(.7);
+            }
         }
     }
 
     .custom-textarea {
+        border-color: $light-gray;
         color: inherit;
-        border-color: #ccc;
 
         &:focus {
-            border-color: #ccc;
+            border-color: $light-gray;
             box-shadow: none;
         }
     }
@@ -44,15 +52,15 @@
         font-size: 13px;
 
         &.btn-default {
-            border: none;
             background: transparent;
+            border: none;
         }
     }
 
     .info__label {
         font-weight: 600;
-        text-align: right;
         padding-right: 0;
+        text-align: right;
     }
 
     .team-member-list {
@@ -60,21 +68,21 @@
     }
 
     .remove__member {
+        color: $dark-gray;
         float: right;
-        color: #999;
         font-size: 20px;
         line-height: 0;
         padding: 6px;
 
         &:hover {
-            color: #e56565;
+            color: $red;
         }
     }
 
     .modal-dialog {
-        max-width: 95%;
         margin-left: auto;
         margin-right: auto;
+        max-width: 95%;
     }
 
     .modal-push-down {
@@ -82,51 +90,51 @@
     }
 
     .modal-next-bar {
-        position: absolute;
-        top: 0px;
-        right: 0;
         height: 100%;
+        position: absolute;
+        right: 0;
+        top: 0;
     }
 
     .modal-header {
-        border-radius: 0;
-        background: $color--primary;
-        color: #fff;
-        padding: 15px 15px 11px;
-        border: 1px solid #ddd;
-        min-height: 56px;
+        @include border-radius(0);
         @include clearfix;
+        background: $primary-color;
+        border: 1px solid $light-gray;
+        color: $white;
+        min-height: 56px;
+        padding: 15px 15px 11px;
 
         .modal-title {
+            color: $bg--gray;
             float: left;
             font-size: 17px;
             line-height: 27px;
-            color: #f4f4f4;
 
             .name {
+                color: $white;
                 font-weight: 600;
-                color: #fff;
             }
         }
 
         .modal-action {
-            padding: 0;
             margin: 0;
+            padding: 0;
         }
 
-        button.close {
-            color: #fff;
+        .close {
             @include opacity(1);
-            z-index: 5;
-            width: 30px;
+            @include single-transition(all, .25s, ease-in);
+            color: $white;
             height: 30px;
             line-height: 30px;
-            @include single-transition(all, .25s, ease-in);
             position: absolute;
             right: 10px;
+            width: 30px;
+            z-index: 5;
 
             &:hover {
-                background: rgba(0, 0, 0, .1);
+                @include alpha-property(background, $black, .1);
             }
 
             span {
@@ -149,8 +157,8 @@
     }
 
     .no-channel-message {
-        text-align: center;
         padding: 2em 1em;
+        text-align: center;
 
         .primary-message {
             font-size: 1.25em;
@@ -168,46 +176,46 @@
     }
 
     .modal-chevron-icon {
-        top: 50%;
         font-size: 120%;
+        top: 50%;
     }
 
     .modal-prev-bar {
-        position: absolute;
-        top: 0px;
-        left: 0;
         height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
     }
 
-    &#more_channels {
+    &.more-channel__modal {
         .modal-body {
             padding: 0;
         }
     }
 
     .modal-image {
-        position: relative;
-        width: 100%;
         height: 100%;
         margin: 0 auto;
         max-width: 100%;
+        position: relative;
+        width: 100%;
 
         .modal-body {
             @include clearfix;
-            height: 100%;
             display: table;
+            height: 100%;
+            max-height: 100%;
             table-layout: fixed;
             width: 100%;
-            max-height: 100%;
         }
 
-        .image-wrapper {
-            position: relative;
-            max-width: 90%;
+        .modal-image__wrapper {
             @include border-radius(3px);
             display: table-cell;
-            vertical-align: middle;
+            max-width: 90%;
+            position: relative;
             text-align: center;
+            vertical-align: middle;
             width: 100%;
 
             &:hover {
@@ -215,33 +223,31 @@
             }
 
             &.default {
-                width: 100%;
                 height: 80%;
+                width: 100%;
             }
 
             audio,
             canvas,
             progress,
             video {
-                max-width: 100%;
-                height: auto;
                 display: block;
+                height: auto;
+                max-width: 100%;
             }
 
             .modal-close {
-                background: url('../images/close.png') no-repeat;
+                @include single-transition(opacity, .6s);
                 @include background-size(100% 100%);
-                width: 37px;
+                @include opacity(0);
+                background-image: url('../images/close.png');
+                cursor: pointer;
                 height: 37px;
                 position: absolute;
                 right: -13px;
                 top: -13px;
-                @include opacity(0);
-                -webkit-transition: opacity .6s;
-                -moz-transition: opacity .6s;
-                -o-transition: opacity .6s;
                 transition: opacity .6s;
-                cursor: pointer;
+                width: 37px;
                 z-index: 9999;
 
                 &.modal-close--show {
@@ -250,99 +256,109 @@
             }
 
             > div {
+                display: inline-block;
                 min-height: 100px;
                 min-width: 320px;
-                background: #fff;
-                display: inline-block;
                 position: relative;
+            }
 
-                &:hover .file-playback__controls.stop {
-                    @include opacity(1);
-                }
+            code {
+                min-height: 130px;
+                min-width: 330px;
+            }
+
+            pre, code {
+                display: inline-block;
+            }
+
+            .post-body--code {
+                max-height: calc(100vh - 80px);
+                max-width: calc(100vw - 80px);
+                overflow: auto;
             }
 
             img {
-                max-width: 100%;
                 max-height: 100%;
+                max-width: 100%;
             }
 
-            .spinner.file__loading {
-                z-index: 2;
-                position: absolute;
-                left: 50%;
-                margin-left: -16px;
-                top: 50%;
-                margin-top: -16px;
+            .spinner {
+                .file__loading {
+                    left: 50%;
+                    margin-left: -16px;
+                    margin-top: -16px;
+                    position: absolute;
+                    top: 50%;
+                    z-index: 2;
+                }
             }
         }
 
         .modal-content {
+            background: alpha-color($black, 0);
+            border: none;
             box-shadow: none;
-            background: rgba(0, 0, 0, 0);
-            width: 100%;
             height: 100%;
             padding: 0;
-            border: none;
+            width: 100%;
         }
 
-        .image-body {
-            vertical-align: middle;
+        .modal-image__body {
             display: table-cell;
-            text-align: center;
             height: 100%;
+            overflow: visible;
             padding: 0;
             position: relative;
-            overflow: visible;
+            text-align: center;
+            vertical-align: middle;
         }
 
         .image-control {
-            width: 50px;
-            height: 45px;
+            background: url('../images/prev.png') left no-repeat;
             float: left;
-            background: url(../images/prev.png) left no-repeat;
-            top: 50%;
-            position: relative;
+            height: 45px;
             margin-top: -23px;
+            position: relative;
+            top: 50%;
+            width: 50px;
+
             &.image-next {
+                background: url('../images/next.png') left no-repeat;
                 float: right;
-                background: url(../images/next.png) left no-repeat;
             }
         }
 
         .loader-image {
-            position: absolute;
-            top: 0;
             bottom: 0;
             left: 0;
-            right: 0;
             margin: auto;
+            position: absolute;
+            right: 0;
+            top: 0;
         }
 
         .loader-percent {
-            position: absolute;
-            top: 55px;
             bottom: 0;
-            left: 0;
-            right: 0;
-            margin: auto;
-            color: grey;
+            color: $dark-gray;
             height: 20px;
+            left: 0;
+            margin: auto;
+            position: absolute;
+            right: 0;
+            top: 55px;
         }
 
         .modal-button-bar {
-            position: absolute;
-            bottom: -40px;
-            left: 0px;
-            right: 0px;
-            background-color: #222;
+            @include single-transition(opacity, .6s);
             @include border-radius(0 0 3px 3px);
             @include opacity(0);
-            -webkit-transition: opacity .6s;
-            -moz-transition: opacity .6s;
-            -o-transition: opacity .6s;
-            transition: opacity .6s;
+            background-color: $black;
+            bottom: -40px;
+            left: 0;
             line-height: 40px;
             padding: 0 10px;
+            position: absolute;
+            right: 0;
 
             &.footer--show {
                 @include opacity(1);
@@ -356,10 +372,10 @@
             }
 
             .text {
-                vertical-align: middle;
                 bottom: 0;
-                color: white;
+                color: $white;
                 margin-left: 5px;
+                vertical-align: middle;
             }
 
             .public-link {
@@ -376,11 +392,12 @@
 }
 
 .row--invite {
-    margin-right: 40px;
     @include clearfix;
+    margin-right: 40px;
 
     .col-sm-6 {
         padding: 0 0 0 15px;
+
         &:first-child {
             padding-left: 0;
         }
@@ -389,26 +406,26 @@
 
 .more-modal {
     .user-list {
-        overflow-y: auto;
-        overflow-x: hidden;
         margin-top: 10px;
+        overflow-x: hidden;
+        overflow-y: auto;
         position: relative;
     }
 
     .modal-body {
-        padding: 10px 0 20px;
         overflow-x: hidden;
+        padding: 10px 0 20px;
     }
 
     .filter-row {
-        margin: 10px 0;
         @include clearfix;
+        margin: 10px 0;
     }
 
     .member-count {
-        margin-top: 5px;
-        float: right;
         @include opacity(.8);
+        float: right;
+        margin-top: 5px;
     }
 
     .more-purpose {
@@ -416,21 +433,13 @@
     }
 }
 
-.modal-body.edit-modal-body {
-    overflow: visible;
-
-    .suggestion-list__content {
-        max-height: 150px;
-    }
-}
-
 .more-modal__list {
-    overflow: auto;
     display: flex;
     flex-direction: column;
+    overflow: auto;
 
     .popover & {
-        font-size: 0.95em;
+        font-size: .95em;
 
         .more-modal__row {
             padding: 5px 10px;
@@ -442,9 +451,9 @@
     }
 
     .more-modal__image {
+        @include border-radius(60px);
         flex-grow: 0;
         flex-shrink: 0;
-        @include border-radius(60px);
         margin-right: 8px;
     }
 
@@ -462,33 +471,33 @@
     }
 
     .more-modal__name {
-        font-weight: 600;
         font-size: .95em;
-        white-space: nowrap;
+        font-weight: 600;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .more-modal__description {
         @include opacity(.7);
         display: block;
-        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .more-modal__row {
+        border-bottom: 1px solid;
         display: flex;
         padding: 8px 15px;
-        border-bottom: 1px solid;
     }
 
     p {
+        @include opacity(.8);
         font-size: .9em;
+        margin: 5px 0;
         overflow: hidden;
         text-overflow: ellipsis;
-        @include opacity(.8);
-        margin: 5px 0;
     }
 }
 

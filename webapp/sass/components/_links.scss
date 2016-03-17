@@ -1,23 +1,22 @@
 @charset 'UTF-8';
 
 a {
+    color: $primary-color;
     cursor: pointer;
     text-decoration: none;
     word-break: break-word;
-    color: $color--primary;
-}
-
-a:focus,
-a:hover {
-    color: $color--primary--hover;
-}
-
-.text-danger,
-a.text-danger {
-    color: #e05f5d;
 
     &:hover,
     &:focus {
-        color: #e05f5d;
+        color: $primary-color--hover;
+    }
+}
+
+.text-danger {
+    color: desaturate($red, 20%);
+
+    &:hover,
+    &:focus {
+        color: desaturate($red, 20%);
     }
 }

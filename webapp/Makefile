@@ -1,4 +1,4 @@
-.PHONY: build test
+.PHONY: build test run clean
 
 test:
 	@echo Checking for style guide compliance
@@ -12,7 +12,20 @@ test:
 
 	touch $@
 
-build: .npminstall
-	@echo Building mattermost web client
+build: | .npminstall test
+	@echo Building mattermost Webapp
 
 	npm run build
+
+run: .npminstall
+	@echo Running mattermost Webapp for development
+
+	npm run run
+	
+
+clean:
+	@echo Cleaning Webapp
+
+	rm -rf dist
+	rm -rf node_modules
+	rm .npminstall
