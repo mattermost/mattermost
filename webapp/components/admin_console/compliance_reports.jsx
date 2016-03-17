@@ -9,7 +9,9 @@ import UserStore from '../../stores/user_store.jsx';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-import {FormattedMessage, FormattedDate, FormattedTime} from 'mm-intl';
+import {FormattedMessage, FormattedDate, FormattedTime} from 'react-intl';
+
+import React from 'react';
 
 export default class ComplianceReports extends React.Component {
     constructor(props) {
