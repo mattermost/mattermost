@@ -17,20 +17,21 @@ module.exports = {
         loaders: [
             {
                 test: /\.jsx?$/,
-                loader: 'babel-loader',
+                loader: 'babel',
                 exclude: /(node_modules|non_npm_dependencies)/,
                 query: {
-                    presets: ['react', 'es2015', 'stage-0'],
-                    plugins: ['transform-runtime']
+                    presets: ['react', 'es2015-webpack', 'stage-0'],
+                    plugins: ['transform-runtime'],
+                    cacheDirectory: true
                 }
             },
             {
                 test: /\.json$/,
-                loader: 'json-loader'
+                loader: 'json'
             },
             {
                 test: /(node_modules|non_npm_dependencies)\/.+\.(js|jsx)$/,
-                loader: 'imports-loader',
+                loader: 'imports',
                 query: {
                     $: 'jquery',
                     jQuery: 'jquery'
@@ -46,7 +47,7 @@ module.exports = {
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif)$/,
-                loader: 'file-loader',
+                loader: 'file',
                 query: {
                     name: 'files/[hash].[ext]'
                 }
@@ -67,7 +68,22 @@ module.exports = {
         htmlExtract,
         new CopyWebpackPlugin([
             {from: 'images/emoji', to: 'emoji'}
-        ])
+        ]),
+        new webpack.optimize.UglifyJsPlugin({
+            'screw-ie8': true,
+            mangle: {
+                toplevel: false
+            },
+            compress: {
+                warnings: false
+            },
+            comments: false
+        }),
+        new webpack.optimize.AggressiveMergingPlugin(),
+        new webpack.LoaderOptionsPlugin({
+            minimize: true,
+            debug: false
+        })
     ],
     resolve: {
         alias: {

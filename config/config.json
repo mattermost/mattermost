@@ -21,7 +21,8 @@
         "SessionLengthSSOInDays": 30,
         "SessionCacheInMinutes": 10,
         "WebsocketSecurePort": 443,
-        "WebsocketPort": 80
+        "WebsocketPort": 80,
+        "WebserverMode": "regular"
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
