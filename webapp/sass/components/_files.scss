@@ -234,6 +234,7 @@
 
 .file-details__container {
     @include display-flex;
+    background: $white;
 
     .file-details {
         height: 270px;
