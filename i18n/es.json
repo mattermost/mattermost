@@ -1540,7 +1540,7 @@
     "translation": "Falla al enviar el correo de bienvenida err=%v"
   },
   {
-    "id": "api.user.switch_to_email.context.app_error",
+    "id": "api.user.oauth_to_email.context.app_error",
     "translation": "La actualización de la contraseña falló porque el user_id del contexto no coincide con el id de usuario provisto"
   },
   {

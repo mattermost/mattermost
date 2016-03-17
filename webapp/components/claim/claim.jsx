@@ -1,16 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import EmailToSSO from './email_to_sso.jsx';
-import SSOToEmail from './sso_to_email.jsx';
-import TeamStore from 'stores/team_store.jsx';
-
-import {FormattedMessage} from 'react-intl';
+import TeamStore from '../../stores/team_store.jsx';
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
 import logoImage from 'images/logo.png';
 
-export default class ClaimAccount extends React.Component {
+export default class Claim extends React.Component {
     constructor(props) {
         super(props);
 
@@ -39,7 +37,7 @@ export default class ClaimAccount extends React.Component {
         const team = TeamStore.getByName(this.state.teamName);
         let displayName = '';
         if (team) {
-            displayName = team.displayName;
+            displayName = team.display_name;
         }
         this.setState({
             teamDisplayName: displayName
@@ -49,39 +47,6 @@ export default class ClaimAccount extends React.Component {
         this.updateStateFromStores();
     }
     render() {
-        if (this.state.teamDisplayName === '') {
-            return (<div/>);
-        }
-        let content;
-        if (this.state.email === '') {
-            content = (
-                <p>
-                    <FormattedMessage
-                        id='claim.account.noEmail'
-                        defaultMessage='No email specified'
-                    />
-                </p>
-            );
-        } else if (this.state.oldType === '' && this.state.newType !== '') {
-            content = (
-                <EmailToSSO
-                    email={this.state.email}
-                    type={this.state.newType}
-                    teamName={this.state.teamName}
-                    teamDisplayName={this.state.teamDisplayName}
-                />
-            );
-        } else {
-            content = (
-                <SSOToEmail
-                    email={this.state.email}
-                    currentType={this.state.oldType}
-                    teamName={this.state.teamName}
-                    teamDisplayName={this.state.teamDisplayName}
-                />
-            );
-        }
-
         return (
             <div>
                 <div className='signup-header'>
@@ -99,7 +64,13 @@ export default class ClaimAccount extends React.Component {
                             src={logoImage}
                         />
                         <div id='claim'>
-                            {content}
+                            {React.cloneElement(this.props.children, {
+                                teamName: this.state.teamName,
+                                teamDisplayName: this.state.teamDisplayName,
+                                currentType: this.state.oldType,
+                                newType: this.state.newType,
+                                email: this.state.email
+                            })}
                         </div>
                     </div>
                 </div>
@@ -108,9 +79,10 @@ export default class ClaimAccount extends React.Component {
     }
 }
 
-ClaimAccount.defaultProps = {
+Claim.defaultProps = {
 };
-ClaimAccount.propTypes = {
+Claim.propTypes = {
     params: React.PropTypes.object.isRequired,
-    location: React.PropTypes.object.isRequired
+    location: React.PropTypes.object.isRequired,
+    children: React.PropTypes.node
 };

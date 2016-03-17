@@ -332,8 +332,8 @@ func (c *Client) GetSessions(id string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) SwitchToSSO(m map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/switch_to_sso", MapToJson(m)); err != nil {
+func (c *Client) EmailToOAuth(m map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/claim/email_to_sso", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -341,8 +341,26 @@ func (c *Client) SwitchToSSO(m map[string]string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) SwitchToEmail(m map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/switch_to_email", MapToJson(m)); err != nil {
+func (c *Client) OAuthToEmail(m map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/claim/oauth_to_email", MapToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) LDAPToEmail(m map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/claim/ldap_to_email", MapToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) EmailToLDAP(m map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/claim/ldap_to_email", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

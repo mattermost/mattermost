@@ -51,8 +51,6 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	sr.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
 	sr.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
-	sr.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
-	sr.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
 	sr.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
 	sr.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 
@@ -67,6 +65,11 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/{id:[A-Za-z0-9]+}/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/audits", ApiUserRequired(getAudits)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/image", ApiUserRequired(getProfileImage)).Methods("GET")
+
+	sr.Handle("/claim/email_to_oauth", ApiAppHandler(emailToOAuth)).Methods("POST")
+	sr.Handle("/claim/oauth_to_email", ApiUserRequired(oauthToEmail)).Methods("POST")
+	sr.Handle("/claim/email_to_ldap", ApiAppHandler(emailToLdap)).Methods("POST")
+	sr.Handle("/claim/ldap_to_email", ApiAppHandler(ldapToEmail)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2047,30 +2050,30 @@ func IsUsernameTaken(name string, teamId string) bool {
 	return false
 }
 
-func switchToSSO(c *Context, w http.ResponseWriter, r *http.Request) {
+func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	password := props["password"]
 	if len(password) == 0 {
-		c.SetInvalidParam("switchToSSO", "password")
+		c.SetInvalidParam("emailToOAuth", "password")
 		return
 	}
 
 	teamName := props["team_name"]
 	if len(teamName) == 0 {
-		c.SetInvalidParam("switchToSSO", "team_name")
+		c.SetInvalidParam("emailToOAuth", "team_name")
 		return
 	}
 
 	service := props["service"]
 	if len(service) == 0 {
-		c.SetInvalidParam("switchToSSO", "service")
+		c.SetInvalidParam("emailToOAuth", "service")
 		return
 	}
 
 	email := props["email"]
 	if len(email) == 0 {
-		c.SetInvalidParam("switchToSSO", "email")
+		c.SetInvalidParam("emailToOAuth", "email")
 		return
 	}
 
@@ -2162,24 +2165,24 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 	sendSignInChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), strings.Title(service)+" SSO")
 }
 
-func switchToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	password := props["password"]
 	if len(password) == 0 {
-		c.SetInvalidParam("switchToEmail", "password")
+		c.SetInvalidParam("oauthToEmail", "password")
 		return
 	}
 
 	teamName := props["team_name"]
 	if len(teamName) == 0 {
-		c.SetInvalidParam("switchToEmail", "team_name")
+		c.SetInvalidParam("oauthToEmail", "team_name")
 		return
 	}
 
 	email := props["email"]
 	if len(email) == 0 {
-		c.SetInvalidParam("switchToEmail", "email")
+		c.SetInvalidParam("oauthToEmail", "email")
 		return
 	}
 
@@ -2205,7 +2208,7 @@ func switchToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if user.Id != c.Session.UserId {
 		c.LogAudit("fail - user ids didn't match")
-		c.Err = model.NewLocAppError("switchToEmail", "api.user.switch_to_email.context.app_error", nil, "")
+		c.Err = model.NewLocAppError("oauthToEmail", "api.user.oauth_to_email.context.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -2222,6 +2225,176 @@ func switchToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	m := map[string]string{}
+	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
+
+	c.LogAudit("success")
+	w.Write([]byte(model.MapToJson(m)))
+}
+
+func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	email := props["email"]
+	if len(email) == 0 {
+		c.SetInvalidParam("emailToLdap", "email")
+		return
+	}
+
+	emailPassword := props["email_password"]
+	if len(emailPassword) == 0 {
+		c.SetInvalidParam("emailToLdap", "email_password")
+		return
+	}
+
+	teamName := props["team_name"]
+	if len(teamName) == 0 {
+		c.SetInvalidParam("emailToLdap", "team_name")
+		return
+	}
+
+	ldapId := props["ldap_id"]
+	if len(ldapId) == 0 {
+		c.SetInvalidParam("emailToLdap", "ldap_id")
+		return
+	}
+
+	ldapPassword := props["ldap_password"]
+	if len(ldapPassword) == 0 {
+		c.SetInvalidParam("emailToLdap", "ldap_password")
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.LogAudit("fail - couldn't get team")
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		c.LogAudit("fail - couldn't get user")
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if !checkUserLoginAttempts(c, user) || !checkUserPassword(c, user, emailPassword) {
+		c.LogAuditWithUserId(user.Id, "fail - invalid email password")
+		return
+	}
+
+	RevokeAllSession(c, user.Id)
+	if c.Err != nil {
+		return
+	}
+
+	ldapInterface := einterfaces.GetLdapInterface()
+	if ldapInterface == nil {
+		c.Err = model.NewLocAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if err := ldapInterface.DoSwitch(user.Id, ldapId, ldapPassword); err != nil {
+		c.LogAuditWithUserId(user.Id, "fail - ldap switch failed")
+		c.Err = err
+		return
+	}
+
+	sendSignInChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), "LDAP")
+
+	m := map[string]string{}
+	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
+
+	c.LogAudit("success")
+	w.Write([]byte(model.MapToJson(m)))
+}
+
+func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	email := props["email"]
+	if len(email) == 0 {
+		c.SetInvalidParam("ldapToEmail", "email")
+		return
+	}
+
+	emailPassword := props["email_password"]
+	if len(emailPassword) == 0 {
+		c.SetInvalidParam("ldapToEmail", "email_password")
+		return
+	}
+
+	teamName := props["team_name"]
+	if len(teamName) == 0 {
+		c.SetInvalidParam("ldapToEmail", "team_name")
+		return
+	}
+
+	ldapPassword := props["ldap_password"]
+	if len(ldapPassword) == 0 {
+		c.SetInvalidParam("ldapToEmail", "ldap_password")
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.LogAudit("fail - couldn't get team")
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		c.LogAudit("fail - couldn't get user")
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+		c.Err = model.NewLocAppError("ldapToEmail", "api.user.ldap_to_email.not_ldap_account.app_error", nil, "")
+		return
+	}
+
+	ldapInterface := einterfaces.GetLdapInterface()
+	if ldapInterface == nil {
+		c.Err = model.NewLocAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if err := ldapInterface.CheckPassword(user.AuthData, ldapPassword); err != nil {
+		c.LogAuditWithUserId(user.Id, "fail - ldap authentication failed")
+		c.Err = err
+		return
+	}
+
+	if result := <-Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(emailPassword)); result.Err != nil {
+		c.LogAudit("fail - database issue")
+		c.Err = result.Err
+		return
+	}
+
+	RevokeAllSession(c, user.Id)
+	if c.Err != nil {
+		return
+	}
+
+	sendSignInChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	m := map[string]string{}
 	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"

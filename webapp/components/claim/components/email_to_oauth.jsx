@@ -1,26 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
-import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
-
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
-
-const holders = defineMessages({
-    pwdError: {
-        id: 'claim.email_to_sso.pwdError',
-        defaultMessage: 'Please enter your password.'
-    },
-    pwd: {
-        id: 'claim.email_to_sso.pwd',
-        defaultMessage: 'Password'
-    }
-});
+import * as Utils from '../../../utils/utils.jsx';
+import * as Client from '../../../utils/client.jsx';
 
 import React from 'react';
+import ReactDOM from 'react-dom';
+import {FormattedMessage} from 'react-intl';
 
-class EmailToSSO extends React.Component {
+export default class EmailToOAuth extends React.Component {
     constructor(props) {
         super(props);
 
@@ -34,7 +22,7 @@ class EmailToSSO extends React.Component {
 
         var password = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!password) {
-            state.error = this.props.intl.formatMessage(holders.pwdError);
+            state.error = Utils.localizeMessage('claim.email_to_oauth.pwdError', 'Please enter your password.');
             this.setState(state);
             return;
         }
@@ -46,9 +34,9 @@ class EmailToSSO extends React.Component {
         postData.password = password;
         postData.email = this.props.email;
         postData.team_name = this.props.teamName;
-        postData.service = this.props.type;
+        postData.service = this.props.newType;
 
-        Client.switchToSSO(postData,
+        Client.emailToOAuth(postData,
             (data) => {
                 if (data.follow_link) {
                     window.location.href = data.follow_link;
@@ -70,41 +58,41 @@ class EmailToSSO extends React.Component {
             formClass += ' has-error';
         }
 
-        const uiType = Utils.toTitleCase(this.props.type) + ' SSO';
+        const uiType = Utils.toTitleCase(this.props.newType) + ' SSO';
 
         return (
             <div>
                 <h3>
                     <FormattedMessage
-                        id='claim.email_to_sso.title'
+                        id='claim.email_to_oauth.title'
                         defaultMessage='Switch Email/Password Account to {uiType}'
                         values={{
-                            uiType: uiType
+                            uiType
                         }}
                     />
                 </h3>
                 <form onSubmit={this.submit}>
                     <p>
                         <FormattedMessage
-                            id='claim.email_to_sso.ssoType'
+                            id='claim.email_to_oauth.ssoType'
                             defaultMessage='Upon claiming your account, you will only be able to login with {type} SSO'
                             values={{
-                                type: Utils.toTitleCase(this.props.type)
+                                type: Utils.toTitleCase(this.props.newType)
                             }}
                         />
                     </p>
                     <p>
                         <FormattedMessage
-                            id='claim.email_to_sso.ssoNote'
+                            id='claim.email_to_oauth.ssoNote'
                             defaultMessage='You must already have a valid {type} account'
                             values={{
-                                type: Utils.toTitleCase(this.props.type)
+                                type: Utils.toTitleCase(this.props.newType)
                             }}
                         />
                     </p>
                     <p>
                         <FormattedMessage
-                            id='claim.email_to_sso.enterPwd'
+                            id='claim.email_to_oauth.enterPwd'
                             defaultMessage='Enter the password for your {team} {site} account'
                             values={{
                                 team: this.props.teamDisplayName,
@@ -118,7 +106,7 @@ class EmailToSSO extends React.Component {
                             className='form-control'
                             name='password'
                             ref='password'
-                            placeholder={this.props.intl.formatMessage(holders.pwd)}
+                            placeholder={Utils.localizeMessage('claim.email_to_oauth.pwd', 'Password')}
                             spellCheck='false'
                         />
                     </div>
@@ -128,10 +116,10 @@ class EmailToSSO extends React.Component {
                         className='btn btn-primary'
                     >
                         <FormattedMessage
-                            id='claim.email_to_sso.switchTo'
+                            id='claim.email_to_oauth.switchTo'
                             defaultMessage='Switch account to {uiType}'
                             values={{
-                                uiType: uiType
+                                uiType
                             }}
                         />
                     </button>
@@ -141,14 +129,11 @@ class EmailToSSO extends React.Component {
     }
 }
 
-EmailToSSO.defaultProps = {
+EmailToOAuth.defaultProps = {
 };
-EmailToSSO.propTypes = {
-    intl: intlShape.isRequired,
-    type: React.PropTypes.string.isRequired,
-    email: React.PropTypes.string.isRequired,
-    teamName: React.PropTypes.string.isRequired,
-    teamDisplayName: React.PropTypes.string.isRequired
+EmailToOAuth.propTypes = {
+    newType: React.PropTypes.string,
+    email: React.PropTypes.string,
+    teamName: React.PropTypes.string,
+    teamDisplayName: React.PropTypes.string
 };
-
-export default injectIntl(EmailToSSO);

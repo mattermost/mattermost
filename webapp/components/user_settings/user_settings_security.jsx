@@ -15,6 +15,7 @@ import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
+import {Link} from 'react-router';
 
 const holders = defineMessages({
     currentPasswordError: {
@@ -268,17 +269,24 @@ class SecurityTab extends React.Component {
 
             let emailOption;
             if (global.window.mm_config.EnableSignUpWithEmail === 'true' && user.auth_service !== '') {
+                let link;
+                if (user.auth_service === Constants.LDAP_SERVICE) {
+                    link = '/' + teamName + '/claim/ldap_to_email?email=' + encodeURIComponent(user.email);
+                } else {
+                    link = '/' + teamName + '/claim/oauth_to_email?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service;
+                }
+
                 emailOption = (
                     <div>
-                        <a
+                        <Link
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service}
+                            to={link}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchEmail'
                                 defaultMessage='Switch to using email and password'
                             />
-                        </a>
+                        </Link>
                         <br/>
                     </div>
                 );
@@ -288,15 +296,15 @@ class SecurityTab extends React.Component {
             if (global.window.mm_config.EnableSignUpWithGitLab === 'true' && user.auth_service === '') {
                 gitlabOption = (
                     <div>
-                        <a
+                        <Link
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
+                            to={'/' + teamName + '/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchGitlab'
                                 defaultMessage='Switch to using GitLab SSO'
                             />
-                        </a>
+                        </Link>
                         <br/>
                     </div>
                 );
@@ -306,15 +314,33 @@ class SecurityTab extends React.Component {
             if (global.window.mm_config.EnableSignUpWithGoogle === 'true' && user.auth_service === '') {
                 googleOption = (
                     <div>
-                        <a
+                        <Link
                             className='btn btn-primary'
-                            href={'/' + teamName + '/claim?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GOOGLE_SERVICE}
+                            to={'/' + teamName + '/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GOOGLE_SERVICE}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchGoogle'
                                 defaultMessage='Switch to using Google SSO'
                             />
-                        </a>
+                        </Link>
+                        <br/>
+                    </div>
+                );
+            }
+
+            let ldapOption;
+            if (global.window.mm_config.EnableLdap === 'true' && user.auth_service === '') {
+                ldapOption = (
+                    <div>
+                        <Link
+                            className='btn btn-primary'
+                            to={'/' + teamName + '/claim/email_to_ldap?email=' + encodeURIComponent(user.email)}
+                        >
+                            <FormattedMessage
+                                id='user.settings.security.switchLdap'
+                                defaultMessage='Switch to using LDAP'
+                            />
+                        </Link>
                         <br/>
                     </div>
                 );
@@ -325,6 +351,7 @@ class SecurityTab extends React.Component {
                    {emailOption}
                    {gitlabOption}
                    <br/>
+                   {ldapOption}
                    {googleOption}
                 </div>
             );

@@ -256,38 +256,72 @@ export function resetPassword(data, success, error) {
     track('api', 'api_users_reset_password');
 }
 
-export function switchToSSO(data, success, error) {
+export function emailToOAuth(data, success, error) {
     $.ajax({
-        url: '/api/v1/users/switch_to_sso',
+        url: '/api/v1/users/claim/email_to_oauth',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
         success,
         error: function onError(xhr, status, err) {
-            var e = handleError('switchToSSO', xhr, status, err);
+            var e = handleError('emailToOAuth', xhr, status, err);
             error(e);
         }
     });
 
-    track('api', 'api_users_switch_to_sso');
+    track('api', 'api_users_email_to_oauth');
 }
 
-export function switchToEmail(data, success, error) {
+export function oauthToEmail(data, success, error) {
     $.ajax({
-        url: '/api/v1/users/switch_to_email',
+        url: '/api/v1/users/claim/oauth_to_email',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
         success,
         error: function onError(xhr, status, err) {
-            var e = handleError('switchToEmail', xhr, status, err);
+            var e = handleError('oauthToEmail', xhr, status, err);
             error(e);
         }
     });
 
-    track('api', 'api_users_switch_to_email');
+    track('api', 'api_users_oauth_to_email');
+}
+
+export function emailToLDAP(data, success, error) {
+    $.ajax({
+        url: '/api/v1/users/claim/email_to_ldap',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('emailToLDAP', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_users_email_to_ldap');
+}
+
+export function ldapToEmail(data, success, error) {
+    $.ajax({
+        url: '/api/v1/users/claim/ldap_to_email',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('ldapToEmail', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_users_ldap_to_email');
 }
 
 export function logout(success, error) {
