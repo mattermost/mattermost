@@ -3076,12 +3076,12 @@
     "translation": "We encountered an error finding the account"
   },
   {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "We encountered an error trying to find the account by authentication type."
-  },
-  {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
     "translation": "We couldn't find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
+  },
+  {
+    "id": "store.sql_user.get_by_auth.other.app_error",
+    "translation": "We encountered an error trying to find the account by authentication type."
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
