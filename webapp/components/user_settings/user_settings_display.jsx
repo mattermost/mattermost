@@ -195,7 +195,7 @@ export default class UserSettingsDisplay extends React.Component {
         const showUsername = (
             <FormattedMessage
                 id='user.settings.display.showUsername'
-                defaultMessage='Show username (team default)'
+                defaultMessage='Show username (default)'
             />
         );
         const showNickname = (
