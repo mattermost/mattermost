@@ -60,10 +60,6 @@ const holders = defineMessages({
         id: 'user.settings.general.uploadImage',
         defaultMessage: "Click 'Edit' to upload an image."
     },
-    imageUpdated: {
-        id: 'user.settings.general.imageUpdated',
-        defaultMessage: 'Image last updated {date}'
-    },
     fullName: {
         id: 'user.settings.general.fullName',
         defaultMessage: 'Full Name'
@@ -730,16 +726,22 @@ class UserSettingsGeneralTab extends React.Component {
         } else {
             let minMessage = formatMessage(holders.uploadImage);
             if (user.last_picture_update) {
-                minMessage = formatMessage(holders.imageUpdated, {
-                    date: (
-                        <FormattedDate
-                            value={new Date(user.last_picture_update)}
-                            day='2-digit'
-                            month='short'
-                            year='numeric'
-                        />
-                    )
-                });
+                minMessage = (
+                    <FormattedMessage
+                        id='user.settings.general.imageUpdated'
+                        defaultMessage='Image last updated {date}'
+                        values={{
+                            date: (
+                                <FormattedDate
+                                    value={new Date(user.last_picture_update)}
+                                    day='2-digit'
+                                    month='short'
+                                    year='numeric'
+                                />
+                            )
+                        }}
+                    />
+                );
             }
             pictureSection = (
                 <SettingItemMin
