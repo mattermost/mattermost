@@ -20,6 +20,7 @@ import React from 'react';
 import {FormattedTime} from 'react-intl';
 
 import icon50 from 'images/icon50x50.png';
+import bing from 'images/bing.mp3';
 
 export function isEmail(email) {
     // writing a regex to match all valid email addresses is really, really hard (see http://stackoverflow.com/a/201378)
@@ -187,7 +188,7 @@ var canDing = true;
 
 export function ding() {
     if (!isBrowserFirefox() && canDing) {
-        var audio = new Audio('/static/images/bing.mp3');
+        var audio = new Audio(bing);
         audio.play();
         canDing = false;
         setTimeout(() => {
