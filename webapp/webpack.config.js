@@ -5,14 +5,20 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const htmlExtract = new ExtractTextPlugin('html', 'root.html');
 
-module.exports = {
+const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
+
+var DEV = false;
+if (NPM_TARGET === 'run') {
+    DEV = true;
+}
+
+var config = {
     entry: ['babel-polyfill', './root.jsx', 'root.html'],
     output: {
         path: 'dist',
         publicPath: '/static/',
         filename: 'bundle.js'
     },
-    devtool: 'source-map',
     module: {
         loaders: [
             {
@@ -22,7 +28,7 @@ module.exports = {
                 query: {
                     presets: ['react', 'es2015-webpack', 'stage-0'],
                     plugins: ['transform-runtime'],
-                    cacheDirectory: true
+                    cacheDirectory: DEV
                 }
             },
             {
@@ -69,19 +75,8 @@ module.exports = {
         new CopyWebpackPlugin([
             {from: 'images/emoji', to: 'emoji'}
         ]),
-        new webpack.optimize.UglifyJsPlugin({
-            'screw-ie8': true,
-            mangle: {
-                toplevel: false
-            },
-            compress: {
-                warnings: false
-            },
-            comments: false
-        }),
-        new webpack.optimize.AggressiveMergingPlugin(),
         new webpack.LoaderOptionsPlugin({
-            minimize: true,
+            minimize: !DEV,
             debug: false
         })
     ],
@@ -96,3 +91,36 @@ module.exports = {
         ]
     }
 };
+
+// Development mode configuration
+if (DEV) {
+    config.devtool = 'eval-cheap-module-source-map';
+}
+
+// Production mode configuration
+if (!DEV) {
+    config.devtool = 'source-map';
+    config.plugins.push(
+        new webpack.optimize.UglifyJsPlugin({
+            'screw-ie8': true,
+            mangle: {
+                toplevel: false
+            },
+            compress: {
+                warnings: false
+            },
+            comments: false
+        })
+    );
+    config.plugins.push(
+        new webpack.optimize.AggressiveMergingPlugin()
+    );
+    config.plugins.push(
+        new webpack.optimize.OccurrenceOrderPlugin(true)
+    );
+    config.plugins.push(
+        new webpack.optimize.DedupePlugin()
+    );
+}
+
+module.exports = config;

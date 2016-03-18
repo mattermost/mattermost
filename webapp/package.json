@@ -34,26 +34,26 @@
     "babel-preset-es2015-webpack": "6.4.0",
     "babel-preset-react": "6.5.0",
     "babel-preset-stage-0": "6.5.0",
+    "copy-webpack-plugin": "1.1.1",
+    "css-loader": "0.23.1",
     "eslint": "2.2.0",
     "eslint-plugin-react": "4.0.0",
     "exports-loader": "0.6.3",
     "extract-text-webpack-plugin": "1.0.1",
     "file-loader": "0.8.5",
-    "url-loader": "0.5.7",
     "html-loader": "0.4.3",
-    "copy-webpack-plugin": "1.1.1",
-    "css-loader": "0.23.1",
     "imports-loader": "0.6.5",
-    "raw-loader": "0.5.1",
     "json-loader": "0.5.4",
     "node-sass": "3.4.2",
+    "raw-loader": "0.5.1",
     "sass-loader": "3.2.0",
     "style-loader": "0.13.0",
-    "webpack": "2.1.0-beta.4"
+    "url-loader": "0.5.7",
+    "webpack": "webpack/webpack#master"
   },
   "scripts": {
       "check": "eslint --ext \".jsx\" --ignore-pattern node_modules --quiet .",
-      "build": "webpack --optimize-dedupe",
-      "run": "webpack --progress"
+      "build": "webpack",
+      "run": "webpack --progress --watch"
   }
 }
