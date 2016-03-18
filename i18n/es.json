@@ -1708,6 +1708,26 @@
     "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
   },
   {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "La característica de Cumplimiento está deshabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia enterprise."
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "Fallo el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_finished.info",
+    "translation": "Se completo la exportación de Cumplimiento para el trabajo '{{.JobName}}' exportados {{.Count}} registros en '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_limit.warning",
+    "translation": "Advertencia en el trabajo '{{.JobName}}' para exportación de Cumplimiento. Se retornaron demasiados registros, truncando a 30,000 en '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_started.info",
+    "translation": "Iniciado el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "No se pudo enlazar con el servidor LDAP. Revisa las opciones de BindUsername y BindPassword."
   },
@@ -1974,6 +1994,30 @@
   {
     "id": "model.command.is_valid.user_id.app_error",
     "translation": "Id de usuario inválido"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "Create debe ser una fecha válida"
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "Descripción inválida"
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "Hasta debe ser una fecha válida"
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "Desde debe ser una fecha válida"
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "Desde debe ser mayor que Hasta"
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -2708,6 +2752,14 @@
     "translation": "No pudimos actualizar el comando"
   },
   {
+    "id": "store.sql_compliance.get.finding.app_error",
+    "translation": "Se ha detectado un error al recuperar los informes de cumplimiento"
+  },
+  {
+    "id": "store.sql_compliance.save.saving.app_error",
+    "translation": "Se ha detectado un error al guardar el informe de cumplimiento"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "Encontramos un error al obtener la licencia"
   },
@@ -2802,6 +2854,10 @@
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
     "translation": "No pudimos obtener la cantidad de usuarios con mensajes"
+  },
+  {
+    "id": "store.sql_post.compliance_export.app_error",
+    "translation": "No pudimos obtener los mensajes para exportar el informe de cumplimiento"
   },
   {
     "id": "store.sql_post.delete.app_error",
