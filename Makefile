@@ -218,16 +218,16 @@ nuke: | clean clean-docker
 
 	touch $@
 
-run: | start-docker run-client run-server
+run: | start-docker run-server run-client
 
 run-server: .prepare-go
 	@echo Starting go web server
+	mkdir -p webapp/dist/files
 	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
 
 run-client:
 	@echo Starting client
 
-	mkdir -p webapp/dist/files
 	cd webapp && make run
 
 	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
@@ -240,7 +240,7 @@ run-client:
 		sed -i'.bak' 's|_BUILD_ENTERPRISE_READY_|false|g' ./model/version.go; \
 	fi
 
-stop: stop-server
+stop: stop-server stop-client
 	@if [ $(shell docker ps -a | grep -ci ${DOCKER_CONTAINER_NAME}) -eq 1 ]; then \
 		echo removing dev docker container; \
 		docker stop ${DOCKER_CONTAINER_NAME} > /dev/null; \
@@ -263,6 +263,9 @@ stop-server:
 		echo stopping mattermost $$PID; \
 		kill $$PID; \
 	done
+
+stop-client:
+	cd webapp && make stop
 
 restart-server: stop-server run-server
 

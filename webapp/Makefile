@@ -1,4 +1,4 @@
-.PHONY: build test run clean
+.PHONY: build test run clean stop
 
 test:
 	@echo Checking for style guide compliance
@@ -20,8 +20,15 @@ build: | .npminstall test
 run: .npminstall
 	@echo Running mattermost Webapp for development
 
-	npm run run
-	
+	npm run run &
+
+stop:
+	@echo Stopping changes watching
+
+	@for PROCID in $$(ps -ef | grep "[n]ode.*[w]ebpack" | awk '{ print $$2 }'); do \
+		echo stopping webpack watch $$PROCID; \
+		kill $$PROCID; \
+	done
 
 clean:
 	@echo Cleaning Webapp
