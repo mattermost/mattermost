@@ -51,10 +51,6 @@ const holders = defineMessages({
     EMBED_TOGGLE: {
         id: 'user.settings.advance.embed_toggle',
         defaultMessage: 'Show toggle for all embed previews'
-    },
-    SLASHCMD_AUTOCMP: {
-        id: 'user.settings.advance.slashCmd_autocmp',
-        defaultMessage: 'Enable external application to offer slash command autocomplete'
     }
 });
 

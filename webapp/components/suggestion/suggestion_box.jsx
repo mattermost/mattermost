@@ -111,7 +111,7 @@ export default class SuggestionBox extends React.Component {
 
     handlePretextChanged(pretext) {
         for (const provider of this.props.providers) {
-            provider.handlePretextChanged(this.suggestionId, pretext, this.props.channelId);
+            provider.handlePretextChanged(this.suggestionId, pretext);
         }
     }
 
@@ -160,7 +160,6 @@ SuggestionBox.propTypes = {
     value: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
-    channelId: React.PropTypes.string,
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,
