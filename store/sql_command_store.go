@@ -34,7 +34,6 @@ func NewSqlCommandStore(sqlStore *SqlStore) CommandStore {
 }
 
 func (s SqlCommandStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("Commands", "ExternalManagement", "tinyint(1)", "boolean", "0")
 }
 
 func (s SqlCommandStore) CreateIndexesIfNotExists() {

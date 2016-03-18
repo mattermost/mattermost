@@ -24,10 +24,7 @@ func TestListCommands(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
-	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
-
-	if results, err := Client.ListCommands(channel1.Id, "/test"); err != nil {
+	if results, err := Client.ListCommands(); err != nil {
 		t.Fatal(err)
 	} else {
 		commands := results.Data.([]*model.Command)

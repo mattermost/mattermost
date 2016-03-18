@@ -44,7 +44,7 @@ func InitCommand(r *mux.Router) {
 	sr := r.PathPrefix("/commands").Subrouter()
 
 	sr.Handle("/execute", ApiUserRequired(executeCommand)).Methods("POST")
-	sr.Handle("/list", ApiUserRequired(listCommands)).Methods("POST")
+	sr.Handle("/list", ApiUserRequired(listCommands)).Methods("GET")
 
 	sr.Handle("/create", ApiUserRequired(createCommand)).Methods("POST")
 	sr.Handle("/list_team_commands", ApiUserRequired(listTeamCommands)).Methods("GET")
@@ -76,9 +76,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			teamCmds := result.Data.([]*model.Command)
 			for _, cmd := range teamCmds {
-				if cmd.ExternalManagement {
-					commands = append(commands, autocompleteCommands(c, cmd, r)...)
-				} else if cmd.AutoComplete && !seen[cmd.Id] {
+				if cmd.AutoComplete && !seen[cmd.Id] {
 					cmd.Sanitize()
 					seen[cmd.Trigger] = true
 					commands = append(commands, cmd)
@@ -88,92 +86,6 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.CommandListToJson(commands)))
-}
-
-func autocompleteCommands(c *Context, cmd *model.Command, r *http.Request) []*model.Command {
-	props := model.MapFromJson(r.Body)
-	command := strings.TrimSpace(props["command"])
-	channelId := strings.TrimSpace(props["channelId"])
-	parts := strings.Split(command, " ")
-	trigger := parts[0][1:]
-	message := strings.Join(parts[1:], " ")
-
-	chanChan := Srv.Store.Channel().Get(channelId)
-	teamChan := Srv.Store.Team().Get(c.Session.TeamId)
-	userChan := Srv.Store.User().Get(c.Session.UserId)
-
-	var team *model.Team
-	if tr := <-teamChan; tr.Err != nil {
-		c.Err = tr.Err
-		return make([]*model.Command, 0, 32)
-	} else {
-		team = tr.Data.(*model.Team)
-	}
-
-	var user *model.User
-	if ur := <-userChan; ur.Err != nil {
-		c.Err = ur.Err
-		return make([]*model.Command, 0, 32)
-	} else {
-		user = ur.Data.(*model.User)
-	}
-
-	var channel *model.Channel
-	if cr := <-chanChan; cr.Err != nil {
-		c.Err = cr.Err
-		return make([]*model.Command, 0, 32)
-	} else {
-		channel = cr.Data.(*model.Channel)
-	}
-
-	l4g.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, c.Session.UserId))
-	p := url.Values{}
-	p.Set("token", cmd.Token)
-
-	p.Set("team_id", cmd.TeamId)
-	p.Set("team_domain", team.Name)
-
-	p.Set("channel_id", channelId)
-	p.Set("channel_name", channel.Name)
-
-	p.Set("user_id", c.Session.UserId)
-	p.Set("user_name", user.Username)
-
-	p.Set("command", "/"+trigger)
-	p.Set("text", message)
-	p.Set("response_url", "not supported yet")
-	p.Set("suggest", "true")
-
-	method := "POST"
-	if cmd.Method == model.COMMAND_METHOD_GET {
-		method = "GET"
-	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-	}
-	client := &http.Client{Transport: tr}
-
-	req, _ := http.NewRequest(method, cmd.URL, strings.NewReader(p.Encode()))
-	req.Header.Set("Accept", "application/json")
-	if cmd.Method == model.COMMAND_METHOD_POST {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	}
-
-	if resp, err := client.Do(req); err != nil {
-		c.Err = model.NewLocAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error())
-	} else {
-		if resp.StatusCode == http.StatusOK {
-			response := model.CommandListFromJson(resp.Body)
-
-			return response
-
-		} else {
-			body, _ := ioutil.ReadAll(resp.Body)
-			c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": trigger, "Status": resp.Status}, string(body))
-		}
-	}
-	return make([]*model.Command, 0, 32)
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -247,7 +159,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			teamCmds := result.Data.([]*model.Command)
 			for _, cmd := range teamCmds {
-				if trigger == cmd.Trigger || cmd.ExternalManagement {
+				if trigger == cmd.Trigger {
 					l4g.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, c.Session.UserId))
 
 					p := url.Values{}

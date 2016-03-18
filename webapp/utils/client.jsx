@@ -1031,13 +1031,12 @@ export function regenCommandToken(data, success, error) {
     });
 }
 
-export function listCommands(data, success, error) {
+export function listCommands(success, error) {
     $.ajax({
         url: '/api/v1/commands/list',
         dataType: 'json',
         contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
+        type: 'GET',
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('listCommands', xhr, status, err);

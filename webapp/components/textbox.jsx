@@ -224,7 +224,6 @@ export default class Textbox extends React.Component {
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
                     listComponent={SuggestionList}
                     providers={this.suggestionProviders}
-                    channelId={this.props.channelId}
                 />
                 <div
                     ref='preview'

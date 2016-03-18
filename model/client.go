@@ -363,11 +363,8 @@ func (c *Client) Command(channelId string, command string, suggest bool) (*Resul
 	}
 }
 
-func (c *Client) ListCommands(channelId string, command string) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["command"] = command
-	m["channelId"] = channelId
-	if r, err := c.DoApiPost("/commands/list", MapToJson(m)); err != nil {
+func (c *Client) ListCommands() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/commands/list", "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
