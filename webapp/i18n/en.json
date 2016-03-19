@@ -425,6 +425,8 @@
   "admin.support.termsDesc": "Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.",
   "admin.support.termsTitle": "Terms of Service link:",
   "admin.support.title": "Legal and Support Settings",
+  "admin.support.noteTitle": "Note:",
+  "admin.support.noteDescription": "If linking to an external site, URLs should begin with http:// or https://.",
   "admin.system_analytics.activeUsers": "Active Users With Posts",
   "admin.system_analytics.title": "the System",
   "admin.system_analytics.totalPosts": "Total Posts",
