@@ -96,7 +96,11 @@ class TeamSignupWelcomePage extends React.Component {
     }
     handleKeyPress(event) {
         if (event.keyCode === 13) {
-            this.submitNext(event);
+            if (this.state.useDiff) {
+                this.handleDiffSubmit(event);
+            } else {
+                this.submitNext(event);
+            }
         }
     }
     componentWillUnmount() {
