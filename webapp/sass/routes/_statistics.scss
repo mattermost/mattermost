@@ -1,0 +1,86 @@
+@charset 'UTF-8';
+
+.team_statistics {
+    .total-count {
+        @include border-radius(3px);
+        background: $white;
+        border: 1px solid $light-gray;
+        margin: 1em 0;
+        text-align: center;
+        width: 100%;
+
+        .title {
+            border-bottom: 1px solid $light-gray;
+            font-size: 13px;
+            font-weight: 400;
+            padding: 7px 10px;
+            text-align: left;
+
+            .fa {
+                color: #555555;
+                float: right;
+                font-size: 16px;
+                margin: 0;
+            }
+        }
+
+        .content {
+            color: #555555;
+            font-size: 30px;
+            font-weight: 600;
+            overflow: auto;
+            padding: .3em 0 .35em;
+        }
+    }
+
+    .total-count--day {
+        background: $white;
+        border: 1px solid $light-gray;
+        clear: both;
+        height: 275px;
+        margin: 10px;
+        padding: 5px 10px 10px;
+        width: 760px;
+
+        > div {
+            font-size: 18px;
+            font-weight: 300;
+        }
+    }
+
+    .recent-active-users {
+        table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .content {
+            max-height: 400px;
+            overflow: auto;
+            padding: 0;
+        }
+
+        tr {
+            &:first-child {
+                td {
+                    border-top: none;
+                }
+            }
+
+            td {
+                @include clearfix;
+                border-left: 1px solid $light-gray;
+                border-top: 1px solid $light-gray;
+                font-size: 13px;
+                font-weight: 400;
+                padding: 5px 5px 6px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
+                &:first-child {
+                    border-left: none;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,29 @@
+@charset 'UTF-8';
+
+@mixin file-icon($path) {
+    @include background-size(60px auto);
+    background-color: $white;
+    background-image: url($path);
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+@mixin alpha-property($property, $color, $opacity) {
+    #{$property}: rgba($color, $opacity);
+}
+
+@mixin font-smoothing($value: antialiased) {
+    @if $value == antialiased {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    @else {
+        -webkit-font-smoothing: subpixel-antialiased;
+        -moz-osx-font-smoothing: auto;
+    }
+}
+
+@mixin cursor($value) {
+    cursor: -webkit-$value;
+    cursor: zoom-$value;
+}

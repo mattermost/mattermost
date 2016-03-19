@@ -1,0 +1,27 @@
+@charset 'UTF-8';
+
+.emoticon {
+    background-size: contain;
+    display: inline-block;
+    height: 1.5em;
+    margin-bottom: .25em;
+    width: 1.5em;
+}
+
+.emoticon-suggestion {
+    @include clearfix;
+    cursor: pointer;
+    font-size: 13px;
+    height: 30px;
+    line-height: 30px;
+    width: 100%;
+}
+
+.emoticon-suggestion__image {
+    height: 20px;
+    margin: 6px 6px 0 5px;
+    padding: 0;
+    text-align: center;
+    vertical-align: top;
+    width: 20px;
+}

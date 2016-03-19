@@ -19,7 +19,10 @@
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,
-        "SessionCacheInMinutes": 10
+        "SessionCacheInMinutes": 10,
+        "WebsocketSecurePort": 443,
+        "WebsocketPort": 80,
+        "WebserverMode": "regular"
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -84,6 +87,7 @@
         "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
         "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
         "SendPushNotifications": false,
+        "PushNotificationContents": "generic",
         "PushNotificationServer": ""
     },
     "RateLimitSettings": {
@@ -113,5 +117,33 @@
         "AuthEndpoint": "",
         "TokenEndpoint": "",
         "UserApiEndpoint": ""
+    },
+    "GoogleSettings": {
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
+    },
+    "LdapSettings": {
+        "Enable": false,
+        "LdapServer": "",
+        "LdapPort": 389,
+        "BaseDN": "",
+        "BindUsername": "",
+        "BindPassword": "",
+        "FirstNameAttribute": "",
+        "LastNameAttribute": "",
+        "EmailAttribute": "",
+        "UsernameAttribute": "",
+        "IdAttribute": "",
+        "QueryTimeout": 60
+    },
+    "ComplianceSettings": {
+        "Enable": false,
+        "Directory": "./data/",
+        "EnableDaily": false
     }
 }

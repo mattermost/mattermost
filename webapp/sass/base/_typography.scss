@@ -1,0 +1,27 @@
+@charset 'UTF-8';
+
+b,
+strong {
+    font-weight: 600;
+}
+
+a {
+    color: $primary-color;
+    cursor: pointer;
+    text-decoration: none;
+    word-break: break-word;
+
+    &:focus,
+    &:hover {
+        color: $primary-color--hover;
+    }
+}
+
+body {
+    @include font-smoothing;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.word-break--all {
+    word-break: break-all;
+}

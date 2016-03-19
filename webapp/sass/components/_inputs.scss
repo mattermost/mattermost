@@ -1,0 +1,35 @@
+@charset 'UTF-8';
+
+.form-control {
+    @include border-radius($border-rad);
+
+    &:focus {
+        @include box-shadow(none);
+    }
+
+    &.no-padding {
+        line-height: 32px;
+        padding: 0;
+    }
+
+    &.no-resize {
+        resize: none;
+    }
+
+    &[disabled],
+    [readonly] {
+        @include alpha-property(background, $white, .1);
+        color: inherit;
+        cursor: auto;
+    }
+}
+
+fieldset {
+    &[disabled] {
+        .form-control {
+            @include alpha-property(background, $white, .1);
+            color: inherit;
+            cursor: auto;
+        }
+    }
+}

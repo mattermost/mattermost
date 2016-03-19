@@ -13,6 +13,7 @@ import (
 // It should be maitained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"2.1.0",
 	"2.0.0",
 	"1.4.0",
 	"1.3.0",
@@ -114,6 +115,11 @@ func IsPreviousVersionsSupported(versionToCheck string) bool {
 
 	// Current - 2 Supported
 	if versionsWithoutHotFixes[2] == versionToCheckStr {
+		return true
+	}
+
+	// Current - 3 Supported
+	if versionsWithoutHotFixes[3] == versionToCheckStr {
 		return true
 	}
 

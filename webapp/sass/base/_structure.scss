@@ -1,0 +1,61 @@
+@charset 'UTF-8';
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    background: $bg--gray;
+    height: 100%;
+    position: relative;
+    width: 100%;
+}
+
+.sticky {
+    background: $white;
+
+    > .container-fluid {
+        overflow: auto;
+    }
+
+    .inner-wrap {
+        > .row {
+            &.content {
+                margin-bottom: -89px;
+                min-height: 100%;
+            }
+        }
+    }
+}
+
+.inner-wrap {
+    height: 100%;
+
+    > .row {
+        &.main {
+            height: 100%;
+            position: relative;
+        }
+    }
+}
+
+.container-fluid {
+    @include legacy-pie-clearfix;
+    height: 100%;
+    position: relative;
+}
+
+.channel-view {
+    @include clearfix;
+    height: 100%;
+    position: relative;
+}
+
+img {
+    max-width: 100%;
+
+    &.rounded {
+        @include border-radius(100%);
+    }
+}

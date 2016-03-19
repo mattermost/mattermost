@@ -1,0 +1,56 @@
+@charset 'UTF-8';
+
+.inner-wrap {
+    &.move--left {
+        .search-bar__container {
+            display: none;
+        }
+    }
+
+    &.move--right {
+        .search-bar__container {
+            display: none;
+        }
+    }
+}
+
+.app__content {
+    @include display-flex;
+    @include flex-direction(column);
+    background: $white;
+    height: 100%;
+    margin-left: 220px;
+    padding-top: 50px;
+    position: relative;
+
+    .channel__wrap & {
+        padding-top: 0;
+    }
+}
+
+#post-create {
+    @include flex(0 0 auto);
+    background: $white;
+    width: 100%;
+    z-index: 3;
+}
+
+#archive-link-home {
+    @include flex(0 0 auto);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 10px 20px;
+
+    .fa {
+        @include opacity(.7);
+        font-size: 11px;
+    }
+
+    a {
+        color: inherit;
+    }
+}
+
+.delete-message-text {
+    margin-top: 10px;
+}

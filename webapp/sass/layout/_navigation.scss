@@ -1,0 +1,139 @@
+@charset 'UTF-8';
+
+.nav > li > a:focus,
+.nav > li > a:hover {
+    background: transparent;
+}
+
+#navbar {
+    input {
+        margin: 0 5px 0 2px;
+    }
+
+    .navbar-default {
+        background: $primary-color;
+        border: none;
+        min-height: 45px;
+        position: absolute;
+
+        .navbar-nav {
+            > li {
+                > a {
+                    height: 45px;
+                    padding: 0 1.3em;
+
+                    i {
+                        line-height: 45px;
+                    }
+                }
+            }
+        }
+
+        .navbar-toggle {
+            border-color: transparent;
+            border-radius: 0;
+            fill: $white;
+            float: left;
+            height: 44px;
+            line-height: 48px;
+            margin: 0;
+            padding: 0 10px;
+            width: 43px;
+            z-index: 5;
+
+            .icon-bar {
+                background: $white;
+                width: 21px;
+            }
+
+            .glyphicon-search {
+                top: -1px;
+            }
+
+            .icon--white {
+                color: $white;
+            }
+
+            &:hover,
+            &:active,
+            &:focus {
+                background: inherit;
+            }
+        }
+
+        .navbar-brand {
+            float: none;
+            font-size: 16px;
+            height: 45px;
+            line-height: 45px;
+            padding: 0 .5em;
+
+            .heading {
+                color: $white;
+                font-weight: 600;
+                margin-right: 3px;
+            }
+
+            .header-dropdown__icon {
+                top: 1px;
+            }
+
+            .dropdown-toggle {
+                color: $white;
+            }
+
+            .description {
+                color: $white;
+                display: inline-block;
+                margin-right: .5em;
+
+                &.info-popover {
+                    @include background-size(100% 100%);
+                    background: url('../images/info__icon.png');
+                    cursor: pointer;
+                    height: 19px;
+                    position: relative;
+                    top: -1px;
+                    vertical-align: middle;
+                    width: 19px;
+                }
+            }
+        }
+    }
+
+    .sidebar-channel {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        span {
+            margin-left: 2px;
+            white-space: nowrap;
+        }
+    }
+
+    .channel-create-btn {
+        margin-right: 15px;
+    }
+
+    .more-channel-table {
+        border: 1px solid #dbdbdc;
+        width: 100%;
+
+        td {
+            padding: 7px;
+        }
+
+        button {
+            width: 110px;
+        }
+    }
+}
+
+.badge-notify {
+    background: $red;
+    left: 4px;
+    position: absolute;
+    top: 3px;
+    z-index: 100;
+}

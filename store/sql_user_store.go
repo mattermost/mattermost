@@ -4,6 +4,7 @@
 package store
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -11,7 +12,8 @@ import (
 )
 
 const (
-	MISSING_ACCOUNT_ERROR = "store.sql_user.missing_account.const"
+	MISSING_ACCOUNT_ERROR      = "store.sql_user.missing_account.const"
+	MISSING_AUTH_ACCOUNT_ERROR = "store.sql_user.get_by_auth.missing_account.app_error"
 )
 
 type SqlUserStore struct {
@@ -481,8 +483,11 @@ func (us SqlUserStore) GetByAuth(teamId string, authData string, authService str
 		user := model.User{}
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"TeamId": teamId, "AuthData": authData, "AuthService": authService}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.app_error",
-				nil, "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
+			} else {
+				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
+			}
 		}
 
 		result.Data = &user
@@ -639,6 +644,25 @@ func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsUniqueUserCount", "store.sql_user.analytics_unique_user_count.app_error", nil, err.Error())
 		} else {
 			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetUnreadCount(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if count, err := us.GetReplica().SelectInt("SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE 0 END + cm.MentionCount) FROM Channels c INNER JOIN ChannelMembers cm ON cm.ChannelId = c.Id AND cm.UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetMentionCount", "store.sql_user.get_unread_count.app_error", nil, err.Error())
+		} else {
+			result.Data = count
 		}
 
 		storeChannel <- result

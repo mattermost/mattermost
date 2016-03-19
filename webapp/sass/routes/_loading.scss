@@ -1,0 +1,51 @@
+@charset 'UTF-8';
+
+@import "compass/css3/animation";
+
+.loading-screen {
+    display: table;
+    height: 100%;
+    padding: 60px;
+    text-align: center;
+    width: 100%;
+
+    .loading__content {
+        display: table-cell;
+        font-size: 0;
+        vertical-align: middle;
+
+        h3 {
+            display: inline-block;
+            font-size: 16px;
+            font-weight: 400;
+            margin: 0 .2em;
+        }
+
+        .round {
+            @include animation(move .75s infinite linear);
+            @include border-radius(10px);
+            background-color: #444444;
+            display: inline-block;
+            height: 4px;
+            margin: 0 2px;
+            opacity: .1;
+            width: 4px;
+        }
+
+        @for $i from 1 through 3 {
+            .round-#{$i} {
+                @include animation-delay(.2s*$i);
+            }
+        }
+
+        @include keyframes(move) {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: .1;
+            }
+        }
+    }
+}

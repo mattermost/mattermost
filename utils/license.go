@@ -20,7 +20,7 @@ import (
 
 var IsLicensed bool = false
 var License *model.License = &model.License{}
-var ClientLicense map[string]string = make(map[string]string)
+var ClientLicense map[string]string = map[string]string{"IsLicensed": "false"}
 
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZmShlU8Z8HdG0IWSZ8r
@@ -115,6 +115,7 @@ func getClientLicense(l *model.License) map[string]string {
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
 		props["GoogleSSO"] = strconv.FormatBool(*l.Features.GoogleSSO)
+		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
 		props["IssuedAt"] = strconv.FormatInt(l.IssuedAt, 10)
 		props["StartsAt"] = strconv.FormatInt(l.StartsAt, 10)
 		props["ExpiresAt"] = strconv.FormatInt(l.ExpiresAt, 10)

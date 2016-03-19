@@ -1,0 +1,22 @@
+@charset 'UTF-8';
+
+a {
+    color: $primary-color;
+    cursor: pointer;
+    text-decoration: none;
+    word-break: break-word;
+
+    &:hover,
+    &:focus {
+        color: $primary-color--hover;
+    }
+}
+
+.text-danger {
+    color: desaturate($red, 20%);
+
+    &:hover,
+    &:focus {
+        color: desaturate($red, 20%);
+    }
+}

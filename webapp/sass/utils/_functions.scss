@@ -1,0 +1,23 @@
+@charset "UTF-8";
+
+@function em($pixels, $context: 14px) {
+	@return #{$pixels/$context}em
+}
+
+@function alpha-color($color, $amount) {
+    @return rgba($color, $amount)
+}
+
+%popover-box-shadow {
+    @include box-shadow(rgba(black, .175) 1px -3px 12px);
+}
+
+%font-awesome {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transform: translate(0, 0);
+}

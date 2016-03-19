@@ -238,5 +238,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["AllowCorsFrom"] = *c.ServiceSettings.AllowCorsFrom
 
+	props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
+
 	return props
 }

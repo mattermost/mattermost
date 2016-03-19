@@ -1,0 +1,129 @@
+@charset 'UTF-8';
+
+.sidebar--right {
+    @include translateX(400px);
+    background: $white;
+    height: 100%;
+    padding: 0;
+    position: fixed;
+    right: 0;
+    width: 400px;
+
+    .post-body {
+        img {
+            max-height: 200px;
+        }
+    }
+
+    .post {
+        .post__header {
+            .col__name {
+                .user-popover {
+                    max-width: 130px;
+                }
+            }
+        }
+    }
+
+    .sidebar--right__content {
+        @include display-flex;
+        @include flex-direction(column);
+        height: 100%;
+    }
+
+    .sidebar--right__back {
+        @include opacity(.8);
+        color: inherit;
+        display: inline-block;
+        font-size: 13px;
+        margin: 0 0 0 -14px;
+        text-align: center;
+        width: 30px;
+    }
+
+    .sidebar-right__body {
+        @include border-radius(2px 0 0 0);
+        @include display-flex;
+        @include flex(1 1 auto);
+        @include flex-direction(column);
+        border-left: $border-gray;
+        border-top: $border-gray;
+        height: calc(100% - 56px);
+    }
+
+    .sidebar__overlay {
+        @include opacity(.1);
+        background-color: $yellow;
+        height: 100%;
+        pointer-events: none;
+        position: absolute;
+        width: 100%;
+        z-index: 5;
+    }
+
+    .input-group {
+        word-break: break-word;
+    }
+
+    .sidebar--right__close {
+        @include single-transition(all, .2s, ease-in);
+        background: none;
+        border: none;
+        float: right;
+        font-size: 22px;
+        height: 22px;
+        line-height: 0;
+        margin: 11px 0 0;
+        opacity: .5;
+        outline: none;
+        width: 22px;
+
+        &:hover,
+        &:active {
+            opacity: .8;
+        }
+
+        i {
+            position: relative;
+            top: -2px;
+        }
+    }
+
+    .sidebar--right__header {
+        @include flex(0 0 44px);
+        border-bottom: $border-gray;
+        color: inherit;
+        font-size: 1em;
+        height: 44px;
+        line-height: 44px;
+        padding: 0 1em;
+        text-transform: uppercase;
+    }
+
+    .sidebar--right__subheader {
+        font-size: 1em;
+        padding: 1em 1em 0;
+
+        h4 {
+            font-size: 1em;
+        }
+
+        ul {
+            @include opacity(.7);
+            padding: 10px 0 0 30px;
+        }
+
+        li {
+            font-size: .95em;
+            padding-bottom: 10px;
+        }
+    }
+
+    .suggestion-list__content {
+        max-height: 120px;
+    }
+}
+
+.sidebar-right-container {
+    height: 100%;
+}

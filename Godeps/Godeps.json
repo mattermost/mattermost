@@ -6,6 +6,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/NYTimes/gziphandler",
+			"Rev": "a88790d49798560db24af70fb6a10a66e2549a72"
+		},
+		{
 			"ImportPath": "github.com/alecthomas/log4go",
 			"Rev": "8e9057c3b25c409a34c0b9737cdc82cbcafeabce"
 		},

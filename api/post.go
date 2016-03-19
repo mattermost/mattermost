@@ -419,7 +419,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 
 							// copy the context and create a mock session for posting the message
 							mockSession := model.Session{UserId: hook.CreatorId, TeamId: hook.TeamId, IsOAuth: false}
-							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL, 0, c.T, c.Locale}
+							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL, c.T, c.Locale}
 
 							if text, ok := respProps["text"]; ok {
 								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
@@ -604,12 +604,13 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			year := fmt.Sprintf("%d", tm.Year())
 			zone, _ := tm.Zone()
 
-			subjectPage := NewServerTemplatePage("post_subject", profileMap[id].Locale)
+			subjectPage := utils.NewHTMLTemplate("post_subject", profileMap[id].Locale)
 			subjectPage.Props["Subject"] = userLocale("api.templates.post_subject",
 				map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
 					"Month": month[:3], "Day": day, "Year": year})
+			subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
-			bodyPage := NewServerTemplatePage("post_body", profileMap[id].Locale)
+			bodyPage := utils.NewHTMLTemplate("post_body", profileMap[id].Locale)
 			bodyPage.Props["SiteURL"] = c.GetSiteURL()
 			bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 			bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
@@ -669,8 +670,15 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 							alreadySeen[session.DeviceId] = session.DeviceId
 
 							msg := model.PushNotification{}
-							msg.Badge = 1
+							if badge := <-Srv.Store.User().GetUnreadCount(id); badge.Err != nil {
+								msg.Badge = 1
+								l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), id, badge.Err)
+							} else {
+								msg.Badge = int(badge.Data.(int64))
+							}
 							msg.ServerId = utils.CfgDiagnosticId
+							msg.ChannelId = channel.Id
+							msg.ChannelName = channel.Name
 
 							if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") {
 								msg.Platform = model.PUSH_NOTIFY_APPLE
@@ -680,10 +688,20 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 								msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")
 							}
 
-							if channel.Type == model.CHANNEL_DIRECT {
-								msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+							if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+								if channel.Type == model.CHANNEL_DIRECT {
+									msg.Category = model.CATEGORY_DM
+									msg.Message = "@" + senderName + ": " + model.ClearMentionTags(post.Message)
+								} else {
+									msg.Message = "@" + senderName + " @ " + channelName + ": " + model.ClearMentionTags(post.Message)
+								}
 							} else {
-								msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+								if channel.Type == model.CHANNEL_DIRECT {
+									msg.Category = model.CATEGORY_DM
+									msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+								} else {
+									msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+								}
 							}
 
 							tr := &http.Transport{

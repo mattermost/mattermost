@@ -21,6 +21,13 @@ const (
 
 	SERVICE_GITLAB = "gitlab"
 	SERVICE_GOOGLE = "google"
+
+	WEBSERVER_MODE_REGULAR  = "regular"
+	WEBSERVER_MODE_GZIP     = "gzip"
+	WEBSERVER_MODE_DISABLED = "disabled"
+
+	GENERIC_NOTIFICATION = "generic"
+	FULL_NOTIFICATION    = "full"
 )
 
 type ServiceSettings struct {
@@ -46,6 +53,7 @@ type ServiceSettings struct {
 	SessionCacheInMinutes             *int
 	WebsocketSecurePort               *int
 	WebsocketPort                     *int
+	WebserverMode                     *string
 }
 
 type SSOSettings struct {
@@ -116,6 +124,7 @@ type EmailSettings struct {
 	PasswordResetSalt        string
 	SendPushNotifications    *bool
 	PushNotificationServer   *string
+	PushNotificationContents *string
 }
 
 type RateLimitSettings struct {
@@ -170,19 +179,26 @@ type LdapSettings struct {
 	QueryTimeout *int
 }
 
+type ComplianceSettings struct {
+	Enable      *bool
+	Directory   *string
+	EnableDaily *bool
+}
+
 type Config struct {
-	ServiceSettings   ServiceSettings
-	TeamSettings      TeamSettings
-	SqlSettings       SqlSettings
-	LogSettings       LogSettings
-	FileSettings      FileSettings
-	EmailSettings     EmailSettings
-	RateLimitSettings RateLimitSettings
-	PrivacySettings   PrivacySettings
-	SupportSettings   SupportSettings
-	GitLabSettings    SSOSettings
-	GoogleSettings    SSOSettings
-	LdapSettings      LdapSettings
+	ServiceSettings    ServiceSettings
+	TeamSettings       TeamSettings
+	SqlSettings        SqlSettings
+	LogSettings        LogSettings
+	FileSettings       FileSettings
+	EmailSettings      EmailSettings
+	RateLimitSettings  RateLimitSettings
+	PrivacySettings    PrivacySettings
+	SupportSettings    SupportSettings
+	GitLabSettings     SSOSettings
+	GoogleSettings     SSOSettings
+	LdapSettings       LdapSettings
+	ComplianceSettings ComplianceSettings
 }
 
 func (o *Config) ToJson() string {
@@ -294,6 +310,11 @@ func (o *Config) SetDefaults() {
 		*o.EmailSettings.PushNotificationServer = ""
 	}
 
+	if o.EmailSettings.PushNotificationContents == nil {
+		o.EmailSettings.PushNotificationContents = new(string)
+		*o.EmailSettings.PushNotificationContents = GENERIC_NOTIFICATION
+	}
+
 	if o.SupportSettings.TermsOfServiceLink == nil {
 		o.SupportSettings.TermsOfServiceLink = new(string)
 		*o.SupportSettings.TermsOfServiceLink = "/static/help/terms.html"
@@ -382,6 +403,26 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.AllowCorsFrom == nil {
 		o.ServiceSettings.AllowCorsFrom = new(string)
 		*o.ServiceSettings.AllowCorsFrom = ""
+	}
+
+	if o.ServiceSettings.WebserverMode == nil {
+		o.ServiceSettings.WebserverMode = new(string)
+		*o.ServiceSettings.WebserverMode = "regular"
+	}
+
+	if o.ComplianceSettings.Enable == nil {
+		o.ComplianceSettings.Enable = new(bool)
+		*o.ComplianceSettings.Enable = false
+	}
+
+	if o.ComplianceSettings.Directory == nil {
+		o.ComplianceSettings.Directory = new(string)
+		*o.ComplianceSettings.Directory = "./data/"
+	}
+
+	if o.ComplianceSettings.EnableDaily == nil {
+		o.ComplianceSettings.EnableDaily = new(bool)
+		*o.ComplianceSettings.EnableDaily = false
 	}
 }
 

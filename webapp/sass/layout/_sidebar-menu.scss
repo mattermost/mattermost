@@ -1,0 +1,81 @@
+@charset 'UTF-8';
+
+.sidebar--menu {
+    background: #fafafa;
+    border-right: $border-gray;
+    display: none;
+    height: 100%;
+    padding: 0 0 2em;
+    position: absolute;
+    right: 0;
+    width: 220px;
+
+    .nav-pills__container {
+        padding-top: 5px;
+    }
+
+    .team__header {
+        @include legacy-pie-clearfix;
+        display: none;
+        padding: 0 15px;
+
+        a {
+            color: $white;
+        }
+
+        .navbar-right {
+            font-size: .85em;
+            margin: 16px -5px 0;
+
+            .dropdown-toggle {
+                padding: 0 10px;
+            }
+
+            .dropdown-menu {
+                li a {
+                    color: #555;
+                    padding: 3 20px;
+                }
+            }
+
+            .dropdown__icon {
+                @include background-size(100% 100%);
+                display: inline-block;
+                height: 16px;
+                width: 4px;
+            }
+        }
+
+        .team__name {
+            float: left;
+            font-size: 1.2em;
+            font-weight: 600;
+            line-height: 50px;
+            max-width: 80%;
+            overflow: hidden;
+            text-decoration: none;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .nav {
+        > li {
+            > a {
+                background: none !important;
+                color: inherit;
+                font-size: 15px;
+                line-height: 40px;
+                padding: 0 15px;
+
+                .fa,
+                .glyphicon {
+                    left: -5px;
+                    position: relative;
+                    text-align: center;
+                    width: 25px;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,56 @@
+@charset 'UTF-8';
+
+.mention {
+    @include border-radius(3px);
+    background: $primary-color;
+    color: $white;
+    padding-bottom: 2px;
+    position: relative;
+    z-index: 10;
+}
+
+.mentions__name {
+    cursor: pointer;
+    font-size: 13px;
+    height: 36px;
+    line-height: 36px;
+    padding: 2px;
+    position: relative;
+    white-space: nowrap;
+    width: 100%;
+    z-index: 101;
+
+    .mention-align {
+        @include clearfix;
+        text-overflow: ellipsis;
+        width: calc(100% - 50px);
+    }
+}
+
+.mention__image {
+    @include border-radius(32px);
+    display: block;
+    font-size: 20px;
+    height: 32px;
+    line-height: 36px;
+    margin-right: 6px;
+    text-align: center;
+    width: 32px;
+
+    .mention--align {
+        display: inline-block;
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.mention__fullname {
+    color: $dark-gray;
+    padding-left: 10px;
+}
+
+.mention--highlight {
+    background-color: $yellow;
+}

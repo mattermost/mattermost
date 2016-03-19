@@ -16,7 +16,11 @@ var T i18n.TranslateFunc
 var locales map[string]string = make(map[string]string)
 
 func InitTranslations() {
-	i18nDirectory := FindDir("i18n")
+	InitTranslationsWithDir("i18n")
+}
+
+func InitTranslationsWithDir(dir string) {
+	i18nDirectory := FindDir(dir)
 	files, _ := ioutil.ReadDir(i18nDirectory)
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {

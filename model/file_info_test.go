@@ -56,7 +56,7 @@ func TestGetInfoForBytes(t *testing.T) {
 		t.Fatalf("Got HasPreviewImage = false for static gif")
 	}
 
-	animatedGifFile, err := ioutil.ReadFile("../web/static/images/testgif.gif")
+	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
 	if err != nil {
 		t.Fatalf("Failed to load testgif.gif: %v", err.Error())
 	}

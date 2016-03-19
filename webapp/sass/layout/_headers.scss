@@ -1,0 +1,371 @@
+@charset 'UTF-8';
+
+.channel-header {
+    @include flex(0 0 56px);
+}
+
+.row {
+    &.header {
+        position: relative;
+
+        .channel__wrap & {
+            display: none;
+        }
+    }
+}
+
+.header-dropdown__icon {
+    color: inherit;
+    font-size: 11px;
+    top: 3px;
+}
+
+.channel-header__info {
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+
+    > div {
+        display: block;
+        white-space: nowrap;
+        word-break: break-word;
+
+        &.dropdown {
+            float: left;
+            max-width: 100%;
+            padding-right: 1em;
+
+            .header-dropdown__icon {
+                color: $dark-gray;
+            }
+
+            a {
+                text-decoration: none;
+            }
+
+            .modal {
+                white-space: normal;
+            }
+        }
+
+        &.description {
+            margin-top: 2px;
+            max-height: 45px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            .markdown-inline-img {
+                max-height: 45px;
+            }
+        }
+
+        &.popover {
+            white-space: normal;
+        }
+    }
+}
+
+.channel-intro {
+    border-bottom: 1px solid $light-gray;
+    margin: 0 auto 35px;
+    max-width: 1000px;
+    padding: 0 1em 5px;
+
+    .intro-links {
+        display: inline-block;
+        margin: 0 1.5em 10px 0;
+
+        .fa {
+            margin-right: 5px;
+        }
+    }
+
+    .channel-intro-profile {
+        margin-left: 63px;
+        margin-top: 5px;
+    }
+
+    .channel-intro-img {
+        float: left;
+
+        img {
+            @include border-radius(100px);
+        }
+    }
+
+    .channel-intro__title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .channel-intro__content {
+        @include border-radius(3px);
+        background: $bg--gray;
+        padding: 10px 15px;
+    }
+
+    .channel-intro-text {
+        margin-top: 35px;
+    }
+}
+
+// Team Header in Sidebar
+.sidebar--left,
+.sidebar--menu {
+    .team__header {
+        @include legacy-pie-clearfix;
+        padding: 9px 10px;
+        position: relative;
+
+        &:before {
+            @include single-transition(all, .05s, linear);
+            background: none;
+            content: '';
+            height: 100%;
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+        }
+
+        &:hover {
+            &:before {
+                @include alpha-property(background, $black, .1);
+            }
+
+            .user__name {
+                color: $white;
+            }
+
+            .navbar-right {
+                .dropdown-toggle {
+                    @include opacity(1);
+                }
+            }
+        }
+
+        .navbar-right {
+            font-size: .85em;
+            position: absolute;
+            right: 22px;
+            top: 10px;
+            z-index: 5;
+
+            .dropdown-toggle {
+                @include opacity(.8);
+                @include single-transition(all, .1s, linear);
+                padding: 10px;
+            }
+
+            .dropdown-menu {
+                a {
+                    overflow: hidden;
+                    padding: 3px 20px;
+                    text-overflow: ellipsis;
+                }
+            }
+
+            .dropdown__icon {
+                fill: $white;
+            }
+        }
+
+        .user__picture {
+            @include border-radius(36px);
+            float: left;
+            height: 36px;
+            margin-right: 6px;
+            width: 36px;
+        }
+
+        .header__info {
+            @include clearfix;
+            color: $white;
+            padding-left: 2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .team__name,
+        .user__name {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            max-width: 85%;
+            overflow: hidden;
+            text-decoration: none;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .team__name {
+            float: left;
+            line-height: 22px;
+            margin-top: -2px;
+        }
+
+        .user__name {
+            @include single-transition(all, .1s, linear);
+            @include alpha-property(color, $white, .8);
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 18px;
+        }
+
+        > .nav {
+            > li {
+                > a {
+                    background: none;
+                    float: right;
+                    padding: 2px;
+                }
+
+                .dropdown-toggle {
+                    color: $white;
+                    font-size: 1em;
+                    line-height: 1.8;
+                }
+            }
+        }
+    }
+
+    .search__clear {
+        display: none;
+    }
+}
+
+#navbar {
+    .navbar-default {
+        .navbar-toggle {
+            &.menu-toggle {
+                padding: 0 1em;
+            }
+        }
+    }
+}
+
+.channel-header {
+    border-left: none;
+    font-size: 14px;
+    line-height: 56px;
+    width: 100%;
+
+    #member_popover {
+        color: #999999;
+        cursor: pointer;
+        width: 50px;
+
+        .fa {
+            font-size: 16px;
+            margin-left: 4px;
+        }
+    }
+
+    &.alt {
+        margin: 0;
+
+        th {
+            font-weight: normal !important;
+        }
+
+        td {
+            border: none;
+        }
+    }
+
+    th {
+        text-align: center;
+
+        &:first-child {
+            border-left: none;
+            padding-left: 1em;
+            text-align: left !important;
+            width: 100%;
+        }
+
+        &:last-child {
+            width: 8.9%;
+        }
+    }
+
+    td {
+        font-size: 13px;
+        padding: 5px 25px 5px !important;
+        text-align: center !important;
+
+        &:first-child {
+            text-align: left !important;
+        }
+    }
+
+    .heading {
+        color: #555555;
+        display: inline-block;
+        font-size: 1.3em;
+        font-weight: 600;
+        margin: 0 4px 0 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+    }
+
+    .caret {
+        margin-top: 3px;
+    }
+
+    .more {
+        color: #81848b;
+        display: inline-block;
+        font-size: 13px;
+        text-transform: capitalize;
+        vertical-align: top;
+    }
+
+    .disabled {
+        color: #999999;
+    }
+}
+
+.channel-header__navbar {
+    font-size: 16px;
+
+    .heading {
+        margin-right: 3px;
+    }
+
+    .header-dropdown__icon {
+        top: 1px;
+    }
+}
+
+.channel-header__links {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 22px;
+    height: 30px;
+    line-height: 26px;
+    margin-right: 9px;
+    width: 24px;
+
+    .channel__wrap.move--left & {
+        position: absolute;
+        right: -400px;
+        top: 14px;
+    }
+
+    > a {
+        @include opacity(.6);
+        @include single-transition(all, .1s, ease-in);
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+            @include opacity(1);
+        }
+
+        &:focus {
+            color: inherit;
+        }
+    }
+}

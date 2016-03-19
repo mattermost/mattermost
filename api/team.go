@@ -29,13 +29,12 @@ func InitTeam(r *mux.Router) {
 	sr.Handle("/create_with_ldap", ApiAppHandler(createTeamWithLdap)).Methods("POST")
 	sr.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
 	sr.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
-	sr.Handle("/all", ApiUserRequired(getAll)).Methods("GET")
+	sr.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
 	sr.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
-	sr.Handle("/find_teams", ApiAppHandler(findTeams)).Methods("POST")
-	sr.Handle("/email_teams", ApiAppHandler(emailTeams)).Methods("POST")
 	sr.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 	sr.Handle("/update", ApiUserRequired(updateTeam)).Methods("POST")
 	sr.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
+	sr.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
 	// These should be moved to the global admain console
 	sr.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
 	sr.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
@@ -60,11 +59,11 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subjectPage := NewServerTemplatePage("signup_team_subject", c.Locale)
+	subjectPage := utils.NewHTMLTemplate("signup_team_subject", c.Locale)
 	subjectPage.Props["Subject"] = c.T("api.templates.signup_team_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
 
-	bodyPage := NewServerTemplatePage("signup_team_body", c.Locale)
+	bodyPage := utils.NewHTMLTemplate("signup_team_body", c.Locale)
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage.Props["Title"] = c.T("api.templates.signup_team_body.title")
 	bodyPage.Props["Button"] = c.T("api.templates.signup_team_body.button")
@@ -86,7 +85,7 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !utils.Cfg.EmailSettings.RequireEmailVerification {
-		m["follow_link"] = bodyPage.Props["Link"]
+		m["follow_link"] = fmt.Sprintf("/signup_team_complete/?d=%s&h=%s", url.QueryEscape(data), url.QueryEscape(hash))
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", " *")
@@ -147,7 +146,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := map[string]string{"follow_link": c.GetSiteURL() + "/" + rteam.Name + "/signup/" + service}
+		data := map[string]string{"follow_link": c.GetSiteURL() + "/api/v1/oauth/" + service + "/signup?team=" + rteam.Name}
 		w.Write([]byte(model.MapToJson(data)))
 
 	}
@@ -391,10 +390,6 @@ func isTeamCreationAllowed(c *Context, email string) bool {
 }
 
 func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasSystemAdminPermissions("getLogs") {
-		return
-	}
-
 	if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -403,6 +398,9 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		m := make(map[string]*model.Team)
 		for _, v := range teams {
 			m[v.Id] = v
+			if !c.IsSystemAdmin() {
+				m[v.Id].SanitizeForNotLoggedIn()
+			}
 		}
 
 		w.Write([]byte(model.TeamMapToJson(m)))
@@ -473,74 +471,6 @@ func FindTeamByName(c *Context, name string, all string) bool {
 	return false
 }
 
-func findTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	m := model.MapFromJson(r.Body)
-
-	email := strings.ToLower(strings.TrimSpace(m["email"]))
-
-	if email == "" {
-		c.SetInvalidParam("findTeam", "email")
-		return
-	}
-
-	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		teams := result.Data.([]*model.Team)
-		m := make(map[string]*model.Team)
-		for _, v := range teams {
-			v.Sanitize()
-			m[v.Id] = v
-		}
-
-		w.Write([]byte(model.TeamMapToJson(m)))
-	}
-}
-
-func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	m := model.MapFromJson(r.Body)
-
-	email := strings.ToLower(strings.TrimSpace(m["email"]))
-
-	if email == "" {
-		c.SetInvalidParam("findTeam", "email")
-		return
-	}
-
-	siteURL := c.GetSiteURL()
-	subjectPage := NewServerTemplatePage("find_teams_subject", c.Locale)
-	subjectPage.Props["Subject"] = c.T("api.templates.find_teams_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
-
-	bodyPage := NewServerTemplatePage("find_teams_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.find_teams_body.title")
-	bodyPage.Props["Found"] = c.T("api.templates.find_teams_body.found")
-	bodyPage.Props["NotFound"] = c.T("api.templates.find_teams_body.not_found")
-
-	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
-		c.Err = result.Err
-	} else {
-		teams := result.Data.([]*model.Team)
-
-		// the template expects Props to be a map with team names as the keys and the team url as the value
-		props := make(map[string]string)
-		for _, team := range teams {
-			props[team.Name] = c.GetTeamURLFromTeam(team)
-		}
-		bodyPage.Extra = props
-
-		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error(utils.T("api.team.email_teams.sending.error"), err)
-		}
-
-		w.Write([]byte(model.MapToJson(m)))
-	}
-}
-
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	invites := model.InvitesFromJson(r.Body)
 	if len(invites.Invites) == 0 {
@@ -600,11 +530,11 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 				senderRole = c.T("api.team.invite_members.member")
 			}
 
-			subjectPage := NewServerTemplatePage("invite_subject", c.Locale)
+			subjectPage := utils.NewHTMLTemplate("invite_subject", c.Locale)
 			subjectPage.Props["Subject"] = c.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": sender, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
 
-			bodyPage := NewServerTemplatePage("invite_body", c.Locale)
+			bodyPage := utils.NewHTMLTemplate("invite_body", c.Locale)
 			bodyPage.Props["SiteURL"] = c.GetSiteURL()
 			bodyPage.Props["Title"] = c.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = template.HTML(c.T("api.templates.invite_body.info",
@@ -810,6 +740,28 @@ func exportTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		result := map[string]string{}
 		result["link"] = link
+		w.Write([]byte(model.MapToJson(result)))
+	}
+}
+
+func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	m := model.MapFromJson(r.Body)
+	inviteId := m["invite_id"]
+
+	if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team := result.Data.(*model.Team)
+		if !(team.Type == model.TEAM_OPEN) {
+			c.Err = model.NewLocAppError("getInviteInfo", "api.team.get_invite_info.not_open_team", nil, "id="+inviteId)
+			return
+		}
+
+		result := map[string]string{}
+		result["display_name"] = team.DisplayName
+		result["name"] = team.Name
+		result["id"] = team.Id
 		w.Write([]byte(model.MapToJson(result)))
 	}
 }

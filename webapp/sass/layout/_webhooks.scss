@@ -1,0 +1,37 @@
+@charset 'UTF-8';
+
+.webhooks__container {
+    @include border-radius(3px);
+    @include alpha-property(background, $black, .1);
+    border: 1px solid;
+    margin-top: 10px;
+    padding: 0 13px 15px;
+}
+
+.webhook__item {
+    font-size: 13px;
+    position: relative;
+
+    &:last-child {
+        .divider-light:last-child {
+            display: none;
+        }
+    }
+
+    .webhook__remove {
+        color: #e05f5d;
+        font-size: 22px;
+        font-weight: bold;
+        height: 30px;
+        position: absolute;
+        right: -7px;
+        text-align: center;
+        text-decoration: none;
+        top: 8px;
+        width: 30px;
+    }
+
+    .webhook__url {
+        padding-right: 20px;
+    }
+}
