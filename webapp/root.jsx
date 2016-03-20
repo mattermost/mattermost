@@ -46,6 +46,8 @@ import UsernamePage from 'components/signup_team_complete/components/team_signup
 import PasswordPage from 'components/signup_team_complete/components/team_signup_password_page.jsx';
 import FinishedPage from 'components/signup_team_complete/components/team_signup_finished.jsx';
 
+import Docs from 'help/docs.jsx';
+
 import {addLocaleData} from 'react-intl';
 import enLocaleData from 'react-intl/locale-data/en';
 import esLocaleData from 'react-intl/locale-data/es';
@@ -196,6 +198,10 @@ function renderRootComponent() {
                 component={Root}
                 onEnter={onRootEnter}
             >
+                <Route
+                    path='/help/Messaging'
+                    component={Docs}
+                />
                 <Route
                     component={LoggedIn}
                     onEnter={preLoggedIn}
