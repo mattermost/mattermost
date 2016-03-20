@@ -237,7 +237,7 @@ export default class Textbox extends React.Component {
                     {previewLink}
                     <a
                         target='_blank'
-                        href='http://docs.mattermost.com/help/getting-started/messaging-basics.html'
+                        href='/help/Messaging'
                         className='textbox-help-link'
                     >
                         <FormattedMessage
