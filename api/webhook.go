@@ -4,11 +4,14 @@
 package api
 
 import (
+	"net/http"
+	"strings"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 func InitWebhook(r *mux.Router) {
@@ -23,6 +26,12 @@ func InitWebhook(r *mux.Router) {
 	sr.Handle("/outgoing/regen_token", ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
 	sr.Handle("/outgoing/delete", ApiUserRequired(deleteOutgoingHook)).Methods("POST")
 	sr.Handle("/outgoing/list", ApiUserRequired(getOutgoingHooks)).Methods("GET")
+
+	sr.Handle("/{id:[A-Za-z0-9]+}", ApiAppHandler(incomingWebhook)).Methods("POST")
+
+	// Old route. Remove eventually.
+	mr := Srv.Router
+	mr.Handle("/hooks/{id:[A-Za-z0-9]+}", ApiAppHandler(incomingWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -329,4 +338,106 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		w.Write([]byte(result.Data.(*model.OutgoingWebhook).ToJson()))
 	}
+}
+
+func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	params := mux.Vars(r)
+	id := params["id"]
+
+	hchan := Srv.Store.Webhook().GetIncoming(id)
+
+	r.ParseForm()
+
+	var parsedRequest *model.IncomingWebhookRequest
+	contentType := r.Header.Get("Content-Type")
+	if strings.Split(contentType, "; ")[0] == "application/json" {
+		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
+	} else {
+		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
+	}
+
+	if parsedRequest == nil {
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.parse.app_error", nil, "")
+		return
+	}
+
+	text := parsedRequest.Text
+	if len(text) == 0 && parsedRequest.Attachments == nil {
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.text.app_error", nil, "")
+		return
+	}
+
+	channelName := parsedRequest.ChannelName
+	webhookType := parsedRequest.Type
+
+	//attachments is in here for slack compatibility
+	if parsedRequest.Attachments != nil {
+		if len(parsedRequest.Props) == 0 {
+			parsedRequest.Props = make(model.StringInterface)
+		}
+		parsedRequest.Props["attachments"] = parsedRequest.Attachments
+		webhookType = model.POST_SLACK_ATTACHMENT
+	}
+
+	var hook *model.IncomingWebhook
+	if result := <-hchan; result.Err != nil {
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "err="+result.Err.Message)
+		return
+	} else {
+		hook = result.Data.(*model.IncomingWebhook)
+	}
+
+	var channel *model.Channel
+	var cchan store.StoreChannel
+
+	if len(channelName) != 0 {
+		if channelName[0] == '@' {
+			if result := <-Srv.Store.User().GetByUsername(hook.TeamId, channelName[1:]); result.Err != nil {
+				c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message)
+				return
+			} else {
+				channelName = model.GetDMNameFromIds(result.Data.(*model.User).Id, hook.UserId)
+			}
+		} else if channelName[0] == '#' {
+			channelName = channelName[1:]
+		}
+
+		cchan = Srv.Store.Channel().GetByName(hook.TeamId, channelName)
+	} else {
+		cchan = Srv.Store.Channel().Get(hook.ChannelId)
+	}
+
+	overrideUsername := parsedRequest.Username
+	overrideIconUrl := parsedRequest.IconURL
+
+	if result := <-cchan; result.Err != nil {
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message)
+		return
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	pchan := Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
+
+	// create a mock session
+	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
+
+	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
+		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "")
+		return
+	}
+
+	if _, err := CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl, parsedRequest.Props, webhookType); err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("ok"))
 }
