@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import ChannelInviteButton from './channel_invite_button.jsx';
 import FilteredUserList from './filtered_user_list.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
@@ -9,7 +10,6 @@ import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -23,9 +23,8 @@ export default class ChannelInviteModal extends React.Component {
         super(props);
 
         this.onListenerChange = this.onListenerChange.bind(this);
-        this.handleInvite = this.handleInvite.bind(this);
         this.getStateFromStores = this.getStateFromStores.bind(this);
-        this.createInviteButton = this.createInviteButton.bind(this);
+        this.handleInviteError = this.handleInviteError.bind(this);
 
         this.state = this.getStateFromStores();
     }
@@ -120,36 +119,16 @@ export default class ChannelInviteModal extends React.Component {
             this.setState(newState);
         }
     }
-    handleInvite(user) {
-        const data = {
-            user_id: user.id
-        };
-
-        Client.addChannelMember(
-            this.props.channel.id,
-            data,
-            () => {
-                this.setState({inviteError: null});
-                AsyncClient.getChannelExtraInfo();
-            },
-            (err) => {
-                this.setState({inviteError: err.message});
-            }
-        );
-    }
-    createInviteButton({user}) {
-        return (
-            <a
-                onClick={this.handleInvite.bind(this, user)}
-                className='btn btn-sm btn-primary'
-            >
-                <i className='glyphicon glyphicon-envelope'/>
-                <FormattedMessage
-                    id='channel_invite.add'
-                    defaultMessage=' Add'
-                />
-            </a>
-        );
+    handleInviteError(err) {
+        if (err) {
+            this.setState({
+                inviteError: err.message
+            });
+        } else {
+            this.setState({
+                inviteError: null
+            });
+        }
     }
     render() {
         var inviteError = null;
@@ -169,7 +148,11 @@ export default class ChannelInviteModal extends React.Component {
                 <FilteredUserList
                     style={{maxHeight}}
                     users={this.state.nonmembers}
-                    actions={[this.createInviteButton]}
+                    actions={[ChannelInviteButton]}
+                    actionProps={{
+                        channel: this.props.channel,
+                        onInviteError: this.handleInviteError
+                    }}
                 />
             );
         }
