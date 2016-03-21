@@ -24,7 +24,7 @@ export default class AboutBuildModal extends React.Component {
         let title = (
             <FormattedMessage
                 id='about.teamEditiont0'
-                defaultMessage='Team Edition T0'
+                defaultMessage='Team Edition'
             />
         );
 
@@ -33,14 +33,14 @@ export default class AboutBuildModal extends React.Component {
             title = (
                 <FormattedMessage
                     id='about.teamEditiont1'
-                    defaultMessage='Team Edition T1'
+                    defaultMessage='Enterprise Edition'
                 />
             );
             if (license.IsLicensed === 'true') {
                 title = (
                     <FormattedMessage
                         id='about.enterpriseEditione1'
-                        defaultMessage='Enterprise Edition E1'
+                        defaultMessage='Enterprise Edition'
                     />
                 );
                 licensee = (
