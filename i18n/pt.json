@@ -1016,6 +1016,10 @@
     "translation": "Somente um administrador de equipe pode exportar os dados."
   },
   {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "Convite é inválido devido a este não ser de uma equipe aberta."
+  },
+  {
     "id": "api.team.import_team.admin.app_error",
     "translation": "Somente um administrador de equipe pode importar dados."
   },
@@ -1704,6 +1708,26 @@
     "translation": "Permissões inadequadas para re-gerar o token do webhook de saída"
   },
   {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "Funcionalidade Compliance desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "Falha na tarefa '{{.JobName}}' para exportar o compliance no '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_finished.info",
+    "translation": "Exportação do compliance terminado para tarefa '{{.JobName}}' exportado {{.Count}} registros para '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_limit.warning",
+    "translation": "Aviso exportação do compliance na tarefa '{{.JobName}}' retornando muitos registros truncando para 30.000 em '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.compliance.run_started.info",
+    "translation": "Exportação de compliance tarefa '{{.JobName}}' iniciada no '{{.FilePath}}'"
+  },
+  {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Não foi possível ligar ao servidor LDAP. Verifique BindUsername e BindPassword."
   },
@@ -1841,7 +1865,7 @@
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
@@ -1869,7 +1893,7 @@
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
@@ -1901,7 +1925,7 @@
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "Deve-se atualizar em um tempo válido"
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
@@ -1933,7 +1957,7 @@
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -1957,7 +1981,7 @@
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "Deve-se atualizar em um tempo válido"
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.command.is_valid.url.app_error",
@@ -1970,6 +1994,30 @@
   {
     "id": "model.command.is_valid.user_id.app_error",
     "translation": "ID de usuário inválido"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "Create deve ser um tempo válido"
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "Descrição inválida"
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "Para precisa ser um tempo válido"
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "ID inválida"
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "De precisa ser um tempo válido"
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "Para precisa ser maior que De"
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -2065,7 +2113,7 @@
   },
   {
     "id": "model.incoming_hook.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -2077,7 +2125,7 @@
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
-    "translation": "Deve-se atualizar em um tempo válido"
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
@@ -2097,7 +2145,7 @@
   },
   {
     "id": "model.oauth.is_valid.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.oauth.is_valid.creator_id.app_error",
@@ -2117,7 +2165,7 @@
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",
-    "translation": "Deve-se atualizar em um tempo válido"
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
@@ -2129,7 +2177,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -2145,7 +2193,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
-    "translation": "Deve-se atualizar em um tempo válido"
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
@@ -2165,7 +2213,7 @@
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -2209,7 +2257,7 @@
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": "Deve-se atualizar em um tempo válido"
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
@@ -2241,7 +2289,7 @@
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.team.is_valid.domains.app_error",
@@ -2269,7 +2317,7 @@
   },
   {
     "id": "model.team.is_valid.update_at.app_error",
-    "translation": "Deve-se atualizar em um tempo válido"
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.team.is_valid.url.app_error",
@@ -2289,7 +2337,7 @@
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
-    "translation": "Deve-se criar em um tempo válido"
+    "translation": "Create deve ser um tempo válido"
   },
   {
     "id": "model.user.is_valid.email.app_error",
@@ -2325,7 +2373,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "Deve-se atualizar em um tempo válido"
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.user.is_valid.username.app_error",
@@ -2704,6 +2752,14 @@
     "translation": "Não foi possível atualizar o comando"
   },
   {
+    "id": "store.sql_compliance.get.finding.app_error",
+    "translation": "Encontramos um erro ao obter o relatório de compliance"
+  },
+  {
+    "id": "store.sql_compliance.save.saving.app_error",
+    "translation": "Encontramos um erro ao salvar o relatório de compliance"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "Encontramos um erro ao obter a licença"
   },
@@ -2798,6 +2854,10 @@
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Não foi possível obter o número de posts"
+  },
+  {
+    "id": "store.sql_post.compliance_export.app_error",
+    "translation": "Não foi possível obter os posts para exportação compliance"
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -3076,6 +3136,10 @@
     "translation": "Não foi possível encontrar uma conta correspondente ao seu tipo de autenticação para esta equipe. Esta equipe pode exigir um convite do dono da equipe para participar."
   },
   {
+    "id": "store.sql_user.get_by_auth.other.app_error",
+    "translation": "Foi encontrado um erro ao tentar encontrar a conta pelo tipo de autenticação."
+  },
+  {
     "id": "store.sql_user.get_by_username.app_error",
     "translation": "Não foi possível encontrar uma conta correspondente ao seu usuário para esta equipe. Esta equipe pode exigir um convite do dono da equipe para participar."
   },
@@ -3098,6 +3162,10 @@
   {
     "id": "store.sql_user.get_total_users_count.app_error",
     "translation": "Não foi possível contar os usuários"
+  },
+  {
+    "id": "store.sql_user.get_unread_count.app_error",
+    "translation": "Não foi possível obter o número de mensagens não lidas para o usuário"
   },
   {
     "id": "store.sql_user.missing_account.const",
@@ -3590,9 +3658,5 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Falha ao adicionar diretório observador %v"
-  },
-  {
-    "id": "api.team.get_invite_info.not_open_team",
-    "translation": "Convite é inválido devido a este não ser de uma equipe aberta."
   }
 ]
