@@ -410,6 +410,8 @@
   "admin.support.emailTitle": "Correo electrónico de Soporte:",
   "admin.support.helpDesc": "Enlace con la documentación de ayuda para el equipo desde el menú principal. Normalmente no cambia a menos que tu organización decida crear una documentación personalizada.",
   "admin.support.helpTitle": "Enlace de Ayuda:",
+  "admin.support.noteDescription": "Si se enlaza a un sitio externo, las URLs deben comenzar con http:// o https://.",
+  "admin.support.noteTitle": "Nota:",
   "admin.support.privacyDesc": "Enlace para las políticas de Privacidad disponible para los usuarios en versión de escritorio y movil. Al dejarlo en blanco esconderá la opción que muestra el aviso.",
   "admin.support.privacyTitle": "Enlace de políticas de Privacidad:",
   "admin.support.problemDesc": "Enlace con la documentación de ayuda para el equipo desde el menú principal. Como predeterminado esto apunta a un foro de ayuda donde los usuarios pueden buscar, encontrar y solicitar ayuda sobre temas técnicos.",
