@@ -9,14 +9,15 @@ npm-debug.log
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
 web/static/js/libs*.js
-.npminstall
 
 config/active.dat
 
+# Enteprise imports file
+imports.go
+
 # Build Targets
-.prepare
-.prepare-go
-.prepare-jsx
+.prebuild
+.npminstall
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -69,6 +70,3 @@ api/data/*
 .agignore
 .ctags
 tags
-
-model/version.go
-model/version.go.bak
