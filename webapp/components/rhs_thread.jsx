@@ -198,6 +198,7 @@ export default class RhsThread extends React.Component {
                                         key={comPost.id + 'commentKey'}
                                         post={comPost}
                                         user={p}
+                                        currentUser={this.props.currentUser}
                                     />
                                 );
                             })}

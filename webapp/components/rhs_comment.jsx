@@ -5,7 +5,6 @@ import ReactDOM from 'react-dom';
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserProfile from './user_profile.jsx';
-import UserStore from 'stores/user_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -97,8 +96,8 @@ class RhsComment extends React.Component {
             return '';
         }
 
-        var isOwner = UserStore.getCurrentId() === post.user_id;
-        var isAdmin = Utils.isAdmin(UserStore.getCurrentUser().roles);
+        const isOwner = this.props.currentUser.id === post.user_id;
+        const isAdmin = Utils.isAdmin(this.props.currentUser.roles);
 
         var dropdownContents = [];
 
@@ -193,11 +192,11 @@ class RhsComment extends React.Component {
         var post = this.props.post;
 
         var currentUserCss = '';
-        if (UserStore.getCurrentId() === post.user_id) {
+        if (this.props.currentUser === post.user_id) {
             currentUserCss = 'current--user';
         }
 
-        var timestamp = UserStore.getCurrentUser().update_at;
+        var timestamp = this.props.currentUser.update_at;
 
         let loading;
         let postClass = '';
@@ -305,7 +304,8 @@ RhsComment.defaultProps = {
 RhsComment.propTypes = {
     intl: intlShape.isRequired,
     post: React.PropTypes.object,
-    user: React.PropTypes.object
+    user: React.PropTypes.object.isRequired,
+    currentUser: React.PropTypes.object.isRequired
 };
 
 export default injectIntl(RhsComment);
