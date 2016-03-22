@@ -40,6 +40,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("NotifyProps").SetMaxSize(2000)
 		table.ColMap("ThemeProps").SetMaxSize(2000)
 		table.ColMap("Locale").SetMaxSize(5)
+		table.ColMap("ManualStatus").SetMaxSize(7) // "offline" is the longest
 		table.SetUniqueTogether("Email", "TeamId")
 		table.SetUniqueTogether("Username", "TeamId")
 	}
@@ -55,6 +56,8 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_team_id", "Users", "TeamId")
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
+	// TODO: versions
+	us.CreateColumnIfNotExists("Users", "ManualStatus", "varchar(7)", "character varying(7)", model.DEFAULT_LOCALE)
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -141,6 +144,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.LastPingAt = oldUser.LastPingAt
 			user.EmailVerified = oldUser.EmailVerified
 			user.FailedAttempts = oldUser.FailedAttempts
+			//user.ManualStatus = oldUser.ManualStatus
 
 			if !allowActiveUpdate {
 				user.Roles = oldUser.Roles

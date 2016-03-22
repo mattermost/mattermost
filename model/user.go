@@ -54,6 +54,13 @@ type User struct {
 	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
 	FailedAttempts     int       `json:"failed_attempts,omitempty"`
 	Locale             string    `json:"locale"`
+	ManualStatus       string    `json:"manual_status,omitempty"`
+}
+
+func isValidStatus(status string) bool {
+	return status == USER_ONLINE ||
+		status == USER_OFFLINE ||
+		status == USER_AWAY
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -116,7 +123,32 @@ func (u *User) IsValid() *AppError {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.theme.app_error", nil, "user_id="+u.Id)
 	}
 
+	if u.ManualStatus != "" && !isValidStatus(u.ManualStatus) {
+		// TODO: error id
+		return NewLocAppError("User.IsValid", "", nil, "user_id="+u.Id)
+	}
+
 	return nil
+}
+
+func (u *User) GetStatus() string {
+	status := USER_ONLINE
+	if u.IsOffline() {
+		status = USER_OFFLINE
+	} else if u.IsAway() {
+		status = USER_AWAY
+	}
+	return status
+}
+
+func (u *User) SetStatus(status string) *AppError {
+	if isValidStatus(status) {
+		u.ManualStatus = status
+		return nil
+	} else {
+		// TODO: last parameter
+		return NewLocAppError("User.SetStatus", "", nil, "")
+	}
 }
 
 // PreSave will set the Id and Username if missing.  It will also fill
@@ -211,11 +243,13 @@ func (u *User) Etag() string {
 }
 
 func (u *User) IsOffline() bool {
-	return (GetMillis()-u.LastPingAt) > USER_OFFLINE_TIMEOUT && (GetMillis()-u.LastActivityAt) > USER_OFFLINE_TIMEOUT
+	return u.ManualStatus == USER_OFFLINE ||
+		((GetMillis()-u.LastPingAt) > USER_OFFLINE_TIMEOUT && (GetMillis()-u.LastActivityAt) > USER_OFFLINE_TIMEOUT)
 }
 
 func (u *User) IsAway() bool {
-	return (GetMillis() - u.LastActivityAt) > USER_AWAY_TIMEOUT
+	return u.ManualStatus == USER_AWAY ||
+		((GetMillis() - u.LastActivityAt) > USER_AWAY_TIMEOUT)
 }
 
 // Remove any private data from the user object

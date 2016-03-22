@@ -6,6 +6,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
 	"github.com/mattermost/platform/model"
@@ -1124,6 +1125,70 @@ func TestFuzzyUserCreate(t *testing.T) {
 	}
 }
 
+type testTeam struct {
+	server model.Team
+	client model.Team
+}
+
+type testUser struct {
+	server model.User
+	client model.User
+	team   *testTeam
+}
+
+func createTwoUsers() (u1, u2 testUser) {
+	users := createUsers(2)
+	return users[0], users[1]
+}
+
+func createUsers(count int) []testUser {
+	serverTeam := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	r, _ := Client.CreateTeam(&serverTeam)
+	clientTeam := r.Data.(*model.Team)
+	team := &testTeam{server: serverTeam, client: *clientTeam}
+
+	users := make([]testUser, count)
+	for i := range users {
+		user := &users[i]
+		user.team = team
+		user.server = model.User{TeamId: team.client.Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+		user.client = *Client.Must(Client.CreateUser(&user.server, "")).Data.(*model.User)
+		store.Must(Srv.Store.User().VerifyEmail(user.client.Id))
+	}
+	return users
+}
+
+func (user *testUser) loginByEmail() {
+	Client.LoginByEmail(user.team.server.Name, user.server.Email, user.server.Password)
+}
+
+func (user *testUser) setStatus(status string, t *testing.T) {
+	_, err := Client.UpdateStatus(status)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func (user *testUser) assertStatusIs(expectedValue string, t *testing.T) {
+	userIds := []string{user.client.Id}
+
+	r1, err := Client.GetStatuses(userIds)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	statuses := r1.Data.(map[string]string)
+
+	if len(statuses) != 1 {
+		t.Fatal(fmt.Sprintf("invalid number of statuses: %v", len(statuses)))
+	}
+
+	actualValue := statuses[user.client.Id]
+	if actualValue != expectedValue {
+		t.Fatal("invalid status value: " + actualValue + "; expected - " + expectedValue)
+	}
+}
+
 func TestStatuses(t *testing.T) {
 	Setup()
 
@@ -1159,6 +1224,46 @@ func TestStatuses(t *testing.T) {
 		}
 	}
 
+}
+
+func TestStatuses2(t *testing.T) {
+	Setup()
+
+	me, you := createTwoUsers() // user has client & server representations and team
+	me.loginByEmail()
+
+	l4g.Debug("-> set/read online status")
+	me.setStatus(model.USER_ONLINE, t)
+	me.assertStatusIs(model.USER_ONLINE, t)
+
+	l4g.Debug("-> set/read offline status")
+	me.setStatus(model.USER_OFFLINE, t)
+	me.assertStatusIs(model.USER_OFFLINE, t)
+
+	l4g.Debug("-> set/read away status")
+	me.setStatus(model.USER_AWAY, t)
+	me.assertStatusIs(model.USER_AWAY, t)
+
+	l4g.Debug("-> can retrieve other user's status")
+	you.loginByEmail()
+	you.setStatus(model.USER_OFFLINE, t)
+	me.loginByEmail()
+	you.assertStatusIs(model.USER_OFFLINE, t)
+
+	//l4g.Debug("if manually set to online, switches to away after some time")
+	//me.setStatus(model.USER_ONLINE)
+	//me.setProlongedInactivity()
+	//me.assertStatusIs(model.USER_AWAY)
+
+	// if manually set to online, automatically swithces to offline once client disconnects
+	// ... and back to online once the client connects back
+
+	// if manually set to away, does not automatically switch
+
+	//you.setStatus(model.USER_ONLINE)
+	//you.setStatus(model.USER_AWAY)
+
+	// if manually set of offline, does not automatically switch
 }
 
 func TestSwitchToSSO(t *testing.T) {

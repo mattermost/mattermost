@@ -31,7 +31,7 @@ var CurrentVersion string = versions[0]
 var BuildNumber = "_BUILD_NUMBER_"
 var BuildDate = "_BUILD_DATE_"
 var BuildHash = "_BUILD_HASH_"
-var BuildEnterpriseReady = "_BUILD_ENTERPRISE_READY_"
+var BuildEnterpriseReady = "false"
 var versionsWithoutHotFixes []string
 
 func init() {

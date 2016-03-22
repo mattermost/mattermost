@@ -921,6 +921,16 @@ func (c *Client) GetStatuses(data []string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) UpdateStatus(status string) (*Result, *AppError) {
+	data := map[string]string{"status": status}
+	if r, err := c.DoApiPost("/users/update_status", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/teams/me", "", etag); err != nil {
 		return nil, err

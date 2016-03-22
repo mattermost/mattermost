@@ -43,6 +43,7 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/update_roles", ApiUserRequired(updateRoles)).Methods("POST")
 	sr.Handle("/update_active", ApiUserRequired(updateActive)).Methods("POST")
 	sr.Handle("/update_notify", ApiUserRequired(updateUserNotify)).Methods("POST")
+	sr.Handle("/update_status", ApiUserRequired(updateStatus)).Methods("POST")
 	sr.Handle("/newpassword", ApiUserRequired(updatePassword)).Methods("POST")
 	sr.Handle("/send_password_reset", ApiAppHandler(sendPasswordReset)).Methods("POST")
 	sr.Handle("/reset_password", ApiAppHandler(resetPassword)).Methods("POST")
@@ -1879,6 +1880,78 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func fail(status int, what, details string) *model.AppError {
+	err := model.NewLocAppError("UpdateStatus", what, nil, details)
+	err.StatusCode = status
+	return err
+}
+
+func UpdateStatus(userId, status string) *model.AppError {
+	l4g.Debug("UpdateStatus: userId=%s, status=%s", userId, status)
+
+	if len(userId) != 26 {
+		return fail(http.StatusBadRequest, "", "user_id")
+	}
+
+	result := <-Srv.Store.User().Get(userId)
+
+	if result.Err != nil {
+		return fail(http.StatusNotFound, "", result.Err.Error())
+	}
+
+	if result.Data == nil {
+		return fail(http.StatusBadRequest, "api.user.update_status.valid_account.app_error", "")
+	}
+
+	user := result.Data.(*model.User)
+	user.SetStatus(status)
+
+	//l4g.Debug("Updated status; %s", user.GetStatus())
+
+	if uresult := <-Srv.Store.User().Update(user, false); uresult.Err != nil {
+		return fail(http.StatusForbidden, "api.user.update_status.failed.app_error", uresult.Err.Error())
+	}
+
+	//l4g.Debug("successfully saved")
+
+	return nil
+}
+
+func updateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	err := UpdateStatus(c.Session.UserId, props["status"])
+	if err != nil {
+		c.Err = err
+	}
+	/*userId := c.Session.UserId
+	// TODO: magic number 26
+	if len(userId) != 26 {
+		c.SetInvalidParam("updateStatus", "user_id")
+		return
+	}
+
+	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	if result.Data == nil {
+		// TODO: api.user.update_status.valid_account.app_error
+		c.Err = model.NewLocAppError("updateStatus", "api.user.update_status.valid_account.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	user := result.Data.(*model.User)
+	user.SetStatus(props["user"])
+
+	if uresult := <-Srv.Store.User().Update(user, false); uresult.Err != nil {
+		c.Err = model.NewLocAppError("updatePassword", "api.user.update_status.failed.app_error", nil, uresult.Err.Error())
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}*/
+}
+
 func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIds := model.ArrayFromJson(r.Body)
 	if len(userIds) == 0 {
@@ -1894,23 +1967,11 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		statuses := map[string]string{}
 		for _, profile := range profiles {
-			found := false
+			// TODO: make userIds a set instead of array to remove the inner loop
 			for _, uid := range userIds {
 				if uid == profile.Id {
-					found = true
+					statuses[profile.Id] = profile.GetStatus()
 				}
-			}
-
-			if !found {
-				continue
-			}
-
-			if profile.IsOffline() {
-				statuses[profile.Id] = model.USER_OFFLINE
-			} else if profile.IsAway() {
-				statuses[profile.Id] = model.USER_AWAY
-			} else {
-				statuses[profile.Id] = model.USER_ONLINE
 			}
 		}
 
