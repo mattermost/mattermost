@@ -114,6 +114,7 @@ class FilteredUserList extends React.Component {
                     <UserList
                         users={users}
                         actions={this.props.actions}
+                        actionProps={this.props.actionProps}
                     />
                 </div>
             </div>
@@ -123,13 +124,15 @@ class FilteredUserList extends React.Component {
 
 FilteredUserList.defaultProps = {
     users: [],
-    actions: []
+    actions: [],
+    actionProps: {}
 };
 
 FilteredUserList.propTypes = {
     intl: intlShape.isRequired,
     users: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
+    actionProps: React.PropTypes.object,
     style: React.PropTypes.object
 };
 

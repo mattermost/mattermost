@@ -6,7 +6,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import React from 'react';
 
-export default function UserListRow({user, actions}) {
+export default function UserListRow({user, actions, actionProps}) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
 
     let name = user.username;
@@ -21,6 +21,7 @@ export default function UserListRow({user, actions}) {
             <Action
                 key={index.toString()}
                 user={user}
+                {...actionProps}
             />
         );
     });
@@ -56,10 +57,12 @@ export default function UserListRow({user, actions}) {
 }
 
 UserListRow.defaultProps = {
-    actions: []
+    actions: [],
+    actionProps: {}
 };
 
 UserListRow.propTypes = {
     user: React.PropTypes.object.isRequired,
-    actions: React.PropTypes.arrayOf(React.PropTypes.func)
+    actions: React.PropTypes.arrayOf(React.PropTypes.func),
+    actionProps: React.PropTypes.object
 };
