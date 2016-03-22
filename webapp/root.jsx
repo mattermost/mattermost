@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+require('perfect-scrollbar/jquery')($);
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'jasny-bootstrap/dist/css/jasny-bootstrap.css';

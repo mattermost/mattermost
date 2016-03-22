@@ -89,7 +89,7 @@
 
                 &.info-popover {
                     @include background-size(100% 100%);
-                    background: url('../images/info__icon.png');
+                    background-image: url('../images/info__icon.png');
                     cursor: pointer;
                     height: 19px;
                     position: relative;

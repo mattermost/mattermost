@@ -64,7 +64,6 @@ class UserSettingsModal extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleShow = this.handleShow.bind(this);
         this.handleHide = this.handleHide.bind(this);
         this.handleHidden = this.handleHidden.bind(this);
         this.handleCollapse = this.handleCollapse.bind(this);
@@ -95,24 +94,13 @@ class UserSettingsModal extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.show) {
-            this.handleShow();
-        }
         UserStore.addChangeListener(this.onUserChanged);
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.handleShow();
-        }
+    componentDidUpdate() {
         UserStore.removeChangeListener(this.onUserChanged);
-    }
-
-    handleShow() {
-        if ($(window).width() > 768) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
-        } else {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 50);
+        if (!Utils.isMobile()) {
+            $('.settings-modal .modal-body').perfectScrollbar();
         }
     }
 
@@ -221,6 +209,10 @@ class UserSettingsModal extends React.Component {
                 active_tab: tab,
                 active_section: ''
             });
+        }
+
+        if (!Utils.isMobile()) {
+            $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         }
     }
 

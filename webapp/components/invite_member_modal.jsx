@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -174,12 +173,6 @@ class InviteMemberModal extends React.Component {
             show: false,
             showConfirmModal: false
         });
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        if (!prevState.show && this.state.show) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
-        }
     }
 
     addInviteFields() {

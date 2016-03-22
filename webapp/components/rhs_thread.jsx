@@ -46,6 +46,9 @@ export default class RhsThread extends React.Component {
         window.addEventListener('resize', this.handleResize);
 
         this.mounted = true;
+        if (!Utils.isMobile()) {
+            $('.sidebar--right .post-right__scroll').perfectScrollbar();
+        }
     }
     componentDidUpdate() {
         if ($('.post-right__scroll')[0]) {

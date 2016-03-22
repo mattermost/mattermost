@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
+
 import UserStore from 'stores/user_store.jsx';
 import {Popover, Overlay} from 'react-bootstrap';
 import * as Utils from 'utils/utils.jsx';
@@ -18,6 +20,10 @@ export default class PopoverListMembers extends React.Component {
 
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.closePopover = this.closePopover.bind(this);
+    }
+
+    componentDidUpdate() {
+        $('.member-list__popover .popover-content').perfectScrollbar();
     }
 
     componentWillMount() {

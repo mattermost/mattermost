@@ -24,11 +24,16 @@ export default class UserList extends React.Component {
             });
         } else {
             content = (
-                <div key='no-users-found'>
-                    <FormattedMessage
-                        id='user_list.notFound'
-                        defaultMessage='No users found :('
-                    />
+                <div
+                    key='no-users-found'
+                    className='no-channel-message'
+                >
+                    <p className='primary-message'>
+                        <FormattedMessage
+                            id='user_list.notFound'
+                            defaultMessage='No users found :('
+                        />
+                    </p>
                 </div>
             );
         }

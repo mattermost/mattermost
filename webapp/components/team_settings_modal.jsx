@@ -5,6 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import SettingsSidebar from './settings_sidebar.jsx';
 import TeamSettings from './team_settings.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
@@ -49,9 +50,16 @@ class TeamSettingsModal extends React.Component {
                 $('.modal-dialog.display--content').removeClass('display--content');
             }, 500);
         });
+
+        if (!Utils.isMobile()) {
+            $('.settings-modal .settings-content').perfectScrollbar();
+        }
     }
     updateTab(tab) {
         this.setState({activeTab: tab, activeSection: ''});
+        if (!Utils.isMobile()) {
+            $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
+        }
     }
     updateSection(section) {
         this.setState({activeSection: section});

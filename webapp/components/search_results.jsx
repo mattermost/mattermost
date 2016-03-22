@@ -61,6 +61,9 @@ export default class SearchResults extends React.Component {
         UserStore.addChangeListener(this.onUserChange);
         this.resize();
         window.addEventListener('resize', this.handleResize);
+        if (!Utils.isMobile()) {
+            $('.sidebar--right .search-items-container').perfectScrollbar();
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
