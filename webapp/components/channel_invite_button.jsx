@@ -7,8 +7,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Client from 'utils/client.jsx';
 
 import {FormattedMessage} from 'react-intl';
-
-import loadingGif from 'images/load.gif';
+import SpinnerButton from 'components/spinner_button.jsx';
 
 export default class ChannelInviteButton extends React.Component {
     static get propTypes() {
@@ -29,9 +28,7 @@ export default class ChannelInviteButton extends React.Component {
         };
     }
 
-    handleClick(e) {
-        e.preventDefault();
-
+    handleClick() {
         if (this.state.addingUser) {
             return;
         }
@@ -66,26 +63,17 @@ export default class ChannelInviteButton extends React.Component {
     }
 
     render() {
-        if (this.state.addingUser) {
-            return (
-                <img
-                    className='channel-loading-gif'
-                    src={loadingGif}
-                />
-            );
-        }
-
         return (
-            <a
+            <SpinnerButton
                 onClick={this.handleClick}
-                className='btn btn-sm btn-primary'
+                spinning={this.state.addingUser}
             >
                 <i className='glyphicon glyphicon-envelope'/>
                 <FormattedMessage
                     id='channel_invite.add'
                     defaultMessage=' Add'
                 />
-            </a>
+            </SpinnerButton>
         );
     }
 }
