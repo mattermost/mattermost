@@ -55,8 +55,8 @@ export default class RhsRootPost extends React.Component {
     render() {
         const post = this.props.post;
         const user = this.props.user;
-        var isOwner = user.id === post.user_id;
-        var isAdmin = Utils.isAdmin(user.roles);
+        var isOwner = this.props.currentUser.id === post.user_id;
+        var isAdmin = Utils.isAdmin(this.props.currentUser.roles);
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
 
@@ -286,5 +286,6 @@ RhsRootPost.defaultProps = {
 RhsRootPost.propTypes = {
     post: React.PropTypes.object.isRequired,
     user: React.PropTypes.object.isRequired,
+    currentUser: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number
 };
