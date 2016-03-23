@@ -3,10 +3,13 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
+
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+
+import TextareaAutosize from 'react-textarea-autosize';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -44,7 +47,13 @@ export default class SuggestionBox extends React.Component {
 
     getTextbox() {
         // this is to support old code that looks at the input/textarea DOM nodes
-        return ReactDOM.findDOMNode(this.refs.textbox);
+        let textbox = this.refs.textbox;
+
+        if (!(textbox instanceof HTMLElement)) {
+            textbox = ReactDOM.findDOMNode(textbox);
+        }
+
+        return textbox;
     }
 
     handleDocumentClick(e) {
@@ -132,7 +141,8 @@ export default class SuggestionBox extends React.Component {
             );
         } else if (this.props.type === 'textarea') {
             textbox = (
-                <textarea
+                <TextareaAutosize
+                    id={this.suggestionId}
                     ref='textbox'
                     {...newProps}
                 />
@@ -163,5 +173,6 @@ SuggestionBox.propTypes = {
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,
-    onKeyDown: React.PropTypes.func
+    onKeyDown: React.PropTypes.func,
+    onHeightChange: React.PropTypes.func
 };

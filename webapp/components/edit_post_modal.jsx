@@ -27,8 +27,8 @@ const holders = defineMessages({
 import React from 'react';
 
 class EditPostModal extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.handleEdit = this.handleEdit.bind(this);
         this.handleEditInput = this.handleEditInput.bind(this);
@@ -56,12 +56,13 @@ class EditPostModal extends React.Component {
         updatedPost.id = this.state.post_id;
         updatedPost.channel_id = this.state.channel_id;
 
-        Client.updatePost(updatedPost,
-            function success() {
+        Client.updatePost(
+            updatedPost,
+            () => {
                 AsyncClient.getPosts(updatedPost.channel_id);
                 window.scrollTo(0, 0);
             },
-            function error(err) {
+            (err) => {
                 AsyncClient.dispatchError(err, 'updatePost');
             }
         );
@@ -106,11 +107,11 @@ class EditPostModal extends React.Component {
     componentDidMount() {
         var self = this;
 
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function onHidden() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', () => {
             self.setState({editText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: ''});
         });
 
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', function onShow(e) {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', (e) => {
             var button = e.relatedTarget;
             if (!button) {
                 return;
@@ -118,12 +119,11 @@ class EditPostModal extends React.Component {
             self.setState({editText: $(button).attr('data-message'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments'), refocusId: $(button).attr('data-refocusid')});
         });
 
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', function onShown() {
-            self.refs.editbox.resize();
-            $('#edit_textbox').get(0).focus();
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', () => {
+            self.refs.editbox.focus();
         });
 
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('hide.bs.modal', function onShown() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hide.bs.modal', () => {
             if (self.state.refocusId !== '') {
                 setTimeout(() => {
                     $(self.state.refocusId).get(0).focus();
