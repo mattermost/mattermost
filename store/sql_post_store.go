@@ -38,11 +38,6 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
-	// ADDED for 1.3 REMOVE for 2.2
-	s.RemoveColumnIfExists("Posts", "ImgCount")
-
-	// ADDED for 1.3 REMOVE for 2.2
-	s.GetMaster().Exec(`UPDATE Preferences SET Type = :NewType WHERE Type = :CurrentType`, map[string]string{"NewType": model.POST_JOIN_LEAVE, "CurrentType": "join_leave"})
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {
@@ -726,13 +721,20 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 			}
 
-			terms = strings.Join(strings.Fields(terms), " | ")
+			terms = strings.Join(strings.Fields(terms), " & ")
 
 			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(:Terms)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+
+			splitTerms := strings.Fields(terms)
+			for i, t := range strings.Fields(terms) {
+				splitTerms[i] = "+" + t
+			}
+
+			terms = strings.Join(splitTerms, " ")
 		}
 
 		queryParams["Terms"] = terms

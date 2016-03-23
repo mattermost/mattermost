@@ -28,10 +28,10 @@ var versions = []string{
 }
 
 var CurrentVersion string = versions[0]
-var BuildNumber = "dev"
-var BuildDate = "Tue Mar 22 21:22:05 UTC 2016"
-var BuildHash = "d3c132333f29ad8f97c85552599b9525760926e4"
-var BuildEnterpriseReady = "false"
+var BuildNumber string
+var BuildDate string
+var BuildHash string
+var BuildEnterpriseReady string
 var versionsWithoutHotFixes []string
 
 func init() {
@@ -85,7 +85,7 @@ func GetPreviousVersion(version string) string {
 }
 
 func IsOfficalBuild() bool {
-	return BuildNumber != "dev"
+	return BuildNumber != "_BUILD_NUMBER_"
 }
 
 func IsCurrentVersion(versionToCheck string) bool {

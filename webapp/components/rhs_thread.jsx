@@ -130,7 +130,7 @@ export default class RhsThread extends React.Component {
         }
 
         // sort failed posts to bottom, followed by pending, and then regular posts
-        postsArray.sort(function postSort(a, b) {
+        postsArray.sort((a, b) => {
             if ((a.state === Constants.POST_LOADING || a.state === Constants.POST_FAILED) && (b.state !== Constants.POST_LOADING && b.state !== Constants.POST_FAILED)) {
                 return 1;
             }
@@ -182,24 +182,26 @@ export default class RhsThread extends React.Component {
                             post={selected}
                             commentCount={postsArray.length}
                             user={profile}
+                            currentUser={this.props.currentUser}
                         />
                         <div className='post-right-comments-container'>
-                        {postsArray.map(function mapPosts(comPost) {
-                            let p;
-                            if (UserStore.getCurrentId() === comPost.user_id) {
-                                p = UserStore.getCurrentUser();
-                            } else {
-                                p = profiles[comPost.user_id];
-                            }
-                            return (
-                                <Comment
-                                    ref={comPost.id}
-                                    key={comPost.id + 'commentKey'}
-                                    post={comPost}
-                                    user={p}
-                                />
-                            );
-                        })}
+                            {postsArray.map((comPost) => {
+                                let p;
+                                if (UserStore.getCurrentId() === comPost.user_id) {
+                                    p = UserStore.getCurrentUser();
+                                } else {
+                                    p = profiles[comPost.user_id];
+                                }
+                                return (
+                                    <Comment
+                                        ref={comPost.id}
+                                        key={comPost.id + 'commentKey'}
+                                        post={comPost}
+                                        user={p}
+                                        currentUser={this.props.currentUser}
+                                    />
+                                );
+                            })}
                         </div>
                         <div className='post-create__container'>
                             <CreateComment
@@ -221,5 +223,6 @@ RhsThread.defaultProps = {
 
 RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
-    isMentionSearch: React.PropTypes.bool
+    isMentionSearch: React.PropTypes.bool,
+    currentUser: React.PropTypes.object.isRequired
 };

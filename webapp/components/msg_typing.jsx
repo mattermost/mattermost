@@ -1,21 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SocketStore from 'stores/socket_store.jsx';
-import UserStore from 'stores/user_store.jsx';
+import UserTypingStore from 'stores/user_typing_store.jsx';
 
-import Constants from 'utils/constants.jsx';
-
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
-
-const SocketEvents = Constants.SocketEvents;
-
-const holders = defineMessages({
-    someone: {
-        id: 'msg_typing.someone',
-        defaultMessage: 'Someone'
-    }
-});
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -23,69 +11,40 @@ class MsgTyping extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onChange = this.onChange.bind(this);
+        this.onTypingChange = this.onTypingChange.bind(this);
         this.updateTypingText = this.updateTypingText.bind(this);
         this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
 
-        this.typingUsers = {};
         this.state = {
             text: ''
         };
     }
 
-    componentDidMount() {
-        SocketStore.addChangeListener(this.onChange);
+    componentWillMount() {
+        UserTypingStore.addChangeListener(this.onTypingChange);
+        this.onTypingChange();
+    }
+
+    componentWillUnmount() {
+        UserTypingStore.removeChangeListener(this.onTypingChange);
     }
 
     componentWillReceiveProps(nextProps) {
         if (this.props.channelId !== nextProps.channelId) {
-            for (const u in this.typingUsers) {
-                if (!this.typingUsers.hasOwnProperty(u)) {
-                    continue;
-                }
-
-                clearTimeout(this.typingUsers[u]);
-            }
-            this.typingUsers = {};
-            this.setState({text: ''});
+            this.updateTypingText(UserTypingStore.getUsersTyping(nextProps.channelId, nextProps.parentId));
         }
     }
 
-    componentWillUnmount() {
-        SocketStore.removeChangeListener(this.onChange);
+    onTypingChange() {
+        this.updateTypingText(UserTypingStore.getUsersTyping(this.props.channelId, this.props.parentId));
     }
 
-    onChange(msg) {
-        let username = this.props.intl.formatMessage(holders.someone);
-        if (msg.action === SocketEvents.TYPING &&
-            this.props.channelId === msg.channel_id &&
-            this.props.parentId === msg.props.parent_id) {
-            if (UserStore.hasProfile(msg.user_id)) {
-                username = UserStore.getProfile(msg.user_id).username;
-            }
-
-            if (this.typingUsers[username]) {
-                clearTimeout(this.typingUsers[username]);
-            }
-
-            this.typingUsers[username] = setTimeout(function myTimer(user) {
-                delete this.typingUsers[user];
-                this.updateTypingText();
-            }.bind(this, username), Constants.UPDATE_TYPING_MS);
-
-            this.updateTypingText();
-        } else if (msg.action === SocketEvents.POSTED && msg.channel_id === this.props.channelId) {
-            if (UserStore.hasProfile(msg.user_id)) {
-                username = UserStore.getProfile(msg.user_id).username;
-            }
-            clearTimeout(this.typingUsers[username]);
-            delete this.typingUsers[username];
-            this.updateTypingText();
+    updateTypingText(typingUsers) {
+        if (!typingUsers) {
+            return;
         }
-    }
 
-    updateTypingText() {
-        const users = Object.keys(this.typingUsers);
+        const users = Object.keys(typingUsers);
         let text = '';
         switch (users.length) {
         case 0:
@@ -129,9 +88,8 @@ class MsgTyping extends React.Component {
 }
 
 MsgTyping.propTypes = {
-    intl: intlShape.isRequired,
     channelId: React.PropTypes.string,
     parentId: React.PropTypes.string
 };
 
-export default injectIntl(MsgTyping);
+export default MsgTyping;

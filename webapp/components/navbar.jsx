@@ -8,6 +8,7 @@ import MessageWrapper from './message_wrapper.jsx';
 import NotifyCounts from './notify_counts.jsx';
 import ChannelInfoModal from './channel_info_modal.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
+import ChannelMembersModal from './channel_members_modal.jsx';
 import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
 import RenameChannelModal from './rename_channel_modal.jsx';
@@ -433,6 +434,7 @@ export default class Navbar extends React.Component {
         var editChannelHeaderModal = null;
         var editChannelPurposeModal = null;
         let renameChannelModal = null;
+        let channelMembersModal = null;
 
         if (channel) {
             popoverContent = (
@@ -523,6 +525,14 @@ export default class Navbar extends React.Component {
                     channel={channel}
                 />
             );
+
+            channelMembersModal = (
+                <ChannelMembersModal
+                    show={this.state.showMembersModal}
+                    onModalDismissed={() => this.setState({showMembersModal: false})}
+                    channel={channel}
+                />
+            );
         }
 
         var collapseButtons = this.createCollapseButtons(currentId);
@@ -556,6 +566,7 @@ export default class Navbar extends React.Component {
                 {editChannelHeaderModal}
                 {editChannelPurposeModal}
                 {renameChannelModal}
+                {channelMembersModal}
             </div>
         );
     }

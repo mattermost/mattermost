@@ -5,12 +5,12 @@ import $ from 'jquery';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
-import SocketStore from 'stores/socket_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import ErrorBar from 'components/error_bar.jsx';
+import * as Websockets from 'action_creators/websocket_actions.jsx';
 
 import {browserHistory} from 'react-router';
 
@@ -66,11 +66,6 @@ export default class LoggedIn extends React.Component {
             }
         }
     }
-    onSocketChange(msg) {
-        if (msg && msg.user_id && msg.user_id !== UserStore.getCurrentId()) {
-            UserStore.setStatus(msg.user_id, 'online');
-        }
-    }
     componentWillMount() {
         // Emit view action
         GlobalActions.viewLoggedIn();
@@ -78,8 +73,8 @@ export default class LoggedIn extends React.Component {
         // Listen for user
         UserStore.addChangeListener(this.onUserChanged);
 
-        // Add listner for socker store
-        SocketStore.addChangeListener(this.onSocketChange);
+        // Initalize websockets
+        Websockets.initialize();
 
         // Get all statuses regularally. (Soon to be switched to websocket)
         this.intervalId = setInterval(() => AsyncClient.getStatuses(), CLIENT_STATUS_INTERVAL);
@@ -178,7 +173,7 @@ export default class LoggedIn extends React.Component {
         $(window).off('focus');
         $(window).off('blur');
 
-        SocketStore.removeChangeListener(this.onSocketChange);
+        Websockets.close();
         UserStore.removeChangeListener(this.onUserChanged);
 
         $('body').off('click.userpopover');

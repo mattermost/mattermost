@@ -1,11 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Client from 'utils/client.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from 'utils/constants.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
@@ -68,25 +69,27 @@ class AdvancedSettingsDisplay extends React.Component {
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeatures);
         const advancedSettings = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS);
         const settings = {
-            send_on_ctrl_enter: PreferenceStore.getPreference(
+            send_on_ctrl_enter: PreferenceStore.get(
                 Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
                 'send_on_ctrl_enter',
-                {value: 'false'}
-            ).value
+                'false'
+            )
         };
 
         let enabledFeatures = 0;
-        advancedSettings.forEach((setting) => {
-            preReleaseFeaturesKeys.forEach((key) => {
+        for (const [name, value] of advancedSettings) {
+            for (const key of preReleaseFeaturesKeys) {
                 const feature = PreReleaseFeatures[key];
-                if (setting.name === Constants.FeatureTogglePrefix + feature.label) {
-                    settings[setting.name] = setting.value;
-                    if (setting.value === 'true') {
-                        enabledFeatures++;
+
+                if (name === Constants.FeatureTogglePrefix + feature.label) {
+                    settings[name] = value;
+
+                    if (value === 'true') {
+                        enabledFeatures += 1;
                     }
                 }
-            });
-        });
+            }
+        }
 
         this.state = {preReleaseFeatures: PreReleaseFeatures, settings, preReleaseFeaturesKeys, enabledFeatures};
     }
@@ -124,20 +127,21 @@ class AdvancedSettingsDisplay extends React.Component {
 
     handleSubmit(settings) {
         const preferences = [];
+        const userId = UserStore.getCurrentId();
 
+        // this should be refactored so we can actually be certain about what type everything is
         (Array.isArray(settings) ? settings : [settings]).forEach((setting) => {
-            preferences.push(
-                PreferenceStore.setPreference(
-                    Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
-                    setting,
-                    String(this.state.settings[setting])
-                )
-            );
+            preferences.push({
+                user_id: userId,
+                category: Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
+                name: setting,
+                value: this.state.settings[setting]
+            });
         });
 
-        Client.savePreferences(preferences,
+        AsyncClient.savePreferences(
+            preferences,
             () => {
-                PreferenceStore.emitChange();
                 this.updateSection('');
             },
             (err) => {

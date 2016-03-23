@@ -549,10 +549,6 @@ func TestSearchPostsInChannel(t *testing.T) {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 
-	if result := Client.Must(Client.SearchPosts("sgtitlereview in:")).Data.(*model.PostList); len(result.Order) != 2 {
-		t.Fatalf("wrong number of posts returned %v", len(result.Order))
-	}
-
 	if result := Client.Must(Client.SearchPosts("sgtitlereview channel:" + channel1.Name)).Data.(*model.PostList); len(result.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}

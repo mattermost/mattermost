@@ -83,6 +83,8 @@ export default {
 
         SHOW_SEARCH: null,
 
+        USER_TYPING: null,
+
         TOGGLE_IMPORT_THEME_MODAL: null,
         TOGGLE_INVITE_MEMBER_MODAL: null,
         TOGGLE_DELETE_POST_MODAL: null,
@@ -429,6 +431,21 @@ export default {
             uiName: 'Mention Highlight Link'
         },
         {
+            group: 'linkAndButtonElements',
+            id: 'linkColor',
+            uiName: 'Link Color'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonBg',
+            uiName: 'Button BG'
+        },
+        {
+            group: 'linkAndButtonElements',
+            id: 'buttonColor',
+            uiName: 'Button Text'
+        },
+        {
             group: 'centerChannelElements',
             id: 'codeTheme',
             uiName: 'Code Theme',
@@ -458,21 +475,6 @@ export default {
                     iconURL: monokaiIcon
                 }
             ]
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'linkColor',
-            uiName: 'Link Color'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonBg',
-            uiName: 'Button BG'
-        },
-        {
-            group: 'linkAndButtonElements',
-            id: 'buttonColor',
-            uiName: 'Button Text'
         }
     ],
     DEFAULT_CODE_THEME: 'github',

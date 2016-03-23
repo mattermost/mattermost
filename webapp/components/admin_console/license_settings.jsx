@@ -105,36 +105,27 @@ class LicenseSettings extends React.Component {
         let licenseType;
         let licenseKey;
 
+        const issued = Utils.displayDate(parseInt(global.window.mm_license.IssuedAt, 10)) + ' ' + Utils.displayTime(parseInt(global.window.mm_license.IssuedAt, 10), true);
+        const startsAt = Utils.displayDate(parseInt(global.window.mm_license.StartsAt, 10));
+        const expiresAt = Utils.displayDate(parseInt(global.window.mm_license.ExpiresAt, 10));
+
         if (global.window.mm_license.IsLicensed === 'true') {
-            edition = (
-                <FormattedMessage
-                    id='admin.license.enterpriseEdition'
-                    defaultMessage='Mattermost Enterprise Edition. Designed for enterprise-scale communication.'
-                />
-            );
+            // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
+            edition = 'Mattermost Enterprise Edition. Enterprise features on this server have been unlocked with a license key and a valid subscription.';
             licenseType = (
-                <FormattedHTMLMessage
-                    id='admin.license.enterpriseType'
-                    values={{
-                        terms: global.window.mm_config.TermsOfServiceLink,
-                        name: global.window.mm_license.Name,
-                        company: global.window.mm_license.Company,
-                        users: global.window.mm_license.Users,
-                        issued: Utils.displayDate(parseInt(global.window.mm_license.IssuedAt, 10)) + ' ' + Utils.displayTime(parseInt(global.window.mm_license.IssuedAt, 10), true),
-                        start: Utils.displayDate(parseInt(global.window.mm_license.StartsAt, 10)),
-                        expires: Utils.displayDate(parseInt(global.window.mm_license.ExpiresAt, 10)),
-                        ldap: global.window.mm_license.LDAP
-                    }}
-                    defaultMessage='<div><p>This compiled release of Mattermost platform is provided under a <a href="http://mattermost.com" target="_blank">commercial license</a> from Mattermost, Inc. based on your subscription level and is subject to the <a href="{terms}" target="_blank">Terms of Service.</a></p>
-                    <p>Your subscription details are as follows:</p>
-                    Name: {name}<br />
-                    Company or organization name: {company}<br/>
-                    Number of users: {users}<br/>
-                    License issued: {issued}<br/>
-                    Start date of license: {start}<br/>
-                    Expiry date of license: {expires}<br/>
-                    LDAP: {ldap}<br/></div>'
-                />
+                <div>
+                    <p>
+                        {'This software is offered under a commercial license.\n\nSee ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.\n\nYour subscription details are as follows:'}
+                    </p>
+                    {`Name: ${global.window.mm_license.Name}`}<br/>
+                    {`Company or organization name: ${global.window.mm_license.Company}`}<br/>
+                    {`Number of users: ${global.window.mm_license.Users}`}<br/>
+                    {`License issued: ${issued}`}<br/>
+                    {`Start date of license: ${startsAt}`}<br/>
+                    {`Expiry date of license: ${expiresAt}`}<br/>
+                    <br/>
+                    {'See also '}<a href='https://about.mattermost.com/enterprise-edition-terms/'>{'Enterprise Edition Terms of Service'}</a>{' and '}<a href='https://about.mattermost.com/privacy/'>{'Privacy Policy.'}</a>
+                </div>
             );
 
             licenseKey = (
@@ -162,20 +153,15 @@ class LicenseSettings extends React.Component {
                 </div>
             );
         } else {
+            // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
             edition = (
-                <FormattedMessage
-                    id='admin.license.teamEdition'
-                    defaultMessage='Mattermost Team Edition. Designed for teams from 5 to 50 users.'
-                />
+                <p>
+                    {'Mattermost Enterprise Edition. Unlock enterprise features in this software through the purchase of a subscription from '}
+                    <a href='https://mattermost.com/'>{'https://mattermost.com/'}</a>
+                </p>
             );
 
-            licenseType = (
-                <FormattedHTMLMessage
-                    id='admin.license.teamType'
-                    defaultMessage='<span><p>This compiled release of Mattermost platform is offered under an MIT license.</p>
-                    <p>See MIT-COMPILED-LICENSE.txt in your root install directory for details. See NOTICES.txt for information about open source software used in this system.</p></span>'
-                />
-            );
+            licenseType = 'This software is offered under a commercial license.\n\nSee ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.';
 
             let fileName;
             if (this.state.fileName) {

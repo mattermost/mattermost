@@ -81,7 +81,22 @@ class LegalAndSupportSettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <h4 className='banner__heading'>
+                            <FormattedMessage
+                                id='admin.support.noteTitle'
+                                defaultMessage='Note:'
+                            />
+                        </h4>
+                        <p>
+                            <FormattedMessage
+                                id='admin.support.noteDescription'
+                                defaultMessage='If linking to an external site, URLs should begin with http:// or https://.'
+                            />
+                        </p>
+                    </div>
+                </div>
                 <h3>
                     <FormattedMessage
                         id='admin.support.title'

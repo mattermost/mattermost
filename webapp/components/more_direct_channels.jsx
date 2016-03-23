@@ -5,9 +5,9 @@ import {Modal} from 'react-bootstrap';
 import FilteredUserList from './filtered_user_list.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import loadingGif from 'images/load.gif';
 
 import {FormattedMessage} from 'react-intl';
+import SpinnerButton from 'components/spinner_button.jsx';
 
 import React from 'react';
 
@@ -83,26 +83,16 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     createJoinDirectChannelButton({user}) {
-        if (this.state.loadingDMChannel === user.id) {
-            return (
-                <img
-                    className='channel-loading-gif'
-                    src={loadingGif}
-                />
-            );
-        }
-
         return (
-            <button
-                type='button'
-                className='btn btn-primary btn-message'
+            <SpinnerButton
+                spinning={this.state.loadingDMChannel === user.id}
                 onClick={this.handleShowDirectChannel.bind(this, user)}
             >
                 <FormattedMessage
                     id='more_direct_channels.message'
                     defaultMessage='Message'
                 />
-            </button>
+            </SpinnerButton>
         );
     }
 
