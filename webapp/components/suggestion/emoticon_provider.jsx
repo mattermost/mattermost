@@ -11,7 +11,7 @@ import React from 'react';
 class EmoticonSuggestion extends React.Component {
     render() {
         const text = this.props.term;
-        const name = this.props.item;
+        const emoticon = this.props.item;
 
         let className = 'emoticon-suggestion';
         if (this.props.isSelection) {
@@ -27,7 +27,7 @@ class EmoticonSuggestion extends React.Component {
                     <img
                         alt={text}
                         className='emoticon-suggestion__image'
-                        src={Emoticons.getImagePathForEmoticon(name)}
+                        src={emoticon.path}
                         title={text}
                     />
                 </div>
@@ -40,7 +40,7 @@ class EmoticonSuggestion extends React.Component {
 }
 
 EmoticonSuggestion.propTypes = {
-    item: React.PropTypes.string.isRequired,
+    item: React.PropTypes.object.isRequired,
     term: React.PropTypes.string.isRequired,
     isSelection: React.PropTypes.bool,
     onClick: React.PropTypes.func
@@ -53,25 +53,25 @@ export default class EmoticonProvider {
             const text = captured[1];
             const partialName = captured[2];
 
-            const names = [];
+            const matched = [];
 
-            for (const emoticon of Emoticons.emoticonMap.keys()) {
-                if (emoticon.indexOf(partialName) !== -1) {
-                    names.push(emoticon);
+            for (const [name, emoticon] of Emoticons.emoticons) {
+                if (name.indexOf(partialName) !== -1) {
+                    matched.push(emoticon);
 
-                    if (names.length >= MAX_EMOTICON_SUGGESTIONS) {
+                    if (matched.length >= MAX_EMOTICON_SUGGESTIONS) {
                         break;
                     }
                 }
             }
 
             // sort the emoticons so that emoticons starting with the entered text come first
-            names.sort((a, b) => {
-                const aPrefix = a.startsWith(partialName);
-                const bPrefix = b.startsWith(partialName);
+            matched.sort((a, b) => {
+                const aPrefix = a.alias.startsWith(partialName);
+                const bPrefix = b.alias.startsWith(partialName);
 
                 if (aPrefix === bPrefix) {
-                    return a.localeCompare(b);
+                    return a.alias.localeCompare(b.alias);
                 } else if (aPrefix) {
                     return -1;
                 }
@@ -79,11 +79,11 @@ export default class EmoticonProvider {
                 return 1;
             });
 
-            const terms = names.map((name) => ':' + name + ':');
+            const terms = matched.map((emoticon) => ':' + emoticon.alias + ':');
 
             if (terms.length > 0) {
                 SuggestionStore.setMatchedPretext(suggestionId, text);
-                SuggestionStore.addSuggestions(suggestionId, terms, names, EmoticonSuggestion);
+                SuggestionStore.addSuggestions(suggestionId, terms, matched, EmoticonSuggestion);
 
                 // force the selection to be cleared since the order of elements may have changed
                 SuggestionStore.clearSelection(suggestionId);
