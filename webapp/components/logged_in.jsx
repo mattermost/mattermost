@@ -6,6 +6,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -84,7 +85,7 @@ export default class LoggedIn extends React.Component {
             // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
             if (e.originalEvent.key === '__logout__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
                 // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
-                if (window.BrowserStore.isSignallingLogout(e.originalEvent.newValue)) {
+                if (BrowserStore.isSignallingLogout(e.originalEvent.newValue)) {
                     return;
                 }
 
@@ -94,7 +95,7 @@ export default class LoggedIn extends React.Component {
 
             if (e.originalEvent.key === '__login__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
                 // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
-                if (window.BrowserStore.isSignallingLogin(e.originalEvent.newValue)) {
+                if (BrowserStore.isSignallingLogin(e.originalEvent.newValue)) {
                     return;
                 }
 

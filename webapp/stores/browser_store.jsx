@@ -8,6 +8,8 @@ function getPrefix() {
         return global.window.mm_current_user_id + '_';
     }
 
+    console.log('BrowserStore tried to operate without user present'); //eslint-disable-line no-console
+
     return 'unknown_';
 }
 
@@ -34,46 +36,35 @@ class BrowserStoreClass {
     }
 
     checkVersion() {
-        var currentVersion = sessionStorage.getItem('storage_version');
+        var currentVersion = this.getGlobalItem('storage_version');
         if (currentVersion !== global.window.mm_config.Version) {
-            sessionStorage.clear();
+            this.clearAll();
             try {
-                sessionStorage.setItem('storage_version', global.window.mm_config.Version);
+                this.setGlobalItem('storage_version', global.window.mm_config.Version);
             } catch (e) {
                 // Do nothing
             }
         }
     }
 
-    getItem(name, defaultValue) {
-        var result = null;
-        try {
-            result = JSON.parse(sessionStorage.getItem(getPrefix() + name));
-        } catch (err) {
-            result = null;
-        }
-
-        if (result === null && typeof defaultValue !== 'undefined') {
-            result = defaultValue;
-        }
-
-        return result;
+    setItem(name, value) {
+        this.setGlobalItem(getPrefix() + name, value);
     }
 
-    setItem(name, value) {
-        sessionStorage.setItem(getPrefix() + name, JSON.stringify(value));
+    getItem(name, defaultValue) {
+        return this.getGlobalItem(getPrefix() + name, defaultValue);
     }
 
     removeItem(name) {
-        sessionStorage.removeItem(getPrefix() + name);
+        this.removeGlobalItem(getPrefix() + name);
     }
 
     setGlobalItem(name, value) {
         try {
             if (this.isLocalStorageSupported()) {
-                localStorage.setItem(getPrefix() + name, JSON.stringify(value));
+                localStorage.setItem(name, JSON.stringify(value));
             } else {
-                sessionStorage.setItem(getPrefix() + name, JSON.stringify(value));
+                sessionStorage.setItem(name, JSON.stringify(value));
             }
         } catch (err) {
             console.log('An error occurred while setting local storage, clearing all props'); //eslint-disable-line no-console
@@ -87,9 +78,9 @@ class BrowserStoreClass {
         var result = null;
         try {
             if (this.isLocalStorageSupported()) {
-                result = JSON.parse(localStorage.getItem(getPrefix() + name));
+                result = JSON.parse(localStorage.getItem(name));
             } else {
-                result = JSON.parse(sessionStorage.getItem(getPrefix() + name));
+                result = JSON.parse(sessionStorage.getItem(name));
             }
         } catch (err) {
             result = null;
@@ -104,18 +95,18 @@ class BrowserStoreClass {
 
     removeGlobalItem(name) {
         if (this.isLocalStorageSupported()) {
-            localStorage.removeItem(getPrefix() + name);
+            localStorage.removeItem(name);
         } else {
-            sessionStorage.removeItem(getPrefix() + name);
+            sessionStorage.removeItem(name);
         }
     }
 
     getLastServerVersion() {
-        return sessionStorage.getItem('last_server_version');
+        return this.getGlobalItem('last_server_version');
     }
 
     setLastServerVersion(version) {
-        sessionStorage.setItem('last_server_version', version);
+        this.setGlobalItem('last_server_version', version);
     }
 
     signalLogout() {
@@ -185,6 +176,7 @@ class BrowserStoreClass {
         const logoutId = sessionStorage.getItem('__logout__');
 
         sessionStorage.clear();
+        localStorage.clear();
 
         if (logoutId) {
             sessionStorage.setItem('__logout__', logoutId);
@@ -222,4 +214,3 @@ class BrowserStoreClass {
 
 var BrowserStore = new BrowserStoreClass();
 export default BrowserStore;
-window.BrowserStore = BrowserStore;

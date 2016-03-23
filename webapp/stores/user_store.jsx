@@ -16,7 +16,10 @@ const CHANGE_EVENT_STATUSES = 'change_statuses';
 class UserStoreClass extends EventEmitter {
     constructor() {
         super();
-        this.profileCache = null;
+        this.profiles = {};
+        this.statuses = {};
+        this.sessions = {};
+        this.audits = {};
         this.currentUserId = '';
     }
 
@@ -135,11 +138,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     getProfiles() {
-        if (this.profileCache !== null) {
-            return this.profileCache;
-        }
-
-        return BrowserStore.getItem('profiles', {});
+        return this.profiles;
     }
 
     getActiveOnlyProfiles(skipCurrent) {
@@ -171,47 +170,38 @@ class UserStoreClass extends EventEmitter {
     }
 
     saveProfile(profile) {
-        var ps = this.getProfiles();
-        ps[profile.id] = profile;
-        this.profileCache = ps;
-        BrowserStore.setItem('profiles', ps);
+        this.profiles[profile.id] = profile;
     }
 
     saveProfiles(profiles) {
         const currentId = this.getCurrentId();
-        if (this.profileCache) {
-            const currentUser = this.profileCache[currentId];
-            if (currentUser) {
-                if (currentId in profiles) {
-                    delete profiles[currentId];
-                }
-
-                this.profileCache = profiles;
-                this.profileCache[currentId] = currentUser;
-            } else {
-                this.profileCache = profiles;
+        const currentUser = this.profiles[currentId];
+        if (currentUser) {
+            if (currentId in this.profiles) {
+                delete this.profiles[currentId];
             }
-        } else {
-            this.profileCache = profiles;
-        }
 
-        BrowserStore.setItem('profiles', profiles);
+            this.profiles = profiles;
+            this.profiles[currentId] = currentUser;
+        } else {
+            this.profiles = profiles;
+        }
     }
 
     setSessions(sessions) {
-        BrowserStore.setItem('sessions', sessions);
+        this.sessions = sessions;
     }
 
     getSessions() {
-        return BrowserStore.getItem('sessions', {loading: true});
+        return this.sessions;
     }
 
     setAudits(audits) {
-        BrowserStore.setItem('audits', audits);
+        this.audits = audits;
     }
 
     getAudits() {
-        return BrowserStore.getItem('audits', {loading: true});
+        return this.audits;
     }
 
     getCurrentMentionKeys() {
@@ -252,7 +242,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     pSetStatuses(statuses) {
-        BrowserStore.setItem('statuses', statuses);
+        this.statuses = statuses;
     }
 
     setStatus(userId, status) {
@@ -263,7 +253,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     getStatuses() {
-        return BrowserStore.getItem('statuses', {});
+        return this.statuses;
     }
 
     getStatus(id) {
