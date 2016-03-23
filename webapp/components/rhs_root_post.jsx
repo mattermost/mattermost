@@ -7,7 +7,6 @@ import UserProfile from './user_profile.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as Emoji from 'utils/emoticons.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
 import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
@@ -30,9 +29,9 @@ export default class RhsRootPost extends React.Component {
     }
     parseEmojis() {
         twemoji.parse(ReactDOM.findDOMNode(this), {
-            className: 'emoji twemoji',
+            className: 'emoticon',
             base: '',
-            folder: Emoji.getImagePathForEmoticon()
+            folder: Constants.EMOJI_PATH
         });
     }
     handlePermalink(e) {
