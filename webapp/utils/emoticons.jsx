@@ -32,27 +32,28 @@ const emoticonPatterns = {
 export const emoticons = initializeEmoticons();
 
 function initializeEmoticons() {
-    const emoticons = new Map();
+    const emoticonMap = new Map();
 
     for (const emoji of emojis) {
         const unicode = emoji.emoji;
 
         let filename = '';
-        if (emoji.emoji) {
+        if (unicode) {
             // this is a unicode emoji so the character code determines the file name
-            const code = fixedCharCodeAt(emoji.emoji, 0).toString(16);
-            filename = pad(code.toString(16));
+            for (let i = 0; i < unicode.length; i += 2) {
+                const code = fixedCharCodeAt(unicode, i);
 
-            if (emoji.emoji.length > 2) {
-                // some emojis like the country flags span multiple utf-16 characters
-                for (let i = 2; i < emoji.emoji.length; i += 2) {
-                    const code = fixedCharCodeAt(emoji.emoji, i);
-
-                    // ignore variation selectors
-                    if (code < 0xfe00 || code > 0xfe0f) {
-                        filename += '-' + pad(code.toString(16));
-                    }
+                // ignore variation selector characters
+                if (code >= 0xfe00 && code <= 0xfe0f) {
+                    continue;
                 }
+
+                // some emoji (such as country flags) span multiple unicode characters
+                if (i !== 0) {
+                    filename += '-';
+                }
+
+                filename += pad(code.toString(16));
             }
         } else {
             // this isn't a unicode emoji so the first alias determines the file name
@@ -60,14 +61,14 @@ function initializeEmoticons() {
         }
 
         for (const alias of emoji.aliases) {
-            emoticons.set(alias, {
+            emoticonMap.set(alias, {
                 alias,
                 path: getImagePathForEmoticon(filename)
             });
         }
     }
 
-    return emoticons;
+    return emoticonMap;
 }
 
 // Pads a hexadecimal number with zeroes to be at least 4 digits long
@@ -89,18 +90,18 @@ function fixedCharCodeAt(str, idx = 0) {
 
     // High surrogate (could change last hex to 0xDB7F to treat high
     // private surrogates as single characters)
-    if (0xD800 <= code && code <= 0xDBFF) {
+    if (code >= 0xD800 && code <= 0xDBFF) {
         const hi = code;
         const low = str.charCodeAt(idx + 1);
 
         if (isNaN(low)) {
-            console.log('High surrogate not followed by low surrogate in fixedCharCodeAt()'); // eslint-ignore-line
+            console.log('High surrogate not followed by low surrogate in fixedCharCodeAt()'); // eslint-disable-line
         }
 
         return ((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000;
     }
 
-    if (0xDC00 <= code && code <= 0xDFFF) { // Low surrogate
+    if (code >= 0xDC00 && code <= 0xDFFF) { // Low surrogate
         // We return false to allow loops to skip this iteration since should have
         // already handled high surrogate above in the previous iteration
         return false;
