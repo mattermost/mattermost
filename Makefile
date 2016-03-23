@@ -174,7 +174,7 @@ endif
 	# Create package
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
-run-server: prepare-enterprise
+run-server: prepare-enterprise start-docker
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
