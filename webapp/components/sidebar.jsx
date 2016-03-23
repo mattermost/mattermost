@@ -163,6 +163,9 @@ export default class Sidebar extends React.Component {
     componentDidUpdate() {
         this.updateTitle();
         this.updateUnreadIndicators();
+        if (!Utils.isMobile()) {
+            $('.sidebar--left .nav-pills__container').perfectScrollbar();
+        }
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);

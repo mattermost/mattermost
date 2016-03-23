@@ -80,6 +80,7 @@ export default class ChannelHeader extends React.Component {
         SearchStore.addSearchChangeListener(this.onListenerChange);
         PreferenceStore.addChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
+        $('.sidebar--left .dropdown-menu').perfectScrollbar();
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);

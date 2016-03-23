@@ -10,12 +10,8 @@
         width: 100%;
     }
 
-    .row {
-        margin: 0;
-    }
-
     h3 {
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid alpha-color($black, .1);
         font-weight: 600;
         margin: 1em 0;
         padding-bottom: .5em;
@@ -75,11 +71,18 @@
                         width: 17px;
                     }
 
+                    &.divider {
+                        @include alpha-property(background, $black, .1);
+                    }
+
                     > a {
                         &:hover,
-                        &.active,
                         &:focus {
-                            background-color: #eaeaea;
+                            @include alpha-property(background, $black, .1);
+                        }
+
+                        &.active {
+                            background-color: transparent;
                         }
                     }
 

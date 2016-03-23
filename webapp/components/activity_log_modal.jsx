@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import ReactDOM from 'react-dom';
 import UserStore from 'stores/user_store.jsx';
 import * as Client from 'utils/client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -56,11 +55,8 @@ export default class ActivityLogModal extends React.Component {
     }
     onShow() {
         AsyncClient.getSessions();
-
-        if ($(window).width() > 768) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
-        } else {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
+        if (!Utils.isMobile()) {
+            $('.modal-body').perfectScrollbar();
         }
     }
     onHide() {

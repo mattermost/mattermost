@@ -9,6 +9,7 @@
 }
 
 .modal-body {
+    max-height: calc(90vh - 62px);
     overflow: auto;
     padding: 20px 15px;
 

@@ -687,7 +687,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelBg) {
-        changeCss('.app__content, .markdown__table, .markdown__table tbody tr, .suggestion-list__content, .modal .modal-content, .modal .modal-back', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.app__content, .markdown__table, .markdown__table tbody tr, .suggestion-list__content, .modal .modal-content', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
         changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);

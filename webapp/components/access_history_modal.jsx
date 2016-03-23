@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import ReactDOM from 'react-dom';
 import {Modal} from 'react-bootstrap';
 import LoadingScreen from './loading_screen.jsx';
 import AuditTable from './audit_table.jsx';
@@ -36,11 +35,8 @@ class AccessHistoryModal extends React.Component {
     }
     onShow() {
         AsyncClient.getAudits();
-
-        if ($(window).width() > 768) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
-        } else {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
+        if (!Utils.isMobile()) {
+            $('.modal-body').perfectScrollbar();
         }
     }
     onHide() {

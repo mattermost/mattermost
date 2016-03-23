@@ -53,8 +53,8 @@
     "webpack": "webpack/webpack#master"
   },
   "scripts": {
-      "check": "eslint --ext \".jsx\" --ignore-pattern node_modules --quiet .",
-      "build": "webpack",
-      "run": "webpack --progress --watch"
+    "check": "eslint --ext \".jsx\" --ignore-pattern node_modules --quiet .",
+    "build": "webpack",
+    "run": "webpack --progress --watch"
   }
 }

@@ -134,6 +134,10 @@
                 @include alpha-property(background, $black, .1);
             }
 
+            a {
+                text-decoration: none;
+            }
+
             .user__name {
                 color: $white;
             }
