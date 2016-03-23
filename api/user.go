@@ -1887,6 +1887,7 @@ func fail(status int, what, details string) *model.AppError {
 }
 
 func UpdateStatus(userId, status string) *model.AppError {
+	// TODO: magic number 26
 	if len(userId) != 26 {
 		return fail(http.StatusBadRequest, "", "user_id")
 	}
@@ -1904,13 +1905,9 @@ func UpdateStatus(userId, status string) *model.AppError {
 	user := result.Data.(*model.User)
 	user.SetStatus(status)
 
-	//l4g.Debug("Updated status; %s", user.GetStatus())
-
 	if uresult := <-Srv.Store.User().Update(user, false); uresult.Err != nil {
 		return fail(http.StatusForbidden, "api.user.update_status.failed.app_error", uresult.Err.Error())
 	}
-
-	//l4g.Debug("successfully saved")
 
 	return nil
 }
@@ -1921,33 +1918,6 @@ func updateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 	}
-	/*userId := c.Session.UserId
-	// TODO: magic number 26
-	if len(userId) != 26 {
-		c.SetInvalidParam("updateStatus", "user_id")
-		return
-	}
-
-	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
-		return
-	}
-
-	if result.Data == nil {
-		// TODO: api.user.update_status.valid_account.app_error
-		c.Err = model.NewLocAppError("updateStatus", "api.user.update_status.valid_account.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	user := result.Data.(*model.User)
-	user.SetStatus(props["user"])
-
-	if uresult := <-Srv.Store.User().Update(user, false); uresult.Err != nil {
-		c.Err = model.NewLocAppError("updatePassword", "api.user.update_status.failed.app_error", nil, uresult.Err.Error())
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}*/
 }
 
 func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
