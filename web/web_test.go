@@ -51,7 +51,7 @@ func TestStatic(t *testing.T) {
 	if err != nil {
 		t.Fatalf("got error while trying to get static files %v", err)
 	} else if resp.StatusCode != http.StatusOK {
-		t.Fatalf("couldn't get static files %v", resp.StatusCode)
+		t.Fatalf("couldn't get static files %v", URL+"/static/root.html")
 	}
 }
 

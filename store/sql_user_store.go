@@ -6,8 +6,10 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	//"runtime"
 	"strings"
 )
 
@@ -230,16 +232,26 @@ func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel 
 	return storeChannel
 }
 
+//var TrackLastActivity = false
+
 func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
+
+	/*if TrackLastActivity {
+		trace := make([]byte, 1024)
+		runtime.Stack(trace, true)
+		l4g.Debug(fmt.Sprintf("%s", trace))
+	}*/
 
 	go func() {
 		result := StoreResult{}
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :LastActivityAt WHERE Id = :UserId", map[string]interface{}{"LastActivityAt": time, "UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdateLastActivityAt", "store.sql_user.update_last_activity.app_error", nil, "user_id="+userId)
+			l4g.Error(err.Error())
 		} else {
 			result.Data = userId
+			l4g.Debug("successfully set last activity for user %v", userId)
 		}
 
 		storeChannel <- result

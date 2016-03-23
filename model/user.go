@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"io"
 	"regexp"
 	"strings"
@@ -243,13 +244,21 @@ func (u *User) Etag() string {
 }
 
 func (u *User) IsOffline() bool {
+	now := GetMillis()
+	lastA := u.LastActivityAt
+	lastP := u.LastPingAt
+	l4g.Debug(fmt.Sprintf(">> IsOffline <<\nnow = %v,\nlast activity = %v (diff = %v)\nlast ping = %v (diff = %v)",
+		now, lastA, now-lastA, lastP, now-lastP))
 	return u.ManualStatus == USER_OFFLINE ||
 		((GetMillis()-u.LastPingAt) > USER_OFFLINE_TIMEOUT && (GetMillis()-u.LastActivityAt) > USER_OFFLINE_TIMEOUT)
 }
 
 func (u *User) IsAway() bool {
+	now := GetMillis()
+	lastA := u.LastActivityAt
+	l4g.Debug(fmt.Sprintf(">> IsAway <<\nnow = %v,\nlast activity = %v (diff = %v)", now, lastA, now-lastA))
 	return u.ManualStatus == USER_AWAY ||
-		((GetMillis() - u.LastActivityAt) > USER_AWAY_TIMEOUT)
+		((GetMillis()-u.LastActivityAt) > USER_AWAY_TIMEOUT && (GetMillis()-u.LastPingAt) <= USER_OFFLINE_TIMEOUT)
 }
 
 // Remove any private data from the user object

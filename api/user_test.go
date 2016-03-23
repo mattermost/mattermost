@@ -1189,6 +1189,22 @@ func (user *testUser) assertStatusIs(expectedValue string, t *testing.T) {
 	}
 }
 
+const (
+	only_inactivity     = false
+	inactivity_and_ping = true
+)
+
+func (user *testUser) setInactivityPeriod(millis int64, noPing bool) {
+	inactivityTime := model.GetMillis() - millis
+	noPingTime := model.GetMillis()
+	if noPing {
+		noPingTime = noPingTime - millis
+	}
+	//l4g.Debug(fmt.Sprintf("setInactivityPeriod: now = %v, setting at %v, millis = %v", model.GetMillis(), time, millis))
+	store.Must(Srv.Store.User().UpdateLastActivityAt(user.client.Id, inactivityTime))
+	store.Must(Srv.Store.User().UpdateLastPingAt(user.client.Id, noPingTime))
+}
+
 func TestStatuses(t *testing.T) {
 	Setup()
 
@@ -1250,10 +1266,10 @@ func TestStatuses2(t *testing.T) {
 	me.loginByEmail()
 	you.assertStatusIs(model.USER_OFFLINE, t)
 
-	//l4g.Debug("if manually set to online, switches to away after some time")
-	//me.setStatus(model.USER_ONLINE)
-	//me.setProlongedInactivity()
-	//me.assertStatusIs(model.USER_AWAY)
+	l4g.Debug("if manually set to online, switches to away after some time")
+	me.setStatus(model.USER_ONLINE, t)
+	me.setInactivityPeriod(model.USER_AWAY_TIMEOUT+1, only_inactivity)
+	me.assertStatusIs(model.USER_AWAY, t)
 
 	// if manually set to online, automatically swithces to offline once client disconnects
 	// ... and back to online once the client connects back
