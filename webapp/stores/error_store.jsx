@@ -35,15 +35,15 @@ class ErrorStoreClass extends EventEmitter {
     }
 
     getLastError() {
-        return BrowserStore.getItem('last_error');
+        return BrowserStore.getGlobalItem('last_error');
     }
 
     storeLastError(error) {
-        BrowserStore.setItem('last_error', error);
+        BrowserStore.setGlobalItem('last_error', error);
     }
 
     getConnectionErrorCount() {
-        var count = BrowserStore.getItem('last_error_conn');
+        var count = BrowserStore.getGlobalItem('last_error_conn');
 
         if (count == null) {
             return 0;
@@ -53,12 +53,12 @@ class ErrorStoreClass extends EventEmitter {
     }
 
     setConnectionErrorCount(count) {
-        BrowserStore.setItem('last_error_conn', count);
+        BrowserStore.setGlobalItem('last_error_conn', count);
     }
 
     clearLastError() {
-        BrowserStore.removeItem('last_error');
-        BrowserStore.removeItem('last_error_conn');
+        BrowserStore.removeGlobalItem('last_error');
+        BrowserStore.removeGlobalItem('last_error_conn');
     }
 }
 
