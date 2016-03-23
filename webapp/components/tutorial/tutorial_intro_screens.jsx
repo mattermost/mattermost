@@ -36,17 +36,22 @@ export default class TutorialIntroScreens extends React.Component {
 
         Utils.switchChannel(ChannelStore.getByName(Constants.DEFAULT_CHANNEL));
 
-        let preference = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+        let step = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 0);
 
-        const newValue = (parseInt(preference.value, 10) + 1).toString();
-
-        preference = PreferenceStore.setPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), newValue);
-        AsyncClient.savePreferences([preference]);
+        AsyncClient.savePreference(
+            Preferences.TUTORIAL_STEP,
+            UserStore.getCurrentId(),
+            step + 1
+        );
     }
     skipTutorial(e) {
         e.preventDefault();
-        const preference = PreferenceStore.setPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), '999');
-        AsyncClient.savePreferences([preference]);
+
+        AsyncClient.savePreference(
+            Preferences.TUTORIAL_STEP,
+            UserStore.getCurrentId(),
+            999
+        );
     }
     createScreen() {
         switch (this.state.currentScreen) {
