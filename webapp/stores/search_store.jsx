@@ -4,8 +4,6 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
-import BrowserStore from 'stores/browser_store.jsx';
-
 import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 
@@ -18,29 +16,9 @@ class SearchStoreClass extends EventEmitter {
     constructor() {
         super();
 
-        this.emitChange = this.emitChange.bind(this);
-        this.addChangeListener = this.addChangeListener.bind(this);
-        this.removeChangeListener = this.removeChangeListener.bind(this);
-
-        this.emitSearchChange = this.emitSearchChange.bind(this);
-        this.addSearchChangeListener = this.addSearchChangeListener.bind(this);
-        this.removeSearchChangeListener = this.removeSearchChangeListener.bind(this);
-
-        this.emitSearchTermChange = this.emitSearchTermChange.bind(this);
-        this.addSearchTermChangeListener = this.addSearchTermChangeListener.bind(this);
-        this.removeSearchTermChangeListener = this.removeSearchTermChangeListener.bind(this);
-
-        this.emitShowSearch = this.emitShowSearch.bind(this);
-        this.addShowSearchListener = this.addShowSearchListener.bind(this);
-        this.removeShowSearchListener = this.removeShowSearchListener.bind(this);
-
-        this.getSearchResults = this.getSearchResults.bind(this);
-        this.getIsMentionSearch = this.getIsMentionSearch.bind(this);
-
-        this.storeSearchTerm = this.storeSearchTerm.bind(this);
-        this.getSearchTerm = this.getSearchTerm.bind(this);
-
-        this.storeSearchResults = this.storeSearchResults.bind(this);
+        this.searchResults = {};
+        this.isMentionSearch = false;
+        this.searchTerm = '';
     }
 
     emitChange() {
@@ -92,24 +70,24 @@ class SearchStoreClass extends EventEmitter {
     }
 
     getSearchResults() {
-        return BrowserStore.getItem('search_results');
+        return this.searchResults;
     }
 
     getIsMentionSearch() {
-        return BrowserStore.getItem('is_mention_search');
+        return this.isMentionSearch;
     }
 
     storeSearchTerm(term) {
-        BrowserStore.setItem('search_term', term);
+        this.searchTerm = term;
     }
 
     getSearchTerm() {
-        return BrowserStore.getItem('search_term');
+        return this.searchTerm;
     }
 
     storeSearchResults(results, isMentionSearch) {
-        BrowserStore.setItem('search_results', results);
-        BrowserStore.setItem('is_mention_search', Boolean(isMentionSearch));
+        this.searchResults = results;
+        this.isMentionSearch = isMentionSearch;
     }
 }
 
