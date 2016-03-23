@@ -1200,7 +1200,6 @@ func (user *testUser) setInactivityPeriod(millis int64, noPing bool) {
 	if noPing {
 		noPingTime = noPingTime - millis
 	}
-	//l4g.Debug(fmt.Sprintf("setInactivityPeriod: now = %v, setting at %v, millis = %v", model.GetMillis(), time, millis))
 	store.Must(Srv.Store.User().UpdateLastActivityAt(user.client.Id, inactivityTime))
 	store.Must(Srv.Store.User().UpdateLastPingAt(user.client.Id, noPingTime))
 }
@@ -1242,7 +1241,7 @@ func TestStatuses(t *testing.T) {
 
 }
 
-func TestStatuses2(t *testing.T) {
+func TestStatusSwitches(t *testing.T) {
 	Setup()
 
 	me, you := createTwoUsers() // user has client & server representations and team
@@ -1266,20 +1265,37 @@ func TestStatuses2(t *testing.T) {
 	me.loginByEmail()
 	you.assertStatusIs(model.USER_OFFLINE, t)
 
-	l4g.Debug("if manually set to online, switches to away after some time")
+	l4g.Debug("-> if manually set to online, switches to away after some time")
 	me.setStatus(model.USER_ONLINE, t)
 	me.setInactivityPeriod(model.USER_AWAY_TIMEOUT+1, only_inactivity)
 	me.assertStatusIs(model.USER_AWAY, t)
 
-	// if manually set to online, automatically swithces to offline once client disconnects
-	// ... and back to online once the client connects back
+	l4g.Debug("->... and back to online once the client connects back")
+	me.setInactivityPeriod(0, only_inactivity)
+	me.assertStatusIs(model.USER_ONLINE, t)
 
-	// if manually set to away, does not automatically switch
+	l4g.Debug("-> if manually set to online, automatically swithces to offline once the client disconnects")
+	me.setStatus(model.USER_ONLINE, t)
+	me.setInactivityPeriod(model.USER_OFFLINE_TIMEOUT+1, inactivity_and_ping)
+	me.assertStatusIs(model.USER_OFFLINE, t)
 
-	//you.setStatus(model.USER_ONLINE)
-	//you.setStatus(model.USER_AWAY)
+	l4g.Debug("->... and back to online once the client connects back")
+	me.setInactivityPeriod(0, inactivity_and_ping)
+	me.assertStatusIs(model.USER_ONLINE, t)
 
-	// if manually set of offline, does not automatically switch
+	l4g.Debug("-> if manually set to away, does not automatically switch")
+	me.setStatus(model.USER_AWAY, t)
+	me.setInactivityPeriod(model.USER_OFFLINE_TIMEOUT+1, inactivity_and_ping)
+	me.assertStatusIs(model.USER_AWAY, t)
+	me.setInactivityPeriod(0, inactivity_and_ping)
+	me.assertStatusIs(model.USER_AWAY, t)
+
+	l4g.Debug("-> if manually set to offline, does not automatically switch")
+	me.setStatus(model.USER_OFFLINE, t)
+	me.setInactivityPeriod(0, inactivity_and_ping)
+	me.assertStatusIs(model.USER_OFFLINE, t)
+	me.setInactivityPeriod(model.USER_AWAY_TIMEOUT+1, only_inactivity)
+	me.assertStatusIs(model.USER_OFFLINE, t)
 }
 
 func TestSwitchToSSO(t *testing.T) {

@@ -1887,8 +1887,6 @@ func fail(status int, what, details string) *model.AppError {
 }
 
 func UpdateStatus(userId, status string) *model.AppError {
-	l4g.Debug("UpdateStatus: userId=%s, status=%s", userId, status)
-
 	if len(userId) != 26 {
 		return fail(http.StatusBadRequest, "", "user_id")
 	}
