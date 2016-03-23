@@ -29,12 +29,13 @@ export default class TutorialTip extends React.Component {
         this.setState({show});
 
         if (!show && this.state.currentScreen >= this.props.screens.length - 1) {
-            let preference = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+            let step = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 0);
 
-            const newValue = (parseInt(preference.value, 10) + 1).toString();
-
-            preference = PreferenceStore.setPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), newValue);
-            AsyncClient.savePreferences([preference]);
+            AsyncClient.savePreference(
+                Preferences.TUTORIAL_STEP,
+                UserStore.getCurrentId(),
+                step + 1
+            );
         }
     }
     handleNext() {

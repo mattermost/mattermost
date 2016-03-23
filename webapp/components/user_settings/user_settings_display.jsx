@@ -6,24 +6,22 @@ import SettingItemMax from '../setting_item_max.jsx';
 import ManageLanguages from './manage_languages.jsx';
 import ThemeSetting from './user_settings_theme.jsx';
 
+import * as AsyncClient from 'utils/async_client.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as I18n from 'i18n/i18n.jsx';
 
 import Constants from 'utils/constants.jsx';
+const Preferences = Constants.Preferences;
 
-import {savePreferences} from 'utils/client.jsx';
 import {FormattedMessage} from 'react-intl';
 
 function getDisplayStateFromStores() {
-    const militaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'});
-    const nameFormat = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'username'});
-    const selectedFont = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', {value: Constants.DEFAULT_FONT});
-
     return {
-        militaryTime: militaryTime.value,
-        nameFormat: nameFormat.value,
-        selectedFont: selectedFont.value
+        militaryTime: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', 'false'),
+        nameFormat: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'username'),
+        selectedFont: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT)
     };
 }
 
@@ -44,13 +42,29 @@ export default class UserSettingsDisplay extends React.Component {
         this.state = getDisplayStateFromStores();
     }
     handleSubmit() {
-        const timePreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', this.state.militaryTime);
-        const namePreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', this.state.nameFormat);
-        const fontPreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', this.state.selectedFont);
+        const userId = UserStore.getCurrentId();
 
-        savePreferences([timePreference, namePreference, fontPreference],
+        const timePreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: 'use_military_time',
+            value: this.state.militaryTime
+        };
+        const namePreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: 'name_format',
+            value: this.state.nameFormat
+        };
+        const fontPreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: 'selected_font',
+            value: this.state.selectedFont
+        };
+
+        AsyncClient.savePreferences([timePreference, namePreference, fontPreference],
             () => {
-                PreferenceStore.emitChange();
                 this.updateSection('');
             },
             (err) => {

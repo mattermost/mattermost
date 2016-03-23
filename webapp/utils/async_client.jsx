@@ -673,9 +673,9 @@ export function getStatuses() {
     const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
     const teammateIds = [];
-    for (const preference of preferences) {
-        if (preference.value === 'true') {
-            teammateIds.push(preference.name);
+    for (const [name, value] of preferences) {
+        if (value === 'true') {
+            teammateIds.push(name);
         }
     }
 
@@ -754,6 +754,17 @@ export function getAllPreferences() {
             dispatchError(err, 'getAllPreferences');
         }
     );
+}
+
+export function savePreference(category, name, value, success, error) {
+    const preference = {
+        user_id: UserStore.getCurrentId(),
+        category,
+        name,
+        value
+    };
+
+    savePreferences([preference], success, error);
 }
 
 export function savePreferences(preferences, success, error) {

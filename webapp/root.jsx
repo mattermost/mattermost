@@ -138,11 +138,7 @@ function preRenderSetup(callwhendone) {
 function preLoggedIn(nextState, replace, callback) {
     const d1 = Client.getAllPreferences(
         (data) => {
-            if (!data) {
-                return;
-            }
-
-            PreferenceStore.setPreferences(data);
+            PreferenceStore.setPreferencesFromServer(data);
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getAllPreferences');
@@ -198,6 +194,7 @@ function onLoggedOut(nextState) {
             BrowserStore.signalLogout();
             BrowserStore.clear();
             ErrorStore.clearLastError();
+            PreferenceStore.clear();
         },
         () => {
             browserHistory.push('/' + teamName + '/login');

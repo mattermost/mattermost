@@ -93,12 +93,12 @@ export default class Sidebar extends React.Component {
         const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
         const directChannels = [];
-        for (const preference of preferences) {
-            if (preference.value !== 'true') {
+        for (const [name, value] of preferences) {
+            if (value !== 'true') {
                 continue;
             }
 
-            const teammateId = preference.name;
+            const teammateId = name;
 
             let directChannel = channels.find(Utils.isDirectChannelForUser.bind(null, teammateId));
 
@@ -239,11 +239,10 @@ export default class Sidebar extends React.Component {
         if (!this.isLeaving.get(channel.id)) {
             this.isLeaving.set(channel.id, true);
 
-            const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, channel.teammate_id, 'false');
-
-            // bypass AsyncClient since we've already saved the updated preferences
-            Client.savePreferences(
-                [preference],
+            AsyncClient.savePreference(
+                Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+                channel.teammate_id,
+                'false',
                 () => {
                     this.isLeaving.set(channel.id, false);
                 },
