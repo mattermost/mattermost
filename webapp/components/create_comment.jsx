@@ -6,7 +6,6 @@ import ReactDOM from 'react-dom';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Client from 'utils/client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import SocketStore from 'stores/socket_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
@@ -17,6 +16,7 @@ import MsgTyping from './msg_typing.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -196,11 +196,7 @@ class CreateComment extends React.Component {
             }
         }
 
-        const t = Date.now();
-        if ((t - this.lastTime) > Constants.UPDATE_TYPING_MS) {
-            SocketStore.sendMessage({channel_id: this.props.channelId, action: 'typing', props: {parent_id: this.props.rootId}});
-            this.lastTime = t;
-        }
+        GlobalActions.emitLocalUserTypingEvent(this.props.channelId, this.props.rootId);
     }
     handleUserInput(messageText) {
         let draft = PostStore.getCommentDraft(this.props.rootId);

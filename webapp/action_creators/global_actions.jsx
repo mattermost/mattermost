@@ -10,6 +10,7 @@ const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Client from 'utils/client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as Websockets from './websocket_actions.jsx';
 import * as I18n from 'i18n/i18n.jsx';
 
 import en from 'i18n/en.json';
@@ -97,10 +98,21 @@ export function emitLoadMorePostsFocusedBottomEvent() {
     AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE);
 }
 
-export function emitPostRecievedEvent(post) {
+export function emitPostRecievedEvent(post, websocketMessageProps) {
+    if (ChannelStore.getCurrentId() === post.channel_id) {
+        if (window.isActive) {
+            AsyncClient.updateLastViewedAt();
+        } else {
+            AsyncClient.getChannel(post.channel_id);
+        }
+    } else {
+        AsyncClient.getChannel(post.channel_id);
+    }
+
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_POST,
-        post
+        post,
+        websocketMessageProps
     });
 }
 
@@ -260,4 +272,22 @@ export function viewLoggedIn() {
 
     // Clear pending posts (shouldn't have pending posts if we are loading)
     PostStore.clearPendingPosts();
+}
+
+var lastTimeTypingSent = 0;
+export function emitLocalUserTypingEvent(channelId, parentId) {
+    const t = Date.now();
+    if ((t - lastTimeTypingSent) > Constants.UPDATE_TYPING_MS) {
+        Websockets.sendMessage({channel_id: channelId, action: 'typing', props: {parent_id: parentId}, state: {}});
+        lastTimeTypingSent = t;
+    }
+}
+
+export function emitRemoteUserTypingEvent(channelId, userId, postParentId) {
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.USER_TYPING,
+        channelId,
+        userId,
+        postParentId
+    });
 }
