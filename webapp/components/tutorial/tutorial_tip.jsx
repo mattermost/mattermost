@@ -29,12 +29,12 @@ export default class TutorialTip extends React.Component {
         this.setState({show});
 
         if (!show && this.state.currentScreen >= this.props.screens.length - 1) {
-            let step = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 0);
+            const step = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 0);
 
             AsyncClient.savePreference(
                 Preferences.TUTORIAL_STEP,
                 UserStore.getCurrentId(),
-                step + 1
+                (step + 1).toString()
             );
         }
     }
@@ -48,8 +48,12 @@ export default class TutorialTip extends React.Component {
     }
     skipTutorial(e) {
         e.preventDefault();
-        const preference = PreferenceStore.setPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), '999');
-        AsyncClient.savePreferences([preference]);
+
+        AsyncClient.savePreference(
+            Preferences.TUTORIAL_STEP,
+            UserStore.getCurrentId(),
+            '999'
+        );
     }
     render() {
         const buttonText = this.state.currentScreen === this.props.screens.length - 1 ? (
