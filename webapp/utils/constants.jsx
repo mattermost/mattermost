@@ -83,6 +83,8 @@ export default {
 
         SHOW_SEARCH: null,
 
+        USER_TYPING: null,
+
         TOGGLE_IMPORT_THEME_MODAL: null,
         TOGGLE_INVITE_MEMBER_MODAL: null,
         TOGGLE_DELETE_POST_MODAL: null,

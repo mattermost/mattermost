@@ -24,11 +24,11 @@ import Sidebar from 'components/sidebar.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import SocketStore from 'stores/socket_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import SignupTeam from 'components/signup_team.jsx';
 import * as Client from 'utils/client.jsx';
+import * as Websockets from 'action_creators/websocket_actions.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import SignupTeamConfirm from 'components/signup_team_confirm.jsx';
 import SignupUserComplete from 'components/signup_user_complete.jsx';
@@ -101,11 +101,10 @@ function preRenderSetup(callwhendone) {
         // Do Nothing
     };
 
+    // Make sure the websockets close
     $(window).on('beforeunload',
          () => {
-             if (window.SocketStore) {
-                 SocketStore.close();
-             }
+             Websockets.close();
          }
     );
 
