@@ -36,7 +36,6 @@ import SignupUserComplete from 'components/signup_user_complete.jsx';
 import ShouldVerifyEmail from 'components/should_verify_email.jsx';
 import DoVerifyEmail from 'components/do_verify_email.jsx';
 import AdminConsole from 'components/admin_console/admin_controller.jsx';
-import ClaimAccount from 'components/claim/claim_account.jsx';
 
 import SignupTeamComplete from 'components/signup_team_complete/components/signup_team_complete.jsx';
 import WelcomePage from 'components/signup_team_complete/components/team_signup_welcome_page.jsx';
@@ -46,6 +45,12 @@ import SendInivtesPage from 'components/signup_team_complete/components/team_sig
 import UsernamePage from 'components/signup_team_complete/components/team_signup_username_page.jsx';
 import PasswordPage from 'components/signup_team_complete/components/team_signup_password_page.jsx';
 import FinishedPage from 'components/signup_team_complete/components/team_signup_finished.jsx';
+
+import Claim from 'components/claim/claim.jsx';
+import EmailToOAuth from 'components/claim/components/email_to_oauth.jsx';
+import OAuthToEmail from 'components/claim/components/oauth_to_email.jsx';
+import LDAPToEmail from 'components/claim/components/ldap_to_email.jsx';
+import EmailToLDAP from 'components/claim/components/email_to_ldap.jsx';
 
 import {addLocaleData} from 'react-intl';
 import enLocaleData from 'react-intl/locale-data/en';
@@ -309,10 +314,6 @@ function renderRootComponent() {
                             component={Login}
                         />
                         <Route
-                            path='claim'
-                            component={ClaimAccount}
-                        />
-                        <Route
                             path='reset_password'
                             component={PasswordResetSendLink}
                         />
@@ -320,6 +321,27 @@ function renderRootComponent() {
                             path='reset_password_complete'
                             component={PasswordResetForm}
                         />
+                        <Route
+                            path='claim'
+                            component={Claim}
+                        >
+                            <Route
+                                path='oauth_to_email'
+                                component={OAuthToEmail}
+                            />
+                            <Route
+                                path='email_to_oauth'
+                                component={EmailToOAuth}
+                            />
+                            <Route
+                                path='email_to_ldap'
+                                component={EmailToLDAP}
+                            />
+                            <Route
+                                path='ldap_to_email'
+                                component={LDAPToEmail}
+                            />
+                        </Route>
                     </Route>
                 </Route>
             </Route>

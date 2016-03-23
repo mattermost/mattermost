@@ -1540,7 +1540,7 @@
     "translation": "Falha ao enviar com sucesso boas vindas por email err=%v"
   },
   {
-    "id": "api.user.switch_to_email.context.app_error",
+    "id": "api.user.oauth_to_email.context.app_error",
     "translation": "Atualização de senha falhou devido ao contexto user_id não combinar com id de usuário fornecido"
   },
   {

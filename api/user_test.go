@@ -1161,7 +1161,7 @@ func TestStatuses(t *testing.T) {
 
 }
 
-func TestSwitchToSSO(t *testing.T) {
+func TestEmailToOAuth(t *testing.T) {
 	Setup()
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -1172,45 +1172,45 @@ func TestSwitchToSSO(t *testing.T) {
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
 	m := map[string]string{}
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.EmailToOAuth(m); err == nil {
 		t.Fatal("should have failed - empty data")
 	}
 
 	m["password"] = "pwd"
-	_, err := Client.SwitchToSSO(m)
+	_, err := Client.EmailToOAuth(m)
 	if err == nil {
 		t.Fatal("should have failed - missing team_name, service, email")
 	}
 
 	m["team_name"] = team.Name
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.EmailToOAuth(m); err == nil {
 		t.Fatal("should have failed - missing service, email")
 	}
 
 	m["service"] = "someservice"
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.EmailToOAuth(m); err == nil {
 		t.Fatal("should have failed - missing email")
 	}
 
 	m["team_name"] = "junk"
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.EmailToOAuth(m); err == nil {
 		t.Fatal("should have failed - bad team name")
 	}
 
 	m["team_name"] = team.Name
 	m["email"] = "junk"
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.EmailToOAuth(m); err == nil {
 		t.Fatal("should have failed - bad email")
 	}
 
 	m["email"] = ruser.Email
 	m["password"] = "junk"
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.EmailToOAuth(m); err == nil {
 		t.Fatal("should have failed - bad password")
 	}
 }
 
-func TestSwitchToEmail(t *testing.T) {
+func TestOAuthToEmail(t *testing.T) {
 	Setup()
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -1225,42 +1225,155 @@ func TestSwitchToEmail(t *testing.T) {
 	store.Must(Srv.Store.User().VerifyEmail(ruser2.Id))
 
 	m := map[string]string{}
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.OAuthToEmail(m); err == nil {
 		t.Fatal("should have failed - not logged in")
 	}
 
 	Client.LoginByEmail(team.Name, user.Email, user.Password)
 
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.OAuthToEmail(m); err == nil {
 		t.Fatal("should have failed - empty data")
 	}
 
 	m["password"] = "pwd"
-	_, err := Client.SwitchToSSO(m)
+	_, err := Client.OAuthToEmail(m)
 	if err == nil {
 		t.Fatal("should have failed - missing team_name, service, email")
 	}
 
 	m["team_name"] = team.Name
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.OAuthToEmail(m); err == nil {
 		t.Fatal("should have failed - missing email")
 	}
 
 	m["email"] = ruser.Email
 	m["team_name"] = "junk"
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.OAuthToEmail(m); err == nil {
 		t.Fatal("should have failed - bad team name")
 	}
 
 	m["team_name"] = team.Name
 	m["email"] = "junk"
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.OAuthToEmail(m); err == nil {
 		t.Fatal("should have failed - bad email")
 	}
 
 	m["email"] = ruser2.Email
-	if _, err := Client.SwitchToSSO(m); err == nil {
+	if _, err := Client.OAuthToEmail(m); err == nil {
 		t.Fatal("should have failed - wrong user")
+	}
+}
+
+func TestLDAPToEmail(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	m := map[string]string{}
+	if _, err := Client.LDAPToEmail(m); err == nil {
+		t.Fatal("should have failed - empty data")
+	}
+
+	m["email_password"] = "pwd"
+	_, err := Client.LDAPToEmail(m)
+	if err == nil {
+		t.Fatal("should have failed - missing team_name, ldap_password, email")
+	}
+
+	m["team_name"] = team.Name
+	if _, err := Client.LDAPToEmail(m); err == nil {
+		t.Fatal("should have failed - missing email, ldap_password")
+	}
+
+	m["ldap_password"] = "pwd"
+	if _, err := Client.LDAPToEmail(m); err == nil {
+		t.Fatal("should have failed - missing email")
+	}
+
+	m["email"] = ruser.Email
+	m["team_name"] = "junk"
+	if _, err := Client.LDAPToEmail(m); err == nil {
+		t.Fatal("should have failed - bad team name")
+	}
+
+	m["team_name"] = team.Name
+	m["email"] = "junk"
+	if _, err := Client.LDAPToEmail(m); err == nil {
+		t.Fatal("should have failed - bad email")
+	}
+
+	m["email"] = user.Email
+	if _, err := Client.LDAPToEmail(m); err == nil {
+		t.Fatal("should have failed - user is not an LDAP user")
+	}
+}
+
+func TestEmailToLDAP(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	m := map[string]string{}
+	if _, err := Client.EmailToLDAP(m); err == nil {
+		t.Fatal("should have failed - empty data")
+	}
+
+	m["email_password"] = "pwd"
+	_, err := Client.EmailToLDAP(m)
+	if err == nil {
+		t.Fatal("should have failed - missing team_name, ldap_id, ldap_password, email")
+	}
+
+	m["team_name"] = team.Name
+	if _, err := Client.EmailToLDAP(m); err == nil {
+		t.Fatal("should have failed - missing email, ldap_password, ldap_id")
+	}
+
+	m["ldap_id"] = "someid"
+	if _, err := Client.EmailToLDAP(m); err == nil {
+		t.Fatal("should have failed - missing email, ldap_password")
+	}
+
+	m["ldap_password"] = "pwd"
+	if _, err := Client.EmailToLDAP(m); err == nil {
+		t.Fatal("should have failed - missing email")
+	}
+
+	m["email"] = ruser.Email
+	m["team_name"] = "junk"
+	if _, err := Client.EmailToLDAP(m); err == nil {
+		t.Fatal("should have failed - bad team name")
+	}
+
+	m["team_name"] = team.Name
+	m["email"] = "junk"
+	if _, err := Client.EmailToLDAP(m); err == nil {
+		t.Fatal("should have failed - bad email")
+	}
+
+	m["email"] = user.Email
+	m["email_password"] = "junk"
+	if _, err := Client.EmailToLDAP(m); err == nil {
+		t.Fatal("should have failed - bad password")
+	}
+
+	m["email_password"] = "pwd"
+	if _, err := Client.EmailToLDAP(m); err == nil {
+		t.Fatal("should have failed - missing ldap bits or user")
 	}
 }
 
