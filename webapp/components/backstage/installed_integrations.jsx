@@ -198,7 +198,7 @@ export default class InstalledIntegrations extends React.Component {
         return (
             <div className='backstage row'>
                 <div className='installed-integrations'>
-                    <div className='installed-integrations__header'>
+                    <div className='backstage__header'>
                         <h1 className='text'>
                             <FormattedMessage
                                 id='installed_integrations.header'
