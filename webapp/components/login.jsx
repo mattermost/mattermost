@@ -29,6 +29,8 @@ export default class Login extends React.Component {
         Client.getMeLoggedIn((data) => {
             if (data && data.logged_in !== 'false') {
                 browserHistory.push('/' + this.props.params.team + '/channels/town-square');
+            } else {
+                this.setState({doneCheckLogin: true}); //eslint-disable-line react/no-did-mount-set-state
             }
         });
     }
@@ -37,7 +39,8 @@ export default class Login extends React.Component {
     }
     getStateFromStores() {
         return {
-            currentTeam: TeamStore.getByName(this.props.params.team)
+            currentTeam: TeamStore.getByName(this.props.params.team),
+            doneCheckLogin: false
         };
     }
     onTeamChange() {
@@ -45,7 +48,7 @@ export default class Login extends React.Component {
     }
     render() {
         const currentTeam = this.state.currentTeam;
-        if (currentTeam == null) {
+        if (currentTeam == null || !this.state.doneCheckLogin) {
             return <div/>;
         }
 
