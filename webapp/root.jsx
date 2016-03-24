@@ -52,10 +52,7 @@ import OAuthToEmail from 'components/claim/components/oauth_to_email.jsx';
 import LDAPToEmail from 'components/claim/components/ldap_to_email.jsx';
 import EmailToLDAP from 'components/claim/components/email_to_ldap.jsx';
 
-import {addLocaleData} from 'react-intl';
-import enLocaleData from 'react-intl/locale-data/en';
-import esLocaleData from 'react-intl/locale-data/es';
-import ptLocaleData from 'react-intl/locale-data/pt';
+import * as I18n from 'i18n/i18n.jsx';
 
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
@@ -115,28 +112,14 @@ function preRenderSetup(callwhendone) {
     );
 
     function afterIntl() {
-        addLocaleData(enLocaleData);
-        addLocaleData(esLocaleData);
-        addLocaleData(ptLocaleData);
-
+        I18n.doAddLocaleData();
         $.when(d1, d2).done(callwhendone);
     }
 
     if (global.Intl) {
         afterIntl();
     } else {
-        require.ensure([
-            'intl',
-            'intl/locale-data/jsonp/en.js',
-            'intl/locale-data/jsonp/es.js',
-            'intl/locale-data/jsonp/pt.js'
-        ], (require) => {
-            require('intl');
-            require('intl/locale-data/jsonp/en.js');
-            require('intl/locale-data/jsonp/es.js');
-            require('intl/locale-data/jsonp/pt.js');
-            afterIntl();
-        });
+        I18n.safarifix(afterIntl);
     }
 }
 
