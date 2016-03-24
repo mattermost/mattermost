@@ -416,6 +416,7 @@ class SecurityTab extends React.Component {
         let numMethods = 0;
         numMethods = global.window.mm_config.EnableSignUpWithGitLab === 'true' ? numMethods + 1 : numMethods;
         numMethods = global.window.mm_config.EnableSignUpWithGoogle === 'true' ? numMethods + 1 : numMethods;
+        numMethods = global.window.mm_config.EnableLdap === 'true' ? numMethods + 1 : numMethods;
 
         if (global.window.mm_config.EnableSignUpWithEmail && numMethods > 0) {
             signInSection = this.createSignInSection();
