@@ -52,7 +52,7 @@ var config = {
                 loaders: ['style', 'css']
             },
             {
-                test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3)$/,
+                test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
                 loader: 'file',
                 query: {
                     name: 'files/[hash].[ext]'
