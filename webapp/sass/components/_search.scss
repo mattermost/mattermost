@@ -6,15 +6,17 @@
     }
 }
 
-.search-bar__container {
-    @include flex(0 0 56px);
-    padding: 12px 8px 0 0;
-
-    .sidebar--right {
-        &.move--left & {
+.sidebar--right {
+    &.move--left {
+        .search-bar__container {
             padding-right: 42px;
         }
     }
+}
+
+.search-bar__container {
+    @include flex(0 0 56px);
+    padding: 12px 8px 0 0;
 }
 
 .glyphicon-refresh-animate {
@@ -95,7 +97,7 @@
     }
 
     .glyphicon-refresh-animate {
-        color: $dark-gray;
+        @include opacity(0.5);
         position: absolute;
         right: 27px;
         top: 27px;

@@ -184,6 +184,7 @@ class SearchBar extends React.Component {
                         onUserInput={this.handleUserInput}
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
+                        type='search'
                     />
                     {isSearching}
                     <Popover

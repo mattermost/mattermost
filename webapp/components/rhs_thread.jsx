@@ -54,6 +54,7 @@ export default class RhsThread extends React.Component {
         if ($('.post-right__scroll')[0]) {
             $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
         }
+        $('.sidebar--right .post-right__scroll').perfectScrollbar('update');
         this.resize();
     }
     componentWillUnmount() {
