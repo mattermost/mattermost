@@ -1412,6 +1412,10 @@
     "translation": "Failed to set email verified err=%v"
   },
   {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "LDAP not available on this server"
+  },
+  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Unsupported OAuth service provider"
   },
@@ -1422,6 +1426,14 @@
   {
     "id": "api.user.init.debug",
     "translation": "Initializing user api routes"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "LDAP not available on this server"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "This user account does use LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -1470,6 +1482,10 @@
   {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "LDAP not available on this server"
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "Update password failed because context user_id did not match provided user's id"
   },
   {
     "id": "api.user.permanent_delete_user.attempting.warn",
@@ -1538,22 +1554,6 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Failed to send welcome email successfully err=%v"
-  },
-  {
-    "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Update password failed because context user_id did not match provided user's id"
-  },
-  {
-    "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP not available on this server"
-  },
-  {
-    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "This user account does use LDAP"
-  },
-  {
-    "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP not available on this server"
   },
   {
     "id": "api.user.update_active.permissions.app_error",

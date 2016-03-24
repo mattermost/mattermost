@@ -1412,6 +1412,10 @@
     "translation": "Falla al asignar el correo como verificado err=%v"
   },
   {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "LDAP no está disponible en este servidor"
+  },
+  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Proveedor de servicios de OAuth no es compatible"
   },
@@ -1422,6 +1426,14 @@
   {
     "id": "api.user.init.debug",
     "translation": "Inicializando rutas del API para los Usuarios"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "LDAP no está disponible en este servidor"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "La cuenta de este usuario utiliza LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -1470,6 +1482,10 @@
   {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "LDAP no está disponible en este servidor"
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "La actualización de la contraseña falló porque el user_id del contexto no coincide con el id de usuario provisto"
   },
   {
     "id": "api.user.permanent_delete_user.attempting.warn",
@@ -1538,10 +1554,6 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Falla al enviar el correo de bienvenida err=%v"
-  },
-  {
-    "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "La actualización de la contraseña falló porque el user_id del contexto no coincide con el id de usuario provisto"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
