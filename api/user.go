@@ -1938,7 +1938,7 @@ func GetAuthorizationCode(c *Context, service, teamName string, props map[string
 	props["team"] = teamName
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
-	redirectUri := c.GetSiteURL() + "/api/v1/oauth/" + service + "/complete"
+	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete"
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 

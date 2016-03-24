@@ -29,11 +29,14 @@ func InitOAuth(r *mux.Router) {
 	sr.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
 	sr.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
-	// Also handle this a the old routes remove soon apiv2?
 	mr := Srv.Router
 	mr.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
 	mr.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
+
+	// Handle all the old routes, to be later removed
 	mr.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	mr.Handle("/signup/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	mr.Handle("/login/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 }
 
 func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -185,7 +188,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
-	uri := c.GetSiteURL() + "/api/v1/oauth/" + service + "/complete"
+	uri := c.GetSiteURL() + "/signup/" + service + "/complete"
 
 	if body, team, props, err := AuthorizeOAuthUser(service, code, state, uri); err != nil {
 		c.Err = err

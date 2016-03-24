@@ -60,10 +60,10 @@ export default class Login extends React.Component {
         let loginMessage = [];
         if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             loginMessage.push(
-                <Link
+                <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    to={'/api/v1/oauth/gitlab/login?team=' + encodeURIComponent(teamName)}
+                    href={'/api/v1/oauth/gitlab/login?team=' + encodeURIComponent(teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -72,16 +72,16 @@ export default class Login extends React.Component {
                             defaultMessage='with GitLab'
                         />
                     </span>
-                </Link>
+                </a>
             );
         }
 
         if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
             loginMessage.push(
-                <Link
+                <a
                     className='btn btn-custom-login google'
                     key='google'
-                    to={'/api/v1/oauth/google/login?team=' + encodeURIComponent(teamName)}
+                    href={'/api/v1/oauth/google/login?team=' + encodeURIComponent(teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -90,7 +90,7 @@ export default class Login extends React.Component {
                             defaultMessage='with Google Apps'
                         />
                     </span>
-                </Link>
+                </a>
             );
         }
 
