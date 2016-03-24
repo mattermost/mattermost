@@ -133,7 +133,7 @@ build: .prebuild prepare-enterprise
 build-client:
 	@echo Building mattermost web app
 
-	cd $(BUILD_WEBAPP_DIR) && make build
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
 
 package: build build-client
@@ -183,7 +183,7 @@ run-server: prepare-enterprise start-docker
 run-client:
 	@echo Running mattermost client for development
 
-	cd $(BUILD_WEBAPP_DIR) && make run
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
 run: run-server run-client
 
@@ -203,7 +203,7 @@ stop-server:
 stop-client:
 	@echo Stopping mattermost client
 
-	cd $(BUILD_WEBAPP_DIR) && make stop
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) stop
 
 
 stop: stop-server stop-client
@@ -218,7 +218,7 @@ clean: stop-docker
 	rm -Rf $(DIST_ROOT)
 	go clean $(GOFLAGS) -i ./...
 
-	cd $(BUILD_WEBAPP_DIR) && make clean
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
 	rm -rf api/data
 	rm -rf logs
