@@ -101,15 +101,15 @@ export default class SidebarRightMenu extends React.Component {
         if (isSystemAdmin && !Utils.isMobile()) {
             consoleLink = (
                 <li>
-                    <a
-                        href={'/admin_console'}
+                    <Link
+                        to={'/admin_console'}
                     >
                         <i className='fa fa-wrench'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.console'
                             defaultMessage='System Console'
                         />
-                    </a>
+                    </Link>
                 </li>
             );
         }
@@ -127,16 +127,16 @@ export default class SidebarRightMenu extends React.Component {
         if (global.window.mm_config.HelpLink) {
             helpLink = (
                 <li>
-                    <a
+                    <Link
                         target='_blank'
-                        href={global.window.mm_config.HelpLink}
+                        to={global.window.mm_config.HelpLink}
                     >
                         <i className='fa fa-question'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.help'
                             defaultMessage='Help'
                         />
-                    </a>
+                    </Link>
                 </li>
             );
         }
@@ -145,16 +145,16 @@ export default class SidebarRightMenu extends React.Component {
         if (global.window.mm_config.ReportAProblemLink) {
             reportLink = (
                 <li>
-                    <a
+                    <Link
                         target='_blank'
-                        href={global.window.mm_config.ReportAProblemLink}
+                        to={global.window.mm_config.ReportAProblemLink}
                     >
                         <i className='fa fa-phone'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.report'
                             defaultMessage='Report a Problem'
                         />
-                    </a>
+                    </Link>
                 </li>
             );
         }
@@ -164,10 +164,12 @@ export default class SidebarRightMenu extends React.Component {
                 id='sidebar-menu'
             >
                 <div className='team__header theme'>
-                    <a
+                    <Link
                         className='team__name'
-                        href='/channels/town-square'
-                    >{teamDisplayName}</a>
+                        to='/channels/town-square'
+                    >
+                        {teamDisplayName}
+                    </Link>
                 </div>
 
                 <div className='nav-pills__container'>

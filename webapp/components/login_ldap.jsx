@@ -5,6 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as Client from 'utils/client.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 const holders = defineMessages({
     badTeam: {
@@ -74,9 +75,9 @@ class LoginLdap extends React.Component {
             () => {
                 const redirect = Utils.getUrlParameter('redirect');
                 if (redirect) {
-                    window.location.href = decodeURIComponent(redirect);
+                    browserHistory.push(decodeURIComponent(redirect));
                 } else {
-                    window.location.href = '/' + teamName + '/channels/town-square';
+                    browserHistory.push('/' + teamName + '/channels/town-square');
                 }
             },
             (err) => {

@@ -79,7 +79,7 @@ class LoginEmail extends React.Component {
             },
             (err) => {
                 if (err.id === 'api.user.login.not_verified.app_error') {
-                    window.location.href = '/verify_email?teamname=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email);
+                    browserHistory.push('/verify_email?teamname=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email));
                     return;
                 }
                 state.serverError = err.message;

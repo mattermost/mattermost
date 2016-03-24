@@ -22,6 +22,7 @@ const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 
 import React from 'react';
+import {Link} from 'react-router';
 
 export default class CenterPanel extends React.Component {
     constructor(props) {
@@ -83,13 +84,13 @@ export default class CenterPanel extends React.Component {
                     id='archive-link-home'
                     onClick={handleClick}
                 >
-                    <a href=''>
+                    <Link to=''>
                         <FormattedMessage
                             id='center_panel.recent'
                             defaultMessage='Click here to jump to recent messages. '
                         />
                         <i className='fa fa-arrow-down'></i>
-                    </a>
+                    </Link>
                 </div>
             );
         } else {

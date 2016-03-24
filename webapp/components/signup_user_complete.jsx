@@ -10,7 +10,7 @@ import Constants from 'utils/constants.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory, Link} from 'react-router';
 
 import React from 'react';
 
@@ -317,10 +317,10 @@ class SignupUserComplete extends React.Component {
         var signupMessage = [];
         if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             signupMessage.push(
-                <a
+                <Link
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={'/api/v1/oauth/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    to={'/api/v1/oauth/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -329,16 +329,16 @@ class SignupUserComplete extends React.Component {
                             defaultMessage='with GitLab'
                         />
                     </span>
-                </a>
+                </Link>
             );
         }
 
         if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
             signupMessage.push(
-                <a
+                <Link
                     className='btn btn-custom-login google'
                     key='google'
-                    href={'/api/v1/oauth/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    to={'/api/v1/oauth/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -347,7 +347,7 @@ class SignupUserComplete extends React.Component {
                             defaultMessage='with Google'
                         />
                     </span>
-                </a>
+                </Link>
            );
         }
 
@@ -442,10 +442,10 @@ class SignupUserComplete extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <a href='/'>
+                    <Link to='/'>
                         <span classNameNameName='fa fa-chevron-left'/>
                         <FormattedMessage id='web.header.back'/>
-                    </a>
+                    </Link>
                 </div>
                 <div className='col-sm-12'>
                     <div className='signup-team__container padding--less'>

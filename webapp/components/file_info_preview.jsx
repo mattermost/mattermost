@@ -5,6 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import {defineMessages} from 'react-intl';
 import React from 'react';
+import {Link} from 'react-router';
 
 const holders = defineMessages({
     type: {
@@ -33,14 +34,14 @@ export default function FileInfoPreview({filename, fileUrl, fileInfo, formatMess
 
     return (
         <div className='file-details__container'>
-            <a
+            <Link
                 className={'file-details__preview'}
-                href={fileUrl}
+                to={fileUrl}
                 target='_blank'
             >
                 <span className='file-details__preview-helper'/>
                 <img src={Utils.getPreviewImagePath(filename)}/>
-            </a>
+            </Link>
             <div className='file-details'>
                 <div className='file-details__name'>{name}</div>
                 <div className='file-details__info'>{infoString}</div>

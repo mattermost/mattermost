@@ -102,14 +102,6 @@ class EmailSignUpPage extends React.Component {
                     </button>
                     {serverError}
                 </div>
-                <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>
-                        <FormattedMessage
-                            id='email_signup.find'
-                            defaultMessage='Find my teams'
-                        />
-                    </a></span>
-                </div>
             </form>
         );
     }

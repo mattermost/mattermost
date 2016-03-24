@@ -24,6 +24,7 @@ const holders = defineMessages({
 });
 
 import React from 'react';
+import {browserHistory} from 'react-router';
 
 class SSOSignUpPage extends React.Component {
     constructor(props) {
@@ -63,9 +64,9 @@ class SSOSignUpPage extends React.Component {
             this.props.service,
             (data) => {
                 if (data.follow_link) {
-                    window.location.href = data.follow_link;
+                    browserHistory.push(data.follow_link);
                 } else {
-                    window.location.href = '/' + team.name + '/channels/town-square';
+                    browserHistory.push('/' + team.name + '/channels/town-square');
                 }
             },
             (err) => {
@@ -156,14 +157,6 @@ class SSOSignUpPage extends React.Component {
                 <div className='form-group'>
                     {button}
                     {serverError}
-                </div>
-                <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>
-                        <FormattedMessage
-                            id='sso_signup.find'
-                            defaultMessage='Find my teams'
-                        />
-                    </a></span>
                 </div>
             </form>
         );
