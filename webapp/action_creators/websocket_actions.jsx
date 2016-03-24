@@ -142,7 +142,7 @@ export function sendMessage(msg) {
         conn.send(JSON.stringify(msg));
     } else if (!conn || conn.readyState === WebSocket.Closed) {
         conn = null;
-        this.initialize();
+        initialize();
     }
 }
 
