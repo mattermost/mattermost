@@ -40,7 +40,6 @@ export default class ThemeSetting extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.submitTheme = this.submitTheme.bind(this);
         this.updateTheme = this.updateTheme.bind(this);
-        this.deactivate = this.deactivate.bind(this);
         this.resetFields = this.resetFields.bind(this);
         this.handleImportModal = this.handleImportModal.bind(this);
 
@@ -62,12 +61,17 @@ export default class ThemeSetting extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        if (!this.props.selected && nextProps.selected) {
+        if (this.props.selected && !nextProps.selected) {
             this.resetFields();
         }
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
+
+        if (this.props.selected) {
+            const state = this.getStateFromStores();
+            Utils.applyTheme(state.theme);
+        }
     }
     getStateFromStores() {
         const user = UserStore.getCurrentUser();
@@ -146,11 +150,6 @@ export default class ThemeSetting extends React.Component {
     }
     updateType(type) {
         this.setState({type});
-    }
-    deactivate() {
-        const state = this.getStateFromStores();
-
-        Utils.applyTheme(state.theme);
     }
     resetFields() {
         const state = this.getStateFromStores();

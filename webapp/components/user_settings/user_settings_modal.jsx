@@ -9,7 +9,6 @@ import SettingsSidebar from '../settings_sidebar.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Constants from 'utils/constants.jsx';
 
 import {Modal} from 'react-bootstrap';
 
@@ -113,7 +112,6 @@ class UserSettingsModal extends React.Component {
             return;
         }
 
-        this.resetTheme();
         this.deactivateTab();
         this.props.onModalDismissed();
         return;
@@ -220,19 +218,7 @@ class UserSettingsModal extends React.Component {
         if (!skipConfirm && this.requireConfirm) {
             this.showConfirmModal(() => this.updateSection(section, true));
         } else {
-            if (this.state.active_section === 'theme' && section !== 'theme') {
-                this.resetTheme();
-            }
             this.setState({active_section: section});
-        }
-    }
-
-    resetTheme() {
-        const user = UserStore.getCurrentUser();
-        if (user.theme_props == null) {
-            Utils.applyTheme(Constants.THEMES.default);
-        } else {
-            Utils.applyTheme(user.theme_props);
         }
     }
 
