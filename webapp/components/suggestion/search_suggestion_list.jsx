@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import Constants from 'utils/constants.jsx';
 import SuggestionList from './suggestion_list.jsx';
