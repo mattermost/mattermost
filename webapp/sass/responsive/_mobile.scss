@@ -14,23 +14,23 @@
 
     .post {
         .post__dropdown {
+            display: inline-block;
+            height: 20px;
             line-height: 9px;
+            text-align: center;
             text-decoration: none;
             width: 20px;
-            display: inline-block;
-            text-align: center;
-            height: 20px;
 
             &:after {
-                font-size: 20px;
                 content: '...';
+                font-size: 20px;
                 top: -3px;
             }
         }
 
         .comment-icon__container {
-            visibility: visible;
             display: none;
+            visibility: visible;
 
             &.icon--show {
                 display: inline-block;
@@ -57,8 +57,8 @@
         }
 
         .post__reply {
-            margin-right: 20px;
             float: right;
+            margin-right: 20px;
 
             svg {
                 top: 1px;
@@ -97,15 +97,15 @@
             width: 40px;
 
             img {
-                width: 32px;
                 height: 32px;
+                width: 32px;
             }
         }
     }
 
     .post-image__column {
-        width: 200px;
         height: 95px;
+        width: 200px;
     }
 
     .textarea-wrapper {
@@ -114,6 +114,7 @@
             display: none;
         }
     }
+
     .form-control {
         &.min-height {
             min-height: 100px;
@@ -132,6 +133,7 @@
     .tip-overlay {
         &.tip-overlay--chat {
             margin-left: 10px;
+
             .arrow {
                 left: 32px;
             }
@@ -142,20 +144,21 @@
         display: block;
 
         .file-details__preview {
-            display: block;
-            width: 100%;
-            height: 150px;
+            border-bottom: 1px solid #dddddd;
             border-right: none;
-            border-bottom: 1px solid #ddd;
+            display: block;
+            height: 150px;
+            width: 100%;
+
             img {
-                width: 64px;
                 height: 64px;
+                width: 64px;
             }
         }
 
         .file-details {
-            width: 100%;
             height: auto;
+            width: 100%;
         }
     }
 
@@ -165,9 +168,9 @@
 
     .modal-direct-channels {
         .member-count {
+            display: block;
             float: none;
             margin-top: 10px;
-            display: block;
         }
     }
 
@@ -181,9 +184,9 @@
         }
 
         .overlay__circle {
-            width: 300px;
             height: 300px;
             margin: -150px 0 0 -150px;
+            width: 300px;
         }
 
         .overlay__files {
@@ -212,9 +215,9 @@
     }
 
     .signup-team__container {
-        padding: 30px 0;
-        margin-bottom: 30px;
         font-size: .9em;
+        margin-bottom: 30px;
+        padding: 30px 0;
 
         .signup-team__name {
             font-size: 2em;
@@ -240,8 +243,8 @@
 
     .modal {
         .info__label {
-            text-align: left;
             padding-bottom: 5px;
+            text-align: left;
         }
 
         .modal-header {
@@ -250,8 +253,8 @@
             }
 
             button.close {
-                font-weight: normal;
                 font-size: 27px;
+                font-weight: normal;
             }
 
             .modal-title {
@@ -262,9 +265,9 @@
             .btn {
                 &.btn-primary {
                     display: block;
+                    float: none;
                     margin: 10px 0 6px;
                     width: 100%;
-                    float: none;
                 }
             }
         }
@@ -304,8 +307,8 @@
                         z-index: 5;
 
                         .modal-title {
-                            width: 100%;
                             text-align: center;
+                            width: 100%;
                         }
                     }
 
@@ -323,6 +326,7 @@
 
             .settings-table {
                 padding: 0;
+
                 .nav {
                     position: relative;
                     top: auto;
@@ -339,6 +343,7 @@
                         top: 14px;
                         right: 0;
                         padding-right: 0;
+
                         .fa {
                             display: inline-block;
                         }
@@ -347,6 +352,7 @@
                     &.minimize-settings {
                         padding: 0;
                         display: none;
+
                         .user-settings {
                             padding: 70px 20px 30px;
                         }
@@ -360,10 +366,10 @@
                 .nav {
                     > li {
                         > a {
-                            border-top: 1px solid #ddd;
+                            border-top: 1px solid #dddddd;
                             font-size: 1.1em;
                             line-height: 2.7;
-                            color: #555;
+                            color: #555555;
 
                             .glyphicon {
                                 margin-left: 7px;
@@ -438,25 +444,24 @@
     }
 
     .file-preview__remove {
-        width: 28px;
+        @include alpha-property(background, $black, .5);
         height: 28px;
         left: auto;
         right: 0;
-        top: 0;
-        background: #444;
-        background: rgba(#000, .5);
         text-align: center;
+        top: 0;
+        width: 28px;
 
         &:after {
             display: none;
         }
 
         i {
-            line-height: 29px;
-            top: auto;
-            right: auto;
-            position: relative;
             font-size: 16px;
+            line-height: 29px;
+            position: relative;
+            right: auto;
+            top: auto;
         }
     }
 
@@ -467,10 +472,10 @@
                 margin: 0 -15px;
 
                 .dropdown__icon {
-                    width: 4px;
-                    height: 16px;
                     @include background-size(100% 100%);
                     display: inline-block;
+                    height: 16px;
+                    width: 4px;
                 }
             }
 
@@ -502,10 +507,11 @@
 
     .footer-pane {
         .footer-link {
-            padding: 0;
-            width: 100%;
-            text-align: right;
             line-height: 1.7;
+            padding: 0;
+            text-align: right;
+            width: 100%;
+
             &.copyright {
                 width: 100%;
             }
@@ -517,10 +523,10 @@
     }
 
     .search-bar__container {
-        padding: 0;
         @include flex(0 0 44px);
         background: $primary-color;
-        color: #fff;
+        color: $white;
+        padding: 0;
 
         &.focused {
             .sidebar__collapse {
@@ -534,40 +540,40 @@
             }
 
             .search__clear {
-                @include translateX(0px);
+                @include translateX(0);
             }
         }
+
         .search__form {
-            border: none;
-            @include translateX(0px);
-            padding: 7px 20px 0 49px;
-            height: 45px;
-            position: relative;
             @include single-transition(all, .2s, linear);
+            @include translateX(0);
+            border: none;
+            height: 45px;
+            padding: 7px 20px 0 49px;
+            position: relative;
 
             .glyphicon-refresh-animate {
+                color: $black;
                 right: 33px;
                 top: 15px;
-                color: #fff;
-                color: rgba(255,255,255,.5);
             }
 
             .form-control {
-                border: none;
-                padding: 0 10px 0 31px;
-                background: rgba(black, .2);
                 @include border-radius(3px);
-                color: #444;
-                background: #fff;
+                background: $white;
+                border: none;
+                color: $dark-gray;
+                padding: 0 10px 0 31px;
             }
         }
     }
+
     .sidebar--menu {
         @include single-transition(transform, .5s, ease);
         @include translate3d(290px, 0, 0);
-        width: 290px;
         border: none;
         display: block;
+        width: 290px;
 
         &.move--left {
             @include translate3d(0, 0, 0);
@@ -627,7 +633,7 @@
 
                     ul {
                         clear: both;
-                        background: #fff;
+                        background: #ffffff;
                         border-radius: 3px;
                         top: 5px;
                         position: relative;
@@ -795,6 +801,7 @@
             }
         }
     }
+
     .activity-log__table {
         > div {
             display: block;
@@ -805,8 +812,8 @@
         }
 
         .activity-log__action {
-            text-align: left;
             margin-top: 10px;
+            text-align: left;
         }
     }
 }
@@ -816,8 +823,8 @@
         .settings-modal {
             .settings-table {
                 .security-links {
-                    margin-bottom: 10px;
                     display: block;
+                    margin-bottom: 10px;
 
                     &:last-child {
                         margin-bottom: 0;
@@ -850,11 +857,11 @@
 
         .member-drop,
         .member-role {
-            position: relative;
-            margin: 0px 0 0 44px;
+            margin: 0 0 0 44px;
             padding: 5px 0;
-            top: 0;
+            position: relative;
             right: 0;
+            top: 0;
         }
 
         .open > .dropdown-menu {

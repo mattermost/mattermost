@@ -139,6 +139,14 @@ export default class SuggestionBox extends React.Component {
                     {...newProps}
                 />
             );
+        } else if (this.props.type === 'search') {
+            textbox = (
+                <input
+                    ref='textbox'
+                    type='search'
+                    {...newProps}
+                />
+            );
         } else if (this.props.type === 'textarea') {
             textbox = (
                 <TextareaAutosize
@@ -166,7 +174,7 @@ SuggestionBox.defaultProps = {
 
 SuggestionBox.propTypes = {
     listComponent: React.PropTypes.func.isRequired,
-    type: React.PropTypes.oneOf(['input', 'textarea']).isRequired,
+    type: React.PropTypes.oneOf(['input', 'textarea', 'search']).isRequired,
     value: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),

@@ -1,8 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
+
 import AdminSidebarHeader from './admin_sidebar_header.jsx';
 import SelectTeamModal from './select_team_modal.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -25,6 +28,12 @@ export default class AdminSidebar extends React.Component {
         this.state = {
             showSelectModal: false
         };
+    }
+
+    componentDidUpdate() {
+        if (!Utils.isMobile()) {
+            $('.sidebar--left .nav-pills__container').perfectScrollbar();
+        }
     }
 
     handleClick(name, teamId, e) {
@@ -242,244 +251,242 @@ export default class AdminSidebar extends React.Component {
 
         return (
             <div className='sidebar--left sidebar--collapsable'>
-                <div>
-                    <AdminSidebarHeader/>
-                    <div className='nav-pills__container'>
-                        <ul className='nav nav-pills nav-stacked'>
-                            <li>
-                                <ul className='nav nav__sub-menu'>
-                                    <li>
-                                        <h4>
-                                            <span className='icon fa fa-gear'></span>
-                                            <span>
-                                                <FormattedMessage
-                                                    id='admin.sidebar.reports'
-                                                    defaultMessage='SITE REPORTS'
-                                                />
-                                            </span>
-                                        </h4>
-                                    </li>
-                                </ul>
-                                <ul className='nav nav__sub-menu padded'>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('system_analytics')}
-                                            onClick={this.handleClick.bind(this, 'system_analytics', null)}
-                                        >
+                <AdminSidebarHeader/>
+                <div className='nav-pills__container'>
+                    <ul className='nav nav-pills nav-stacked'>
+                        <li>
+                            <ul className='nav nav__sub-menu'>
+                                <li>
+                                    <h4>
+                                        <span className='icon fa fa-gear'></span>
+                                        <span>
                                             <FormattedMessage
-                                                id='admin.sidebar.view_statistics'
-                                                defaultMessage='View Statistics'
+                                                id='admin.sidebar.reports'
+                                                defaultMessage='SITE REPORTS'
                                             />
-                                        </a>
-                                    </li>
-                                </ul>
-                                <ul className='nav nav__sub-menu'>
-                                    <li>
-                                        <h4>
-                                            <span className='icon fa fa-gear'></span>
-                                            <span>
-                                                <FormattedMessage
-                                                    id='admin.sidebar.settings'
-                                                    defaultMessage='SETTINGS'
-                                                />
-                                            </span>
-                                        </h4>
-                                    </li>
-                                </ul>
-                                <ul className='nav nav__sub-menu padded'>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('service_settings')}
-                                            onClick={this.handleClick.bind(this, 'service_settings', null)}
-                                        >
+                                        </span>
+                                    </h4>
+                                </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu padded'>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('system_analytics')}
+                                        onClick={this.handleClick.bind(this, 'system_analytics', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.view_statistics'
+                                            defaultMessage='View Statistics'
+                                        />
+                                    </a>
+                                </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu'>
+                                <li>
+                                    <h4>
+                                        <span className='icon fa fa-gear'></span>
+                                        <span>
                                             <FormattedMessage
-                                                id='admin.sidebar.service'
-                                                defaultMessage='Service Settings'
+                                                id='admin.sidebar.settings'
+                                                defaultMessage='SETTINGS'
                                             />
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('team_settings')}
-                                            onClick={this.handleClick.bind(this, 'team_settings', null)}
-                                        >
+                                        </span>
+                                    </h4>
+                                </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu padded'>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('service_settings')}
+                                        onClick={this.handleClick.bind(this, 'service_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.service'
+                                            defaultMessage='Service Settings'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('team_settings')}
+                                        onClick={this.handleClick.bind(this, 'team_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.team'
+                                            defaultMessage='Team Settings'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('sql_settings')}
+                                        onClick={this.handleClick.bind(this, 'sql_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.sql'
+                                            defaultMessage='SQL Settings'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('email_settings')}
+                                        onClick={this.handleClick.bind(this, 'email_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.email'
+                                            defaultMessage='Email Settings'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('image_settings')}
+                                        onClick={this.handleClick.bind(this, 'image_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.file'
+                                            defaultMessage='File Settings'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('log_settings')}
+                                        onClick={this.handleClick.bind(this, 'log_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.log'
+                                            defaultMessage='Log Settings'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('rate_settings')}
+                                        onClick={this.handleClick.bind(this, 'rate_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.rate_limit'
+                                            defaultMessage='Rate Limit Settings'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('privacy_settings')}
+                                        onClick={this.handleClick.bind(this, 'privacy_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.privacy'
+                                            defaultMessage='Privacy Settings'
+                                        />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('gitlab_settings')}
+                                        onClick={this.handleClick.bind(this, 'gitlab_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.gitlab'
+                                            defaultMessage='GitLab Settings'
+                                        />
+                                    </a>
+                                </li>
+                                {ldapSettings}
+                                {complianceSettings}
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('legal_and_support_settings')}
+                                        onClick={this.handleClick.bind(this, 'legal_and_support_settings', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.support'
+                                            defaultMessage='Legal and Support Settings'
+                                        />
+                                    </a>
+                                </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu'>
+                                 <li>
+                                    <h4>
+                                        <span className='icon fa fa-gear'></span>
+                                        <span>
                                             <FormattedMessage
-                                                id='admin.sidebar.team'
-                                                defaultMessage='Team Settings'
+                                                id='admin.sidebar.teams'
+                                                defaultMessage='TEAMS ({count})'
+                                                values={{
+                                                    count: count
+                                                }}
                                             />
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('sql_settings')}
-                                            onClick={this.handleClick.bind(this, 'sql_settings', null)}
-                                        >
+                                        </span>
+                                        <span className='menu-icon--right'>
+                                            <OverlayTrigger
+                                                delayShow={1000}
+                                                placement='top'
+                                                overlay={addTeamTooltip}
+                                            >
+                                            <a
+                                                href='#'
+                                                onClick={this.showTeamSelect}
+                                            >
+                                                <i
+                                                    className='fa fa-plus'
+                                                ></i>
+                                            </a>
+                                            </OverlayTrigger>
+                                        </span>
+                                    </h4>
+                                </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu padded'>
+                                <li>
+                                    {teams}
+                                </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu'>
+                                <li>
+                                    <h4>
+                                        <span className='icon fa fa-gear'></span>
+                                        <span>
                                             <FormattedMessage
-                                                id='admin.sidebar.sql'
-                                                defaultMessage='SQL Settings'
+                                                id='admin.sidebar.other'
+                                                defaultMessage='OTHER'
                                             />
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('email_settings')}
-                                            onClick={this.handleClick.bind(this, 'email_settings', null)}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.sidebar.email'
-                                                defaultMessage='Email Settings'
-                                            />
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('image_settings')}
-                                            onClick={this.handleClick.bind(this, 'image_settings', null)}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.sidebar.file'
-                                                defaultMessage='File Settings'
-                                            />
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('log_settings')}
-                                            onClick={this.handleClick.bind(this, 'log_settings', null)}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.sidebar.log'
-                                                defaultMessage='Log Settings'
-                                            />
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('rate_settings')}
-                                            onClick={this.handleClick.bind(this, 'rate_settings', null)}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.sidebar.rate_limit'
-                                                defaultMessage='Rate Limit Settings'
-                                            />
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('privacy_settings')}
-                                            onClick={this.handleClick.bind(this, 'privacy_settings', null)}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.sidebar.privacy'
-                                                defaultMessage='Privacy Settings'
-                                            />
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('gitlab_settings')}
-                                            onClick={this.handleClick.bind(this, 'gitlab_settings', null)}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.sidebar.gitlab'
-                                                defaultMessage='GitLab Settings'
-                                            />
-                                        </a>
-                                    </li>
-                                    {ldapSettings}
-                                    {complianceSettings}
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('legal_and_support_settings')}
-                                            onClick={this.handleClick.bind(this, 'legal_and_support_settings', null)}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.sidebar.support'
-                                                defaultMessage='Legal and Support Settings'
-                                            />
-                                        </a>
-                                    </li>
-                                </ul>
-                                <ul className='nav nav__sub-menu'>
-                                     <li>
-                                        <h4>
-                                            <span className='icon fa fa-gear'></span>
-                                            <span>
-                                                <FormattedMessage
-                                                    id='admin.sidebar.teams'
-                                                    defaultMessage='TEAMS ({count})'
-                                                    values={{
-                                                        count: count
-                                                    }}
-                                                />
-                                            </span>
-                                            <span className='menu-icon--right'>
-                                                <OverlayTrigger
-                                                    delayShow={1000}
-                                                    placement='top'
-                                                    overlay={addTeamTooltip}
-                                                >
-                                                <a
-                                                    href='#'
-                                                    onClick={this.showTeamSelect}
-                                                >
-                                                    <i
-                                                        className='fa fa-plus'
-                                                    ></i>
-                                                </a>
-                                                </OverlayTrigger>
-                                            </span>
-                                        </h4>
-                                    </li>
-                                </ul>
-                                <ul className='nav nav__sub-menu padded'>
-                                    <li>
-                                        {teams}
-                                    </li>
-                                </ul>
-                                <ul className='nav nav__sub-menu'>
-                                    <li>
-                                        <h4>
-                                            <span className='icon fa fa-gear'></span>
-                                            <span>
-                                                <FormattedMessage
-                                                    id='admin.sidebar.other'
-                                                    defaultMessage='OTHER'
-                                                />
-                                            </span>
-                                        </h4>
-                                    </li>
-                                </ul>
-                                <ul className='nav nav__sub-menu padded'>
-                                    {licenseSettings}
-                                    {audits}
-                                    <li>
-                                        <a
-                                            href='#'
-                                            className={this.isSelected('logs')}
-                                            onClick={this.handleClick.bind(this, 'logs', null)}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.sidebar.logs'
-                                                defaultMessage='Logs'
-                                            />
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
+                                        </span>
+                                    </h4>
+                                </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu padded'>
+                                {licenseSettings}
+                                {audits}
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('logs')}
+                                        onClick={this.handleClick.bind(this, 'logs', null)}
+                                    >
+                                        <FormattedMessage
+                                            id='admin.sidebar.logs'
+                                            defaultMessage='Logs'
+                                        />
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
 
                 <SelectTeamModal

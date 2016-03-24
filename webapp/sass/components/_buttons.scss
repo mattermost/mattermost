@@ -15,6 +15,16 @@
         }
     }
 
+    &.btn-danger {
+        color: $white;
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: $white;
+        }
+    }
+
     &.btn-inactive {
         background: $light-gray;
         border-color: transparent;
