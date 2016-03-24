@@ -116,7 +116,7 @@ export default class EmailToLDAP extends React.Component {
                             name='emailPassword'
                             ref='emailpassword'
                             autoComplete='off'
-                            placeholder={Utils.localizeMessage('claim.email_to_ldap.emailPwd', 'Email Password')}
+                            placeholder={Utils.localizeMessage('claim.email_to_ldap.pwd', 'Password')}
                             spellCheck='false'
                         />
                     </div>
