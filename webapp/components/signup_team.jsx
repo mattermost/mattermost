@@ -12,6 +12,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
+import {Link} from 'react-router';
 
 import logoImage from 'images/logo.png';
 
@@ -109,15 +110,15 @@ export default class TeamSignUp extends React.Component {
                                                 key={'team_' + team.name}
                                                 className='signup-team-dir'
                                             >
-                                                <a
-                                                    href={'/' + team.name}
+                                                <Link
+                                                    to={'/' + team.name}
                                                 >
                                                     <span className='signup-team-dir__name'>{team.display_name}</span>
                                                     <span
                                                         className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
                                                         aria-hidden='true'
                                                     />
-                                                </a>
+                                                </Link>
                                             </div>
                                         );
                                     }

@@ -128,14 +128,14 @@ export default class NavbarDropdown extends React.Component {
         if (isSystemAdmin) {
             sysAdminLink = (
                 <li>
-                    <a
-                        href={'/admin_console'}
+                    <Link
+                        to={'/admin_console'}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.console'
                             defaultMessage='System Console'
                         />
-                    </a>
+                    </Link>
                 </li>
             );
         }
@@ -145,16 +145,16 @@ export default class NavbarDropdown extends React.Component {
         if (global.window.mm_config.EnableTeamCreation === 'true') {
             teams.push(
                 <li key='newTeam_li'>
-                    <a
+                    <Link
                         key='newTeam_a'
                         target='_blank'
-                        href={Utils.getWindowLocationOrigin() + '/signup_team'}
+                        to={Utils.getWindowLocationOrigin() + '/signup_team'}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.create'
                             defaultMessage='Create a New Team'
                         />
-                    </a>
+                    </Link>
                 </li>
             );
         }
@@ -163,15 +163,15 @@ export default class NavbarDropdown extends React.Component {
         if (global.window.mm_config.HelpLink) {
             helpLink = (
                 <li>
-                    <a
+                    <Link
                         target='_blank'
-                        href={global.window.mm_config.HelpLink}
+                        to={global.window.mm_config.HelpLink}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.help'
                             defaultMessage='Help'
                         />
-                    </a>
+                    </Link>
                 </li>
             );
         }
@@ -180,15 +180,15 @@ export default class NavbarDropdown extends React.Component {
         if (global.window.mm_config.ReportAProblemLink) {
             reportLink = (
                 <li>
-                    <a
+                    <Link
                         target='_blank'
-                        href={global.window.mm_config.ReportAProblemLink}
+                        to={global.window.mm_config.ReportAProblemLink}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.report'
                             defaultMessage='Report a Problem'
                         />
-                    </a>
+                    </Link>
                 </li>
             );
         }

@@ -5,6 +5,7 @@ import TeamStore from 'stores/team_store.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router';
 
 import logoImage from 'images/logo.png';
 
@@ -50,12 +51,12 @@ export default class Claim extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <a href='/'>
+                    <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'
                         />
-                    </a>
+                    </Link>
                 </div>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>

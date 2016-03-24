@@ -7,6 +7,7 @@ import * as utils from 'utils/utils.jsx';
 import * as Client from 'utils/client.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 const holders = defineMessages({
     team_error: {
@@ -112,7 +113,7 @@ class LdapSignUpPage extends React.Component {
 
                 Client.loginByLdap(teamSignup.team.name, id, password,
                     () => {
-                        window.location.href = '/' + teamSignup.team.name + '/channels/town-square';
+                        browserHistory.push('/' + teamSignup.team.name + '/channels/town-square');
                     },
                     (err) => {
                         $('#ldap-button').button('reset');
@@ -217,14 +218,6 @@ class LdapSignUpPage extends React.Component {
                         </span>
                     </a>
                     {serverError}
-                </div>
-                <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>
-                        <FormattedMessage
-                            id='ldap_signup.find'
-                            defaultMessage='Find my teams'
-                        />
-                    </a></span>
                 </div>
             </form>
         );

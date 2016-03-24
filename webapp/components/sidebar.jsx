@@ -29,6 +29,7 @@ import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import loadingGif from 'images/load.gif';
 
 import React from 'react';
+import {browserHistory} from 'react-router';
 
 import favicon from 'images/favicon/favicon-16x16.png';
 import redFavicon from 'images/favicon/redfavicon-16x16.png';
@@ -407,7 +408,6 @@ export default class Sidebar extends React.Component {
 
         // set up click handler to switch channels (or create a new channel for non-existant ones)
         var handleClick = null;
-        var href = '#';
 
         if (!channel.fake) {
             handleClick = function clickHandler(e) {
@@ -440,7 +440,7 @@ export default class Sidebar extends React.Component {
                             },
                             () => {
                                 this.setState({loadingDMChannel: -1});
-                                window.location.href = '/' + this.state.currentTeam.name;
+                                browserHistory('/' + this.state.currentTeam.name);
                             }
                         );
                     }
@@ -489,7 +489,7 @@ export default class Sidebar extends React.Component {
             >
                 <a
                     className={rowClass}
-                    href={href}
+                    href={'#'}
                     onClick={handleClick}
                 >
                     {icon}

@@ -6,6 +6,7 @@ import * as Client from 'utils/client.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
+import {Link} from 'react-router';
 
 export default class TeamExportTab extends React.Component {
     constructor(props) {
@@ -54,15 +55,15 @@ export default class TeamExportTab extends React.Component {
                         id='team_export_tab.ready'
                         defaultMessage=' Ready for '
                     />
-                    <a
-                        href={this.state.link}
+                    <Link
+                        to={this.state.link}
                         download={true}
                     >
                         <FormattedMessage
                             id='team_export_tab.download'
                             defaultMessage='download'
                         />
-                    </a>
+                    </Link>
                 </p>
             );
             break;

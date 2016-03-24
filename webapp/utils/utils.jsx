@@ -17,6 +17,7 @@ import * as client from './client.jsx';
 import Autolinker from 'autolinker';
 
 import React from 'react';
+import {browserHistory} from 'react-router';
 import {FormattedTime} from 'react-intl';
 
 import icon50 from 'images/icon50x50.png';
@@ -170,7 +171,7 @@ export function notifyMe(title, body, channel) {
                         if (channel) {
                             switchChannel(channel);
                         } else {
-                            window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+                            browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
                         }
                     };
                     setTimeout(() => {
@@ -1303,7 +1304,7 @@ export function openDirectChannelToUser(user, successCb, errorCb) {
                 }
             },
             () => {
-                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channelName;
+                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
                 if ($.isFunction(errorCb)) {
                     errorCb();
                 }

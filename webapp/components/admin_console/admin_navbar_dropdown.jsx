@@ -63,8 +63,8 @@ export default class AdminNavbarDropdown extends React.Component {
                         role='menu'
                     >
                         <li>
-                            <a
-                                href={Utils.getWindowLocationOrigin() + '/' + this.state.currentTeam.name}
+                            <Link
+                                to={Utils.getWindowLocationOrigin() + '/' + this.state.currentTeam.name}
                             >
                                 <FormattedMessage
                                     id='admin.nav.switch'
@@ -73,7 +73,7 @@ export default class AdminNavbarDropdown extends React.Component {
                                         display_name: this.state.currentTeam.display_name
                                     }}
                                 />
-                            </a>
+                            </Link>
                         </li>
                         <li>
                             <Link to={Utils.getTeamURLFromAddressBar() + '/logout'}>
@@ -82,29 +82,6 @@ export default class AdminNavbarDropdown extends React.Component {
                                     defaultMessage='Logout'
                                 />
                             </Link>
-                        </li>
-                        <li className='divider'></li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='/static/help/help.html'
-                            >
-                                <FormattedMessage
-                                    id='admin.nav.help'
-                                    defaultMessage='Help'
-                                />
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='/static/help/report_problem.html'
-                            >
-                                <FormattedMessage
-                                    id='admin.nav.report'
-                                    defaultMessage='Report a Problem'
-                                />
-                            </a>
                         </li>
                     </ul>
                 </li>

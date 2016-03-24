@@ -6,6 +6,7 @@ import * as Client from 'utils/client.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 var holders = defineMessages({
     badTeam: {
@@ -85,9 +86,9 @@ export default class LoginUsername extends React.Component {
 
                 const redirect = Utils.getUrlParameter('redirect');
                 if (redirect) {
-                    window.location.href = decodeURIComponent(redirect);
+                    browserHistory.push(decodeURIComponent(redirect));
                 } else {
-                    window.location.href = '/' + name + '/channels/town-square';
+                    browserHistory.push('/' + name + '/channels/town-square');
                 }
             },
             (err) => {

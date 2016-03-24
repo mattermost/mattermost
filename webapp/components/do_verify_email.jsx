@@ -5,7 +5,7 @@ import {FormattedMessage} from 'react-intl';
 import * as Client from 'utils/client.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
-import {browserHistory} from 'react-router';
+import {browserHistory, Link} from 'react-router';
 
 import React from 'react';
 
@@ -43,12 +43,12 @@ export default class DoVerifyEmail extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <a href='/'>
+                    <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'
                         />
-                    </a>
+                    </Link>
                 </div>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>

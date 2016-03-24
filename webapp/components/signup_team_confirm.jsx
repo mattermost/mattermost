@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {Link} from 'react-router';
 
 import React from 'react';
 
@@ -10,12 +11,12 @@ export default class SignupTeamConfirm extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <a href='/'>
+                    <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'
                         />
-                    </a>
+                    </Link>
                 </div>
                 <div className='col-sm-12'>
                     <div classNameName='signup-team__container'>

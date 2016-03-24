@@ -8,6 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router';
 
 import React from 'react';
+import Link from 'react-router';
 
 export default class SignupTeamComplete extends React.Component {
     constructor(props) {
@@ -53,10 +54,10 @@ export default class SignupTeamComplete extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <a href='/'>
+                    <Link to='/'>
                         <span classNameName='fa fa-chevron-left'/>
                         <FormattedMessage id='web.header.back'/>
-                    </a>
+                    </Link>
                 </div>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>

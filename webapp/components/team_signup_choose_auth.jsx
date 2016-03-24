@@ -122,14 +122,6 @@ export default class ChooseAuthPage extends React.Component {
         return (
             <div>
                 {buttons}
-                <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>
-                        <FormattedMessage
-                            id='choose_auth_page.find'
-                            defaultMessage='Find my teams'
-                        />
-                    </a></span>
-                </div>
             </div>
         );
     }

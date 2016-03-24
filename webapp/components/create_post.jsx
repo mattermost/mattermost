@@ -23,6 +23,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
@@ -136,7 +137,7 @@ class CreatePost extends React.Component {
                     this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
                     if (data.goto_location && data.goto_location.length > 0) {
-                        window.location.href = data.goto_location;
+                        browserHistory.push(data.goto_location);
                     }
                 },
                 (err) => {

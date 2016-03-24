@@ -76,7 +76,7 @@ class TeamSignupWelcomePage extends React.Component {
         Client.signupTeam(email,
             function success(data) {
                 if (data.follow_link) {
-                    window.location.href = data.follow_link;
+                    browserHistory.push(data.follow_link);
                 } else {
                     this.props.state.wizard = 'finished';
                     this.props.updateParent(this.props.state);

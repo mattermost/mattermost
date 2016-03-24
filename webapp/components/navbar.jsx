@@ -30,6 +30,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
 
+import {Link, browserHistory} from 'react-router';
+
 import React from 'react';
 
 export default class Navbar extends React.Component {
@@ -81,7 +83,7 @@ export default class Navbar extends React.Component {
         Client.leaveChannel(this.state.channel.id,
             () => {
                 AsyncClient.getChannels(true);
-                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');
@@ -349,12 +351,12 @@ export default class Navbar extends React.Component {
 
         return (
             <div className='navbar-brand'>
-                <a
-                    href={TeamStore.getCurrentTeamUrl() + '/channels/town-square'}
+                <Link
+                    to={TeamStore.getCurrentTeamUrl() + '/channels/town-square'}
                     className='heading'
                 >
                     {channelTitle}
-                </a>
+                </Link>
             </div>
         );
     }

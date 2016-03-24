@@ -5,6 +5,7 @@ import $ from 'jquery';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
+import {Link} from 'react-router';
 
 export default class NotLoggedIn extends React.Component {
     componentDidMount() {
@@ -29,34 +30,34 @@ export default class NotLoggedIn extends React.Component {
                         </div>
                         <div className='col-xs-12'>
                             <span className='pull-right footer-link copyright'>{'© 2015 Mattermost, Inc.'}</span>
-                            <a
+                            <Link
                                 id='help_link'
                                 className='pull-right footer-link'
-                                href={global.window.mm_config.HelpLink}
+                                to={global.window.mm_config.HelpLink}
                             >
                                 <FormattedMessage id='web.footer.help'/>
-                            </a>
-                            <a
+                            </Link>
+                            <Link
                                 id='terms_link'
                                 className='pull-right footer-link'
-                                href={global.window.mm_config.TermsOfServiceLink}
+                                to={global.window.mm_config.TermsOfServiceLink}
                             >
                                 <FormattedMessage id='web.footer.terms'/>
-                            </a>
-                            <a
+                            </Link>
+                            <Link
                                 id='privacy_link'
                                 className='pull-right footer-link'
-                                href={global.window.mm_config.PrivacyPolicyLink}
+                                to={global.window.mm_config.PrivacyPolicyLink}
                             >
                                 <FormattedMessage id='web.footer.privacy'/>
-                            </a>
-                            <a
+                            </Link>
+                            <Link
                                 id='about_link'
                                 className='pull-right footer-link'
-                                href={global.window.mm_config.AboutLink}
+                                to={global.window.mm_config.AboutLink}
                             >
                                 <FormattedMessage id='web.footer.about'/>
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>

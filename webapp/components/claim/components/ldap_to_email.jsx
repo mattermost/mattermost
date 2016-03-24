@@ -7,6 +7,7 @@ import * as Client from 'utils/client.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 export default class LDAPToEmail extends React.Component {
     constructor(props) {
@@ -53,7 +54,7 @@ export default class LDAPToEmail extends React.Component {
         Client.ldapToEmail(postData,
             (data) => {
                 if (data.follow_link) {
-                    window.location.href = data.follow_link;
+                    browserHistory.push(data.follow_link);
                 }
             },
             (error) => {

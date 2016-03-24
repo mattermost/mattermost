@@ -11,7 +11,7 @@ import Constants from 'utils/constants.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory, Link} from 'react-router';
 
 import React from 'react';
 
@@ -57,10 +57,10 @@ export default class Login extends React.Component {
         let loginMessage = [];
         if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             loginMessage.push(
-                <a
+                <Link
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={'/api/v1/oauth/gitlab/login?team=' + encodeURIComponent(teamName)}
+                    to={'/api/v1/oauth/gitlab/login?team=' + encodeURIComponent(teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -69,16 +69,16 @@ export default class Login extends React.Component {
                             defaultMessage='with GitLab'
                         />
                     </span>
-                </a>
+                </Link>
             );
         }
 
         if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
             loginMessage.push(
-                <a
+                <Link
                     className='btn btn-custom-login google'
                     key='google'
-                    href={'/api/v1/oauth/google/login?team=' + encodeURIComponent(teamName)}
+                    to={'/api/v1/oauth/google/login?team=' + encodeURIComponent(teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -87,7 +87,7 @@ export default class Login extends React.Component {
                             defaultMessage='with Google Apps'
                         />
                     </span>
-                </a>
+                </Link>
             );
         }
 
@@ -154,12 +154,12 @@ export default class Login extends React.Component {
         if (emailSignup) {
             forgotPassword = (
                 <div className='form-group'>
-                    <a href={'/' + teamName + '/reset_password'}>
+                    <Link to={'/' + teamName + '/reset_password'}>
                         <FormattedMessage
                             id='login.forgot'
                             defaultMessage='I forgot my password'
                         />
-                    </a>
+                    </Link>
                 </div>
             );
         }
@@ -173,15 +173,15 @@ export default class Login extends React.Component {
                             id='login.noAccount'
                             defaultMessage="Don't have an account? "
                         />
-                        <a
-                            href={'/signup_user_complete/?id=' + currentTeam.invite_id}
+                        <Link
+                            to={'/signup_user_complete/?id=' + currentTeam.invite_id}
                             className='signup-team-login'
                         >
                             <FormattedMessage
                                 id='login.create'
                                 defaultMessage='Create one now'
                             />
-                        </a>
+                        </Link>
                     </span>
                 </div>
             );
@@ -191,15 +191,15 @@ export default class Login extends React.Component {
         if (global.window.mm_config.EnableTeamCreation === 'true' && !Utils.isMobileApp()) {
             teamSignUp = (
                 <div className='margin--extra'>
-                    <a
-                        href='/'
+                    <Link
+                        to='/'
                         className='signup-team-login'
                     >
                         <FormattedMessage
                             id='login.createTeam'
                             defaultMessage='Create a new team'
                         />
-                    </a>
+                    </Link>
                 </div>
             );
         }
@@ -257,12 +257,12 @@ export default class Login extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <a href='/'>
+                    <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'
                         />
-                    </a>
+                    </Link>
                 </div>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>

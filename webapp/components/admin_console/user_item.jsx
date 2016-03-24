@@ -10,6 +10,7 @@ import TeamStore from 'stores/team_store.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
+import {browserHistory} from 'react-router';
 
 export default class UserItem extends React.Component {
     constructor(props) {
@@ -158,9 +159,9 @@ export default class UserItem extends React.Component {
 
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {
-                    window.location.href = teamUrl;
+                    browserHistory.push(teamUrl);
                 } else {
-                    window.location.href = '/';
+                    browserHistory.push('/');
                 }
             },
             (err) => {
