@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import UserStore from 'stores/user_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -11,6 +10,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 const Preferences = Constants.Preferences;
 
@@ -34,7 +34,7 @@ export default class TutorialIntroScreens extends React.Component {
             return;
         }
 
-        Utils.switchChannel(ChannelStore.getByName(Constants.DEFAULT_CHANNEL));
+        browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
 
         const step = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 0);
 
@@ -52,6 +52,8 @@ export default class TutorialIntroScreens extends React.Component {
             UserStore.getCurrentId(),
             '999'
         );
+
+        browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
     }
     createScreen() {
         switch (this.state.currentScreen) {

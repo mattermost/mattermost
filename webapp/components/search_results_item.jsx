@@ -1,35 +1,23 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
-
 import React from 'react';
+import {Link} from 'react-router';
 
 export default class SearchResultsItem extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleClick = this.handleClick.bind(this);
         this.handleFocusRHSClick = this.handleFocusRHSClick.bind(this);
-    }
-
-    handleClick(e) {
-        e.preventDefault();
-
-        GlobalActions.emitPostFocusEvent(this.props.post.id);
-
-        if ($(window).width() < 768) {
-            $('.sidebar--right').removeClass('move--left');
-            $('.inner-wrap').removeClass('move--left');
-        }
     }
 
     handleFocusRHSClick(e) {
@@ -99,16 +87,15 @@ export default class SearchResultsItem extends React.Component {
                                     </time>
                                 </li>
                                 <li>
-                                    <a
-                                        href='#'
+                                    <Link
+                                        to={Utils.getTeamURLFromAddressBar() + '/pl/' + this.props.post.id}
                                         className='search-item__jump'
-                                        onClick={this.handleClick}
                                     >
                                         <FormattedMessage
                                             id='search_item.jump'
                                             defaultMessage='Jump'
                                         />
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
                                     <a

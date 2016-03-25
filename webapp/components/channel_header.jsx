@@ -26,6 +26,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Client from 'utils/client.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -53,11 +54,11 @@ export default class ChannelHeader extends React.Component {
         this.state = state;
     }
     getStateFromStores() {
-        const extraInfo = ChannelStore.getCurrentExtraInfo();
+        const extraInfo = ChannelStore.getExtraInfo(this.props.channelId);
 
         return {
-            channel: ChannelStore.getCurrent(),
-            memberChannel: ChannelStore.getCurrentMember(),
+            channel: ChannelStore.get(this.props.channelId),
+            memberChannel: ChannelStore.getMember(this.props.channelId),
             users: extraInfo.members,
             userCount: extraInfo.member_count,
             searchVisible: SearchStore.getSearchResults() !== null,
@@ -105,7 +106,7 @@ export default class ChannelHeader extends React.Component {
                 });
 
                 const townsquare = ChannelStore.getByName('town-square');
-                Utils.switchChannel(townsquare);
+                GlobalActions.emitChannelClickEvent(townsquare);
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');
@@ -433,7 +434,10 @@ export default class ChannelHeader extends React.Component {
         }
 
         return (
-            <div>
+            <div
+                id='channel-header'
+                className='channel-header'
+            >
                 <table className='channel-header alt'>
                     <tbody>
                         <tr>
@@ -518,4 +522,5 @@ export default class ChannelHeader extends React.Component {
 }
 
 ChannelHeader.propTypes = {
+    channelId: React.PropTypes.string.isRequired
 };
