@@ -55,7 +55,7 @@ export default class SignupTeamComplete extends React.Component {
             <div>
                 <div className='signup-header'>
                     <Link to='/'>
-                        <span classNameName='fa fa-chevron-left'/>
+                        <span className='fa fa-chevron-left'/>
                         <FormattedMessage id='web.header.back'/>
                     </Link>
                 </div>
