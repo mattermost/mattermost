@@ -45,6 +45,7 @@ export default class Navbar extends React.Component {
         this.showEditChannelHeaderModal = this.showEditChannelHeaderModal.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
+        this.isStateValid = this.isStateValid.bind(this);
 
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
         this.createDropdown = this.createDropdown.bind(this);
@@ -64,7 +65,7 @@ export default class Navbar extends React.Component {
             currentUser: UserStore.getCurrentUser()
         };
     }
-    stateValid() {
+    isStateValid() {
         return this.state.channel && this.state.member && this.state.users && this.state.currentUser;
     }
     componentDidMount() {
@@ -422,7 +423,7 @@ export default class Navbar extends React.Component {
         return buttons;
     }
     render() {
-        if (!this.stateValid()) {
+        if (!this.isStateValid()) {
             return null;
         }
 

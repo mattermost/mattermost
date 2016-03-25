@@ -6,6 +6,7 @@ import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
 import {Popover, Overlay} from 'react-bootstrap';
 import * as Utils from 'utils/utils.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -36,7 +37,7 @@ export default class PopoverListMembers extends React.Component {
         Utils.openDirectChannelToUser(
             teammate,
             (channel, channelAlreadyExisted) => {
-                Utils.switchChannel(channel);
+                GlobalActions.emitChannelClickEvent(channel);
                 if (channelAlreadyExisted) {
                     this.closePopover();
                 }

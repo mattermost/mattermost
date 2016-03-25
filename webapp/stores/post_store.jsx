@@ -406,7 +406,7 @@ class PostStoreClass extends EventEmitter {
         let posts;
         let pendingPosts;
         for (const k in this.postsInfo) {
-            if (this.postsInfo[k].postList.posts.hasOwnProperty(this.selectedPostId)) {
+            if (this.postsInfo[k].postList && this.postsInfo[k].postList.posts.hasOwnProperty(this.selectedPostId)) {
                 posts = this.postsInfo[k].postList.posts;
                 if (this.postsInfo[k].pendingPosts != null) {
                     pendingPosts = this.postsInfo[k].pendingPosts.posts;

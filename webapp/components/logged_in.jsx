@@ -10,6 +10,8 @@ import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+const TutorialSteps = Constants.TutorialSteps;
+const Preferences = Constants.Preferences;
 import ErrorBar from 'components/error_bar.jsx';
 import * as Websockets from 'action_creators/websocket_actions.jsx';
 
@@ -17,6 +19,7 @@ import {browserHistory} from 'react-router';
 
 import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
+import Navbar from 'components/navbar.jsx';
 
 // Modals
 import GetPostLinkModal from 'components/get_post_link_modal.jsx';
@@ -56,6 +59,12 @@ export default class LoggedIn extends React.Component {
                 team_id: user.team_id,
                 id: user.id
             });
+        }
+
+        // Go to tutorial if we are first arrivign
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+        if (tutorialStep <= TutorialSteps.INTRO_SCREENS) {
+            browserHistory.push(Utils.getTeamURLFromAddressBar() + '/tutorial');
         }
 
         // Update CSS classes to match user theme
@@ -186,14 +195,36 @@ export default class LoggedIn extends React.Component {
         $(window).off('keydown.preventBackspace');
     }
     render() {
+        let content = [];
+        if (this.props.children) {
+            content = this.props.children;
+        } else {
+            content.push(
+                this.props.sidebar
+            );
+            content.push(
+                <div
+                    key='inner-wrap'
+                    className='inner-wrap channel__wrap'
+                >
+                    <div className='row header'>
+                        <div id='navbar'>
+                            <Navbar/>
+                        </div>
+                    </div>
+                    <div className='row main'>
+                        {this.props.center}
+                    </div>
+                </div>
+            );
+        }
         return (
             <div className='channel-view'>
                 <ErrorBar/>
                 <div className='container-fluid'>
                     <SidebarRight/>
                     <SidebarRightMenu/>
-                    {this.props.sidebar}
-                    {this.props.center}
+                    {content}
 
                     <GetPostLinkModal/>
                     <GetTeamInviteLinkModal/>

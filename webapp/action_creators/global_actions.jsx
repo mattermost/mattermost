@@ -13,23 +13,56 @@ import * as Utils from 'utils/utils.jsx';
 import * as Websockets from './websocket_actions.jsx';
 import * as I18n from 'i18n/i18n.jsx';
 
+import {browserHistory} from 'react-router';
+
 import en from 'i18n/en.json';
 
 export function emitChannelClickEvent(channel) {
-    AsyncClient.getChannels(true);
-    AsyncClient.getChannelExtraInfo(channel.id);
-    AsyncClient.updateLastViewedAt(channel.id);
-    AsyncClient.getPosts(channel.id);
+    function userVisitedFakeChannel(chan, success, fail) {
+        const otherUserId = Utils.getUserIdFromChannelName(chan);
+        Client.createDirectChannel(
+            chan,
+            otherUserId,
+            (data) => {
+                success(data);
+            },
+            () => {
+                fail();
+            }
+        );
+    }
+    function switchToChannel(chan) {
+        AsyncClient.getChannels(true);
+        AsyncClient.getChannelExtraInfo(chan.id);
+        AsyncClient.updateLastViewedAt(chan.id);
+        AsyncClient.getPosts(chan.id);
+        Client.trackPage();
 
-    AppDispatcher.handleViewAction({
-        type: ActionTypes.CLICK_CHANNEL,
-        name: channel.name,
-        id: channel.id,
-        prev: ChannelStore.getCurrentId()
-    });
+        AppDispatcher.handleViewAction({
+            type: ActionTypes.CLICK_CHANNEL,
+            name: chan.name,
+            id: chan.id,
+            prev: ChannelStore.getCurrentId()
+        });
+    }
+
+    if (channel.fake) {
+        userVisitedFakeChannel(
+            channel,
+            (data) => {
+                switchToChannel(data);
+            },
+            () => {
+                browserHistory.push('/' + this.state.currentTeam.name);
+            }
+        );
+    } else {
+        switchToChannel(channel);
+    }
 }
 
 export function emitPostFocusEvent(postId) {
+    AsyncClient.getChannels(true);
     Client.getPostById(
         postId,
         (data) => {
@@ -38,6 +71,8 @@ export function emitPostFocusEvent(postId) {
                 postId,
                 post_list: data
             });
+
+            AsyncClient.getChannelExtraInfo(data.channel_id);
 
             AsyncClient.getPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
             AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
@@ -300,3 +335,4 @@ export function emitRemoteUserTypingEvent(channelId, userId, postParentId) {
         postParentId
     });
 }
+

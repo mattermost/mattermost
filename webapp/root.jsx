@@ -21,6 +21,7 @@ import NeedsTeam from 'components/needs_team.jsx';
 import PasswordResetSendLink from 'components/password_reset_send_link.jsx';
 import PasswordResetForm from 'components/password_reset_form.jsx';
 import ChannelView from 'components/channel_view.jsx';
+import PermalinkView from 'components/permalink_view.jsx';
 import Sidebar from 'components/sidebar.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
@@ -36,6 +37,7 @@ import SignupUserComplete from 'components/signup_user_complete.jsx';
 import ShouldVerifyEmail from 'components/should_verify_email.jsx';
 import DoVerifyEmail from 'components/do_verify_email.jsx';
 import AdminConsole from 'components/admin_console/admin_controller.jsx';
+import TutorialView from 'components/tutorial/tutorial_view.jsx';
 
 import SignupTeamComplete from 'components/signup_team_complete/components/signup_team_complete.jsx';
 import WelcomePage from 'components/signup_team_complete/components/team_signup_welcome_page.jsx';
@@ -135,20 +137,9 @@ function preLoggedIn(nextState, replace, callback) {
 
     const d2 = AsyncClient.getChannels();
 
-    $.when(d1, d2).done(() => callback());
-}
-
-function onChannelChange(nextState) {
-    const channelName = nextState.params.channel;
-
-    // Make sure we have all the channels
-    AsyncClient.getChannels(true);
-
-    // Get our channel's ID
-    const channel = ChannelStore.getByName(channelName);
-
-    // User clicked channel
-    GlobalActions.emitChannelClickEvent(channel);
+    $.when(d1, d2).done(() => {
+        callback();
+    });
 }
 
 function onRootEnter(nextState, replace, callback) {
@@ -172,6 +163,26 @@ function onPermalinkEnter(nextState) {
     const postId = nextState.params.postid;
 
     GlobalActions.emitPostFocusEvent(postId);
+}
+
+function onChannelEnter(nextState) {
+    doChannelChange(nextState);
+}
+
+function onChannelChange(prevState, nextState) {
+    if (prevState.params.channel !== nextState.params.channel) {
+        doChannelChange(nextState);
+    }
+}
+
+function doChannelChange(state) {
+    let channel;
+    if (state.location.query.fakechannel) {
+        channel = JSON.parse(state.location.query.fakechannel);
+    } else {
+        channel = ChannelStore.getByName(state.params.channel);
+    }
+    GlobalActions.emitChannelClickEvent(channel);
 }
 
 function onLoggedOut(nextState) {
@@ -206,7 +217,8 @@ function renderRootComponent() {
                 >
                     <Route
                         path=':team/channels/:channel'
-                        onEnter={onChannelChange}
+                        onEnter={onChannelEnter}
+                        onChange={onChannelChange}
                         components={{
                             sidebar: Sidebar,
                             center: ChannelView
@@ -217,23 +229,24 @@ function renderRootComponent() {
                         onEnter={onPermalinkEnter}
                         components={{
                             sidebar: Sidebar,
-                            center: ChannelView
+                            center: PermalinkView
+                        }}
+                    />
+                    <Route
+                        path=':team/tutorial'
+                        onEnter={onPermalinkEnter}
+                        components={{
+                            sidebar: Sidebar,
+                            center: TutorialView
                         }}
                     />
                     <Route
                         path=':team/logout'
                         onEnter={onLoggedOut}
-                        components={{
-                            sidebar: null,
-                            center: null
-                        }}
                     />
                     <Route
                         path='admin_console'
-                        components={{
-                            sidebar: null,
-                            center: AdminConsole
-                        }}
+                        component={AdminConsole}
                     />
                 </Route>
                 <Route component={NotLoggedIn}>
