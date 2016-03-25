@@ -49,6 +49,11 @@ var usage = `Mattermost load testing commands to help configure the system
 		Example:
 			/loadtest http://www.example.com/sample_file.md
 
+	Json - Add a post using the JSON file as payload to the current channel.
+	        /loadtest json url
+
+		Example
+		/loadtest json http://www.example.com/sample_body.json
 
 `
 
@@ -105,7 +110,9 @@ func (me *LoadTestProvider) DoCommand(c *Context, channelId string, message stri
 	if strings.HasPrefix(message, "url") {
 		return me.UrlCommand(c, channelId, message)
 	}
-
+	if strings.HasPrefix(message, "json") {
+		return me.JsonCommand(c, channelId, message)
+	}
 	return me.HelpCommand(c, channelId, message)
 }
 
@@ -327,6 +334,42 @@ func (me *LoadTestProvider) UrlCommand(c *Context, channelId string, message str
 		}
 	}
 
+	return &model.CommandResponse{Text: "Loading data...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+}
+
+func (me *LoadTestProvider) JsonCommand(c *Context, channelId string, message string) *model.CommandResponse {
+	url := strings.TrimSpace(strings.TrimPrefix(message, "json"))
+	if len(url) == 0 {
+		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	// provide a shortcut to easily access tests stored in doc/developer/tests
+	if !strings.HasPrefix(url, "http") {
+		url = "https://raw.githubusercontent.com/mattermost/platform/master/tests/" + url
+
+		if path.Ext(url) == "" {
+			url += ".json"
+		}
+	}
+
+	var contents io.ReadCloser
+	if r, err := http.Get(url); err != nil {
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	} else if r.StatusCode > 400 {
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	} else {
+		contents = r.Body
+	}
+
+	post := model.PostFromJson(contents)
+	post.ChannelId = channelId
+	if post.Message == "" {
+		post.Message = message
+	}
+
+	if _, err := CreatePost(c, post, false); err != nil {
+		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
 	return &model.CommandResponse{Text: "Loading data...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
