@@ -264,6 +264,14 @@ export function newLocalizationSelected(locale) {
     }
 }
 
+export function loadBrowserLocale() {
+    let locale = (navigator.languages ? navigator.languages[0] : (navigator.language || navigator.userLanguage)).split('-')[0];
+    if (!I18n.getLanguages()[locale]) {
+        locale = 'en';
+    }
+    return newLocalizationSelected(locale);
+}
+
 export function viewLoggedIn() {
     AsyncClient.getChannels();
     AsyncClient.getChannelExtraInfo();

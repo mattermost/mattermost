@@ -69,7 +69,7 @@ export default class Root extends React.Component {
         FastClick.attach(document.body);
 
         // Get our localizaiton
-        GlobalActions.newLocalizationSelected('en');
+        GlobalActions.loadBrowserLocale();
     }
     componentWillUnmount() {
         LocalizationStore.removeChangeListener(this.localizationChanged);
