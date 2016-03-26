@@ -180,36 +180,6 @@ func TestTeamStoreGetByIniviteId(t *testing.T) {
 	}
 }
 
-func TestTeamStoreGetForEmail(t *testing.T) {
-	Setup()
-
-	o1 := model.Team{}
-	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
-	o1.Email = model.NewId() + "@nowhere.com"
-	o1.Type = model.TEAM_OPEN
-	Must(store.Team().Save(&o1))
-
-	u1 := model.User{}
-	u1.TeamId = o1.Id
-	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
-
-	if r1 := <-store.Team().GetTeamsForEmail(u1.Email); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		teams := r1.Data.([]*model.Team)
-
-		if teams[0].Id != o1.Id {
-			t.Fatal("failed to lookup by email")
-		}
-	}
-
-	if r1 := <-store.Team().GetTeamsForEmail("missing"); r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-}
-
 func TestAllTeamListing(t *testing.T) {
 	Setup()
 
@@ -278,6 +248,83 @@ func TestTeamCount(t *testing.T) {
 	} else {
 		if r1.Data.(int64) == 0 {
 			t.Fatal("should be at least 1 team")
+		}
+	}
+}
+
+func TestTeamMembers(t *testing.T) {
+	Setup()
+
+	teamId1 := model.NewId()
+	teamId2 := model.NewId()
+
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
+
+	if r1 := <-store.Team().SaveMember(m1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	Must(store.Team().SaveMember(m2))
+	Must(store.Team().SaveMember(m3))
+
+	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.([]*model.TeamMember)
+
+		if len(ms) != 2 {
+			t.Fatal()
+		}
+	}
+
+	if r1 := <-store.Team().GetMembers(teamId2); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.([]*model.TeamMember)
+
+		if len(ms) != 1 {
+			t.Fatal()
+		}
+
+		if ms[0].UserId != m3.UserId {
+			t.Fatal()
+
+		}
+	}
+
+	if r1 := <-store.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.([]*model.TeamMember)
+
+		if len(ms) != 1 {
+			t.Fatal()
+		}
+
+		if ms[0].TeamId != m1.TeamId {
+			t.Fatal()
+
+		}
+	}
+
+	if r1 := <-store.Team().RemoveMember(teamId1, m1.UserId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.([]*model.TeamMember)
+
+		if len(ms) != 1 {
+			t.Fatal()
+		}
+
+		if ms[0].UserId != m2.UserId {
+			t.Fatal()
+
 		}
 	}
 }

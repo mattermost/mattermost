@@ -20,24 +20,23 @@ import (
 	"time"
 )
 
-func InitTeam(r *mux.Router) {
+func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
-	sr := r.PathPrefix("/teams").Subrouter()
-	sr.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
-	sr.Handle("/create_from_signup", ApiAppHandler(createTeamFromSignup)).Methods("POST")
-	sr.Handle("/create_with_ldap", ApiAppHandler(createTeamWithLdap)).Methods("POST")
-	sr.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
-	sr.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
-	sr.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
-	sr.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
-	sr.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
-	sr.Handle("/update", ApiUserRequired(updateTeam)).Methods("POST")
-	sr.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
-	sr.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
+	BaseRoutes.Teams.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
+	BaseRoutes.Teams.Handle("/create_from_signup", ApiAppHandler(createTeamFromSignup)).Methods("POST")
+	BaseRoutes.Teams.Handle("/create_with_ldap", ApiAppHandler(createTeamWithLdap)).Methods("POST")
+	BaseRoutes.Teams.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
+	BaseRoutes.Teams.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
+	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
+	BaseRoutes.Teams.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
+	BaseRoutes.Teams.Handle("/update", ApiUserRequired(updateTeam)).Methods("POST")
+	BaseRoutes.Teams.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
+	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
+
 	// These should be moved to the global admain console
-	sr.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
-	sr.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
+	BaseRoutes.Teams.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
+	BaseRoutes.Teams.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -127,7 +126,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 	found := true
 	count := 0
 	for found {
-		if found = FindTeamByName(c, team.Name, "true"); c.Err != nil {
+		if found = FindTeamByName(team.Name); c.Err != nil {
 			return
 		} else if found {
 			team.Name = team.Name + strconv.Itoa(count)
@@ -146,7 +145,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := map[string]string{"follow_link": c.GetSiteURL() + "/api/v1/oauth/" + service + "/signup?team=" + rteam.Name}
+		data := map[string]string{"follow_link": c.GetSiteURL() + model.API_URL_SUFFIX + "/oauth/" + service + "/signup?team=" + rteam.Name}
 		w.Write([]byte(model.MapToJson(data)))
 
 	}
@@ -186,13 +185,11 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	password := teamSignup.User.Password
 	teamSignup.User.PreSave()
-	teamSignup.User.TeamId = model.NewId()
 	if err := teamSignup.User.IsValid(); err != nil {
 		c.Err = err
 		return
 	}
 	teamSignup.User.Id = ""
-	teamSignup.User.TeamId = ""
 	teamSignup.User.Password = password
 
 	if !model.ComparePassword(teamSignup.Hash, fmt.Sprintf("%v:%v", teamSignup.Data, utils.Cfg.EmailSettings.InviteSalt)) {
@@ -206,10 +203,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	found := FindTeamByName(c, teamSignup.Team.Name, "true")
-	if c.Err != nil {
-		return
-	}
+	found := FindTeamByName(teamSignup.Team.Name)
 
 	if found {
 		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.unavailable.app_error", nil, "d="+teamSignup.Team.Name)
@@ -227,14 +221,15 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		teamSignup.User.TeamId = rteam.Id
 		teamSignup.User.EmailVerified = true
 
-		ruser, err := CreateUser(rteam, &teamSignup.User)
+		ruser, err := CreateUser(&teamSignup.User)
 		if err != nil {
 			c.Err = err
 			return
 		}
+
+		JoinUserToTeam(rteam, ruser)
 
 		InviteMembers(c, rteam, ruser, teamSignup.Invites)
 
@@ -272,10 +267,7 @@ func createTeamWithLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	teamSignup.Team.Id = ""
 
-	found := FindTeamByName(c, teamSignup.Team.Name, "true")
-	if c.Err != nil {
-		return
-	}
+	found := FindTeamByName(teamSignup.Team.Name)
 
 	if found {
 		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.unavailable.app_error", nil, "d="+teamSignup.Team.Name)
@@ -305,12 +297,13 @@ func createTeamWithLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user.TeamId = rteam.Id
-		ruser, err := CreateUser(rteam, user)
+		ruser, err := CreateUser(user)
 		if err != nil {
 			c.Err = err
 			return
 		}
+
+		JoinUserToTeam(rteam, ruser)
 
 		teamSignup.Team = *rteam
 		teamSignup.User = *ruser
@@ -358,6 +351,28 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 
 		return rteam
 	}
+}
+
+func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
+
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id}
+
+	channelRole := ""
+	if team.Email == user.Email {
+		tm.Roles = model.ROLE_TEAM_ADMIN
+		channelRole = model.CHANNEL_ROLE_ADMIN
+	}
+
+	if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
+		return tmr.Err
+	}
+
+	// Soft error if there is an issue joining the default channels
+	if err := JoinDefaultChannels(team.Id, user, channelRole); err != nil {
+		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
+	}
+
+	return nil
 }
 
 func isTeamCreationAllowed(c *Context, email string) bool {
@@ -435,42 +450,6 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func findTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	m := model.MapFromJson(r.Body)
-
-	name := strings.ToLower(strings.TrimSpace(m["name"]))
-	all := strings.ToLower(strings.TrimSpace(m["all"]))
-
-	found := FindTeamByName(c, name, all)
-
-	if c.Err != nil {
-		return
-	}
-
-	if found {
-		w.Write([]byte("true"))
-	} else {
-		w.Write([]byte("false"))
-	}
-}
-
-func FindTeamByName(c *Context, name string, all string) bool {
-
-	if name == "" || len(name) > 64 {
-		c.SetInvalidParam("findTeamByName", "domain")
-		return false
-	}
-
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
-		return false
-	} else {
-		return true
-	}
-
-	return false
-}
-
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	invites := model.InvitesFromJson(r.Body)
 	if len(invites.Invites) == 0 {
@@ -479,7 +458,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tchan := Srv.Store.Team().Get(c.Session.TeamId)
+	tchan := Srv.Store.Team().Get(c.TeamId)
 	uchan := Srv.Store.User().Get(c.Session.UserId)
 
 	var team *model.Team
@@ -500,7 +479,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var invNum int64 = 0
 	for i, invite := range invites.Invites {
-		if result := <-Srv.Store.User().GetByEmail(c.Session.TeamId, invite["email"]); result.Err == nil || result.Err.Id != store.MISSING_ACCOUNT_ERROR {
+		if result := <-Srv.Store.User().GetByEmail(invite["email"]); result.Err == nil || result.Err.Id != store.MISSING_ACCOUNT_ERROR {
 			invNum = int64(i)
 			c.Err = model.NewLocAppError("invite_members", "api.team.invite_members.already.app_error", nil, strconv.FormatInt(invNum, 10))
 			return
@@ -515,6 +494,14 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	InviteMembers(c, team, user, ia)
 
 	w.Write([]byte(invites.ToJson()))
+}
+
+func FindTeamByName(name string) bool {
+	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+		return false
+	} else {
+		return true
+	}
 }
 
 func InviteMembers(c *Context, team *model.Team, user *model.User, invites []string) {
@@ -573,7 +560,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team.Id = c.Session.TeamId
+	team.Id = c.TeamId
 
 	if !c.IsTeamAdmin() {
 		c.Err = model.NewLocAppError("updateTeam", "api.team.update_team.permissions.app_error", nil, "userId="+c.Session.UserId)
@@ -642,11 +629,11 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 
 func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	if len(c.Session.TeamId) == 0 {
+	if len(c.TeamId) == 0 {
 		return
 	}
 
-	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Team().Get(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.Team).Etag(), w, r) {
@@ -659,7 +646,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "import") || !c.IsTeamAdmin() {
+	if !c.HasPermissionsToTeam(c.TeamId, "import") || !c.IsTeamAdmin() {
 		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.admin.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -714,7 +701,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	switch importFrom {
 	case "slack":
 		var err *model.AppError
-		if err, log = SlackImport(fileData, fileSize, c.Session.TeamId); err != nil {
+		if err, log = SlackImport(fileData, fileSize, c.TeamId); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusBadRequest
 		}
@@ -726,7 +713,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func exportTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin() {
+	if !c.HasPermissionsToTeam(c.TeamId, "export") || !c.IsTeamAdmin() {
 		c.Err = model.NewLocAppError("exportTeam", "api.team.export_team.admin.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return

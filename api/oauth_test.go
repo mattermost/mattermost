@@ -18,8 +18,9 @@ func TestRegisterApp(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	LinkUserToTeam(ruser.Id, rteam.Data.(*model.Team).Id)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
 	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -75,8 +76,9 @@ func TestAllowOAuth(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	LinkUserToTeam(ruser.Id, rteam.Data.(*model.Team).Id)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
 	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}

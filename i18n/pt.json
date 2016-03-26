@@ -3016,10 +3016,6 @@
     "translation": "Não foi possível remover a sessão"
   },
   {
-    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Não foi possível remover todas as sessões para a equipe"
-  },
-  {
     "id": "store.sql_session.save.app_error",
     "translation": "Não foi possível salvar a sessão"
   },

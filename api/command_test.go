@@ -18,8 +18,9 @@ func TestListCommands(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user1 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
+	LinkUserToTeam(user1.Id, team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
@@ -54,8 +55,9 @@ func TestCreateCommand(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user.Id, team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
@@ -111,8 +113,9 @@ func TestListTeamCommands(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user.Id, team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
 	c := &Context{}
@@ -146,8 +149,9 @@ func TestRegenToken(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user.Id, team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
 	c := &Context{}
@@ -182,8 +186,9 @@ func TestDeleteCommand(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user.Id, team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
 	c := &Context{}
@@ -219,8 +224,9 @@ func TestTestCommand(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user.Id, team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
 	c := &Context{}
@@ -233,7 +239,7 @@ func TestTestCommand(t *testing.T) {
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
 	cmd1 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/commands/test",
+		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + "/commands/test",
 		Method:  model.COMMAND_METHOD_POST,
 		Trigger: "test",
 	}
@@ -253,7 +259,7 @@ func TestTestCommand(t *testing.T) {
 	}
 
 	cmd2 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/commands/test",
+		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + "/commands/test",
 		Method:  model.COMMAND_METHOD_GET,
 		Trigger: "test2",
 	}

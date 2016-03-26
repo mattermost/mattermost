@@ -51,12 +51,16 @@ type TeamStore interface {
 	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) StoreChannel
 	GetByName(name string) StoreChannel
-	GetTeamsForEmail(domain string) StoreChannel
 	GetAll() StoreChannel
 	GetAllTeamListing() StoreChannel
 	GetByInviteId(inviteId string) StoreChannel
 	PermanentDelete(teamId string) StoreChannel
 	AnalyticsTeamCount() StoreChannel
+	SaveMember(member *model.TeamMember) StoreChannel
+	UpdateMember(member *model.TeamMember) StoreChannel
+	GetMembers(teamId string) StoreChannel
+	GetTeamsForUser(userId string) StoreChannel
+	RemoveMember(teamId string, userId string) StoreChannel
 }
 
 type ChannelStore interface {
@@ -121,9 +125,9 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetProfiles(teamId string) StoreChannel
-	GetByEmail(teamId string, email string) StoreChannel
-	GetByAuth(teamId string, authData string, authService string) StoreChannel
-	GetByUsername(teamId string, username string) StoreChannel
+	GetByEmail(email string) StoreChannel
+	GetByAuth(authData string, authService string) StoreChannel
+	GetByUsername(username string) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
@@ -133,7 +137,6 @@ type UserStore interface {
 	GetSystemAdminProfiles() StoreChannel
 	PermanentDelete(userId string) StoreChannel
 	AnalyticsUniqueUserCount(teamId string) StoreChannel
-
 	GetUnreadCount(userId string) StoreChannel
 }
 
@@ -142,12 +145,12 @@ type SessionStore interface {
 	Get(sessionIdOrToken string) StoreChannel
 	GetSessions(userId string) StoreChannel
 	Remove(sessionIdOrToken string) StoreChannel
-	RemoveAllSessionsForTeam(teamId string) StoreChannel
+	RemoveAllSessions() StoreChannel
 	PermanentDeleteSessionsByUser(teamId string) StoreChannel
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string) StoreChannel
-	AnalyticsSessionCount(teamId string) StoreChannel
+	AnalyticsSessionCount() StoreChannel
 }
 
 type AuditStore interface {

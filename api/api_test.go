@@ -4,40 +4,184 @@
 package api
 
 import (
+	"time"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+
+	l4g "github.com/alecthomas/log4go"
 )
 
-var Client *model.Client
+//var Client *model.Client
 
-func Setup() {
+type TestHelper struct {
+	BasicClient  *model.Client
+	BasicTeam    *model.Team
+	BasicUser    *model.User
+	BasicUser2   *model.User
+	BasicChannel *model.Channel
+	BasicPost    *model.Post
+
+	SystemAdminClient *model.Client
+	SystemAdminTeam   *model.Team
+	SystemAdminUser   *model.User
+}
+
+func Setup() *TestHelper {
 	if Srv == nil {
 		utils.LoadConfig("config.json")
 		utils.InitTranslations()
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		utils.DisableDebugLogForTest()
 		NewServer()
 		StartServer()
 		InitApi()
-		Client = model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+		utils.EnableDebugLogForTest()
+		//Client = model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
 
 		Srv.Store.MarkSystemRanUnitTests()
 	}
+
+	return &TestHelper{}
 }
 
-func SetupBenchmark() (*model.Team, *model.User, *model.Channel) {
-	Setup()
+func (me *TestHelper) InitBasic() *TestHelper {
+	me.BasicClient = model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+	me.BasicTeam = me.CreateTeam(me.BasicClient)
+	me.BasicUser = me.CreateUser(me.BasicClient)
+	LinkUserToTeam(me.BasicUser, me.BasicTeam)
+	me.BasicUser2 = me.CreateUser(me.BasicClient)
+	LinkUserToTeam(me.BasicUser2, me.BasicTeam)
+	me.BasicClient.SetTeamId(me.BasicTeam.Id)
+	me.LoginBasic()
+	me.BasicChannel = me.CreateChannel(me.BasicClient, me.BasicTeam)
+	me.BasicPost = me.CreatePost(me.BasicClient, me.BasicChannel)
 
-	team := &model.Team{DisplayName: "Benchmark Team", Name: "z-z-" + model.NewId() + "a", Email: "benchmark@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Mr. Benchmarker", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-	channel := &model.Channel{DisplayName: "Benchmark Channel", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel = Client.Must(Client.CreateChannel(channel)).Data.(*model.Channel)
+	return me
+}
 
-	return team, user, channel
+func (me *TestHelper) InitSystemAdmin() *TestHelper {
+	me.SystemAdminClient = model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+	me.SystemAdminTeam = me.CreateTeam(me.SystemAdminClient)
+	me.SystemAdminUser = me.CreateUser(me.SystemAdminClient)
+	LinkUserToTeam(me.SystemAdminUser, me.SystemAdminTeam)
+	me.SystemAdminClient.SetTeamId(me.SystemAdminTeam.Id)
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, me.SystemAdminUser, model.ROLE_SYSTEM_ADMIN)
+	me.SystemAdminUser.Password = "Password1"
+
+	me.LoginSystemAdmin()
+	return me
+}
+
+func (me *TestHelper) CreateTeam(client *model.Client) *model.Team {
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Email:       "success+" + id + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+
+	utils.DisableDebugLogForTest()
+	r := client.Must(client.CreateTeam(team)).Data.(*model.Team)
+	utils.EnableDebugLogForTest()
+	return r
+}
+
+func (me *TestHelper) CreateUser(client *model.Client) *model.User {
+	id := model.NewId()
+
+	user := &model.User{
+		Email:    "success+" + id + "@simulator.amazonses.com",
+		Username: "un_" + id,
+		Nickname: "nn_" + id,
+		Password: "Password1",
+	}
+
+	utils.DisableDebugLogForTest()
+	ruser := client.Must(client.CreateUser(user, "")).Data.(*model.User)
+	ruser.Password = "Password1"
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+	utils.EnableDebugLogForTest()
+	return ruser
+}
+
+func LinkUserToTeam(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	err := JoinUserToTeam(team, user)
+	if err != nil {
+		l4g.Error(err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(err)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_ADMIN}
+	if tmr := <-Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+		l4g.Error(tmr.Err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(tmr.Err)
+	}
+}
+
+func (me *TestHelper) CreateChannel(client *model.Client, team *model.Team) *model.Channel {
+	id := model.NewId()
+
+	channel := &model.Channel{
+		DisplayName: "dn_" + id,
+		Name:        "name_" + id,
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      team.Id,
+	}
+
+	utils.DisableDebugLogForTest()
+	r := client.Must(client.CreateChannel(channel)).Data.(*model.Channel)
+	utils.EnableDebugLogForTest()
+	return r
+}
+
+func (me *TestHelper) CreatePost(client *model.Client, channel *model.Channel) *model.Post {
+	id := model.NewId()
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   "message_" + id,
+	}
+
+	utils.DisableDebugLogForTest()
+	r := client.Must(client.CreatePost(post)).Data.(*model.Post)
+	utils.EnableDebugLogForTest()
+	return r
+}
+
+func (me *TestHelper) LoginBasic() {
+	utils.DisableDebugLogForTest()
+	me.BasicClient.Must(me.BasicClient.LoginByEmail(me.BasicTeam.Name, me.BasicUser.Email, me.BasicUser.Password))
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) LoginBasic2() {
+	utils.DisableDebugLogForTest()
+	me.BasicClient.Must(me.BasicClient.LoginByEmail(me.BasicTeam.Name, me.BasicUser2.Email, me.BasicUser2.Password))
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) LoginSystemAdmin() {
+	utils.DisableDebugLogForTest()
+	me.SystemAdminClient.Must(me.SystemAdminClient.LoginByEmail(me.SystemAdminTeam.Name, me.SystemAdminUser.Email, me.SystemAdminUser.Password))
+	utils.EnableDebugLogForTest()
 }
 
 func TearDown() {

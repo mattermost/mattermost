@@ -58,16 +58,16 @@ func TestComplianceExport(t *testing.T) {
 	t1 = Must(store.Team().Save(t1)).(*model.Team)
 
 	u1 := &model.User{}
-	u1.TeamId = t1.Id
 	u1.Email = model.NewId()
 	u1.Username = model.NewId()
 	u1 = Must(store.User().Save(u1)).(*model.User)
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}))
 
 	u2 := &model.User{}
-	u2.TeamId = t1.Id
 	u2.Email = model.NewId()
 	u2.Username = model.NewId()
 	u2 = Must(store.User().Save(u2)).(*model.User)
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}))
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id

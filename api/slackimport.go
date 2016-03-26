@@ -112,7 +112,6 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 		password := model.NewId()
 
 		newUser := model.User{
-			TeamId:    teamId,
 			Username:  sUser.Username,
 			FirstName: firstName,
 			LastName:  lastName,
@@ -120,7 +119,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 			Password:  password,
 		}
 
-		if mUser := ImportUser(&newUser); mUser != nil {
+		if mUser := ImportUser(teamId, &newUser); mUser != nil {
 			addedUsers[sUser.Id] = mUser
 			log.WriteString(utils.T("api.slackimport.slack_add_users.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
 		} else {

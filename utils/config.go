@@ -56,6 +56,14 @@ func FindDir(dir string) string {
 	return fileName + "/"
 }
 
+func DisableDebugLogForTest() {
+	l4g.Global["stdout"].Level = l4g.WARNING
+}
+
+func EnableDebugLogForTest() {
+	l4g.Global["stdout"].Level = l4g.DEBUG
+}
+
 func ConfigureCmdLineLog() {
 	ls := model.LogSettings{}
 	ls.EnableConsole = true

@@ -257,7 +257,7 @@ func authorizeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var team *model.Team
-	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Team().Get(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -389,7 +389,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, IsOAuth: true}
+	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 
 	if result := <-Srv.Store.Session().Save(session); result.Err != nil {
 		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.internal_session.app_error", nil, "")

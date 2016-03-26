@@ -34,45 +34,46 @@ import (
 	"time"
 )
 
-func InitUser(r *mux.Router) {
+func InitUser() {
 	l4g.Debug(utils.T("api.user.init.debug"))
 
-	sr := r.PathPrefix("/users").Subrouter()
-	sr.Handle("/create", ApiAppHandler(createUser)).Methods("POST")
-	sr.Handle("/update", ApiUserRequired(updateUser)).Methods("POST")
-	sr.Handle("/update_roles", ApiUserRequired(updateRoles)).Methods("POST")
-	sr.Handle("/update_active", ApiUserRequired(updateActive)).Methods("POST")
-	sr.Handle("/update_notify", ApiUserRequired(updateUserNotify)).Methods("POST")
-	sr.Handle("/newpassword", ApiUserRequired(updatePassword)).Methods("POST")
-	sr.Handle("/send_password_reset", ApiAppHandler(sendPasswordReset)).Methods("POST")
-	sr.Handle("/reset_password", ApiAppHandler(resetPassword)).Methods("POST")
-	sr.Handle("/login", ApiAppHandler(login)).Methods("POST")
-	sr.Handle("/logout", ApiUserRequired(logout)).Methods("POST")
-	sr.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
-	sr.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
-	sr.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
-	sr.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
-	sr.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
-	sr.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
-	sr.Handle("/generate_mfa_qr", ApiUserRequired(generateMfaQrCode)).Methods("GET")
-	sr.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
+	BaseRoutes.Users.Handle("/create", ApiAppHandler(createUser)).Methods("POST")
+	BaseRoutes.Users.Handle("/update", ApiUserRequired(updateUser)).Methods("POST")
+	BaseRoutes.Users.Handle("/update_roles", ApiUserRequired(updateRoles)).Methods("POST")
+	BaseRoutes.Users.Handle("/update_active", ApiUserRequired(updateActive)).Methods("POST")
+	BaseRoutes.Users.Handle("/update_notify", ApiUserRequired(updateUserNotify)).Methods("POST")
+	BaseRoutes.Users.Handle("/newpassword", ApiUserRequired(updatePassword)).Methods("POST")
+	BaseRoutes.Users.Handle("/send_password_reset", ApiAppHandler(sendPasswordReset)).Methods("POST")
+	BaseRoutes.Users.Handle("/reset_password", ApiAppHandler(resetPassword)).Methods("POST")
+	BaseRoutes.Users.Handle("/login", ApiAppHandler(login)).Methods("POST")
+	BaseRoutes.Users.Handle("/logout", ApiUserRequired(logout)).Methods("POST")
+	BaseRoutes.Users.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
+	BaseRoutes.Users.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
+	BaseRoutes.Users.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
+	BaseRoutes.Users.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
+	BaseRoutes.Users.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
+	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
+	BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
+	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
+	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
+	BaseRoutes.Users.Handle("/me_logged_in", ApiAppHandler(getMeLoggedIn)).Methods("GET")
+	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
+	BaseRoutes.Users.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
+	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 
-	sr.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
+	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
+	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequired(generateMfaQrCode)).Methods("GET")
+	BaseRoutes.Users.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
 
-	sr.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
-	sr.Handle("/me_logged_in", ApiAppHandler(getMeLoggedIn)).Methods("GET")
-	sr.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
-	sr.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
-	sr.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
-	sr.Handle("/{id:[A-Za-z0-9]+}", ApiUserRequired(getUser)).Methods("GET")
-	sr.Handle("/{id:[A-Za-z0-9]+}/sessions", ApiUserRequired(getSessions)).Methods("GET")
-	sr.Handle("/{id:[A-Za-z0-9]+}/audits", ApiUserRequired(getAudits)).Methods("GET")
-	sr.Handle("/{id:[A-Za-z0-9]+}/image", ApiUserRequired(getProfileImage)).Methods("GET")
+	BaseRoutes.Users.Handle("/claim/email_to_oauth", ApiAppHandler(emailToOAuth)).Methods("POST")
+	BaseRoutes.Users.Handle("/claim/oauth_to_email", ApiUserRequired(oauthToEmail)).Methods("POST")
+	BaseRoutes.Users.Handle("/claim/email_to_ldap", ApiAppHandler(emailToLdap)).Methods("POST")
+	BaseRoutes.Users.Handle("/claim/ldap_to_email", ApiAppHandler(ldapToEmail)).Methods("POST")
 
-	sr.Handle("/claim/email_to_oauth", ApiAppHandler(emailToOAuth)).Methods("POST")
-	sr.Handle("/claim/oauth_to_email", ApiUserRequired(oauthToEmail)).Methods("POST")
-	sr.Handle("/claim/email_to_ldap", ApiAppHandler(emailToLdap)).Methods("POST")
-	sr.Handle("/claim/ldap_to_email", ApiAppHandler(ldapToEmail)).Methods("POST")
+	BaseRoutes.NeedUser.Handle("/", ApiUserRequired(getUser)).Methods("GET")
+	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
+	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
+	BaseRoutes.NeedUser.Handle("/image", ApiUserRequired(getProfileImage)).Methods("GET")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -89,24 +90,13 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// the user's username is checked to be valid when they are saved to the database
-
+	hash := r.URL.Query().Get("h")
+	teamId := ""
+	var team *model.Team
+	sendWelcomeEmail := true
 	user.EmailVerified = false
 
-	var team *model.Team
-
-	if result := <-Srv.Store.Team().Get(user.TeamId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
-	hash := r.URL.Query().Get("h")
-
-	sendWelcomeEmail := true
-
-	if IsVerifyHashRequired(user, team, hash) {
+	if len(hash) > 0 {
 		data := r.URL.Query().Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
@@ -121,9 +111,14 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if user.TeamId != props["id"] {
-			c.Err = model.NewLocAppError("createUser", "api.user.create_user.team_name.app_error", nil, data)
+		teamId = props["id"]
+
+		// try to load the team to make sure it exists
+		if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+			c.Err = result.Err
 			return
+		} else {
+			team = result.Data.(*model.Team)
 		}
 
 		user.Email = props["email"]
@@ -140,14 +135,22 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ruser, err := CreateUser(team, user)
+	ruser, err := CreateUser(user)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	if len(teamId) > 0 {
+		err := JoinUserToTeam(team, ruser)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	}
+
 	if sendWelcomeEmail {
-		sendWelcomeEmailAndForget(c, ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), ruser.EmailVerified)
+		sendWelcomeEmailAndForget(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
 	}
 
 	w.Write([]byte(ruser.ToJson()))
@@ -196,26 +199,19 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 	return shouldVerifyHash
 }
 
-func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppError) {
+func CreateUser(user *model.User) (*model.User, *model.AppError) {
 
-	channelRole := ""
-	if team.Email == user.Email {
-		user.Roles = model.ROLE_TEAM_ADMIN
-		channelRole = model.CHANNEL_ROLE_ADMIN
+	user.Roles = ""
 
-		// Below is a speical case where the first user in the entire
-		// system is granted the system_admin role instead of admin
-		if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
-			return nil, result.Err
-		} else {
-			count := result.Data.(int64)
-			if count <= 0 {
-				user.Roles = model.ROLE_SYSTEM_ADMIN
-			}
-		}
-
+	// Below is a speical case where the first user in the entire
+	// system is granted the system_admin role instead of admin
+	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
+		return nil, result.Err
 	} else {
-		user.Roles = ""
+		count := result.Data.(int64)
+		if count <= 0 {
+			user.Roles = model.ROLE_SYSTEM_ADMIN
+		}
 	}
 
 	user.MakeNonNil()
@@ -225,13 +221,6 @@ func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppErro
 		return nil, result.Err
 	} else {
 		ruser := result.Data.(*model.User)
-
-		// Soft error if there is an issue joining the default channels
-		if err := JoinDefaultChannels(ruser, channelRole); err != nil {
-			l4g.Error(utils.T("api.user.create_user.joining.error"), ruser.Id, ruser.TeamId, err)
-		}
-
-		addDirectChannelsAndForget(ruser)
 
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
@@ -247,9 +236,7 @@ func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppErro
 		ruser.Sanitize(map[string]bool{})
 
 		// This message goes to every channel, so the channelId is irrelevant
-		message := model.NewMessage(team.Id, "", ruser.Id, model.ACTION_NEW_USER)
-
-		PublishAndForget(message)
+		PublishAndForget(model.NewMessage("", "", ruser.Id, model.ACTION_NEW_USER))
 
 		return ruser, nil
 	}
@@ -270,8 +257,8 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 		return nil
 	}
 
-	suchan := Srv.Store.User().GetByAuth(team.Id, user.AuthData, service)
-	euchan := Srv.Store.User().GetByEmail(team.Id, user.Email)
+	suchan := Srv.Store.User().GetByAuth(user.AuthData, service)
+	euchan := Srv.Store.User().GetByEmail(user.Email)
 
 	if team.Email == "" {
 		team.Email = user.Email
@@ -304,10 +291,15 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 		return nil
 	}
 
-	user.TeamId = team.Id
 	user.EmailVerified = true
 
-	ruser, err := CreateUser(team, user)
+	ruser, err := CreateUser(user)
+	if err != nil {
+		c.Err = err
+		return nil
+	}
+
+	err = JoinUserToTeam(team, user)
 	if err != nil {
 		c.Err = err
 		return nil
@@ -321,23 +313,23 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	return ruser
 }
 
-func sendWelcomeEmailAndForget(c *Context, userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool) {
+func sendWelcomeEmailAndForget(c *Context, userId string, email string, siteURL string, verified bool) {
 	go func() {
 
 		subjectPage := utils.NewHTMLTemplate("welcome_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"TeamDisplayName": teamDisplayName})
+		subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"TeamDisplayName": siteURL})
 
 		bodyPage := utils.NewHTMLTemplate("welcome_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"TeamDisplayName": teamDisplayName})
+		bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"TeamDisplayName": siteURL})
 		bodyPage.Props["Info"] = c.T("api.templates.welcome_body.info")
 		bodyPage.Props["Button"] = c.T("api.templates.welcome_body.button")
 		bodyPage.Props["Info2"] = c.T("api.templates.welcome_body.info2")
 		bodyPage.Props["Info3"] = c.T("api.templates.welcome_body.info3")
-		bodyPage.Props["TeamURL"] = teamURL
+		bodyPage.Props["TeamURL"] = siteURL
 
 		if !verified {
-			link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, email)
+			link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), email)
 			bodyPage.Props["VerifyUrl"] = link
 		}
 
@@ -347,11 +339,11 @@ func sendWelcomeEmailAndForget(c *Context, userId, email, teamName, teamDisplayN
 	}()
 }
 
-func addDirectChannelsAndForget(user *model.User) {
+func addDirectChannelsAndForget(teamId string, user *model.User) {
 	go func() {
 		var profiles map[string]*model.User
-		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
-			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, user.TeamId, result.Err.Error())
+		if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
 			return
 		} else {
 			profiles = result.Data.(map[string]*model.User)
@@ -381,23 +373,23 @@ func addDirectChannelsAndForget(user *model.User) {
 		}
 
 		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
-			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, user.TeamId, result.Err.Error())
+			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
 		}
 	}()
 }
 
-func SendVerifyEmailAndForget(c *Context, userId, userEmail, teamName, teamDisplayName, siteURL, teamURL string) {
+func SendVerifyEmailAndForget(c *Context, userId, userEmail, siteURL string) {
 	go func() {
 
-		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, userEmail)
+		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), userEmail)
 
 		subjectPage := utils.NewHTMLTemplate("verify_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.verify_subject",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName, "SiteName": utils.ClientCfg["SiteName"]})
+			map[string]interface{}{"TeamDisplayName": utils.ClientCfg["SiteName"], "SiteName": utils.ClientCfg["SiteName"]})
 
 		bodyPage := utils.NewHTMLTemplate("verify_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Title"] = c.T("api.templates.verify_body.title", map[string]interface{}{"TeamDisplayName": teamDisplayName})
+		bodyPage.Props["Title"] = c.T("api.templates.verify_body.title", map[string]interface{}{"TeamDisplayName": utils.ClientCfg["SiteName"]})
 		bodyPage.Props["Info"] = c.T("api.templates.verify_body.info")
 		bodyPage.Props["VerifyUrl"] = link
 		bodyPage.Props["Button"] = c.T("api.templates.verify_body.button")
@@ -425,16 +417,7 @@ func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, passw
 }
 
 func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, mfaToken, deviceId string) *model.User {
-	var team *model.Team
-
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
-		c.Err = result.Err
-		return nil
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
-	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.Err = result.Err
 		c.Err.StatusCode = http.StatusForbidden
 		return nil
@@ -457,16 +440,7 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 }
 
 func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, username, name, password, mfaToken, deviceId string) *model.User {
-	var team *model.Team
-
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
-		c.Err = result.Err
-		return nil
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
-	if result := <-Srv.Store.User().GetByUsername(team.Id, username); result.Err != nil {
+	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
 		c.Err = result.Err
 		c.Err.StatusCode = http.StatusForbidden
 		return nil
@@ -509,7 +483,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByAuth(team.Id, authData, service); result.Err != nil {
+	if result := <-Srv.Store.User().GetByAuth(authData, service); result.Err != nil {
 		if result.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR && team.AllowOpenInvite {
 			return CreateOAuthUser(c, w, r, service, bytes.NewReader(buf.Bytes()), team)
 		}
@@ -596,7 +570,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		return
 	}
 
-	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, DeviceId: deviceId, IsOAuth: false}
+	session := &model.Session{UserId: user.Id, Roles: user.Roles, DeviceId: deviceId, IsOAuth: false}
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
@@ -875,7 +849,7 @@ func RevokeAllSession(c *Context, userId string) {
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["user_id"]
 
 	if !c.HasPermissionsToUser(id, "getSessions") {
 		return
@@ -940,7 +914,7 @@ func getMeLoggedIn(c *Context, w http.ResponseWriter, r *http.Request) {
 	data["team_name"] = ""
 
 	if len(c.Session.UserId) != 0 {
-		teamChan := Srv.Store.Team().Get(c.Session.TeamId)
+		teamChan := Srv.Store.Team().Get(c.TeamId)
 		var team *model.Team
 		if tr := <-teamChan; tr.Err != nil {
 			c.Err = tr.Err
@@ -956,7 +930,7 @@ func getMeLoggedIn(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["user_id"]
 
 	if !c.HasPermissionsToUser(id, "getUser") {
 		return
@@ -980,14 +954,14 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	id, ok := params["id"]
 	if ok {
 		// You must be system admin to access another team
-		if id != c.Session.TeamId {
+		if id != c.TeamId {
 			if !c.HasSystemAdminPermissions("getProfiles") {
 				return
 			}
 		}
 
 	} else {
-		id = c.Session.TeamId
+		id = c.TeamId
 	}
 
 	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
@@ -1023,7 +997,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["user_id"]
 
 	if !c.HasPermissionsToUser(id, "getAudits") {
 		return
@@ -1133,7 +1107,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["user_id"]
 
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
@@ -1148,7 +1122,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			path := "teams/" + c.Session.TeamId + "/users/" + id + "/profile.png"
+			path := "teams/" + c.TeamId + "/users/" + id + "/profile.png"
 
 			if data, err := readFile(path); err != nil {
 
@@ -1243,7 +1217,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := "teams/" + c.Session.TeamId + "/users/" + c.Session.UserId + "/profile.png"
+	path := "teams/" + c.TeamId + "/users/" + c.Session.UserId + "/profile.png"
 
 	if err := writeFile(buf.Bytes(), path); err != nil {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
@@ -1279,15 +1253,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		rusers := result.Data.([2]*model.User)
 
 		if rusers[0].Email != rusers[1].Email {
-			if tresult := <-Srv.Store.Team().Get(rusers[1].TeamId); tresult.Err != nil {
-				l4g.Error(tresult.Err.Message)
-			} else {
-				team := tresult.Data.(*model.Team)
-				sendEmailChangeEmailAndForget(c, rusers[1].Email, rusers[0].Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL())
+			sendEmailChangeEmailAndForget(c, rusers[1].Email, rusers[0].Email, c.GetSiteURL())
 
-				if utils.Cfg.EmailSettings.RequireEmailVerification {
-					SendEmailChangeVerifyEmailAndForget(c, rusers[0].Id, rusers[0].Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
-				}
+			if utils.Cfg.EmailSettings.RequireEmailVerification {
+				SendEmailChangeVerifyEmailAndForget(c, rusers[0].Id, rusers[0].Email, c.GetSiteURL())
 			}
 		}
 
@@ -1340,8 +1309,6 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user := result.Data.(*model.User)
 
-	tchan := Srv.Store.Team().Get(user.TeamId)
-
 	if user.AuthData != "" {
 		c.LogAudit("failed - tried to update user password who was logged in through oauth")
 		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService)
@@ -1362,12 +1329,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		c.LogAudit("completed")
 
-		if tresult := <-tchan; tresult.Err != nil {
-			l4g.Error(tresult.Err.Message)
-		} else {
-			team := tresult.Data.(*model.Team)
-			sendPasswordChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL(), c.T("api.user.update_password.menu"))
-		}
+		sendPasswordChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.user.update_password.menu"))
 
 		data := make(map[string]string)
 		data["user_id"] = uresult.Data.(string)
@@ -1385,7 +1347,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	new_roles := props["new_roles"]
-	if !model.IsValidRoles(new_roles) {
+	if !model.IsValidUserRoles(new_roles) {
 		c.SetInvalidParam("updateRoles", "new_roles")
 		return
 	}
@@ -1402,22 +1364,6 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		user = result.Data.(*model.User)
-	}
-
-	if !c.HasPermissionsToTeam(user.TeamId, "updateRoles") {
-		return
-	}
-
-	if !c.IsTeamAdmin() {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.permissions.app_error", nil, "userId="+user_id)
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_mod.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
-		return
 	}
 
 	ruser := UpdateRoles(c, user, new_roles)
@@ -1450,29 +1396,6 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateRoles(c *Context, user *model.User, roles string) *model.User {
-	// make sure there is at least 1 other active admin
-
-	if !model.IsInRole(roles, model.ROLE_SYSTEM_ADMIN) {
-		if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) && !model.IsInRole(roles, model.ROLE_TEAM_ADMIN) {
-			if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
-				c.Err = result.Err
-				return nil
-			} else {
-				activeAdmins := -1
-				profileUsers := result.Data.(map[string]*model.User)
-				for _, profileUser := range profileUsers {
-					if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_TEAM_ADMIN) {
-						activeAdmins = activeAdmins + 1
-					}
-				}
-
-				if activeAdmins <= 0 {
-					c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.one_admin.app_error", nil, "")
-					return nil
-				}
-			}
-		}
-	}
 
 	user.Roles = roles
 
@@ -1507,35 +1430,13 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	if !c.HasPermissionsToTeam(user.TeamId, "updateActive") {
-		return
-	}
+	// true when you're trying to de-activate yourself
+	isSelfDeactive := !active && user_id == c.Session.UserId
 
-	if !c.IsTeamAdmin() {
+	if !isSelfDeactive && !c.IsSystemAdmin() {
 		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
-	}
-
-	// make sure there is at least 1 other active admin
-	if !active && model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) {
-		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			activeAdmins := -1
-			profileUsers := result.Data.(map[string]*model.User)
-			for _, profileUser := range profileUsers {
-				if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_TEAM_ADMIN) {
-					activeAdmins = activeAdmins + 1
-				}
-			}
-
-			if activeAdmins <= 0 {
-				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.one_admin.app_error", nil, "userId="+user_id)
-				return
-			}
-		}
 	}
 
 	ruser := UpdateActive(c, user, active)
@@ -1655,7 +1556,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.find.app_error", nil, "email="+email+" team_id="+team.Id)
 		return
 	} else {
@@ -1739,14 +1640,6 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(userId, "attempt")
 
-	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
 	var user *model.User
 	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
 		c.Err = result.Err
@@ -1756,13 +1649,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(user.AuthData) != 0 {
-		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id+", teamId="+team.Id)
-		return
-	}
-
-	if user.TeamId != team.Id {
-		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.wrong_team.app_error", nil, "userId="+user.Id+", teamId="+team.Id)
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
 		return
 	}
 
@@ -1786,24 +1673,24 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(userId, "success")
 	}
 
-	sendPasswordChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL(), c.T("api.user.reset_password.method"))
+	sendPasswordChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.user.reset_password.method"))
 
 	props["new_password"] = ""
 	w.Write([]byte(model.MapToJson(props)))
 }
 
-func sendPasswordChangeEmailAndForget(c *Context, email, teamDisplayName, teamURL, siteURL, method string) {
+func sendPasswordChangeEmailAndForget(c *Context, email, siteURL, method string) {
 	go func() {
 
 		subjectPage := utils.NewHTMLTemplate("password_change_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.password_change_subject",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName, "SiteName": utils.ClientCfg["SiteName"]})
+			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "SiteName": utils.Cfg.TeamSettings.SiteName})
 
 		bodyPage := utils.NewHTMLTemplate("password_change_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.password_change_body.title")
 		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.password_change_body.info",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName, "TeamURL": teamURL, "Method": method}))
+			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "TeamURL": siteURL, "Method": method}))
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error(utils.T("api.user.send_password_change_email_and_forget.error"), err)
@@ -1812,19 +1699,19 @@ func sendPasswordChangeEmailAndForget(c *Context, email, teamDisplayName, teamUR
 	}()
 }
 
-func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, teamDisplayName, teamURL, siteURL string) {
+func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, siteURL string) {
 	go func() {
 
 		subjectPage := utils.NewHTMLTemplate("email_change_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.email_change_subject",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName})
+			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
 		subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
 		bodyPage := utils.NewHTMLTemplate("email_change_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.email_change_body.title")
 		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.email_change_body.info",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName, "NewEmail": newEmail}))
+			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewEmail": newEmail}))
 
 		if err := utils.SendMail(oldEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error(utils.T("api.user.send_email_change_email_and_forget.error"), err)
@@ -1833,21 +1720,21 @@ func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, teamDisplayNa
 	}()
 }
 
-func SendEmailChangeVerifyEmailAndForget(c *Context, userId, newUserEmail, teamName, teamDisplayName, siteURL, teamURL string) {
+func SendEmailChangeVerifyEmailAndForget(c *Context, userId, newUserEmail, siteURL string) {
 	go func() {
 
-		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, newUserEmail)
+		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), newUserEmail)
 
 		subjectPage := utils.NewHTMLTemplate("email_change_verify_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.email_change_verify_subject",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName})
+			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
 		subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
 		bodyPage := utils.NewHTMLTemplate("email_change_verify_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.email_change_verify_body.title")
 		bodyPage.Props["Info"] = c.T("api.templates.email_change_verify_body.info",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName})
+			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
 		bodyPage.Props["VerifyUrl"] = link
 		bodyPage.Props["VerifyButton"] = c.T("api.templates.email_change_verify_body.button")
 
@@ -1923,7 +1810,7 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -2075,7 +1962,7 @@ func IsUsernameTaken(name string, teamId string) bool {
 		return false
 	}
 
-	if result := <-Srv.Store.User().GetByUsername(teamId, name); result.Err != nil {
+	if result := <-Srv.Store.User().GetByUsername(name); result.Err != nil {
 		return false
 	} else {
 		return true
@@ -2113,17 +2000,8 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.LogAudit("fail - couldn't get team")
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.LogAudit("fail - couldn't get user")
 		c.Err = result.Err
 		return
@@ -2179,7 +2057,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -2232,7 +2110,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.LogAudit("fail - couldn't get user")
 		c.Err = result.Err
 		return
@@ -2500,24 +2378,16 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
-	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		user := result.Data.(*model.User)
 
 		if user.LastActivityAt > 0 {
-			SendEmailChangeVerifyEmailAndForget(c, user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+			SendEmailChangeVerifyEmailAndForget(c, user.Id, user.Email, c.GetSiteURL())
 		} else {
-			SendVerifyEmailAndForget(c, user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+			SendVerifyEmailAndForget(c, user.Id, user.Email, c.GetSiteURL())
 		}
 	}
 }

@@ -42,11 +42,11 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, bool) {
 	var teamDisplayName string
 	var teamName string
 	if cfg.Fuzzy {
-		teamEmail = utils.FuzzEmail()
+		teamEmail = "success+" + model.NewId() + "simulator.amazonses.com"
 		teamDisplayName = utils.FuzzName()
 		teamName = utils.FuzzName()
 	} else {
-		teamEmail = utils.RandomEmail(cfg.EmailLength, cfg.EmailCharset)
+		teamEmail = "success+" + model.NewId() + "simulator.amazonses.com"
 		teamDisplayName = utils.RandomName(cfg.NameLength, cfg.NameCharset)
 		teamName = utils.RandomName(cfg.NameLength, cfg.NameCharset) + model.NewId()
 	}
