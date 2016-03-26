@@ -33,7 +33,7 @@ func (me *JoinProvider) GetCommand(c *Context) *model.Command {
 }
 
 func (me *JoinProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
-	if result := <-Srv.Store.Channel().GetMoreChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetMoreChannels(c.TeamId, c.Session.UserId); result.Err != nil {
 		return &model.CommandResponse{Text: c.T("api.command_join.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		channels := result.Data.(*model.ChannelList)

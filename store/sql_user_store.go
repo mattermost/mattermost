@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"strings"
 )
 
@@ -26,12 +25,11 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.User{}, "Users").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("TeamId").SetMaxSize(26)
-		table.ColMap("Username").SetMaxSize(64)
+		table.ColMap("Username").SetMaxSize(64).SetUnique(true)
 		table.ColMap("Password").SetMaxSize(128)
 		table.ColMap("AuthData").SetMaxSize(128)
 		table.ColMap("AuthService").SetMaxSize(32)
-		table.ColMap("Email").SetMaxSize(128)
+		table.ColMap("Email").SetMaxSize(128).SetUnique(true)
 		table.ColMap("Nickname").SetMaxSize(64)
 		table.ColMap("FirstName").SetMaxSize(64)
 		table.ColMap("LastName").SetMaxSize(64)
@@ -41,8 +39,6 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("ThemeProps").SetMaxSize(2000)
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
-		table.SetUniqueTogether("Email", "TeamId")
-		table.SetUniqueTogether("Username", "TeamId")
 	}
 
 	return us
@@ -51,13 +47,23 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	// ADDED for 2.0 REMOVE for 2.4
 	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
+
 	// ADDED for 2.2 REMOVE for 2.6
 	us.CreateColumnIfNotExists("Users", "MfaActive", "tinyint(1)", "boolean", "0")
 	us.CreateColumnIfNotExists("Users", "MfaSecret", "varchar(128)", "character varying(128)", "")
+
+	// ADDED for 2.2 REMOVE for 2.6
+	if us.DoesColumnExist("Users", "TeamId") {
+		us.RemoveIndexIfExists("idx_users_team_id", "Users")
+		us.RemoveColumnIfExists("Users", "TeamId")
+
+		// TODO XXX FIX ME need patch these after the fact
+		// table.SetUniqueTogether("Email", "TeamId")
+		// table.SetUniqueTogether("Username", "TeamId")
+	}
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
-	us.CreateIndexIfNotExists("idx_users_team_id", "Users", "TeamId")
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
 }
 
@@ -77,18 +83,6 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 
 		user.PreSave()
 		if result.Err = user.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
-			return
-		}
-
-		if count, err := us.GetMaster().SelectInt("SELECT COUNT(0) FROM Users WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": user.TeamId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, "teamId="+user.TeamId+", "+err.Error())
-			storeChannel <- result
-			close(storeChannel)
-			return
-		} else if int(count) > utils.Cfg.TeamSettings.MaxUsersPerTeam {
-			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "teamId="+user.TeamId)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -140,7 +134,6 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.Password = oldUser.Password
 			user.LastPasswordUpdate = oldUser.LastPasswordUpdate
 			user.LastPictureUpdate = oldUser.LastPictureUpdate
-			user.TeamId = oldUser.TeamId
 			user.LastActivityAt = oldUser.LastActivityAt
 			user.LastPingAt = oldUser.LastPingAt
 			user.EmailVerified = oldUser.EmailVerified
@@ -448,7 +441,7 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId", map[string]interface{}{"TeamId": teamId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
@@ -501,7 +494,7 @@ func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
+func (us SqlUserStore) GetByEmail(email string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -510,8 +503,8 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 
 		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND Email = :Email", map[string]interface{}{"TeamId": teamId, "Email": email}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetByEmail", MISSING_ACCOUNT_ERROR, nil, "teamId="+teamId+", email="+email+", "+err.Error())
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE Email = :Email", map[string]interface{}{"Email": email}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetByEmail", MISSING_ACCOUNT_ERROR, nil, "email="+email+", "+err.Error())
 		}
 
 		result.Data = &user
@@ -523,7 +516,7 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByAuth(teamId string, authData string, authService string) StoreChannel {
+func (us SqlUserStore) GetByAuth(authData string, authService string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -532,11 +525,11 @@ func (us SqlUserStore) GetByAuth(teamId string, authData string, authService str
 
 		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"TeamId": teamId, "AuthData": authData, "AuthService": authService}); err != nil {
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"AuthData": authData, "AuthService": authService}); err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "authData="+authData+", authService="+authService+", "+err.Error())
 			} else {
-				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "authData="+authData+", authService="+authService+", "+err.Error())
 			}
 		}
 
@@ -549,7 +542,7 @@ func (us SqlUserStore) GetByAuth(teamId string, authData string, authService str
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByUsername(teamId string, username string) StoreChannel {
+func (us SqlUserStore) GetByUsername(username string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -558,9 +551,9 @@ func (us SqlUserStore) GetByUsername(teamId string, username string) StoreChanne
 
 		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND Username = :Username", map[string]interface{}{"TeamId": teamId, "Username": username}); err != nil {
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE Username = :Username", map[string]interface{}{"Username": username}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetByUsername", "store.sql_user.get_by_username.app_error",
-				nil, "teamId="+teamId+", username="+username+", "+err.Error())
+				nil, err.Error())
 		}
 
 		result.Data = &user
@@ -686,7 +679,7 @@ func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 		query := "SELECT COUNT(DISTINCT Email) FROM Users"
 
 		if len(teamId) > 0 {
-			query += " WHERE TeamId = :TeamId"
+			query += ", TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId"
 		}
 
 		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})

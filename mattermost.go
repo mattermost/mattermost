@@ -321,15 +321,20 @@ func cmdCreateUser() {
 			flushLogAndExit(1)
 		} else {
 			team = result.Data.(*model.Team)
-			user.TeamId = team.Id
 		}
 
-		_, err := api.CreateUser(team, user)
+		ruser, err := api.CreateUser(user)
 		if err != nil {
 			if err.Id != "store.sql_user.save.email_exists.app_error" {
 				l4g.Error("%v", err)
 				flushLogAndExit(1)
 			}
+		}
+
+		err = api.JoinUserToTeam(team, ruser)
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
 		}
 
 		os.Exit(0)
@@ -362,7 +367,7 @@ func cmdAssignRole() {
 			os.Exit(1)
 		}
 
-		if !model.IsValidRoles(flagRole) {
+		if !model.IsValidUserRoles(flagRole) {
 			fmt.Fprintln(os.Stderr, "flag invalid argument: -role")
 			flag.Usage()
 			os.Exit(1)
@@ -370,16 +375,8 @@ func cmdAssignRole() {
 
 		c := getMockContext()
 
-		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
-			l4g.Error("%v", result.Err)
-			flushLogAndExit(1)
-		} else {
-			team = result.Data.(*model.Team)
-		}
-
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -420,16 +417,8 @@ func cmdResetPassword() {
 			os.Exit(1)
 		}
 
-		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
-			l4g.Error("%v", result.Err)
-			flushLogAndExit(1)
-		} else {
-			team = result.Data.(*model.Team)
-		}
-
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -461,16 +450,8 @@ func cmdPermDeleteUser() {
 
 		c := getMockContext()
 
-		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
-			l4g.Error("%v", result.Err)
-			flushLogAndExit(1)
-		} else {
-			team = result.Data.(*model.Team)
-		}
-
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {

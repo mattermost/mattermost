@@ -101,7 +101,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
 	files := m.File["files"]
 
@@ -147,7 +147,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		path := "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + c.Session.UserId + "/" + uid + "/" + filename
+		path := "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + c.Session.UserId + "/" + uid + "/" + filename
 
 		if err := writeFile(buf.Bytes(), path); err != nil {
 			c.Err = err
@@ -164,7 +164,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		resStruct.ClientIds = append(resStruct.ClientIds, clientId)
 	}
 
-	handleImagesAndForget(imageNameList, imageDataList, c.Session.TeamId, channelId, c.Session.UserId)
+	handleImagesAndForget(imageNameList, imageDataList, c.TeamId, channelId, c.Session.UserId)
 
 	w.Write([]byte(resStruct.ToJson()))
 }
@@ -319,9 +319,9 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
-	path := "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
+	path := "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 	var info *model.FileInfo
 
 	if cached, ok := fileInfoCache.Get(path); ok {
@@ -381,13 +381,13 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := r.URL.Query().Get("t")
 	isDownload := r.URL.Query().Get("download") == "1"
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
 	path := ""
 	if len(teamId) == 26 {
 		path = "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 	} else {
-		path = "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
+		path = "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 	}
 
 	fileData := make(chan []byte)
@@ -479,7 +479,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := matches[0][2]
 	filename = matches[0][3]
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
 	newProps := make(map[string]string)
 	newProps["filename"] = filename
@@ -487,7 +487,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapToJson(newProps)
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt))
 
-	url := fmt.Sprintf("%s/api/v1/files/get/%s/%s/%s?d=%s&h=%s&t=%s", c.GetSiteURL(), channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.Session.TeamId)
+	url := fmt.Sprintf("%s/files/get/%s/%s/%s?d=%s&h=%s&t=%s", c.GetSiteURL()+model.API_URL_SUFFIX, channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.TeamId)
 
 	if !c.HasPermissionsToChannel(cchan, "getPublicLink") {
 		return
@@ -500,7 +500,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin() {
+	if !c.HasPermissionsToTeam(c.TeamId, "export") || !c.IsTeamAdmin() {
 		c.Err = model.NewLocAppError("getExport", "api.file.get_export.team_admin.app_error", nil, "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return

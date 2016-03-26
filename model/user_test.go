@@ -63,11 +63,6 @@ func TestUserIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
-	user.TeamId = NewId()
-	if err := user.IsValid(); err == nil {
-		t.Fatal()
-	}
-
 	user.Username = NewId() + "^hello#"
 	if err := user.IsValid(); err == nil {
 		t.Fatal()
@@ -195,7 +190,7 @@ func TestCleanUsername(t *testing.T) {
 
 func TestRoles(t *testing.T) {
 
-	if !IsValidRoles("admin") {
+	if IsValidRoles("admin") {
 		t.Fatal()
 	}
 

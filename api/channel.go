@@ -18,29 +18,28 @@ const (
 	defaultExtraMemberLimit = 100
 )
 
-func InitChannel(r *mux.Router) {
+func InitChannel() {
 	l4g.Debug(utils.T("api.channel.init.debug"))
 
-	sr := r.PathPrefix("/channels").Subrouter()
-	sr.Handle("/", ApiUserRequiredActivity(getChannels, false)).Methods("GET")
-	sr.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET")
-	sr.Handle("/counts", ApiUserRequiredActivity(getChannelCounts, false)).Methods("GET")
-	sr.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
-	sr.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
-	sr.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
-	sr.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
-	sr.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
-	sr.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
-	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
-	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info/{member_limit:-?[0-9]+}", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
-	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(join)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/leave", ApiUserRequired(leave)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/delete", ApiUserRequired(deleteChannel)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/add", ApiUserRequired(addMember)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/remove", ApiUserRequired(removeMember)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/update_last_viewed_at", ApiUserRequired(updateLastViewedAt)).Methods("POST")
+	BaseRoutes.Channels.Handle("/", ApiUserRequiredActivity(getChannels, false)).Methods("GET")
+	BaseRoutes.Channels.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET")
+	BaseRoutes.Channels.Handle("/counts", ApiUserRequiredActivity(getChannelCounts, false)).Methods("GET")
+	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
+	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
+	BaseRoutes.Channels.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
 
+	BaseRoutes.NeedChannel.Handle("/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/extra_info/{member_limit:-?[0-9]+}", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
+	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/leave", ApiUserRequired(leave)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/add", ApiUserRequired(addMember)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/remove", ApiUserRequired(removeMember)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/update_last_viewed_at", ApiUserRequired(updateLastViewedAt)).Methods("POST")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -107,10 +106,6 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "createDirectChannel") {
-		return
-	}
-
 	if sc, err := CreateDirectChannel(c, userId); err != nil {
 		c.Err = err
 		return
@@ -131,7 +126,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 	channel.DisplayName = ""
 	channel.Name = model.GetDMNameFromIds(otherUserId, c.Session.UserId)
 
-	channel.TeamId = c.Session.TeamId
+	channel.TeamId = c.TeamId
 	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
 
@@ -367,7 +362,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// user is already in the team
 
-	if result := <-Srv.Store.Channel().GetChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetChannels(c.TeamId, c.Session.UserId); result.Err != nil {
 		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
 			// lets make sure the user is valid
 			if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
@@ -392,7 +387,7 @@ func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// user is already in the team
 
-	if result := <-Srv.Store.Channel().GetMoreChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetMoreChannels(c.TeamId, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.ChannelList).Etag(), w, r) {
@@ -408,7 +403,7 @@ func getChannelCounts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// user is already in the team
 
-	if result := <-Srv.Store.Channel().GetChannelCounts(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetChannelCounts(c.TeamId, c.Session.UserId); result.Err != nil {
 		c.Err = model.NewLocAppError("getChannelCounts", "api.channel.get_channel_counts.app_error", nil, result.Err.Message)
 		return
 	} else if HandleEtag(result.Data.(*model.ChannelCounts).Etag(), w, r) {
@@ -423,7 +418,7 @@ func getChannelCounts(c *Context, w http.ResponseWriter, r *http.Request) {
 func join(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
-	channelId := params["id"]
+	channelId := params["channel_id"]
 
 	JoinChannel(c, channelId, "")
 
@@ -507,12 +502,12 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	return newMember, nil
 }
 
-func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
+func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *model.AppError {
 	// We don't call JoinChannel here since c.Session is not populated on user creation
 
 	var err *model.AppError = nil
 
-	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "town-square"); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, "town-square"); result.Err != nil {
 		err = result.Err
 	} else {
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
@@ -523,7 +518,7 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 		}
 	}
 
-	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "off-topic"); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic"); result.Err != nil {
 		err = result.Err
 	} else {
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
@@ -540,7 +535,7 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["channel_id"]
 
 	sc := Srv.Store.Channel().Get(id)
 	uc := Srv.Store.User().Get(c.Session.UserId)
@@ -589,7 +584,7 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["channel_id"]
 
 	sc := Srv.Store.Channel().Get(id)
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
@@ -682,7 +677,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["channel_id"]
 
 	Srv.Store.Channel().UpdateLastViewedAt(id, c.Session.UserId)
 
@@ -695,7 +690,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	Srv.Store.Preference().Save(&model.Preferences{preference})
 
-	message := model.NewMessage(c.Session.TeamId, id, c.Session.UserId, model.ACTION_CHANNEL_VIEWED)
+	message := model.NewMessage(c.TeamId, id, c.Session.UserId, model.ACTION_CHANNEL_VIEWED)
 	message.Add("channel_id", id)
 
 	PublishAndForget(message)
@@ -707,9 +702,9 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["channel_id"]
 
-	//pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+	//pchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, id, c.Session.UserId)
 	cchan := Srv.Store.Channel().Get(id)
 	cmchan := Srv.Store.Channel().GetMember(id, c.Session.UserId)
 
@@ -737,7 +732,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["channel_id"]
 
 	var memberLimit int
 	if memberLimitString, ok := params["member_limit"]; !ok {
@@ -803,7 +798,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	id := params["channel_id"]
 
 	data := model.MapFromJson(r.Body)
 	userId := data["user_id"]
@@ -813,7 +808,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, id, c.Session.UserId)
 	sc := Srv.Store.Channel().Get(id)
 	ouc := Srv.Store.User().Get(c.Session.UserId)
 	nuc := Srv.Store.User().Get(userId)
@@ -857,7 +852,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	channelId := params["id"]
+	channelId := params["channel_id"]
 
 	data := model.MapFromJson(r.Body)
 	userIdToRemove := data["user_id"]
@@ -938,7 +933,7 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
 	if !c.HasPermissionsToUser(userId, "updateNotifyLevel") {
 		return

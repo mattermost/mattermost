@@ -473,16 +473,16 @@ func RandString(l int, charset string) string {
 	return string(ret)
 }
 
-func RandomEmail(length Range, charset string) string {
-	emaillen := RandIntFromRange(length)
-	username := RandString(emaillen, charset)
-	domain := "simulator.amazonses.com"
-	return "success+" + username + "@" + domain
-}
+// func RandomEmail(length Range, charset string) string {
+// 	emaillen := RandIntFromRange(length)
+// 	username := RandString(emaillen, charset)
+// 	domain := "simulator.amazonses.com"
+// 	return "success+" + username + "@" + domain
+// }
 
-func FuzzEmail() string {
-	return FUZZY_STRINGS_EMAILS[RandIntFromRange(Range{0, len(FUZZY_STRINGS_EMAILS) - 1})]
-}
+// func FuzzEmail() string {
+// 	return FUZZY_STRINGS_EMAILS[RandIntFromRange(Range{0, len(FUZZY_STRINGS_EMAILS) - 1})]
+// }
 
 func RandomName(length Range, charset string) string {
 	namelen := RandIntFromRange(length)

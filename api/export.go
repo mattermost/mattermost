@@ -60,7 +60,7 @@ func ExportToFile(options *ExportOptions) (link string, err *model.AppError) {
 		ExportToWriter(file, options)
 	}
 
-	return "/api/v1/files/get_export", nil
+	return model.API_URL_SUFFIX + "/files/get_export", nil
 }
 
 func ExportToWriter(w io.Writer, options *ExportOptions) *model.AppError {

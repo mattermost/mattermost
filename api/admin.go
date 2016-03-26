@@ -367,7 +367,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		iHookChan := Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
 		oHookChan := Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
 		commandChan := Srv.Store.Command().AnalyticsCommandCount(teamId)
-		sessionChan := Srv.Store.Session().AnalyticsSessionCount(teamId)
+		sessionChan := Srv.Store.Session().AnalyticsSessionCount()
 
 		if r := <-fileChan; r.Err != nil {
 			c.Err = r.Err

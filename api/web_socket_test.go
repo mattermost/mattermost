@@ -16,12 +16,13 @@ import (
 func TestSocket(t *testing.T) {
 	Setup()
 
-	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/websocket"
+	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + "/websocket"
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user1 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
+	LinkUserToTeam(user1.Id, team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
@@ -39,8 +40,9 @@ func TestSocket(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	LinkUserToTeam(user2.Id, team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 

@@ -59,10 +59,10 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cchan := Srv.Store.Channel().Get(hook.ChannelId)
-	pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, hook.ChannelId, c.Session.UserId)
+	pchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, hook.ChannelId, c.Session.UserId)
 
 	hook.UserId = c.Session.UserId
-	hook.TeamId = c.Session.TeamId
+	hook.TeamId = c.TeamId
 
 	var channel *model.Channel
 	if result := <-cchan; result.Err != nil {
@@ -73,7 +73,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") {
-		if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.Session.TeamId {
+		if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.TeamId {
 			c.LogAudit("fail - bad channel permissions")
 			return
 		}
@@ -149,7 +149,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Webhook().GetIncomingByTeam(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetIncomingByTeam(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -183,11 +183,11 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	hook.CreatorId = c.Session.UserId
-	hook.TeamId = c.Session.TeamId
+	hook.TeamId = c.TeamId
 
 	if len(hook.ChannelId) != 0 {
 		cchan := Srv.Store.Channel().Get(hook.ChannelId)
-		pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, hook.ChannelId, c.Session.UserId)
+		pchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, hook.ChannelId, c.Session.UserId)
 
 		var channel *model.Channel
 		if result := <-cchan; result.Err != nil {
@@ -202,7 +202,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !c.HasPermissionsToChannel(pchan, "createOutgoingHook") {
-			if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.Session.TeamId {
+			if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.TeamId {
 				c.LogAudit("fail - bad channel permissions")
 				return
 			}
@@ -237,7 +237,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -323,7 +323,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		hook = result.Data.(*model.OutgoingWebhook)
 
-		if c.Session.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
+		if c.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.webhook.regen_outgoing_token.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -398,7 +398,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(channelName) != 0 {
 		if channelName[0] == '@' {
-			if result := <-Srv.Store.User().GetByUsername(hook.TeamId, channelName[1:]); result.Err != nil {
+			if result := <-Srv.Store.User().GetByUsername(channelName[1:]); result.Err != nil {
 				c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message)
 				return
 			} else {
@@ -426,7 +426,11 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	pchan := Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
 
 	// create a mock session
-	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
+	c.Session = model.Session{
+		UserId:  hook.UserId,
+		Teams:   []*model.TeamMember{&model.TeamMember{TeamId: hook.TeamId, UserId: hook.UserId}},
+		IsOAuth: false,
+	}
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "")

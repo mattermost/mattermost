@@ -6,6 +6,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 
@@ -13,15 +14,47 @@ import (
 	_ "github.com/nicksnyder/go-i18n/i18n"
 )
 
+type Routes struct {
+	Root *mux.Router // 'api/v1'
+
+	Users    *mux.Router // 'api/v1/users'
+	NeedUser *mux.Router // 'api/v1/users/{user_id:[A-Za-z0-9]+}'
+
+	Teams    *mux.Router // 'api/v1/teams'
+	NeedTeam *mux.Router // 'api/v1/teams/{team_id:[A-Za-z0-9]+}'
+
+	Channels    *mux.Router // 'api/v1/teams/{team_id:[A-Za-z0-9]+}/channels'
+	NeedChannel *mux.Router // 'api/v1/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
+
+	Posts    *mux.Router // 'api/v1/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts'
+	NeedPost *mux.Router // 'api/v1/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
+
+	Commands *mux.Router // 'api/v1/teams/{team_id:[A-Za-z0-9]+}/commands'
+}
+
+var BaseRoutes *Routes
+
 func InitApi() {
-	r := Srv.Router.PathPrefix("/api/v1").Subrouter()
-	InitUser(r)
-	InitTeam(r)
-	InitChannel(r)
-	InitPost(r)
+	BaseRoutes = &Routes{}
+	BaseRoutes.Root = Srv.Router.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	BaseRoutes.Users = BaseRoutes.Root.PathPrefix("/users").Subrouter()
+	BaseRoutes.NeedUser = BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.Teams = BaseRoutes.Root.PathPrefix("/teams").Subrouter()
+	BaseRoutes.NeedTeam = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.Channels = BaseRoutes.NeedTeam.PathPrefix("/channels").Subrouter()
+	BaseRoutes.NeedChannel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.Posts = BaseRoutes.NeedChannel.PathPrefix("/posts").Subrouter()
+	BaseRoutes.NeedPost = BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.Commands = BaseRoutes.NeedTeam.PathPrefix("/commands").Subrouter()
+
+	r := Srv.Router.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	InitUser()
+	InitTeam()
+	InitChannel()
+	InitPost()
 	InitWebSocket(r)
 	InitFile(r)
-	InitCommand(r)
+	InitCommand()
 	InitAdmin(r)
 	InitOAuth(r)
 	InitWebhook(r)

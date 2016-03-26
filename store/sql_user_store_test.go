@@ -13,14 +13,17 @@ import (
 func TestUserStoreSave(t *testing.T) {
 	Setup()
 
+	teamId := model.NewId()
+
 	u1 := model.User{}
 	u1.Email = model.NewId()
 	u1.Username = model.NewId()
-	u1.TeamId = model.NewId()
 
 	if err := (<-store.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save user", err)
 	}
+
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	if err := (<-store.User().Save(&u1)).Err; err == nil {
 		t.Fatal("shouldn't be able to update user from save")
@@ -49,37 +52,44 @@ func TestUserStoreSave(t *testing.T) {
 		if err := (<-store.User().Save(&u1)).Err; err != nil {
 			t.Fatal("couldn't save item", err)
 		}
+
+		Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 	}
 
 	u1.Id = ""
 	u1.Email = model.NewId()
 	u1.Username = model.NewId()
-	if err := (<-store.User().Save(&u1)).Err; err == nil {
-		t.Fatal("should be the limit", err)
+	if err := (<-store.User().Save(&u1)).Err; err != nil {
+		t.Fatal("couldn't save item", err)
 	}
+
+	if err := (<-store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id})).Err; err == nil {
+		t.Fatal("should be the limit")
+	}
+
 }
 
 func TestUserStoreUpdate(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-store.User().Update(&u1, false)).Err; err != nil {
+	if err := (<-store.User().Update(u1, false)).Err; err != nil {
 		t.Fatal(err)
 	}
 
 	u1.Id = "missing"
-	if err := (<-store.User().Update(&u1, false)).Err; err == nil {
+	if err := (<-store.User().Update(u1, false)).Err; err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	u1.Id = model.NewId()
-	if err := (<-store.User().Update(&u1, false)).Err; err == nil {
+	if err := (<-store.User().Update(u1, false)).Err; err == nil {
 		t.Fatal("Update should have faile because id change")
 	}
 }
@@ -87,10 +97,10 @@ func TestUserStoreUpdate(t *testing.T) {
 func TestUserStoreUpdateLastPingAt(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	if err := (<-store.User().UpdateLastPingAt(u1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)
@@ -109,10 +119,10 @@ func TestUserStoreUpdateLastPingAt(t *testing.T) {
 func TestUserStoreUpdateLastActivityAt(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	if err := (<-store.User().UpdateLastActivityAt(u1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)
@@ -131,10 +141,10 @@ func TestUserStoreUpdateLastActivityAt(t *testing.T) {
 func TestUserStoreUpdateFailedPasswordAttempts(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	if err := (<-store.User().UpdateFailedPasswordAttempts(u1.Id, 3)).Err; err != nil {
 		t.Fatal(err)
@@ -153,14 +163,13 @@ func TestUserStoreUpdateFailedPasswordAttempts(t *testing.T) {
 func TestUserStoreUpdateUserAndSessionActivity(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	s1 := model.Session{}
 	s1.UserId = u1.Id
-	s1.TeamId = u1.TeamId
 	Must(store.Session().Save(&s1))
 
 	if err := (<-store.User().UpdateUserAndSessionActivity(u1.Id, s1.Id, 1234567890)).Err; err != nil {
@@ -188,10 +197,10 @@ func TestUserStoreUpdateUserAndSessionActivity(t *testing.T) {
 func TestUserStoreGet(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	if r1 := <-store.User().Get(u1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -209,10 +218,10 @@ func TestUserStoreGet(t *testing.T) {
 func TestUserCount(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	if result := <-store.User().GetTotalUsersCount(); result.Err != nil {
 		t.Fatal(result.Err)
@@ -227,10 +236,11 @@ func TestUserCount(t *testing.T) {
 func TestActiveUserCount(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
+	<-store.User().UpdateLastActivityAt(u1.Id, model.GetMillis())
 
 	if result := <-store.User().GetTotalActiveUsersCount(); result.Err != nil {
 		t.Fatal(result.Err)
@@ -245,17 +255,19 @@ func TestActiveUserCount(t *testing.T) {
 func TestUserStoreGetProfiles(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	teamId := model.NewId()
+
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
-	u2 := model.User{}
-	u2.TeamId = u1.TeamId
+	u2 := &model.User{}
 	u2.Email = model.NewId()
-	Must(store.User().Save(&u2))
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 
-	if r1 := <-store.User().GetProfiles(u1.TeamId); r1.Err != nil {
+	if r1 := <-store.User().GetProfiles(teamId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.(map[string]*model.User)
@@ -280,15 +292,18 @@ func TestUserStoreGetProfiles(t *testing.T) {
 func TestUserStoreGetSystemAdminProfiles(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
-	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	teamId := model.NewId()
 
-	u2 := model.User{}
-	u2.TeamId = u1.TeamId
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.Roles = model.ROLE_SYSTEM_ADMIN
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+
+	u2 := &model.User{}
 	u2.Email = model.NewId()
-	Must(store.User().Save(&u2))
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 
 	if r1 := <-store.User().GetSystemAdminProfiles(); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -303,16 +318,18 @@ func TestUserStoreGetSystemAdminProfiles(t *testing.T) {
 func TestUserStoreGetByEmail(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
-	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	teamid := model.NewId()
 
-	if err := (<-store.User().GetByEmail(u1.TeamId, u1.Email)).Err; err != nil {
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamid, UserId: u1.Id}))
+
+	if err := (<-store.User().GetByEmail(u1.Email)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.User().GetByEmail("", "")).Err; err == nil {
+	if err := (<-store.User().GetByEmail("")).Err; err == nil {
 		t.Fatal("Should have failed because of missing email")
 	}
 }
@@ -320,18 +337,20 @@ func TestUserStoreGetByEmail(t *testing.T) {
 func TestUserStoreGetByAuthData(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
-	u1.Email = model.NewId()
-	u1.AuthData = "123"
-	u1.AuthService = "service"
-	Must(store.User().Save(&u1))
+	teamId := model.NewId()
 
-	if err := (<-store.User().GetByAuth(u1.TeamId, u1.AuthData, u1.AuthService)).Err; err != nil {
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.AuthData = "123" + model.NewId()
+	u1.AuthService = "service"
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+
+	if err := (<-store.User().GetByAuth(u1.AuthData, u1.AuthService)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.User().GetByAuth("", "", "")).Err; err == nil {
+	if err := (<-store.User().GetByAuth("", "")).Err; err == nil {
 		t.Fatal("Should have failed because of missing auth data")
 	}
 }
@@ -339,17 +358,19 @@ func TestUserStoreGetByAuthData(t *testing.T) {
 func TestUserStoreGetByUsername(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	teamId := model.NewId()
+
+	u1 := &model.User{}
 	u1.Email = model.NewId()
 	u1.Username = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
-	if err := (<-store.User().GetByUsername(u1.TeamId, u1.Username)).Err; err != nil {
+	if err := (<-store.User().GetByUsername(u1.Username)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.User().GetByUsername("", "")).Err; err == nil {
+	if err := (<-store.User().GetByUsername("")).Err; err == nil {
 		t.Fatal("Should have failed because of missing username")
 	}
 }
@@ -357,10 +378,12 @@ func TestUserStoreGetByUsername(t *testing.T) {
 func TestUserStoreUpdatePassword(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	teamId := model.NewId()
+
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	hashedPassword := model.HashPassword("newpwd")
 
@@ -368,7 +391,7 @@ func TestUserStoreUpdatePassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-store.User().GetByEmail(u1.TeamId, u1.Email); r1.Err != nil {
+	if r1 := <-store.User().GetByEmail(u1.Email); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		user := r1.Data.(*model.User)
@@ -381,10 +404,10 @@ func TestUserStoreUpdatePassword(t *testing.T) {
 func TestUserStoreDelete(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	if err := (<-store.User().PermanentDelete(u1.Id)).Err; err != nil {
 		t.Fatal(err)
@@ -394,10 +417,12 @@ func TestUserStoreDelete(t *testing.T) {
 func TestUserStoreUpdateAuthData(t *testing.T) {
 	Setup()
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	teamId := model.NewId()
+
+	u1 := &model.User{}
 	u1.Email = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	service := "someservice"
 	authData := "1"
@@ -406,7 +431,7 @@ func TestUserStoreUpdateAuthData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-store.User().GetByEmail(u1.TeamId, u1.Email); r1.Err != nil {
+	if r1 := <-store.User().GetByEmail(u1.Email); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		user := r1.Data.(*model.User)
@@ -439,17 +464,17 @@ func TestUserUnreadCount(t *testing.T) {
 	c2.Name = "unread-direct"
 	c2.Type = model.CHANNEL_DIRECT
 
-	u1 := model.User{}
+	u1 := &model.User{}
+	u1.Username = "user1" + model.NewId()
 	u1.Email = model.NewId()
-	u1.Username = "user1"
-	u1.TeamId = teamId
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
-	u2 := model.User{}
+	u2 := &model.User{}
 	u2.Email = model.NewId()
-	u2.Username = "user2"
-	u2.TeamId = teamId
-	Must(store.User().Save(&u2))
+	u2.Username = "user2" + model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 
 	if err := (<-store.Channel().Save(&c1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
