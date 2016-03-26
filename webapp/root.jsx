@@ -119,7 +119,7 @@ function preRenderSetup(callwhendone) {
     if (global.Intl) {
         afterIntl();
     } else {
-        I18n.safarifix(afterIntl);
+        I18n.safariFix(afterIntl);
     }
 }
 
