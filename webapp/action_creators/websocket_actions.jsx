@@ -7,6 +7,7 @@ import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
+import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-line no-unused-vars
 
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
