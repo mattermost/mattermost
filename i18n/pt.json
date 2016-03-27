@@ -1412,6 +1412,10 @@
     "translation": "Falha ao definir email como verificado err=%v"
   },
   {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "LDAP não está disponível neste servidor"
+  },
+  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Provedor de serviço OAuth não suportado"
   },
@@ -1422,6 +1426,14 @@
   {
     "id": "api.user.init.debug",
     "translation": "Inicializando user api routes"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "LDAP não está disponível neste servidor"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Está conta de usuário não utiliza LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -1470,6 +1482,10 @@
   {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "LDAP não está disponível neste servidor"
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "Atualização de senha falhou devido ao contexto user_id não combinar com id de usuário fornecido"
   },
   {
     "id": "api.user.permanent_delete_user.attempting.warn",
@@ -1538,10 +1554,6 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Falha ao enviar com sucesso boas vindas por email err=%v"
-  },
-  {
-    "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Atualização de senha falhou devido ao contexto user_id não combinar com id de usuário fornecido"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
