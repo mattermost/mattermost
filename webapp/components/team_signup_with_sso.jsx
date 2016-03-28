@@ -64,7 +64,7 @@ class SSOSignUpPage extends React.Component {
             this.props.service,
             (data) => {
                 if (data.follow_link) {
-                    browserHistory.push(data.follow_link);
+                    window.location.href = data.follow_link;
                 } else {
                     browserHistory.push('/' + team.name + '/channels/town-square');
                 }

@@ -317,10 +317,10 @@ class SignupUserComplete extends React.Component {
         var signupMessage = [];
         if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             signupMessage.push(
-                <Link
+                <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    to={'/api/v1/oauth/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={'/api/v1/oauth/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -329,16 +329,16 @@ class SignupUserComplete extends React.Component {
                             defaultMessage='with GitLab'
                         />
                     </span>
-                </Link>
+                </a>
             );
         }
 
         if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
             signupMessage.push(
-                <Link
+                <a
                     className='btn btn-custom-login google'
                     key='google'
-                    to={'/api/v1/oauth/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={'/api/v1/oauth/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -347,7 +347,7 @@ class SignupUserComplete extends React.Component {
                             defaultMessage='with Google'
                         />
                     </span>
-                </Link>
+                </a>
            );
         }
 
