@@ -66,7 +66,7 @@ export default class AddOutgoingWebhook extends React.Component {
             clientError: ''
         });
 
-        if (!this.state.channelId || !this.state.triggerWords) {
+        if (!this.state.channelId && !this.state.triggerWords) {
             this.setState({
                 saving: false,
                 clientError: (
