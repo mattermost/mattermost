@@ -47,5 +47,3 @@ Learn More:
 - **Localization Guide** - Learn [how Mattermost supports different languages](http://docs.mattermost.com/developer/localization.html).  
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!
-
-[![Build Status](https://travis-ci.org/mattermost/platform.svg?branch=master)](https://travis-ci.org/mattermost/platform)
