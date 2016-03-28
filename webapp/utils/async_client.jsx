@@ -1167,3 +1167,49 @@ export function listOutgoingHooks() {
         }
     );
 }
+
+export function addIncomingHook(hook, success, error) {
+    client.addIncomingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_INCOMING_WEBHOOK,
+                incomingWebhook: data
+            });
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            dispatchError(err, 'addIncomingHook');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function addOutgoingHook(hook, success, error) {
+    client.addOutgoingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_OUTGOING_WEBHOOK,
+                outgoingWebhook: data
+            });
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            dispatchError(err, 'addOutgoingHook');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

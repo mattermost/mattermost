@@ -14,20 +14,10 @@ export default class SpinnerButton extends React.Component {
         };
     }
 
-    constructor(props) {
-        super(props);
-
-        this.handleClick = this.handleClick.bind(this);
-    }
-
-    handleClick(e) {
-        if (this.props.onClick) {
-            this.props.onClick(e);
-        }
-    }
-
     render() {
-        if (this.props.spinning) {
+        const {spinning, children, ...props} = this.props; // eslint-disable-line no-use-before-define
+
+        if (spinning) {
             return (
                 <img
                     className='spinner-button__gif'
@@ -38,10 +28,10 @@ export default class SpinnerButton extends React.Component {
 
         return (
             <button
-                onClick={this.handleClick}
-                className='btn btn-sm btn-primary'
+                className='btn btn-primary'
+                {...props}
             >
-                {this.props.children}
+                {children}
             </button>
         );
     }

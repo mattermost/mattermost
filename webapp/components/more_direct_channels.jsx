@@ -86,6 +86,7 @@ export default class MoreDirectChannels extends React.Component {
     createJoinDirectChannelButton({user}) {
         return (
             <SpinnerButton
+                className='btn btm-sm btn-primary'
                 spinning={this.state.loadingDMChannel === user.id}
                 onClick={this.handleShowDirectChannel.bind(this, user)}
             >

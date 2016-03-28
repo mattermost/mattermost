@@ -65,6 +65,7 @@ export default class ChannelInviteButton extends React.Component {
     render() {
         return (
             <SpinnerButton
+                className='btn btn-sm btn-primary'
                 onClick={this.handleClick}
                 spinning={this.state.addingUser}
             >

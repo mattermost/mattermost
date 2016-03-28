@@ -40,6 +40,7 @@ import BackstageNavbar from 'components/backstage/backstage_navbar.jsx';
 import BackstageSidebar from 'components/backstage/backstage_sidebar.jsx';
 import InstalledIntegrations from 'components/backstage/installed_integrations.jsx';
 import AddIntegration from 'components/backstage/add_integration.jsx';
+import AddIncomingWebhook from 'components/backstage/add_incoming_webhook.jsx';
 
 import SignupTeamComplete from 'components/signup_team_complete/components/signup_team_complete.jsx';
 import WelcomePage from 'components/signup_team_complete/components/team_signup_welcome_page.jsx';
@@ -276,7 +277,7 @@ function renderRootComponent() {
                                 components={{
                                     navbar: BackstageNavbar,
                                     sidebar: BackstageSidebar,
-                                    center: null
+                                    center: AddIncomingWebhook
                                 }}
                             />
                             <Route

@@ -4,7 +4,6 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
-import * as Utils from 'utils/utils.jsx';
 
 const ActionTypes = Constants.ActionTypes;
 
@@ -44,8 +43,12 @@ class IntegrationStore extends EventEmitter {
     }
 
     setIncomingWebhooks(incomingWebhooks) {
-        this.incomingWebhooks = Utils.freezeArray(incomingWebhooks);
+        this.incomingWebhooks = incomingWebhooks;
         this.receivedIncomingWebhooks = true;
+    }
+
+    addIncomingWebhook(incomingWebhook) {
+        this.incomingWebhooks.push(incomingWebhook);
     }
 
     hasReceivedOutgoingWebhooks() {
@@ -57,8 +60,12 @@ class IntegrationStore extends EventEmitter {
     }
 
     setOutgoingWebhooks(outgoingWebhooks) {
-        this.outgoingWebhooks = Utils.freezeArray(outgoingWebhooks);
+        this.outgoingWebhooks = outgoingWebhooks;
         this.receivedOutgoingWebhooks = true;
+    }
+
+    addOutgoingWebhook(outgoingWebhook) {
+        this.outgoingWebhooks.push(outgoingWebhook);
     }
 
     handleEventPayload(payload) {
@@ -69,8 +76,16 @@ class IntegrationStore extends EventEmitter {
             this.setIncomingWebhooks(action.incomingWebhooks);
             this.emitChange();
             break;
+        case ActionTypes.RECEIVED_INCOMING_WEBHOOK:
+            this.addIncomingWebhook(action.incomingWebhook);
+            this.emitChange();
+            break;
         case ActionTypes.RECEIVED_OUTGOING_WEBHOOKS:
             this.setOutgoingWebhooks(action.outgoingWebhooks);
+            this.emitChange();
+            break;
+        case ActionTypes.RECEIVED_OUTGOING_WEBHOOK:
+            this.addOutgoingWebhook(action.outgoingWebhook);
             this.emitChange();
             break;
         }
