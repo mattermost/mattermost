@@ -11,6 +11,7 @@ import (
 const (
 	PUSH_NOTIFY_APPLE   = "apple"
 	PUSH_NOTIFY_ANDROID = "android"
+	MHPNS               = "https://push.mattermost.com"
 )
 
 type PushNotification struct {
