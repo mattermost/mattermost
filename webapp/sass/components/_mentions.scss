@@ -47,7 +47,7 @@
 }
 
 .mention__fullname {
-    color: $dark-gray;
+    @include opacity(.5);
     padding-left: 10px;
 }
 

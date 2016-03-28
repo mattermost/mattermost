@@ -4,8 +4,6 @@
 import $ from 'jquery';
 require('perfect-scrollbar/jquery')($);
 
-import 'bootstrap/dist/css/bootstrap.css';
-import 'jasny-bootstrap/dist/css/jasny-bootstrap.css';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
 import 'google-fonts/google-fonts.css';
 import 'sass/styles.scss';
