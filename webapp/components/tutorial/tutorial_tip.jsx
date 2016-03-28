@@ -15,6 +15,9 @@ import {Overlay} from 'react-bootstrap';
 
 import React from 'react';
 
+import tutorialGif from 'images/tutorialTip.gif';
+import tutorialGifWhite from 'images/tutorialTipWhite.gif';
+
 export default class TutorialTip extends React.Component {
     constructor(props) {
         super(props);
@@ -90,16 +93,16 @@ export default class TutorialTip extends React.Component {
             }
         }
 
-        var tipColor = '';
+        var tutorialGifImage = tutorialGif;
         if (this.props.overlayClass === 'tip-overlay--header' || this.props.overlayClass === 'tip-overlay--sidebar') {
-            tipColor = 'White';
+            tutorialGifImage = tutorialGifWhite;
         }
 
         return (
             <div className={'tip-div ' + this.props.overlayClass}>
                 <img
                     className='tip-button'
-                    src={'/static/images/tutorialTip' + tipColor + '.gif'}
+                    src={tutorialGifImage}
                     width='35'
                     onClick={this.toggle}
                     ref='target'
