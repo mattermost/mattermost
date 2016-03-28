@@ -21,7 +21,7 @@ export default class EmailToLDAP extends React.Component {
         e.preventDefault();
         var state = {};
 
-        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.emailpassword).value.trim();
         if (!password) {
             state.error = Utils.localizeMessage('claim.email_to_ldap.pwdError', 'Please enter your password.');
             this.setState(state);
@@ -105,12 +105,18 @@ export default class EmailToLDAP extends React.Component {
                             }}
                         />
                     </p>
+                    <input
+                        type='text'
+                        style={{display: 'none'}}
+                        name='fakeusernameremembered'
+                    />
                     <div className={formClass}>
                         <input
                             type='password'
                             className='form-control'
-                            name='password'
-                            ref='password'
+                            name='emailPassword'
+                            ref='emailpassword'
+                            autoComplete='off'
                             placeholder={Utils.localizeMessage('claim.email_to_ldap.pwd', 'Password')}
                             spellCheck='false'
                         />
@@ -131,6 +137,7 @@ export default class EmailToLDAP extends React.Component {
                             className='form-control'
                             name='ldapId'
                             ref='ldapid'
+                            autoComplete='off'
                             placeholder={Utils.localizeMessage('claim.email_to_ldap.ldapId', 'LDAP ID')}
                             spellCheck='false'
                         />
@@ -141,6 +148,7 @@ export default class EmailToLDAP extends React.Component {
                             className='form-control'
                             name='ldapPassword'
                             ref='ldappassword'
+                            autoComplete='off'
                             placeholder={Utils.localizeMessage('claim.email_to_ldap.ldapPwd', 'LDAP Password')}
                             spellCheck='false'
                         />
