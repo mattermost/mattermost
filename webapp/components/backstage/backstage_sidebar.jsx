@@ -45,17 +45,6 @@ export default class BackstageSidebar extends React.Component {
             <div className='backstage__sidebar'>
                 <ul>
                     <BackstageCategory
-                        name='team_settings'
-                        parentLink={`/${team.name}`}
-                        icon='fa-users'
-                        title={
-                            <FormattedMessage
-                                id='backstage.team_settings'
-                                defaultMessage='Team Settings'
-                            />
-                        }
-                    />
-                    <BackstageCategory
                         name='integrations'
                         parentLink={`/${team.name}`}
                         icon='fa-link'

@@ -247,14 +247,6 @@ function renderRootComponent() {
                         path=':team/logout'
                         onEnter={onLoggedOut}
                     />
-                    <Route
-                        path=':team/team_settings'
-                        components={{
-                            navbar: BackstageNavbar,
-                            sidebar: BackstageSidebar,
-                            center: null
-                        }}
-                    />
                     <Route path=':team/integrations'>
                         <IndexRedirect to='installed'/>
                         <Route
