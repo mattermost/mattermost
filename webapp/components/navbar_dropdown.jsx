@@ -59,6 +59,7 @@ export default class NavbarDropdown extends React.Component {
         var isAdmin = false;
         var isSystemAdmin = false;
         var teamSettings = null;
+        let integrationsLink = null;
 
         if (currentUser != null) {
             isAdmin = Utils.isAdmin(currentUser.roles);
@@ -123,6 +124,21 @@ export default class NavbarDropdown extends React.Component {
                     </a>
                 </li>
             );
+        }
+
+        if (window.mm_config.EnableIncomingWebhooks === 'true' || window.mm_config.EnableOutgoingWebhooks === 'true') {
+            if (isAdmin || window.EnableAdminOnlyIntegrations !== 'true') {
+                integrationsLink = (
+                    <li>
+                        <Link to={'/' + this.props.teamName + '/integrations'}>
+                            <FormattedMessage
+                                id='navbar_dropdown.integrations'
+                                defaultMessage='Integrations'
+                            />
+                        </Link>
+                    </li>
+                );
+            }
         }
 
         if (isSystemAdmin) {
@@ -238,6 +254,7 @@ export default class NavbarDropdown extends React.Component {
                         </li>
                         {adminDivider}
                         {teamSettings}
+                        {integrationsLink}
                         {manageLink}
                         {sysAdminLink}
                         {teams}
