@@ -22,6 +22,7 @@ const WEBSOCKET_RETRY_TIME = 3000;
 var conn = null;
 var connectFailCount = 0;
 var pastFirstInit = false;
+var manuallyClosed = false;
 
 export function initialize() {
     if (window.WebSocket && !conn) {
@@ -35,6 +36,8 @@ export function initialize() {
         if (connectFailCount === 0) {
             console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
         }
+
+        manuallyClosed = false;
 
         conn = new WebSocket(connUrl);
 
@@ -70,12 +73,14 @@ export function initialize() {
             ErrorStore.setConnectionErrorCount(connectFailCount);
             ErrorStore.emitChange();
 
-            setTimeout(
-                () => {
-                    initialize();
-                },
-                WEBSOCKET_RETRY_TIME
-            );
+            if (!manuallyClosed) {
+                setTimeout(
+                    () => {
+                        initialize();
+                    },
+                    WEBSOCKET_RETRY_TIME
+                );
+            }
         };
 
         conn.onerror = (evt) => {
@@ -148,6 +153,7 @@ export function sendMessage(msg) {
 }
 
 export function close() {
+    manuallyClosed = true;
     if (conn && conn.readyState === WebSocket.OPEN) {
         conn.close();
     }
