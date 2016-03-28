@@ -9,6 +9,8 @@ import IntegrationStore from 'stores/integration_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import InstalledIncomingWebhook from './installed_incoming_webhook.jsx';
+import InstalledOutgoingWebhook from './installed_outgoing_webhook.jsx';
 import {Link} from 'react-router';
 
 export default class InstalledIntegrations extends React.Component {
@@ -74,6 +76,14 @@ export default class InstalledIntegrations extends React.Component {
         this.setState({
             filter: e.target.value
         });
+    }
+
+    deleteIncomingWebhook(incomingWebhook) {
+        AsyncClient.deleteIncomingHook(incomingWebhook.id);
+    }
+
+    deleteOutgoingWebhook(outgoingWebhook) {
+        AsyncClient.deleteOutgoingHook(outgoingWebhook.id);
     }
 
     renderTypeFilters(incomingWebhooks, outgoingWebhooks) {
@@ -194,9 +204,10 @@ export default class InstalledIntegrations extends React.Component {
                 }
 
                 integrations.push(
-                    <IncomingWebhook
+                    <InstalledIncomingWebhook
                         key={incomingWebhook.id}
                         incomingWebhook={incomingWebhook}
+                        onDeleteClick={this.deleteIncomingWebhook}
                     />
                 );
             }
@@ -213,9 +224,10 @@ export default class InstalledIntegrations extends React.Component {
                 }
 
                 integrations.push(
-                    <OutgoingWebhook
+                    <InstalledOutgoingWebhook
                         key={outgoingWebhook.id}
                         outgoingWebhook={outgoingWebhook}
+                        onDeleteClick={this.deleteOutgoingWebhook}
                     />
                 );
             }
@@ -266,67 +278,3 @@ export default class InstalledIntegrations extends React.Component {
         );
     }
 }
-
-function IncomingWebhook({incomingWebhook}) {
-    const channel = ChannelStore.get(incomingWebhook.channel_id);
-    const channelName = channel ? channel.display_name : 'cannot find channel';
-
-    return (
-        <div className='installed-integrations__item installed-integrations__incoming-webhook'>
-            <div className='details'>
-                <div className='details-row'>
-                    <span className='name'>
-                        {channelName}
-                    </span>
-                    <span className='type'>
-                        <FormattedMessage
-                            id='installed_integrations.incomingWebhookType'
-                            defaultMessage='(Incoming Webhook)'
-                        />
-                    </span>
-                </div>
-                <div className='details-row'>
-                    <span className='description'>
-                        {Utils.getWindowLocationOrigin() + '/hooks/' + incomingWebhook.id}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-IncomingWebhook.propTypes = {
-    incomingWebhook: React.PropTypes.object.isRequired
-};
-
-function OutgoingWebhook({outgoingWebhook}) {
-    const channel = ChannelStore.get(outgoingWebhook.channel_id);
-    const channelName = channel ? channel.display_name : 'cannot find channel';
-
-    return (
-        <div className='installed-integrations__item installed-integrations__outgoing-webhook'>
-            <div className='details'>
-                <div className='details-row'>
-                    <span className='name'>
-                        {channelName}
-                    </span>
-                    <span className='type'>
-                        <FormattedMessage
-                            id='installed_integrations.outgoingWebhookType'
-                            defaultMessage='(Outgoing Webhook)'
-                        />
-                    </span>
-                </div>
-                <div className='details-row'>
-                    <span className='description'>
-                        {Utils.getWindowLocationOrigin() + '/hooks/' + outgoingWebhook.id}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-OutgoingWebhook.propTypes = {
-    outgoingWebhook: React.PropTypes.object.isRequired
-};

@@ -51,6 +51,15 @@ class IntegrationStore extends EventEmitter {
         this.incomingWebhooks.push(incomingWebhook);
     }
 
+    removeIncomingWebhook(id) {
+        for (let i = 0; i < this.incomingWebhooks.length; i++) {
+            if (this.incomingWebhooks[i].id === id) {
+                this.incomingWebhooks.splice(i, 1);
+                break;
+            }
+        }
+    }
+
     hasReceivedOutgoingWebhooks() {
         return this.receivedIncomingWebhooks;
     }
@@ -68,6 +77,15 @@ class IntegrationStore extends EventEmitter {
         this.outgoingWebhooks.push(outgoingWebhook);
     }
 
+    removeOutgoingWebhook(id) {
+        for (let i = 0; i < this.outgoingWebhooks.length; i++) {
+            if (this.outgoingWebhooks[i].id === id) {
+                this.outgoingWebhooks.splice(i, 1);
+                break;
+            }
+        }
+    }
+
     handleEventPayload(payload) {
         const action = payload.action;
 
@@ -80,12 +98,20 @@ class IntegrationStore extends EventEmitter {
             this.addIncomingWebhook(action.incomingWebhook);
             this.emitChange();
             break;
+        case ActionTypes.REMOVED_INCOMING_WEBHOOK:
+            this.removeIncomingWebhook(action.id);
+            this.emitChange();
+            break;
         case ActionTypes.RECEIVED_OUTGOING_WEBHOOKS:
             this.setOutgoingWebhooks(action.outgoingWebhooks);
             this.emitChange();
             break;
         case ActionTypes.RECEIVED_OUTGOING_WEBHOOK:
             this.addOutgoingWebhook(action.outgoingWebhook);
+            this.emitChange();
+            break;
+        case ActionTypes.REMOVED_OUTGOING_WEBHOOK:
+            this.removeOutgoingWebhook(action.id);
             this.emitChange();
             break;
         }

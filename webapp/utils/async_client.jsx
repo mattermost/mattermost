@@ -1213,3 +1213,33 @@ export function addOutgoingHook(hook, success, error) {
         }
     );
 }
+
+export function deleteIncomingHook(id) {
+    client.deleteIncomingHook(
+        {id},
+        () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.REMOVED_INCOMING_WEBHOOK,
+                id
+            });
+        },
+        (err) => {
+            dispatchError(err, 'deleteIncomingHook');
+        }
+    );
+}
+
+export function deleteOutgoingHook(id) {
+    client.deleteOutgoingHook(
+        {id},
+        () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.REMOVED_OUTGOING_WEBHOOK,
+                id
+            });
+        },
+        (err) => {
+            dispatchError(err, 'deleteOutgoingHook');
+        }
+    );
+}
