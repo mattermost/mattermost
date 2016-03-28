@@ -421,15 +421,12 @@ export default class Sidebar extends React.Component {
                     placement='top'
                     overlay={removeTooltip}
                 >
-                    <a
-                        href={'#'}
+                    <span
                         onClick={() => handleClose(channel)}
                         className='btn-close'
                     >
-                        <span className='btn-close'>
-                            {'×'}
-                        </span>
-                    </a>
+                        {'×'}
+                    </span>
                 </OverlayTrigger>
             );
 
