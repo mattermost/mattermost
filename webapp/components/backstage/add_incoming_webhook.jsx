@@ -5,9 +5,9 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
-import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
+import ChannelSelect from 'components/channel_select.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {Link} from 'react-router';
@@ -22,13 +22,13 @@ export default class AddIncomingWebhook extends React.Component {
 
         this.updateName = this.updateName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
-        this.updateChannelName = this.updateChannelName.bind(this);
+        this.updateChannelId = this.updateChannelId.bind(this);
 
         this.state = {
             team: TeamStore.getCurrent(),
             name: '',
             description: '',
-            channelName: '',
+            channelId: '',
             saving: false,
             serverError: '',
             clientError: null
@@ -62,15 +62,13 @@ export default class AddIncomingWebhook extends React.Component {
             clientError: ''
         });
 
-        const channel = ChannelStore.getByName(this.state.channelName);
-
-        if (!channel) {
+        if (!this.state.channelId) {
             this.setState({
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_incoming_webhook.channel_name_required'
-                        defaultMessage='A valid channel name (eg. town-square) is required'
+                        id='add_incoming_webhook.channel_required'
+                        defaultMessage='A valid channel is required'
                     />
                 )
             });
@@ -79,7 +77,7 @@ export default class AddIncomingWebhook extends React.Component {
         }
 
         const hook = {
-            channel_id: channel.id
+            channel_id: this.state.channelId
         };
 
         AsyncClient.addIncomingHook(
@@ -107,9 +105,9 @@ export default class AddIncomingWebhook extends React.Component {
         });
     }
 
-    updateChannelName(e) {
+    updateChannelId(e) {
         this.setState({
-            channelName: e.target.value
+            channelId: e.target.value
         });
     }
 
@@ -170,18 +168,17 @@ export default class AddIncomingWebhook extends React.Component {
                     <div className='add-integration__row'>
                         <label
                             className='add-integration__label'
-                            htmlFor='channelName'
+                            htmlFor='channelId'
                         >
                             <FormattedMessage
-                                id='add-incoming-webhook.channelName'
-                                defaultMessage='Channel Name'
+                                id='add-incoming-webhook.channelId'
+                                defaultMessage='Channel'
                             />
                         </label>
-                        <input
-                            id='channelName'
-                            type='text'
-                            value={this.state.channelName}
-                            onChange={this.updateChannelName}
+                        <ChannelSelect
+                            id='channelId'
+                            value={this.state.channelId}
+                            onChange={this.updateChannelId}
                         />
                     </div>
                     <div className='add-integration__submit-row'>

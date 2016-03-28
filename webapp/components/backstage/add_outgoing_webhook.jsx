@@ -5,9 +5,9 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
-import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
+import ChannelSelect from 'components/channel_select.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {Link} from 'react-router';
@@ -22,7 +22,7 @@ export default class AddOutgoingWebhook extends React.Component {
 
         this.updateName = this.updateName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
-        this.updateChannelName = this.updateChannelName.bind(this);
+        this.updateChannelId = this.updateChannelId.bind(this);
         this.updateTriggerWords = this.updateTriggerWords.bind(this);
         this.updateCallbackUrls = this.updateCallbackUrls.bind(this);
 
@@ -30,7 +30,7 @@ export default class AddOutgoingWebhook extends React.Component {
             team: TeamStore.getCurrent(),
             name: '',
             description: '',
-            channelName: '',
+            channelId: '',
             triggerWords: '',
             callbackUrls: '',
             saving: false,
@@ -66,32 +66,13 @@ export default class AddOutgoingWebhook extends React.Component {
             clientError: ''
         });
 
-        let channelId = '';
-        if (this.state.channelName) {
-            const channel = ChannelStore.getByName(this.state.channelName);
-
-            if (!channel) {
-                this.setState({
-                    saving: false,
-                    clientError: (
-                        <FormattedMessage
-                            id='add_outgoing_webhook.channel_name_required'
-                            defaultMessage='A valid channel name (eg. town-square) is required'
-                        />
-                    )
-                });
-
-                return;
-            }
-
-            channelId = channel.id;
-        } else if (!this.state.triggerWords) {
+        if (!this.state.channelId || !this.state.triggerWords) {
             this.setState({
                 saving: false,
                 clientError: (
                     <FormattedMessage
                         id='add_outgoing_webhook.trigger_words_required'
-                        defaultMessage='A valid channel name or a list of trigger words is required'
+                        defaultMessage='A valid channel or a list of trigger words is required'
                     />
                 )
             });
@@ -114,7 +95,7 @@ export default class AddOutgoingWebhook extends React.Component {
         }
 
         const hook = {
-            channel_id: channelId,
+            channel_id: this.state.channelId,
             trigger_words: this.state.triggerWords.split('\n').map((word) => word.trim()),
             callback_urls: this.state.callbackUrls.split('\n').map((url) => url.trim())
         };
@@ -144,9 +125,9 @@ export default class AddOutgoingWebhook extends React.Component {
         });
     }
 
-    updateChannelName(e) {
+    updateChannelId(e) {
         this.setState({
-            channelName: e.target.value
+            channelId: e.target.value
         });
     }
 
@@ -219,18 +200,17 @@ export default class AddOutgoingWebhook extends React.Component {
                     <div className='add-integration__row'>
                         <label
                             className='add-integration__label'
-                            htmlFor='channelName'
+                            htmlFor='channelId'
                         >
                             <FormattedMessage
-                                id='add-outgoing-webhook.channelName'
-                                defaultMessage='Channel Name'
+                                id='add-outgoing-webhook.channelId'
+                                defaultMessage='Channel'
                             />
                         </label>
-                        <input
-                            id='channelName'
-                            type='text'
-                            value={this.state.channelName}
-                            onChange={this.updateChannelName}
+                        <ChannelSelect
+                            id='channelId'
+                            value={this.state.channelId}
+                            onChange={this.updateChannelId}
                         />
                     </div>
                     <div className='add-integration__row'>
