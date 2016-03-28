@@ -16,11 +16,13 @@ export default class InstalledIntegrations extends React.Component {
         super(props);
 
         this.handleChange = this.handleChange.bind(this);
-        this.setFilter = this.setFilter.bind(this);
+        this.updateFilter = this.updateFilter.bind(this);
+        this.updateTypeFilter = this.updateTypeFilter.bind(this);
 
         this.state = {
             incomingWebhooks: [],
             outgoingWebhooks: [],
+            typeFilter: '',
             filter: ''
         };
     }
@@ -60,11 +62,17 @@ export default class InstalledIntegrations extends React.Component {
         });
     }
 
-    setFilter(e, filter) {
+    updateTypeFilter(e, typeFilter) {
         e.preventDefault();
 
         this.setState({
-            filter
+            typeFilter
+        });
+    }
+
+    updateFilter(e) {
+        this.setState({
+            filter: e.target.value
         });
     }
 
@@ -73,7 +81,7 @@ export default class InstalledIntegrations extends React.Component {
 
         if (incomingWebhooks.length > 0 || outgoingWebhooks.length > 0) {
             let filterClassName = 'type-filter';
-            if (this.state.filter === '') {
+            if (this.state.typeFilter === '') {
                 filterClassName += ' type-filter--selected';
             }
 
@@ -82,7 +90,7 @@ export default class InstalledIntegrations extends React.Component {
                     key='allFilter'
                     className={filterClassName}
                     href='#'
-                    onClick={(e) => this.setFilter(e, '')}
+                    onClick={(e) => this.updateTypeFilter(e, '')}
                 >
                     <FormattedMessage
                         id='installed_integrations.allFilter'
@@ -106,7 +114,7 @@ export default class InstalledIntegrations extends React.Component {
             );
 
             let filterClassName = 'type-filter';
-            if (this.state.filter === 'incomingWebhooks') {
+            if (this.state.typeFilter === 'incomingWebhooks') {
                 filterClassName += ' type-filter--selected';
             }
 
@@ -115,7 +123,7 @@ export default class InstalledIntegrations extends React.Component {
                     key='incomingWebhooksFilter'
                     className={filterClassName}
                     href='#'
-                    onClick={(e) => this.setFilter(e, 'incomingWebhooks')}
+                    onClick={(e) => this.updateTypeFilter(e, 'incomingWebhooks')}
                 >
                     <FormattedMessage
                         id='installed_integrations.incomingWebhooksFilter'
@@ -139,7 +147,7 @@ export default class InstalledIntegrations extends React.Component {
             );
 
             let filterClassName = 'type-filter';
-            if (this.state.filter === 'outgoingWebhooks') {
+            if (this.state.typeFilter === 'outgoingWebhooks') {
                 filterClassName += ' type-filter--selected';
             }
 
@@ -148,7 +156,7 @@ export default class InstalledIntegrations extends React.Component {
                     key='outgoingWebhooksFilter'
                     className={filterClassName}
                     href='#'
-                    onClick={(e) => this.setFilter(e, 'outgoingWebhooks')}
+                    onClick={(e) => this.updateTypeFilter(e, 'outgoingWebhooks')}
                 >
                     <FormattedMessage
                         id='installed_integrations.outgoingWebhooksFilter'
@@ -172,9 +180,19 @@ export default class InstalledIntegrations extends React.Component {
         const incomingWebhooks = this.state.incomingWebhooks;
         const outgoingWebhooks = this.state.outgoingWebhooks;
 
+        const filter = this.state.filter.toLowerCase();
+
         const integrations = [];
-        if (!this.state.filter || this.state.filter === 'incomingWebhooks') {
+        if (!this.state.typeFilter || this.state.typeFilter === 'incomingWebhooks') {
             for (const incomingWebhook of incomingWebhooks) {
+                if (filter) {
+                    const channel = ChannelStore.get(incomingWebhook.channel_id);
+
+                    if (!channel || channel.name.toLowerCase().indexOf(filter) === -1) {
+                        continue;
+                    }
+                }
+
                 integrations.push(
                     <IncomingWebhook
                         key={incomingWebhook.id}
@@ -184,8 +202,16 @@ export default class InstalledIntegrations extends React.Component {
             }
         }
 
-        if (!this.state.filter || this.state.filter === 'outgoingWebhooks') {
+        if (!this.state.typeFilter || this.state.typeFilter === 'outgoingWebhooks') {
             for (const outgoingWebhook of outgoingWebhooks) {
+                if (filter) {
+                    const channel = ChannelStore.get(outgoingWebhook.channel_id);
+
+                    if (!channel || channel.name.toLowerCase().indexOf(filter) === -1) {
+                        continue;
+                    }
+                }
+
                 integrations.push(
                     <OutgoingWebhook
                         key={outgoingWebhook.id}
@@ -227,6 +253,8 @@ export default class InstalledIntegrations extends React.Component {
                         <input
                             type='search'
                             placeholder={Utils.localizeMessage('installed_integrations.search', 'Search Integrations')}
+                            value={this.state.filter}
+                            onChange={this.updateFilter}
                             style={{flexGrow: 0, flexShrink: 0}}
                         />
                     </div>
