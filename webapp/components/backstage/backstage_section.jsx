@@ -30,59 +30,17 @@ export default class BackstageSection extends React.Component {
         };
     }
 
-    constructor(props) {
-        super(props);
-
-        this.handleClick = this.handleClick.bind(this);
-
-        this.state = {
-            expanded: true
-        };
-    }
-
     getLink() {
         return this.props.parentLink + '/' + this.props.name;
-    }
-
-    isActive() {
-        const link = this.getLink();
-
-        return this.context.router.isActive(link);
-    }
-
-    handleClick(e) {
-        if (this.isActive()) {
-            // we're already on this page so just toggle the link
-            e.preventDefault();
-
-            this.setState({
-                expanded: !this.state.expanded
-            });
-        }
-
-        // otherwise, just follow the link
     }
 
     render() {
         const {title, subsection, children} = this.props;
 
         const link = this.getLink();
-        const active = this.isActive();
-
-        // act like docs.mattermost.com and only expand if this link is active
-        const expanded = active && this.state.expanded;
-
-        let toggle = null;
-        if (children.length > 0) {
-            if (expanded) {
-                toggle = <i className='fa fa-minus-square-o'/>;
-            } else {
-                toggle = <i className='fa fa-plus-square-o'/>;
-            }
-        }
 
         let clonedChildren = null;
-        if (children.length > 0 && expanded) {
+        if (children.length > 0) {
             clonedChildren = (
                 <ul className='subsections'>
                     {
@@ -107,10 +65,10 @@ export default class BackstageSection extends React.Component {
                 <Link
                     className={`${className}-title`}
                     activeClassName={`${className}-title--active`}
+                    onlyActiveOnIndex={true}
                     onClick={this.handleClick}
                     to={link}
                 >
-                    {toggle}
                     <span className={`${className}-title__text`}>
                         {title}
                     </span>
