@@ -89,7 +89,7 @@ NotificationStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_POST:
-        NotificationStore.handleRecievedPost(action.post, action.webspcketMessageProps);
+        NotificationStore.handleRecievedPost(action.post, action.websocketMessageProps);
         NotificationStore.emitChange();
         break;
     }
