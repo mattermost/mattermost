@@ -570,7 +570,9 @@ function FloatingTimestamp({isScrolling, post}) {
 
     return (
         <div className={className}>
-            <span>{dateString}</span>
+            <div>
+                <span>{dateString}</span>
+            </div>
         </div>
     );
 }

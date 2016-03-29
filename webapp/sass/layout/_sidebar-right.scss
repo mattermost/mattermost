@@ -25,6 +25,10 @@
         }
     }
 
+    .help__format-text {
+        display: none;
+    }
+
     .sidebar--right__content {
         @include display-flex;
         @include flex-direction(column);

@@ -131,7 +131,7 @@ export default class Textbox extends React.Component {
         const helpText = (
             <div
                 style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '0.5' : '0'}}
-                className='help_format_text'
+                className='help__format-text'
             >
                 <b>
                     <FormattedMessage
@@ -208,8 +208,8 @@ export default class Textbox extends React.Component {
                     dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.messageText) : ''}}
                 >
                 </div>
-                {helpText}
                 <div className='help__text'>
+                    {helpText}
                     {previewLink}
                     <a
                         target='_blank'
