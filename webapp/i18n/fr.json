@@ -1239,7 +1239,6 @@
   "user.settings.display.theme.customTheme": "Thème personnalisé",
   "user.settings.display.theme.describe": "Ouvrez pour gérer votre thème",
   "user.settings.display.theme.import": "Importer des couleurs de thème depuis Slack",
-  "user.settings.display.theme.otherThemes": "",
   "user.settings.display.theme.themeColors": "Couleurs de thème",
   "user.settings.display.theme.title": "Thème",
   "user.settings.display.title": "Paramètres d'affichage",
