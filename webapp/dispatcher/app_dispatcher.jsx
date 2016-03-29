@@ -8,6 +8,10 @@ const PayloadSources = Constants.PayloadSources;
 
 const AppDispatcher = Object.assign(new Flux.Dispatcher(), {
     handleServerAction: function performServerAction(action) {
+        if (!action.type) {
+            console.log('handleServerAction called with undefined action type'); // eslint-disable-line no-console
+        }
+
         var payload = {
             source: PayloadSources.SERVER_ACTION,
             action
@@ -16,6 +20,10 @@ const AppDispatcher = Object.assign(new Flux.Dispatcher(), {
     },
 
     handleViewAction: function performViewAction(action) {
+        if (!action.type) {
+            console.log('handleServerAction called with undefined action type'); // eslint-disable-line no-console
+        }
+
         var payload = {
             source: PayloadSources.VIEW_ACTION,
             action
