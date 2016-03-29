@@ -49,7 +49,7 @@ export default class ChannelSelect extends React.Component {
                 key=''
                 value=''
             >
-                {Utils.localizeMessage('channel-select.select', '--- Select a channel ---')}
+                {Utils.localizeMessage('channel_select.placeholder', '--- Select a channel ---')}
             </option>
         ];
 

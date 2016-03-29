@@ -67,7 +67,7 @@ export default class AddIncomingWebhook extends React.Component {
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_incoming_webhook.channel_required'
+                        id='add_incoming_webhook.channelRequired'
                         defaultMessage='A valid channel is required'
                     />
                 )
@@ -124,7 +124,7 @@ export default class AddIncomingWebhook extends React.Component {
                     <div className='backstage__header'>
                         <h1 className='text'>
                             <FormattedMessage
-                                id='add-incoming-webhook.header'
+                                id='add_incoming_webhook.header'
                                 defaultMessage='Add Incoming Webhook'
                             />
                         </h1>
@@ -137,7 +137,7 @@ export default class AddIncomingWebhook extends React.Component {
                             htmlFor='name'
                         >
                             <FormattedMessage
-                                id='add-incoming-webhook.name'
+                                id='add_incoming_webhook.name'
                                 defaultMessage='Name'
                             />
                         </label>
@@ -154,7 +154,7 @@ export default class AddIncomingWebhook extends React.Component {
                             htmlFor='description'
                         >
                             <FormattedMessage
-                                id='add-incoming-webhook.description'
+                                id='add_incoming_webhook.description'
                                 defaultMessage='Description'
                             />
                         </label>
@@ -171,7 +171,7 @@ export default class AddIncomingWebhook extends React.Component {
                             htmlFor='channelId'
                         >
                             <FormattedMessage
-                                id='add-incoming-webhook.channelId'
+                                id='add_incoming_webhook.channel'
                                 defaultMessage='Channel'
                             />
                         </label>
@@ -187,7 +187,7 @@ export default class AddIncomingWebhook extends React.Component {
                             to={`/${team.name}/integrations/add`}
                         >
                             <FormattedMessage
-                                id='add-incoming-webhook.cancel'
+                                id='add_incoming_webhook.cancel'
                                 defaultMessage='Cancel'
                             />
                         </Link>
@@ -198,7 +198,7 @@ export default class AddIncomingWebhook extends React.Component {
                             onClick={this.handleSubmit}
                         >
                             <FormattedMessage
-                                id='add-incoming-webhook.save'
+                                id='add_incoming_webhook.save'
                                 defaultMessage='Save'
                             />
                         </SpinnerButton>

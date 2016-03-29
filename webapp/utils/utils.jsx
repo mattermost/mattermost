@@ -1398,13 +1398,3 @@ export function localizeMessage(id, defaultMessage) {
 
     return id;
 }
-
-export function freezeArray(arr) {
-    for (const obj of arr) {
-        Object.freeze(obj);
-    }
-
-    Object.freeze(arr);
-
-    return arr;
-}

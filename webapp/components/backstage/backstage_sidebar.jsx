@@ -50,7 +50,7 @@ export default class BackstageSidebar extends React.Component {
                         icon='fa-link'
                         title={
                             <FormattedMessage
-                                id='backstage.integrations'
+                                id='backstage_sidebar.integrations'
                                 defaultMessage='Integrations'
                             />
                         }
@@ -59,7 +59,7 @@ export default class BackstageSidebar extends React.Component {
                             name='installed'
                             title={(
                                 <FormattedMessage
-                                    id='backstage.integrations.installed'
+                                    id='backstage_sidebar.integrations.installed'
                                     defaultMessage='Installed Integrations'
                                 />
                             )}
@@ -68,7 +68,7 @@ export default class BackstageSidebar extends React.Component {
                             name='add'
                             title={(
                                 <FormattedMessage
-                                    id='backstage.integrations.add'
+                                    id='backstage_sidebar.integrations.add'
                                     defaultMessage='Add Integration'
                                 />
                             )}
@@ -78,7 +78,7 @@ export default class BackstageSidebar extends React.Component {
                                 name='incoming_webhook'
                                 title={(
                                     <FormattedMessage
-                                        id='backstage.integrations.add.incomingWebhook'
+                                        id='backstage_sidebar.integrations.add.incomingWebhook'
                                         defaultMessage='Incoming Webhook'
                                     />
                                 )}
@@ -87,7 +87,7 @@ export default class BackstageSidebar extends React.Component {
                                 name='outgoing_webhook'
                                 title={(
                                     <FormattedMessage
-                                        id='backstage.integrations.add.outgoingWebhook'
+                                        id='backstage_sidebar.integrations.add.outgoingWebhook'
                                         defaultMessage='Outgoing Webhook'
                                     />
                                 )}

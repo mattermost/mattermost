@@ -94,7 +94,7 @@ export default class AddIntegration extends React.Component {
                     <div className='backstage__header'>
                         <h1 className='text'>
                             <FormattedMessage
-                                id='add-integration.header'
+                                id='add_integration.header'
                                 defaultMessage='Add Integration'
                             />
                         </h1>

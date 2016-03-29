@@ -47,7 +47,7 @@ export default class BackstageNavbar extends React.Component {
                     <i className='fa fa-angle-left'/>
                     <span>
                         <FormattedMessage
-                            id='backstage.back_to_mattermost'
+                            id='backstage_navbar.backToMattermost'
                             defaultMessage='Back to {siteName}'
                             values={{
                                 siteName: global.window.mm_config.SiteName
@@ -55,7 +55,6 @@ export default class BackstageNavbar extends React.Component {
                         />
                     </span>
                 </Link>
-                <span style={{float: 'right'}}>{'TODO: Switch Teams'}</span>
             </div>
         );
     }

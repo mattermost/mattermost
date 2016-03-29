@@ -71,7 +71,7 @@ export default class AddOutgoingWebhook extends React.Component {
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_outgoing_webhook.trigger_words_required'
+                        id='add_outgoing_webhook.triggerWordsOrChannelRequired'
                         defaultMessage='A valid channel or a list of trigger words is required'
                     />
                 )
@@ -85,7 +85,7 @@ export default class AddOutgoingWebhook extends React.Component {
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_outgoing_webhook.callback_urls_required'
+                        id='add_outgoing_webhook.callbackUrlsRequired'
                         defaultMessage='One or more callback URLs are required'
                     />
                 )
@@ -156,7 +156,7 @@ export default class AddOutgoingWebhook extends React.Component {
                     <div className='backstage__header'>
                         <h1 className='text'>
                             <FormattedMessage
-                                id='add-outgoing-webhook.header'
+                                id='add_outgoing_webhook.header'
                                 defaultMessage='Add Outgoing Webhook'
                             />
                         </h1>
@@ -169,7 +169,7 @@ export default class AddOutgoingWebhook extends React.Component {
                             htmlFor='name'
                         >
                             <FormattedMessage
-                                id='add-outgoing-webhook.name'
+                                id='add_outgoing_webhook.name'
                                 defaultMessage='Name'
                             />
                         </label>
@@ -186,7 +186,7 @@ export default class AddOutgoingWebhook extends React.Component {
                             htmlFor='description'
                         >
                             <FormattedMessage
-                                id='add-outgoing-webhook.description'
+                                id='add_outgoing_webhook.description'
                                 defaultMessage='Description'
                             />
                         </label>
@@ -203,7 +203,7 @@ export default class AddOutgoingWebhook extends React.Component {
                             htmlFor='channelId'
                         >
                             <FormattedMessage
-                                id='add-outgoing-webhook.channelId'
+                                id='add_outgoing_webhook.channel'
                                 defaultMessage='Channel'
                             />
                         </label>
@@ -219,7 +219,7 @@ export default class AddOutgoingWebhook extends React.Component {
                             htmlFor='triggerWords'
                         >
                             <FormattedMessage
-                                id='add-outgoing-webhook.triggerWords'
+                                id='add_outgoing_webhook.triggerWords'
                                 defaultMessage='Trigger Words (One Per Line)'
                             />
                         </label>
@@ -236,7 +236,7 @@ export default class AddOutgoingWebhook extends React.Component {
                             htmlFor='callbackUrls'
                         >
                             <FormattedMessage
-                                id='add-outgoing-webhook.callbackUrls'
+                                id='add_outgoing_webhook.callbackUrls'
                                 defaultMessage='Callback URLs (One Per Line)'
                             />
                         </label>
@@ -253,7 +253,7 @@ export default class AddOutgoingWebhook extends React.Component {
                             to={`/${team.name}/integrations/add`}
                         >
                             <FormattedMessage
-                                id='add-outgoing-webhook.cancel'
+                                id='add_outgoing_webhook.cancel'
                                 defaultMessage='Cancel'
                             />
                         </Link>
@@ -264,7 +264,7 @@ export default class AddOutgoingWebhook extends React.Component {
                             onClick={this.handleSubmit}
                         >
                             <FormattedMessage
-                                id='add-outgoing-webhook.save'
+                                id='add_outgoing_webhook.save'
                                 defaultMessage='Save'
                             />
                         </SpinnerButton>
