@@ -52,16 +52,17 @@ export default class PremadeThemeChooser extends React.Component {
         return (
             <div className='row appearance-section'>
                 {premadeThemes}
-                <a
-                    href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-themes'
-                    target='_blank'
-                    className='col-sm-12 padding-bottom x2'
-                >
-                    <FormattedMessage
-                        id='user.settings.display.theme.otherThemes'
-                        defaultMessage='See other themes'
-                    />
-                </a>
+                <div className='col-sm-12 padding-bottom x2'>
+                    <a
+                        href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-themes'
+                        target='_blank'
+                    >
+                        <FormattedMessage
+                            id='user.settings.display.theme.otherThemes'
+                            defaultMessage='See other themes'
+                        />
+                    </a>
+                </div>
             </div>
         );
     }
