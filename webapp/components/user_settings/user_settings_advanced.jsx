@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import * as AsyncClient from 'utils/async_client.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
@@ -151,6 +152,7 @@ class AdvancedSettingsDisplay extends React.Component {
     }
 
     updateSection(section) {
+        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         this.props.updateSection(section);
     }
 

@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import {Modal} from 'react-bootstrap';
 import SettingItemMin from './setting_item_min.jsx';
 import SettingItemMax from './setting_item_max.jsx';
@@ -33,6 +34,7 @@ export default class ChannelNotificationsModal extends React.Component {
         };
     }
     updateSection(section) {
+        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         this.setState({activeSection: section});
     }
     componentWillReceiveProps(nextProps) {

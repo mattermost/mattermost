@@ -84,6 +84,7 @@ class GeneralTab extends React.Component {
     }
 
     updateSection(section) {
+        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         this.setState(this.setupInitialState(this.props));
         this.props.updateSection(section);
     }
