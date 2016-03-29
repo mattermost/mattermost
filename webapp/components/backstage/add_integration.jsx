@@ -3,45 +3,13 @@
 
 import React from 'react';
 
-import TeamStore from 'stores/team_store.jsx';
-
 import {FormattedMessage} from 'react-intl';
 import AddIntegrationOption from './add_integration_option.jsx';
 
 import WebhookIcon from 'images/webhook_icon.jpg';
 
 export default class AddIntegration extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.handleChange = this.handleChange.bind(this);
-
-        this.state = {
-            team: TeamStore.getCurrent()
-        };
-    }
-
-    componentDidMount() {
-        TeamStore.addChangeListener(this.handleChange);
-    }
-
-    componentWillUnmount() {
-        TeamStore.removeChangeListener(this.handleChange);
-    }
-
-    handleChange() {
-        this.setState({
-            team: TeamStore.getCurrent()
-        });
-    }
-
     render() {
-        const team = TeamStore.getCurrent();
-
-        if (!team) {
-            return null;
-        }
-
         const options = [];
 
         if (window.mm_config.EnableIncomingWebhooks === 'true') {
@@ -61,7 +29,7 @@ export default class AddIntegration extends React.Component {
                             defaultMessage='Create webhook URLs for use in external integrations.'
                         />
                     }
-                    link={`/${team.name}/integrations/add/incoming_webhook`}
+                    link={'/settings/integrations/add/incoming_webhook'}
                 />
             );
         }
@@ -83,7 +51,7 @@ export default class AddIntegration extends React.Component {
                             defaultMessage='Create webhooks to send new message events to an external integration.'
                         />
                     }
-                    link={`/${team.name}/integrations/add/outgoing_webhook`}
+                    link={'/settings/integrations/add/outgoing_webhook'}
                 />
             );
         }

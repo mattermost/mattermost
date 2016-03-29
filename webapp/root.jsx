@@ -247,7 +247,7 @@ function renderRootComponent() {
                         path=':team/logout'
                         onEnter={onLoggedOut}
                     />
-                    <Route path=':team/integrations'>
+                    <Route path='settings/integrations'>
                         <IndexRedirect to='installed'/>
                         <Route
                             path='installed'

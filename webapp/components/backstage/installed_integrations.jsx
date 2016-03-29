@@ -6,7 +6,6 @@ import React from 'react';
 import * as AsyncClient from 'utils/async_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -19,7 +18,6 @@ export default class InstalledIntegrations extends React.Component {
         super(props);
 
         this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
-        this.handleTeamChange = this.handleTeamChange.bind(this);
         this.updateFilter = this.updateFilter.bind(this);
         this.updateTypeFilter = this.updateTypeFilter.bind(this);
 
@@ -28,7 +26,6 @@ export default class InstalledIntegrations extends React.Component {
         this.deleteOutgoingWebhook = this.deleteOutgoingWebhook.bind(this);
 
         this.state = {
-            team: TeamStore.getCurrent(),
             incomingWebhooks: [],
             outgoingWebhooks: [],
             typeFilter: '',
@@ -38,7 +35,6 @@ export default class InstalledIntegrations extends React.Component {
 
     componentWillMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
-        TeamStore.addChangeListener(this.handleTeamChange);
 
         if (window.mm_config.EnableIncomingWebhooks === 'true') {
             if (IntegrationStore.hasReceivedIncomingWebhooks()) {
@@ -63,19 +59,12 @@ export default class InstalledIntegrations extends React.Component {
 
     componentWillUnmount() {
         IntegrationStore.removeChangeListener(this.handleIntegrationChange);
-        TeamStore.removeChangeListener(this.handleTeamChange);
     }
 
     handleIntegrationChange() {
         this.setState({
             incomingWebhooks: IntegrationStore.getIncomingWebhooks(),
             outgoingWebhooks: IntegrationStore.getOutgoingWebhooks()
-        });
-    }
-
-    handleTeamChange() {
-        this.setState({
-            team: TeamStore.getCurrent()
         });
     }
 
@@ -206,10 +195,6 @@ export default class InstalledIntegrations extends React.Component {
     }
 
     render() {
-        if (!this.state.team) {
-            return null;
-        }
-
         const incomingWebhooks = this.state.incomingWebhooks;
         const outgoingWebhooks = this.state.outgoingWebhooks;
 
@@ -269,7 +254,7 @@ export default class InstalledIntegrations extends React.Component {
                         </h1>
                         <Link
                             className='add-integrations-link'
-                            to={`/${this.state.team.name}/integrations/add`}
+                            to={'/settings/integrations/add'}
                         >
                             <button
                                 type='button'

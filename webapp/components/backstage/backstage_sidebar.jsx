@@ -3,50 +3,18 @@
 
 import React from 'react';
 
-import TeamStore from 'stores/team_store.jsx';
-
 import BackstageCategory from './backstage_category.jsx';
 import BackstageSection from './backstage_section.jsx';
 import {FormattedMessage} from 'react-intl';
 
 export default class BackstageSidebar extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.handleChange = this.handleChange.bind(this);
-
-        this.state = {
-            team: TeamStore.getCurrent()
-        };
-    }
-
-    componentDidMount() {
-        TeamStore.addChangeListener(this.handleChange);
-    }
-
-    componentWillUnmount() {
-        TeamStore.removeChangeListener(this.handleChange);
-    }
-
-    handleChange() {
-        this.setState({
-            team: TeamStore.getCurrent()
-        });
-    }
-
     render() {
-        const team = TeamStore.getCurrent();
-
-        if (!team) {
-            return null;
-        }
-
         return (
             <div className='backstage__sidebar'>
                 <ul>
                     <BackstageCategory
                         name='integrations'
-                        parentLink={`/${team.name}`}
+                        parentLink={'/settings'}
                         icon='fa-link'
                         title={
                             <FormattedMessage
@@ -72,7 +40,6 @@ export default class BackstageSidebar extends React.Component {
                                     defaultMessage='Add Integration'
                                 />
                             )}
-                            collapsible={true}
                         >
                             <BackstageSection
                                 name='incoming_webhook'
@@ -99,4 +66,3 @@ export default class BackstageSidebar extends React.Component {
         );
     }
 }
-

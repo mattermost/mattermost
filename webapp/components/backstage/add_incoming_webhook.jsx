@@ -5,7 +5,6 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
-import TeamStore from 'stores/team_store.jsx';
 
 import ChannelSelect from 'components/channel_select.jsx';
 import {FormattedMessage} from 'react-intl';
@@ -17,7 +16,6 @@ export default class AddIncomingWebhook extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.updateName = this.updateName.bind(this);
@@ -25,7 +23,6 @@ export default class AddIncomingWebhook extends React.Component {
         this.updateChannelId = this.updateChannelId.bind(this);
 
         this.state = {
-            team: TeamStore.getCurrent(),
             name: '',
             description: '',
             channelId: '',
@@ -33,20 +30,6 @@ export default class AddIncomingWebhook extends React.Component {
             serverError: '',
             clientError: null
         };
-    }
-
-    componentDidMount() {
-        TeamStore.addChangeListener(this.handleChange);
-    }
-
-    componentWillUnmount() {
-        TeamStore.removeChangeListener(this.handleChange);
-    }
-
-    handleChange() {
-        this.setState({
-            team: TeamStore.getCurrent()
-        });
     }
 
     handleSubmit(e) {
@@ -83,7 +66,7 @@ export default class AddIncomingWebhook extends React.Component {
         AsyncClient.addIncomingHook(
             hook,
             () => {
-                browserHistory.push(`/${this.state.team.name}/integrations/installed`);
+                browserHistory.push('/settings/integrations/installed');
             },
             (err) => {
                 this.setState({
@@ -112,12 +95,6 @@ export default class AddIncomingWebhook extends React.Component {
     }
 
     render() {
-        const team = TeamStore.getCurrent();
-
-        if (!team) {
-            return null;
-        }
-
         return (
             <div className='backstage row'>
                 <div className='add-incoming-webhook'>
@@ -184,7 +161,7 @@ export default class AddIncomingWebhook extends React.Component {
                     <div className='add-integration__submit-row'>
                         <Link
                             className='btn btn-sm'
-                            to={`/${team.name}/integrations/add`}
+                            to={'/settings/integrations/add'}
                         >
                             <FormattedMessage
                                 id='add_incoming_webhook.cancel'
