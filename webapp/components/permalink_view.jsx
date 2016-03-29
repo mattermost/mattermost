@@ -28,18 +28,19 @@ export default class PermalinkView extends React.Component {
         const channel = ChannelStore.getCurrent();
         const channelId = channel ? channel.id : '';
         const channelName = channel ? channel.name : '';
-        const teamURL = TeamStore.getCurrentTeamUrl();
+        const team = TeamStore.getCurrent();
+        const teamName = team ? team.name : '';
         const profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         return {
             channelId,
             channelName,
             profiles,
-            teamURL,
+            teamName,
             postId
         };
     }
     isStateValid() {
-        return this.state.channelId !== '' && this.state.profiles && this.state.teamURL;
+        return this.state.channelId !== '' && this.state.profiles && this.state.teamName;
     }
     updateState() {
         this.setState(this.getStateFromStores(this.props));
@@ -64,7 +65,7 @@ export default class PermalinkView extends React.Component {
             return true;
         }
 
-        if (nextState.teamURL !== this.state.teamURL) {
+        if (nextState.teamName !== this.state.teamName) {
             return true;
         }
 
@@ -87,7 +88,7 @@ export default class PermalinkView extends React.Component {
                     id='archive-link-home'
                 >
                     <Link
-                        to={this.state.teamURL + '/channels/' + this.state.channelName}
+                        to={'/' + this.state.teamName + '/channels/' + this.state.channelName}
                     >
                         <FormattedMessage
                             id='center_panel.recent'
