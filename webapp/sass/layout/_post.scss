@@ -66,6 +66,7 @@ body.ios {
         font-size: 13px;
         position: absolute;
         right: 0;
+        text-align: right;
         z-index: 3;
     }
 
@@ -74,16 +75,14 @@ body.ios {
     }
 }
 
-.help_format_text {
+.help__format-text {
     @include opacity(0);
     @include single-transition(all .2s ease);
-    bottom: -23px;
-    display: none !important;
+    display: inline-block;
     font-size: .85em;
-    left: 0;
-    overflow: hidden;
-    position: absolute;
-    text-overflow: ellipsis;
+    margin-right: 10px;
+    vertical-align: bottom;
+    white-space: nowrap;
 
     b,
     i,
@@ -275,38 +274,35 @@ body.ios {
         outline: none;
         text-align: center;
     }
-
-    .beginning-messages-text {
-        color: grey;
-        display: block;
-        margin-bottom: 5px;
-        margin-top: 2px;
-        text-align: center;
-    }
 }
 
 .post-list__timestamp {
-    @include border-radius(3px);
     @include opacity(0);
     @include single-transition(all, .6s, ease);
     @include translateY(-45px);
-    @include font-smoothing(initial);
-    background: $primary-color;
-    color: $white;
     display: none;
-    font-size: 12px;
-    left: 50%;
-    line-height: 25px;
-    margin-left: -60px;
+    left: 0;
     position: absolute;
     text-align: center;
     top: 8px;
-    width: 120px;
+    width: 100%;
     z-index: 50;
 
     &.scrolling {
         @include translateY(0);
         @include opacity(.8);
+    }
+
+    > div {
+        @include border-radius(3px);
+        @include font-smoothing(initial);
+        background: $primary-color;
+        color: $white;
+        display: inline-block;
+        font-size: 12px;
+        line-height: 25px;
+        padding: 0 8px;
+        text-align: center;
     }
 }
 

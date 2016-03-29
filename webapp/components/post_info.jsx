@@ -22,7 +22,7 @@ export default class PostInfo extends React.Component {
     }
     dropdownPosition(e) {
         var position = $('#post-list').height() - $(e.target).offset().top;
-        var dropdown = $(e.target).next('.dropdown-menu');
+        var dropdown = $(e.target).closest('.col__reply').find('.dropdown-menu');
         if (position < dropdown.height()) {
             dropdown.addClass('bottom');
         }

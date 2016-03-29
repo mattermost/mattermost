@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
@@ -162,6 +163,7 @@ class NotificationsTab extends React.Component {
         this.updateState();
         this.props.updateSection('');
         e.preventDefault();
+        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
     }
     updateSection(section) {
         this.updateState();

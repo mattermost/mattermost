@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import ManageIncomingHooks from './manage_incoming_hooks.jsx';
@@ -47,6 +48,7 @@ class UserSettingsIntegrationsTab extends React.Component {
         this.state = {};
     }
     updateSection(section) {
+        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         this.props.updateSection(section);
     }
     render() {

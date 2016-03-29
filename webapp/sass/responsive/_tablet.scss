@@ -15,6 +15,10 @@
         }
     }
 
+    .help__format-text {
+        display: none;
+    }
+
     .inner-wrap {
         &.move--left {
             margin-right: 0;

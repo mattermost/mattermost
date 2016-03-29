@@ -204,6 +204,7 @@ class SecurityTab extends React.Component {
                 this.props.updateSection('');
                 this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
                 e.preventDefault();
+                $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
             }.bind(this);
 
             return (

@@ -7,6 +7,8 @@ import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 
+import {FormattedMessage} from 'react-intl';
+
 export default class PremadeThemeChooser extends React.Component {
     constructor(props) {
         super(props);
@@ -50,6 +52,17 @@ export default class PremadeThemeChooser extends React.Component {
         return (
             <div className='row appearance-section'>
                 {premadeThemes}
+                <div className='col-sm-12 padding-bottom x2'>
+                    <a
+                        href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-themes'
+                        target='_blank'
+                    >
+                        <FormattedMessage
+                            id='user.settings.display.theme.otherThemes'
+                            defaultMessage='See other themes'
+                        />
+                    </a>
+                </div>
             </div>
         );
     }
