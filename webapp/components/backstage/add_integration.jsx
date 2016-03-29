@@ -58,7 +58,7 @@ export default class AddIntegration extends React.Component {
                     description={
                         <FormattedMessage
                             id='add_integration.incomingWebhook.description'
-                            defaultMessage='This is a webhook to which you can send stuff that will be posted'
+                            defaultMessage='Create webhook URLs for use in external integrations.'
                         />
                     }
                     link={`/${team.name}/integrations/add/incoming_webhook`}
@@ -80,7 +80,7 @@ export default class AddIntegration extends React.Component {
                     description={
                         <FormattedMessage
                             id='add_integration.outgoingWebhook.description'
-                            defaultMessage='This is a webhook that will send stuff to you when stuff is posted'
+                            defaultMessage='Create webhooks to send new message events to an external integration.'
                         />
                     }
                     link={`/${team.name}/integrations/add/outgoing_webhook`}
