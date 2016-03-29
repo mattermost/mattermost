@@ -22,6 +22,11 @@ run: .npminstall
 
 	npm run run &
 
+run-fullmap: .npminstall
+	@echo FULL SOURCE MAP Running mattermost Webapp for development FULL SOURCE MAP
+
+	npm run run-fullmap &
+
 stop:
 	@echo Stopping changes watching
 
