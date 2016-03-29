@@ -495,7 +495,7 @@ class PostStoreClass extends EventEmitter {
         BrowserStore.actionOnGlobalItemsWithPrefix('draft_', (key, value) => {
             if (value) {
                 value.uploadsInProgress = [];
-                BrowserStore.setItem(key, value);
+                BrowserStore.setGlobalItem(key, value);
             }
         });
     }
@@ -503,7 +503,7 @@ class PostStoreClass extends EventEmitter {
         BrowserStore.actionOnGlobalItemsWithPrefix('comment_draft_', (key, value) => {
             if (value) {
                 value.uploadsInProgress = [];
-                BrowserStore.setItem(key, value);
+                BrowserStore.setGlobalItem(key, value);
             }
         });
     }
