@@ -64,7 +64,7 @@ export default class AdminNavbarDropdown extends React.Component {
                     >
                         <li>
                             <Link
-                                to={Utils.getWindowLocationOrigin() + '/' + this.state.currentTeam.name + '/channels/town-square'}
+                                to={'/' + this.state.currentTeam.name + '/channels/town-square'}
                             >
                                 <FormattedMessage
                                     id='admin.nav.switch'
