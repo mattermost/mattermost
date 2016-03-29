@@ -29,7 +29,7 @@ export default class SidebarRight extends React.Component {
         this.doStrangeThings = this.doStrangeThings.bind(this);
 
         this.state = {
-            searchVisible: !!SearchStore.getSearchResults(),
+            searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
             postRightVisible: !!PostStore.getSelectedPost(),
             fromSearch: false,
@@ -111,7 +111,7 @@ export default class SidebarRight extends React.Component {
     }
     onSearchChange() {
         this.setState({
-            searchVisible: !!SearchStore.getSearchResults(),
+            searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch()
         });
     }

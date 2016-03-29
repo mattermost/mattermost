@@ -2,9 +2,9 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Client from 'utils/client.jsx';
 import UserStore from 'stores/user_store.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
@@ -110,8 +110,7 @@ class NewChannelFlow extends React.Component {
         Client.createChannel(channel,
             (data) => {
                 this.props.onModalDismissed();
-                AsyncClient.getChannel(data.id);
-                Utils.switchChannel(data);
+                GlobalActions.emitChannelClickEvent(data);
             },
             (err) => {
                 if (err.id === 'model.channel.is_valid.2_or_more.app_error') {

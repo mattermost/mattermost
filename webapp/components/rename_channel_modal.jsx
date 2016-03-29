@@ -4,7 +4,7 @@
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import * as Client from 'utils/client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
@@ -165,8 +165,7 @@ export default class RenameChannelModal extends React.Component {
         Client.updateChannel(
             channel,
             () => {
-                AsyncClient.getChannel(channel.id);
-                Utils.updateAddressBar(channel.name);
+                GlobalActions.emitChannelClickEvent(channel);
 
                 this.handleHide();
             },

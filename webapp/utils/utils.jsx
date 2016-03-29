@@ -169,7 +169,7 @@ export function notifyMe(title, body, channel) {
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
-                            switchChannel(channel);
+                            GlobalActions.emitChannelClickEvent(channel);
                         } else {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
                         }
@@ -957,24 +957,6 @@ export function isValidUsername(name) {
     return error;
 }
 
-export function updateAddressBar(channelName) {
-    const teamURL = TeamStore.getCurrentTeamUrl();
-    history.replaceState('data', '', teamURL + '/channels/' + channelName);
-}
-
-export function switchChannel(channel) {
-    GlobalActions.emitChannelClickEvent(channel);
-
-    updateAddressBar(channel.name);
-
-    $('.inner-wrap').removeClass('move--right');
-    $('.sidebar--left').removeClass('move--right');
-
-    client.trackPage();
-
-    return false;
-}
-
 export function isMobile() {
     return screen.width <= 768;
 }
@@ -1253,7 +1235,7 @@ export function importSlack(file, success, error) {
 }
 
 export function getTeamURLFromAddressBar() {
-    return window.location.href.split('/channels')[0];
+    return window.location.origin + '/' + window.location.pathname.split('/')[1];
 }
 
 export function getShortenedTeamURL() {

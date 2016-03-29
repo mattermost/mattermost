@@ -16,7 +16,7 @@ class SearchStoreClass extends EventEmitter {
     constructor() {
         super();
 
-        this.searchResults = {};
+        this.searchResults = null;
         this.isMentionSearch = false;
         this.searchTerm = '';
     }
