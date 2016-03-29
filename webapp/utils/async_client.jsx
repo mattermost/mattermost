@@ -1243,3 +1243,18 @@ export function deleteOutgoingHook(id) {
         }
     );
 }
+
+export function regenOutgoingHookToken(id) {
+    client.regenOutgoingHookToken(
+        {id},
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_OUTGOING_WEBHOOK,
+                outgoingWebhook: data
+            });
+        },
+        (err) => {
+            dispatchError(err, 'regenOutgoingHookToken');
+        }
+    );
+}

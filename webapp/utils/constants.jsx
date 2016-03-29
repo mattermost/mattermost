@@ -74,6 +74,7 @@ export default {
         REMOVED_INCOMING_WEBHOOK: null,
         RECEIVED_OUTGOING_WEBHOOKS: null,
         RECEIVED_OUTGOING_WEBHOOK: null,
+        UPDATED_OUTGOING_WEBHOOK: null,
         REMOVED_OUTGOING_WEBHOOK: null,
 
         RECEIVED_MSG: null,

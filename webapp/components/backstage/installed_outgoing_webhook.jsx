@@ -12,20 +12,28 @@ export default class InstalledOutgoingWebhook extends React.Component {
     static get propTypes() {
         return {
             outgoingWebhook: React.PropTypes.object.isRequired,
-            onDeleteClick: React.PropTypes.func.isRequired
+            onRegenToken: React.PropTypes.func.isRequired,
+            onDelete: React.PropTypes.func.isRequired
         };
     }
 
     constructor(props) {
         super(props);
 
-        this.handleDeleteClick = this.handleDeleteClick.bind(this);
+        this.handleRegenToken = this.handleRegenToken.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
     }
 
-    handleDeleteClick(e) {
+    handleRegenToken(e) {
         e.preventDefault();
 
-        this.props.onDeleteClick(this.props.outgoingWebhook);
+        this.props.onRegenToken(this.props.outgoingWebhook);
+    }
+
+    handleDelete(e) {
+        e.preventDefault();
+
+        this.props.onDelete(this.props.outgoingWebhook);
     }
 
     render() {
@@ -51,13 +59,25 @@ export default class InstalledOutgoingWebhook extends React.Component {
                     <div className='details-row'>
                         <span className='description'>
                             {Utils.getWindowLocationOrigin() + '/hooks/' + outgoingWebhook.id}
+                            {' - '}
+                            {outgoingWebhook.token}
                         </span>
                     </div>
                 </div>
                 <div className='actions'>
                     <a
                         href='#'
-                        onClick={this.handleDeleteClick}
+                        onClick={this.handleRegenToken}
+                    >
+                        <FormattedMessage
+                            id='installed_integrations.regenToken'
+                            defaultMessage='Regen Token'
+                        />
+                    </a>
+                    {' - '}
+                    <a
+                        href='#'
+                        onClick={this.handleDelete}
                     >
                         <FormattedMessage
                             id='installed_integrations.delete'

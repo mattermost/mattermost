@@ -77,6 +77,15 @@ class IntegrationStore extends EventEmitter {
         this.outgoingWebhooks.push(outgoingWebhook);
     }
 
+    updateOutgoingWebhook(outgoingWebhook) {
+        for (let i = 0; i < this.outgoingWebhooks.length; i++) {
+            if (this.outgoingWebhooks[i].id === outgoingWebhook.id) {
+                this.outgoingWebhooks[i] = outgoingWebhook;
+                break;
+            }
+        }
+    }
+
     removeOutgoingWebhook(id) {
         for (let i = 0; i < this.outgoingWebhooks.length; i++) {
             if (this.outgoingWebhooks[i].id === id) {
@@ -108,6 +117,10 @@ class IntegrationStore extends EventEmitter {
             break;
         case ActionTypes.RECEIVED_OUTGOING_WEBHOOK:
             this.addOutgoingWebhook(action.outgoingWebhook);
+            this.emitChange();
+            break;
+        case ActionTypes.UPDATED_OUTGOING_WEBHOOK:
+            this.updateOutgoingWebhook(action.outgoingWebhook);
             this.emitChange();
             break;
         case ActionTypes.REMOVED_OUTGOING_WEBHOOK:

@@ -21,6 +21,10 @@ export default class InstalledIntegrations extends React.Component {
         this.updateFilter = this.updateFilter.bind(this);
         this.updateTypeFilter = this.updateTypeFilter.bind(this);
 
+        this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
+        this.regenOutgoingWebhookToken = this.regenOutgoingWebhookToken.bind(this);
+        this.deleteOutgoingWebhook = this.deleteOutgoingWebhook.bind(this);
+
         this.state = {
             incomingWebhooks: [],
             outgoingWebhooks: [],
@@ -80,6 +84,10 @@ export default class InstalledIntegrations extends React.Component {
 
     deleteIncomingWebhook(incomingWebhook) {
         AsyncClient.deleteIncomingHook(incomingWebhook.id);
+    }
+
+    regenOutgoingWebhookToken(outgoingWebhook) {
+        AsyncClient.regenOutgoingHookToken(outgoingWebhook.id);
     }
 
     deleteOutgoingWebhook(outgoingWebhook) {
@@ -227,7 +235,8 @@ export default class InstalledIntegrations extends React.Component {
                     <InstalledOutgoingWebhook
                         key={outgoingWebhook.id}
                         outgoingWebhook={outgoingWebhook}
-                        onDeleteClick={this.deleteOutgoingWebhook}
+                        onRegenToken={this.regenOutgoingWebhookToken}
+                        onDelete={this.deleteOutgoingWebhook}
                     />
                 );
             }
