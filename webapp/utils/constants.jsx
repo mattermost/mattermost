@@ -68,6 +68,7 @@ export default {
         RECEIVED_PREFERENCE: null,
         RECEIVED_PREFERENCES: null,
         RECEIVED_FILE_INFO: null,
+        RECEIVED_ANALYTICS: null,
 
         RECEIVED_MSG: null,
 
