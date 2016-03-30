@@ -6,8 +6,10 @@ package store
 import (
 	"database/sql"
 	"fmt"
-	"github.com/mattermost/platform/model"
+	"strconv"
 	"strings"
+
+	"github.com/mattermost/platform/model"
 )
 
 const (
@@ -418,7 +420,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users WHERE TeamId = :TeamId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
+		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
@@ -443,6 +445,48 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
 		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId", map[string]interface{}{"TeamId": teamId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+		props := make(map[string]interface{})
+		idQuery := ""
+
+		for index, userId := range userIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["userId"+strconv.Itoa(index)] = userId
+			idQuery += ":userId" + strconv.Itoa(index)
+		}
+
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE Users.Id IN ("+idQuery+")", props); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
 			userMap := make(map[string]*model.User)
@@ -593,8 +637,8 @@ func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_for_export.app_error", nil, err.Error())
+		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId", map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForExport", "store.sql_user.get_for_export.app_error", nil, err.Error())
 		} else {
 			for _, u := range users {
 				u.Password = ""

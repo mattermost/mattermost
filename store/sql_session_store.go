@@ -106,14 +106,14 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken)
 		} else {
 			result.Data = sessions[0]
-		}
 
-		tcs := me.Team().GetTeamsForUser(sessions[0].UserId)
-		if rtcs := <-tcs; rtcs.Err != nil {
-			result.Err = model.NewLocAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+rtcs.Err.Error())
-			return
-		} else {
-			sessions[0].Teams = rtcs.Data.([]*model.TeamMember)
+			tcs := me.Team().GetTeamsForUser(sessions[0].UserId)
+			if rtcs := <-tcs; rtcs.Err != nil {
+				result.Err = model.NewLocAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+rtcs.Err.Error())
+				return
+			} else {
+				sessions[0].Teams = rtcs.Data.([]*model.TeamMember)
+			}
 		}
 
 		storeChannel <- result

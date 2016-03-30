@@ -13,8 +13,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 )
 
-//var Client *model.Client
-
 type TestHelper struct {
 	BasicClient  *model.Client
 	BasicTeam    *model.Team
@@ -23,9 +21,10 @@ type TestHelper struct {
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
 
-	SystemAdminClient *model.Client
-	SystemAdminTeam   *model.Team
-	SystemAdminUser   *model.User
+	SystemAdminClient  *model.Client
+	SystemAdminTeam    *model.Team
+	SystemAdminUser    *model.User
+	SystemAdminChannel *model.Channel
 }
 
 func Setup() *TestHelper {
@@ -38,8 +37,6 @@ func Setup() *TestHelper {
 		StartServer()
 		InitApi()
 		utils.EnableDebugLogForTest()
-		//Client = model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
-
 		Srv.Store.MarkSystemRanUnitTests()
 	}
 
@@ -47,7 +44,7 @@ func Setup() *TestHelper {
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
-	me.BasicClient = model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+	me.BasicClient = me.CreateClient()
 	me.BasicTeam = me.CreateTeam(me.BasicClient)
 	me.BasicUser = me.CreateUser(me.BasicClient)
 	LinkUserToTeam(me.BasicUser, me.BasicTeam)
@@ -62,7 +59,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 }
 
 func (me *TestHelper) InitSystemAdmin() *TestHelper {
-	me.SystemAdminClient = model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+	me.SystemAdminClient = me.CreateClient()
 	me.SystemAdminTeam = me.CreateTeam(me.SystemAdminClient)
 	me.SystemAdminUser = me.CreateUser(me.SystemAdminClient)
 	LinkUserToTeam(me.SystemAdminUser, me.SystemAdminTeam)
@@ -72,9 +69,14 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	c.IpAddress = "cmd_line"
 	UpdateRoles(c, me.SystemAdminUser, model.ROLE_SYSTEM_ADMIN)
 	me.SystemAdminUser.Password = "Password1"
-
 	me.LoginSystemAdmin()
+	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)
+
 	return me
+}
+
+func (me *TestHelper) CreateClient() *model.Client {
+	return model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
 }
 
 func (me *TestHelper) CreateTeam(client *model.Client) *model.Team {

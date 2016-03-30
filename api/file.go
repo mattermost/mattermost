@@ -57,15 +57,14 @@ const (
 
 var fileInfoCache *utils.Cache = utils.NewLru(1000)
 
-func InitFile(r *mux.Router) {
+func InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
-	sr := r.PathPrefix("/files").Subrouter()
-	sr.Handle("/upload", ApiUserRequired(uploadFile)).Methods("POST")
-	sr.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFile)).Methods("GET")
-	sr.Handle("/get_info/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFileInfo)).Methods("GET")
-	sr.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("POST")
-	sr.Handle("/get_export", ApiUserRequired(getExport)).Methods("GET")
+	BaseRoutes.Files.Handle("/upload", ApiUserRequired(uploadFile)).Methods("POST")
+	BaseRoutes.Files.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFile)).Methods("GET")
+	BaseRoutes.Files.Handle("/get_info/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFileInfo)).Methods("GET")
+	BaseRoutes.Files.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("POST")
+	BaseRoutes.Files.Handle("/get_export", ApiUserRequired(getExport)).Methods("GET")
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {

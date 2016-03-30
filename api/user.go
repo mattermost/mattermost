@@ -50,8 +50,6 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	BaseRoutes.Users.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
 	BaseRoutes.Users.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
-	BaseRoutes.Users.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
-	BaseRoutes.Users.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
 	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
 	BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
@@ -70,7 +68,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/claim/email_to_ldap", ApiAppHandler(emailToLdap)).Methods("POST")
 	BaseRoutes.Users.Handle("/claim/ldap_to_email", ApiAppHandler(ldapToEmail)).Methods("POST")
 
-	BaseRoutes.NeedUser.Handle("/", ApiUserRequired(getUser)).Methods("GET")
+	BaseRoutes.NeedUser.Handle("/get", ApiUserRequired(getUser)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/image", ApiUserRequired(getProfileImage)).Methods("GET")
@@ -913,8 +911,9 @@ func getMeLoggedIn(c *Context, w http.ResponseWriter, r *http.Request) {
 	data["logged_in"] = "false"
 	data["team_name"] = ""
 
-	if len(c.Session.UserId) != 0 {
-		teamChan := Srv.Store.Team().Get(c.TeamId)
+	// TODO XXX FIX ME - this is a hack to get it working.  Needs to support multi-teams
+	if len(c.Session.UserId) != 0 && len(c.Session.Teams) > 0 {
+		teamChan := Srv.Store.Team().Get(c.Session.Teams[0].TeamId)
 		var team *model.Team
 		if tr := <-teamChan; tr.Err != nil {
 			c.Err = tr.Err
@@ -925,6 +924,7 @@ func getMeLoggedIn(c *Context, w http.ResponseWriter, r *http.Request) {
 		data["logged_in"] = "true"
 		data["team_name"] = team.Name
 	}
+
 	w.Write([]byte(model.MapToJson(data)))
 }
 
@@ -951,17 +951,12 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id, ok := params["id"]
-	if ok {
-		// You must be system admin to access another team
-		if id != c.TeamId {
-			if !c.HasSystemAdminPermissions("getProfiles") {
-				return
-			}
-		}
+	id := params["id"]
 
-	} else {
-		id = c.TeamId
+	if c.Session.GetTeamByTeamId(id) == nil {
+		if !c.HasSystemAdminPermissions("getProfiles") {
+			return
+		}
 	}
 
 	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
@@ -1122,7 +1117,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			path := "teams/" + c.TeamId + "/users/" + id + "/profile.png"
+			path := "/users/" + id + "/profile.png"
 
 			if data, err := readFile(path); err != nil {
 
@@ -1217,7 +1212,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := "teams/" + c.TeamId + "/users/" + c.Session.UserId + "/profile.png"
+	path := "users/" + c.Session.UserId + "/profile.png"
 
 	if err := writeFile(buf.Bytes(), path); err != nil {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
@@ -1352,6 +1347,13 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If you are not the system admin then you can only demote yourself
+	if !c.IsSystemAdmin() && user_id != c.Session.UserId {
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+	}
+
+	// Only another system admin can add the system admin role
 	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
 		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
@@ -1810,7 +1812,7 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(c.TeamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfileByIds(userIds); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1818,17 +1820,6 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		statuses := map[string]string{}
 		for _, profile := range profiles {
-			found := false
-			for _, uid := range userIds {
-				if uid == profile.Id {
-					found = true
-				}
-			}
-
-			if !found {
-				continue
-			}
-
 			if profile.IsOffline() {
 				statuses[profile.Id] = model.USER_OFFLINE
 			} else if profile.IsAway() {
@@ -1838,7 +1829,6 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		//w.Header().Set("Cache-Control", "max-age=9, public") // 2 mins
 		w.Write([]byte(model.MapToJson(statuses)))
 		return
 	}
@@ -2190,7 +2180,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.LogAudit("fail - couldn't get user")
 		c.Err = result.Err
 		return
@@ -2269,7 +2259,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.LogAudit("fail - couldn't get user")
 		c.Err = result.Err
 		return
