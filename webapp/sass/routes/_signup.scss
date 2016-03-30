@@ -200,7 +200,7 @@
             display: block;
             height: 40px;
             line-height: 34px;
-            margin: 1em 0;
+            margin: 1em 0 1em 10px;
             min-width: 200px;
             padding: 0 1em;
             width: 200px;
@@ -262,9 +262,10 @@
             }
 
             &.btn-full {
-                width: 100%;
-                text-align: left;
+                margin-left: 0;
                 padding-left: 35px;
+                text-align: left;
+                width: 100%;
             }
         }
 
