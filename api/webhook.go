@@ -14,20 +14,19 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-func InitWebhook(r *mux.Router) {
+func InitWebhook() {
 	l4g.Debug(utils.T("api.webhook.init.debug"))
 
-	sr := r.PathPrefix("/hooks").Subrouter()
-	sr.Handle("/incoming/create", ApiUserRequired(createIncomingHook)).Methods("POST")
-	sr.Handle("/incoming/delete", ApiUserRequired(deleteIncomingHook)).Methods("POST")
-	sr.Handle("/incoming/list", ApiUserRequired(getIncomingHooks)).Methods("GET")
+	BaseRoutes.Hooks.Handle("/incoming/create", ApiUserRequired(createIncomingHook)).Methods("POST")
+	BaseRoutes.Hooks.Handle("/incoming/delete", ApiUserRequired(deleteIncomingHook)).Methods("POST")
+	BaseRoutes.Hooks.Handle("/incoming/list", ApiUserRequired(getIncomingHooks)).Methods("GET")
 
-	sr.Handle("/outgoing/create", ApiUserRequired(createOutgoingHook)).Methods("POST")
-	sr.Handle("/outgoing/regen_token", ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
-	sr.Handle("/outgoing/delete", ApiUserRequired(deleteOutgoingHook)).Methods("POST")
-	sr.Handle("/outgoing/list", ApiUserRequired(getOutgoingHooks)).Methods("GET")
+	BaseRoutes.Hooks.Handle("/outgoing/create", ApiUserRequired(createOutgoingHook)).Methods("POST")
+	BaseRoutes.Hooks.Handle("/outgoing/regen_token", ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
+	BaseRoutes.Hooks.Handle("/outgoing/delete", ApiUserRequired(deleteOutgoingHook)).Methods("POST")
+	BaseRoutes.Hooks.Handle("/outgoing/list", ApiUserRequired(getOutgoingHooks)).Methods("GET")
 
-	sr.Handle("/{id:[A-Za-z0-9]+}", ApiAppHandler(incomingWebhook)).Methods("POST")
+	BaseRoutes.Hooks.Handle("/{id:[A-Za-z0-9]+}", ApiAppHandler(incomingWebhook)).Methods("POST")
 
 	// Old route. Remove eventually.
 	mr := Srv.Router

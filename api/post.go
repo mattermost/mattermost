@@ -34,7 +34,7 @@ func InitPost() {
 	BaseRoutes.Posts.Handle("/page/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getPosts, false)).Methods("GET")
 	BaseRoutes.Posts.Handle("/since/{time:[0-9]+}", ApiUserRequiredActivity(getPostsSince, false)).Methods("GET")
 
-	BaseRoutes.NeedPost.Handle("/", ApiUserRequired(getPost)).Methods("GET")
+	BaseRoutes.NeedPost.Handle("/get", ApiUserRequired(getPost)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/delete", ApiUserRequired(deletePost)).Methods("POST")
 	BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
@@ -969,7 +969,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
-	id := params["id"]
+	id := params["channel_id"]
 	if len(id) != 26 {
 		c.SetInvalidParam("getPostsSince", "channelId")
 		return
@@ -1002,7 +1002,7 @@ func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
-	channelId := params["id"]
+	channelId := params["channel_id"]
 	if len(channelId) != 26 {
 		c.SetInvalidParam("getPost", "channelId")
 		return
@@ -1078,7 +1078,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
-	channelId := params["id"]
+	channelId := params["channel_id"]
 	if len(channelId) != 26 {
 		c.SetInvalidParam("deletePost", "channelId")
 		return
@@ -1166,7 +1166,7 @@ func getPostsAfter(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, before bool) {
 	params := mux.Vars(r)
 
-	id := params["id"]
+	id := params["channel_id"]
 	if len(id) != 26 {
 		c.SetInvalidParam("getPostsBeforeOrAfter", "channelId")
 		return

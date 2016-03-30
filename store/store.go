@@ -125,6 +125,7 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetProfiles(teamId string) StoreChannel
+	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData string, authService string) StoreChannel
 	GetByUsername(username string) StoreChannel

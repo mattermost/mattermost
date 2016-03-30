@@ -29,10 +29,11 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
 	BaseRoutes.Teams.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
-	BaseRoutes.Teams.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
-	BaseRoutes.Teams.Handle("/update", ApiUserRequired(updateTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
+
+	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/update", ApiUserRequired(updateTeam)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 
 	// These should be moved to the global admain console
 	BaseRoutes.Teams.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")

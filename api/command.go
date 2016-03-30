@@ -49,10 +49,10 @@ func InitCommand() {
 	BaseRoutes.Commands.Handle("/regen_token", ApiUserRequired(regenCommandToken)).Methods("POST")
 	BaseRoutes.Commands.Handle("/delete", ApiUserRequired(deleteCommand)).Methods("POST")
 
-	BaseRoutes.Commands.Handle("/test", ApiAppHandler(testCommand)).Methods("POST")
-	BaseRoutes.Commands.Handle("/test", ApiAppHandler(testCommand)).Methods("GET")
-	BaseRoutes.Commands.Handle("/test_e", ApiAppHandler(testEphemeralCommand)).Methods("POST")
-	BaseRoutes.Commands.Handle("/test_e", ApiAppHandler(testEphemeralCommand)).Methods("GET")
+	BaseRoutes.Teams.Handle("/command_test", ApiAppHandler(testCommand)).Methods("POST")
+	BaseRoutes.Teams.Handle("/command_test", ApiAppHandler(testCommand)).Methods("GET")
+	BaseRoutes.Teams.Handle("/command_test_e", ApiAppHandler(testEphemeralCommand)).Methods("POST")
+	BaseRoutes.Teams.Handle("/command_test_e", ApiAppHandler(testEphemeralCommand)).Methods("GET")
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {

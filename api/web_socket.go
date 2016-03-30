@@ -5,16 +5,15 @@ package api
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"net/http"
 )
 
-func InitWebSocket(r *mux.Router) {
+func InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
-	r.Handle("/websocket", ApiUserRequired(connect)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/websocket", ApiUserRequired(connect)).Methods("GET")
 	hub.Start()
 }
 

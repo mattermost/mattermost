@@ -89,6 +89,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
 	c.TeamId = mux.Vars(r)["team_id"]
+	h.isApi = IsApiCall(r) // TODO XXX FIXME refactor h.isApi
 
 	token := ""
 	isTokenFromQueryString := false
@@ -413,6 +414,10 @@ func (c *Context) GetSiteURL() string {
 	return c.siteURL
 }
 
+func IsApiCall(r *http.Request) bool {
+	return strings.Index(r.URL.Path, "/api/") == 0
+}
+
 func GetIpAddress(r *http.Request) string {
 	address := r.Header.Get(model.HEADER_FORWARDED)
 
@@ -515,9 +520,16 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewLocAppError("Handle404", "api.context.404.app_error", nil, "")
+	err.Translate(utils.T)
 	err.StatusCode = http.StatusNotFound
 	l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
-	RenderWebError(err, w, r)
+
+	if IsApiCall(r) {
+		w.WriteHeader(err.StatusCode)
+		w.Write([]byte(err.ToJson()))
+	} else {
+		RenderWebError(err, w, r)
+	}
 }
 
 func GetSession(token string) *model.Session {

@@ -11,7 +11,7 @@ import (
 )
 
 func TestGetLogs(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitSystemAdmin().InitBasic()
 
 	if _, err := th.BasicClient.GetLogs(); err == nil {
 		t.Fatal("Shouldn't have permissions")
@@ -352,11 +352,6 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 		}
 
 		if rows[1].Name != "hashtag_post_count" {
-			t.Log(rows.ToJson())
-			t.Fatal()
-		}
-
-		if rows[1].Value < 1 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
