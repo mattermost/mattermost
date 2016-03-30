@@ -13,6 +13,7 @@ class FileStore extends EventEmitter {
     constructor() {
         super();
 
+        this.handleEventPayload = this.handleEventPayload.bind(this);
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
 
         this.fileInfo = new Map();
