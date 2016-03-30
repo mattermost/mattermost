@@ -98,7 +98,6 @@
 
     .inner__content {
         margin: 30px 0 20px;
-        padding: 0 1rem;
     }
 
     .block--gray {
@@ -132,14 +131,12 @@
         font-size: 2.2em;
         font-weight: 600;
         margin: .5em 0 0;
-        padding-left: 1rem;
     }
 
     .signup-team__subdomain {
         font-size: 1.5em;
         font-weight: 300;
         margin: .2em 0 1.2em;
-        padding-left: 1rem;
         text-transform: uppercase;
     }
 
@@ -151,6 +148,7 @@
         background: #dddddd;
         height: 1px;
         margin: 2em 0;
+        margin: 2.5em 0 2.5em -1rem;
         text-align: left;
 
         span {
@@ -169,10 +167,6 @@
     ul {
         margin-bottom: 0;
         padding-left: 18px;
-    }
-
-    .signup__email-container {
-        margin-left: 1rem;
     }
 
     .btn {
@@ -200,7 +194,7 @@
             display: block;
             height: 40px;
             line-height: 34px;
-            margin: 1em 0 1em 10px;
+            margin: 1em 0;
             min-width: 200px;
             padding: 0 1em;
             width: 200px;
@@ -262,7 +256,6 @@
             }
 
             &.btn-full {
-                margin-left: 0;
                 padding-left: 35px;
                 text-align: left;
                 width: 100%;
@@ -374,11 +367,11 @@
     }
 
     .margin--extra {
-        margin-top: 3em;
+        margin-top: 2.5em;
     }
 
     .margin--extra-2x {
-        margin-top: 6em;
+        margin-top: 5em;
     }
 }
 
