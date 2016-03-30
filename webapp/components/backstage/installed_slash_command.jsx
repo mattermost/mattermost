@@ -3,15 +3,14 @@
 
 import React from 'react';
 
-import ChannelStore from 'stores/channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
-export default class InstalledIncomingWebhook extends React.Component {
+export default class InstalledSlashCommand extends React.Component {
     static get propTypes() {
         return {
-            incomingWebhook: React.PropTypes.object.isRequired,
+            slashCommand: React.PropTypes.object.isRequired,
             onDelete: React.PropTypes.func.isRequired
         };
     }
@@ -25,48 +24,45 @@ export default class InstalledIncomingWebhook extends React.Component {
     handleDelete(e) {
         e.preventDefault();
 
-        this.props.onDelete(this.props.incomingWebhook);
+        this.props.onDelete(this.props.slashCommand);
     }
 
     render() {
-        const incomingWebhook = this.props.incomingWebhook;
-
-        const channel = ChannelStore.get(incomingWebhook.channel_id);
-        const channelName = channel ? channel.display_name : 'cannot find channel';
+        const slashCommand = this.props.slashCommand;
 
         return (
-            <div className='backstage-list__item'>
-                <div className='item-details'>
-                    <div className='item-details__row'>
-                        <span className='item-details__name'>
-                            {incomingWebhook.display_name || channelName}
+            <div className='installed-integrations__item installed-integrations__slash-command'>
+                <div className='details'>
+                    <div className='details-row'>
+                        <span className='name'>
+                            {slashCommand.display_name}
                         </span>
-                        <span className='item-details__type'>
+                        <span className='type'>
                             <FormattedMessage
-                                id='installed_integrations.incomingWebhookType'
-                                defaultMessage='(Incoming Webhook)'
+                                id='installed_integrations.slashCommandType'
+                                defaultMessage='(Slash Command)'
                             />
                         </span>
                     </div>
-                    <div className='item-details__row'>
-                        <span className='item-details__description'>
-                            {incomingWebhook.description}
+                    <div className='details-row'>
+                        <span className='description'>
+                            {slashCommand.description}
                         </span>
                     </div>
-                    <div className='tem-details__row'>
-                        <span className='item-details__creation'>
+                    <div className='details-row'>
+                        <span className='creation'>
                             <FormattedMessage
                                 id='installed_integrations.creation'
                                 defaultMessage='Created by {creator} on {createAt, date, full}'
                                 values={{
-                                    creator: Utils.displayUsername(incomingWebhook.user_id),
-                                    createAt: incomingWebhook.create_at
+                                    creator: Utils.displayUsername(slashCommand.creator_Id),
+                                    createAt: slashCommand.create_at
                                 }}
                             />
                         </span>
                     </div>
                 </div>
-                <div className='item-actions'>
+                <div className='actions'>
                     <a
                         href='#'
                         onClick={this.handleDelete}

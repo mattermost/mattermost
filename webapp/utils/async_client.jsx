@@ -1258,3 +1258,64 @@ export function regenOutgoingHookToken(id) {
         }
     );
 }
+
+export function listTeamCommands() {
+    if (isCallInProgress('listTeamCommands')) {
+        return;
+    }
+
+    callTracker.listTeamCommands = utils.getTimestamp();
+
+    client.listTeamCommands(
+        (data) => {
+            callTracker.listTeamCommands = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SLASH_COMMANDS,
+                slashCommands: data
+            });
+        },
+        (err) => {
+            callTracker.listTeamCommands = 0;
+            dispatchError(err, 'listTeamCommands');
+        }
+    );
+}
+
+export function addCommand(command, success, error) {
+    client.addCommand(
+        {command},
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SLASH_COMMAND,
+                command: data
+            });
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            dispatchError(err, 'addCommand');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function deleteCommand(id) {
+    client.deleteCommand(
+        {id},
+        () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.REMOVED_SLASH_COMMAND,
+                id
+            });
+        },
+        (err) => {
+            dispatchError(err, 'deleteCommand');
+        }
+    );
+}

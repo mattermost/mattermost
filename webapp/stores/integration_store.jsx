@@ -20,6 +20,9 @@ class IntegrationStore extends EventEmitter {
 
         this.outgoingWebhooks = [];
         this.receivedOutgoingWebhooks = false;
+
+        this.slashCommands = [];
+        this.receivedSlashCommands = false;
     }
 
     addChangeListener(callback) {
@@ -61,7 +64,7 @@ class IntegrationStore extends EventEmitter {
     }
 
     hasReceivedOutgoingWebhooks() {
-        return this.receivedIncomingWebhooks;
+        return this.receivedOutgoingWebhooks;
     }
 
     getOutgoingWebhooks() {
@@ -90,6 +93,41 @@ class IntegrationStore extends EventEmitter {
         for (let i = 0; i < this.outgoingWebhooks.length; i++) {
             if (this.outgoingWebhooks[i].id === id) {
                 this.outgoingWebhooks.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    hasReceivedSlashCommands() {
+        return this.receivedSlashCommands;
+    }
+
+    getSlashCommands() {
+        return this.slashCommands;
+    }
+
+    setSlashCommands(slashCommands) {
+        this.slashCommands = slashCommands;
+        this.receivedSlashCommands = true;
+    }
+
+    addSlashCommand(slashCommand) {
+        this.slashCommands.push(slashCommand);
+    }
+
+    updateSlashCommand(slashCommand) {
+        for (let i = 0; i < this.slashCommands.length; i++) {
+            if (this.slashCommands[i].id === slashCommand.id) {
+                this.slashCommands[i] = slashCommand;
+                break;
+            }
+        }
+    }
+
+    removeSlashCommand(id) {
+        for (let i = 0; i < this.slashCommands.length; i++) {
+            if (this.slashCommands[i].id === id) {
+                this.slashCommands.splice(i, 1);
                 break;
             }
         }
@@ -127,8 +165,27 @@ class IntegrationStore extends EventEmitter {
             this.removeOutgoingWebhook(action.id);
             this.emitChange();
             break;
+        case ActionTypes.RECEIVED_SLASH_COMMANDS:
+            this.setSlashCommands(action.slashCommands);
+            this.emitChange();
+            break;
+        case ActionTypes.RECEIVED_SLASH_COMMAND:
+            this.addSlashCommand(action.slashCommand);
+            this.emitChange();
+            break;
+        case ActionTypes.UPDATED_SLASH_COMMAND:
+            this.updateSlashCommand(action.slashCommand);
+            this.emitChange();
+            break;
+        case ActionTypes.REMOVED_SLASH_COMMAND:
+            this.removeSlashCommand(action.id);
+            this.emitChange();
+            break;
         }
     }
 }
 
-export default new IntegrationStore();
+const instance = new IntegrationStore();
+export default instance;
+window.IntegrationStore = instance;
+
