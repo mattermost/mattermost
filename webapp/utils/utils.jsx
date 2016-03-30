@@ -795,6 +795,10 @@ export function applyTheme(theme) {
     updateCodeTheme(theme.codeTheme);
 }
 
+export function resetTheme() {
+    applyTheme(Constants.THEMES.default);
+}
+
 export function applyFont(fontName) {
     const body = $('body');
 

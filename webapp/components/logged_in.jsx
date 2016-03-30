@@ -14,6 +14,7 @@ const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 import ErrorBar from 'components/error_bar.jsx';
 import * as Websockets from 'action_creators/websocket_actions.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import {browserHistory} from 'react-router';
 
@@ -44,6 +45,13 @@ export default class LoggedIn extends React.Component {
         super(params);
 
         this.onUserChanged = this.onUserChanged.bind(this);
+
+        this.state = {
+            user: null
+        };
+    }
+    isValidState() {
+        return this.state.user != null;
     }
     onUserChanged() {
         // Grab the current user
@@ -75,6 +83,8 @@ export default class LoggedIn extends React.Component {
         if (tutorialStep <= TutorialSteps.INTRO_SCREENS) {
             browserHistory.push(Utils.getTeamURLFromAddressBar() + '/tutorial');
         }
+
+        this.setState({user});
     }
     componentWillMount() {
         // Emit view action
@@ -186,6 +196,8 @@ export default class LoggedIn extends React.Component {
         Websockets.close();
         UserStore.removeChangeListener(this.onUserChanged);
 
+        Utils.resetTheme();
+
         $('body').off('click.userpopover');
         $('body').off('mouseenter mouseleave', '.post');
         $('body').off('mouseenter mouseleave', '.post.post--comment.same--root');
@@ -195,6 +207,10 @@ export default class LoggedIn extends React.Component {
         $(window).off('keydown.preventBackspace');
     }
     render() {
+        if (!this.isValidState()) {
+            return <LoadingScreen/>;
+        }
+
         let content = [];
         if (this.props.children) {
             content = this.props.children;
