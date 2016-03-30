@@ -14,13 +14,15 @@ const (
 )
 
 type IncomingWebhook struct {
-	Id        string `json:"id"`
-	CreateAt  int64  `json:"create_at"`
-	UpdateAt  int64  `json:"update_at"`
-	DeleteAt  int64  `json:"delete_at"`
-	UserId    string `json:"user_id"`
-	ChannelId string `json:"channel_id"`
-	TeamId    string `json:"team_id"`
+	Id          string `json:"id"`
+	CreateAt    int64  `json:"create_at"`
+	UpdateAt    int64  `json:"update_at"`
+	DeleteAt    int64  `json:"delete_at"`
+	UserId      string `json:"user_id"`
+	ChannelId   string `json:"channel_id"`
+	TeamId      string `json:"team_id"`
+	DisplayName string `json:"display_name"`
+	Description string `json:"description"`
 }
 
 type IncomingWebhookRequest struct {
@@ -97,6 +99,14 @@ func (o *IncomingWebhook) IsValid() *AppError {
 
 	if len(o.TeamId) != 26 {
 		return NewLocAppError("IncomingWebhook.IsValid", "model.incoming_hook.team_id.app_error", nil, "")
+	}
+
+	if len(o.DisplayName) > 64 {
+		return NewLocAppError("IncomingWebhook.IsValid", "model.incoming_hook.display_name.app_error", nil, "")
+	}
+
+	if len(o.Description) > 128 {
+		return NewLocAppError("IncomingWebhook.IsValid", "model.incoming_hook.description.app_error", nil, "")
 	}
 
 	return nil

@@ -2060,6 +2060,14 @@
     "translation": "Create at must be a valid time"
   },
   {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Invalid display name"
+  },
+  {
     "id": "model.command.is_valid.id.app_error",
     "translation": "Invalid Id"
   },
@@ -2216,6 +2224,14 @@
     "translation": "Create at must be a valid time"
   },
   {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Invalid display name"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "Invalid Id"
   },
@@ -2278,6 +2294,14 @@
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Invalid display name"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",

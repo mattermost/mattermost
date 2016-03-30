@@ -4,7 +4,6 @@
 import React from 'react';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -39,7 +38,7 @@ export default class InstalledIncomingWebhook extends React.Component {
                 <div className='item-details'>
                     <div className='item-details__row'>
                         <span className='item-details__name'>
-                            {channelName}
+                            {incomingWebhook.display_name || channelName}
                         </span>
                         <span className='item-details__type'>
                             <FormattedMessage
@@ -50,7 +49,7 @@ export default class InstalledIncomingWebhook extends React.Component {
                     </div>
                     <div className='item-details__row'>
                         <span className='item-details__description'>
-                            {Utils.getWindowLocationOrigin() + '/hooks/' + incomingWebhook.id}
+                            {incomingWebhook.description}
                         </span>
                     </div>
                 </div>
