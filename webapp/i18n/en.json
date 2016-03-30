@@ -814,6 +814,7 @@
   "get_team_invite_link_modal.title": "Team Invite Link",
   "installed_integrations.add": "Add Integration",
   "installed_integrations.allFilter": "All ({count})",
+  "installed_integrations.creation": "Created by {creator} on {createAt, date, full}",
   "installed_integrations.delete": "Delete",
   "installed_integrations.header": "Installed Integrations",
   "installed_integrations.incomingWebhookType": "(Incoming Webhook)",
