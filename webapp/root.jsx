@@ -283,7 +283,6 @@ function renderRootComponent() {
                             />
                         </Route>
                     </Route>
->>>>>>> Added initial backstage components and InstalledIntegrations page
                     <Route
                         path='admin_console'
                         component={AdminConsole}
