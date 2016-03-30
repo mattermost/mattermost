@@ -138,6 +138,24 @@ export default class TeamSignUp extends React.Component {
         }
 
         let signupMethod = null;
+        let goBack = (
+            <div className='signup-header'>
+                <a
+                    href='#'
+                    onClick={
+                        (e) => {
+                            e.preventDefault();
+                            this.updatePage('choose');
+                        }
+                    }
+                >
+                    <span className='fa fa-chevron-left'/>
+                    <FormattedMessage
+                        id='web.header.back'
+                    />
+                </a>
+            </div>
+        );
 
         if (global.window.mm_config.EnableTeamCreation !== 'true') {
             if (teamListing == null) {
@@ -154,9 +172,12 @@ export default class TeamSignUp extends React.Component {
                     updatePage={this.updatePage}
                 />
             );
+            goBack = null;
         } else if (this.state.page === 'email') {
             signupMethod = (
-                <EmailSignUpPage/>
+                <div>
+                    <EmailSignUpPage/>
+                </div>
             );
         } else if (this.state.page === 'ldap') {
             return (
@@ -180,24 +201,28 @@ export default class TeamSignUp extends React.Component {
                     defaultMessage='No team creation method has been enabled.  Please contact an administrator for access.'
                 />
             );
+            goBack = null;
         }
 
         return (
-            <div className='col-sm-12'>
-                <div className='signup-team__container'>
-                    <img
-                        className='signup-team-logo'
-                        src={logoImage}
-                    />
-                    <h1>{global.window.mm_config.SiteName}</h1>
-                    <h4 className='color--light'>
-                        <FormattedMessage
-                            id='web.root.singup_info'
+            <div>
+                {goBack}
+                <div className='col-sm-12'>
+                    <div className='signup-team__container'>
+                        <img
+                            className='signup-team-logo'
+                            src={logoImage}
                         />
-                    </h4>
-                    <div id='signup-team'>
-                        {teamListing}
-                        {signupMethod}
+                        <h1>{global.window.mm_config.SiteName}</h1>
+                        <h4 className='color--light'>
+                            <FormattedMessage
+                                id='web.root.singup_info'
+                            />
+                        </h4>
+                        <div id='signup-team'>
+                            {teamListing}
+                            {signupMethod}
+                        </div>
                     </div>
                 </div>
             </div>
