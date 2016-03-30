@@ -1255,11 +1255,14 @@ export function windowHeight() {
 }
 
 export function openDirectChannelToUser(user, successCb, errorCb) {
+    AsyncClient.savePreference(
+        Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+        user.id,
+        'true'
+    );
+
     const channelName = this.getDirectChannelName(UserStore.getCurrentId(), user.id);
     let channel = ChannelStore.getByName(channelName);
-
-    const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, 'true');
-    AsyncClient.savePreferences([preference]);
 
     if (channel) {
         if ($.isFunction(successCb)) {
