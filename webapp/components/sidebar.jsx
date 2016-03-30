@@ -440,9 +440,9 @@ export default class Sidebar extends React.Component {
 
         let link = '';
         if (channel.fake) {
-            link = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name + '?fakechannel=' + encodeURIComponent(JSON.stringify(channel));
+            link = '/' + this.state.currentTeam.name + '/channels/' + channel.name + '?fakechannel=' + encodeURIComponent(JSON.stringify(channel));
         } else {
-            link = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+            link = '/' + this.state.currentTeam.name + '/channels/' + channel.name;
         }
 
         return (

@@ -8,7 +8,7 @@ function getPrefix() {
         return global.window.mm_current_user_id + '_';
     }
 
-    console.log('BrowserStore tried to operate without user present'); //eslint-disable-line no-console
+    console.warn('BrowserStore tried to operate without user present'); //eslint-disable-line no-console
 
     return 'unknown_';
 }
@@ -144,18 +144,14 @@ class BrowserStoreClass {
      * Signature for action is action(key, value)
      */
     actionOnGlobalItemsWithPrefix(prefix, action) {
-        var globalPrefix = getPrefix();
-        var globalPrefixiLen = globalPrefix.length;
-
         var storage = sessionStorage;
         if (this.isLocalStorageSupported()) {
             storage = localStorage;
         }
 
         for (var key in storage) {
-            if (key.lastIndexOf(globalPrefix + prefix, 0) === 0) {
-                var userkey = key.substring(globalPrefixiLen);
-                action(userkey, this.getGlobalItem(key));
+            if (key.lastIndexOf(prefix, 0) === 0) {
+                action(key, this.getGlobalItem(key));
             }
         }
     }
