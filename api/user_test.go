@@ -1450,13 +1450,15 @@ func TestMeLoggedIn(t *testing.T) {
 }
 
 func TestGenerateMfaQrCode(t *testing.T) {
-	Setup()
+	th := Setup()
+	Client := th.CreateClient()
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	ruser, _ := Client.CreateUser(&user, "")
+	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
 	Client.Logout()
@@ -1475,13 +1477,15 @@ func TestGenerateMfaQrCode(t *testing.T) {
 }
 
 func TestUpdateMfa(t *testing.T) {
-	Setup()
+	th := Setup()
+	Client := th.CreateClient()
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	ruser, _ := Client.CreateUser(&user, "")
+	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
 	Client.Logout()
@@ -1504,13 +1508,15 @@ func TestUpdateMfa(t *testing.T) {
 }
 
 func TestCheckMfa(t *testing.T) {
-	Setup()
+	th := Setup()
+	Client := th.CreateClient()
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	ruser, _ := Client.CreateUser(&user, "")
+	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
 	if result, err := Client.CheckMfa(model.USER_AUTH_SERVICE_EMAIL, team.Name, user.Email); err != nil {

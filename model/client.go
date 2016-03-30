@@ -368,16 +368,6 @@ func (c *Client) UpdateMfa(activate bool, token string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) SetOAuthToken(token string) {
-	c.AuthToken = token
-	c.AuthType = HEADER_TOKEN
-}
-
-func (c *Client) ClearOAuthToken() {
-	c.AuthToken = ""
-	c.AuthType = HEADER_BEARER
-}
-
 func (c *Client) RevokeSession(sessionAltId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["id"] = sessionAltId
