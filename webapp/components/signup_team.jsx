@@ -141,7 +141,7 @@ export default class TeamSignUp extends React.Component {
         let goBack = (
             <div className='signup-header'>
                 <a
-                    href='/'
+                    href='#'
                     onClick={
                         (e) => {
                             e.preventDefault();
