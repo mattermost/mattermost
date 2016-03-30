@@ -8124,6 +8124,64 @@
     ]
   }
 , {
+    "emoji": "🇨🇦"
+  , "description": "regional indicator symbol letter c + regional indicator symbol letter a"
+  , "aliases": [
+      "ca",
+      "eh"
+    ]
+  , "tags": [
+      "canada"
+    ]
+  }
+, {
+    "emoji": "🇵🇰"
+  , "description": "regional indicator symbol letter p + regional indicator symbol letter k"
+  , "aliases": [
+      "pk"
+    ]
+  , "tags": [
+      "pakistan"
+    ]
+  }
+, {
+    "emoji": "🇿🇦"
+  , "description": "regional indicator symbol letter z + regional indicator symbol letter a"
+  , "aliases": [
+      "za"
+    ]
+  , "tags": [
+      "south_africa"
+    ]
+  }
+, {
+    "emoji": "🙂"
+  , "description": "slightly smiling face"
+  , "aliases": [
+      "slightly_smiling_face"
+    ]
+  , "tags": [
+    ]
+  }
+, {
+    "emoji": "🙁"
+  , "description": "slightly frowning face"
+  , "aliases": [
+      "slightly_frowning_face"
+    ]
+  , "tags": [
+    ]
+  }
+, {
+    "emoji": "🙃"
+  , "description": "upside-down face"
+  , "aliases": [
+      "upside_down_face"
+    ]
+  , "tags": [
+    ]
+  }
+, {
     "aliases": [
       "basecamp"
     ]
