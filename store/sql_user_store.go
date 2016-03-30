@@ -40,6 +40,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("NotifyProps").SetMaxSize(2000)
 		table.ColMap("ThemeProps").SetMaxSize(2000)
 		table.ColMap("Locale").SetMaxSize(5)
+		table.ColMap("MfaSecret").SetMaxSize(128)
 		table.SetUniqueTogether("Email", "TeamId")
 		table.SetUniqueTogether("Username", "TeamId")
 	}
@@ -50,6 +51,9 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	// ADDED for 2.0 REMOVE for 2.4
 	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
+	// ADDED for 2.2 REMOVE for 2.6
+	us.CreateColumnIfNotExists("Users", "MfaActive", "tinyint(1)", "boolean", "0")
+	us.CreateColumnIfNotExists("Users", "MfaSecret", "varchar(128)", "character varying(128)", "")
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
@@ -141,6 +145,8 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.LastPingAt = oldUser.LastPingAt
 			user.EmailVerified = oldUser.EmailVerified
 			user.FailedAttempts = oldUser.FailedAttempts
+			user.MfaSecret = oldUser.MfaSecret
+			user.MfaActive = oldUser.MfaActive
 
 			if !allowActiveUpdate {
 				user.Roles = oldUser.Roles
@@ -335,6 +341,50 @@ func (us SqlUserStore) UpdateAuthData(userId, service, authData, email string) S
 
 		if _, err := us.GetMaster().Exec(query, map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData, "Email": email}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdateAuthData", "store.sql_user.update_auth_data.app_error", nil, "id="+userId+", "+err.Error())
+		} else {
+			result.Data = userId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) UpdateMfaSecret(userId, secret string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		updateAt := model.GetMillis()
+
+		if _, err := us.GetMaster().Exec("UPDATE Users SET MfaSecret = :Secret, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Secret": secret, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.UpdateMfaSecret", "store.sql_user.update_mfa_secret.app_error", nil, "id="+userId+", "+err.Error())
+		} else {
+			result.Data = userId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) UpdateMfaActive(userId string, active bool) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		updateAt := model.GetMillis()
+
+		if _, err := us.GetMaster().Exec("UPDATE Users SET MfaActive = :Active, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Active": active, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.UpdateMfaActive", "store.sql_user.update_mfa_active.app_error", nil, "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId
 		}

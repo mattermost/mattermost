@@ -1411,3 +1411,79 @@ func TestMeLoggedIn(t *testing.T) {
 		}
 	}
 }
+
+func TestGenerateMfaQrCode(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser, _ := Client.CreateUser(&user, "")
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
+
+	Client.Logout()
+
+	if _, err := Client.GenerateMfaQrCode(); err == nil {
+		t.Fatal("should have failed - not logged in")
+	}
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	if _, err := Client.GenerateMfaQrCode(); err == nil {
+		t.Fatal("should have failed - not licensed")
+	}
+
+	// need to add more test cases when license and config can be configured for tests
+}
+
+func TestUpdateMfa(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser, _ := Client.CreateUser(&user, "")
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
+
+	Client.Logout()
+
+	if _, err := Client.UpdateMfa(true, "123456"); err == nil {
+		t.Fatal("should have failed - not logged in")
+	}
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	if _, err := Client.UpdateMfa(true, ""); err == nil {
+		t.Fatal("should have failed - no token")
+	}
+
+	if _, err := Client.UpdateMfa(true, "123456"); err == nil {
+		t.Fatal("should have failed - not licensed")
+	}
+
+	// need to add more test cases when license and config can be configured for tests
+}
+
+func TestCheckMfa(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser, _ := Client.CreateUser(&user, "")
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
+
+	if result, err := Client.CheckMfa(model.USER_AUTH_SERVICE_EMAIL, team.Name, user.Email); err != nil {
+		t.Fatal(err)
+	} else {
+		resp := result.Data.(map[string]string)
+		if resp["mfa_required"] != "false" {
+			t.Fatal("mfa should not be required")
+		}
+	}
+
+	// need to add more test cases when license and config can be configured for tests
+}

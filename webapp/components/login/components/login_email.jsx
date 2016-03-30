@@ -2,69 +2,40 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
 import UserStore from 'stores/user_store.jsx';
-import {browserHistory} from 'react-router';
+import Constants from 'utils/constants.jsx';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
-
-var holders = defineMessages({
-    badTeam: {
-        id: 'login_email.badTeam',
-        defaultMessage: 'Bad team name'
-    },
-    emailReq: {
-        id: 'login_email.emailReq',
-        defaultMessage: 'An email is required'
-    },
-    pwdReq: {
-        id: 'login_email.pwdReq',
-        defaultMessage: 'A password is required'
-    },
-    email: {
-        id: 'login_email.email',
-        defaultMessage: 'Email'
-    },
-    pwd: {
-        id: 'login_email.pwd',
-        defaultMessage: 'Password'
-    }
-});
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
-class LoginEmail extends React.Component {
+export default class LoginEmail extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
-            serverError: ''
+            serverError: props.serverError
         };
+    }
+    componentWillReceiveProps(nextProps) {
+        this.setState({serverError: nextProps.serverError});
     }
     handleSubmit(e) {
         e.preventDefault();
-        const {formatMessage} = this.props.intl;
         var state = {};
-
-        const name = this.props.teamName;
-        if (!name) {
-            state.serverError = formatMessage(holders.badTeam);
-            this.setState(state);
-            return;
-        }
 
         const email = this.refs.email.value.trim();
         if (!email) {
-            state.serverError = formatMessage(holders.emailReq);
+            state.serverError = Utils.localizeMessage('login_email.emailReq', 'An email is required');
             this.setState(state);
             return;
         }
 
         const password = this.refs.password.value.trim();
         if (!password) {
-            state.serverError = formatMessage(holders.pwdReq);
+            state.serverError = Utils.localizeMessage('login_email.pwdReq', 'A password is required');
             this.setState(state);
             return;
         }
@@ -72,21 +43,7 @@ class LoginEmail extends React.Component {
         state.serverError = '';
         this.setState(state);
 
-        Client.loginByEmail(name, email, password,
-            () => {
-                UserStore.setLastEmail(email);
-                browserHistory.push('/' + name + '/channels/town-square');
-            },
-            (err) => {
-                if (err.id === 'api.user.login.not_verified.app_error') {
-                    browserHistory.push('/verify_email?teamname=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email));
-                    return;
-                }
-                state.serverError = err.message;
-                this.valid = false;
-                this.setState(state);
-            }
-        );
+        this.props.submit(Constants.EMAIL_SERVICE, email, password);
     }
     render() {
         let serverError;
@@ -110,7 +67,6 @@ class LoginEmail extends React.Component {
             priorEmail = decodeURIComponent(emailParam);
         }
 
-        const {formatMessage} = this.props.intl;
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='signup__email-container'>
@@ -125,7 +81,7 @@ class LoginEmail extends React.Component {
                             name='email'
                             defaultValue={priorEmail}
                             ref='email'
-                            placeholder={formatMessage(holders.email)}
+                            placeholder={Utils.localizeMessage('login_email.email', 'Email')}
                             spellCheck='false'
                         />
                     </div>
@@ -136,7 +92,7 @@ class LoginEmail extends React.Component {
                             className='form-control'
                             name='password'
                             ref='password'
-                            placeholder={formatMessage(holders.pwd)}
+                            placeholder={Utils.localizeMessage('login_email.pwd', 'Password')}
                             spellCheck='false'
                         />
                     </div>
@@ -160,8 +116,6 @@ LoginEmail.defaultProps = {
 };
 
 LoginEmail.propTypes = {
-    intl: intlShape.isRequired,
-    teamName: React.PropTypes.string.isRequired
+    submit: React.PropTypes.func.isRequired,
+    serverError: React.PropTypes.string
 };
-
-export default injectIntl(LoginEmail);

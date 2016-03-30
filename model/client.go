@@ -301,6 +301,42 @@ func (c *Client) Logout() (*Result, *AppError) {
 	}
 }
 
+func (c *Client) CheckMfa(method, teamName, loginId string) (*Result, *AppError) {
+	m := make(map[string]string)
+	m["method"] = method
+	m["team_name"] = teamName
+	m["login_id"] = loginId
+
+	if r, err := c.DoApiPost("/users/mfa", MapToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GenerateMfaQrCode() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/generate_mfa_qr", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), r.Body}, nil
+	}
+}
+
+func (c *Client) UpdateMfa(activate bool, token string) (*Result, *AppError) {
+	m := make(map[string]interface{})
+	m["activate"] = activate
+	m["token"] = token
+
+	if r, err := c.DoApiPost("/users/update_mfa", StringInterfaceToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) SetOAuthToken(token string) {
 	c.AuthToken = token
 	c.AuthType = HEADER_TOKEN

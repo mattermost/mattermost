@@ -23,6 +23,10 @@
 			"Rev": "bcc4c8345a21301bf47c032ff42dd1aae2fe3027"
 		},
 		{
+			"ImportPath": "github.com/dgryski/dgoogauth",
+			"Rev": "67642ac6f9144f6610279e37e7be9af13f1cd668"
+		},
+		{
 			"ImportPath": "github.com/disintegration/imaging",
 			"Rev": "546cb3c5137b3f1232e123a26aa033aade6b3066"
 		},
@@ -97,6 +101,14 @@
 			"ImportPath": "github.com/lib/pq/oid",
 			"Comment": "go1.0-cutoff-63-g11fc39a",
 			"Rev": "11fc39a580a008f1f39bb3d11d984fb34ed778d9"
+		},
+		{
+			"ImportPath": "github.com/mattermost/rsc/gf256",
+			"Rev": "bbaefb05eaa0389ea712340066837c8ce4d287f9"
+		},
+		{
+			"ImportPath": "github.com/mattermost/rsc/qr",
+			"Rev": "bbaefb05eaa0389ea712340066837c8ce4d287f9"
 		},
 		{
 			"ImportPath": "github.com/mssola/user_agent",

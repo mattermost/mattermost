@@ -337,13 +337,28 @@ export function logout(success, error) {
     });
 }
 
-export function loginByEmail(name, email, password, success, error) {
+export function checkMfa(method, team, loginId, success, error) {
+    $.ajax({
+        url: '/api/v1/users/mfa',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({method, team_name: team, login_id: loginId}),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('checkMfa', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function loginByEmail(name, email, password, token, success, error) {
     $.ajax({
         url: '/api/v1/users/login',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({name, email, password}),
+        data: JSON.stringify({name, email, password, token}),
         success: function onSuccess(data, textStatus, xhr) {
             track('api', 'api_users_login_success', data.team_id, 'email', data.email);
             sessionStorage.removeItem(data.id + '_last_error');
@@ -381,13 +396,13 @@ export function loginByUsername(name, username, password, success, error) {
     });
 }
 
-export function loginByLdap(teamName, id, password, success, error) {
+export function loginByLdap(teamName, id, password, token, success, error) {
     $.ajax({
         url: '/api/v1/users/login_ldap',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({teamName, id, password}),
+        data: JSON.stringify({teamName, id, password, token}),
         success: function onSuccess(data, textStatus, xhr) {
             track('api', 'api_users_loginLdap_success', data.team_id, 'id', id);
             sessionStorage.removeItem(data.id + '_last_error');
@@ -1709,6 +1724,21 @@ export function resendVerification(success, error, teamName, email) {
             if (error) {
                 error(e);
             }
+        }
+    });
+}
+
+export function updateMfa(data, success, error) {
+    $.ajax({
+        url: '/api/v1/users/update_mfa',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('updateMfa', xhr, status, err);
+            error(e);
         }
     });
 }

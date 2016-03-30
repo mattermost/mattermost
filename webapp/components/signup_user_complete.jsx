@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import LoadingScreen from 'components/loading_screen.jsx';
-import LoginLdap from 'components/login_ldap.jsx';
+import LoginLdap from 'components/login/components/login_ldap.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
