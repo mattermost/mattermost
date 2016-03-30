@@ -130,7 +130,7 @@ export default class Textbox extends React.Component {
 
         const helpText = (
             <div
-                style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '0.5' : '0'}}
+                style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '0.3' : '0'}}
                 className='help__format-text'
             >
                 <b>
