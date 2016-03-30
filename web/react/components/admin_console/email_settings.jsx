@@ -71,11 +71,11 @@ var holders = defineMessages({
     },
     mtpns: {
         id: 'admin.email.mtpns',
-        defaultMessage: 'Use iOS and Android apps on iTunes and Google Play with TPNS connection'
+        defaultMessage: 'Use iOS and Android apps on iTunes and Google Play with TPNS'
     },
     mhpns: {
         id: 'admin.email.mhpns',
-        defaultMessage: 'Use encrypted, production-quality HPNS connection to iOS and Android devices on iTunes and Google Play'
+        defaultMessage: 'Use encrypted, production-quality HPNS connection to iOS and Android apps'
     },
     selfPush: {
         id: 'admin.email.selfPush',
@@ -382,7 +382,7 @@ class EmailSettings extends React.Component {
         } else {
             pushServerHelpText = (
                 <FormattedHTMLMessage
-                    id='admin.email.mtpnsHelp'
+                    id='admin.email.easHelp'
                     defaultMessage='Learn more about compiling and deploying your own mobile apps from an <a href="http://docs.mattermost.com/deployment/push.html#enterprise-app-store-eas" target="_blank">Enterprise App Store</a>.'
                 />
             );
