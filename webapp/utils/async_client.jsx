@@ -1121,3 +1121,140 @@ export function getRecentAndNewUsersAnalytics(teamId) {
         }
     );
 }
+
+export function listIncomingHooks() {
+    if (isCallInProgress('listIncomingHooks')) {
+        return;
+    }
+
+    callTracker.listIncomingHooks = utils.getTimestamp();
+
+    client.listIncomingHooks(
+        (data) => {
+            callTracker.listIncomingHooks = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_INCOMING_WEBHOOKS,
+                incomingWebhooks: data
+            });
+        },
+        (err) => {
+            callTracker.listIncomingHooks = 0;
+            dispatchError(err, 'getIncomingHooks');
+        }
+    );
+}
+
+export function listOutgoingHooks() {
+    if (isCallInProgress('listOutgoingHooks')) {
+        return;
+    }
+
+    callTracker.listOutgoingHooks = utils.getTimestamp();
+
+    client.listOutgoingHooks(
+        (data) => {
+            callTracker.listOutgoingHooks = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_OUTGOING_WEBHOOKS,
+                outgoingWebhooks: data
+            });
+        },
+        (err) => {
+            callTracker.listOutgoingHooks = 0;
+            dispatchError(err, 'getOutgoingHooks');
+        }
+    );
+}
+
+export function addIncomingHook(hook, success, error) {
+    client.addIncomingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_INCOMING_WEBHOOK,
+                incomingWebhook: data
+            });
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            dispatchError(err, 'addIncomingHook');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function addOutgoingHook(hook, success, error) {
+    client.addOutgoingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_OUTGOING_WEBHOOK,
+                outgoingWebhook: data
+            });
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            dispatchError(err, 'addOutgoingHook');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function deleteIncomingHook(id) {
+    client.deleteIncomingHook(
+        {id},
+        () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.REMOVED_INCOMING_WEBHOOK,
+                id
+            });
+        },
+        (err) => {
+            dispatchError(err, 'deleteIncomingHook');
+        }
+    );
+}
+
+export function deleteOutgoingHook(id) {
+    client.deleteOutgoingHook(
+        {id},
+        () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.REMOVED_OUTGOING_WEBHOOK,
+                id
+            });
+        },
+        (err) => {
+            dispatchError(err, 'deleteOutgoingHook');
+        }
+    );
+}
+
+export function regenOutgoingHookToken(id) {
+    client.regenOutgoingHookToken(
+        {id},
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_OUTGOING_WEBHOOK,
+                outgoingWebhook: data
+            });
+        },
+        (err) => {
+            dispatchError(err, 'regenOutgoingHookToken');
+        }
+    );
+}
