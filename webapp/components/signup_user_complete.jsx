@@ -1,18 +1,21 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
+import LoadingScreen from 'components/loading_screen.jsx';
+import LoginLdap from 'components/login_ldap.jsx';
+
+import BrowserStore from 'stores/browser_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import * as Client from 'utils/client.jsx';
-import UserStore from 'stores/user_store.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import Constants from 'utils/constants.jsx';
-import LoadingScreen from 'components/loading_screen.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router';
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 import logoImage from 'images/logo.png';
 
@@ -314,7 +317,7 @@ class SignupUserComplete extends React.Component {
             </div>
         );
 
-        var signupMessage = [];
+        let signupMessage = [];
         if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             signupMessage.push(
                 <a
@@ -351,7 +354,22 @@ class SignupUserComplete extends React.Component {
            );
         }
 
-        var emailSignup;
+        let ldapSignup;
+        if (global.window.mm_config.EnableLdap === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP) {
+            ldapSignup = (
+                <div className='inner__content'>
+                    <h5><strong>
+                        <FormattedMessage
+                            id='signup_user_completed.withLdap'
+                            defaultMessage='With your LDAP credentials'
+                        />
+                    </strong></h5>
+                    <LoginLdap teamName={this.state.teamName}/>
+                </div>
+            );
+        }
+
+        let emailSignup;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
                 <div>
@@ -397,24 +415,24 @@ class SignupUserComplete extends React.Component {
                                 {passwordError}
                             </div>
                         </div>
+                        <p className='margin--extra'>
+                            <button
+                                type='submit'
+                                onClick={this.handleSubmit}
+                                className='btn-primary btn'
+                            >
+                                <FormattedMessage
+                                    id='signup_user_completed.create'
+                                    defaultMessage='Create Account'
+                                />
+                            </button>
+                        </p>
                     </div>
-                    <p className='margin--extra'>
-                        <button
-                            type='submit'
-                            onClick={this.handleSubmit}
-                            className='btn-primary btn'
-                        >
-                            <FormattedMessage
-                                id='signup_user_completed.create'
-                                defaultMessage='Create Account'
-                            />
-                        </button>
-                    </p>
                 </div>
             );
         }
 
-        if (signupMessage.length > 0 && emailSignup) {
+        if (signupMessage.length > 0 && (emailSignup || ldapSignup)) {
             signupMessage = (
                 <div>
                     {signupMessage}
@@ -428,7 +446,21 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        if (signupMessage.length === 0 && !emailSignup) {
+        if (ldapSignup && emailSignup) {
+            ldapSignup = (
+                <div>
+                    {ldapSignup}
+                    <div className='or__container'>
+                        <FormattedMessage
+                            id='signup_user_completed.or'
+                            defaultMessage='or'
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        if (signupMessage.length === 0 && !emailSignup && !ldapSignup) {
             emailSignup = (
                 <div>
                     <FormattedMessage
@@ -449,7 +481,7 @@ class SignupUserComplete extends React.Component {
                 </div>
                 <div className='col-sm-12'>
                     <div className='signup-team__container padding--less'>
-                        <form>
+                        <div>
                             <img
                                 className='signup-team-logo'
                                 src={logoImage}
@@ -477,9 +509,10 @@ class SignupUserComplete extends React.Component {
                                 />
                             </h4>
                             {signupMessage}
+                            {ldapSignup}
                             {emailSignup}
                             {serverError}
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
