@@ -238,7 +238,9 @@ export default class Sidebar extends React.Component {
         });
     }
 
-    handleLeaveDirectChannel(channel) {
+    handleLeaveDirectChannel(e, channel) {
+        e.preventDefault();
+
         if (!this.isLeaving.get(channel.id)) {
             this.isLeaving.set(channel.id, true);
 
@@ -258,7 +260,7 @@ export default class Sidebar extends React.Component {
         }
 
         if (channel.id === this.state.activeId) {
-            browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
+            browserHistory.push('/' + this.state.currentTeam.name + '/channels/town-square');
         }
     }
 
@@ -422,7 +424,7 @@ export default class Sidebar extends React.Component {
                     overlay={removeTooltip}
                 >
                     <span
-                        onClick={() => handleClose(channel)}
+                        onClick={(e) => handleClose(e, channel)}
                         className='btn-close'
                     >
                         {'×'}
