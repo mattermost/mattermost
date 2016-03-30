@@ -14,7 +14,7 @@ import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedDate} from 'react-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -36,18 +36,6 @@ const holders = defineMessages({
     checkEmail: {
         id: 'user.settings.general.checkEmail',
         defaultMessage: 'Check your email at {email} to verify the address.'
-    },
-    newAddress: {
-        id: 'user.settings.general.newAddress',
-        defaultMessage: 'New Address: {email}<br />Check your email to verify the above address.'
-    },
-    checkEmailNoAddress: {
-        id: 'user.settings.general.checkEmailNoAddress',
-        defaultMessage: 'Check your email to verify your new address'
-    },
-    loginGitlab: {
-        id: 'user.settings.general.loginGitlab',
-        defaultMessage: 'Log in done through GitLab'
     },
     validImage: {
         id: 'user.settings.general.validImage',
@@ -72,10 +60,6 @@ const holders = defineMessages({
     username: {
         id: 'user.settings.general.username',
         defaultMessage: 'Username'
-    },
-    email: {
-        id: 'user.settings.general.email',
-        defaultMessage: 'Email'
     },
     profilePicture: {
         id: 'user.settings.general.profilePicture',
@@ -299,9 +283,224 @@ class UserSettingsGeneralTab extends React.Component {
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
                         email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailChangeInProgress: false};
     }
+    createEmailSection() {
+        let emailSection;
+
+        if (this.props.activeSection === 'email') {
+            const emailEnabled = global.window.mm_config.SendEmailNotifications === 'true';
+            const emailVerificationEnabled = global.window.mm_config.RequireEmailVerification === 'true';
+            const inputs = [];
+
+            let helpText = (
+                <FormattedMessage
+                    id='user.settings.general.emailHelp1'
+                    defaultMessage='Email is used for sign-in, notifications, and password reset. Email requires verification if changed.'
+                />
+            );
+
+            if (!emailEnabled) {
+                helpText = (
+                    <div className='setting-list__hint text-danger'>
+                        <FormattedMessage
+                            id='user.settings.general.emailHelp2'
+                            defaultMessage='Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'
+                        />
+                    </div>
+                );
+            } else if (!emailVerificationEnabled) {
+                helpText = (
+                    <FormattedMessage
+                        id='user.settings.general.emailHelp3'
+                        defaultMessage='Email is used for sign-in, notifications, and password reset.'
+                    />
+                );
+            } else if (this.state.emailChangeInProgress) {
+                const newEmail = UserStore.getCurrentUser().email;
+                if (newEmail) {
+                    helpText = (
+                        <FormattedMessage
+                            id='user.settings.general.emailHelp4'
+                            defaultMessage='A verification email was sent to {email}.'
+                            values={{
+                                email: newEmail
+                            }}
+                        />
+                    );
+                }
+            }
+
+            let submit = null;
+
+            if (this.props.user.auth_service === '') {
+                inputs.push(
+                    <div key='emailSetting'>
+                        <div className='form-group'>
+                            <label className='col-sm-5 control-label'>
+                                <FormattedMessage
+                                    id='user.settings.general.primaryEmail'
+                                    defaultMessage='Primary Email'
+                                />
+                            </label>
+                            <div className='col-sm-7'>
+                                <input
+                                    className='form-control'
+                                    type='text'
+                                    onChange={this.updateEmail}
+                                    value={this.state.email}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                );
+
+                inputs.push(
+                    <div key='confirmEmailSetting'>
+                        <div className='form-group'>
+                            <label className='col-sm-5 control-label'>
+                                <FormattedMessage
+                                    id='user.settings.general.confirmEmail'
+                                    defaultMessage='Confirm Email'
+                                />
+                            </label>
+                            <div className='col-sm-7'>
+                                <input
+                                    className='form-control'
+                                    type='text'
+                                    onChange={this.updateConfirmEmail}
+                                    value={this.state.confirmEmail}
+                                />
+                            </div>
+                        </div>
+                        {helpText}
+                    </div>
+                );
+
+                submit = this.submitEmail;
+            } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.general.emailGitlabCantUpdate'
+                                defaultMessage='Login occurs through GitLab. Email cannot be updated. Email address used for notifications is {email}.'
+                                values={{
+                                    email: this.state.email
+                                }}
+                            />
+                        </div>
+                        {helpText}
+                    </div>
+                );
+            } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.general.emailLdapCantUpdate'
+                                defaultMessage='Login occurs through LDAP. Email cannot be updated. Email address used for notifications is {email}.'
+                                values={{
+                                    email: this.state.email
+                                }}
+                            />
+                        </div>
+                        {helpText}
+                    </div>
+                );
+            }
+
+            emailSection = (
+                <SettingItemMax
+                    title={
+                        <FormattedMessage
+                            id='user.settings.general.email'
+                            defaultMessage='Email'
+                        />
+                    }
+                    inputs={inputs}
+                    submit={submit}
+                    server_error={this.state.serverError}
+                    client_error={this.state.emailError}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            let describe = '';
+            if (this.props.user.auth_service === '') {
+                if (this.state.emailChangeInProgress) {
+                    const newEmail = UserStore.getCurrentUser().email;
+                    if (newEmail) {
+                        describe = (
+                            <FormattedHTMLMessage
+                                id='user.settings.general.newAddress'
+                                defaultMessage='New Address: {email}<br />Check your email to verify the above address.'
+                                values={{
+                                    email: newEmail
+                                }}
+                            />
+                        );
+                    } else {
+                        describe = (
+                            <FormattedMessage
+                                id='user.settings.general.checkEmailNoAddress'
+                                defaultMessage='Check your email to verify your new address'
+                            />
+                        );
+                    }
+                } else {
+                    describe = UserStore.getCurrentUser().email;
+                }
+            } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.loginGitlab'
+                        defaultMessage='Login done through GitLab ({email})'
+                        values={{
+                            email: this.state.email
+                        }}
+                    />
+                );
+            } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.loginLdap'
+                        defaultMessage='Login done through LDAP ({email})'
+                        values={{
+                            email: this.state.email
+                        }}
+                    />
+                );
+            }
+
+            emailSection = (
+                <SettingItemMin
+                    title={
+                        <FormattedMessage
+                            id='user.settings.general.email'
+                            defaultMessage='Email'
+                        />
+                    }
+                    describe={describe}
+                    updateSection={() => {
+                        this.updateSection('email');
+                    }}
+                />
+            );
+        }
+
+        return emailSection;
+    }
     render() {
         const user = this.props.user;
-        const {formatMessage, formatHTMLMessage} = this.props.intl;
+        const {formatMessage} = this.props.intl;
 
         let clientError = null;
         if (this.state.clientError) {
@@ -310,10 +509,6 @@ class UserSettingsGeneralTab extends React.Component {
         let serverError = null;
         if (this.state.serverError) {
             serverError = this.state.serverError;
-        }
-        let emailError = null;
-        if (this.state.emailError) {
-            emailError = this.state.emailError;
         }
 
         let nameSection;
@@ -409,20 +604,27 @@ class UserSettingsGeneralTab extends React.Component {
                 />
             );
         } else {
-            let fullName = '';
+            let describe = '';
 
             if (user.first_name && user.last_name) {
-                fullName = user.first_name + ' ' + user.last_name;
+                describe = user.first_name + ' ' + user.last_name;
             } else if (user.first_name) {
-                fullName = user.first_name;
+                describe = user.first_name;
             } else if (user.last_name) {
-                fullName = user.last_name;
+                describe = user.last_name;
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.emptyName'
+                        defaultMessage="Click 'Edit' to add your full name"
+                    />
+                );
             }
 
             nameSection = (
                 <SettingItemMin
                     title={formatMessage(holders.fullName)}
-                    describe={fullName}
+                    describe={describe}
                     updateSection={() => {
                         this.updateSection('name');
                     }}
@@ -483,10 +685,22 @@ class UserSettingsGeneralTab extends React.Component {
                 />
             );
         } else {
+            let describe = '';
+            if (user.nickname) {
+                describe = user.nickname;
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.emptyNickname'
+                        defaultMessage="Click 'Edit' to add a nickname"
+                    />
+                );
+            }
+
             nicknameSection = (
                 <SettingItemMin
                     title={formatMessage(holders.nickname)}
-                    describe={UserStore.getCurrentUser().nickname}
+                    describe={describe}
                     updateSection={() => {
                         this.updateSection('nickname');
                     }}
@@ -559,152 +773,7 @@ class UserSettingsGeneralTab extends React.Component {
             );
         }
 
-        let emailSection;
-        if (this.props.activeSection === 'email') {
-            const emailEnabled = global.window.mm_config.SendEmailNotifications === 'true';
-            const emailVerificationEnabled = global.window.mm_config.RequireEmailVerification === 'true';
-            let helpText = (
-                <FormattedMessage
-                    id='user.settings.general.emailHelp1'
-                    defaultMessage='Email is used for sign-in, notifications, and password reset. Email requires verification if changed.'
-                />
-            );
-
-            if (!emailEnabled) {
-                helpText = (
-                    <div className='setting-list__hint text-danger'>
-                        <FormattedMessage
-                            id='user.settings.general.emailHelp2'
-                            defaultMessage='Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'
-                        />
-                    </div>
-                );
-            } else if (!emailVerificationEnabled) {
-                helpText = (
-                    <FormattedMessage
-                        id='user.settings.general.emailHelp3'
-                        defaultMessage='Email is used for sign-in, notifications, and password reset.'
-                    />
-                );
-            } else if (this.state.emailChangeInProgress) {
-                const newEmail = UserStore.getCurrentUser().email;
-                if (newEmail) {
-                    helpText = (
-                        <FormattedMessage
-                            id='user.settings.general.emailHelp4'
-                            defaultMessage='A verification email was sent to {email}.'
-                            values={{
-                                email: newEmail
-                            }}
-                        />
-                    );
-                }
-            }
-
-            let submit = null;
-
-            if (this.props.user.auth_service === '') {
-                inputs.push(
-                    <div key='emailSetting'>
-                        <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
-                                <FormattedMessage
-                                    id='user.settings.general.primaryEmail'
-                                    defaultMessage='Primary Email'
-                                />
-                            </label>
-                            <div className='col-sm-7'>
-                                <input
-                                    className='form-control'
-                                    type='text'
-                                    onChange={this.updateEmail}
-                                    value={this.state.email}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                );
-
-                inputs.push(
-                    <div key='confirmEmailSetting'>
-                        <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
-                                <FormattedMessage
-                                    id='user.settings.general.confirmEmail'
-                                    defaultMessage='Confirm Email'
-                                />
-                            </label>
-                            <div className='col-sm-7'>
-                                <input
-                                    className='form-control'
-                                    type='text'
-                                    onChange={this.updateConfirmEmail}
-                                    value={this.state.confirmEmail}
-                                />
-                            </div>
-                        </div>
-                        {helpText}
-                    </div>
-                );
-
-                submit = this.submitEmail;
-            } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='setting-list__hint'>
-                            <FormattedMessage
-                                id='user.settings.general.emailCantUpdate'
-                                defaultMessage='Log in occurs through GitLab. Email cannot be updated.'
-                            />
-                        </div>
-                        {helpText}
-                    </div>
-                );
-            }
-
-            emailSection = (
-                <SettingItemMax
-                    title='Email'
-                    inputs={inputs}
-                    submit={submit}
-                    server_error={serverError}
-                    client_error={emailError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
-            let describe = '';
-            if (this.props.user.auth_service === '') {
-                if (this.state.emailChangeInProgress) {
-                    const newEmail = UserStore.getCurrentUser().email;
-                    if (newEmail) {
-                        describe = formatHTMLMessage(holders.newAddress, {email: newEmail});
-                    } else {
-                        describe = formatMessage(holders.checkEmailNoAddress);
-                    }
-                } else {
-                    describe = UserStore.getCurrentUser().email;
-                }
-            } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
-                describe = formatMessage(holders.loginGitlab);
-            }
-
-            emailSection = (
-                <SettingItemMin
-                    title={formatMessage(holders.email)}
-                    describe={describe}
-                    updateSection={() => {
-                        this.updateSection('email');
-                    }}
-                />
-            );
-        }
+        const emailSection = this.createEmailSection();
 
         let pictureSection;
         if (this.props.activeSection === 'picture') {
