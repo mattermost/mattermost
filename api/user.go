@@ -2384,7 +2384,6 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
 	uchan := Srv.Store.User().Get(c.Session.UserId)
-	tchan := Srv.Store.Team().Get(c.Session.TeamId)
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
@@ -2394,14 +2393,6 @@ func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	var team *model.Team
-	if result := <-tchan; result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
 	mfaInterface := einterfaces.GetMfaInterface()
 	if mfaInterface == nil {
 		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
@@ -2409,7 +2400,7 @@ func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	img, err := mfaInterface.GenerateQrCode(team, user)
+	img, err := mfaInterface.GenerateQrCode(user)
 	if err != nil {
 		c.Err = err
 		return
@@ -2499,21 +2490,13 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
 	var uchan store.StoreChannel
 	if method == model.USER_AUTH_SERVICE_EMAIL {
-		uchan = Srv.Store.User().GetByEmail(team.Id, loginId)
+		uchan = Srv.Store.User().GetByEmail(loginId)
 	} else if method == model.USER_AUTH_SERVICE_USERNAME {
-		uchan = Srv.Store.User().GetByUsername(team.Id, loginId)
+		uchan = Srv.Store.User().GetByUsername(loginId)
 	} else if method == model.USER_AUTH_SERVICE_LDAP {
-		uchan = Srv.Store.User().GetByAuth(team.Id, loginId, model.USER_AUTH_SERVICE_LDAP)
+		uchan = Srv.Store.User().GetByAuth(loginId, model.USER_AUTH_SERVICE_LDAP)
 	}
 
 	rdata := map[string]string{}
