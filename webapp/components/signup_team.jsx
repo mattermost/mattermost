@@ -52,7 +52,6 @@ export default class TeamSignUp extends React.Component {
 
     updatePage(page) {
         this.setState({page});
-
     }
 
     componentWillMount() {
