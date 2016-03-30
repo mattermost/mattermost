@@ -24,4 +24,8 @@ export default class DelayedAction {
 
         this.timer = window.setTimeout(this.fire, timeout);
     }
+
+    cancel() {
+        window.clearTimeout(this.timer);
+    }
 }
