@@ -75,11 +75,24 @@ export default class InstalledIntegrations extends React.Component {
     }
 
     handleIntegrationChange() {
+        const incomingWebhooks = IntegrationStore.getIncomingWebhooks();
+        const outgoingWebhooks = IntegrationStore.getOutgoingWebhooks();
+        const slashCommands = IntegrationStore.getSlashCommands();
+
         this.setState({
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks(),
-            outgoingWebhooks: IntegrationStore.getOutgoingWebhooks(),
-            slashCommands: IntegrationStore.getSlashCommands()
+            incomingWebhooks,
+            outgoingWebhooks,
+            slashCommands
         });
+
+        // reset the type filter if we were viewing a category that is now empty
+        if ((this.state.typeFilter === 'incomingWebhooks' && incomingWebhooks.length === 0) ||
+            (this.state.typeFilter === 'outgoingWebhooks' && outgoingWebhooks.length === 0) ||
+            (this.state.typeFilter === 'slashCommands' && slashCommands.length === 0)) {
+            this.setState({
+                typeFilter: ''
+            });
+        }
     }
 
     updateTypeFilter(e, typeFilter) {
