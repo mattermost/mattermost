@@ -30,14 +30,6 @@ const holders = defineMessages({
         id: 'user.settings.security.passwordMatchError',
         defaultMessage: 'The new passwords you entered do not match'
     },
-    password: {
-        id: 'user.settings.security.password',
-        defaultMessage: 'Password'
-    },
-    lastUpdated: {
-        id: 'user.settings.security.lastUpdated',
-        defaultMessage: 'Last updated {date} at {time}'
-    },
     method: {
         id: 'user.settings.security.method',
         defaultMessage: 'Sign-in Method'
@@ -131,74 +123,106 @@ class SecurityTab extends React.Component {
     }
     createPasswordSection() {
         let updateSectionStatus;
-        const {formatMessage} = this.props.intl;
 
-        if (this.props.activeSection === 'password' && this.props.user.auth_service === '') {
+        if (this.props.activeSection === 'password') {
             const inputs = [];
+            let submit;
 
-            inputs.push(
-                <div
-                    key='currentPasswordUpdateForm'
-                    className='form-group'
-                >
-                    <label className='col-sm-5 control-label'>
-                        <FormattedMessage
-                            id='user.settings.security.currentPassword'
-                            defaultMessage='Current Password'
-                        />
-                    </label>
-                    <div className='col-sm-7'>
-                        <input
-                            className='form-control'
-                            type='password'
-                            onChange={this.updateCurrentPassword}
-                            value={this.state.currentPassword}
-                        />
+            if (this.props.user.auth_service === '') {
+                submit = this.submitPassword;
+
+                inputs.push(
+                    <div
+                        key='currentPasswordUpdateForm'
+                        className='form-group'
+                    >
+                        <label className='col-sm-5 control-label'>
+                            <FormattedMessage
+                                id='user.settings.security.currentPassword'
+                                defaultMessage='Current Password'
+                            />
+                        </label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='password'
+                                onChange={this.updateCurrentPassword}
+                                value={this.state.currentPassword}
+                            />
+                        </div>
                     </div>
-                </div>
-            );
-            inputs.push(
-                <div
-                    key='newPasswordUpdateForm'
-                    className='form-group'
-                >
-                    <label className='col-sm-5 control-label'>
-                        <FormattedMessage
-                            id='user.settings.security.newPassword'
-                            defaultMessage='New Password'
-                        />
-                    </label>
-                    <div className='col-sm-7'>
-                        <input
-                            className='form-control'
-                            type='password'
-                            onChange={this.updateNewPassword}
-                            value={this.state.newPassword}
-                        />
+                );
+                inputs.push(
+                    <div
+                        key='newPasswordUpdateForm'
+                        className='form-group'
+                    >
+                        <label className='col-sm-5 control-label'>
+                            <FormattedMessage
+                                id='user.settings.security.newPassword'
+                                defaultMessage='New Password'
+                            />
+                        </label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='password'
+                                onChange={this.updateNewPassword}
+                                value={this.state.newPassword}
+                            />
+                        </div>
                     </div>
-                </div>
-            );
-            inputs.push(
-                <div
-                    key='retypeNewPasswordUpdateForm'
-                    className='form-group'
-                >
-                    <label className='col-sm-5 control-label'>
-                        <FormattedMessage
-                            id='user.settings.security.retypePassword'
-                            defaultMessage='Retype New Password'
-                        />
-                    </label>
-                    <div className='col-sm-7'>
-                        <input
-                            className='form-control'
-                            type='password'
-                            onChange={this.updateConfirmPassword}
-                            value={this.state.confirmPassword}
-                        />
+                );
+                inputs.push(
+                    <div
+                        key='retypeNewPasswordUpdateForm'
+                        className='form-group'
+                    >
+                        <label className='col-sm-5 control-label'>
+                            <FormattedMessage
+                                id='user.settings.security.retypePassword'
+                                defaultMessage='Retype New Password'
+                            />
+                        </label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='password'
+                                onChange={this.updateConfirmPassword}
+                                value={this.state.confirmPassword}
+                            />
+                        </div>
                     </div>
-                </div>
-            );
+                );
+            } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.security.passwordGitlabCantUpdate'
+                                defaultMessage='Login occurs through GitLab. Password cannot be updated.'
+                            />
+                        </div>
+                    </div>
+                );
+            } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.security.passwordLdapCantUpdate'
+                                defaultMessage='Login occurs through LDAP. Password cannot be updated.'
+                            />
+                        </div>
+                    </div>
+                );
+            }
 
             updateSectionStatus = function resetSection(e) {
                 this.props.updateSection('');
@@ -209,9 +233,14 @@ class SecurityTab extends React.Component {
 
             return (
                 <SettingItemMax
-                    title={formatMessage(holders.password)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.security.password'
+                            defaultMessage='Password'
+                        />
+                    }
                     inputs={inputs}
-                    submit={this.submitPassword}
+                    submit={submit}
                     server_error={this.state.serverError}
                     client_error={this.state.passwordError}
                     updateSection={updateSectionStatus}
@@ -219,34 +248,51 @@ class SecurityTab extends React.Component {
             );
         }
 
-        var describe;
-        var d = new Date(this.props.user.last_password_update);
+        let describe;
 
-        const hours12 = !Utils.isMilitaryTime();
-        describe = (
-            <FormattedMessage
-                id='user.settings.security.lastUpdated'
-                defaultMessage='Last updated {date} at {time}'
-                values={{
-                    date: (
-                        <FormattedDate
-                            value={d}
-                            day='2-digit'
-                            month='short'
-                            year='numeric'
-                        />
-                    ),
-                    time: (
-                        <FormattedTime
-                            value={d}
-                            hour12={hours12}
-                            hour='2-digit'
-                            minute='2-digit'
-                        />
-                    )
-                }}
-            />
-        );
+        if (this.props.user.auth_service === '') {
+            const d = new Date(this.props.user.last_password_update);
+            const hours12 = !Utils.isMilitaryTime();
+
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.lastUpdated'
+                    defaultMessage='Last updated {date} at {time}'
+                    values={{
+                        date: (
+                            <FormattedDate
+                                value={d}
+                                day='2-digit'
+                                month='short'
+                                year='numeric'
+                            />
+                        ),
+                        time: (
+                            <FormattedTime
+                                value={d}
+                                hour12={hours12}
+                                hour='2-digit'
+                                minute='2-digit'
+                            />
+                        )
+                    }}
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginGitlab'
+                    defaultMessage='Login done through Gitlab'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginLdap'
+                    defaultMessage='Login done through LDAP'
+                />
+            );
+        }
 
         updateSectionStatus = function updateSection() {
             this.props.updateSection('password');
@@ -254,7 +300,12 @@ class SecurityTab extends React.Component {
 
         return (
             <SettingItemMin
-                title={formatMessage(holders.password)}
+                title={
+                    <FormattedMessage
+                        id='user.settings.security.password'
+                        defaultMessage='Password'
+                    />
+                }
                 describe={describe}
                 updateSection={updateSectionStatus}
             />
