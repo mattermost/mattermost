@@ -56,6 +56,7 @@
   "scripts": {
     "check": "eslint --ext \".jsx\" --ignore-pattern node_modules --quiet .",
     "build": "webpack",
-    "run": "webpack --progress --watch"
+    "run": "webpack --progress --watch",
+    "run-fullmap": "webpack --progress --watch"
   }
 }

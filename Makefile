@@ -185,7 +185,14 @@ run-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
+run-client-fullmap:
+	@echo Running mattermost client for development with FULL SOURCE MAP
+
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run-fullmap
+
 run: run-server run-client
+
+run-fullmap: run-server run-client-fullmap
 
 stop-server:
 	@echo Stopping mattermost

@@ -8,8 +8,12 @@ const htmlExtract = new ExtractTextPlugin('html', 'root.html');
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 
 var DEV = false;
-if (NPM_TARGET === 'run') {
+var FULLMAP = false;
+if (NPM_TARGET === 'run' || NPM_TARGET === 'run-fullmap') {
     DEV = true;
+    if (NPM_TARGET === 'run-fullmap') {
+        FULLMAP = true;
+    }
 }
 
 var config = {
@@ -94,7 +98,11 @@ var config = {
 
 // Development mode configuration
 if (DEV) {
-    config.devtool = 'eval-cheap-module-source-map';
+    if (FULLMAP) {
+        config.devtool = 'source-map';
+    } else {
+        config.devtool = 'eval-cheap-module-source-map';
+    }
 }
 
 // Production mode configuration
