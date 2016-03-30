@@ -3,8 +3,14 @@
 @import 'compass/utilities';
 @import 'compass/css3';
 
+// Dependancies
+@import '~bootstrap/dist/css/bootstrap.css';
+@import '~jasny-bootstrap/dist/css/jasny-bootstrap.css';
+@import '~perfect-scrollbar/dist/css/perfect-scrollbar.css';
+@import '~font-awesome/css/font-awesome.css';
+@import '~bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
+
 // styles.scss
-@import 'vendors/module';
 @import 'utils/module';
 @import 'base/module';
 @import 'routes/module';
