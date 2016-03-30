@@ -46,6 +46,7 @@ type ServiceSettings struct {
 	EnableDeveloper                   *bool
 	EnableSecurityFixAlert            *bool
 	EnableInsecureOutgoingConnections *bool
+	EnableMultifactorAuthentication   *bool
 	AllowCorsFrom                     *string
 	SessionLengthWebInDays            *int
 	SessionLengthMobileInDays         *int
@@ -273,6 +274,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableInsecureOutgoingConnections == nil {
 		o.ServiceSettings.EnableInsecureOutgoingConnections = new(bool)
 		*o.ServiceSettings.EnableInsecureOutgoingConnections = false
+	}
+
+	if o.ServiceSettings.EnableMultifactorAuthentication == nil {
+		o.ServiceSettings.EnableMultifactorAuthentication = new(bool)
+		*o.ServiceSettings.EnableMultifactorAuthentication = false
 	}
 
 	if o.TeamSettings.RestrictTeamNames == nil {

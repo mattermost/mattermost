@@ -1292,6 +1292,14 @@
     "translation": "You joined {{ .TeamDisplayName }}"
   },
   {
+    "id": "api.user.update_mfa.not_available.app_error",
+    "translation": "MFA not configured or available on this server"
+  },
+  {
+    "id": "api.user.generate_mfa_qr.not_available.app_error",
+    "translation": "MFA not configured or available on this server"
+  },
+  {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v"
   },
@@ -1326,6 +1334,14 @@
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
     "translation": "Unsupported OAuth service provider"
+  },
+  {
+    "id": "api.user.check_user_mfa.not_available.app_error",
+    "translation": "MFA is not configured or supported on this server"
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Invalid MFA token."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -1738,6 +1754,42 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.mfa.license_disable.app_error",
+    "translation": "Your license does not support using multi-factor authentication"
+  },
+  {
+    "id": "ent.mfa.generate_qr_code.create_code.app_error",
+    "translation": "Error generating QR code"
+  },
+  {
+    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
+    "translation": "Error saving the MFA secret"
+  },
+  {
+    "id": "ent.mfa.activate.authenticate.app_error",
+    "translation": "Error attempting to authenticate MFA token"
+  },
+  {
+    "id": "ent.mfa.activate.bad_token.app_error",
+    "translation": "Invalid MFA token"
+  },
+  {
+    "id": "ent.mfa.activate.save_active.app_erro",
+    "translation": "Unable to update MFA active status for the user"
+  },
+  {
+    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "translation": "Unable to update MFA active status for the user"
+  },
+  {
+    "id": "ent.mfa.deactivate.save_secret.app_error",
+    "translation": "Error clearing the MFA secret"
+  },
+  {
+    "id": "ent.mfa.validate_token.authenticate.app_error",
+    "translation": "Error trying to authenticate MFA token"
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -3134,6 +3186,14 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "We couldn't update the team name"
+  },
+  {
+    "id": "store.sql_user.update_mfa_secret.app_error",
+    "translation": "We encountered an error updating the user's MFA secret"
+  },
+  {
+    "id": "store.sql_user.update_mfa_active.app_error",
+    "translation": "We encountered an error updating the user's MFA active status"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",

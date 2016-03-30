@@ -12,7 +12,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Router, Route, IndexRoute, IndexRedirect, browserHistory} from 'react-router';
 import Root from 'components/root.jsx';
-import Login from 'components/login.jsx';
 import LoggedIn from 'components/logged_in.jsx';
 import NotLoggedIn from 'components/not_logged_in.jsx';
 import NeedsTeam from 'components/needs_team.jsx';
@@ -57,6 +56,8 @@ import EmailToOAuth from 'components/claim/components/email_to_oauth.jsx';
 import OAuthToEmail from 'components/claim/components/oauth_to_email.jsx';
 import LDAPToEmail from 'components/claim/components/ldap_to_email.jsx';
 import EmailToLDAP from 'components/claim/components/email_to_ldap.jsx';
+
+import Login from 'components/login/login.jsx';
 
 import * as I18n from 'i18n/i18n.jsx';
 

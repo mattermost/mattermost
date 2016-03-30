@@ -114,6 +114,7 @@ func getClientLicense(l *model.License) map[string]string {
 	if IsLicensed {
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
+		props["MFA"] = strconv.FormatBool(*l.Features.MFA)
 		props["GoogleSSO"] = strconv.FormatBool(*l.Features.GoogleSSO)
 		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
 		props["IssuedAt"] = strconv.FormatInt(l.IssuedAt, 10)

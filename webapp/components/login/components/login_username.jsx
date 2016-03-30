@@ -2,42 +2,10 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
 import UserStore from 'stores/user_store.jsx';
+import Constants from 'utils/constants.jsx';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
-
-var holders = defineMessages({
-    badTeam: {
-        id: 'login_username.badTeam',
-        defaultMessage: 'Bad team name'
-    },
-    usernameReq: {
-        id: 'login_username.usernameReq',
-        defaultMessage: 'A username is required'
-    },
-    pwdReq: {
-        id: 'login_username.pwdReq',
-        defaultMessage: 'A password is required'
-    },
-    verifyEmailError: {
-        id: 'login_username.verifyEmailError',
-        defaultMessage: 'Please verify your email address. Check your inbox for an email.'
-    },
-    userNotFoundError: {
-        id: 'login_username.userNotFoundError',
-        defaultMessage: "We couldn't find an existing account matching your username for this team."
-    },
-    username: {
-        id: 'login_username.username',
-        defaultMessage: 'Username'
-    },
-    pwd: {
-        id: 'login_username.pwd',
-        defaultMessage: 'Password'
-    }
-});
+import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -48,31 +16,26 @@ export default class LoginUsername extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
-            serverError: ''
+            serverError: props.serverError
         };
+    }
+    componentWillReceiveProps(nextProps) {
+        this.setState({serverError: nextProps.serverError});
     }
     handleSubmit(e) {
         e.preventDefault();
-        const {formatMessage} = this.props.intl;
-        var state = {};
-
-        const name = this.props.teamName;
-        if (!name) {
-            state.serverError = formatMessage(holders.badTeam);
-            this.setState(state);
-            return;
-        }
+        const state = {};
 
         const username = this.refs.username.value.trim();
         if (!username) {
-            state.serverError = formatMessage(holders.usernameReq);
+            state.serverError = Utils.localizeMessage('login_username.usernameReq', 'A username is required');
             this.setState(state);
             return;
         }
 
         const password = this.refs.password.value.trim();
         if (!password) {
-            state.serverError = formatMessage(holders.pwdReq);
+            state.serverError = Utils.localizeMessage('login_username.pwdReq', 'A password is required');
             this.setState(state);
             return;
         }
@@ -80,30 +43,7 @@ export default class LoginUsername extends React.Component {
         state.serverError = '';
         this.setState(state);
 
-        Client.loginByUsername(name, username, password,
-            () => {
-                UserStore.setLastUsername(username);
-
-                const redirect = Utils.getUrlParameter('redirect');
-                if (redirect) {
-                    browserHistory.push(decodeURIComponent(redirect));
-                } else {
-                    browserHistory.push('/' + name + '/channels/town-square');
-                }
-            },
-            (err) => {
-                if (err.id === 'api.user.login.not_verified.app_error') {
-                    state.serverError = formatMessage(holders.verifyEmailError);
-                } else if (err.id === 'store.sql_user.get_by_username.app_error') {
-                    state.serverError = formatMessage(holders.userNotFoundError);
-                } else {
-                    state.serverError = err.message;
-                }
-
-                this.valid = false;
-                this.setState(state);
-            }
-        );
+        this.props.submit(Constants.USERNAME_SERVICE, username, password);
     }
     render() {
         let serverError;
@@ -127,7 +67,6 @@ export default class LoginUsername extends React.Component {
             priorUsername = decodeURIComponent(emailParam);
         }
 
-        const {formatMessage} = this.props.intl;
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='signup__email-container'>
@@ -142,7 +81,7 @@ export default class LoginUsername extends React.Component {
                             name='username'
                             defaultValue={priorUsername}
                             ref='username'
-                            placeholder={formatMessage(holders.username)}
+                            placeholder={Utils.localizeMessage('login_username.username', 'Username')}
                             spellCheck='false'
                         />
                     </div>
@@ -153,7 +92,7 @@ export default class LoginUsername extends React.Component {
                             className='form-control'
                             name='password'
                             ref='password'
-                            placeholder={formatMessage(holders.pwd)}
+                            placeholder={Utils.localizeMessage('login_username.pwd', 'Password')}
                             spellCheck='false'
                         />
                     </div>
@@ -177,8 +116,6 @@ LoginUsername.defaultProps = {
 };
 
 LoginUsername.propTypes = {
-    intl: intlShape.isRequired,
-    teamName: React.PropTypes.string.isRequired
+    serverError: React.PropTypes.string,
+    submit: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(LoginUsername);

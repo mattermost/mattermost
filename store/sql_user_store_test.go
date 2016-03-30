@@ -502,3 +502,47 @@ func TestUserUnreadCount(t *testing.T) {
 		t.Fatal("should have 3 unread messages")
 	}
 }
+
+func TestUserStoreUpdateMfaSecret(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(&u1))
+
+	time.Sleep(100 * time.Millisecond)
+
+	if err := (<-store.User().UpdateMfaSecret(u1.Id, "12345")).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	// should pass, no update will occur though
+	if err := (<-store.User().UpdateMfaSecret("junk", "12345")).Err; err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestUserStoreUpdateMfaActive(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(&u1))
+
+	time.Sleep(100 * time.Millisecond)
+
+	if err := (<-store.User().UpdateMfaActive(u1.Id, true)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if err := (<-store.User().UpdateMfaActive(u1.Id, false)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	// should pass, no update will occur though
+	if err := (<-store.User().UpdateMfaActive("junk", true)).Err; err != nil {
+		t.Fatal(err)
+	}
+}

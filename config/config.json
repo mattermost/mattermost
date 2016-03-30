@@ -15,6 +15,7 @@
         "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
         "EnableInsecureOutgoingConnections": false,
+        "EnableMultifactorAuthentication": false,
         "AllowCorsFrom": "",
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,

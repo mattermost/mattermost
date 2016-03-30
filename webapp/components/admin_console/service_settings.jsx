@@ -84,6 +84,7 @@ class ServiceSettings extends React.Component {
         config.ServiceSettings.EnableDeveloper = ReactDOM.findDOMNode(this.refs.EnableDeveloper).checked;
         config.ServiceSettings.EnableSecurityFixAlert = ReactDOM.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
         config.ServiceSettings.EnableInsecureOutgoingConnections = ReactDOM.findDOMNode(this.refs.EnableInsecureOutgoingConnections).checked;
+        config.ServiceSettings.EnableMultifactorAuthentication = ReactDOM.findDOMNode(this.refs.EnableMultifactorAuthentication).checked;
         config.ServiceSettings.EnableCommands = ReactDOM.findDOMNode(this.refs.EnableCommands).checked;
         config.ServiceSettings.EnableOnlyAdminIntegrations = ReactDOM.findDOMNode(this.refs.EnableOnlyAdminIntegrations).checked;
 
@@ -171,6 +172,58 @@ class ServiceSettings extends React.Component {
         var saveClass = 'btn';
         if (this.state.saveNeeded) {
             saveClass = 'btn btn-primary';
+        }
+
+        let mfaSetting;
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true') {
+            mfaSetting = (
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                        htmlFor='EnableMultifactorAuthentication'
+                    >
+                        <FormattedMessage
+                            id='admin.service.mfaTitle'
+                            defaultMessage='Enable Multi-factor Authentication:'
+                        />
+                    </label>
+                    <div className='col-sm-8'>
+                        <label className='radio-inline'>
+                            <input
+                                type='radio'
+                                name='EnableMultifactorAuthentication'
+                                value='true'
+                                ref='EnableMultifactorAuthentication'
+                                defaultChecked={this.props.config.ServiceSettings.EnableMultifactorAuthentication}
+                                onChange={this.handleChange}
+                            />
+                            <FormattedMessage
+                                id='admin.service.true'
+                                defaultMessage='true'
+                            />
+                        </label>
+                        <label className='radio-inline'>
+                            <input
+                                type='radio'
+                                name='EnableMultifactorAuthentication'
+                                value='false'
+                                defaultChecked={!this.props.config.ServiceSettings.EnableMultifactorAuthentication}
+                                onChange={this.handleChange}
+                            />
+                            <FormattedMessage
+                                id='admin.service.false'
+                                defaultMessage='false'
+                            />
+                        </label>
+                        <p className='help-text'>
+                            <FormattedMessage
+                                id='admin.service.mfaDesc'
+                                defaultMessage='When true, users will be given the option to add multi-factor authentication to their account. They will need a smartphone and an authenticator app such as Google Authenticator.'
+                            />
+                        </p>
+                    </div>
+                </div>
+            );
         }
 
         return (
@@ -772,6 +825,8 @@ class ServiceSettings extends React.Component {
                             </p>
                         </div>
                     </div>
+
+                    {mfaSetting}
 
                     <div className='form-group'>
                         <label
