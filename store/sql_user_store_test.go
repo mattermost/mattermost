@@ -582,7 +582,6 @@ func TestUserStoreUpdateMfaSecret(t *testing.T) {
 	Setup()
 
 	u1 := model.User{}
-	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	Must(store.User().Save(&u1))
 
@@ -602,7 +601,6 @@ func TestUserStoreUpdateMfaActive(t *testing.T) {
 	Setup()
 
 	u1 := model.User{}
-	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	Must(store.User().Save(&u1))
 
