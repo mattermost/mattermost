@@ -7,7 +7,7 @@ import Constants from './constants.jsx';
 import emojis from './emoji.json';
 
 const emoticonPatterns = {
-    smile: /(^|\s)(:-?\))(?=$|\s)/g, // :)
+    slightly_smiling_face: /(^|\s)(:-?\))(?=$|\s)/g, // :)
     wink: /(^|\s)(;-?\))(?=$|\s)/g, // ;)
     open_mouth: /(^|\s)(:o)(?=$|\s)/gi, // :o
     scream: /(^|\s)(:-o)(?=$|\s)/gi, // :-o
@@ -16,7 +16,7 @@ const emoticonPatterns = {
     stuck_out_tongue_closed_eyes: /(^|\s)(x-d)(?=$|\s)/gi, // x-d
     stuck_out_tongue: /(^|\s)(:-?p)(?=$|\s)/gi, // :p
     rage: /(^|\s)(:-?[\[@])(?=$|\s)/g, // :@
-    frowning: /(^|\s)(:-?\()(?=$|\s)/g, // :(
+    slightly_frowning_face: /(^|\s)(:-?\()(?=$|\s)/g, // :(
     cry: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()(?=$|\s)/g, // :`(
     confused: /(^|\s)(:-?\/)(?=$|\s)/g, // :/
     confounded: /(^|\s)(:-?s)(?=$|\s)/gi, // :s
