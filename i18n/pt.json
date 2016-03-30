@@ -696,14 +696,6 @@
     "translation": "Erro ao obter o token de acesso do BD antes da exclusão"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} e {{.LastUsername}} foram mencionados, mas eles não pertencem a este canal."
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} foi mencionado, mas ele não pertence a este canal."
-  },
-  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Nome ruim do arquivo descartado, nome do arquivo=%v"
   },

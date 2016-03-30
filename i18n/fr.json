@@ -696,14 +696,6 @@
     "translation": "Erreur lors de la récupération du jeton d'accès avant suppression"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} et {{.LastUsername}} sont mentionnés, mais ne participent pas à ce canal."
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} a été mentionné, mais ne participe pas à ce canal."
-  },
-  {
     "id": "api.post.create_post.bad_filename.error",
     "translation": "Nom de fichier invalide supprimé, filename=%v"
   },
