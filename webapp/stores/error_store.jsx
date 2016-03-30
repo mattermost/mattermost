@@ -59,6 +59,7 @@ class ErrorStoreClass extends EventEmitter {
     clearLastError() {
         BrowserStore.removeGlobalItem('last_error');
         BrowserStore.removeGlobalItem('last_error_conn');
+        this.emitChange();
     }
 }
 
