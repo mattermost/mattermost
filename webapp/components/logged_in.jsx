@@ -47,11 +47,12 @@ export default class LoggedIn extends React.Component {
         this.onUserChanged = this.onUserChanged.bind(this);
 
         this.state = {
-            user: null
+            user: null,
+            profiles: null
         };
     }
     isValidState() {
-        return this.state.user != null;
+        return this.state.user != null && this.state.profiles != null;
     }
     onUserChanged() {
         // Grab the current user
@@ -84,7 +85,13 @@ export default class LoggedIn extends React.Component {
             browserHistory.push(Utils.getTeamURLFromAddressBar() + '/tutorial');
         }
 
-        this.setState({user});
+        // Get profiles
+        const profiles = UserStore.getProfiles();
+
+        this.setState({
+            user,
+            profiles
+        });
     }
     componentWillMount() {
         // Emit view action
@@ -232,7 +239,10 @@ export default class LoggedIn extends React.Component {
                         </div>
                     </div>
                     <div className='row main'>
-                        {this.props.center}
+                        {React.cloneElement(this.props.center, {
+                            user: this.state.user,
+                            profiles: this.state.profiles
+                        })}
                     </div>
                 </div>
             );

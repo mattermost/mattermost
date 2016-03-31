@@ -7,7 +7,6 @@ import ChannelHeader from 'components/channel_header.jsx';
 import PostFocusView from 'components/post_focus_view.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import {Link} from 'react-router';
@@ -30,17 +29,15 @@ export default class PermalinkView extends React.Component {
         const channelName = channel ? channel.name : '';
         const team = TeamStore.getCurrent();
         const teamName = team ? team.name : '';
-        const profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         return {
             channelId,
             channelName,
-            profiles,
             teamName,
             postId
         };
     }
     isStateValid() {
-        return this.state.channelId !== '' && this.state.profiles && this.state.teamName;
+        return this.state.channelId !== '' && this.state.teamName;
     }
     updateState() {
         this.setState(this.getStateFromStores(this.props));
@@ -56,21 +53,6 @@ export default class PermalinkView extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.setState(this.getStateFromStores(nextProps));
     }
-    shouldComponentUpdate(nextProps, nextState) {
-        if (nextState.postId !== this.state.postId) {
-            return true;
-        }
-
-        if (nextState.channelId !== this.state.channelId) {
-            return true;
-        }
-
-        if (nextState.teamName !== this.state.teamName) {
-            return true;
-        }
-
-        return false;
-    }
     render() {
         if (!this.isStateValid()) {
             return null;
@@ -83,7 +65,7 @@ export default class PermalinkView extends React.Component {
                 <ChannelHeader
                     channelId={this.state.channelId}
                 />
-                <PostFocusView profiles={this.state.profiles}/>
+                <PostFocusView profiles={this.props.profiles}/>
                 <div
                     id='archive-link-home'
                 >
@@ -106,5 +88,6 @@ PermalinkView.defaultProps = {
 };
 
 PermalinkView.propTypes = {
-    params: React.PropTypes.object.isRequired
+    params: React.PropTypes.object.isRequired,
+    profiles: React.PropTypes.object
 };

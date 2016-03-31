@@ -50,6 +50,7 @@ class InviteMemberModal extends React.Component {
     constructor(props) {
         super(props);
 
+        this.teamChange = this.teamChange.bind(this);
         this.handleToggle = this.handleToggle.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleHide = this.handleHide.bind(this);
@@ -68,16 +69,27 @@ class InviteMemberModal extends React.Component {
             emailEnabled: global.window.mm_config.SendEmailNotifications === 'true',
             userCreationEnabled: global.window.mm_config.EnableUserCreation === 'true',
             showConfirmModal: false,
-            isSendingEmails: false
+            isSendingEmails: false,
+            teamType: null
         };
+    }
+
+    teamChange() {
+        const team = TeamStore.getCurrent();
+        const teamType = team ? team.type : null;
+        this.setState({
+            teamType
+        });
     }
 
     componentDidMount() {
         ModalStore.addModalListener(ActionTypes.TOGGLE_INVITE_MEMBER_MODAL, this.handleToggle);
+        TeamStore.addChangeListener(this.teamChange);
     }
 
     componentWillUnmount() {
         ModalStore.removeModalListener(ActionTypes.TOGGLE_INVITE_MEMBER_MODAL, this.handleToggle);
+        TeamStore.removeChangeListener(this.teamChange);
     }
 
     handleToggle(value) {
@@ -224,7 +236,7 @@ class InviteMemberModal extends React.Component {
         var currentUser = UserStore.getCurrentUser();
         const {formatMessage} = this.props.intl;
 
-        if (currentUser != null) {
+        if (currentUser != null && this.state.teamType != null) {
             var inviteSections = [];
             var inviteIds = this.state.inviteIds;
             for (var i = 0; i < inviteIds.length; i++) {
@@ -398,7 +410,7 @@ class InviteMemberModal extends React.Component {
                 );
             } else if (this.state.userCreationEnabled) {
                 var teamInviteLink = null;
-                if (currentUser && TeamStore.getCurrent().type === 'O') {
+                if (currentUser && this.state.teamType === 'O') {
                     var link = (
                         <a
                             href='#'
