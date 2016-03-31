@@ -172,8 +172,6 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 	if utils.Cfg.ServiceSettings.EnablePostIconOverride {
 		if len(overrideIconUrl) != 0 {
 			post.AddProp("override_icon_url", overrideIconUrl)
-		} else {
-			post.AddProp("override_icon_url", model.DEFAULT_WEBHOOK_ICON)
 		}
 	}
 
