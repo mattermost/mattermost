@@ -352,7 +352,7 @@ func IsInRole(userRoles string, inRole string) bool {
 }
 
 func (u *User) IsSSOUser() bool {
-	if len(u.AuthData) != 0 && len(u.AuthService) != 0 {
+	if len(u.AuthData) != 0 && len(u.AuthService) != 0 && u.AuthService != USER_AUTH_SERVICE_LDAP {
 		return true
 	}
 	return false
