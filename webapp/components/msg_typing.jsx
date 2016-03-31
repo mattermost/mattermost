@@ -40,13 +40,15 @@ class MsgTyping extends React.Component {
     }
 
     updateTypingText(typingUsers) {
-        if (!typingUsers) {
-            return;
+        let text = '';
+        let users = {};
+        let numUsers = 0;
+        if (typingUsers) {
+            users = Object.keys(typingUsers);
+            numUsers = users.length;
         }
 
-        const users = Object.keys(typingUsers);
-        let text = '';
-        switch (users.length) {
+        switch (numUsers) {
         case 0:
             text = '';
             break;
