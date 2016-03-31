@@ -14,7 +14,13 @@ indent_style = tab
 indent_style = space
 indent_size = 4
 
-[web/react/package.json]
+[webapp/package.json]
+indent_size = 2
+
+[i18n/**.json]
+indent_size = 2
+
+[webapp/i18n/**.json]
 indent_size = 2
 
 [Makefile]
