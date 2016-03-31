@@ -14,7 +14,6 @@ var ActionTypes = Constants.ActionTypes;
 import * as Client from './client.jsx';
 import * as AsyncClient from './async_client.jsx';
 import * as client from './client.jsx';
-import Autolinker from 'autolinker';
 
 import React from 'react';
 import {browserHistory} from 'react-router';
@@ -315,13 +314,8 @@ export function getTimestamp() {
 
 // extracts links not styled by Markdown
 export function extractLinks(text) {
-    text; // eslint-disable-line no-unused-expressions
-    Autolinker; // eslint-disable-line no-unused-expressions
-
-    // skip this operation because autolinker is having issues
-    return [];
-
-    /*const links = [];
+    const pattern = /(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])/gi;
+    let links;
     let inText = text;
 
     // strip out code blocks
@@ -330,32 +324,13 @@ export function extractLinks(text) {
     // strip out inline markdown images
     inText = inText.replace(/!\[[^\]]*\]\([^\)]*\)/g, '');
 
-    function replaceFn(autolinker, match) {
-        let link = '';
-        const matchText = match.getMatchedText();
+    links = inText.match(pattern) || [];
 
-        if (matchText.trim().indexOf('http') === 0) {
-            link = matchText;
-        } else {
-            link = 'http://' + matchText;
-        }
-
-        links.push(link);
-    }
-
-    Autolinker.link(
-        inText,
-        {
-            replaceFn,
-            urls: {schemeMatches: true, wwwMatches: true, tldMatches: false},
-            emails: false,
-            twitter: false,
-            phone: false,
-            hashtag: false
+    return links.map(
+        (url) => {
+            return url.trim();
         }
     );
-
-    return links;*/
 }
 
 export function escapeRegExp(string) {
