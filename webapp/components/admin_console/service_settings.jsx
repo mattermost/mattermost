@@ -84,9 +84,12 @@ class ServiceSettings extends React.Component {
         config.ServiceSettings.EnableDeveloper = ReactDOM.findDOMNode(this.refs.EnableDeveloper).checked;
         config.ServiceSettings.EnableSecurityFixAlert = ReactDOM.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
         config.ServiceSettings.EnableInsecureOutgoingConnections = ReactDOM.findDOMNode(this.refs.EnableInsecureOutgoingConnections).checked;
-        config.ServiceSettings.EnableMultifactorAuthentication = ReactDOM.findDOMNode(this.refs.EnableMultifactorAuthentication).checked;
         config.ServiceSettings.EnableCommands = ReactDOM.findDOMNode(this.refs.EnableCommands).checked;
         config.ServiceSettings.EnableOnlyAdminIntegrations = ReactDOM.findDOMNode(this.refs.EnableOnlyAdminIntegrations).checked;
+
+        if (this.refs.EnablMultifactorAuthentication) {
+            config.ServiceSettings.EnableMultifactorAuthentication = ReactDOM.findDOMNode(this.refs.EnableMultifactorAuthentication).checked;
+        }
 
         //config.ServiceSettings.EnableOAuthServiceProvider = ReactDOM.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
 
