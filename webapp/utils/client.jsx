@@ -50,12 +50,8 @@ function handleError(methodName, xhr, status, err) {
     track('api', 'api_weberror', methodName, 'message', msg);
 
     if (xhr.status === 401) {
-        if (window.location.href.indexOf('/channels') === 0) {
-            browserHistory.push('/login?extra=expired&redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
-        } else {
-            var teamURL = window.location.pathname.split('/channels')[0];
-            browserHistory.push(teamURL + '/login?extra=expired&redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
-        }
+        const team = window.location.pathname.split('/')[1];
+        browserHistory.push('/' + team + '/login?extra=expired&redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
     }
 
     return e;

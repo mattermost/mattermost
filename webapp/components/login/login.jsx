@@ -27,7 +27,9 @@ export default class Login extends React.Component {
         this.preSubmit = this.preSubmit.bind(this);
         this.submit = this.submit.bind(this);
 
-        this.state = this.getStateFromStores();
+        const state = this.getStateFromStores();
+        state.doneCheckLogin = false;
+        this.state = state;
     }
     componentDidMount() {
         TeamStore.addChangeListener(this.onTeamChange);
@@ -44,8 +46,7 @@ export default class Login extends React.Component {
     }
     getStateFromStores() {
         return {
-            currentTeam: TeamStore.getByName(this.props.params.team),
-            doneCheckLogin: false
+            currentTeam: TeamStore.getByName(this.props.params.team)
         };
     }
     onTeamChange() {

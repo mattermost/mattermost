@@ -142,6 +142,8 @@ function preLoggedIn(nextState, replace, callback) {
 
     const d2 = AsyncClient.getChannels();
 
+    ErrorStore.clearLastError();
+
     $.when(d1, d2).done(() => {
         callback();
     });
