@@ -315,13 +315,7 @@ export function getTimestamp() {
 
 // extracts links not styled by Markdown
 export function extractLinks(text) {
-    text; // eslint-disable-line no-unused-expressions
-    Autolinker; // eslint-disable-line no-unused-expressions
-
-    // skip this operation because autolinker is having issues
-    return [];
-
-    /*const links = [];
+    const links = [];
     let inText = text;
 
     // strip out code blocks
@@ -355,7 +349,7 @@ export function extractLinks(text) {
         }
     );
 
-    return links;*/
+    return links;
 }
 
 export function escapeRegExp(string) {
