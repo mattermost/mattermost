@@ -155,7 +155,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 
 			if user.IsSSOUser() {
 				user.Email = oldUser.Email
-			} else if user.Email != oldUser.Email {
+			} else if !user.IsLDAPUser() && user.Email != oldUser.Email {
 				user.EmailVerified = false
 			}
 

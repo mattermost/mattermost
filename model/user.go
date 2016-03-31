@@ -358,6 +358,13 @@ func (u *User) IsSSOUser() bool {
 	return false
 }
 
+func (u *User) IsLDAPUser() bool {
+	if u.AuthService == USER_AUTH_SERVICE_LDAP {
+		return true
+	}
+	return false
+}
+
 func (u *User) PreExport() {
 	u.Password = ""
 	u.AuthData = ""
