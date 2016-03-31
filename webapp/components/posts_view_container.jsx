@@ -8,7 +8,6 @@ import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -157,17 +156,6 @@ export default class PostsViewContainer extends React.Component {
         } else {
             this.setState({scrollType: PostsView.SCROLL_TYPE_FREE});
         }
-    }
-    shouldComponentUpdate(nextProps, nextState) {
-        if (!Utils.areObjectsEqual(this.state, nextState)) {
-            return true;
-        }
-
-        if (!Utils.areObjectsEqual(this.props, nextProps)) {
-            return true;
-        }
-
-        return false;
     }
     render() {
         const postLists = this.state.postLists;

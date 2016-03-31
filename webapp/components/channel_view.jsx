@@ -8,7 +8,6 @@ import PostsViewContainer from 'components/posts_view_container.jsx';
 import CreatePost from 'components/create_post.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 
 export default class ChannelView extends React.Component {
     constructor(props) {
@@ -23,14 +22,12 @@ export default class ChannelView extends React.Component {
     getStateFromStores(props) {
         const channel = ChannelStore.getByName(props.params.channel);
         const channelId = channel ? channel.id : '';
-        const profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
         return {
-            channelId,
-            profiles
+            channelId
         };
     }
     isStateValid() {
-        return this.state.channelId !== '' && this.state.profiles;
+        return this.state.channelId !== '';
     }
     updateState() {
         this.setState(this.getStateFromStores(this.props));
@@ -44,13 +41,6 @@ export default class ChannelView extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.setState(this.getStateFromStores(nextProps));
     }
-    shouldComponentUpdate(nextProps, nextState) {
-        if (nextState.channelId !== this.state.channelId) {
-            return true;
-        }
-
-        return false;
-    }
     render() {
         return (
             <div
@@ -60,7 +50,7 @@ export default class ChannelView extends React.Component {
                 <ChannelHeader
                     channelId={this.state.channelId}
                 />
-                <PostsViewContainer profiles={this.state.profiles}/>
+                <PostsViewContainer profiles={this.props.profiles}/>
                 <div
                     className='post-create__container'
                     id='post-create'
@@ -75,5 +65,6 @@ ChannelView.defaultProps = {
 };
 
 ChannelView.propTypes = {
-    params: React.PropTypes.object.isRequired
+    params: React.PropTypes.object.isRequired,
+    profiles: React.PropTypes.object
 };
