@@ -1,5 +1,6 @@
 // See License.txt for license information.
 
+import request from 'superagent';
 import BrowserStore from 'stores/browser_store.jsx';
 import $ from 'jquery';
 
@@ -10,8 +11,20 @@ let translations = {
     unknownError: 'We received an unexpected status code from the server.'
 };
 
+let rootUrl = '';
+const version = '/api/v2';
+let serverVersion = '';
+
 export function setTranslations(messages) {
     translations = messages;
+}
+
+export function getServerVersion() {
+    return serverVersion;
+}
+
+export function setRootUrl(url) {
+    rootUrl = url;
 }
 
 export function track(category, action, label, property, value) {
@@ -553,7 +566,7 @@ export function getAnalytics(name, teamId, success, error) {
     });
 }
 
-export function getClientConfig(success, error) {
+export function getClientConfigOld(success, error) {
     return $.ajax({
         url: '/api/v1/admin/client_props',
         dataType: 'json',
@@ -565,6 +578,14 @@ export function getClientConfig(success, error) {
             error(e);
         }
     });
+}
+
+export function getClientConfig(success, error) {
+    request.
+        get(rootUrl + version + '/admin/client_props').
+        type('application/json').
+        accept('application/json').
+        end(handleResponse.bind(this, 'getClientConfig', success, error));
 }
 
 export function getTeamAnalytics(teamId, name, success, error) {
@@ -639,10 +660,10 @@ export function getAllTeams(success, error) {
     });
 }
 
-export function getMeLoggedIn(success, error) {
+export function getMeLoggedInOld(success, error) {
     return $.ajax({
         cache: false,
-        url: '/api/v1/users/me_logged_in',
+        url: rootUrl + version + '/users/me_logged_in',
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
@@ -652,6 +673,54 @@ export function getMeLoggedIn(success, error) {
             error(e);
         }
     });
+}
+
+function handleResponse(methodName, successCallback, errorCallback, err, res) {
+    serverVersion = res.header['x-version-id'];
+    if (!serverVersion) {
+        serverVersion = '';
+    }
+
+    if (err) {
+        var e = null;
+        try {
+            e = JSON.parse(res.body.message);
+        } catch (parseError) {
+            e = null;
+        }
+        var msg = '';
+
+        if (e) {
+            msg = 'method=' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
+        } else {
+            msg = 'method=' + methodName + ' status=' + status + ' statusCode=' + err.status + ' err=' + err;
+
+            if (err.status === 0) {
+                e = {message: translations.connectionError};
+            } else {
+                e = {message: translations.unknownError + ' (' + err.status + ')'};
+            }
+        }
+
+        console.error(msg); //eslint-disable-line no-console
+        console.error(e); //eslint-disable-line no-console
+
+        if (errorCallback) {
+            errorCallback(e);
+        }
+    }
+
+    if (successCallback) {
+        successCallback(res.body);
+    }
+}
+
+export function getMeLoggedIn(success, error) {
+    request.
+        get(rootUrl + version + '/users/me_logged_in').
+        type('application/json').
+        accept('application/json').
+        end(handleResponse.bind(this, 'getMeLoggedIn', success, error));
 }
 
 export function getMe(success, error) {
@@ -1663,7 +1732,7 @@ export function removeLicenseFile(success, error) {
     track('api', 'api_license_upload');
 }
 
-export function getClientLicenceConfig(success, error) {
+export function getClientLicenceConfigOld(success, error) {
     return $.ajax({
         url: '/api/v1/license/client_config',
         dataType: 'json',
@@ -1675,6 +1744,14 @@ export function getClientLicenceConfig(success, error) {
             error(e);
         }
     });
+}
+
+export function getClientLicenceConfig(success, error) {
+    request.
+        get(rootUrl + version + '/license/client_config').
+        type('application/json').
+        accept('application/json').
+        end(handleResponse.bind(this, 'getClientLicenceConfig', success, error));
 }
 
 export function getInviteInfo(success, error, id) {

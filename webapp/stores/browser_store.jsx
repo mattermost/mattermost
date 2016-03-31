@@ -35,18 +35,6 @@ class BrowserStoreClass {
         this.isSignallingLogin = this.isSignallingLogin.bind(this);
     }
 
-    checkVersion() {
-        var currentVersion = this.getGlobalItem('storage_version');
-        if (currentVersion !== global.window.mm_config.Version) {
-            this.clearAll();
-            try {
-                this.setGlobalItem('storage_version', global.window.mm_config.Version);
-            } catch (e) {
-                // Do nothing
-            }
-        }
-    }
-
     setItem(name, value) {
         this.setGlobalItem(getPrefix() + name, value);
     }
