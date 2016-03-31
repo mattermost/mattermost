@@ -71,7 +71,7 @@ export default class AboutBuildModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <h4>{'Mattermost'} {title}</h4>
+                    <h4 className='padding-bottom x2'>{'Mattermost'} {title}</h4>
                     {licensee}
                     <div className='row form-group'>
                         <div className='col-sm-3 info__label'>
