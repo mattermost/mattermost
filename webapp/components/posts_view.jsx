@@ -385,6 +385,7 @@ export default class PostsView extends React.Component {
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
         this.scrollStopAction.cancel();
+        PreferenceStore.removeChangeListener(this.updateState);
     }
     componentDidUpdate() {
         if (this.props.postList != null) {
