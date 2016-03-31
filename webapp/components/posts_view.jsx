@@ -308,7 +308,7 @@ export default class PostsView extends React.Component {
         if (this.props.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
             this.scrollToBottom();
         } else if (this.props.scrollType === PostsView.SCROLL_TYPE_NEW_MESSAGE) {
-            window.requestAnimationFrame(() => {
+            window.setTimeout(window.requestAnimationFrame(() => {
                 // If separator exists scroll to it. Otherwise scroll to bottom.
                 if (this.refs.newMessageSeparator) {
                     var objDiv = this.refs.postlist;
@@ -316,7 +316,7 @@ export default class PostsView extends React.Component {
                 } else if (this.refs.postlist) {
                     this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
                 }
-            });
+            }), 0);
         } else if (this.props.scrollType === PostsView.SCROLL_TYPE_POST && this.props.scrollPostId) {
             window.requestAnimationFrame(() => {
                 const postNode = ReactDOM.findDOMNode(this.refs[this.props.scrollPostId]);
