@@ -9,8 +9,6 @@ import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
-import ChannelStore from 'stores/channel_store.jsx';
-
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
@@ -57,11 +55,6 @@ export default class PopoverListMembers extends React.Component {
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
         const currentUserId = UserStore.getCurrentId();
-        const ch = ChannelStore.get(this.props.channelId);
-
-        if (!ch) {
-            return null;
-        }
 
         if (members && teamMembers) {
             members.sort((a, b) => {
@@ -73,7 +66,7 @@ export default class PopoverListMembers extends React.Component {
 
             members.forEach((m, i) => {
                 let button = '';
-                if (currentUserId !== m.id && ch.type !== 'D') {
+                if (currentUserId !== m.id && this.props.channel.type !== 'D') {
                     button = (
                         <a
                             href='#'
@@ -181,7 +174,7 @@ export default class PopoverListMembers extends React.Component {
 }
 
 PopoverListMembers.propTypes = {
+    channel: React.PropTypes.object.isRequired,
     members: React.PropTypes.array.isRequired,
-    memberCount: React.PropTypes.number,
-    channelId: React.PropTypes.string.isRequired
+    memberCount: React.PropTypes.number
 };
