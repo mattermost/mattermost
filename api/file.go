@@ -394,6 +394,11 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	getFileAndForget(path, fileData)
 
 	if len(hash) > 0 && len(data) > 0 && len(teamId) == 26 {
+		if !utils.Cfg.FileSettings.EnablePublicLink {
+			c.Err = model.NewLocAppError("getFile", "api.file.get_file.public_disabled.app_error", nil, "")
+			return
+		}
+
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt)) {
 			c.Err = model.NewLocAppError("getFile", "api.file.get_file.public_invalid.app_error", nil, "")
 			return
