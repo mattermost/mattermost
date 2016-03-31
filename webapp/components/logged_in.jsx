@@ -266,7 +266,10 @@ LoggedIn.defaultProps = {
 };
 
 LoggedIn.propTypes = {
-    children: React.PropTypes.arrayOf(React.PropTypes.element),
+    children: React.PropTypes.oneOfType([
+        React.PropTypes.arrayOf(React.PropTypes.element),
+        React.PropTypes.element
+    ]),
     navbar: React.PropTypes.element,
     sidebar: React.PropTypes.element,
     center: React.PropTypes.element,
