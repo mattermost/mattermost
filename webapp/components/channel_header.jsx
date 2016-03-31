@@ -216,9 +216,9 @@ export default class ChannelHeader extends React.Component {
         if (!isDirect) {
             popoverListMembers = (
                 <PopoverListMembers
+                    channel={channel}
                     members={this.state.users}
                     memberCount={this.state.userCount}
-                    channelId={channel.id}
                 />
             );
         }
