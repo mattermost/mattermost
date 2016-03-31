@@ -72,6 +72,7 @@ export default class AddIncomingWebhook extends React.Component {
             },
             (err) => {
                 this.setState({
+                    saving: false,
                     serverError: err.message
                 });
             }
@@ -125,6 +126,7 @@ export default class AddIncomingWebhook extends React.Component {
                                 <input
                                     id='displayName'
                                     type='text'
+                                    maxLength='64'
                                     className='form-control'
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
@@ -145,6 +147,7 @@ export default class AddIncomingWebhook extends React.Component {
                                 <input
                                     id='description'
                                     type='text'
+                                    maxLength='128'
                                     className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
