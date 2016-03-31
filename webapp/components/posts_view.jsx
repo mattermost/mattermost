@@ -173,24 +173,15 @@ export default class PostsView extends React.Component {
                 const postFromWebhook = Boolean(post.props && post.props.from_webhook);
                 const prevPostFromWebhook = Boolean(prevPost.props && prevPost.props.from_webhook);
                 const prevPostUserId = Utils.isSystemMessage(prevPost) ? '' : prevPost.user_id;
-                let prevWebhookName = '';
-                if (prevPost.props && prevPost.props.override_username) {
-                    prevWebhookName = prevPost.props.override_username;
-                }
-                let curWebhookName = '';
-                if (post.props && post.props.override_username) {
-                    curWebhookName = post.props.override_username;
-                }
 
                 // consider posts from the same user if:
                 //     the previous post was made by the same user as the current post,
                 //     the previous post was made within 5 minutes of the current post,
-                //     the previous post and current post are both from webhooks or both not,
-                //     the previous post and current post have the same webhook usernames
+                //     the current post is not from a webhook
+                //     the previous post is not from a webhook
                 if (prevPostUserId === postUserId &&
                         post.create_at - prevPost.create_at <= 1000 * 60 * 5 &&
-                        postFromWebhook === prevPostFromWebhook &&
-                        prevWebhookName === curWebhookName) {
+                        !postFromWebhook && !prevPostFromWebhook) {
                     sameUser = true;
                 }
 
@@ -213,13 +204,11 @@ export default class PostsView extends React.Component {
                 //     the previous post was made by the same user as the current post,
                 //     the previous post is not a comment,
                 //     the current post is not a comment,
-                //     the previous post and current post are both from webhooks or both not,
-                //     the previous post and current post have the same webhook usernames
+                //     the current post is not from a webhook
                 if (prevPostUserId === postUserId &&
                         !prevPostIsComment &&
                         !postIsComment &&
-                        postFromWebhook === prevPostFromWebhook &&
-                        prevWebhookName === curWebhookName) {
+                        !postFromWebhook) {
                     hideProfilePic = true;
                 }
             }

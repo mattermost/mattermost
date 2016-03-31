@@ -217,6 +217,8 @@ export default class RhsRootPost extends React.Component {
         if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
             if (post.props.override_icon_url) {
                 src = post.props.override_icon_url;
+            } else {
+                src = Constants.DEFAULT_WEBHOOK_LOGO;
             }
         } else if (Utils.isSystemMessage(post)) {
             src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;

@@ -14,6 +14,7 @@ import patchIcon from 'images/icons/patch.png';
 import genericIcon from 'images/icons/generic.png';
 
 import logoImage from 'images/logo_compact.png';
+import logoWebhook from 'images/webhook_icon.jpg';
 
 import solarizedDarkCSS from '!!file?name=files/code_themes/[hash].[ext]!highlight.js/styles/solarized-dark.css';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
@@ -617,5 +618,6 @@ export default {
     MAX_PASSWORD_LENGTH: 50,
     TIME_SINCE_UPDATE_INTERVAL: 30000,
     MIN_HASHTAG_LINK_LENGTH: 3,
-    EMOJI_PATH: '/static/emoji'
+    EMOJI_PATH: '/static/emoji',
+    DEFAULT_WEBHOOK_LOGO: logoWebhook
 };
