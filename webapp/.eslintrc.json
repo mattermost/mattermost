@@ -19,6 +19,13 @@
 		"jquery": true,
 		"es6": true
 	},
+	"globals": {
+        "jest": true,
+        "describe": true,
+        "it": true,
+        "expect": true,
+        "before": true
+    },
 	"rules": {
 		"comma-dangle": [2, "never"],
 		"array-callback-return": 2,

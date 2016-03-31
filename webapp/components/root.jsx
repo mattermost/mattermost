@@ -3,7 +3,6 @@
 
 import $ from 'jquery';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 
 import {IntlProvider} from 'react-intl';
@@ -28,9 +27,6 @@ export default class Root extends React.Component {
     componentWillMount() {
         // Setup localization listener
         LocalizationStore.addChangeListener(this.localizationChanged);
-
-        // Browser store check version
-        BrowserStore.checkVersion();
 
         window.onerror = (msg, url, line, column, stack) => {
             var l = {};

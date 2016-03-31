@@ -65,14 +65,13 @@ import * as I18n from 'i18n/i18n.jsx';
 // This runs before we start to render anything.
 function preRenderSetup(callwhendone) {
     const d1 = Client.getClientConfig(
-        (data, textStatus, xhr) => {
+        (data) => {
             if (!data) {
                 return;
             }
 
             global.window.mm_config = data;
-
-            var serverVersion = xhr.getResponseHeader('X-Version-ID');
+            var serverVersion = Client.getServerVersion();
 
             if (serverVersion !== BrowserStore.getLastServerVersion()) {
                 if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {

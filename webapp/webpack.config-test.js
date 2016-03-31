@@ -2,12 +2,13 @@ const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const nodeExternals = require('webpack-node-externals');
 
 const htmlExtract = new ExtractTextPlugin('html', 'root.html');
 
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 
-var DEV = false;
+var DEV = true;
 var FULLMAP = false;
 if (NPM_TARGET === 'run' || NPM_TARGET === 'run-fullmap') {
     DEV = true;
@@ -17,12 +18,8 @@ if (NPM_TARGET === 'run' || NPM_TARGET === 'run-fullmap') {
 }
 
 var config = {
-    entry: ['babel-polyfill', './root.jsx', 'root.html'],
-    output: {
-        path: 'dist',
-        publicPath: '/static/',
-        filename: 'bundle.js'
-    },
+    target: 'node',
+    externals: [nodeExternals()],
     module: {
         loaders: [
             {
@@ -86,8 +83,7 @@ var config = {
     ],
     resolve: {
         alias: {
-            jquery: 'jquery/dist/jquery',
-            superagent: 'node_modules/superagent/lib/client'
+            jquery: 'jquery/dist/jquery'
         },
         modules: [
             'node_modules',
