@@ -5,7 +5,6 @@ import UserStore from 'stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -88,7 +87,7 @@ export default class SearchResultsItem extends React.Component {
                                 </li>
                                 <li>
                                     <Link
-                                        to={Utils.getTeamURLFromAddressBar() + '/pl/' + this.props.post.id}
+                                        to={'/' + window.location.pathname.split('/')[1] + '/pl/' + this.props.post.id}
                                         className='search-item__jump'
                                     >
                                         <FormattedMessage
