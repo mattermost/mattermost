@@ -170,6 +170,23 @@ body.ios {
     }
 }
 
+.post-list__new-messages-below{
+	background-color: #9fa5ad;
+	border-radius: 1em;
+	bottom: 0;
+	color: white;
+	cursor: pointer;
+	display: inline-block;
+	left: 50%;
+	padding: .25em .75em;
+	position: absolute;
+	transform: translateX(-50%);
+	transition: bottom .5s cubic-bezier(0.86, 0, 0.07, 1);
+	&[hidden]{
+		bottom: -30px;
+	}
+}
+
 .file-overlay {
     color: #ffffff;
     font-size: em(20px);

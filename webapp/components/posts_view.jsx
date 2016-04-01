@@ -425,6 +425,15 @@ export default class PostsView extends React.Component {
 
         return false;
     }
+    componentWillUpdate(nextProps) {
+        if (this.props.postList) {
+            if (this.props.postList.order[0] !== nextProps.postList.order[0] && nextProps.scrollType !== PostsView.SCROLL_TYPE_BOTTOM) {
+                this.showUnreadMessageAlert = true;
+            } else if (nextProps.scrollType === PostsView.SCROLL_TYPE_BOTTOM || nextProps.scrollType === PostsView.SCROLL_TYPE_NEW_MESSAGE) {
+                this.showUnreadMessageAlert = false;
+            }
+        }
+    }
     render() {
         let posts = [];
         let order = [];
@@ -511,6 +520,18 @@ export default class PostsView extends React.Component {
                             {moreMessagesBottom}
                         </div>
                     </div>
+                </div>
+                <div
+                    className='post-list__new-messages-below'
+                    onClick={this.scrollToBottomAnimated}
+                    hidden={!this.showUnreadMessageAlert}
+                >
+                        <i className='fa fa-arrow-circle-o-down'></i>
+                        &nbsp;
+                        <FormattedMessage
+                            id='posts_view.newMsg'
+                            defaultMessage='New Messages'
+                        />
                 </div>
             </div>
         );
