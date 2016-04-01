@@ -1540,10 +1540,6 @@
     "translation": "LDAP n'est pas disponible sur ce serveur"
   },
   {
-    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Ce compte utilisateur utilise LDAP"
-  },
-  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "LDAP n'est pas disponible sur ce serveur"
   },
