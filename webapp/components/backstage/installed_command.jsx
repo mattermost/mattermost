@@ -7,10 +7,10 @@ import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
-export default class InstalledSlashCommand extends React.Component {
+export default class InstalledCommand extends React.Component {
     static get propTypes() {
         return {
-            slashCommand: React.PropTypes.object.isRequired,
+            command: React.PropTypes.object.isRequired,
             onDelete: React.PropTypes.func.isRequired
         };
     }
@@ -24,45 +24,45 @@ export default class InstalledSlashCommand extends React.Component {
     handleDelete(e) {
         e.preventDefault();
 
-        this.props.onDelete(this.props.slashCommand);
+        this.props.onDelete(this.props.command);
     }
 
     render() {
-        const slashCommand = this.props.slashCommand;
+        const command = this.props.command;
 
         return (
-            <div className='installed-integrations__item installed-integrations__slash-command'>
-                <div className='details'>
-                    <div className='details-row'>
-                        <span className='name'>
-                            {slashCommand.display_name}
+            <div className='backstage-list__item'>
+                <div className='item-details'>
+                    <div className='item-details__row'>
+                        <span className='item-details__name'>
+                            {command.display_name}
                         </span>
-                        <span className='type'>
+                        <span className='item-details__type'>
                             <FormattedMessage
-                                id='installed_integrations.slashCommandType'
+                                id='installed_integrations.commandType'
                                 defaultMessage='(Slash Command)'
                             />
                         </span>
                     </div>
-                    <div className='details-row'>
-                        <span className='description'>
-                            {slashCommand.description}
+                    <div className='item-details__row'>
+                        <span className='item-details__description'>
+                            {command.description}
                         </span>
                     </div>
-                    <div className='details-row'>
-                        <span className='creation'>
+                    <div className='item-details__row'>
+                        <span className='item-details__creation'>
                             <FormattedMessage
                                 id='installed_integrations.creation'
                                 defaultMessage='Created by {creator} on {createAt, date, full}'
                                 values={{
-                                    creator: Utils.displayUsername(slashCommand.creator_Id),
-                                    createAt: slashCommand.create_at
+                                    creator: Utils.displayUsername(command.creator_Id),
+                                    createAt: command.create_at
                                 }}
                             />
                         </span>
                     </div>
                 </div>
-                <div className='actions'>
+                <div className='item-actions'>
                     <a
                         href='#'
                         onClick={this.handleDelete}

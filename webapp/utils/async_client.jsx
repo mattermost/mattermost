@@ -1271,8 +1271,8 @@ export function listTeamCommands() {
             callTracker.listTeamCommands = 0;
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_SLASH_COMMANDS,
-                slashCommands: data
+                type: ActionTypes.RECEIVED_COMMANDS,
+                commands: data
             });
         },
         (err) => {
@@ -1284,10 +1284,10 @@ export function listTeamCommands() {
 
 export function addCommand(command, success, error) {
     client.addCommand(
-        {command},
+        command,
         (data) => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_SLASH_COMMAND,
+                type: ActionTypes.RECEIVED_COMMAND,
                 command: data
             });
 
@@ -1296,10 +1296,10 @@ export function addCommand(command, success, error) {
             }
         },
         (err) => {
-            dispatchError(err, 'addCommand');
-
             if (error) {
                 error(err);
+            } else {
+                dispatchError(err, 'addCommand');
             }
         }
     );
@@ -1310,7 +1310,7 @@ export function deleteCommand(id) {
         {id},
         () => {
             AppDispatcher.handleServerAction({
-                type: ActionTypes.REMOVED_SLASH_COMMAND,
+                type: ActionTypes.REMOVED_COMMAND,
                 id
             });
         },

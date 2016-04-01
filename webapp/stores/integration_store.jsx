@@ -21,8 +21,8 @@ class IntegrationStore extends EventEmitter {
         this.outgoingWebhooks = [];
         this.receivedOutgoingWebhooks = false;
 
-        this.slashCommands = [];
-        this.receivedSlashCommands = false;
+        this.commands = [];
+        this.receivedCommands = false;
     }
 
     addChangeListener(callback) {
@@ -98,36 +98,36 @@ class IntegrationStore extends EventEmitter {
         }
     }
 
-    hasReceivedSlashCommands() {
-        return this.receivedSlashCommands;
+    hasReceivedCommands() {
+        return this.receivedCommands;
     }
 
-    getSlashCommands() {
-        return this.slashCommands;
+    getCommands() {
+        return this.commands;
     }
 
-    setSlashCommands(slashCommands) {
-        this.slashCommands = slashCommands;
-        this.receivedSlashCommands = true;
+    setCommands(commands) {
+        this.commands = commands;
+        this.receivedCommands = true;
     }
 
-    addSlashCommand(slashCommand) {
-        this.slashCommands.push(slashCommand);
+    addCommand(command) {
+        this.commands.push(command);
     }
 
-    updateSlashCommand(slashCommand) {
-        for (let i = 0; i < this.slashCommands.length; i++) {
-            if (this.slashCommands[i].id === slashCommand.id) {
-                this.slashCommands[i] = slashCommand;
+    updateCommand(command) {
+        for (let i = 0; i < this.commands.length; i++) {
+            if (this.commands[i].id === command.id) {
+                this.commands[i] = command;
                 break;
             }
         }
     }
 
-    removeSlashCommand(id) {
-        for (let i = 0; i < this.slashCommands.length; i++) {
-            if (this.slashCommands[i].id === id) {
-                this.slashCommands.splice(i, 1);
+    removeCommand(id) {
+        for (let i = 0; i < this.commands.length; i++) {
+            if (this.commands[i].id === id) {
+                this.commands.splice(i, 1);
                 break;
             }
         }
@@ -165,20 +165,20 @@ class IntegrationStore extends EventEmitter {
             this.removeOutgoingWebhook(action.id);
             this.emitChange();
             break;
-        case ActionTypes.RECEIVED_SLASH_COMMANDS:
-            this.setSlashCommands(action.slashCommands);
+        case ActionTypes.RECEIVED_COMMANDS:
+            this.setCommands(action.commands);
             this.emitChange();
             break;
-        case ActionTypes.RECEIVED_SLASH_COMMAND:
-            this.addSlashCommand(action.slashCommand);
+        case ActionTypes.RECEIVED_COMMAND:
+            this.addCommand(action.command);
             this.emitChange();
             break;
-        case ActionTypes.UPDATED_SLASH_COMMAND:
-            this.updateSlashCommand(action.slashCommand);
+        case ActionTypes.UPDATED_COMMAND:
+            this.updateCommand(action.command);
             this.emitChange();
             break;
-        case ActionTypes.REMOVED_SLASH_COMMAND:
-            this.removeSlashCommand(action.id);
+        case ActionTypes.REMOVED_COMMAND:
+            this.removeCommand(action.id);
             this.emitChange();
             break;
         }

@@ -11,7 +11,7 @@ import * as Utils from 'utils/utils.jsx';
 import {FormattedMessage} from 'react-intl';
 import InstalledIncomingWebhook from './installed_incoming_webhook.jsx';
 import InstalledOutgoingWebhook from './installed_outgoing_webhook.jsx';
-import InstalledSlashCommand from './installed_slash_command.jsx';
+import InstalledCommand from './installed_command.jsx';
 import {Link} from 'react-router';
 
 export default class InstalledIntegrations extends React.Component {
@@ -25,12 +25,12 @@ export default class InstalledIntegrations extends React.Component {
         this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
         this.regenOutgoingWebhookToken = this.regenOutgoingWebhookToken.bind(this);
         this.deleteOutgoingWebhook = this.deleteOutgoingWebhook.bind(this);
-        this.deleteSlashCommand = this.deleteSlashCommand.bind(this);
+        this.deleteCommand = this.deleteCommand.bind(this);
 
         this.state = {
             incomingWebhooks: [],
             outgoingWebhooks: [],
-            slashCommands: [],
+            commands: [],
             typeFilter: '',
             filter: ''
         };
@@ -60,9 +60,9 @@ export default class InstalledIntegrations extends React.Component {
         }
 
         if (window.mm_config.EnableCommands === 'true') {
-            if (IntegrationStore.hasReceivedSlashCommands()) {
+            if (IntegrationStore.hasReceivedCommands()) {
                 this.setState({
-                    slashCommands: IntegrationStore.getSlashCommands()
+                    commands: IntegrationStore.getCommands()
                 });
             } else {
                 AsyncClient.listTeamCommands();
@@ -77,18 +77,18 @@ export default class InstalledIntegrations extends React.Component {
     handleIntegrationChange() {
         const incomingWebhooks = IntegrationStore.getIncomingWebhooks();
         const outgoingWebhooks = IntegrationStore.getOutgoingWebhooks();
-        const slashCommands = IntegrationStore.getSlashCommands();
+        const commands = IntegrationStore.getCommands();
 
         this.setState({
             incomingWebhooks,
             outgoingWebhooks,
-            slashCommands
+            commands
         });
 
         // reset the type filter if we were viewing a category that is now empty
         if ((this.state.typeFilter === 'incomingWebhooks' && incomingWebhooks.length === 0) ||
             (this.state.typeFilter === 'outgoingWebhooks' && outgoingWebhooks.length === 0) ||
-            (this.state.typeFilter === 'slashCommands' && slashCommands.length === 0)) {
+            (this.state.typeFilter === 'commands' && commands.length === 0)) {
             this.setState({
                 typeFilter: ''
             });
@@ -121,14 +121,14 @@ export default class InstalledIntegrations extends React.Component {
         AsyncClient.deleteOutgoingHook(outgoingWebhook.id);
     }
 
-    deleteSlashCommand(slashCommand) {
-        AsyncClient.deleteCommand(slashCommand.id);
+    deleteCommand(command) {
+        AsyncClient.deleteCommand(command.id);
     }
 
-    renderTypeFilters(incomingWebhooks, outgoingWebhooks, slashCommands) {
+    renderTypeFilters(incomingWebhooks, outgoingWebhooks, commands) {
         const fields = [];
 
-        if (incomingWebhooks.length > 0 || outgoingWebhooks.length > 0 || slashCommands.length > 0) {
+        if (incomingWebhooks.length > 0 || outgoingWebhooks.length > 0 || commands.length > 0) {
             let filterClassName = 'filter-sort';
             if (this.state.typeFilter === '') {
                 filterClassName += ' filter-sort--active';
@@ -218,10 +218,10 @@ export default class InstalledIntegrations extends React.Component {
             );
         }
 
-        if (slashCommands.length > 0) {
+        if (commands.length > 0) {
             fields.push(
                 <span
-                    key='slashCommandsDivider'
+                    key='commandsDivider'
                     className='divider'
                 >
                     {'|'}
@@ -229,22 +229,22 @@ export default class InstalledIntegrations extends React.Component {
             );
 
             let filterClassName = 'filter-sort';
-            if (this.state.typeFilter === 'slashCommands') {
+            if (this.state.typeFilter === 'commands') {
                 filterClassName += ' filter-sort--active';
             }
 
             fields.push(
                 <a
-                    key='slashCommandsFilter'
+                    key='commandsFilter'
                     className={filterClassName}
                     href='#'
-                    onClick={(e) => this.updateTypeFilter(e, 'slashCommands')}
+                    onClick={(e) => this.updateTypeFilter(e, 'commands')}
                 >
                     <FormattedMessage
-                        id='installed_integrations.slashCommandsFilter'
+                        id='installed_integrations.commandsFilter'
                         defaultMessage='Slash Commands ({count})'
                         values={{
-                            count: slashCommands.length
+                            count: commands.length
                         }}
                     />
                 </a>
@@ -261,7 +261,7 @@ export default class InstalledIntegrations extends React.Component {
     render() {
         const incomingWebhooks = this.state.incomingWebhooks;
         const outgoingWebhooks = this.state.outgoingWebhooks;
-        const slashCommands = this.state.slashCommands;
+        const commands = this.state.commands;
 
         // TODO description, name, creator filtering
         const filter = this.state.filter.toLowerCase();
@@ -308,10 +308,10 @@ export default class InstalledIntegrations extends React.Component {
             }
         }
 
-        if (!this.state.typeFilter || this.state.typeFilter === 'slashCommands') {
-            for (const slashCommand of slashCommands) {
+        if (!this.state.typeFilter || this.state.typeFilter === 'commands') {
+            for (const command of commands) {
                 if (filter) {
-                    const channel = ChannelStore.get(slashCommand.channel_id);
+                    const channel = ChannelStore.get(command.channel_id);
 
                     if (!channel || channel.name.toLowerCase().indexOf(filter) === -1) {
                         continue;
@@ -319,10 +319,10 @@ export default class InstalledIntegrations extends React.Component {
                 }
 
                 integrations.push(
-                    <InstalledSlashCommand
-                        key={slashCommand.id}
-                        slashCommand={slashCommand}
-                        onDelete={this.deleteSlashCommand}
+                    <InstalledCommand
+                        key={command.id}
+                        command={command}
+                        onDelete={this.deleteCommand}
                     />
                 );
             }
@@ -356,7 +356,7 @@ export default class InstalledIntegrations extends React.Component {
                         </Link>
                     </div>
                     <div className='backstage-filters'>
-                        {this.renderTypeFilters(incomingWebhooks, outgoingWebhooks, slashCommands)}
+                        {this.renderTypeFilters(incomingWebhooks, outgoingWebhooks, commands)}
                         <div className='backstage-filter__search'>
                             <i className='fa fa-search'></i>
                             <input

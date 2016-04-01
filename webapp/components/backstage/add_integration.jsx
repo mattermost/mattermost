@@ -56,6 +56,28 @@ export default class AddIntegration extends React.Component {
             );
         }
 
+        if (window.mm_config.EnableCommands === 'true') {
+            options.push(
+                <AddIntegrationOption
+                    key='command'
+                    image={WebhookIcon}
+                    title={
+                        <FormattedMessage
+                            id='add_integration.command.title'
+                            defaultMessage='Slash Command'
+                        />
+                    }
+                    description={
+                        <FormattedMessage
+                            id='add_integration.command.description'
+                            defaultMessage='Create slash commands to send events to external integrations and receive a response.'
+                        />
+                    }
+                    link={'/settings/integrations/add/command'}
+                />
+            );
+        }
+
         return (
             <div className='backstage-content row'>
                 <div className='backstage-header'>
