@@ -109,6 +109,22 @@ export default class AboutBuildModal extends React.Component {
                         </div>
                         <div className='col-sm-9'>{config.BuildHash}</div>
                     </div>
+                    <div className='about-modal__hash form-group padding-top x2'>
+                        <p>
+                            <FormattedMessage
+                                id='about.hash'
+                                defaultMessage='Build Hash:'
+                            />
+                            &nbsp;{config.BuildHash}
+                        </p>
+                        <p>
+                            <FormattedMessage
+                                id='about.date'
+                                defaultMessage='Build Date:'
+                            />
+                            &nbsp;{config.BuildDate}
+                        </p>
+                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <button

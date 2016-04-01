@@ -786,6 +786,40 @@
 }
 
 @media screen and (max-width: 640px) {
+    .modal {
+        .about-modal {
+            .about-modal__content {
+                display: block;
+            }
+
+            .about-modal__hash {
+                p {
+                    word-break: break-all;
+
+                    &:first-child {
+                        float: none;
+                    }
+                }
+            }
+
+            .about-modal__logo {
+                float: none;
+                padding: 0;
+                text-align: center;
+                width: 100%;
+
+                svg {
+                    height: 100px;
+                    width: 100px;
+                }
+            }
+
+            .about-modal__logo + div {
+                padding: 2em 0 0;
+            }
+        }
+    }
+
     .access-history__table {
         > div {
             display: block;
