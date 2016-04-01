@@ -1449,7 +1449,7 @@
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "This user account does use LDAP"
+    "translation": "This user account does not use LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
