@@ -476,25 +476,23 @@ func IsPrivateIpAddress(ipAddress string) bool {
 }
 
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
-	T, locale := utils.GetTranslationsAndLocale(w, r)
-	page := utils.NewHTMLTemplate("error", locale)
-	page.Props["Message"] = err.Message
-	page.Props["Details"] = err.DetailedError
+	T, _ := utils.GetTranslationsAndLocale(w, r)
 
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) > 1 {
-		page.Props["SiteURL"] = GetProtocol(r) + "://" + r.Host + "/" + pathParts[1]
-	} else {
-		page.Props["SiteURL"] = GetProtocol(r) + "://" + r.Host
-	}
+	title := T("api.templates.error.title", map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+	message := err.Message
+	details := err.DetailedError
+	link := "/"
+	linkMessage := T("api.templates.error.link")
 
-	page.Props["Title"] = T("api.templates.error.title", map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
-	page.Props["Link"] = T("api.templates.error.link")
-
-	w.WriteHeader(err.StatusCode)
-	if rErr := page.RenderToWriter(w); rErr != nil {
-		l4g.Error("Failed to create error page: " + rErr.Error() + ", Original error: " + err.Error())
-	}
+	http.Redirect(
+		w,
+		r,
+		"/error?title="+url.QueryEscape(title)+
+			"&message="+url.QueryEscape(message)+
+			"&details="+url.QueryEscape(details)+
+			"&link="+url.QueryEscape(link)+
+			"&linkmessage="+url.QueryEscape(linkMessage),
+		http.StatusTemporaryRedirect)
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {

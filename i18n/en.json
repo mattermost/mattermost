@@ -3734,5 +3734,29 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
+  },
+  {
+    "id": "error.not_found.title",
+    "translation": "Page not found"
+  },
+  {
+    "id": "error.not_found.message",
+    "translation": "The page you where trying to reach does not exist."
+  },
+  {
+    "id": "error.not_found.link_message",
+    "translation": "Back to Mattermost"
+  },
+  {
+    "id": "error.generic.title",
+    "translation": "Error"
+  },
+  {
+    "id": "error.generic.message",
+    "translation": "An error has occoured."
+  },
+  {
+    "id": "error.generic.link_message",
+    "translation": "Back to Mattermost"
   }
 ]
