@@ -4,7 +4,7 @@
 import * as Utils from '../../utils/utils.jsx';
 import Constants from '../../utils/constants.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'mm-intl';
 
 export default class PremadeThemeChooser extends React.Component {
     constructor(props) {
