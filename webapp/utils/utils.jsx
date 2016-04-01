@@ -313,9 +313,8 @@ export function getTimestamp() {
 }
 
 // extracts links not styled by Markdown
-export function extractLinks(text) {
-    const pattern = /(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])/gi;
-    let links;
+export function extractFirstLink(text) {
+    const pattern = /(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])/i;
     let inText = text;
 
     // strip out code blocks
@@ -324,13 +323,12 @@ export function extractLinks(text) {
     // strip out inline markdown images
     inText = inText.replace(/!\[[^\]]*\]\([^\)]*\)/g, '');
 
-    links = inText.match(pattern) || [];
+    const match = pattern.exec(inText);
+    if (match) {
+        return match[0].trim();
+    }
 
-    return links.map(
-        (url) => {
-            return url.trim();
-        }
-    );
+    return '';
 }
 
 export function escapeRegExp(string) {

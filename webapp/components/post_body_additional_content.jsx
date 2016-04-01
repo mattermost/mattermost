@@ -70,7 +70,7 @@ export default class PostBodyAdditionalContent extends React.Component {
             return this.getSlackAttachment();
         }
 
-        const link = Utils.extractLinks(this.props.post.message)[0];
+        const link = Utils.extractFirstLink(this.props.post.message);
         if (!link) {
             return null;
         }
