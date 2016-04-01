@@ -476,6 +476,10 @@
     "translation": "No se encontró el archivo."
   },
   {
+    "id": "api.file.get_file.public_disabled.app_error",
+    "translation": "Los enlaces públicos han sido deshabilitados por un administrador del sistema"
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "El enlace público parece ser inválido"
   },
@@ -694,6 +698,14 @@
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
     "translation": "Error obteniendo el token de acceso desde la BD antes de ser eliminado"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "{{.Usernames}} y {{.LastUsername}} fueron mencionados, pero no recibieron una notificación porque no pertenecen a este canal."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "{{.Username}} fue mencionado, pero no recibió una notificación porque no pertenece a este canal."
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -1324,6 +1336,14 @@
     "translation": "Tu cuenta ha sido bloqueada debido a demasiados intentos fallidos. Por favor, restablece tu contraseña."
   },
   {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Token AMF inválido."
+  },
+  {
+    "id": "api.user.check_user_mfa.not_available.app_error",
+    "translation": "AMF on está configurado o no es soportado en este servidor"
+  },
+  {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "El inicio de sesión falló porque la contraseña es inválida"
   },
@@ -1406,6 +1426,10 @@
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "LDAP no está disponible en este servidor"
+  },
+  {
+    "id": "api.user.generate_mfa_qr.not_available.app_error",
+    "translation": "AMF no está configurado o disponible en este servidor"
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
@@ -1550,6 +1574,10 @@
   {
     "id": "api.user.update_active.permissions.app_error",
     "translation": "No tienes los permisos apropiados"
+  },
+  {
+    "id": "api.user.update_mfa.not_available.app_error",
+    "translation": "AMF no está configurado o disponible en este servidor"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -1762,6 +1790,42 @@
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Usuario no registrado en el servidor LDAP"
+  },
+  {
+    "id": "ent.mfa.activate.authenticate.app_error",
+    "translation": "Error intentando autenticar el token AMF"
+  },
+  {
+    "id": "ent.mfa.activate.bad_token.app_error",
+    "translation": "Token AMF inválido"
+  },
+  {
+    "id": "ent.mfa.activate.save_active.app_erro",
+    "translation": "No se pudo actualizar el estado activo AMF para el usuario"
+  },
+  {
+    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "translation": "No se pudo actualizar el estado activo AMF para el usuario"
+  },
+  {
+    "id": "ent.mfa.deactivate.save_secret.app_error",
+    "translation": "Error al limpiar el secreto AMF"
+  },
+  {
+    "id": "ent.mfa.generate_qr_code.create_code.app_error",
+    "translation": "Error generando el código QR"
+  },
+  {
+    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
+    "translation": "Error guardando el secreto AMF"
+  },
+  {
+    "id": "ent.mfa.license_disable.app_error",
+    "translation": "Tu licencia no soporta la autenticación de múltiples factores"
+  },
+  {
+    "id": "ent.mfa.validate_token.authenticate.app_error",
+    "translation": "Error intentando autenticar el token AMF"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -3246,6 +3310,14 @@
   {
     "id": "store.sql_user.update_last_ping.app_error",
     "translation": "No pudimos actualizar el campo last_ping_at"
+  },
+  {
+    "id": "store.sql_user.update_mfa_active.app_error",
+    "translation": "Encontramos un error al actualizar el estado activo AMF del usuario"
+  },
+  {
+    "id": "store.sql_user.update_mfa_secret.app_error",
+    "translation": "Encontramos un error al actualizar el secreto AMF del usuario"
   },
   {
     "id": "store.sql_user.update_password.app_error",

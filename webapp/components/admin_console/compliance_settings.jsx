@@ -223,7 +223,7 @@ export default class ComplianceSettings extends React.Component {
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
-                                    id='admin.compliance.enableDesc'
+                                    id='admin.compliance.enableDailyDesc'
                                     defaultMessage='When true, Mattermost will generate a daily compliance report.'
                                 />
                             </p>
