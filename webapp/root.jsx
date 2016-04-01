@@ -10,7 +10,7 @@ import 'sass/styles.scss';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Router, Route, IndexRoute, IndexRedirect, browserHistory} from 'react-router';
+import {Router, Route, IndexRoute, IndexRedirect, Redirect, browserHistory} from 'react-router';
 import Root from 'components/root.jsx';
 import LoggedIn from 'components/logged_in.jsx';
 import NotLoggedIn from 'components/not_logged_in.jsx';
@@ -28,6 +28,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import SignupTeam from 'components/signup_team.jsx';
 import * as Client from 'utils/client.jsx';
 import * as Websockets from 'action_creators/websocket_actions.jsx';
+import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import SignupTeamConfirm from 'components/signup_team_confirm.jsx';
 import SignupUserComplete from 'components/signup_user_complete.jsx';
@@ -41,6 +42,7 @@ import InstalledIntegrations from 'components/backstage/installed_integrations.j
 import AddIntegration from 'components/backstage/add_integration.jsx';
 import AddIncomingWebhook from 'components/backstage/add_incoming_webhook.jsx';
 import AddOutgoingWebhook from 'components/backstage/add_outgoing_webhook.jsx';
+import ErrorPage from 'components/error_page.jsx';
 
 import SignupTeamComplete from 'components/signup_team_complete/components/signup_team_complete.jsx';
 import WelcomePage from 'components/signup_team_complete/components/team_signup_welcome_page.jsx';
@@ -60,6 +62,13 @@ import EmailToLDAP from 'components/claim/components/email_to_ldap.jsx';
 import Login from 'components/login/login.jsx';
 
 import * as I18n from 'i18n/i18n.jsx';
+
+const notFoundParams = {
+    title: Utils.localizeMessage('error.not_found.title', 'Page not found'),
+    message: Utils.localizeMessage('error.not_found.message', 'The page you where trying to reach does not exist'),
+    link: '/',
+    linkmessage: Utils.localizeMessage('error.not_found.link_message', 'Back to Mattermost')
+};
 
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
@@ -219,6 +228,10 @@ function renderRootComponent() {
                 onEnter={onRootEnter}
             >
                 <Route
+                    path='error'
+                    component={ErrorPage}
+                />
+                <Route
                     component={LoggedIn}
                     onEnter={preLoggedIn}
                 >
@@ -285,6 +298,11 @@ function renderRootComponent() {
                                 }}
                             />
                         </Route>
+                        <Redirect
+                            from='*'
+                            to='/error'
+                            query={notFoundParams}
+                        />
                     </Route>
                     <Route
                         path='admin_console'
@@ -380,6 +398,11 @@ function renderRootComponent() {
                                 component={LDAPToEmail}
                             />
                         </Route>
+                        <Redirect
+                            from='*'
+                            to='/error'
+                            query={notFoundParams}
+                        />
                     </Route>
                 </Route>
             </Route>
