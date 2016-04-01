@@ -1,11 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import UserStore from 'stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
+
+import UserStore from 'stores/user_store.jsx';
+
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-
+import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
@@ -29,6 +31,7 @@ export default class SearchResultsItem extends React.Component {
         const channel = this.props.channel;
         const timestamp = UserStore.getCurrentUser().update_at;
         const user = this.props.user || {};
+        const post = this.props.post;
 
         if (channel) {
             channelName = channel.display_name;
@@ -47,13 +50,23 @@ export default class SearchResultsItem extends React.Component {
             mentionHighlight: this.props.isMentionSearch
         };
 
+        let overrideUsername;
+        let disableProfilePopover = false;
+        if (post.props &&
+                post.props.from_webhook &&
+                post.props.override_username &&
+                global.window.mm_config.EnablePostUsernameOverride === 'true') {
+            overrideUsername = post.props.override_username;
+            disableProfilePopover = true;
+        }
+
         return (
             <div className='search-item__container'>
                 <div className='date-separator'>
                     <hr className='separator__hr'/>
                     <div className='separator__text'>
                         <FormattedDate
-                            value={this.props.post.create_at}
+                            value={post.create_at}
                             day='numeric'
                             month='long'
                             year='numeric'
@@ -67,18 +80,24 @@ export default class SearchResultsItem extends React.Component {
                     <div className='post__content'>
                         <div className='post__img'>
                             <img
-                                src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp}
+                                src={Utils.getProfilePicSrcForPost(post, timestamp)}
                                 height='36'
                                 width='36'
                             />
                         </div>
                         <div>
                             <ul className='post__header'>
-                                <li className='col__name'><strong><UserProfile user={user}/></strong></li>
+                                <li className='col__name'><strong>
+                                    <UserProfile
+                                        user={user}
+                                        overwriteName={overrideUsername}
+                                        disablePopover={disableProfilePopover}
+                                    />
+                                </strong></li>
                                 <li className='col'>
                                     <time className='search-item-time'>
                                         <FormattedDate
-                                            value={this.props.post.create_at}
+                                            value={post.create_at}
                                             hour12={true}
                                             hour='2-digit'
                                             minute='2-digit'
@@ -87,7 +106,7 @@ export default class SearchResultsItem extends React.Component {
                                 </li>
                                 <li>
                                     <Link
-                                        to={'/' + window.location.pathname.split('/')[1] + '/pl/' + this.props.post.id}
+                                        to={'/' + window.location.pathname.split('/')[1] + '/pl/' + post.id}
                                         className='search-item__jump'
                                     >
                                         <FormattedMessage
@@ -112,7 +131,7 @@ export default class SearchResultsItem extends React.Component {
                             <div className='search-item-snippet'>
                                 <span
                                     onClick={TextFormatting.handleClick}
-                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
+                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message, formattingOptions)}}
                                 />
                             </div>
                         </div>
