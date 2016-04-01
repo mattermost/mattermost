@@ -756,6 +756,7 @@ export function applyTheme(theme) {
         changeCss('.search-help-popover .search-autocomplete__item.selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('::-webkit-scrollbar-thumb', 'background:' + changeOpacity(theme.centerChannelColor, 0.4), 1);
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor, 4);
+        changeCss('.modal .about-modal .about-modal__logo svg, .post .post__img svg', 'fill:' + theme.centerChannelColor, 1);
     }
 
     if (theme.newMessageSeparator) {
