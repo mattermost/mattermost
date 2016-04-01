@@ -816,6 +816,10 @@
     "translation": " sent you a direct message"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_notification.mhpnsWarn",
+    "translation": "Attempted to use MHPNS when not licensed to do so"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
     "translation": "Sending push notification to %v wi msg of '%v'"
   },

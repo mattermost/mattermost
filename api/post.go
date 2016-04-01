@@ -665,7 +665,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 					pushServer := *utils.Cfg.EmailSettings.PushNotificationServer
 					if pushServer == model.MHPNS && (!utils.IsLicensed || !*utils.License.Features.MHPNS) {
-						l4g.Warn("Attempted to use MHPNS when not licensed to do so")
+						l4g.Warn(utils.T("api.post.send_notifications_and_forget.push_notification.mhpnsWarn"))
 					} else {
 						for _, session := range sessions {
 							if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" &&
