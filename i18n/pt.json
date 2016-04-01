@@ -1452,10 +1452,6 @@
     "translation": "LDAP não está disponível neste servidor"
   },
   {
-    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Está conta de usuário não utiliza LDAP"
-  },
-  {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "Campo senha não pode estar em branco"
   },
