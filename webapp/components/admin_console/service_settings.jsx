@@ -87,7 +87,7 @@ class ServiceSettings extends React.Component {
         config.ServiceSettings.EnableCommands = ReactDOM.findDOMNode(this.refs.EnableCommands).checked;
         config.ServiceSettings.EnableOnlyAdminIntegrations = ReactDOM.findDOMNode(this.refs.EnableOnlyAdminIntegrations).checked;
 
-        if (this.refs.EnablMultifactorAuthentication) {
+        if (this.refs.EnableMultifactorAuthentication) {
             config.ServiceSettings.EnableMultifactorAuthentication = ReactDOM.findDOMNode(this.refs.EnableMultifactorAuthentication).checked;
         }
 
