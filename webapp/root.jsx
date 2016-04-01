@@ -149,23 +149,6 @@ function preLoggedIn(nextState, replace, callback) {
     });
 }
 
-function onRootEnter(nextState, replace, callback) {
-    if (nextState.location.pathname === '/') {
-        Client.getMeLoggedIn((data) => {
-            if (!data || data.logged_in === 'false') {
-                replace({pathname: '/signup_team'});
-                callback();
-            } else {
-                replace({pathname: '/' + data.team_name + '/channels/town-square'});
-                callback();
-            }
-        });
-        return;
-    }
-
-    callback();
-}
-
 function onPermalinkEnter(nextState) {
     const postId = nextState.params.postid;
 
@@ -216,7 +199,6 @@ function renderRootComponent() {
             <Route
                 path='/'
                 component={Root}
-                onEnter={onRootEnter}
             >
                 <Route
                     component={LoggedIn}
@@ -314,7 +296,7 @@ function renderRootComponent() {
                             component={TeamURLPage}
                         />
                         <Route
-                            path='invites'
+                            path='send_invites'
                             component={SendInivtesPage}
                         />
                         <Route
