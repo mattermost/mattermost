@@ -1140,3 +1140,11 @@ func (c *Client) GetMeLoggedIn() (*Result, *AppError) {
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
+
+func (c *Client) GetPing() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/ping/", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID), "", MapFromJson(r.Body)}, nil
+	}
+}
