@@ -12,7 +12,7 @@
         text-align: left;
 
         &.light {
-            @include opacity(.6);
+            color: $dark-gray;
             font-size: 1.05em;
             font-style: italic;
             font-weight: normal;
@@ -41,13 +41,10 @@
 
     .form-group {
         margin-bottom: 25px;
-    }
-}
 
-
-.form-group {
-    &.less {
-        margin-bottom: 10px;
+        &.less {
+            margin-bottom: 10px;
+        }
     }
 }
 

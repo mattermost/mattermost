@@ -6,7 +6,6 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
-import Constants from 'utils/constants.jsx';
 
 export default class AboutBuildModal extends React.Component {
     constructor(props) {
@@ -21,35 +20,12 @@ export default class AboutBuildModal extends React.Component {
     render() {
         const config = global.window.mm_config;
         const license = global.window.mm_license;
-        const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
 
         let title = (
             <FormattedMessage
                 id='about.teamEditiont0'
                 defaultMessage='Team Edition'
             />
-        );
-
-        let subTitle = (
-            <FormattedMessage
-                id='about.teamEditionSt'
-                defaultMessage='All your team communication in one place, instantly searchable and accessible anywhere.'
-            />
-        );
-
-        let learnMore = (
-            <div>
-                <FormattedMessage
-                    id='about.teamEditionLearn'
-                    defaultMessage='Join the Mattermost community at '
-                />
-                <a
-                    target='_blank'
-                    href='http://www.mattermost.org/'
-                >
-                    {'mattermost.org'}
-                </a>
-            </div>
         );
 
         let licensee;
@@ -60,29 +36,6 @@ export default class AboutBuildModal extends React.Component {
                     defaultMessage='Enterprise Edition'
                 />
             );
-
-            subTitle = (
-                <FormattedMessage
-                    id='about.enterpriseEditionSt'
-                    defaultMessage='Modern enterprise communication from behind your firewall.'
-                />
-            );
-
-            learnMore = (
-                <div>
-                    <FormattedMessage
-                        id='about.enterpriseEditionLearn'
-                        defaultMessage='Learn more about Enterprise Edition at '
-                    />
-                    <a
-                        target='_blank'
-                        href='http://about.mattermost.com/'
-                    >
-                        {'about.mattermost.com'}
-                    </a>
-                </div>
-            );
-
             if (license.IsLicensed === 'true') {
                 title = (
                     <FormattedMessage
@@ -91,12 +44,14 @@ export default class AboutBuildModal extends React.Component {
                     />
                 );
                 licensee = (
-                    <div className='form-group'>
-                        <FormattedMessage
-                            id='about.licensed'
-                            defaultMessage='Licensed by:'
-                        />
-                        &nbsp;{license.Company}
+                    <div className='row form-group'>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.licensed'
+                                defaultMessage='Licensed by:'
+                            />
+                        </div>
+                        <div className='col-sm-9'>{license.Company}</div>
                     </div>
                 );
             }
@@ -104,7 +59,6 @@ export default class AboutBuildModal extends React.Component {
 
         return (
             <Modal
-                dialogClassName='about-modal'
                 show={this.props.show}
                 onHide={this.doHide}
             >
@@ -117,38 +71,57 @@ export default class AboutBuildModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className='about-modal__content'>
-                        <div className='about-modal__logo'>
-                            <span
-                                className='icon'
-                                dangerouslySetInnerHTML={{__html: mattermostLogo}}
-                            />
-                        </div>
-                        <div>
-                            <h3 className='about-modal__title'>{'Mattermost'} {title}</h3>
-                            <p className='about-modal__subtitle padding-bottom'>{subTitle}</p>
-                            <div className='form-group less'>
-                                <div>
-                                    <FormattedMessage
-                                        id='about.version'
-                                        defaultMessage='Version:'
-                                    />
-                                    &nbsp;{config.Version}&nbsp;({config.BuildNumber})
-                                </div>
-                            </div>
-                            {licensee}
-                        </div>
-                    </div>
-                    <div className='about-modal__footer'>
-                        {learnMore}
-                        <div className='form-group about-modal__copyright'>
+                    <h4 className='padding-bottom x2'>{'Mattermost'} {title}</h4>
+                    {licensee}
+                    <div className='row form-group'>
+                        <div className='col-sm-3 info__label'>
                             <FormattedMessage
-                                id='about.copyright'
-                                defaultMessage='Copyright 2016 Mattermost, Inc. All rights reserved'
+                                id='about.version'
+                                defaultMessage='Version:'
                             />
                         </div>
+                        <div className='col-sm-9'>{config.Version}</div>
+                    </div>
+                    <div className='row form-group'>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.number'
+                                defaultMessage='Build Number:'
+                            />
+                        </div>
+                        <div className='col-sm-9'>{config.BuildNumber}</div>
+                    </div>
+                    <div className='row form-group'>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.date'
+                                defaultMessage='Build Date:'
+                            />
+                        </div>
+                        <div className='col-sm-9'>{config.BuildDate}</div>
+                    </div>
+                    <div className='row form-group'>
+                        <div className='col-sm-3 info__label'>
+                            <FormattedMessage
+                                id='about.hash'
+                                defaultMessage='Build Hash:'
+                            />
+                        </div>
+                        <div className='col-sm-9'>{config.BuildHash}</div>
                     </div>
                 </Modal.Body>
+                <Modal.Footer>
+                    <button
+                        type='button'
+                        className='btn btn-default'
+                        onClick={this.doHide}
+                    >
+                        <FormattedMessage
+                            id='about.close'
+                            defaultMessage='Close'
+                        />
+                    </button>
+                </Modal.Footer>
             </Modal>
         );
     }
