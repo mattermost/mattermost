@@ -27,6 +27,7 @@ func InitApi() {
 	InitWebhook(r)
 	InitPreference(r)
 	InitLicense(r)
+	InitPing(r)
 
 	utils.InitHTML()
 }
