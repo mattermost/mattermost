@@ -96,7 +96,7 @@ class PostStoreClass extends EventEmitter {
         let post = null;
 
         if (posts.posts.hasOwnProperty(postId)) {
-            post = Object.assign({}, posts.posts[postId]);
+            post = posts.posts[postId];
         }
 
         return post;
@@ -104,7 +104,7 @@ class PostStoreClass extends EventEmitter {
 
     getAllPosts(id) {
         if (this.postsInfo.hasOwnProperty(id)) {
-            return Object.assign({}, this.postsInfo[id].postList);
+            return this.postsInfo[id].postList;
         }
 
         return null;
