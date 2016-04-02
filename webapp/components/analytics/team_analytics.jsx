@@ -154,7 +154,7 @@ class TeamAnalytics extends React.Component {
                     <TableChart
                         title={
                             <FormattedMessage
-                                id='analytics.team.activeUsers'
+                                id='analytics.team.recentUsers'
                                 defaultMessage='Recent Active Users'
                             />
                         }

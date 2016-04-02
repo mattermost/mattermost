@@ -65,6 +65,8 @@ func InitApi() {
 	InitWebhook()
 	InitPreference(r)
 	InitLicense(r)
+	// 404 on any api route before web.go has a chance to serve it
+	Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
 
 	utils.InitHTML()
 }

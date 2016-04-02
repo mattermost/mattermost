@@ -138,7 +138,9 @@ export default class Sidebar extends React.Component {
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
             currentTeam: TeamStore.getCurrent(),
-            currentUser: UserStore.getCurrentUser()
+            currentUser: UserStore.getCurrentUser(),
+            townSquare: ChannelStore.getByName(Constants.DEFAULT_CHANNEL),
+            offTopic: ChannelStore.getByName(Constants.OFFTOPIC_CHANNEL)
         };
     }
 
@@ -290,6 +292,16 @@ export default class Sidebar extends React.Component {
     createTutorialTip() {
         const screens = [];
 
+        let townSquareDisplayName = Constants.DEFAULT_CHANNEL_UI_NAME;
+        if (this.state.townSquare) {
+            townSquareDisplayName = this.state.townSquare.display_name;
+        }
+
+        let offTopicDisplayName = Constants.OFFTOPIC_CHANNEL_UI_NAME;
+        if (this.state.offTopic) {
+            offTopicDisplayName = this.state.offTopic.display_name;
+        }
+
         screens.push(
             <div>
                 <FormattedHTMLMessage
@@ -303,10 +315,14 @@ export default class Sidebar extends React.Component {
             <div>
                 <FormattedHTMLMessage
                     id='sidebar.tutorialScreen2'
-                    defaultMessage='<h4>"Town Square" and "Off-Topic" channels</h4>
+                    defaultMessage='<h4>"{townsquare}" and "{offtopic}" channels</h4>
                     <p>Here are two public channels to start:</p>
-                    <p><strong>Town Square</strong> is a place for team-wide communication. Everyone in your team is a member of this channel.</p>
-                    <p><strong>Off-Topic</strong> is a place for fun and humor outside of work-related channels. You and your team can decide what other channels to create.</p>'
+                    <p><strong>{townsquare}</strong> is a place for team-wide communication. Everyone in your team is a member of this channel.</p>
+                    <p><strong>{offtopic}</strong> is a place for fun and humor outside of work-related channels. You and your team can decide what other channels to create.</p>'
+                    values={{
+                        townsquare: townSquareDisplayName,
+                        offtopic: offTopicDisplayName
+                    }}
                 />
             </div>
         );

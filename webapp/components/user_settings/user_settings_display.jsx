@@ -304,7 +304,7 @@ export default class UserSettingsDisplay extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.showUsername'
-                        defaultMessage='Show username (team default)'
+                        defaultMessage='Show username (default)'
                     />
                 );
             } else if (this.state.nameFormat === 'full_name') {

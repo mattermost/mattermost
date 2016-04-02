@@ -19,6 +19,12 @@ const NUM_SCREENS = 3;
 import React from 'react';
 
 export default class TutorialIntroScreens extends React.Component {
+    static get propTypes() {
+        return {
+            townSquare: React.PropTypes.object,
+            offTopic: React.PropTypes.object
+        };
+    }
     constructor(props) {
         super(props);
 
@@ -153,6 +159,11 @@ export default class TutorialIntroScreens extends React.Component {
             );
         }
 
+        let townSquareDisplayName = Constants.DEFAULT_CHANNEL_UI_NAME;
+        if (this.props.townSquare) {
+            townSquareDisplayName = this.props.townSquare.display_name;
+        }
+
         return (
             <div>
                 <h3>
@@ -171,7 +182,10 @@ export default class TutorialIntroScreens extends React.Component {
                 {supportInfo}
                 <FormattedMessage
                     id='tutorial_intro.end'
-                    defaultMessage='Click “Next” to enter Town Square. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'
+                    defaultMessage='Click “Next” to enter {channel}. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'
+                    values={{
+                        channel: townSquareDisplayName
+                    }}
                 />
                 {circles}
             </div>

@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import AccessHistoryModal from '../access_history_modal.jsx';
@@ -247,7 +248,7 @@ class SecurityTab extends React.Component {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.mfa.addHelp'
+                            id='user.settings.mfa.addHelpQr'
                             defaultMessage='Please scan the QR code with the Google Authenticator app on your smartphone and fill in the token with one provided by the app.'
                         />
                     </span>
