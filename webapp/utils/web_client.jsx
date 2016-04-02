@@ -4,6 +4,7 @@
 import Client from '../client/client.jsx';
 import {browserHistory} from 'react-router';
 import TeamStore from '../stores/team_store.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
 
 const HTTP_UNAUTHORIZED = 401;
 
@@ -30,11 +31,33 @@ class WebClientClass extends Client {
         }
     }
 
-    handleError = (err, res) => {
+    handleError = (err, res) => { // eslint-disable-line no-unused-vars
         if (err.status === HTTP_UNAUTHORIZED) {
             const team = window.location.pathname.split('/')[1];
             browserHistory.push('/' + team + '/login?extra=expired');
         }
+    }
+
+    login = (email, password, token, success, error) => { // eslint-disable-line no-unused-vars
+        this.super.login(
+            email,
+            password,
+            token,
+            (data) => {
+                this.track('api', 'api_users_login_success', '', 'email', data.email);
+                BrowserStore.signalLogin();
+
+                if (success) {
+                    success(data);
+                }
+            },
+            (err) => {
+                this.track('api', 'api_users_login_fail', name, 'email', email);
+                if (error) {
+                    error(err);
+                }
+            }
+        );
     }
 }
 

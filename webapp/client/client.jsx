@@ -3,11 +3,18 @@
 
 import request from 'superagent';
 
+const HEADER_X_VERSION_ID = 'x-version-id';
+const HEADER_TOKEN = 'token';
+const HEADER_BEARER = 'BEARER';
+const HEADER_AUTH = 'Authorization';
+
 export default class Client {
     constructor() {
         this.teamId = '';
         this.serverVersion = '';
         this.logToConsole = false;
+        this.useToken = false;
+        this.token = '';
         this.url = '';
         this.urlVersion = '/api/v2';
         this.defaultHeaders = {
@@ -29,7 +36,15 @@ export default class Client {
     }
 
     getTeamId = () => {
+        if (this.teamId === '') {
+            console.error('You are trying to use a route that requires a team_id, but you havn\'t called setTeamId() in client.jsx'); // eslint-disable-line no-console
+        }
+
         return this.teamId;
+    }
+
+    getServerVersion = () => {
+        return this.serverVersion;
     }
 
     getBaseRoute() {
@@ -49,15 +64,15 @@ export default class Client {
     }
 
     getTeamNeededRoute() {
-        return `${this.url}${this.urlVersion}/teams/${this.teamId}`;
+        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}`;
     }
 
     getChannelsRoute() {
-        return `${this.url}${this.urlVersion}/teams/${this.teamId}/channels`;
+        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/channels`;
     }
 
     getChannelNeededRoute(channelId) {
-        return `${this.url}${this.urlVersion}/teams/${this.teamId}/channels/${channelId}`;
+        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/channels/${channelId}`;
     }
 
     getUsersRoute() {
@@ -68,11 +83,18 @@ export default class Client {
         this.translations = messages;
     }
 
-    logErrorsToConsole= () => {
+    logErrorsToConsole = () => {
         this.logToConsole = true;
     }
 
-    track = (category, action, label, property, value) => { //eslint-disable-line no-unused-vars
+    useHeaderToken = () => {
+        this.useToken = true;
+        if (this.token !== '') {
+            this.defaultHeaders[HEADER_AUTH] = `${HEADER_BEARER} ${this.token}`;
+        }
+    }
+
+    track = (category, action, label, property, value) => { // eslint-disable-line no-unused-vars
         // NO-OP for inherited classes to override
     }
 
@@ -80,15 +102,15 @@ export default class Client {
         // NO-OP for inherited classes to override
     }
 
-    handleError = (err, res) => { //eslint-disable-line no-unused-vars
+    handleError = (err, res) => { // eslint-disable-line no-unused-vars
         // NO-OP for inherited classes to override
     }
 
     handleResponse = (methodName, successCallback, errorCallback, err, res) => {
         if (res && res.header) {
-            this.serverVersion = res.header['x-version-id'];
-            if (res.header['x-version-id']) {
-                this.serverVersion = res.header['x-version-id'];
+            this.serverVersion = res.header[HEADER_X_VERSION_ID];
+            if (res.header[HEADER_X_VERSION_ID]) {
+                this.serverVersion = res.header[HEADER_X_VERSION_ID];
             }
         }
 
@@ -114,8 +136,8 @@ export default class Client {
             }
 
             if (this.logToConsole) {
-                console.error(msg); //eslint-disable-line no-console
-                console.error(e); //eslint-disable-line no-console
+                console.error(msg); // eslint-disable-line no-console
+                console.error(e); // eslint-disable-line no-console
             }
 
             this.track('api', 'api_weberror', methodName, 'message', msg);
@@ -130,6 +152,17 @@ export default class Client {
         if (successCallback) {
             successCallback(res.body, res);
         }
+    }
+
+    // General / Admin / Licensing Routes Section
+
+    getTranslations = (url, success, error) => {
+        return request.
+            get(url).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTranslations', success, error));
     }
 
     getClientConfig = (success, error) => {
@@ -162,6 +195,8 @@ export default class Client {
         this.track('api', 'api_teams_signup');
     }
 
+    // Team Routes Section
+
     createTeamFromSignup = (teamSignup, success, error) => {
         request.
             post(`${this.getTeamsRoute()}/create_from_signup`).
@@ -178,8 +213,43 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({teamName}).
+            send({name: teamName}).
             end(this.handleResponse.bind(this, 'findTeamByName', success, error));
+    }
+
+    createTeam = (team, success, error) => {
+        request.
+            post(`${this.getTeamsRoute()}/create`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(team).
+            end(this.handleResponse.bind(this, 'createTeam', success, error));
+
+        this.track('api', 'api_users_create', '', 'email', team.name);
+    }
+
+    getAllTeams = (success, error) => {
+        request.
+            get(`${this.getTeamsRoute()}/all`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getAllTeams', success, error));
+    }
+
+    // User Routes Setions
+
+    createUser = (user, success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/create`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(user).
+            end(this.handleResponse.bind(this, 'createUser', success, error));
+
+        this.track('api', 'api_users_create', '', 'email', user.email);
     }
 
     getMeLoggedIn = (success, error) => {
@@ -189,5 +259,59 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMeLoggedIn', success, error));
+    }
+
+    getAllPreferences = (success, error) => {
+        request.
+            get(`${this.getBaseRoute()}/preferences/`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getAllPreferences', success, error));
+    }
+
+    login = (email, password, mfaToken, success, error) => {
+        var outer = this;  // eslint-disable-line consistent-this
+
+        request.
+            post(`${this.getUsersRoute()}/login`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({email, password, token: mfaToken}).
+            end(this.handleResponse.bind(
+                this,
+                'login',
+                (data, res) => {
+                    if (res && res.header) {
+                        outer.token = res.header[HEADER_TOKEN];
+
+                        if (outer.useToken) {
+                            outer.defaultHeaders[HEADER_AUTH] = `${HEADER_BEARER} ${outer.token}`;
+                        }
+                    }
+
+                    if (success) {
+                        success(data, res);
+                    }
+                },
+                error
+            ));
+
+        this.track('api', 'api_users_login', '', 'email', email);
+    }
+
+    // Channel Routes Section
+
+    createChannel = (channel, success, error) => {
+        request.
+            post(`${this.getChannelsRoute()}/create`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(channel).
+            end(this.handleResponse.bind(this, 'createChannel', success, error));
+
+        this.track('api', 'api_channels_create', channel.type, 'name', channel.name);
     }
 }

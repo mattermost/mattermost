@@ -29,8 +29,8 @@ import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import SignupTeam from 'components/signup_team.jsx';
 
-import * as Client from 'utils/client.jsx';
-import WebClient from 'utils/web_client.jsx';
+//import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 
 import * as Websockets from 'action_creators/websocket_actions.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
@@ -74,10 +74,6 @@ import * as I18n from 'i18n/i18n.jsx';
 function preRenderSetup(callwhendone) {
     var d1 = $.Deferred(); //eslint-disable-line new-cap
     var d2 = $.Deferred(); //eslint-disable-line new-cap
-
-    //WebClient.getTeamIdX();
-    //WebClient.getTeamId();
-    WebClient.call1();
 
     Client.getClientConfig(
         (data) => {

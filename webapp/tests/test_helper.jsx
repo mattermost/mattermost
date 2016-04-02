@@ -7,17 +7,26 @@
 /* eslint-disable prefer-arrow-callback */
 /* eslint-disable no-magic-numbers */
 /* eslint-disable no-unreachable */
+/* eslint-disable new-cap */
 
 import Client from '../client/client.jsx';
+import jqd from 'jquery-deferred';
 
 class TestHelperClass {
-    constructor() {
-        this.basicc = new Client();
-        this.basicc.setUrl('http://localhost:8065');
-    }
-
     basicClient = () => {
         return this.basicc;
+    }
+
+    basicTeam = () => {
+        return this.basict;
+    }
+
+    basicUser = () => {
+        return this.basicu;
+    }
+
+    basicChannel = () => {
+        return this.basicch;
     }
 
     generateId = () => {
@@ -40,10 +49,111 @@ class TestHelperClass {
         return 'uid' + id;
     }
 
+    createClient() {
+        var c = new Client();
+        c.setUrl('http://localhost:8065');
+        c.useHeaderToken();
+        c.logErrorsToConsole();
+        return c;
+    }
+
     fakeEmail = () => {
         return 'success' + this.generateId() + '@simulator.amazonses.com';
     }
 
+    fakeUser = () => {
+        var user = {};
+        user.email = this.fakeEmail();
+        user.allow_marketing = true;
+        user.password = 'password1';
+        user.username = this.generateId();
+        return user;
+    }
+
+    fakeTeam = () => {
+        var team = {};
+        team.name = this.generateId();
+        team.display_name = `Unit Test ${team.name}`;
+        team.type = 'O';
+        team.email = this.fakeEmail();
+        team.allowed_domains = '';
+        return team;
+    }
+
+    fakeChannel = () => {
+        var channel = {};
+        channel.name = this.generateId();
+        channel.display_name = `Unit Test ${channel.name}`;
+        channel.type = 'P'; // private channel
+        return channel;
+    }
+
+    initBasic = (callback) => {
+        this.basicc = this.createClient();
+
+        var d1 = jqd.Deferred();
+        var email = this.fakeEmail();
+        var outer = this;  // eslint-disable-line consistent-this
+
+        this.basicClient().signupTeam(
+            email,
+            function(rsignUp) {
+                var teamSignup = {};
+                teamSignup.invites = [];
+                teamSignup.data = decodeURIComponent(rsignUp.follow_link.split('&h=')[0].replace('/signup_team_complete/?d=', ''));
+                teamSignup.hash = decodeURIComponent(rsignUp.follow_link.split('&h=')[1]);
+
+                teamSignup.user = outer.fakeUser();
+                teamSignup.team = outer.fakeTeam();
+                teamSignup.team.email = email;
+                teamSignup.user.email = email;
+                var password = teamSignup.user.password;
+
+                outer.basicClient().createTeamFromSignup(
+                    teamSignup,
+                    function(rteamSignup) {
+                        outer.basict = rteamSignup.team;
+                        outer.basicu = rteamSignup.user;
+                        outer.basicu.password = password;
+                        outer.basicClient().setTeamId(outer.basict.id);
+                        outer.basicClient().login(
+                            rteamSignup.user.email,
+                            password,
+                            null,
+                            function() {
+                                outer.basicClient().useHeaderToken();
+                                var channel = outer.fakeChannel();
+                                channel.team_id = outer.basicTeam().id;
+                                outer.basicClient().createChannel(
+                                    channel,
+                                    function(rchannel) {
+                                        outer.basicch = rchannel;
+                                        d1.resolve();
+                                    },
+                                    function(err) {
+                                        throw err;
+                                    }
+                                );
+                            },
+                            function(err) {
+                                throw err;
+                            }
+                        );
+                    },
+                    function(err) {
+                        throw err;
+                    }
+                );
+            },
+            function(err) {
+                throw err;
+            }
+        );
+
+        jqd.when(d1).done(() => {
+            callback();
+        });
+    }
 }
 
 var TestHelper = new TestHelperClass();

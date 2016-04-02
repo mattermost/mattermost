@@ -8,16 +8,32 @@
 /* eslint-disable no-magic-numbers */
 /* eslint-disable no-unreachable */
 
-var assert = require('assert');
+import assert from 'assert';
 import TestHelper from './test_helper.jsx';
 
 describe('Client.Team', function() {
     this.timeout(100000);
 
+    it('findTeamByName', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().findTeamByName(
+                TestHelper.basicTeam().name,
+                function(data) {
+                    assert.equal(data, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('signupTeam', function(done) {
+        var client = TestHelper.createClient();
         var email = TestHelper.fakeEmail();
 
-        TestHelper.basicClient().signupTeam(
+        client.signupTeam(
             email,
             function(data) {
                 assert.equal(data.email, email);
@@ -30,9 +46,10 @@ describe('Client.Team', function() {
     });
 
     it('createTeamFromSignup', function(done) {
+        var client = TestHelper.createClient();
         var email = TestHelper.fakeEmail();
 
-        TestHelper.basicClient().signupTeam(
+        client.signupTeam(
             email,
             function(data) {
                 var teamSignup = {};
@@ -40,20 +57,11 @@ describe('Client.Team', function() {
                 teamSignup.data = decodeURIComponent(data.follow_link.split('&h=')[0].replace('/signup_team_complete/?d=', ''));
                 teamSignup.hash = decodeURIComponent(data.follow_link.split('&h=')[1]);
 
-                teamSignup.user = {};
-                teamSignup.user.email = email;
-                teamSignup.user.allow_marketing = true;
-                teamSignup.user.password = 'password1';
-                teamSignup.username = TestHelper.generateId();
+                teamSignup.user = TestHelper.fakeUser();
+                teamSignup.team = TestHelper.fakeTeam();
+                teamSignup.team.email = teamSignup.user.email;
 
-                teamSignup.team = {};
-                teamSignup.team.display_name = 'Javascript Unit Test';
-                teamSignup.team.name = TestHelper.generateId();
-                teamSignup.team.type = 'O';
-                teamSignup.team.email = email;
-                teamSignup.team.allowed_domains = '';
-
-                TestHelper.basicClient().createTeamFromSignup(
+                client.createTeamFromSignup(
                     teamSignup,
                     function(data2) {
                         assert.equal(data2.team.id.length > 0, true);
@@ -71,19 +79,34 @@ describe('Client.Team', function() {
         );
     });
 
-    it('findTeamByName', function(done) {
-        var email = TestHelper.fakeEmail();
-
-        TestHelper.basicClient().findTeamByName(
-            email,
+    it('createTeam', function(done) {
+        var client = TestHelper.createClient();
+        var team = TestHelper.fakeTeam();
+        client.createTeam(
+            team,
             function(data) {
-                assert.equal(data, false);
+                assert.equal(data.id.length > 0, true);
+                assert.equal(data.name, team.name);
                 done();
             },
             function(err) {
                 done(new Error(err.message));
             }
         );
+    });
+
+    it('getAllTeams', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getAllTeams(
+                function(data) {
+                    assert.equal(data[TestHelper.basicTeam().id].name, TestHelper.basicTeam().name);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
     });
 });
 

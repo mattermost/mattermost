@@ -70,32 +70,32 @@ function handleError(methodName, xhr, status, err) {
     return e;
 }
 
-export function getTranslations(url, success, error) {
-    $.ajax({
-        url: url,
-        dataType: 'json',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getTranslations', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getTranslations(url, success, error) {
+//     $.ajax({
+//         url: url,
+//         dataType: 'json',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getTranslations', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function createTeamFromSignup(teamSignup, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/create_from_signup',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(teamSignup),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('createTeamFromSignup', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function createTeamFromSignup(teamSignup, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/create_from_signup',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(teamSignup),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('createTeamFromSignup', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 export function createTeamWithLdap(teamSignup, success, error) {
     $.ajax({
@@ -127,22 +127,22 @@ export function createTeamWithSSO(team, service, success, error) {
     });
 }
 
-export function createUser(user, data, emailHash, success, error) {
-    $.ajax({
-        url: '/api/v1/users/create?d=' + encodeURIComponent(data) + '&h=' + encodeURIComponent(emailHash),
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(user),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('createUser', xhr, status, err);
-            error(e);
-        }
-    });
+// export function createUser(user, data, emailHash, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/create?d=' + encodeURIComponent(data) + '&h=' + encodeURIComponent(emailHash),
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(user),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('createUser', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_create', user.team_id, 'email', user.email);
-}
+//     track('api', 'api_users_create', user.team_id, 'email', user.email);
+// }
 
 export function updateUser(user, success, error) {
     $.ajax({
@@ -361,27 +361,27 @@ export function checkMfa(method, team, loginId, success, error) {
     });
 }
 
-export function loginByEmail(name, email, password, token, success, error) {
-    $.ajax({
-        url: '/api/v1/users/login',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({name, email, password, token}),
-        success: function onSuccess(data, textStatus, xhr) {
-            track('api', 'api_users_login_success', data.team_id, 'email', data.email);
-            sessionStorage.removeItem(data.id + '_last_error');
-            BrowserStore.signalLogin();
-            success(data, textStatus, xhr);
-        },
-        error: function onError(xhr, status, err) {
-            track('api', 'api_users_login_fail', name, 'email', email);
+// export function loginByEmail(name, email, password, token, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/login',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({name, email, password, token}),
+//         success: function onSuccess(data, textStatus, xhr) {
+//             track('api', 'api_users_login_success', data.team_id, 'email', data.email);
+//             sessionStorage.removeItem(data.id + '_last_error');
+//             BrowserStore.signalLogin();
+//             success(data, textStatus, xhr);
+//         },
+//         error: function onError(xhr, status, err) {
+//             track('api', 'api_users_login_fail', name, 'email', email);
 
-            var e = handleError('loginByEmail', xhr, status, err);
-            error(e);
-        }
-    });
-}
+//             var e = handleError('loginByEmail', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 export function loginByUsername(name, username, password, success, error) {
     $.ajax({
@@ -795,20 +795,20 @@ export function signupTeam(email, success, error) {
     track('api', 'api_teams_signup');
 }
 
-export function createTeam(team, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/create',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(team),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('createTeam', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function createTeam(team, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/create',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(team),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('createTeam', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 export function findTeamByName(teamName, success, error) {
     $.ajax({
@@ -825,22 +825,22 @@ export function findTeamByName(teamName, success, error) {
     });
 }
 
-export function createChannel(channel, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/create',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(channel),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('createChannel', xhr, status, err);
-            error(e);
-        }
-    });
+// export function createChannel(channel, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/create',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(channel),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('createChannel', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_channels_create', channel.type, 'name', channel.name);
-}
+//     track('api', 'api_channels_create', channel.type, 'name', channel.name);
+// }
 
 export function createDirectChannel(channel, userId, success, error) {
     $.ajax({
@@ -1594,18 +1594,18 @@ export function listIncomingHooks(success, error) {
     });
 }
 
-export function getAllPreferences(success, error) {
-    return $.ajax({
-        url: '/api/v1/preferences/',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('getAllPreferences', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getAllPreferences(success, error) {
+//     return $.ajax({
+//         url: '/api/v1/preferences/',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('getAllPreferences', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 export function getPreferenceCategory(category, success, error) {
     $.ajax({

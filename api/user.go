@@ -662,9 +662,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	if len(props["id"]) != 0 {
 		user = LoginById(c, w, r, props["id"], props["password"], props["token"], props["device_id"])
-	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
+	} else if len(props["email"]) != 0 {
 		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["token"], props["device_id"])
-	} else if len(props["username"]) != 0 && len(props["name"]) != 0 {
+	} else if len(props["username"]) != 0 {
 		user = LoginByUsername(c, w, r, props["username"], props["name"], props["password"], props["token"], props["device_id"])
 	} else {
 		c.Err = model.NewLocAppError("login", "api.user.login.not_provided.app_error", nil, "")

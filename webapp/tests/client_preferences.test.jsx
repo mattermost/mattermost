@@ -1,0 +1,32 @@
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
+/* eslint-disable no-console */
+/* eslint-disable global-require */
+/* eslint-disable func-names */
+/* eslint-disable prefer-arrow-callback */
+/* eslint-disable no-magic-numbers */
+/* eslint-disable no-unreachable */
+
+import assert from 'assert';
+import TestHelper from './test_helper.jsx';
+
+describe('Client.Preferences', function() {
+    this.timeout(100000);
+
+    it('getAllPreferences', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getAllPreferences(
+                function(data) {
+                    assert.equal(data[0].category, 'tutorial_step');
+                    assert.equal(data[0].user_id, TestHelper.basicUser().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+});
+
