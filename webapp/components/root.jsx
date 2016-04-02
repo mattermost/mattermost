@@ -34,7 +34,7 @@ export default class Root extends React.Component {
             l.message = 'msg: ' + msg + ' row: ' + line + ' col: ' + column + ' stack: ' + stack + ' url: ' + url;
 
             $.ajax({
-                url: '/api/v1/admin/log_client',
+                url: '/api/v2/admin/log_client',
                 dataType: 'json',
                 contentType: 'application/json',
                 type: 'POST',

@@ -109,6 +109,11 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(token) == 0 {
 		if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
 			token = cookie.Value
+			// Check the special header to make sure this isn't a CSRF suspect
+			if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
+				c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
+				token = ""
+			}
 		}
 	}
 
@@ -526,6 +531,7 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 
 	if IsApiCall(r) {
 		w.WriteHeader(err.StatusCode)
+		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
 	} else {
 		RenderWebError(err, w, r)

@@ -16,16 +16,18 @@ import (
 )
 
 const (
-	HEADER_REQUEST_ID      = "X-Request-ID"
-	HEADER_VERSION_ID      = "X-Version-ID"
-	HEADER_ETAG_SERVER     = "ETag"
-	HEADER_ETAG_CLIENT     = "If-None-Match"
-	HEADER_FORWARDED       = "X-Forwarded-For"
-	HEADER_REAL_IP         = "X-Real-IP"
-	HEADER_FORWARDED_PROTO = "X-Forwarded-Proto"
-	HEADER_TOKEN           = "token"
-	HEADER_BEARER          = "BEARER"
-	HEADER_AUTH            = "Authorization"
+	HEADER_REQUEST_ID         = "X-Request-ID"
+	HEADER_VERSION_ID         = "X-Version-ID"
+	HEADER_ETAG_SERVER        = "ETag"
+	HEADER_ETAG_CLIENT        = "If-None-Match"
+	HEADER_FORWARDED          = "X-Forwarded-For"
+	HEADER_REAL_IP            = "X-Real-IP"
+	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
+	HEADER_TOKEN              = "token"
+	HEADER_BEARER             = "BEARER"
+	HEADER_AUTH               = "Authorization"
+	HEADER_REQUESTED_WITH     = "X-Requested-With"
+	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
 
 	API_URL_SUFFIX_V1 = "/api/v1"
 	API_URL_SUFFIX_V2 = "/api/v2"
@@ -190,10 +192,9 @@ func (c *Client) GetAllTeams() (*Result, *AppError) {
 	}
 }
 
-func (c *Client) FindTeamByName(name string, allServers bool) (*Result, *AppError) {
+func (c *Client) FindTeamByName(name string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["name"] = name
-	m["all"] = fmt.Sprintf("%v", allServers)
 	if r, err := c.DoApiPost("/teams/find_team_by_name", MapToJson(m)); err != nil {
 		return nil, err
 	} else {

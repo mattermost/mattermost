@@ -30,9 +30,11 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
+	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
 
 	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/update", ApiUserRequired(updateTeam)).Methods("POST")
+
 	BaseRoutes.NeedTeam.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 
 	// These should be moved to the global admain console
@@ -166,6 +168,8 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("createTeam", "teamSignup")
 		return
 	}
+
+	println(teamSignup.ToJson())
 
 	props := model.MapFromJson(strings.NewReader(teamSignup.Data))
 	teamSignup.Team.Email = props["email"]
@@ -502,6 +506,20 @@ func FindTeamByName(name string) bool {
 		return false
 	} else {
 		return true
+	}
+}
+
+func findTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	m := model.MapFromJson(r.Body)
+	name := strings.ToLower(strings.TrimSpace(m["name"]))
+
+	found := FindTeamByName(name)
+
+	if found {
+		w.Write([]byte("true"))
+	} else {
+		w.Write([]byte("false"))
 	}
 }
 

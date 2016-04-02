@@ -25,8 +25,13 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import * as Utils from 'utils/utils.jsx';
 import SignupTeam from 'components/signup_team.jsx';
+
 import * as Client from 'utils/client.jsx';
+import WebClient from 'utils/web_client.jsx';
+
 import * as Websockets from 'action_creators/websocket_actions.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import SignupTeamConfirm from 'components/signup_team_confirm.jsx';
@@ -50,6 +55,9 @@ import SendInivtesPage from 'components/signup_team_complete/components/team_sig
 import UsernamePage from 'components/signup_team_complete/components/team_signup_username_page.jsx';
 import PasswordPage from 'components/signup_team_complete/components/team_signup_password_page.jsx';
 import FinishedPage from 'components/signup_team_complete/components/team_signup_finished.jsx';
+import AppDispatcher from './dispatcher/app_dispatcher.jsx';
+import Constants from './utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
 
 import Claim from 'components/claim/claim.jsx';
 import EmailToOAuth from 'components/claim/components/email_to_oauth.jsx';
@@ -64,7 +72,14 @@ import * as I18n from 'i18n/i18n.jsx';
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
 function preRenderSetup(callwhendone) {
-    const d1 = Client.getClientConfig(
+    var d1 = $.Deferred(); //eslint-disable-line new-cap
+    var d2 = $.Deferred(); //eslint-disable-line new-cap
+
+    //WebClient.getTeamIdX();
+    //WebClient.getTeamId();
+    WebClient.call1();
+
+    Client.getClientConfig(
         (data) => {
             if (!data) {
                 return;
@@ -82,22 +97,27 @@ function preRenderSetup(callwhendone) {
                     console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
                 }
             }
+
+            d1.resolve();
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getClientConfig');
+            d1.resolve();
         }
     );
 
-    const d2 = Client.getClientLicenceConfig(
+    Client.getClientLicenceConfig(
         (data) => {
             if (!data) {
                 return;
             }
 
             global.window.mm_license = data;
+            d2.resolve();
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getClientLicenceConfig');
+            d2.resolve();
         }
     );
 
@@ -119,7 +139,6 @@ function preRenderSetup(callwhendone) {
 
     function afterIntl() {
         I18n.doAddLocaleData();
-        $.when(d1, d2).done(callwhendone);
     }
 
     if (global.Intl) {
@@ -127,25 +146,87 @@ function preRenderSetup(callwhendone) {
     } else {
         I18n.safariFix(afterIntl);
     }
+
+    $.when(d1, d2).done(() => {
+        callwhendone();
+    });
 }
 
 function preLoggedIn(nextState, replace, callback) {
-    const d1 = Client.getAllPreferences(
+    ErrorStore.clearLastError();
+
+    var d1 = $.Deferred(); //eslint-disable-line new-cap
+    var d2 = $.Deferred(); //eslint-disable-line new-cap
+
+    Client.getAllPreferences(
         (data) => {
             PreferenceStore.setPreferencesFromServer(data);
+            d1.resolve();
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getAllPreferences');
+            d1.resolve();
         }
     );
 
-    const d2 = AsyncClient.getChannels();
+    // TODO XXX FIXME remove this one I get multi-teams working
+    Client.getAllTeams(
+        (data) => {
+            var teamInUrl = Utils.getTeamNameFromUrl();
 
-    ErrorStore.clearLastError();
+            for (var key in data) {
+                if (data.hasOwnProperty(key)) {
+                    var team = data[key];
+                    if (team.name === teamInUrl) {
+                        TeamStore.saveMyTeam(team);
+                    }
+                }
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_ALL_TEAMS,
+                teams: data,
+                members: data.members
+            });
+
+            d2.resolve();
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getAllTeams');
+            d2.resolve();
+        }
+    );
 
     $.when(d1, d2).done(() => {
-        callback();
+        var d3 = $.Deferred(); //eslint-disable-line new-cap
+
+        Client.setTeamId(TeamStore.getCurrentId());
+        Client.getChannels(
+            (data) => {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNELS,
+                    channels: data.channels,
+                    members: data.members
+                });
+
+                d3.resolve();
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'getChannels');
+                d3.resolve();
+            }
+        );
+
+        $.when(d3).done(() => {
+            callback();
+        });
     });
+
+    //const d2 = AsyncClient.getChannels();
+
+    // $.when(d1, d2).done(() => {
+    //     callback();
+    // });
 }
 
 function onRootEnter(nextState, replace, callback) {

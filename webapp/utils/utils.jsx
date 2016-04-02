@@ -1242,6 +1242,10 @@ export function getTeamURLFromAddressBar() {
     return window.location.origin + '/' + window.location.pathname.split('/')[1];
 }
 
+export function getTeamNameFromUrl() {
+    return window.location.pathname.split('/')[1];
+}
+
 export function getShortenedTeamURL() {
     const teamURL = getTeamURLFromAddressBar();
     if (teamURL.length > 35) {
