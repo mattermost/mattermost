@@ -182,7 +182,7 @@ export default class AdminSidebar extends React.Component {
         let ldapSettings;
         let licenseSettings;
         if (global.window.mm_config.BuildEnterpriseReady === 'true') {
-            if (global.window.mm_license.IsLicensed === 'true') {
+            if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP === 'true') {
                 ldapSettings = (
                     <li>
                         <a

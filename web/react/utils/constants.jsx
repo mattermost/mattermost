@@ -513,5 +513,7 @@ export default {
     MIN_PASSWORD_LENGTH: 5,
     MAX_PASSWORD_LENGTH: 50,
     TIME_SINCE_UPDATE_INTERVAL: 30000,
-    MIN_HASHTAG_LINK_LENGTH: 3
+    MIN_HASHTAG_LINK_LENGTH: 3,
+    MHPNS: 'https://push.mattermost.com',
+    MTPNS: 'http://push-test.mattermost.com'
 };
