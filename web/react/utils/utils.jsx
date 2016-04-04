@@ -1391,6 +1391,10 @@ export function languages() {
                 name: 'Español (Beta)'
             },
             {
+                value: 'fr',
+                name: 'Français (Beta)'
+            },
+            {
                 value: 'pt',
                 name: 'Portugues (Beta)'
             }
