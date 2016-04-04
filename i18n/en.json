@@ -316,6 +316,38 @@
     "translation": "echo"
   },
   {
+    "id": "api.command_msg.desc",
+    "translation": "Send Direct Message to a user"
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "An error occured while messaging the user."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "An error occured while creating the direct message."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[username] 'message'"
+  },
+  {
+    "id": "api.command_msg.list.app_error",
+    "translation": "An error occured while listing users."
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "We couldn't find the user"
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "message"
+  },
+  {
+    "id": "api.command_msg.success",
+    "translation": "Messaged user."
+  },
+    {
     "id": "api.command_join.desc",
     "translation": "Join the open channel"
   },
@@ -2642,6 +2674,10 @@
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
     "translation": "We couldn't find the existing channel"
+  },
+  {
+    "id": "store.sql_channel.get_by_name.missing.app_error",
+    "translation": "Channel does not exist"
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
