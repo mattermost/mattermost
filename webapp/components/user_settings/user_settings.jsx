@@ -7,7 +7,6 @@ import NotificationsTab from './user_settings_notifications.jsx';
 import SecurityTab from './user_settings_security.jsx';
 import GeneralTab from './user_settings_general.jsx';
 import DeveloperTab from './user_settings_developer.jsx';
-import IntegrationsTab from './user_settings_integrations.jsx';
 import DisplayTab from './user_settings_display.jsx';
 import AdvancedTab from './user_settings_advanced.jsx';
 
@@ -93,20 +92,6 @@ export default class UserSettings extends React.Component {
                         ref='activeTab'
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
-                        closeModal={this.props.closeModal}
-                        collapseModal={this.props.collapseModal}
-                    />
-                </div>
-            );
-        } else if (this.props.activeTab === 'integrations') {
-            return (
-                <div>
-                    <IntegrationsTab
-                        ref='activeTab'
-                        user={this.state.user}
-                        activeSection={this.props.activeSection}
-                        updateSection={this.props.updateSection}
-                        updateTab={this.props.updateTab}
                         closeModal={this.props.closeModal}
                         collapseModal={this.props.collapseModal}
                     />
