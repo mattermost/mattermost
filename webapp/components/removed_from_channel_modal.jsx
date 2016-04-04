@@ -6,9 +6,10 @@ import ReactDOM from 'react-dom';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 
+import * as Utils from 'utils/utils.jsx';
 import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 import React from 'react';
 
@@ -33,7 +34,11 @@ export default class RemovedFromChannelModal extends React.Component {
         }
 
         var townSquare = ChannelStore.getByName('town-square');
-        setTimeout(() => GlobalActions.emitChannelClickEvent(townSquare), 1);
+        setTimeout(
+            () => {
+                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + townSquare.name);
+            },
+        1);
 
         this.setState(newState);
     }

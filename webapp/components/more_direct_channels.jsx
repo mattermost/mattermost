@@ -5,9 +5,9 @@ import {Modal} from 'react-bootstrap';
 import FilteredUserList from './filtered_user_list.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 import SpinnerButton from 'components/spinner_button.jsx';
 
 import React from 'react';
@@ -69,7 +69,7 @@ export default class MoreDirectChannels extends React.Component {
         Utils.openDirectChannelToUser(
             teammate,
             (channel) => {
-                GlobalActions.emitChannelClickEvent(channel);
+                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
                 this.setState({loadingDMChannel: -1});
                 this.handleHide();
             },

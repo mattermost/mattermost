@@ -335,4 +335,3 @@ export function emitRemoteUserTypingEvent(channelId, userId, postParentId) {
         postParentId
     });
 }
-

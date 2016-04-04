@@ -3,7 +3,6 @@
 
 import $ from 'jquery';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
@@ -168,7 +167,7 @@ export function notifyMe(title, body, channel) {
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
-                            GlobalActions.emitChannelClickEvent(channel);
+                            browserHistory.push(getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
                         } else {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
                         }
@@ -1216,6 +1215,10 @@ export function getTeamURLFromAddressBar() {
     return window.location.origin + '/' + window.location.pathname.split('/')[1];
 }
 
+export function getTeamURLNoOriginFromAddressBar() {
+    return '/' + window.location.pathname.split('/')[1];
+}
+
 export function getShortenedTeamURL() {
     const teamURL = getTeamURLFromAddressBar();
     if (teamURL.length > 35) {
@@ -1261,10 +1264,24 @@ export function openDirectChannelToUser(user, successCb, errorCb) {
             channel,
             user.id,
             (data) => {
-                AsyncClient.getChannel(data.id);
-                if ($.isFunction(successCb)) {
-                    successCb(data, false);
-                }
+                Client.getChannel(
+                    data.id,
+                    (data2, textStatus, xhr) => {
+                        if (xhr.status === 304 || !data2) {
+                            return;
+                        }
+
+                        AppDispatcher.handleServerAction({
+                            type: ActionTypes.RECEIVED_CHANNEL,
+                            channel: data2.channel,
+                            member: data2.member
+                        });
+
+                        if ($.isFunction(successCb)) {
+                            successCb(data2.channel, false);
+                        }
+                    }
+                );
             },
             () => {
                 browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
