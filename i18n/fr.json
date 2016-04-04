@@ -1404,6 +1404,10 @@
     "translation": "Impossible de marquer l'adresse électronique comme valide err=%v"
   },
   {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "LDAP n'est pas disponible sur ce serveur"
+  },
+  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Prestataire OAuth non-supporté"
   },
@@ -1414,6 +1418,10 @@
   {
     "id": "api.user.init.debug",
     "translation": "Initialisation des routes de l'api utilisateur"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "LDAP n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -1462,6 +1470,10 @@
   {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "LDAP n'est pas activé sur ce serveur"
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "Mise à jour du mot de passe échouée car le user_id du contexte ne correspond pas à l'identifiant utilisateur fourni"
   },
   {
     "id": "api.user.permanent_delete_user.attempting.warn",
@@ -1530,18 +1542,6 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Impossible d'envoyer le courriel de bienvenue err=%v"
-  },
-  {
-    "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Mise à jour du mot de passe échouée car le user_id du contexte ne correspond pas à l'identifiant utilisateur fourni"
-  },
-  {
-    "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP n'est pas disponible sur ce serveur"
-  },
-  {
-    "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.update_active.permissions.app_error",

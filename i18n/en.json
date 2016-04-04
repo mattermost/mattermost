@@ -316,38 +316,6 @@
     "translation": "echo"
   },
   {
-    "id": "api.command_msg.desc",
-    "translation": "Send Direct Message to a user"
-  },
-  {
-    "id": "api.command_msg.fail.app_error",
-    "translation": "An error occured while messaging the user."
-  },
-  {
-    "id": "api.command_msg.dm_fail.app_error",
-    "translation": "An error occured while creating the direct message."
-  },
-  {
-    "id": "api.command_msg.hint",
-    "translation": "@[username] 'message'"
-  },
-  {
-    "id": "api.command_msg.list.app_error",
-    "translation": "An error occured while listing users."
-  },
-  {
-    "id": "api.command_msg.missing.app_error",
-    "translation": "We couldn't find the user"
-  },
-  {
-    "id": "api.command_msg.name",
-    "translation": "message"
-  },
-  {
-    "id": "api.command_msg.success",
-    "translation": "Messaged user."
-  },
-    {
     "id": "api.command_join.desc",
     "translation": "Join the open channel"
   },
@@ -398,6 +366,38 @@
   {
     "id": "api.command_me.name",
     "translation": "me"
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Send Direct Message to a user"
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "An error occured while creating the direct message."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "An error occured while messaging the user."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[username] 'message'"
+  },
+  {
+    "id": "api.command_msg.list.app_error",
+    "translation": "An error occured while listing users."
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "We couldn't find the user"
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "message"
+  },
+  {
+    "id": "api.command_msg.success",
+    "translation": "Messaged user."
   },
   {
     "id": "api.command_shrug.desc",
@@ -1858,6 +1858,30 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Error trying to authenticate MFA token"
+  },
+  {
+    "id": "error.generic.link_message",
+    "translation": "Back to Mattermost"
+  },
+  {
+    "id": "error.generic.message",
+    "translation": "An error has occoured."
+  },
+  {
+    "id": "error.generic.title",
+    "translation": "Error"
+  },
+  {
+    "id": "error.not_found.link_message",
+    "translation": "Back to Mattermost"
+  },
+  {
+    "id": "error.not_found.message",
+    "translation": "The page you where trying to reach does not exist."
+  },
+  {
+    "id": "error.not_found.title",
+    "translation": "Page not found"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -3794,29 +3818,5 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "Page not found"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "The page you where trying to reach does not exist."
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Back to Mattermost"
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "Error"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "An error has occoured."
-  },
-  {
-    "id": "error.generic.link_message",
-    "translation": "Back to Mattermost"
   }
 ]
