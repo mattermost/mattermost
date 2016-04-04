@@ -57,18 +57,16 @@ export default class AddIntegration extends React.Component {
         }
 
         return (
-            <div className='backstage row'>
-                <div className='add-integration'>
-                    <div className='backstage__header'>
-                        <h1 className='text'>
-                            <FormattedMessage
-                                id='add_integration.header'
-                                defaultMessage='Add Integration'
-                            />
-                        </h1>
-                    </div>
+            <div className='backstage-content row'>
+                <div className='backstage-header'>
+                    <h1>
+                        <FormattedMessage
+                            id='add_integration.header'
+                            defaultMessage='Add Integration'
+                        />
+                    </h1>
                 </div>
-                <div className='add-integration__options'>
+                <div>
                     {options}
                 </div>
             </div>

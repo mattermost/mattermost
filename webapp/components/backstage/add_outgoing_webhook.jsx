@@ -128,10 +128,10 @@ export default class AddOutgoingWebhook extends React.Component {
 
     render() {
         return (
-            <div className='backstage row'>
+            <div className='backstage-content row'>
                 <div className='add-outgoing-webhook'>
-                    <div className='backstage__header'>
-                        <h1 className='text'>
+                    <div className='backstage-header'>
+                        <h1>
                             <FormattedMessage
                                 id='add_outgoing_webhook.header'
                                 defaultMessage='Add Outgoing Webhook'
@@ -139,115 +139,131 @@ export default class AddOutgoingWebhook extends React.Component {
                         </h1>
                     </div>
                 </div>
-                <form className='add-outgoing-webhook__body'>
-                    <div className='add-integration__row'>
-                        <label
-                            className='add-integration__label'
-                            htmlFor='name'
-                        >
-                            <FormattedMessage
-                                id='add_outgoing_webhook.name'
-                                defaultMessage='Name'
-                            />
-                        </label>
-                        <input
-                            id='name'
-                            type='text'
-                            value={this.state.name}
-                            onChange={this.updateName}
-                        />
-                    </div>
-                    <div className='add-integration__row'>
-                        <label
-                            className='add-integration__label'
-                            htmlFor='description'
-                        >
-                            <FormattedMessage
-                                id='add_outgoing_webhook.description'
-                                defaultMessage='Description'
-                            />
-                        </label>
-                        <input
-                            id='description'
-                            type='text'
-                            value={this.state.description}
-                            onChange={this.updateDescription}
-                        />
-                    </div>
-                    <div className='add-integration__row'>
-                        <label
-                            className='add-integration__label'
-                            htmlFor='channelId'
-                        >
-                            <FormattedMessage
-                                id='add_outgoing_webhook.channel'
-                                defaultMessage='Channel'
-                            />
-                        </label>
-                        <ChannelSelect
-                            id='channelId'
-                            value={this.state.channelId}
-                            onChange={this.updateChannelId}
-                        />
-                    </div>
-                    <div className='add-integration__row'>
-                        <label
-                            className='add-integration__label'
-                            htmlFor='triggerWords'
-                        >
-                            <FormattedMessage
-                                id='add_outgoing_webhook.triggerWords'
-                                defaultMessage='Trigger Words (One Per Line)'
-                            />
-                        </label>
-                        <textarea
-                            id='triggerWords'
-                            rows='3'
-                            value={this.state.triggerWords}
-                            onChange={this.updateTriggerWords}
-                        />
-                    </div>
-                    <div className='add-integration__row'>
-                        <label
-                            className='add-integration__label'
-                            htmlFor='callbackUrls'
-                        >
-                            <FormattedMessage
-                                id='add_outgoing_webhook.callbackUrls'
-                                defaultMessage='Callback URLs (One Per Line)'
-                            />
-                        </label>
-                        <textarea
-                            id='callbackUrls'
-                            rows='3'
-                            value={this.state.callbackUrls}
-                            onChange={this.updateCallbackUrls}
-                        />
-                    </div>
-                    <div className='add-integration__submit-row'>
-                        <Link
-                            className='btn btn-sm'
-                            to={'/settings/integrations/add'}
-                        >
-                            <FormattedMessage
-                                id='add_outgoing_webhook.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </Link>
-                        <SpinnerButton
-                            className='btn btn-primary'
-                            type='submit'
-                            spinning={this.state.saving}
-                            onClick={this.handleSubmit}
-                        >
-                            <FormattedMessage
-                                id='add_outgoing_webhook.save'
-                                defaultMessage='Save'
-                            />
-                        </SpinnerButton>
-                    </div>
-                    <FormError errors={[this.state.serverError, this.state.clientError]}/>
-                </form>
+                <div className='backstage-form'>
+                    <form className='form-horizontal'>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-3'
+                                htmlFor='name'
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.name'
+                                    defaultMessage='Name'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-9'>
+                                <input
+                                    id='name'
+                                    type='text'
+                                    className='form-control'
+                                    value={this.state.name}
+                                    onChange={this.updateName}
+                                />
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-3'
+                                htmlFor='description'
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.description'
+                                    defaultMessage='Description'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-9'>
+                                <input
+                                    id='description'
+                                    type='text'
+                                    className='form-control'
+                                    value={this.state.description}
+                                    onChange={this.updateDescription}
+                                />
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-3'
+                                htmlFor='channelId'
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.channel'
+                                    defaultMessage='Channel'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-9'>
+                                <ChannelSelect
+                                    id='channelId'
+                                    value={this.state.channelId}
+                                    onChange={this.updateChannelId}
+                                />
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-3'
+                                htmlFor='triggerWords'
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.triggerWords'
+                                    defaultMessage='Trigger Words (One Per Line)'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-9'>
+                                <textarea
+                                    id='triggerWords'
+                                    rows='3'
+                                    className='form-control'
+                                    value={this.state.triggerWords}
+                                    onChange={this.updateTriggerWords}
+                                />
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-3'
+                                htmlFor='callbackUrls'
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.callbackUrls'
+                                    defaultMessage='Callback URLs (One Per Line)'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-9'>
+                                <textarea
+                                    id='callbackUrls'
+                                    rows='3'
+                                    className='form-control'
+                                    value={this.state.callbackUrls}
+                                    onChange={this.updateCallbackUrls}
+                                />
+                            </div>
+                        </div>
+                        <div className='backstage-form__footer'>
+                            <FormError errors={[this.state.serverError, this.state.clientError]}/>
+                            <Link
+                                className='btn btn-sm'
+                                to={'/settings/integrations/add'}
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </Link>
+                            <SpinnerButton
+                                className='btn btn-primary'
+                                type='submit'
+                                spinning={this.state.saving}
+                                onClick={this.handleSubmit}
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.save'
+                                    defaultMessage='Save'
+                                />
+                            </SpinnerButton>
+                        </div>
+                    </form>
+                </div>
             </div>
         );
     }

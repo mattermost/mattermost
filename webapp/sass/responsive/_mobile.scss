@@ -1,6 +1,16 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .backstage-filters {
+        display: block;
+
+        .backstage-filter__search {
+            border-bottom: 1px solid $light-gray;
+            margin: 10px 0;
+            width: 100%;
+        }
+    }
+
     .signup-team__container {
         font-size: 1em;
     }
@@ -675,9 +685,9 @@
     }
 
     .sidebar--right {
-        width: 100%;
-        right: 0;
         @include translate3d(100%, 0, 0);
+        right: 0;
+        width: 100%;
         z-index: 5;
 
         &.move--left {
@@ -853,6 +863,30 @@
 }
 
 @media screen and (max-width: 480px) {
+    .backstage-header {
+        h1 {
+            float: none;
+            margin-bottom: 15px;
+        }
+
+        .add-integrations-link {
+            float: none;
+        }
+    }
+
+    .add-integration {
+        width: 100%;
+    }
+
+    .backstage-list__item {
+        display: block;
+
+        .actions {
+            margin-top: 10px;
+            padding: 0;
+        }
+    }
+
     .modal {
         .settings-modal {
             .settings-table {
