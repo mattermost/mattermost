@@ -714,19 +714,26 @@
 
     .inner-wrap {
         @include single-transition(all, .5s, ease);
-
+        &:before{
+            content:"";
+            //Some trickery in order for the z-index transition to happen immediately on move-in and delayed on move-out.
+            transition: background-color 0.5s ease, z-index 0s ease 0.5s;
+            background-color: transparent;
+            height: 100%;
+            width: calc(100% + 30px);
+            left: -15px;
+            position: absolute;
+            top: 0;
+            z-index: 0;
+        }
+        
         &.move--right {
             @include translate3d(290px, 0, 0);
 
             &:before {
                 z-index: 9999;
-                content: '';
-                width: 100%;
-                height: 100%;
-                left: -15px;
-                top: 0;
-                position: absolute;
-                background: rgba(0, 0, 0, .4);
+                transition: background-color 0.5s ease;
+                background-color: rgba(0, 0, 0, 0.4);
             }
         }
 
@@ -734,13 +741,8 @@
             @include translate3d(-290px, 0, 0);
             &:before {
                 z-index: 9999;
-                content: '';
-                width: 100%;
-                height: 100%;
-                right: -15px;
-                top: 0;
-                position: absolute;
-                background: rgba(0, 0, 0, .4);
+                transition: background-color 0.5s ease;
+                background-color: rgba(0, 0, 0, 0.4);
             }
         }
 
