@@ -35,26 +35,38 @@ export default class InstalledIncomingWebhook extends React.Component {
         const channelName = channel ? channel.display_name : 'cannot find channel';
 
         return (
-            <div className='installed-integrations__item installed-integrations__incoming-webhook'>
-                <div className='details'>
-                    <div className='details-row'>
-                        <span className='name'>
-                            {channelName}
+            <div className='backstage-list__item'>
+                <div className='item-details'>
+                    <div className='item-details__row'>
+                        <span className='item-details__name'>
+                            {incomingWebhook.display_name || channelName}
                         </span>
-                        <span className='type'>
+                        <span className='item-details__type'>
                             <FormattedMessage
                                 id='installed_integrations.incomingWebhookType'
                                 defaultMessage='(Incoming Webhook)'
                             />
                         </span>
                     </div>
-                    <div className='details-row'>
-                        <span className='description'>
-                            {Utils.getWindowLocationOrigin() + '/hooks/' + incomingWebhook.id}
+                    <div className='item-details__row'>
+                        <span className='item-details__description'>
+                            {incomingWebhook.description}
+                        </span>
+                    </div>
+                    <div className='tem-details__row'>
+                        <span className='item-details__creation'>
+                            <FormattedMessage
+                                id='installed_integrations.creation'
+                                defaultMessage='Created by {creator} on {createAt, date, full}'
+                                values={{
+                                    creator: Utils.displayUsername(incomingWebhook.user_id),
+                                    createAt: incomingWebhook.create_at
+                                }}
+                            />
                         </span>
                     </div>
                 </div>
-                <div className='actions'>
+                <div className='item-actions'>
                     <a
                         href='#'
                         onClick={this.handleDeleteClick}

@@ -129,6 +129,7 @@ export default class Post extends React.Component {
         const post = this.props.post;
         const parentPost = this.props.parentPost;
         const posts = this.props.posts;
+        const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
 
         if (!post.props) {
             post.props = {};
@@ -184,24 +185,22 @@ export default class Post extends React.Component {
 
         let profilePic = null;
         if (!this.props.hideProfilePic) {
-            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
-            if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
-                if (post.props.override_icon_url) {
-                    src = post.props.override_icon_url;
-                } else {
-                    src = Constants.DEFAULT_WEBHOOK_LOGO;
-                }
-            } else if (Utils.isSystemMessage(post)) {
-                src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;
-            }
-
             profilePic = (
                 <img
-                    src={src}
+                    src={Utils.getProfilePicSrcForPost(post, timestamp)}
                     height='36'
                     width='36'
                 />
             );
+
+            if (Utils.isSystemMessage(post)) {
+                profilePic = (
+                    <span
+                        className='icon'
+                        dangerouslySetInnerHTML={{__html: mattermostLogo}}
+                    />
+                );
+            }
         }
 
         return (

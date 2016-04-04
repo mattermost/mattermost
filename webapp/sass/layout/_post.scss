@@ -644,6 +644,15 @@ body.ios {
     .post__img {
         width: 46px;
 
+        svg {
+            height: 36px;
+            width: 36px;
+        }
+
+        path {
+            fill: inherit;
+        }
+
         img {
             @include border-radius(50px);
             height: 36px;

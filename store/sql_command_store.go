@@ -28,12 +28,14 @@ func NewSqlCommandStore(sqlStore *SqlStore) CommandStore {
 		tableo.ColMap("AutoCompleteDesc").SetMaxSize(1024)
 		tableo.ColMap("AutoCompleteHint").SetMaxSize(1024)
 		tableo.ColMap("DisplayName").SetMaxSize(64)
+		tableo.ColMap("Description").SetMaxSize(128)
 	}
 
 	return s
 }
 
 func (s SqlCommandStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("Commands", "Description", "varchar(128)", "varchar(128)", "")
 }
 
 func (s SqlCommandStore) CreateIndexesIfNotExists() {

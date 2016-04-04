@@ -50,7 +50,7 @@ export default class BackstageCategory extends React.Component {
         }
 
         return (
-            <li className='backstage__sidebar__category'>
+            <li className='backstage-sidebar__category'>
                 <Link
                     to={link}
                     className='category-title'

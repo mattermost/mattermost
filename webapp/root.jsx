@@ -33,7 +33,6 @@ import SignupTeam from 'components/signup_team.jsx';
 import Client from 'utils/web_client.jsx';
 
 import * as Websockets from 'action_creators/websocket_actions.jsx';
-import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import SignupTeamConfirm from 'components/signup_team_confirm.jsx';
 import SignupUserComplete from 'components/signup_user_complete.jsx';
@@ -234,23 +233,6 @@ function preLoggedIn(nextState, replace, callback) {
     // });
 }
 
-function onRootEnter(nextState, replace, callback) {
-    if (nextState.location.pathname === '/') {
-        Client.getMeLoggedIn((data) => {
-            if (!data || data.logged_in === 'false') {
-                replace({pathname: '/signup_team'});
-                callback();
-            } else {
-                replace({pathname: '/' + data.team_name + '/channels/town-square'});
-                callback();
-            }
-        });
-        return;
-    }
-
-    callback();
-}
-
 function onPermalinkEnter(nextState) {
     const postId = nextState.params.postid;
 
@@ -273,6 +255,12 @@ function doChannelChange(state) {
         channel = JSON.parse(state.location.query.fakechannel);
     } else {
         channel = ChannelStore.getByName(state.params.channel);
+        if (!channel) {
+            channel = ChannelStore.getMoreByName(state.params.channel);
+        }
+        if (!channel) {
+            console.error('Unable to get channel to change to.'); //eslint-disable-line no-console
+        }
     }
     GlobalActions.emitChannelClickEvent(channel);
 }
@@ -301,7 +289,6 @@ function renderRootComponent() {
             <Route
                 path='/'
                 component={Root}
-                onEnter={onRootEnter}
             >
                 <Route
                     path='error'
@@ -408,7 +395,7 @@ function renderRootComponent() {
                             component={TeamURLPage}
                         />
                         <Route
-                            path='invites'
+                            path='send_invites'
                             component={SendInivtesPage}
                         />
                         <Route

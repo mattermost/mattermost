@@ -12,7 +12,7 @@
         text-align: left;
 
         &.light {
-            color: $dark-gray;
+            @include opacity(.6);
             font-size: 1.05em;
             font-style: italic;
             font-weight: normal;

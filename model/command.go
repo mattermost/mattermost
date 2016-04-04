@@ -29,6 +29,7 @@ type Command struct {
 	AutoCompleteDesc string `json:"auto_complete_desc"`
 	AutoCompleteHint string `json:"auto_complete_hint"`
 	DisplayName      string `json:"display_name"`
+	Description      string `json:"description"`
 	URL              string `json:"url"`
 }
 
@@ -112,6 +113,14 @@ func (o *Command) IsValid() *AppError {
 
 	if !(o.Method == COMMAND_METHOD_GET || o.Method == COMMAND_METHOD_POST) {
 		return NewLocAppError("Command.IsValid", "model.command.is_valid.method.app_error", nil, "")
+	}
+
+	if len(o.DisplayName) > 64 {
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.display_name.app_error", nil, "")
+	}
+
+	if len(o.Description) > 128 {
+		return NewLocAppError("Command.IsValid", "model.command.is_valid.description.app_error", nil, "")
 	}
 
 	return nil

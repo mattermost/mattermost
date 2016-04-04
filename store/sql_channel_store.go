@@ -4,9 +4,14 @@
 package store
 
 import (
+	"database/sql"
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+)
+
+const (
+	MISSING_CHANNEL_ERROR = "store.sql_channel.get_by_name.missing.app_error"
 )
 
 type SqlChannelStore struct {
@@ -437,7 +442,11 @@ func (s SqlChannelStore) GetByName(teamId string, name string) StoreChannel {
 		channel := model.Channel{}
 
 		if err := s.GetReplica().SelectOne(&channel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err = model.NewLocAppError("SqlChannelStore.GetByName", MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+", "+err.Error())
+			} else {
+				result.Err = model.NewLocAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error())
+			}
 		} else {
 			result.Data = &channel
 		}

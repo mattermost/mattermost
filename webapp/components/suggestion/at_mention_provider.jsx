@@ -100,13 +100,16 @@ export default class AtMentionProvider {
                 }
             }
 
-            // add dummy users to represent the @all and @channel special mentions
-            if ('all'.startsWith(usernamePrefix)) {
-                filtered.push({username: 'all'});
-            }
+            //Don't imply that @all and @channel can be direct messaged
+            if (!pretext.startsWith('/msg')) {
+                // add dummy users to represent the @all and @channel special mentions
+                if ('all'.startsWith(usernamePrefix)) {
+                    filtered.push({username: 'all'});
+                }
 
-            if ('channel'.startsWith(usernamePrefix)) {
-                filtered.push({username: 'channel'});
+                if ('channel'.startsWith(usernamePrefix)) {
+                    filtered.push({username: 'channel'});
+                }
             }
 
             filtered = filtered.sort((a, b) => a.username.localeCompare(b.username));

@@ -69,6 +69,26 @@ func TestIncomingWebhookIsValid(t *testing.T) {
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
+
+	o.DisplayName = strings.Repeat("1", 65)
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.DisplayName = strings.Repeat("1", 64)
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.Description = strings.Repeat("1", 129)
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.Description = strings.Repeat("1", 128)
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestIncomingWebhookPreSave(t *testing.T) {

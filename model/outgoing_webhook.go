@@ -20,6 +20,8 @@ type OutgoingWebhook struct {
 	TeamId       string      `json:"team_id"`
 	TriggerWords StringArray `json:"trigger_words"`
 	CallbackURLs StringArray `json:"callback_urls"`
+	DisplayName  string      `json:"display_name"`
+	Description  string      `json:"description"`
 }
 
 func (o *OutgoingWebhook) ToJson() string {
@@ -104,6 +106,14 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		if !IsValidHttpUrl(callback) {
 			return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.url.app_error", nil, "")
 		}
+	}
+
+	if len(o.DisplayName) > 64 {
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.display_name.app_error", nil, "")
+	}
+
+	if len(o.Description) > 128 {
+		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.description.app_error", nil, "")
 	}
 
 	return nil

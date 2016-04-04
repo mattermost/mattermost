@@ -21,16 +21,16 @@ export default class AddIntegrationOption extends React.Component {
         return (
             <Link
                 to={link}
-                className='add-integration-option'
+                className='add-integration'
             >
                 <img
-                    className='add-integration-option__image'
+                    className='add-integration__image'
                     src={image}
                 />
-                <div className='add-integration-option__title'>
+                <div className='add-integration__title'>
                     {title}
                 </div>
-                <div className='add-integration-option__description'>
+                <div className='add-integration__description'>
                     {description}
                 </div>
             </Link>

@@ -43,24 +43,34 @@ export default class InstalledOutgoingWebhook extends React.Component {
         const channelName = channel ? channel.display_name : 'cannot find channel';
 
         return (
-            <div className='installed-integrations__item installed-integrations__outgoing-webhook'>
-                <div className='details'>
-                    <div className='details-row'>
-                        <span className='name'>
-                            {channelName}
+            <div className='backstage-list__item'>
+                <div className='item-details'>
+                    <div className='item-details__row'>
+                        <span className='item-details__name'>
+                            {outgoingWebhook.display_name || channelName}
                         </span>
-                        <span className='type'>
+                        <span className='item-details__type'>
                             <FormattedMessage
                                 id='installed_integrations.outgoingWebhookType'
                                 defaultMessage='(Outgoing Webhook)'
                             />
                         </span>
                     </div>
-                    <div className='details-row'>
-                        <span className='description'>
-                            {Utils.getWindowLocationOrigin() + '/hooks/' + outgoingWebhook.id}
-                            {' - '}
-                            {outgoingWebhook.token}
+                    <div className='item-details__row'>
+                        <span className='item-details__description'>
+                            {outgoingWebhook.description}
+                        </span>
+                    </div>
+                    <div className='item-details__row'>
+                        <span className='item-details__creation'>
+                            <FormattedMessage
+                                id='installed_integrations.creation'
+                                defaultMessage='Created by {creator} on {createAt, date, full}'
+                                values={{
+                                    creator: Utils.displayUsername(outgoingWebhook.creator_id),
+                                    createAt: outgoingWebhook.create_at
+                                }}
+                            />
                         </span>
                     </div>
                 </div>

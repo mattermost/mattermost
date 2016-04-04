@@ -18,12 +18,12 @@ export default class AddIncomingWebhook extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
 
-        this.updateName = this.updateName.bind(this);
+        this.updateDisplayName = this.updateDisplayName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
         this.updateChannelId = this.updateChannelId.bind(this);
 
         this.state = {
-            name: '',
+            displayName: '',
             description: '',
             channelId: '',
             saving: false,
@@ -60,7 +60,9 @@ export default class AddIncomingWebhook extends React.Component {
         }
 
         const hook = {
-            channel_id: this.state.channelId
+            channel_id: this.state.channelId,
+            display_name: this.state.displayName,
+            description: this.state.description
         };
 
         AsyncClient.addIncomingHook(
@@ -70,15 +72,16 @@ export default class AddIncomingWebhook extends React.Component {
             },
             (err) => {
                 this.setState({
+                    saving: false,
                     serverError: err.message
                 });
             }
         );
     }
 
-    updateName(e) {
+    updateDisplayName(e) {
         this.setState({
-            name: e.target.value
+            displayName: e.target.value
         });
     }
 
@@ -96,10 +99,10 @@ export default class AddIncomingWebhook extends React.Component {
 
     render() {
         return (
-            <div className='backstage row'>
+            <div className='backstage-content row'>
                 <div className='add-incoming-webhook'>
-                    <div className='backstage__header'>
-                        <h1 className='text'>
+                    <div className='backstage-header'>
+                        <h1>
                             <FormattedMessage
                                 id='add_incoming_webhook.header'
                                 defaultMessage='Add Incoming Webhook'
@@ -107,81 +110,93 @@ export default class AddIncomingWebhook extends React.Component {
                         </h1>
                     </div>
                 </div>
-                <form className='add-incoming-webhook__body'>
-                    <div className='add-integration__row'>
-                        <label
-                            className='add-integration__label'
-                            htmlFor='name'
-                        >
-                            <FormattedMessage
-                                id='add_incoming_webhook.name'
-                                defaultMessage='Name'
-                            />
-                        </label>
-                        <input
-                            id='name'
-                            type='text'
-                            value={this.state.name}
-                            onChange={this.updateName}
-                        />
-                    </div>
-                    <div className='add-integration__row'>
-                        <label
-                            className='add-integration__label'
-                            htmlFor='description'
-                        >
-                            <FormattedMessage
-                                id='add_incoming_webhook.description'
-                                defaultMessage='Description'
-                            />
-                        </label>
-                        <input
-                            id='description'
-                            type='text'
-                            value={this.state.description}
-                            onChange={this.updateDescription}
-                        />
-                    </div>
-                    <div className='add-integration__row'>
-                        <label
-                            className='add-integration__label'
-                            htmlFor='channelId'
-                        >
-                            <FormattedMessage
-                                id='add_incoming_webhook.channel'
-                                defaultMessage='Channel'
-                            />
-                        </label>
-                        <ChannelSelect
-                            id='channelId'
-                            value={this.state.channelId}
-                            onChange={this.updateChannelId}
-                        />
-                    </div>
-                    <div className='add-integration__submit-row'>
-                        <Link
-                            className='btn btn-sm'
-                            to={'/settings/integrations/add'}
-                        >
-                            <FormattedMessage
-                                id='add_incoming_webhook.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </Link>
-                        <SpinnerButton
-                            className='btn btn-primary'
-                            type='submit'
-                            spinning={this.state.saving}
-                            onClick={this.handleSubmit}
-                        >
-                            <FormattedMessage
-                                id='add_incoming_webhook.save'
-                                defaultMessage='Save'
-                            />
-                        </SpinnerButton>
-                    </div>
-                    <FormError errors={[this.state.serverError, this.state.clientError]}/>
-                </form>
+                <div className='backstage-form'>
+                    <form className='form-horizontal'>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-3'
+                                htmlFor='displayName'
+                            >
+                                <FormattedMessage
+                                    id='add_incoming_webhook.displayName'
+                                    defaultMessage='Display Name'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-9'>
+                                <input
+                                    id='displayName'
+                                    type='text'
+                                    maxLength='64'
+                                    className='form-control'
+                                    value={this.state.displayName}
+                                    onChange={this.updateDisplayName}
+                                />
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-3'
+                                htmlFor='description'
+                            >
+                                <FormattedMessage
+                                    id='add_incoming_webhook.description'
+                                    defaultMessage='Description'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-9'>
+                                <input
+                                    id='description'
+                                    type='text'
+                                    maxLength='128'
+                                    className='form-control'
+                                    value={this.state.description}
+                                    onChange={this.updateDescription}
+                                />
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-3'
+                                htmlFor='channelId'
+                            >
+                                <FormattedMessage
+                                    id='add_incoming_webhook.channel'
+                                    defaultMessage='Channel'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-9'>
+                                <ChannelSelect
+                                    id='channelId'
+                                    value={this.state.channelId}
+                                    onChange={this.updateChannelId}
+                                />
+                            </div>
+                        </div>
+                        <div className='backstage-form__footer'>
+                            <FormError errors={[this.state.serverError, this.state.clientError]}/>
+                            <Link
+                                className='btn btn-sm'
+                                to={'/settings/integrations/add'}
+                            >
+                                <FormattedMessage
+                                    id='add_incoming_webhook.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </Link>
+                            <SpinnerButton
+                                className='btn btn-primary'
+                                type='submit'
+                                spinning={this.state.saving}
+                                onClick={this.handleSubmit}
+                            >
+                                <FormattedMessage
+                                    id='add_incoming_webhook.save'
+                                    defaultMessage='Save'
+                                />
+                            </SpinnerButton>
+                        </div>
+                    </form>
+                </div>
             </div>
         );
     }

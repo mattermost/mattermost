@@ -3,7 +3,6 @@
 
 import $ from 'jquery';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
@@ -168,7 +167,7 @@ export function notifyMe(title, body, channel) {
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
-                            GlobalActions.emitChannelClickEvent(channel);
+                            browserHistory.push(getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
                         } else {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
                         }
@@ -729,6 +728,7 @@ export function applyTheme(theme) {
         changeCss('.search-help-popover .search-autocomplete__item.selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('::-webkit-scrollbar-thumb', 'background:' + changeOpacity(theme.centerChannelColor, 0.4), 1);
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor, 4);
+        changeCss('.modal .about-modal .about-modal__logo svg, .post .post__img svg', 'fill:' + theme.centerChannelColor, 1);
     }
 
     if (theme.newMessageSeparator) {
@@ -1219,6 +1219,10 @@ export function getTeamNameFromUrl() {
     return window.location.pathname.split('/')[1];
 }
 
+export function getTeamURLNoOriginFromAddressBar() {
+    return '/' + window.location.pathname.split('/')[1];
+}
+
 export function getShortenedTeamURL() {
     const teamURL = getTeamURLFromAddressBar();
     if (teamURL.length > 35) {
@@ -1264,10 +1268,24 @@ export function openDirectChannelToUser(user, successCb, errorCb) {
             channel,
             user.id,
             (data) => {
-                AsyncClient.getChannel(data.id);
-                if ($.isFunction(successCb)) {
-                    successCb(data, false);
-                }
+                Client.getChannel(
+                    data.id,
+                    (data2, textStatus, xhr) => {
+                        if (xhr.status === 304 || !data2) {
+                            return;
+                        }
+
+                        AppDispatcher.handleServerAction({
+                            type: ActionTypes.RECEIVED_CHANNEL,
+                            channel: data2.channel,
+                            member: data2.member
+                        });
+
+                        if ($.isFunction(successCb)) {
+                            successCb(data2.channel, false);
+                        }
+                    }
+                );
             },
             () => {
                 browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
@@ -1381,4 +1399,19 @@ export function localizeMessage(id, defaultMessage) {
     }
 
     return id;
+}
+
+export function getProfilePicSrcForPost(post, timestamp) {
+    let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
+    if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
+        if (post.props.override_icon_url) {
+            src = post.props.override_icon_url;
+        } else {
+            src = Constants.DEFAULT_WEBHOOK_LOGO;
+        }
+    } else if (isSystemMessage(post)) {
+        src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;
+    }
+
+    return src;
 }

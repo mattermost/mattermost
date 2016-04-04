@@ -20,6 +20,8 @@ func NewSqlWebhookStore(sqlStore *SqlStore) WebhookStore {
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("TeamId").SetMaxSize(26)
+		table.ColMap("DisplayName").SetMaxSize(64)
+		table.ColMap("Description").SetMaxSize(128)
 
 		tableo := db.AddTableWithName(model.OutgoingWebhook{}, "OutgoingWebhooks").SetKeys(false, "Id")
 		tableo.ColMap("Id").SetMaxSize(26)
@@ -29,12 +31,19 @@ func NewSqlWebhookStore(sqlStore *SqlStore) WebhookStore {
 		tableo.ColMap("TeamId").SetMaxSize(26)
 		tableo.ColMap("TriggerWords").SetMaxSize(1024)
 		tableo.ColMap("CallbackURLs").SetMaxSize(1024)
+		tableo.ColMap("DisplayName").SetMaxSize(64)
+		tableo.ColMap("Description").SetMaxSize(128)
 	}
 
 	return s
 }
 
 func (s SqlWebhookStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("IncomingWebhooks", "DisplayName", "varchar(64)", "varchar(64)", "")
+	s.CreateColumnIfNotExists("IncomingWebhooks", "Description", "varchar(128)", "varchar(128)", "")
+
+	s.CreateColumnIfNotExists("OutgoingWebhooks", "DisplayName", "varchar(64)", "varchar(64)", "")
+	s.CreateColumnIfNotExists("OutgoingWebhooks", "Description", "varchar(128)", "varchar(128)", "")
 }
 
 func (s SqlWebhookStore) CreateIndexesIfNotExists() {
