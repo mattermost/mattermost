@@ -16,17 +16,19 @@ import (
 )
 
 const (
-	HEADER_REQUEST_ID      = "X-Request-ID"
-	HEADER_VERSION_ID      = "X-Version-ID"
-	HEADER_ETAG_SERVER     = "ETag"
-	HEADER_ETAG_CLIENT     = "If-None-Match"
-	HEADER_FORWARDED       = "X-Forwarded-For"
-	HEADER_REAL_IP         = "X-Real-IP"
-	HEADER_FORWARDED_PROTO = "X-Forwarded-Proto"
-	HEADER_TOKEN           = "token"
-	HEADER_BEARER          = "BEARER"
-	HEADER_AUTH            = "Authorization"
-	API_URL_SUFFIX         = "/api/v1"
+	HEADER_REQUEST_ID         = "X-Request-ID"
+	HEADER_VERSION_ID         = "X-Version-ID"
+	HEADER_ETAG_SERVER        = "ETag"
+	HEADER_ETAG_CLIENT        = "If-None-Match"
+	HEADER_FORWARDED          = "X-Forwarded-For"
+	HEADER_REAL_IP            = "X-Real-IP"
+	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
+	HEADER_TOKEN              = "token"
+	HEADER_BEARER             = "BEARER"
+	HEADER_AUTH               = "Authorization"
+	HEADER_REQUESTED_WITH     = "X-Requested-With"
+	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
+	API_URL_SUFFIX            = "/api/v1"
 )
 
 type Result struct {
