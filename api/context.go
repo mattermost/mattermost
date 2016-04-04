@@ -109,11 +109,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(token) == 0 {
 		if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
 			token = cookie.Value
-			// Check the special header to make sure this isn't a CSRF
-			// if using the token from the cookie
 			if h.requireSystemAdmin || h.requireUser {
 				if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-					c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
+					c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to bea CSRF attempt")
 					token = ""
 				}
 			}
