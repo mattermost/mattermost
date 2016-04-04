@@ -190,7 +190,7 @@ export default class AddCommand extends React.Component {
                     >
                         <FormattedMessage
                             id='add_command.autocompleteHint'
-                            defaultMessage='Audocomplete Hint'
+                            defaultMessage='Autocomplete Hint'
                         />
                     </label>
                     <div className='col-md-5 col-sm-9'>
@@ -383,10 +383,10 @@ export default class AddCommand extends React.Component {
                                     onChange={this.updateMethod}
                                 >
                                     <option value={REQUEST_POST}>
-                                        {Utils.localizeMessage('add_command.post', 'POST')}
+                                        {Utils.localizeMessage('add_command.method.post', 'POST')}
                                     </option>
                                     <option value={REQUEST_GET}>
-                                        {Utils.localizeMessage('add_command.get', 'GET')}
+                                        {Utils.localizeMessage('add_command.method.get', 'GET')}
                                     </option>
                                 </select>
                                 <div className='add-integration__help'>
@@ -460,7 +460,7 @@ export default class AddCommand extends React.Component {
                             >
                                 <FormattedMessage
                                     id='add_command.autocomplete'
-                                    defaultMessage='Show this command in the autocomplete list'
+                                    defaultMessage='Autocomplete'
                                 />
                             </label>
                             <div className='col-md-5 col-sm-9'>
@@ -469,6 +469,12 @@ export default class AddCommand extends React.Component {
                                     checked={this.state.autocomplete}
                                     onChange={this.updateAutocomplete}
                                 />
+                                <div className='add-integration__help'>
+                                    <FormattedMessage
+                                        id='add_command.autocomplete.help'
+                                        defaultMessage='Show this command in the autocomplete list'
+                                    />
+                                </div>
                             </div>
                         </div>
                         {autocompleteFields}
