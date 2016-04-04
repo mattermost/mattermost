@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as Client from 'utils/client.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 
@@ -11,6 +12,8 @@ import {IntlProvider} from 'react-intl';
 import React from 'react';
 
 import FastClick from 'fastclick';
+
+import {browserHistory} from 'react-router';
 
 export default class Root extends React.Component {
     constructor(props) {
@@ -21,9 +24,24 @@ export default class Root extends React.Component {
         };
 
         this.localizationChanged = this.localizationChanged.bind(this);
+        this.redirectIfNecessary = this.redirectIfNecessary.bind(this);
     }
     localizationChanged() {
         this.setState({locale: LocalizationStore.getLocale(), translations: LocalizationStore.getTranslations()});
+    }
+    redirectIfNecessary(props) {
+        if (props.location.pathname === '/') {
+            Client.getMeLoggedIn((data) => {
+                if (!data || data.logged_in === 'false') {
+                    browserHistory.push('/signup_team');
+                } else {
+                    browserHistory.push('/' + data.team_name + '/channels/town-square');
+                }
+            });
+        }
+    }
+    componentWillReceiveProps(newProps) {
+        this.redirectIfNecessary(newProps);
     }
     componentWillMount() {
         // Setup localization listener
@@ -70,12 +88,15 @@ export default class Root extends React.Component {
 
         // Get our localizaiton
         GlobalActions.loadBrowserLocale();
+
+        // Redirect if Necessary
+        this.redirectIfNecessary(this.props);
     }
     componentWillUnmount() {
         LocalizationStore.removeChangeListener(this.localizationChanged);
     }
     render() {
-        if (this.state.translations == null) {
+        if (this.state.translations == null || this.props.children == null) {
             return <div/>;
         }
 
