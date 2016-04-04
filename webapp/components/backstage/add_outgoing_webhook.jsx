@@ -18,14 +18,14 @@ export default class AddOutgoingWebhook extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
 
-        this.updateName = this.updateName.bind(this);
+        this.updateDisplayName = this.updateDisplayName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
         this.updateChannelId = this.updateChannelId.bind(this);
         this.updateTriggerWords = this.updateTriggerWords.bind(this);
         this.updateCallbackUrls = this.updateCallbackUrls.bind(this);
 
         this.state = {
-            name: '',
+            displayName: '',
             description: '',
             channelId: '',
             triggerWords: '',
@@ -80,7 +80,9 @@ export default class AddOutgoingWebhook extends React.Component {
         const hook = {
             channel_id: this.state.channelId,
             trigger_words: this.state.triggerWords.split('\n').map((word) => word.trim()),
-            callback_urls: this.state.callbackUrls.split('\n').map((url) => url.trim())
+            callback_urls: this.state.callbackUrls.split('\n').map((url) => url.trim()),
+            display_name: this.state.displayName,
+            description: this.state.description
         };
 
         AsyncClient.addOutgoingHook(
@@ -90,15 +92,16 @@ export default class AddOutgoingWebhook extends React.Component {
             },
             (err) => {
                 this.setState({
+                    saving: false,
                     serverError: err.message
                 });
             }
         );
     }
 
-    updateName(e) {
+    updateDisplayName(e) {
         this.setState({
-            name: e.target.value
+            displayName: e.target.value
         });
     }
 
@@ -144,20 +147,21 @@ export default class AddOutgoingWebhook extends React.Component {
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-3'
-                                htmlFor='name'
+                                htmlFor='displayName'
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.name'
-                                    defaultMessage='Name'
+                                    id='add_outgoing_webhook.displayName'
+                                    defaultMessage='Display Name'
                                 />
                             </label>
                             <div className='col-md-5 col-sm-9'>
                                 <input
-                                    id='name'
+                                    id='displayName'
                                     type='text'
+                                    maxLength='64'
                                     className='form-control'
-                                    value={this.state.name}
-                                    onChange={this.updateName}
+                                    value={this.state.displayName}
+                                    onChange={this.updateDisplayName}
                                 />
                             </div>
                         </div>
@@ -175,6 +179,7 @@ export default class AddOutgoingWebhook extends React.Component {
                                 <input
                                     id='description'
                                     type='text'
+                                    maxLength='128'
                                     className='form-control'
                                     value={this.state.description}
                                     onChange={this.updateDescription}
@@ -213,6 +218,7 @@ export default class AddOutgoingWebhook extends React.Component {
                                 <textarea
                                     id='triggerWords'
                                     rows='3'
+                                    maxLength='1000'
                                     className='form-control'
                                     value={this.state.triggerWords}
                                     onChange={this.updateTriggerWords}
@@ -233,6 +239,7 @@ export default class AddOutgoingWebhook extends React.Component {
                                 <textarea
                                     id='callbackUrls'
                                     rows='3'
+                                    maxLength='1000'
                                     className='form-control'
                                     value={this.state.callbackUrls}
                                     onChange={this.updateCallbackUrls}

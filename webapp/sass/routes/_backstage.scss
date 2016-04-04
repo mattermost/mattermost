@@ -196,7 +196,12 @@
         margin-bottom: 1em;
     }
 
-    .list-item__actions {
+    .item-details__creation {
+        color: $dark-gray;
+        margin-bottom: 1em;
+    }
+
+    .item-actions {
         flex-grow: 0;
         flex-shrink: 0;
         padding-left: 20px;

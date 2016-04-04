@@ -1182,10 +1182,10 @@ export function addIncomingHook(hook, success, error) {
             }
         },
         (err) => {
-            dispatchError(err, 'addIncomingHook');
-
             if (error) {
                 error(err);
+            } else {
+                dispatchError(err, 'addIncomingHook');
             }
         }
     );
@@ -1205,10 +1205,10 @@ export function addOutgoingHook(hook, success, error) {
             }
         },
         (err) => {
-            dispatchError(err, 'addOutgoingHook');
-
             if (error) {
                 error(err);
+            } else {
+                dispatchError(err, 'addOutgoingHook');
             }
         }
     );

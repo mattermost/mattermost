@@ -47,7 +47,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
                 <div className='item-details'>
                     <div className='item-details__row'>
                         <span className='item-details__name'>
-                            {channelName}
+                            {outgoingWebhook.display_name || channelName}
                         </span>
                         <span className='item-details__type'>
                             <FormattedMessage
@@ -58,9 +58,19 @@ export default class InstalledOutgoingWebhook extends React.Component {
                     </div>
                     <div className='item-details__row'>
                         <span className='item-details__description'>
-                            {Utils.getWindowLocationOrigin() + '/hooks/' + outgoingWebhook.id}
-                            {' - '}
-                            {outgoingWebhook.token}
+                            {outgoingWebhook.description}
+                        </span>
+                    </div>
+                    <div className='item-details__row'>
+                        <span className='item-details__creation'>
+                            <FormattedMessage
+                                id='installed_integrations.creation'
+                                defaultMessage='Created by {creator} on {createAt, date, full}'
+                                values={{
+                                    creator: Utils.displayUsername(outgoingWebhook.creator_id),
+                                    createAt: outgoingWebhook.create_at
+                                }}
+                            />
                         </span>
                     </div>
                 </div>
