@@ -4,25 +4,21 @@
 import * as Utils from 'utils/utils.jsx';
 import * as Client from 'utils/client.jsx';
 import UserStore from 'stores/user_store.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
+import {browserHistory} from 'react-router';
+
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import Constants from 'utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
 
 const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;
 const SHOW_EDIT_URL_THEN_COMPLETE = 3;
 const messages = defineMessages({
-    invalidName: {
-        id: 'channel_flow.invalidName',
-        defaultMessage: 'Invalid Channel Name'
-    },
-    alreadyExist: {
-        id: 'channel_flow.alreadyExist',
-        defaultMessage: 'A channel with that URL already exists'
-    },
     channel: {
         id: 'channel_flow.channel',
         defaultMessage: 'Channel'
@@ -87,37 +83,51 @@ class NewChannelFlow extends React.Component {
         }
     }
     doSubmit() {
-        var channel = {};
-
-        const {formatMessage} = this.props.intl;
-        channel.display_name = this.state.channelDisplayName;
-        if (!channel.display_name) {
-            this.setState({serverError: formatMessage(messages.invalidName)});
+        if (!this.state.channelDisplayName) {
+            this.setState({serverError: Utils.localizeMessage('channel_flow.invalidName', 'Invalid Channel Name')});
             return;
         }
 
-        channel.name = this.state.channelName;
-        if (channel.name.length < 2) {
+        if (this.state.channelName < 2) {
             this.setState({flowState: SHOW_EDIT_URL_THEN_COMPLETE});
             return;
         }
 
         const cu = UserStore.getCurrentUser();
-        channel.team_id = cu.team_id;
-        channel.purpose = this.state.channelPurpose;
-        channel.type = this.state.channelType;
-
-        Client.createChannel(channel,
+        const channel = {
+            team_id: cu.team_id,
+            name: this.state.channelName,
+            display_name: this.state.channelDisplayName,
+            purpose: this.state.channelPurpose,
+            type: this.state.channelType
+        };
+        Client.createChannel(
+            channel,
             (data) => {
-                this.props.onModalDismissed();
-                GlobalActions.emitChannelClickEvent(data);
+                Client.getChannel(
+                    data.id,
+                    (data2, textStatus, xhr) => {
+                        if (xhr.status === 304 || !data2) {
+                            return;
+                        }
+
+                        AppDispatcher.handleServerAction({
+                            type: ActionTypes.RECEIVED_CHANNEL,
+                            channel: data2.channel,
+                            member: data2.member
+                        });
+
+                        this.props.onModalDismissed();
+                        browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + data2.channel.name);
+                    }
+                );
             },
             (err) => {
                 if (err.id === 'model.channel.is_valid.2_or_more.app_error') {
                     this.setState({flowState: SHOW_EDIT_URL_THEN_COMPLETE});
                 }
                 if (err.id === 'store.sql_channel.update.exists.app_error') {
-                    this.setState({serverError: formatMessage(messages.alreadyExist)});
+                    this.setState({serverError: Utils.localizeMessage('channel_flow.alreadyExist', 'A channel with that URL already exists')});
                     return;
                 }
                 this.setState({serverError: err.message});

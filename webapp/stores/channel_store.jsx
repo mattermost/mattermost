@@ -95,7 +95,12 @@ class ChannelStoreClass extends EventEmitter {
         this.removeListener(LEAVE_EVENT, callback);
     }
     findFirstBy(field, value) {
-        var channels = this.getChannels();
+        return this.doFindFirst(field, value, this.getChannels());
+    }
+    findFirstMoreBy(field, value) {
+        return this.doFindFirst(field, value, this.getMoreChannels());
+    }
+    doFindFirst(field, value, channels) {
         for (var i = 0; i < channels.length; i++) {
             if (channels[i][field] === value) {
                 return channels[i];
@@ -112,6 +117,9 @@ class ChannelStoreClass extends EventEmitter {
     }
     getByName(name) {
         return this.findFirstBy('name', name);
+    }
+    getMoreByName(name) {
+        return this.findFirstMoreBy('name', name);
     }
     getAll() {
         return this.getChannels();

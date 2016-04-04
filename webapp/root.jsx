@@ -180,6 +180,12 @@ function doChannelChange(state) {
         channel = JSON.parse(state.location.query.fakechannel);
     } else {
         channel = ChannelStore.getByName(state.params.channel);
+        if (!channel) {
+            channel = ChannelStore.getMoreByName(state.params.channel);
+        }
+        if (!channel) {
+            console.error('Unable to get channel to change to.'); //eslint-disable-line no-console
+        }
     }
     GlobalActions.emitChannelClickEvent(channel);
 }

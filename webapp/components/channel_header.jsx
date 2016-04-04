@@ -26,10 +26,10 @@ import * as Utils from 'utils/utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Client from 'utils/client.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 const ActionTypes = Constants.ActionTypes;
 
@@ -106,7 +106,7 @@ export default class ChannelHeader extends React.Component {
                 });
 
                 const townsquare = ChannelStore.getByName('town-square');
-                GlobalActions.emitChannelClickEvent(townsquare);
+                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + townsquare.name);
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');

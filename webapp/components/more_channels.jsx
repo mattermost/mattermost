@@ -9,9 +9,9 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import LoadingScreen from './loading_screen.jsx';
 import NewChannelFlow from './new_channel_flow.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
 
 import loadingGif from 'images/load.gif';
 
@@ -65,7 +65,7 @@ export default class MoreChannels extends React.Component {
         client.joinChannel(channel.id,
             () => {
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
-                GlobalActions.emitChannelClickEvent(channel);
+                browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
                 this.setState({joiningChannel: -1});
             },
             (err) => {
