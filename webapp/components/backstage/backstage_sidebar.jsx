@@ -10,7 +10,7 @@ import {FormattedMessage} from 'react-intl';
 export default class BackstageSidebar extends React.Component {
     render() {
         return (
-            <div className='backstage__sidebar'>
+            <div className='backstage-sidebar'>
                 <ul>
                     <BackstageCategory
                         name='integrations'

@@ -43,21 +43,21 @@ export default class InstalledOutgoingWebhook extends React.Component {
         const channelName = channel ? channel.display_name : 'cannot find channel';
 
         return (
-            <div className='installed-integrations__item installed-integrations__outgoing-webhook'>
-                <div className='details'>
-                    <div className='details-row'>
-                        <span className='name'>
+            <div className='backstage-list__item'>
+                <div className='item-details'>
+                    <div className='item-details__row'>
+                        <span className='item-details__name'>
                             {channelName}
                         </span>
-                        <span className='type'>
+                        <span className='item-details__type'>
                             <FormattedMessage
                                 id='installed_integrations.outgoingWebhookType'
                                 defaultMessage='(Outgoing Webhook)'
                             />
                         </span>
                     </div>
-                    <div className='details-row'>
-                        <span className='description'>
+                    <div className='item-details__row'>
+                        <span className='item-details__description'>
                             {Utils.getWindowLocationOrigin() + '/hooks/' + outgoingWebhook.id}
                             {' - '}
                             {outgoingWebhook.token}

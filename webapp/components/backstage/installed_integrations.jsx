@@ -98,9 +98,9 @@ export default class InstalledIntegrations extends React.Component {
         const fields = [];
 
         if (incomingWebhooks.length > 0 || outgoingWebhooks.length > 0) {
-            let filterClassName = 'type-filter';
+            let filterClassName = 'filter-sort';
             if (this.state.typeFilter === '') {
-                filterClassName += ' type-filter--selected';
+                filterClassName += ' filter-sort--active';
             }
 
             fields.push(
@@ -131,9 +131,9 @@ export default class InstalledIntegrations extends React.Component {
                 </span>
             );
 
-            let filterClassName = 'type-filter';
+            let filterClassName = 'filter-sort';
             if (this.state.typeFilter === 'incomingWebhooks') {
-                filterClassName += ' type-filter--selected';
+                filterClassName += ' filter-sort--active';
             }
 
             fields.push(
@@ -164,9 +164,9 @@ export default class InstalledIntegrations extends React.Component {
                 </span>
             );
 
-            let filterClassName = 'type-filter';
+            let filterClassName = 'filter-sort';
             if (this.state.typeFilter === 'outgoingWebhooks') {
-                filterClassName += ' type-filter--selected';
+                filterClassName += ' filter-sort--active';
             }
 
             fields.push(
@@ -188,7 +188,7 @@ export default class InstalledIntegrations extends React.Component {
         }
 
         return (
-            <div className='type-filters'>
+            <div className='backstage-filters__sort'>
                 {fields}
             </div>
         );
@@ -243,10 +243,10 @@ export default class InstalledIntegrations extends React.Component {
         }
 
         return (
-            <div className='backstage row'>
+            <div className='backstage-content row'>
                 <div className='installed-integrations'>
-                    <div className='backstage__header'>
-                        <h1 className='text'>
+                    <div className='backstage-header'>
+                        <h1>
                             <FormattedMessage
                                 id='installed_integrations.header'
                                 defaultMessage='Installed Integrations'
@@ -269,17 +269,21 @@ export default class InstalledIntegrations extends React.Component {
                             </button>
                         </Link>
                     </div>
-                    <div className='installed-integrations__filters'>
+                    <div className='backstage-filters'>
                         {this.renderTypeFilters(this.state.incomingWebhooks, this.state.outgoingWebhooks)}
-                        <input
-                            type='search'
-                            placeholder={Utils.localizeMessage('installed_integrations.search', 'Search Integrations')}
-                            value={this.state.filter}
-                            onChange={this.updateFilter}
-                            style={{flexGrow: 0, flexShrink: 0}}
-                        />
+                        <div className='backstage-filter__search'>
+                            <i className='fa fa-search'></i>
+                            <input
+                                type='search'
+                                className='form-control'
+                                placeholder={Utils.localizeMessage('installed_integrations.search', 'Search Integrations')}
+                                value={this.state.filter}
+                                onChange={this.updateFilter}
+                                style={{flexGrow: 0, flexShrink: 0}}
+                            />
+                        </div>
                     </div>
-                    <div className='installed-integrations__list'>
+                    <div className='backstage-list'>
                         {integrations}
                     </div>
                 </div>

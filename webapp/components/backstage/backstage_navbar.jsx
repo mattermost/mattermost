@@ -39,9 +39,9 @@ export default class BackstageNavbar extends React.Component {
         }
 
         return (
-            <div className='backstage__navbar row'>
+            <div className='backstage-navbar row'>
                 <Link
-                    className='backstage__navbar__back'
+                    className='backstage-navbar__back'
                     to={`/${this.state.team.display_name}/channels/town-square`}
                 >
                     <i className='fa fa-angle-left'/>
