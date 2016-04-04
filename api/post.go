@@ -544,7 +544,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			}
 
 			for _, userId := range userIds {
-				if post.UserId == userId {
+				if post.UserId == userId && post.Props["from_webhook"] != "true" {
 					continue
 				}
 				sendEmail := true
