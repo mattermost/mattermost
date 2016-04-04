@@ -1319,3 +1319,19 @@ export function deleteCommand(id) {
         }
     );
 }
+
+export function regenCommandToken(id) {
+    client.regenCommandToken(
+        {id},
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_COMMAND,
+                command: data
+            });
+        },
+        (err) => {
+            dispatchError(err, 'regenCommandToken');
+        }
+    );
+}
+

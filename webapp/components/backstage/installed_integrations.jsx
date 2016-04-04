@@ -25,6 +25,7 @@ export default class InstalledIntegrations extends React.Component {
         this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
         this.regenOutgoingWebhookToken = this.regenOutgoingWebhookToken.bind(this);
         this.deleteOutgoingWebhook = this.deleteOutgoingWebhook.bind(this);
+        this.regenCommandToken = this.regenCommandToken.bind(this);
         this.deleteCommand = this.deleteCommand.bind(this);
 
         this.state = {
@@ -119,6 +120,10 @@ export default class InstalledIntegrations extends React.Component {
 
     deleteOutgoingWebhook(outgoingWebhook) {
         AsyncClient.deleteOutgoingHook(outgoingWebhook.id);
+    }
+
+    regenCommandToken(command) {
+        AsyncClient.regenCommandToken(command.id);
     }
 
     deleteCommand(command) {
@@ -322,6 +327,7 @@ export default class InstalledIntegrations extends React.Component {
                     <InstalledCommand
                         key={command.id}
                         command={command}
+                        onRegenToken={this.regenCommandToken}
                         onDelete={this.deleteCommand}
                     />
                 );

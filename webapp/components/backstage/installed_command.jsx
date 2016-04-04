@@ -11,6 +11,7 @@ export default class InstalledCommand extends React.Component {
     static get propTypes() {
         return {
             command: React.PropTypes.object.isRequired,
+            onRegenToken: React.PropTypes.func.isRequired,
             onDelete: React.PropTypes.func.isRequired
         };
     }
@@ -18,7 +19,14 @@ export default class InstalledCommand extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleRegenToken = this.handleRegenToken.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
+    }
+
+    handleRegenToken(e) {
+        e.preventDefault();
+
+        this.props.onRegenToken(this.props.command);
     }
 
     handleDelete(e) {
@@ -63,6 +71,16 @@ export default class InstalledCommand extends React.Component {
                     </div>
                 </div>
                 <div className='item-actions'>
+                    <a
+                        href='#'
+                        onClick={this.handleRegenToken}
+                    >
+                        <FormattedMessage
+                            id='installed_integrations.regenToken'
+                            defaultMessage='Regen Token'
+                        />
+                    </a>
+                    {' - '}
                     <a
                         href='#'
                         onClick={this.handleDelete}
