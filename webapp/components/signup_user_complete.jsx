@@ -176,7 +176,11 @@ class SignupUserComplete extends React.Component {
             () => {
                 Client.track('signup', 'signup_user_02_complete');
 
-                Client.loginByEmail(this.state.teamName, user.email, user.password,
+                Client.loginByEmail(
+                    this.state.teamName,
+                    user.email,
+                    user.password,
+                    '', // No MFA Token
                     () => {
                         UserStore.setLastEmail(user.email);
                         if (this.state.hash > 0) {
@@ -482,36 +486,38 @@ class SignupUserComplete extends React.Component {
                 <div className='col-sm-12'>
                     <div className='signup-team__container padding--less'>
                         <div>
-                            <img
-                                className='signup-team-logo'
-                                src={logoImage}
-                            />
-                            <h5 className='margin--less'>
-                                <FormattedMessage
-                                    id='signup_user_completed.welcome'
-                                    defaultMessage='Welcome to:'
+                            <form>
+                                <img
+                                    className='signup-team-logo'
+                                    src={logoImage}
                                 />
-                            </h5>
-                            <h2 className='signup-team__name'>{this.state.teamName}</h2>
-                            <h2 className='signup-team__subdomain'>
-                                <FormattedMessage
-                                    id='signup_user_completed.onSite'
-                                    defaultMessage='on {siteName}'
-                                    values={{
-                                        siteName: global.window.mm_config.SiteName
-                                    }}
-                                />
-                            </h2>
-                            <h4 className='color--light'>
-                                <FormattedMessage
-                                    id='signup_user_completed.lets'
-                                    defaultMessage="Let's create your account"
-                                />
-                            </h4>
-                            {signupMessage}
-                            {ldapSignup}
-                            {emailSignup}
-                            {serverError}
+                                <h5 className='margin--less'>
+                                    <FormattedMessage
+                                        id='signup_user_completed.welcome'
+                                        defaultMessage='Welcome to:'
+                                    />
+                                </h5>
+                                <h2 className='signup-team__name'>{this.state.teamName}</h2>
+                                <h2 className='signup-team__subdomain'>
+                                    <FormattedMessage
+                                        id='signup_user_completed.onSite'
+                                        defaultMessage='on {siteName}'
+                                        values={{
+                                            siteName: global.window.mm_config.SiteName
+                                        }}
+                                    />
+                                </h2>
+                                <h4 className='color--light'>
+                                    <FormattedMessage
+                                        id='signup_user_completed.lets'
+                                        defaultMessage="Let's create your account"
+                                    />
+                                </h4>
+                                {signupMessage}
+                                {ldapSignup}
+                                {emailSignup}
+                                {serverError}
+                            </form>
                         </div>
                     </div>
                 </div>
