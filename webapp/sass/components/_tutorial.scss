@@ -51,7 +51,7 @@
         }
     }
 
-    &.tip-overlay--header {
+    &.tip-overlay--header--left {
         margin: 10px 0 0 10px;
 
         .arrow {
@@ -59,6 +59,18 @@
             border-right-color: $white;
             left: -10px;
             top: 15px;
+        }
+    }
+
+    &.tip-overlay--header--bottom {
+        margin-top: -10px;
+
+        .arrow {
+            border-top-width: 0;
+            border-bottom-color: $white;
+            top: -10px;
+            left: 50%;
+            margin-left: -10px;
         }
     }
 
