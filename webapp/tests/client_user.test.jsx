@@ -14,6 +14,20 @@ import TestHelper from './test_helper.jsx';
 describe('Client.User', function() {
     this.timeout(100000);
 
+    // it('getMe', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().getMe(
+    //             function(data) {
+    //                 assert.equal(data.id, TestHelper.basicUser().id);
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
     // it('getMeLoggedIn', function(done) {
     //     TestHelper.initBasic(() => {
     //         TestHelper.basicClient().getMeLoggedIn(
@@ -418,6 +432,54 @@ describe('Client.User', function() {
     //             TestHelper.basicUser().id,
     //             function(data) {
     //                 assert.equal(data[0].user_id, TestHelper.basicUser().id);
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('getProfiles', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         TestHelper.basicClient().getProfiles(
+    //             function() {
+    //                 done(new Error('need to be system admin'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('getProfilesForTeam', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().getProfilesForTeam(
+    //             TestHelper.basicTeam().id,
+    //             function(data) {
+    //                 assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('getStatuses', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         var ids = [];
+    //         ids.push(TestHelper.basicUser().id);
+
+    //         TestHelper.basicClient().getStatuses(
+    //             ids,
+    //             function(data) {
+    //                 assert.equal(data[TestHelper.basicUser().id], 'online');
     //                 done();
     //             },
     //             function(err) {

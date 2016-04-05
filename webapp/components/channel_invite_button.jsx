@@ -37,13 +37,9 @@ export default class ChannelInviteButton extends React.Component {
             addingUser: true
         });
 
-        const data = {
-            user_id: this.props.user.id
-        };
-
         Client.addChannelMember(
             this.props.channel.id,
-            data,
+            this.props.user.id,
             () => {
                 this.setState({
                     addingUser: false

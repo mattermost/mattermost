@@ -148,7 +148,6 @@ class CreateComment extends React.Component {
 
         Client.createPost(
             post,
-            ChannelStore.getCurrent(),
             (data) => {
                 AsyncClient.getPosts(this.props.channelId);
 

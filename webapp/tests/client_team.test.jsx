@@ -108,5 +108,83 @@ describe('Client.Team', function() {
     //         );
     //     });
     // });
+
+    // it('getMyTeam', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().getMyTeam(
+    //             function(data) {
+    //                 assert.equal(data.name, TestHelper.basicTeam().name);
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('inviteMembers', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         var data = {};
+    //         data.invites = [];
+    //         var invite = {};
+    //         invite.email = TestHelper.fakeEmail();
+    //         invite.firstName = 'first';
+    //         invite.lastName = 'last';
+    //         data.invites.push(invite);
+
+    //         TestHelper.basicClient().inviteMembers(
+    //             data,
+    //             function(dataBack) {
+    //                 assert.equal(dataBack.invites.length, 1);
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('updateTeam', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         var team = TestHelper.basicTeam();
+    //         team.display_name = 'test_updated';
+
+    //         TestHelper.basicClient().updateTeam(
+    //             team,
+    //             function(data) {
+    //                 assert.equal(data.display_name, 'test_updated');
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('addUserToTeam', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().createUser(
+    //             TestHelper.fakeUser(),
+    //             function(user2) {
+    //                 TestHelper.basicClient().addUserToTeam(
+    //                     user2.id,
+    //                     function(data) {
+    //                         assert.equal(data.user_id, user2.id);
+    //                         done();
+    //                     },
+    //                     function(err) {
+    //                         done(new Error(err.message));
+    //                     }
+    //                 );
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
 });
 

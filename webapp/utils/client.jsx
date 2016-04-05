@@ -627,173 +627,173 @@ function handleError(methodName, xhr, status, err) {
 //     });
 // }
 
-export function testEmail(config, success, error) {
-    $.ajax({
-        url: '/api/v1/admin/test_email',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(config),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('testEmail', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function testEmail(config, success, error) {
+//     $.ajax({
+//         url: '/api/v1/admin/test_email',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(config),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('testEmail', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getAllTeams(success, error) {
-    $.ajax({
-        url: '/api/v1/teams/all',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getAllTeams', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getAllTeams(success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/all',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getAllTeams', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getMeLoggedInOld(success, error) {
-    return $.ajax({
-        cache: false,
-        url: rootUrl + version + '/users/me_logged_in',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getMeLoggedIn', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getMeLoggedInOld(success, error) {
+//     return $.ajax({
+//         cache: false,
+//         url: rootUrl + version + '/users/me_logged_in',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getMeLoggedIn', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-function handleResponse(methodName, successCallback, errorCallback, err, res) {
-    serverVersion = res.header['x-version-id'];
-    if (!serverVersion) {
-        serverVersion = '';
-    }
+// function handleResponse(methodName, successCallback, errorCallback, err, res) {
+//     serverVersion = res.header['x-version-id'];
+//     if (!serverVersion) {
+//         serverVersion = '';
+//     }
 
-    if (err) {
-        var e = null;
-        try {
-            e = JSON.parse(res.body.message);
-        } catch (parseError) {
-            e = null;
-        }
-        var msg = '';
+//     if (err) {
+//         var e = null;
+//         try {
+//             e = JSON.parse(res.body.message);
+//         } catch (parseError) {
+//             e = null;
+//         }
+//         var msg = '';
 
-        if (e) {
-            msg = 'method=' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
-        } else {
-            msg = 'method=' + methodName + ' status=' + status + ' statusCode=' + err.status + ' err=' + err;
+//         if (e) {
+//             msg = 'method=' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
+//         } else {
+//             msg = 'method=' + methodName + ' status=' + status + ' statusCode=' + err.status + ' err=' + err;
 
-            if (err.status === 0) {
-                e = {message: translations.connectionError};
-            } else {
-                e = {message: translations.unknownError + ' (' + err.status + ')'};
-            }
-        }
+//             if (err.status === 0) {
+//                 e = {message: translations.connectionError};
+//             } else {
+//                 e = {message: translations.unknownError + ' (' + err.status + ')'};
+//             }
+//         }
 
-        console.error(msg); //eslint-disable-line no-console
-        console.error(e); //eslint-disable-line no-console
+//         console.error(msg); //eslint-disable-line no-console
+//         console.error(e); //eslint-disable-line no-console
 
-        if (errorCallback) {
-            errorCallback(e);
-        }
-    }
+//         if (errorCallback) {
+//             errorCallback(e);
+//         }
+//     }
 
-    if (successCallback) {
-        successCallback(res.body);
-    }
-}
+//     if (successCallback) {
+//         successCallback(res.body);
+//     }
+// }
 
-export function getMeLoggedIn(success, error) {
-    request.
-        get(rootUrl + version + '/users/me_logged_in').
-        type('application/json').
-        accept('application/json').
-        end(handleResponse.bind(this, 'getMeLoggedIn', success, error));
-}
+// export function getMeLoggedIn(success, error) {
+//     request.
+//         get(rootUrl + version + '/users/me_logged_in').
+//         type('application/json').
+//         accept('application/json').
+//         end(handleResponse.bind(this, 'getMeLoggedIn', success, error));
+// }
 
-export function getMe(success, error) {
-    var currentUser = null;
-    $.ajax({
-        cache: false,
-        url: '/api/v1/users/me',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success: function gotUser(data, textStatus, xhr) {
-            currentUser = data;
-            if (success) {
-                success(data, textStatus, xhr);
-            }
-        },
-        error: function onError(xhr, status, err) {
-            if (error) {
-                var e = handleError('getMe', xhr, status, err);
-                error(e);
-            }
-        }
-    });
+// export function getMe(success, error) {
+//     var currentUser = null;
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/users/me',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success: function gotUser(data, textStatus, xhr) {
+//             currentUser = data;
+//             if (success) {
+//                 success(data, textStatus, xhr);
+//             }
+//         },
+//         error: function onError(xhr, status, err) {
+//             if (error) {
+//                 var e = handleError('getMe', xhr, status, err);
+//                 error(e);
+//             }
+//         }
+//     });
 
-    return currentUser;
-}
+//     return currentUser;
+// }
 
-export function inviteMembers(data, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/invite_members',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('inviteMembers', xhr, status, err);
-            error(e);
-        }
-    });
+// export function inviteMembers(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/invite_members',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('inviteMembers', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_teams_invite_members');
-}
+//     track('api', 'api_teams_invite_members');
+// }
 
-export function updateTeam(team, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/update',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(team),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('updateTeam', xhr, status, err);
-            error(e);
-        }
-    });
+// export function updateTeam(team, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/update',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(team),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('updateTeam', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_teams_update_name');
-}
+//     track('api', 'api_teams_update_name');
+// }
 
-export function signupTeam(email, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/signup',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({email: email}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('singupTeam', xhr, status, err);
-            error(e);
-        }
-    });
+// export function signupTeam(email, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/signup',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({email: email}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('singupTeam', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_teams_signup');
-}
+//     track('api', 'api_teams_signup');
+// }
 
 // export function createTeam(team, success, error) {
 //     $.ajax({
@@ -810,20 +810,20 @@ export function signupTeam(email, success, error) {
 //     });
 // }
 
-export function findTeamByName(teamName, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/find_team_by_name',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({name: teamName}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('findTeamByName', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function findTeamByName(teamName, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/find_team_by_name',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({name: teamName}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('findTeamByName', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 // export function createChannel(channel, success, error) {
 //     $.ajax({
@@ -842,757 +842,757 @@ export function findTeamByName(teamName, success, error) {
 //     track('api', 'api_channels_create', channel.type, 'name', channel.name);
 // }
 
-export function createDirectChannel(channel, userId, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/create_direct',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({user_id: userId}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('createDirectChannel', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_create_direct', channel.type, 'name', channel.name);
-}
-
-export function updateChannel(channel, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/update',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(channel),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateChannel', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_update');
-}
-
-export function updateChannelHeader(channelId, header, success, error) {
-    const data = {
-        channel_id: channelId,
-        channel_header: header
-    };
-
-    $.ajax({
-        url: '/api/v1/channels/update_header',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateChannelHeader', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_header');
-}
-
-export function updateChannelPurpose(data, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/update_purpose',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateChannelPurpose', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_purpose');
-}
-
-export function updateNotifyProps(data, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/update_notify_props',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateNotifyProps', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function joinChannel(id, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + id + '/join',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('joinChannel', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_join');
-}
-
-export function leaveChannel(id, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + id + '/leave',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('leaveChannel', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_leave');
-}
-
-export function deleteChannel(id, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + id + '/delete',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('deleteChannel', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_delete');
-}
-
-export function updateLastViewedAt(channelId, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + channelId + '/update_last_viewed_at',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateLastViewedAt', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getChannels(success, error) {
-    return $.ajax({
-        cache: false,
-        url: '/api/v1/channels/',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        ifModified: true,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getChannels', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getChannel(id, success, error) {
-    $.ajax({
-        cache: false,
-        url: '/api/v1/channels/' + id + '/',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getChannel', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channel_get');
-}
-
-export function getMoreChannels(success, error) {
-    $.ajax({
-        url: '/api/v1/channels/more',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        ifModified: true,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getMoreChannels', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getChannelCounts(success, error) {
-    $.ajax({
-        cache: false,
-        url: '/api/v1/channels/counts',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        ifModified: true,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getChannelCounts', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getChannelExtraInfo(id, memberLimit, success, error) {
-    let url = '/api/v1/channels/' + id + '/extra_info';
-
-    if (memberLimit) {
-        url += '/' + memberLimit;
-    }
-
-    return $.ajax({
-        url,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getChannelExtraInfo', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function executeCommand(channelId, command, suggest, success, error) {
-    $.ajax({
-        url: '/api/v1/commands/execute',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({channelId, command, suggest: '' + suggest}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('executeCommand', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function addCommand(cmd, success, error) {
-    $.ajax({
-        url: '/api/v1/commands/create',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(cmd),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('addCommand', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function deleteCommand(data, success, error) {
-    $.ajax({
-        url: '/api/v1/commands/delete',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('deleteCommand', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function listTeamCommands(success, error) {
-    $.ajax({
-        url: '/api/v1/commands/list_team_commands',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('listTeamCommands', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function regenCommandToken(data, success, error) {
-    $.ajax({
-        url: '/api/v1/commands/regen_token',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('regenCommandToken', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function listCommands(success, error) {
-    $.ajax({
-        url: '/api/v1/commands/list',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('listCommands', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getPostsPage(channelId, offset, limit, success, error, complete) {
-    $.ajax({
-        cache: false,
-        url: '/api/v1/channels/' + channelId + '/posts/' + offset + '/' + limit,
-        dataType: 'json',
-        type: 'GET',
-        ifModified: true,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getPosts', xhr, status, err);
-            error(e);
-        },
-        complete: complete
-    });
-}
-
-export function getPosts(channelId, since, success, error, complete) {
-    return $.ajax({
-        url: '/api/v1/channels/' + channelId + '/posts/' + since,
-        dataType: 'json',
-        type: 'GET',
-        ifModified: true,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getPosts', xhr, status, err);
-            error(e);
-        },
-        complete: complete
-    });
-}
-
-export function getPostsBefore(channelId, post, offset, numPost, success, error, complete) {
-    $.ajax({
-        url: '/api/v1/channels/' + channelId + '/post/' + post + '/before/' + offset + '/' + numPost,
-        dataType: 'json',
-        type: 'GET',
-        ifModified: false,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getPostsBefore', xhr, status, err);
-            error(e);
-        },
-        complete: complete
-    });
-}
-
-export function getPostsAfter(channelId, post, offset, numPost, success, error, complete) {
-    $.ajax({
-        url: '/api/v1/channels/' + channelId + '/post/' + post + '/after/' + offset + '/' + numPost,
-        dataType: 'json',
-        type: 'GET',
-        ifModified: false,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getPostsAfter', xhr, status, err);
-            error(e);
-        },
-        complete: complete
-    });
-}
-
-export function getPost(channelId, postId, success, error, complete) {
-    $.ajax({
-        cache: false,
-        url: '/api/v1/channels/' + channelId + '/post/' + postId,
-        dataType: 'json',
-        type: 'GET',
-        ifModified: false,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getPost', xhr, status, err);
-            error(e);
-        },
-        complete
-    });
-}
-
-export function getPostById(postId, success, error, complete) {
-    $.ajax({
-        cache: false,
-        url: '/api/v1/posts/' + postId,
-        dataType: 'json',
-        type: 'GET',
-        ifModified: false,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getPostById', xhr, status, err);
-            error(e);
-        },
-        complete
-    });
-}
-
-export function search(terms, success, error) {
-    $.ajax({
-        url: '/api/v1/posts/search',
-        dataType: 'json',
-        type: 'GET',
-        data: {terms: terms},
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('search', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_posts_search');
-}
-
-export function deletePost(channelId, id, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + channelId + '/post/' + id + '/delete',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('deletePost', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_posts_delete');
-}
-
-export function createPost(post, channel, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + post.channel_id + '/create',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(post),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('createPost', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_posts_create', channel.name, 'length', post.message.length);
-
-    // global.window.analytics.track('api_posts_create', {
-    //     category: 'api',
-    //     channel_name: channel.name,
-    //     channel_type: channel.type,
-    //     length: post.message.length,
-    //     files: (post.filenames || []).length,
-    //     mentions: (post.message.match('/<mention>/g') || []).length
-    // });
-}
-
-export function updatePost(post, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + post.channel_id + '/update',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(post),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updatePost', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_posts_update');
-}
-
-export function addChannelMember(id, data, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + id + '/add',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('addChannelMember', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_add_member');
-}
-
-export function removeChannelMember(id, data, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/' + id + '/remove',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('removeChannelMember', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_channels_remove_member');
-}
-
-export function getProfiles(success, error) {
-    $.ajax({
-        cache: false,
-        url: '/api/v1/users/profiles',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        ifModified: true,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getProfiles', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getProfilesForTeam(teamId, success, error) {
-    $.ajax({
-        cache: false,
-        url: '/api/v1/users/profiles/' + teamId,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getProfilesForTeam', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function uploadFile(formData, success, error) {
-    var request = $.ajax({
-        url: '/api/v1/files/upload',
-        type: 'POST',
-        data: formData,
-        cache: false,
-        contentType: false,
-        processData: false,
-        success,
-        error: function onError(xhr, status, err) {
-            if (err !== 'abort') {
-                var e = handleError('uploadFile', xhr, status, err);
-                error(e);
-            }
-        }
-    });
-
-    track('api', 'api_files_upload');
-
-    return request;
-}
-
-export function getFileInfo(filename, success, error) {
-    $.ajax({
-        url: '/api/v1/files/get_info' + filename,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success: (data) => {
-            success(data);
-        },
-        error: function onError(xhr, status, err) {
-            var e = handleError('getFileInfo', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getPublicLink(data, success, error) {
-    $.ajax({
-        url: '/api/v1/files/get_public_link',
-        dataType: 'json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getPublicLink', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function uploadProfileImage(imageData, success, error) {
-    $.ajax({
-        url: '/api/v1/users/newimage',
-        type: 'POST',
-        data: imageData,
-        cache: false,
-        contentType: false,
-        processData: false,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('uploadProfileImage', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function importSlack(fileData, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/import_team',
-        type: 'POST',
-        data: fileData,
-        cache: false,
-        contentType: false,
-        processData: false,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('importTeam', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function exportTeam(success, error) {
-    $.ajax({
-        url: '/api/v1/teams/export_team',
-        type: 'GET',
-        dataType: 'json',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('exportTeam', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getStatuses(ids, success, error) {
-    $.ajax({
-        url: '/api/v1/users/status',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(ids),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getStatuses', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function getMyTeam(success, error) {
-    return $.ajax({
-        url: '/api/v1/teams/me',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        ifModified: true,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getMyTeam', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function registerOAuthApp(app, success, error) {
-    $.ajax({
-        url: '/api/v1/oauth/register',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(app),
-        success: success,
-        error: (xhr, status, err) => {
-            const e = handleError('registerApp', xhr, status, err);
-            error(e);
-        }
-    });
-
-    module.exports.track('api', 'api_apps_register');
-}
-
-export function allowOAuth2(responseType, clientId, redirectUri, state, scope, success, error) {
-    $.ajax({
-        url: '/api/v1/oauth/allow?response_type=' + responseType + '&client_id=' + clientId + '&redirect_uri=' + redirectUri + '&scope=' + scope + '&state=' + state,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            const e = handleError('allowOAuth2', xhr, status, err);
-            error(e);
-        }
-    });
-
-    module.exports.track('api', 'api_users_allow_oauth2');
-}
-
-export function addIncomingHook(hook, success, error) {
-    $.ajax({
-        url: '/api/v1/hooks/incoming/create',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(hook),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('addIncomingHook', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function deleteIncomingHook(data, success, error) {
-    $.ajax({
-        url: '/api/v1/hooks/incoming/delete',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('deleteIncomingHook', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
-export function listIncomingHooks(success, error) {
-    $.ajax({
-        url: '/api/v1/hooks/incoming/list',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('listIncomingHooks', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function createDirectChannel(channel, userId, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/create_direct',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({user_id: userId}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('createDirectChannel', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_create_direct', channel.type, 'name', channel.name);
+// }
+
+// export function updateChannel(channel, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/update',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(channel),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateChannel', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_update');
+// }
+
+// export function updateChannelHeader(channelId, header, success, error) {
+//     const data = {
+//         channel_id: channelId,
+//         channel_header: header
+//     };
+
+//     $.ajax({
+//         url: '/api/v1/channels/update_header',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateChannelHeader', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_header');
+// }
+
+// export function updateChannelPurpose(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/update_purpose',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateChannelPurpose', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_purpose');
+// }
+
+// export function updateNotifyProps(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/update_notify_props',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateNotifyProps', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function joinChannel(id, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + id + '/join',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('joinChannel', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_join');
+// }
+
+// export function leaveChannel(id, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + id + '/leave',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('leaveChannel', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_leave');
+// }
+
+// export function deleteChannel(id, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + id + '/delete',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('deleteChannel', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_delete');
+// }
+
+// export function updateLastViewedAt(channelId, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + channelId + '/update_last_viewed_at',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateLastViewedAt', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getChannels(success, error) {
+//     return $.ajax({
+//         cache: false,
+//         url: '/api/v1/channels/',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         ifModified: true,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getChannels', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getChannel(id, success, error) {
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/channels/' + id + '/',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getChannel', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channel_get');
+// }
+
+// export function getMoreChannels(success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/more',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         ifModified: true,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getMoreChannels', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getChannelCounts(success, error) {
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/channels/counts',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         ifModified: true,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getChannelCounts', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getChannelExtraInfo(id, memberLimit, success, error) {
+//     let url = '/api/v1/channels/' + id + '/extra_info';
+
+//     if (memberLimit) {
+//         url += '/' + memberLimit;
+//     }
+
+//     return $.ajax({
+//         url,
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getChannelExtraInfo', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function executeCommand(channelId, command, suggest, success, error) {
+//     $.ajax({
+//         url: '/api/v1/commands/execute',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({channelId, command, suggest: '' + suggest}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('executeCommand', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function addCommand(cmd, success, error) {
+//     $.ajax({
+//         url: '/api/v1/commands/create',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(cmd),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('addCommand', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function deleteCommand(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/commands/delete',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('deleteCommand', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function listTeamCommands(success, error) {
+//     $.ajax({
+//         url: '/api/v1/commands/list_team_commands',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('listTeamCommands', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function regenCommandToken(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/commands/regen_token',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('regenCommandToken', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function listCommands(success, error) {
+//     $.ajax({
+//         url: '/api/v1/commands/list',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('listCommands', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getPostsPage(channelId, offset, limit, success, error, complete) {
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/channels/' + channelId + '/posts/' + offset + '/' + limit,
+//         dataType: 'json',
+//         type: 'GET',
+//         ifModified: true,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getPosts', xhr, status, err);
+//             error(e);
+//         },
+//         complete: complete
+//     });
+// }
+
+// export function getPosts(channelId, since, success, error, complete) {
+//     return $.ajax({
+//         url: '/api/v1/channels/' + channelId + '/posts/' + since,
+//         dataType: 'json',
+//         type: 'GET',
+//         ifModified: true,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getPosts', xhr, status, err);
+//             error(e);
+//         },
+//         complete: complete
+//     });
+// }
+
+// export function getPostsBefore(channelId, post, offset, numPost, success, error, complete) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + channelId + '/post/' + post + '/before/' + offset + '/' + numPost,
+//         dataType: 'json',
+//         type: 'GET',
+//         ifModified: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getPostsBefore', xhr, status, err);
+//             error(e);
+//         },
+//         complete: complete
+//     });
+// }
+
+// export function getPostsAfter(channelId, post, offset, numPost, success, error, complete) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + channelId + '/post/' + post + '/after/' + offset + '/' + numPost,
+//         dataType: 'json',
+//         type: 'GET',
+//         ifModified: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getPostsAfter', xhr, status, err);
+//             error(e);
+//         },
+//         complete: complete
+//     });
+// }
+
+// export function getPost(channelId, postId, success, error, complete) {
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/channels/' + channelId + '/post/' + postId,
+//         dataType: 'json',
+//         type: 'GET',
+//         ifModified: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getPost', xhr, status, err);
+//             error(e);
+//         },
+//         complete
+//     });
+// }
+
+// export function getPostById(postId, success, error, complete) {
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/posts/' + postId,
+//         dataType: 'json',
+//         type: 'GET',
+//         ifModified: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getPostById', xhr, status, err);
+//             error(e);
+//         },
+//         complete
+//     });
+// }
+
+// export function search(terms, success, error) {
+//     $.ajax({
+//         url: '/api/v1/posts/search',
+//         dataType: 'json',
+//         type: 'GET',
+//         data: {terms: terms},
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('search', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_posts_search');
+// }
+
+// export function deletePost(channelId, id, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + channelId + '/post/' + id + '/delete',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('deletePost', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_posts_delete');
+// }
+
+// export function createPost(post, channel, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + post.channel_id + '/create',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(post),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('createPost', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_posts_create', channel.name, 'length', post.message.length);
+
+//     // global.window.analytics.track('api_posts_create', {
+//     //     category: 'api',
+//     //     channel_name: channel.name,
+//     //     channel_type: channel.type,
+//     //     length: post.message.length,
+//     //     files: (post.filenames || []).length,
+//     //     mentions: (post.message.match('/<mention>/g') || []).length
+//     // });
+// }
+
+// export function updatePost(post, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + post.channel_id + '/update',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(post),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updatePost', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_posts_update');
+// }
+
+// export function addChannelMember(id, data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + id + '/add',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('addChannelMember', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_add_member');
+// }
+
+// export function removeChannelMember(id, data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/channels/' + id + '/remove',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('removeChannelMember', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     track('api', 'api_channels_remove_member');
+// }
+
+// export function getProfiles(success, error) {
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/users/profiles',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         ifModified: true,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getProfiles', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getProfilesForTeam(teamId, success, error) {
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/users/profiles/' + teamId,
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getProfilesForTeam', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function uploadFile(formData, success, error) {
+//     var request = $.ajax({
+//         url: '/api/v1/files/upload',
+//         type: 'POST',
+//         data: formData,
+//         cache: false,
+//         contentType: false,
+//         processData: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             if (err !== 'abort') {
+//                 var e = handleError('uploadFile', xhr, status, err);
+//                 error(e);
+//             }
+//         }
+//     });
+
+//     track('api', 'api_files_upload');
+
+//     return request;
+// }
+
+// export function getFileInfo(filename, success, error) {
+//     $.ajax({
+//         url: '/api/v1/files/get_info' + filename,
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success: (data) => {
+//             success(data);
+//         },
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getFileInfo', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getPublicLink(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/files/get_public_link',
+//         dataType: 'json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getPublicLink', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function uploadProfileImage(imageData, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/newimage',
+//         type: 'POST',
+//         data: imageData,
+//         cache: false,
+//         contentType: false,
+//         processData: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('uploadProfileImage', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function importSlack(fileData, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/import_team',
+//         type: 'POST',
+//         data: fileData,
+//         cache: false,
+//         contentType: false,
+//         processData: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('importTeam', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function exportTeam(success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/export_team',
+//         type: 'GET',
+//         dataType: 'json',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('exportTeam', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getStatuses(ids, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/status',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(ids),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getStatuses', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function getMyTeam(success, error) {
+//     return $.ajax({
+//         url: '/api/v1/teams/me',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         ifModified: true,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getMyTeam', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function registerOAuthApp(app, success, error) {
+//     $.ajax({
+//         url: '/api/v1/oauth/register',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(app),
+//         success: success,
+//         error: (xhr, status, err) => {
+//             const e = handleError('registerApp', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     module.exports.track('api', 'api_apps_register');
+// }
+
+// export function allowOAuth2(responseType, clientId, redirectUri, state, scope, success, error) {
+//     $.ajax({
+//         url: '/api/v1/oauth/allow?response_type=' + responseType + '&client_id=' + clientId + '&redirect_uri=' + redirectUri + '&scope=' + scope + '&state=' + state,
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: (xhr, status, err) => {
+//             const e = handleError('allowOAuth2', xhr, status, err);
+//             error(e);
+//         }
+//     });
+
+//     module.exports.track('api', 'api_users_allow_oauth2');
+// }
+
+// export function addIncomingHook(hook, success, error) {
+//     $.ajax({
+//         url: '/api/v1/hooks/incoming/create',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(hook),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('addIncomingHook', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function deleteIncomingHook(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/hooks/incoming/delete',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('deleteIncomingHook', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
+
+// export function listIncomingHooks(success, error) {
+//     $.ajax({
+//         url: '/api/v1/hooks/incoming/list',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('listIncomingHooks', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 // export function getAllPreferences(success, error) {
 //     return $.ajax({
@@ -1607,91 +1607,91 @@ export function listIncomingHooks(success, error) {
 //     });
 // }
 
-export function getPreferenceCategory(category, success, error) {
-    $.ajax({
-        url: `/api/v1/preferences/${category}`,
-        dataType: 'json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('getPreferenceCategory', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getPreferenceCategory(category, success, error) {
+//     $.ajax({
+//         url: `/api/v1/preferences/${category}`,
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('getPreferenceCategory', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function savePreferences(preferences, success, error) {
-    $.ajax({
-        url: '/api/v1/preferences/save',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(preferences),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('savePreferences', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function savePreferences(preferences, success, error) {
+//     $.ajax({
+//         url: '/api/v1/preferences/save',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(preferences),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('savePreferences', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function addOutgoingHook(hook, success, error) {
-    $.ajax({
-        url: '/api/v1/hooks/outgoing/create',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(hook),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('addOutgoingHook', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function addOutgoingHook(hook, success, error) {
+//     $.ajax({
+//         url: '/api/v1/hooks/outgoing/create',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(hook),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('addOutgoingHook', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function deleteOutgoingHook(data, success, error) {
-    $.ajax({
-        url: '/api/v1/hooks/outgoing/delete',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('deleteOutgoingHook', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function deleteOutgoingHook(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/hooks/outgoing/delete',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('deleteOutgoingHook', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function listOutgoingHooks(success, error) {
-    $.ajax({
-        url: '/api/v1/hooks/outgoing/list',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('listOutgoingHooks', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function listOutgoingHooks(success, error) {
+//     $.ajax({
+//         url: '/api/v1/hooks/outgoing/list',
+//         dataType: 'json',
+//         type: 'GET',
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('listOutgoingHooks', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function regenOutgoingHookToken(data, success, error) {
-    $.ajax({
-        url: '/api/v1/hooks/outgoing/regen_token',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('regenOutgoingHookToken', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function regenOutgoingHookToken(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/hooks/outgoing/regen_token',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('regenOutgoingHookToken', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 export function uploadLicenseFile(formData, success, error) {
     $.ajax({
@@ -1728,27 +1728,27 @@ export function removeLicenseFile(success, error) {
     track('api', 'api_license_upload');
 }
 
-export function getClientLicenceConfigOld(success, error) {
-    return $.ajax({
-        url: '/api/v1/license/client_config',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getClientLicenceConfig', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getClientLicenceConfigOld(success, error) {
+//     return $.ajax({
+//         url: '/api/v1/license/client_config',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getClientLicenceConfig', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getClientLicenceConfig(success, error) {
-    request.
-        get(rootUrl + version + '/license/client_config').
-        type('application/json').
-        accept('application/json').
-        end(handleResponse.bind(this, 'getClientLicenceConfig', success, error));
-}
+// export function getClientLicenceConfig(success, error) {
+//     request.
+//         get(rootUrl + version + '/license/client_config').
+//         type('application/json').
+//         accept('application/json').
+//         end(handleResponse.bind(this, 'getClientLicenceConfig', success, error));
+// }
 
 export function getInviteInfo(success, error, id) {
     $.ajax({

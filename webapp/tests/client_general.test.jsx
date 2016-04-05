@@ -165,6 +165,25 @@ describe('Client.General', function() {
     //     });
     // });
 
+    // it('Admin.testEmail', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         var config = {};
+    //         config.site_name = 'test';
+
+    //         TestHelper.basicClient().testEmail(
+    //             config,
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
     // it('Admin.logClientError', function(done) {
     //     TestHelper.initBasic(() => {
     //         var config = {};
@@ -194,6 +213,44 @@ describe('Client.General', function() {
     //             'http://localhost:8065/static/i18n/es.json',
     //             function(data) {
     //                 assert.equal(data['login.or'], 'o');
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('File.getFileInfo', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+
+    //         TestHelper.basicClient().getFileInfo(
+    //             `/${TestHelper.basicChannel().id}/${TestHelper.basicUser().id}/filename.txt`,
+    //             function(data) {
+    //                 assert.equal(data.filename, 'filename.txt');
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('File.getPublicLink', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         var data = {};
+    //         data.channel_id = TestHelper.basicChannel().id;
+    //         data.user_id = TestHelper.basicUser().id;
+    //         data.filename = `/${TestHelper.basicChannel().id}/${TestHelper.basicUser().id}/filename.txt`;
+
+    //         TestHelper.basicClient().getPublicLink(
+    //             data,
+    //             function(rdata) {
+    //                 assert.equal(rdata.public_link.length > 0, true);
     //                 done();
     //             },
     //             function(err) {

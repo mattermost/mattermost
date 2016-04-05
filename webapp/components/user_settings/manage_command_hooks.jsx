@@ -126,11 +126,8 @@ export default class ManageCommandCmds extends React.Component {
     }
 
     removeCmd(id) {
-        const data = {};
-        data.id = id;
-
         Client.deleteCommand(
-            data,
+            id,
             () => {
                 const cmds = this.state.cmds;
                 let index = -1;
@@ -154,11 +151,8 @@ export default class ManageCommandCmds extends React.Component {
     }
 
     regenToken(id) {
-        const regenData = {};
-        regenData.id = id;
-
         Client.regenCommandToken(
-            regenData,
+            id,
             (data) => {
                 const cmds = Object.assign([], this.state.cmds);
                 for (let i = 0; i < cmds.length; i++) {

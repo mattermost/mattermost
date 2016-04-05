@@ -97,12 +97,9 @@ export default class ChannelMembersModal extends React.Component {
     handleRemove(user) {
         const userId = user.id;
 
-        const data = {};
-        data.user_id = userId;
-
         Client.removeChannelMember(
             ChannelStore.getCurrentId(),
-            data,
+            userId,
             () => {
                 const memberList = this.state.memberList.slice();
                 for (let i = 0; i < memberList.length; i++) {

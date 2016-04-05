@@ -171,7 +171,7 @@ class CreatePost extends React.Component {
         GlobalActions.emitUserPostedEvent(post);
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
-        Client.createPost(post, channel,
+        Client.createPost(post,
             (data) => {
                 AsyncClient.getPosts();
 

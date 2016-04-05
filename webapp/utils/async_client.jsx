@@ -1216,7 +1216,7 @@ export function addOutgoingHook(hook, success, error) {
 
 export function deleteIncomingHook(id) {
     client.deleteIncomingHook(
-        {id},
+        id,
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.REMOVED_INCOMING_WEBHOOK,
@@ -1231,7 +1231,7 @@ export function deleteIncomingHook(id) {
 
 export function deleteOutgoingHook(id) {
     client.deleteOutgoingHook(
-        {id},
+        id,
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.REMOVED_OUTGOING_WEBHOOK,
@@ -1246,7 +1246,7 @@ export function deleteOutgoingHook(id) {
 
 export function regenOutgoingHookToken(id) {
     client.regenOutgoingHookToken(
-        {id},
+        id,
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.UPDATED_OUTGOING_WEBHOOK,

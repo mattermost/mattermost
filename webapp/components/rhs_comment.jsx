@@ -43,7 +43,7 @@ class RhsComment extends React.Component {
         e.preventDefault();
 
         var post = this.props.post;
-        Client.createPost(post, post.channel_id,
+        Client.createPost(post,
             (data) => {
                 AsyncClient.getPosts(post.channel_id);
 

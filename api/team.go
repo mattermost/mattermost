@@ -37,6 +37,8 @@ func InitTeam() {
 
 	BaseRoutes.NeedTeam.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 
+	BaseRoutes.NeedTeam.Handle("/add_user_to_team", ApiUserRequired(addUserToTeam)).Methods("POST")
+
 	// These should be moved to the global admain console
 	BaseRoutes.Teams.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
@@ -497,6 +499,49 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	InviteMembers(c, team, user, ia)
 
 	w.Write([]byte(invites.ToJson()))
+}
+
+func addUserToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := model.MapFromJson(r.Body)
+	userId := params["user_id"]
+
+	if len(userId) != 26 {
+		c.SetInvalidParam("addUserToTeam", "user_id")
+		return
+	}
+
+	tchan := Srv.Store.Team().Get(c.TeamId)
+	uchan := Srv.Store.User().Get(userId)
+
+	var team *model.Team
+	if result := <-tchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if !c.IsTeamAdmin() {
+		c.Err = model.NewLocAppError("addUserToTeam", "api.team.update_team.permissions.app_error", nil, "userId="+c.Session.UserId)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	err := JoinUserToTeam(team, user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.MapToJson(params)))
 }
 
 func FindTeamByName(name string) bool {

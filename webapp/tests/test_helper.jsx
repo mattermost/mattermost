@@ -29,6 +29,10 @@ class TestHelperClass {
         return this.basicch;
     }
 
+    basicPost = () => {
+        return this.basicp;
+    }
+
     generateId = () => {
         // implementation taken from http://stackoverflow.com/a/2117523
         var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
@@ -84,8 +88,14 @@ class TestHelperClass {
         var channel = {};
         channel.name = this.generateId();
         channel.display_name = `Unit Test ${channel.name}`;
-        channel.type = 'P'; // private channel
+        channel.type = 'O'; // open channel
         return channel;
+    }
+
+    fakePost = () => {
+        var post = {};
+        post.message = `Unit Test ${this.generateId()}`;
+        return post;
     }
 
     initBasic = (callback) => {
@@ -129,7 +139,19 @@ class TestHelperClass {
                                     channel,
                                     function(rchannel) {
                                         outer.basicch = rchannel;
-                                        d1.resolve();
+                                        var post = outer.fakePost();
+                                        post.channel_id = rchannel.id;
+
+                                        outer.basicClient().createPost(
+                                            post,
+                                            function(rpost) {
+                                                outer.basicp = rpost;
+                                                d1.resolve();
+                                            },
+                                            function(err) {
+                                                throw err;
+                                            }
+                                        );
                                     },
                                     function(err) {
                                         throw err;

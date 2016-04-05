@@ -75,8 +75,28 @@ export default class Client {
         return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/channels/${channelId}`;
     }
 
+    getCommandsRoute() {
+        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/commands`;
+    }
+
+    getHooksRoute() {
+        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/hooks`;
+    }
+
+    getPostsRoute(channelId) {
+        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/channels/${channelId}/posts`;
+    }
+
     getUsersRoute() {
         return `${this.url}${this.urlVersion}/users`;
+    }
+
+    getFilesRoute() {
+        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/files`;
+    }
+
+    getOAuthRoute() {
+        return `${this.url}${this.urlVersion}/oauth`;
     }
 
     getUserNeededRoute(userId) {
@@ -260,6 +280,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'saveConfig', success, error));
     }
 
+    testEmail = (config, success, error) => {
+        request.
+            post(`${this.getAdminRoute()}/test_email`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(config).
+            end(this.handleResponse.bind(this, 'testEmail', success, error));
+    }
+
     logClientError = (msg) => {
         var l = {};
         l.level = 'ERROR';
@@ -281,6 +311,25 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getClientLicenceConfig', success, error));
+    }
+
+    importSlack = (fileData, success, error) => {
+        request.
+            post(`${this.getTeamsRoute()}/import_team`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(fileData).
+            end(this.handleResponse.bind(this, 'importSlack', success, error));
+    }
+
+    exportTeam = (success, error) => {
+        request.
+            get(`${this.getTeamsRoute()}/export_team`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'exportTeam', success, error));
     }
 
     signupTeam = (email, success, error) => {
@@ -349,6 +398,18 @@ export default class Client {
         this.track('api', 'api_users_create', '', 'email', team.name);
     }
 
+    updateTeam = (team, success, error) => {
+        request.
+            post(`${this.getTeamNeededRoute()}/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(team).
+            end(this.handleResponse.bind(this, 'updateTeam', success, error));
+
+        this.track('api', 'api_teams_update_name');
+    }
+
     getAllTeams = (success, error) => {
         request.
             get(`${this.getTeamsRoute()}/all`).
@@ -356,6 +417,39 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getAllTeams', success, error));
+    }
+
+    getMyTeam = (success, error) => {
+        request.
+            get(`${this.getTeamNeededRoute()}/me`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getMyTeam', success, error));
+    }
+
+    inviteMembers = (data, success, error) => {
+        request.
+            post(`${this.getTeamNeededRoute()}/invite_members`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'inviteMembers', success, error));
+
+        this.track('api', 'api_teams_invite_members');
+    }
+
+    addUserToTeam = (userId, success, error) => {
+        request.
+            post(`${this.getTeamNeededRoute()}/add_user_to_team`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({user_id: userId}).
+            end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
+
+        this.track('api', 'api_teams_invite_members');
     }
 
     // User Routes Setions
@@ -554,13 +648,13 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMeLoggedIn', success, error));
     }
 
-    getAllPreferences = (success, error) => {
+    getMe = (success, error) => {
         request.
-            get(`${this.getBaseRoute()}/preferences/`).
+            get(`${this.getUsersRoute()}/me`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getAllPreferences', success, error));
+            end(this.handleResponse.bind(this, 'getMe', success, error));
     }
 
     login = (email, username, password, mfaToken, success, error) => {
@@ -680,6 +774,34 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAudits', success, error));
     }
 
+    getProfiles = (success, error) => {
+        request.
+            get(`${this.getUsersRoute()}/profiles`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfiles', success, error));
+    }
+
+    getProfilesForTeam = (teamId, success, error) => {
+        request.
+            get(`${this.getUsersRoute()}/profiles/${teamId}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesForTeam', success, error));
+    }
+
+    getStatuses = (ids, success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/status`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(ids).
+            end(this.handleResponse.bind(this, 'getStatuses', success, error));
+    }
+
     // Channel Routes Section
 
     createChannel = (channel, success, error) => {
@@ -692,5 +814,501 @@ export default class Client {
             end(this.handleResponse.bind(this, 'createChannel', success, error));
 
         this.track('api', 'api_channels_create', channel.type, 'name', channel.name);
+    }
+
+    createDirectChannel = (userId, success, error) => {
+        request.
+            post(`${this.getChannelsRoute()}/create_direct`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({user_id: userId}).
+            end(this.handleResponse.bind(this, 'createDirectChannel', success, error));
+    }
+
+    updateChannel = (channel, success, error) => {
+        request.
+            post(`${this.getChannelsRoute()}/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(channel).
+            end(this.handleResponse.bind(this, 'updateChannel', success, error));
+
+        this.track('api', 'api_channels_update');
+    }
+
+    updateChannelHeader = (channelId, header, success, error) => {
+        const data = {
+            channel_id: channelId,
+            channel_header: header
+        };
+
+        request.
+            post(`${this.getChannelsRoute()}/update_header`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateChannel', success, error));
+
+        this.track('api', 'api_channels_header');
+    }
+
+    updateChannelPurpose = (channelId, purpose, success, error) => {
+        const data = {
+            channel_id: channelId,
+            channel_purpose: purpose
+        };
+
+        request.
+            post(`${this.getChannelsRoute()}/update_purpose`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateChannelPurpose', success, error));
+
+        this.track('api', 'api_channels_purpose');
+    }
+
+    updateChannelNotifyProps = (data, success, error) => {
+        request.
+            post(`${this.getChannelsRoute()}/update_notify_props`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateChannelNotifyProps', success, error));
+    }
+
+    leaveChannel = (channelId, success, error) => {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/leave`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'leaveChannel', success, error));
+
+        this.track('api', 'api_channels_leave');
+    }
+
+    joinChannel = (channelId, success, error) => {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/join`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'joinChannel', success, error));
+
+        this.track('api', 'api_channels_join');
+    }
+
+    deleteChannel = (channelId, success, error) => {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/delete`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'deleteChannel', success, error));
+
+        this.track('api', 'api_channels_delete');
+    }
+
+    updateLastViewedAt = (channelId, success, error) => {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/update_last_viewed_at`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'updateLastViewedAt', success, error));
+    }
+
+    getChannels = (success, error) => {
+        request.
+            get(`${this.getChannelsRoute()}/`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getChannels', success, error));
+    }
+
+    getChannel = (channelId, success, error) => {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getChannel', success, error));
+
+        this.track('api', 'api_channel_get');
+    }
+
+    getMoreChannels = (success, error) => {
+        request.
+            get(`${this.getChannelsRoute()}/more`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
+    }
+
+    getChannelCounts = (success, error) => {
+        request.
+            get(`${this.getChannelsRoute()}/counts`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getChannelCounts', success, error));
+    }
+
+    getChannelExtraInfo = (channelId, memberLimit, success, error) => {
+        var url = `${this.getChannelNeededRoute(channelId)}/extra_info`;
+        if (memberLimit) {
+            url += '/' + memberLimit;
+        }
+
+        request.
+            get(url).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getChannelExtraInfo', success, error));
+    }
+
+    addChannelMember = (channelId, userId, success, error) => {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/add`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({user_id: userId}).
+            end(this.handleResponse.bind(this, 'addChannelMember', success, error));
+
+        this.track('api', 'api_channels_add_member');
+    }
+
+    removeChannelMember = (channelId, userId, success, error) => {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/remove`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({user_id: userId}).
+            end(this.handleResponse.bind(this, 'removeChannelMember', success, error));
+
+        this.track('api', 'api_channels_remove_member');
+    }
+
+    // Routes for Commands
+
+    listCommands = (success, error) => {
+        request.
+            get(`${this.getCommandsRoute()}/list`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'listCommands', success, error));
+    }
+
+    executeCommand = (channelId, command, suggest, success, error) => {
+        request.
+            post(`${this.getCommandsRoute()}/execute`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({channelId, command, suggest: '' + suggest}).
+            end(this.handleResponse.bind(this, 'executeCommand', success, error));
+    }
+
+    addCommand = (command, suggest, success, error) => {
+        request.
+            post(`${this.getCommandsRoute()}/create`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(command).
+            end(this.handleResponse.bind(this, 'addCommand', success, error));
+    }
+
+    deleteCommand = (commandId, suggest, success, error) => {
+        request.
+            post(`${this.getCommandsRoute()}/delete`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({id: commandId}).
+            end(this.handleResponse.bind(this, 'deleteCommand', success, error));
+    }
+
+    listTeamCommands = (success, error) => {
+        request.
+            get(`${this.getCommandsRoute()}/list_team_commands`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'listTeamCommands', success, error));
+    }
+
+    regenCommandToken = (commandId, suggest, success, error) => {
+        request.
+            post(`${this.getCommandsRoute()}/regen_token`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({id: commandId}).
+            end(this.handleResponse.bind(this, 'regenCommandToken', success, error));
+    }
+
+    // Routes for Posts
+
+    createPost = (post, success, error) => {
+        request.
+            post(`${this.getPostsRoute(post.channel_id)}/create`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(post).
+            end(this.handleResponse.bind(this, 'createPost', success, error));
+
+        this.track('api', 'api_posts_create', post.channel_id, 'length', post.message.length);
+    }
+
+    getPostById = (postId, success, error) => {
+        request.
+            get(`${this.getTeamNeededRoute()}/posts/${postId}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPostById', success, error));
+    }
+
+    getPost = (channelId, postId, success, error) => {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/get`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPost', success, error));
+    }
+
+    updatePost = (post, success, error) => {
+        request.
+            post(`${this.getPostsRoute(post.channel_id)}/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(post).
+            end(this.handleResponse.bind(this, 'updatePost', success, error));
+
+        this.track('api', 'api_posts_update');
+    }
+
+    deletePost = (channelId, postId, success, error) => {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/delete`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'deletePost', success, error));
+
+        this.track('api', 'api_posts_delete');
+    }
+
+    search = (terms, success, error) => {
+        request.
+            get(`${this.getTeamNeededRoute()}/posts/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            query({terms}).
+            end(this.handleResponse.bind(this, 'search', success, error));
+
+        this.track('api', 'api_posts_search');
+    }
+
+    getPostsPage = (channelId, offset, limit, success, error) => {
+        request.
+            get(`${this.getPostsRoute(channelId)}/page/${offset}/${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPostsPage', success, error));
+    }
+
+    getPosts = (channelId, since, success, error) => {
+        request.
+            get(`${this.getPostsRoute(channelId)}/since/${since}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPosts', success, error));
+    }
+
+    getPostsBefore = (channelId, postId, offset, numPost, success, error) => {
+        request.
+            get(`${this.getPostsRoute(channelId)}/${postId}/before/${offset}/${numPost}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPostsBefore', success, error));
+    }
+
+    getPostsAfter = (channelId, postId, offset, numPost, success, error) => {
+        request.
+            get(`${this.getPostsRoute(channelId)}/${postId}/after/${offset}/${numPost}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPostsAfter', success, error));
+    }
+
+    // Routes for Files
+
+    getFileInfo = (filename, success, error) => {
+        request.
+            get(`${this.getFilesRoute()}/get_info${filename}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getFileInfo', success, error));
+    }
+
+    getPublicLink = (data, success, error) => {
+        request.
+            post(`${this.getFilesRoute()}/get_public_link`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'getPublicLink', success, error));
+    }
+
+    // Routes for OAuth
+
+    registerOAuthApp = (app, success, error) => {
+        request.
+            post(`${this.getOAuthRoute()}/register`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(app).
+            end(this.handleResponse.bind(this, 'registerOAuthApp', success, error));
+
+        this.track('api', 'api_apps_register');
+    }
+
+    allowOAuth2 = (responseType, clientId, redirectUri, state, scope, success, error) => {
+        request.
+            get(`${this.getOAuthRoute()}/allow`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            query({response_type: responseType}).
+            query({client_id: clientId}).
+            query({redirect_uri: redirectUri}).
+            query({scope}).
+            query({state}).
+            end(this.handleResponse.bind(this, 'allowOAuth2', success, error));
+    }
+
+    // Routes for Hooks
+
+    addIncomingHook = (hook, suggest, success, error) => {
+        request.
+            post(`${this.getHooksRoute()}/incoming/create`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(hook).
+            end(this.handleResponse.bind(this, 'addIncomingHook', success, error));
+    }
+
+    deleteIncomingHook = (hookId, suggest, success, error) => {
+        request.
+            post(`${this.getHooksRoute()}/incoming/delete`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({id: hookId}).
+            end(this.handleResponse.bind(this, 'deleteIncomingHook', success, error));
+    }
+
+    listIncomingHooks = (success, error) => {
+        request.
+            get(`${this.getHooksRoute()}/incoming/list`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'listIncomingHooks', success, error));
+    }
+
+    addOutgoingHook = (hook, suggest, success, error) => {
+        request.
+            post(`${this.getHooksRoute()}/outgoing/create`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(hook).
+            end(this.handleResponse.bind(this, 'addOutgoingHook', success, error));
+    }
+
+    deleteOutgoingHook = (hookId, suggest, success, error) => {
+        request.
+            post(`${this.getHooksRoute()}/outgoing/delete`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({id: hookId}).
+            end(this.handleResponse.bind(this, 'deleteOutgoingHook', success, error));
+    }
+
+    listOutgoingHooks = (success, error) => {
+        request.
+            get(`${this.getHooksRoute()}/outgoing/list`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'listOutgoingHooks', success, error));
+    }
+
+    regenOutgoingHookToken = (hookId, success, error) => {
+        request.
+            post(`${this.getHooksRoute()}/outgoing/regen_token`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({id: hookId}).
+            end(this.handleResponse.bind(this, 'regenOutgoingHookToken', success, error));
+    }
+
+    //Routes for Prefrecnes
+
+    getAllPreferences = (success, error) => {
+        request.
+            get(`${this.getBaseRoute()}/preferences/`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getAllPreferences', success, error));
+    }
+
+    savePreferences = (preferences, success, error) => {
+        request.
+            post(`${this.getBaseRoute()}/preferences/save`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(preferences).
+            end(this.handleResponse.bind(this, 'savePreferences', success, error));
+    }
+
+    getPreferenceCategory = (category, success, error) => {
+        request.
+            get(`${this.getBaseRoute()}/preferences/${category}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPreferenceCategory', success, error));
     }
 }
