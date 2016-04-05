@@ -1,6 +1,8 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
+
 import React from 'react';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -13,6 +15,7 @@ export default class BackstageNavbar extends React.Component {
         super(props);
 
         this.handleChange = this.handleChange.bind(this);
+        this.changeClass = this.changeClass.bind(this);
 
         this.state = {
             team: TeamStore.getCurrent()
@@ -21,10 +24,15 @@ export default class BackstageNavbar extends React.Component {
 
     componentDidMount() {
         TeamStore.addChangeListener(this.handleChange);
+        this.changeClass();
     }
 
     componentWillUnmount() {
         TeamStore.removeChangeListener(this.handleChange);
+    }
+
+    changeClass() {
+        $('body').toggleClass('backstage');
     }
 
     handleChange() {
@@ -41,6 +49,7 @@ export default class BackstageNavbar extends React.Component {
         return (
             <div className='backstage-navbar row'>
                 <Link
+                    onClick={this.changeClass}
                     className='backstage-navbar__back'
                     to={`/${this.state.team.display_name}/channels/town-square`}
                 >
