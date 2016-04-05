@@ -15,7 +15,6 @@ export default class BackstageNavbar extends React.Component {
         super(props);
 
         this.handleChange = this.handleChange.bind(this);
-        this.changeClass = this.changeClass.bind(this);
 
         this.state = {
             team: TeamStore.getCurrent()
@@ -24,15 +23,12 @@ export default class BackstageNavbar extends React.Component {
 
     componentDidMount() {
         TeamStore.addChangeListener(this.handleChange);
-        this.changeClass();
+        $('body').addClass('backstage');
     }
 
     componentWillUnmount() {
         TeamStore.removeChangeListener(this.handleChange);
-    }
-
-    changeClass() {
-        $('body').toggleClass('backstage');
+        $('body').removeClass('backstage');
     }
 
     handleChange() {
@@ -49,7 +45,6 @@ export default class BackstageNavbar extends React.Component {
         return (
             <div className='backstage-navbar row'>
                 <Link
-                    onClick={this.changeClass}
                     className='backstage-navbar__back'
                     to={`/${this.state.team.display_name}/channels/town-square`}
                 >
