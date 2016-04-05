@@ -42,11 +42,9 @@ class PasswordResetSendLink extends React.Component {
         this.setState({
             error: ''
         });
-
-        var data = {};
-        data.email = email;
-        data.name = this.props.params.team;
-        client.sendPasswordReset(data,
+        
+        client.sendPasswordReset(
+            email,
             () => {
                 this.setState({
                     error: null,

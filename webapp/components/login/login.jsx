@@ -83,7 +83,11 @@ export default class Login extends React.Component {
         const team = this.state.currentTeam.name;
 
         if (method === Constants.EMAIL_SERVICE) {
-            Client.loginByEmail(team, loginId, password, token,
+            Client.login(
+                loginId,
+                null,
+                password,
+                token,
                 () => {
                     UserStore.setLastEmail(loginId);
                     browserHistory.push('/' + team + '/channels/town-square');
@@ -97,7 +101,11 @@ export default class Login extends React.Component {
                 }
             );
         } else if (method === Constants.USERNAME_SERVICE) {
-            Client.loginByUsername(team, loginId, password, token,
+            Client.login(
+                null,
+                loginId,
+                password,
+                token,
                 () => {
                     UserStore.setLastUsername(loginId);
 
@@ -119,7 +127,10 @@ export default class Login extends React.Component {
                 }
             );
         } else if (method === Constants.LDAP_SERVICE) {
-            Client.loginByLdap(team, loginId, password, token,
+            Client.loginByLdap(
+                loginId,
+                password,
+                token,
                 () => {
                     const redirect = Utils.getUrlParameter('redirect');
                     if (redirect) {

@@ -45,13 +45,10 @@ export default class LDAPToEmail extends React.Component {
         state.error = null;
         this.setState(state);
 
-        var postData = {};
-        postData.email_password = password;
-        postData.ldap_password = ldapPassword;
-        postData.email = this.props.email;
-        postData.team_name = this.props.teamName;
-
-        Client.ldapToEmail(postData,
+        Client.ldapToEmail(
+            this.props.email,
+            password,
+            ldapPassword,
             (data) => {
                 if (data.follow_link) {
                     browserHistory.push(data.follow_link);

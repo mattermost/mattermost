@@ -176,7 +176,11 @@ class SignupUserComplete extends React.Component {
             () => {
                 Client.track('signup', 'signup_user_02_complete');
 
-                Client.loginByEmail(this.state.teamName, user.email, user.password,
+                Client.login(
+                    user.email,
+                    null,
+                    user.password,
+                    null,
                     () => {
                         UserStore.setLastEmail(user.email);
                         if (this.state.hash > 0) {

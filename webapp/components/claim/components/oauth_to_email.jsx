@@ -38,12 +38,9 @@ export default class OAuthToEmail extends React.Component {
         state.error = null;
         this.setState(state);
 
-        var postData = {};
-        postData.password = password;
-        postData.email = this.props.email;
-        postData.team_name = this.props.teamName;
-
-        Client.oauthToEmail(postData,
+        Client.oauthToEmail(
+            this.props.email,
+            password,
             (data) => {
                 if (data.follow_link) {
                     browserHistory.push(data.follow_link);

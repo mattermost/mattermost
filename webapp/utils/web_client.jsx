@@ -11,7 +11,7 @@ const HTTP_UNAUTHORIZED = 401;
 class WebClientClass extends Client {
     constructor() {
         super();
-        this.logErrorsToConsole();
+        this.enableLogErrorsToConsole(true);
         TeamStore.addChangeListener(this.onTeamStoreChanged);
     }
 
@@ -38,9 +38,10 @@ class WebClientClass extends Client {
         }
     }
 
-    login = (email, password, token, success, error) => { // eslint-disable-line no-unused-vars
+    login = (email, username, password, token, success, error) => { // eslint-disable-line no-unused-vars
         this.super.login(
             email,
+            username,
             password,
             token,
             (data) => {

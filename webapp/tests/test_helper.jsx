@@ -53,7 +53,7 @@ class TestHelperClass {
         var c = new Client();
         c.setUrl('http://localhost:8065');
         c.useHeaderToken();
-        c.logErrorsToConsole();
+        c.enableLogErrorsToConsole(true);
         return c;
     }
 
@@ -118,6 +118,7 @@ class TestHelperClass {
                         outer.basicClient().setTeamId(outer.basict.id);
                         outer.basicClient().login(
                             rteamSignup.user.email,
+                            null,
                             password,
                             null,
                             function() {

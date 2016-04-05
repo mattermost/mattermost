@@ -31,13 +31,10 @@ export default class EmailToOAuth extends React.Component {
         state.error = null;
         this.setState(state);
 
-        var postData = {};
-        postData.password = password;
-        postData.email = this.props.email;
-        postData.team_name = this.props.teamName;
-        postData.service = this.props.newType;
-
-        Client.emailToOAuth(postData,
+        Client.emailToOAuth(
+            this.props.email,
+            password,
+            this.props.newType,
             (data) => {
                 if (data.follow_link) {
                     browserHistory.push(data.follow_link);

@@ -111,7 +111,9 @@ class LdapSignUpPage extends React.Component {
             () => {
                 Client.track('signup', 'signup_team_ldap_complete');
 
-                Client.loginByLdap(teamSignup.team.name, id, password,
+                Client.loginByLdap(
+                    id,
+                    password,
                     () => {
                         browserHistory.push('/' + teamSignup.team.name + '/channels/town-square');
                     },

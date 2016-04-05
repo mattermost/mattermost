@@ -169,8 +169,6 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	println(teamSignup.ToJson())
-
 	props := model.MapFromJson(strings.NewReader(teamSignup.Data))
 	teamSignup.Team.Email = props["email"]
 	teamSignup.User.Email = props["email"]

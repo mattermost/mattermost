@@ -38,11 +38,9 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, '');
         } else {
-            const data = {
-                user_id: this.props.user.id,
-                new_roles: ''
-            };
-            Client.updateRoles(data,
+            Client.updateRoles(
+                this.props.user.id,
+                '',
                 () => {
                     AsyncClient.getProfiles();
                 },
@@ -79,12 +77,9 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, 'admin');
         } else {
-            const data = {
-                user_id: this.props.user.id,
-                new_roles: 'admin'
-            };
-
-            Client.updateRoles(data,
+            Client.updateRoles(
+                this.props.user.id,
+                'admin',
                 () => {
                     AsyncClient.getProfiles();
                 },
@@ -111,12 +106,9 @@ export default class TeamMembersDropdown extends React.Component {
         });
     }
     handleDemoteSubmit() {
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: this.state.role
-        };
-
-        Client.updateRoles(data,
+        Client.updateRoles(
+            this.props.user.id,
+            this.state.role,  
             () => {
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {

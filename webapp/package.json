@@ -61,7 +61,8 @@
     "mocha-jsdom": "*",
     "jsdom": "*",
     "jsdom-global": "*",
-    "react-addons-test-utils": "*"
+    "react-addons-test-utils": "*",
+    "jquery-deferred": "*"
   },
   "scripts": {
     "check": "eslint --ext \".jsx\" --ignore-pattern node_modules --quiet .",

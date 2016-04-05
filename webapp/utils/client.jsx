@@ -97,35 +97,35 @@ function handleError(methodName, xhr, status, err) {
 //     });
 // }
 
-export function createTeamWithLdap(teamSignup, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/create_with_ldap',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(teamSignup),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('createTeamFromSignup', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function createTeamWithLdap(teamSignup, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/create_with_ldap',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(teamSignup),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('createTeamFromSignup', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function createTeamWithSSO(team, service, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/create_with_sso/' + service,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(team),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('createTeamWithSSO', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function createTeamWithSSO(team, service, success, error) {
+//     $.ajax({
+//         url: '/api/v1/teams/create_with_sso/' + service,
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(team),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('createTeamWithSSO', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 // export function createUser(user, data, emailHash, success, error) {
 //     $.ajax({
@@ -144,222 +144,222 @@ export function createTeamWithSSO(team, service, success, error) {
 //     track('api', 'api_users_create', user.team_id, 'email', user.email);
 // }
 
-export function updateUser(user, success, error) {
-    $.ajax({
-        url: '/api/v1/users/update',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(user),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateUser', xhr, status, err);
-            error(e);
-        }
-    });
+// export function updateUser(user, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/update',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(user),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateUser', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_update');
-}
+//     track('api', 'api_users_update');
+// }
 
-export function updatePassword(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/newpassword',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('newPassword', xhr, status, err);
-            error(e);
-        }
-    });
+// export function updatePassword(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/newpassword',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('newPassword', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_newpassword');
-}
+//     track('api', 'api_users_newpassword');
+// }
 
-export function updateUserNotifyProps(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/update_notify',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateUserNotifyProps', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function updateUserNotifyProps(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/update_notify',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateUserNotifyProps', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function updateRoles(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/update_roles',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateRoles', xhr, status, err);
-            error(e);
-        }
-    });
+// export function updateRoles(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/update_roles',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateRoles', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_update_roles');
-}
+//     track('api', 'api_users_update_roles');
+// }
 
-export function updateActive(userId, active, success, error) {
-    var data = {};
-    data.user_id = userId;
-    data.active = '' + active;
+// export function updateActive(userId, active, success, error) {
+//     var data = {};
+//     data.user_id = userId;
+//     data.active = '' + active;
 
-    $.ajax({
-        url: '/api/v1/users/update_active',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateActive', xhr, status, err);
-            error(e);
-        }
-    });
+//     $.ajax({
+//         url: '/api/v1/users/update_active',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('updateActive', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_update_roles');
-}
+//     track('api', 'api_users_update_roles');
+// }
 
-export function sendPasswordReset(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/send_password_reset',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('sendPasswordReset', xhr, status, err);
-            error(e);
-        }
-    });
+// export function sendPasswordReset(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/send_password_reset',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('sendPasswordReset', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_send_password_reset');
-}
+//     track('api', 'api_users_send_password_reset');
+// }
 
-export function resetPassword(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/reset_password',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('resetPassword', xhr, status, err);
-            error(e);
-        }
-    });
+// export function resetPassword(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/reset_password',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('resetPassword', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_reset_password');
-}
+//     track('api', 'api_users_reset_password');
+// }
 
-export function emailToOAuth(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/claim/email_to_oauth',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('emailToOAuth', xhr, status, err);
-            error(e);
-        }
-    });
+// export function emailToOAuth(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/claim/email_to_oauth',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('emailToOAuth', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_email_to_oauth');
-}
+//     track('api', 'api_users_email_to_oauth');
+// }
 
-export function oauthToEmail(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/claim/oauth_to_email',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('oauthToEmail', xhr, status, err);
-            error(e);
-        }
-    });
+// export function oauthToEmail(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/claim/oauth_to_email',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('oauthToEmail', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_oauth_to_email');
-}
+//     track('api', 'api_users_oauth_to_email');
+// }
 
-export function emailToLDAP(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/claim/email_to_ldap',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('emailToLDAP', xhr, status, err);
-            error(e);
-        }
-    });
+// export function emailToLDAP(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/claim/email_to_ldap',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('emailToLDAP', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_email_to_ldap');
-}
+//     track('api', 'api_users_email_to_ldap');
+// }
 
-export function ldapToEmail(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/claim/ldap_to_email',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('ldapToEmail', xhr, status, err);
-            error(e);
-        }
-    });
+// export function ldapToEmail(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/claim/ldap_to_email',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('ldapToEmail', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_users_ldap_to_email');
-}
+//     track('api', 'api_users_ldap_to_email');
+// }
 
-export function logout(success, error) {
-    track('api', 'api_users_logout');
-    $.ajax({
-        url: '/api/v1/users/logout',
-        type: 'POST',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('logout', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function logout(success, error) {
+//     track('api', 'api_users_logout');
+//     $.ajax({
+//         url: '/api/v1/users/logout',
+//         type: 'POST',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('logout', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function checkMfa(method, team, loginId, success, error) {
-    $.ajax({
-        url: '/api/v1/users/mfa',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({method, team_name: team, login_id: loginId}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('checkMfa', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function checkMfa(method, team, loginId, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/mfa',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({method, team_name: team, login_id: loginId}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('checkMfa', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
 // export function loginByEmail(name, email, password, token, success, error) {
 //     $.ajax({
@@ -383,249 +383,249 @@ export function checkMfa(method, team, loginId, success, error) {
 //     });
 // }
 
-export function loginByUsername(name, username, password, success, error) {
-    $.ajax({
-        url: '/api/v1/users/login',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({name, username, password}),
-        success: function onSuccess(data, textStatus, xhr) {
-            track('api', 'api_users_login_success', data.team_id, 'username', data.username);
-            sessionStorage.removeItem(data.id + '_last_error');
-            BrowserStore.signalLogin();
-            success(data, textStatus, xhr);
-        },
-        error: function onError(xhr, status, err) {
-            track('api', 'api_users_login_fail', name, 'username', username);
+// export function loginByUsername(name, username, password, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/login',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({name, username, password}),
+//         success: function onSuccess(data, textStatus, xhr) {
+//             track('api', 'api_users_login_success', data.team_id, 'username', data.username);
+//             sessionStorage.removeItem(data.id + '_last_error');
+//             BrowserStore.signalLogin();
+//             success(data, textStatus, xhr);
+//         },
+//         error: function onError(xhr, status, err) {
+//             track('api', 'api_users_login_fail', name, 'username', username);
 
-            var e = handleError('loginByUsername', xhr, status, err);
-            error(e);
-        }
-    });
-}
+//             var e = handleError('loginByUsername', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function loginByLdap(teamName, id, password, token, success, error) {
-    $.ajax({
-        url: '/api/v1/users/login_ldap',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({teamName, id, password, token}),
-        success: function onSuccess(data, textStatus, xhr) {
-            track('api', 'api_users_loginLdap_success', data.team_id, 'id', id);
-            sessionStorage.removeItem(data.id + '_last_error');
-            BrowserStore.signalLogin();
-            success(data, textStatus, xhr);
-        },
-        error: function onError(xhr, status, err) {
-            track('api', 'api_users_loginLdap_fail', teamName, 'id', id);
+// export function loginByLdap(teamName, id, password, token, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/login_ldap',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({teamName, id, password, token}),
+//         success: function onSuccess(data, textStatus, xhr) {
+//             track('api', 'api_users_loginLdap_success', data.team_id, 'id', id);
+//             sessionStorage.removeItem(data.id + '_last_error');
+//             BrowserStore.signalLogin();
+//             success(data, textStatus, xhr);
+//         },
+//         error: function onError(xhr, status, err) {
+//             track('api', 'api_users_loginLdap_fail', teamName, 'id', id);
 
-            var e = handleError('loginByLdap', xhr, status, err);
-            error(e);
-        }
-    });
-}
+//             var e = handleError('loginByLdap', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function revokeSession(altId, success, error) {
-    $.ajax({
-        url: '/api/v1/users/revoke_session',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({id: altId}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('revokeSession', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function revokeSession(altId, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/revoke_session',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify({id: altId}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('revokeSession', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getSessions(userId, success, error) {
-    $.ajax({
-        cache: false,
-        url: '/api/v1/users/' + userId + '/sessions',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getSessions', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getSessions(userId, success, error) {
+//     $.ajax({
+//         cache: false,
+//         url: '/api/v1/users/' + userId + '/sessions',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getSessions', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getAudits(userId, success, error) {
-    $.ajax({
-        url: '/api/v1/users/' + userId + '/audits',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getAudits', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getAudits(userId, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/' + userId + '/audits',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getAudits', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getComplianceReports(success, error) {
-    $.ajax({
-        url: '/api/v1/admin/compliance_reports',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getComplianceReports', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getComplianceReports(success, error) {
+//     $.ajax({
+//         url: '/api/v1/admin/compliance_reports',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getComplianceReports', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function saveComplianceReports(job, success, error) {
-    $.ajax({
-        url: '/api/v1/admin/save_compliance_report',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(job),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('saveComplianceReports', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function saveComplianceReports(job, success, error) {
+//     $.ajax({
+//         url: '/api/v1/admin/save_compliance_report',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(job),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('saveComplianceReports', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getLogs(success, error) {
-    $.ajax({
-        url: '/api/v1/admin/logs',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getLogs', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getLogs(success, error) {
+//     $.ajax({
+//         url: '/api/v1/admin/logs',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getLogs', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getServerAudits(success, error) {
-    $.ajax({
-        url: '/api/v1/admin/audits',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getServerAudits', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getServerAudits(success, error) {
+//     $.ajax({
+//         url: '/api/v1/admin/audits',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getServerAudits', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getConfig(success, error) {
-    return $.ajax({
-        url: '/api/v1/admin/config',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getConfig', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getConfig(success, error) {
+//     return $.ajax({
+//         url: '/api/v1/admin/config',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getConfig', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getAnalytics(name, teamId, success, error) {
-    let url = '/api/v1/admin/analytics/';
-    if (teamId == null) {
-        url += name;
-    } else {
-        url += teamId + '/' + name;
-    }
-    $.ajax({
-        url,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('getSystemAnalytics', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getAnalytics(name, teamId, success, error) {
+//     let url = '/api/v1/admin/analytics/';
+//     if (teamId == null) {
+//         url += name;
+//     } else {
+//         url += teamId + '/' + name;
+//     }
+//     $.ajax({
+//         url,
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('getSystemAnalytics', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getClientConfigOld(success, error) {
-    return $.ajax({
-        url: '/api/v1/admin/client_props',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getClientConfig', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getClientConfigOld(success, error) {
+//     return $.ajax({
+//         url: '/api/v1/admin/client_props',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getClientConfig', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function getClientConfig(success, error) {
-    request.
-        get(rootUrl + version + '/admin/client_props').
-        type('application/json').
-        accept('application/json').
-        end(handleResponse.bind(this, 'getClientConfig', success, error));
-}
+// export function getClientConfig(success, error) {
+//     request.
+//         get(rootUrl + version + '/admin/client_props').
+//         type('application/json').
+//         accept('application/json').
+//         end(handleResponse.bind(this, 'getClientConfig', success, error));
+// }
 
-export function getTeamAnalytics(teamId, name, success, error) {
-    $.ajax({
-        url: '/api/v1/admin/analytics/' + teamId + '/' + name,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('getTeamAnalytics', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function getTeamAnalytics(teamId, name, success, error) {
+//     $.ajax({
+//         url: '/api/v1/admin/analytics/' + teamId + '/' + name,
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'GET',
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('getTeamAnalytics', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function saveConfig(config, success, error) {
-    $.ajax({
-        url: '/api/v1/admin/save_config',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(config),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('saveConfig', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function saveConfig(config, success, error) {
+//     $.ajax({
+//         url: '/api/v1/admin/save_config',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(config),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('saveConfig', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }
 
-export function logClientError(msg) {
-    var l = {};
-    l.level = 'ERROR';
-    l.message = msg;
+// export function logClientError(msg) {
+//     var l = {};
+//     l.level = 'ERROR';
+//     l.message = msg;
 
-    $.ajax({
-        url: '/api/v1/admin/log_client',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(l)
-    });
-}
+//     $.ajax({
+//         url: '/api/v1/admin/log_client',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(l)
+//     });
+// }
 
 export function testEmail(config, success, error) {
     $.ajax({

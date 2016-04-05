@@ -14,19 +14,19 @@ import TestHelper from './test_helper.jsx';
 describe('Client.Preferences', function() {
     this.timeout(100000);
 
-    it('getAllPreferences', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().getAllPreferences(
-                function(data) {
-                    assert.equal(data[0].category, 'tutorial_step');
-                    assert.equal(data[0].user_id, TestHelper.basicUser().id);
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
+    // it('getAllPreferences', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().getAllPreferences(
+    //             function(data) {
+    //                 assert.equal(data[0].category, 'tutorial_step');
+    //                 assert.equal(data[0].user_id, TestHelper.basicUser().id);
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
 });
 

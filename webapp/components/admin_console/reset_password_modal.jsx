@@ -40,12 +40,12 @@ class ResetPasswordModal extends React.Component {
 
         this.setState({serverError: null});
 
-        var data = {};
-        data.new_password = password;
-        data.name = this.props.team.name;
-        data.user_id = this.props.user.id;
+        Client.resetPassword(
+            this.props.user.id,
+            password,
+            null,
+            null,
 
-        Client.resetPassword(data,
             () => {
                 this.props.onModalSubmit(ReactDOM.findDOMNode(this.refs.password).value);
             },

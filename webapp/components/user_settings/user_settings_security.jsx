@@ -96,12 +96,10 @@ class SecurityTab extends React.Component {
             return;
         }
 
-        var data = {};
-        data.user_id = user.id;
-        data.current_password = currentPassword;
-        data.new_password = newPassword;
-
-        Client.updatePassword(data,
+        Client.updatePassword(
+            user.id,
+            currentPassword,
+            newPassword,
             () => {
                 this.props.updateSection('');
                 AsyncClient.getMe();

@@ -14,22 +14,22 @@ import TestHelper from './test_helper.jsx';
 describe('Client.Channels', function() {
     this.timeout(100000);
 
-    it('createChannel', function(done) {
-        TestHelper.initBasic(() => {
-            var channel = TestHelper.fakeChannel();
-            channel.team_id = TestHelper.basicTeam().id;
-            TestHelper.basicClient().createChannel(
-                channel,
-                function(data) {
-                    assert.equal(data.id.length > 0, true);
-                    assert.equal(data.name, channel.name);
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
+    // it('createChannel', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         var channel = TestHelper.fakeChannel();
+    //         channel.team_id = TestHelper.basicTeam().id;
+    //         TestHelper.basicClient().createChannel(
+    //             channel,
+    //             function(data) {
+    //                 assert.equal(data.id.length > 0, true);
+    //                 assert.equal(data.name, channel.name);
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
 });
 

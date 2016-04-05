@@ -40,12 +40,9 @@ export default class UserItem extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, '');
         } else {
-            const data = {
-                user_id: this.props.user.id,
-                new_roles: ''
-            };
-
-            Client.updateRoles(data,
+            Client.updateRoles(
+                this.props.user.id,
+                '',
                 () => {
                     this.props.refreshProfiles();
                 },
@@ -86,12 +83,9 @@ export default class UserItem extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, 'admin');
         } else {
-            const data = {
-                user_id: this.props.user.id,
-                new_roles: 'admin'
-            };
-
-            Client.updateRoles(data,
+            Client.updateRoles(
+                this.props.user.id,
+                'admin',
                 () => {
                     this.props.refreshProfiles();
                 },
@@ -104,12 +98,10 @@ export default class UserItem extends React.Component {
 
     handleMakeSystemAdmin(e) {
         e.preventDefault();
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: 'system_admin'
-        };
 
-        Client.updateRoles(data,
+        Client.updateRoles(
+            this.props.user.id,
+            'system_admin',
             () => {
                 this.props.refreshProfiles();
             },
@@ -143,12 +135,9 @@ export default class UserItem extends React.Component {
     }
 
     handleDemoteSubmit() {
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: this.state.role
-        };
-
-        Client.updateRoles(data,
+        Client.updateRoles(
+            this.props.user.id,
+            this.state.role,
             () => {
                 this.setState({
                     serverError: null,

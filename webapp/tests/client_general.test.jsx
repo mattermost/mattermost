@@ -14,47 +14,193 @@ import TestHelper from './test_helper.jsx';
 describe('Client.General', function() {
     this.timeout(10000);
 
-    it('Admin.getClientConfig', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().getClientConfig(
-                function(data) {
-                    assert.equal(data.SiteName, 'Mattermost');
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
+    // it('Admin.getClientConfig', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().getClientConfig(
+    //             function(data) {
+    //                 assert.equal(data.SiteName, 'Mattermost');
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
 
-    it('License.getClientLicenceConfig', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().getClientLicenceConfig(
-                function(data) {
-                    assert.equal(data.IsLicensed, 'false');
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
+    // it('Admin.getComplianceReports', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         TestHelper.basicClient().getComplianceReports(
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
 
-    it('General.getTranslations', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().getTranslations(
-                'http://localhost:8065/static/i18n/es.json',
-                function(data) {
-                    assert.equal(data['login.or'], 'o');
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
+    // it('Admin.saveComplianceReports', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+
+    //         var job = {};
+    //         job.desc = 'desc';
+    //         job.emails = '';
+    //         job.keywords = 'test';
+    //         job.start_at = new Date();
+    //         job.end_at = new Date();
+
+    //         TestHelper.basicClient().saveComplianceReports(
+    //             job,
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('Admin.getLogs', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         TestHelper.basicClient().getLogs(
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('Admin.getServerAudits', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         TestHelper.basicClient().getServerAudits(
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('Admin.getConfig', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         TestHelper.basicClient().getConfig(
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('Admin.getAnalytics', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         TestHelper.basicClient().getAnalytics(
+    //             'standard',
+    //             null,
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('Admin.getTeamAnalytics', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         TestHelper.basicClient().getTeamAnalytics(
+    //             TestHelper.basicTeam().id,
+    //             'standard',
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('Admin.saveConfig', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
+    //         var config = {};
+    //         config.site_name = 'test';
+
+    //         TestHelper.basicClient().saveConfig(
+    //             config,
+    //             function() {
+    //                 done(new Error('should need system admin permissions'));
+    //             },
+    //             function(err) {
+    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
+    //                 done();
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('Admin.logClientError', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         var config = {};
+    //         config.site_name = 'test';
+    //         TestHelper.basicClient().logClientError('this is a test');
+    //         done();
+    //     });
+    // });
+
+    // it('License.getClientLicenceConfig', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().getClientLicenceConfig(
+    //             function(data) {
+    //                 assert.equal(data.IsLicensed, 'false');
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
+
+    // it('General.getTranslations', function(done) {
+    //     TestHelper.initBasic(() => {
+    //         TestHelper.basicClient().getTranslations(
+    //             'http://localhost:8065/static/i18n/es.json',
+    //             function(data) {
+    //                 assert.equal(data['login.or'], 'o');
+    //                 done();
+    //             },
+    //             function(err) {
+    //                 done(new Error(err.message));
+    //             }
+    //         );
+    //     });
+    // });
 });
 

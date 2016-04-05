@@ -1543,30 +1543,16 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := props["name"]
-	if len(name) == 0 {
-		c.SetInvalidParam("sendPasswordReset", "name")
-		return
-	}
-
-	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
 	var user *model.User
 	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
-		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.find.app_error", nil, "email="+email+" team_id="+team.Id)
+		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.find.app_error", nil, "email="+email)
 		return
 	} else {
 		user = result.Data.(*model.User)
 	}
 
 	if len(user.AuthData) != 0 {
-		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id+", teamId="+team.Id)
+		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id)
 		return
 	}
 
@@ -1577,7 +1563,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapToJson(newProps)
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.PasswordResetSalt))
 
-	link := fmt.Sprintf("%s/reset_password_complete?d=%s&h=%s", c.GetTeamURLFromTeam(team), url.QueryEscape(data), url.QueryEscape(hash))
+	link := fmt.Sprintf("%s/reset_password_complete?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
 
 	subjectPage := utils.NewHTMLTemplate("reset_subject", c.Locale)
 	subjectPage.Props["Subject"] = c.T("api.templates.reset_subject")
@@ -1605,12 +1591,6 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	newPassword := props["new_password"]
 	if len(newPassword) < 5 {
 		c.SetInvalidParam("resetPassword", "new_password")
-		return
-	}
-
-	name := props["name"]
-	if len(name) == 0 {
-		c.SetInvalidParam("resetPassword", "name")
 		return
 	}
 
@@ -1970,12 +1950,6 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamName := props["team_name"]
-	if len(teamName) == 0 {
-		c.SetInvalidParam("emailToOAuth", "team_name")
-		return
-	}
-
 	service := props["service"]
 	if len(service) == 0 {
 		c.SetInvalidParam("emailToOAuth", "service")
@@ -2009,7 +1983,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	stateProps["email"] = email
 
 	m := map[string]string{}
-	if authUrl, err := GetAuthorizationCode(c, service, teamName, stateProps, ""); err != nil {
+	if authUrl, err := GetAuthorizationCode(c, service, "", stateProps, ""); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail - oauth issue")
 		c.Err = err
 		return
@@ -2076,12 +2050,6 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamName := props["team_name"]
-	if len(teamName) == 0 {
-		c.SetInvalidParam("oauthToEmail", "team_name")
-		return
-	}
-
 	email := props["email"]
 	if len(email) == 0 {
 		c.SetInvalidParam("oauthToEmail", "email")
@@ -2089,15 +2057,6 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("attempt")
-
-	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.LogAudit("fail - couldn't get team")
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
 
 	var user *model.User
 	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
@@ -2121,7 +2080,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
+	sendSignInChangeEmailAndForget(c, user.Email, "", c.GetSiteURL(), c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	RevokeAllSession(c, c.Session.UserId)
 	if c.Err != nil {
@@ -2129,7 +2088,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	m := map[string]string{}
-	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
+	m["follow_link"] = c.GetSiteURL() + "/login?extra=signin_change"
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(m)))
@@ -2150,12 +2109,6 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamName := props["team_name"]
-	if len(teamName) == 0 {
-		c.SetInvalidParam("emailToLdap", "team_name")
-		return
-	}
-
 	ldapId := props["ldap_id"]
 	if len(ldapId) == 0 {
 		c.SetInvalidParam("emailToLdap", "ldap_id")
@@ -2169,15 +2122,6 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("attempt")
-
-	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.LogAudit("fail - couldn't get team")
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
 
 	var user *model.User
 	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
@@ -2211,7 +2155,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), "LDAP")
+	sendSignInChangeEmailAndForget(c, user.Email, "", c.GetSiteURL(), c.GetSiteURL(), "LDAP")
 
 	m := map[string]string{}
 	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
@@ -2235,12 +2179,6 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamName := props["team_name"]
-	if len(teamName) == 0 {
-		c.SetInvalidParam("ldapToEmail", "team_name")
-		return
-	}
-
 	ldapPassword := props["ldap_password"]
 	if len(ldapPassword) == 0 {
 		c.SetInvalidParam("ldapToEmail", "ldap_password")
@@ -2248,15 +2186,6 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("attempt")
-
-	var team *model.Team
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.LogAudit("fail - couldn't get team")
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
 
 	var user *model.User
 	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
@@ -2296,7 +2225,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
+	sendSignInChangeEmailAndForget(c, user.Email, "", c.GetSiteURL(), c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	m := map[string]string{}
 	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"

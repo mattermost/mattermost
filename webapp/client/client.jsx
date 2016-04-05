@@ -79,12 +79,16 @@ export default class Client {
         return `${this.url}${this.urlVersion}/users`;
     }
 
+    getUserNeededRoute(userId) {
+        return `${this.url}${this.urlVersion}/users/${userId}`;
+    }
+
     setTranslations = (messages) => {
         this.translations = messages;
     }
 
-    logErrorsToConsole = () => {
-        this.logToConsole = true;
+    enableLogErrorsToConsole = (enabled) => {
+        this.logToConsole = enabled;
     }
 
     useHeaderToken = () => {
@@ -146,6 +150,7 @@ export default class Client {
 
             if (errorCallback) {
                 errorCallback(e, err, res);
+                return;
             }
         }
 
@@ -172,6 +177,101 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getClientConfig', success, error));
+    }
+
+    getComplianceReports = (success, error) => {
+        return request.
+            get(`${this.getAdminRoute()}/compliance_reports`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getComplianceReports', success, error));
+    }
+
+    saveComplianceReports = (job, success, error) => {
+        return request.
+            post(`${this.getAdminRoute()}/save_compliance_report`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(job).
+            end(this.handleResponse.bind(this, 'saveComplianceReports', success, error));
+    }
+
+    getLogs = (success, error) => {
+        return request.
+            get(`${this.getAdminRoute()}/logs`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getLogs', success, error));
+    }
+
+    getServerAudits = (success, error) => {
+        return request.
+            get(`${this.getAdminRoute()}/config`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getServerAudits', success, error));
+    }
+
+    getConfig = (success, error) => {
+        return request.
+            get(`${this.getAdminRoute()}/audits`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getConfig', success, error));
+    }
+
+    getAnalytics = (name, teamId, success, error) => {
+        let url = `${this.getAdminRoute()}/analytics/`;
+        if (teamId == null) {
+            url += name;
+        } else {
+            url += teamId + '/' + name;
+        }
+
+        return request.
+            get(url).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getAnalytics', success, error));
+    }
+
+    getTeamAnalytics = (teamId, name, success, error) => {
+        return request.
+            get(`${this.getAdminRoute()}/analytics/${teamId}/${name}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamAnalytics', success, error));
+    }
+
+    saveConfig = (config, success, error) => {
+        request.
+            post(`${this.getAdminRoute()}/save_config`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(config).
+            end(this.handleResponse.bind(this, 'saveConfig', success, error));
+    }
+
+    logClientError = (msg) => {
+        var l = {};
+        l.level = 'ERROR';
+        l.message = msg;
+
+        request.
+            post(`${this.getAdminRoute()}/log_client`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(l).
+            end(this.handleResponse.bind(this, 'logClientError', null, null));
     }
 
     getClientLicenceConfig = (success, error) => {
@@ -205,6 +305,26 @@ export default class Client {
             accept('application/json').
             send(teamSignup).
             end(this.handleResponse.bind(this, 'createTeamFromSignup', success, error));
+    }
+
+    createTeamWithLdap = (teamSignup, success, error) => {
+        request.
+            post(`${this.getTeamsRoute()}/create_with_ldap`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(teamSignup).
+            end(this.handleResponse.bind(this, 'createTeamWithLdap', success, error));
+    }
+
+    createTeamWithSSO = (team, service, success, error) => {
+        request.
+            post(`${this.getTeamsRoute()}/create_with_ldap/${service}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(team).
+            end(this.handleResponse.bind(this, 'createTeamWithSSO', success, error));
     }
 
     findTeamByName = (teamName, success, error) => {
@@ -252,6 +372,179 @@ export default class Client {
         this.track('api', 'api_users_create', '', 'email', user.email);
     }
 
+    updateUser = (user, success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(user).
+            end(this.handleResponse.bind(this, 'updateUser', success, error));
+
+        this.track('api', 'api_users_update');
+    }
+
+    updatePassword = (userId, currentPassword, newPassword, success, error) => {
+        var data = {};
+        data.user_id = userId;
+        data.current_password = currentPassword;
+        data.new_password = newPassword;
+
+        request.
+            post(`${this.getUsersRoute()}/newpassword`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updatePassword', success, error));
+
+        this.track('api', 'api_users_newpassword');
+    }
+
+    updateUserNotifyProps = (notifyProps, success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/update_notify`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(notifyProps).
+            end(this.handleResponse.bind(this, 'updateUserNotifyProps', success, error));
+    }
+
+    updateRoles = (userId, newRoles, success, error) => {
+        var data = {
+            user_id: userId,
+            new_roles: newRoles
+        };
+
+        request.
+            post(`${this.getUsersRoute()}/update_roles`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateRoles', success, error));
+
+        this.track('api', 'api_users_update_roles');
+    }
+
+    updateActive = (userId, active, success, error) => {
+        var data = {};
+        data.user_id = userId;
+        data.active = '' + active;
+
+        request.
+            post(`${this.getUsersRoute()}/update_active`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateActive', success, error));
+
+        this.track('api', 'api_users_update_roles');
+    }
+
+    sendPasswordReset = (email, success, error) => {
+        var data = {};
+        data.email = email;
+
+        request.
+            post(`${this.getUsersRoute()}/send_password_reset`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'sendPasswordReset', success, error));
+
+        this.track('api', 'api_users_send_password_reset');
+    }
+
+    resetPassword = (userId, newPassword, hash, dataToHash, success, error) => {
+        var data = {};
+        data.new_password = newPassword;
+        data.hash = hash;
+        data.data = dataToHash;
+        data.user_id = userId;
+
+        request.
+            post(`${this.getUsersRoute()}/reset_password`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'resetPassword', success, error));
+
+        this.track('api', 'api_users_reset_password');
+    }
+
+    emailToOAuth = (email, password, service, success, error) => {
+        var data = {};
+        data.password = password;
+        data.email = email;
+        data.service = service;
+
+        request.
+            post(`${this.getUsersRoute()}/claim/email_to_oauth`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'emailToOAuth', success, error));
+
+        this.track('api', 'api_users_email_to_oauth');
+    }
+
+    oauthToEmail = (email, password, success, error) => {
+        var data = {};
+        data.password = password;
+        data.email = email;
+
+        request.
+            post(`${this.getUsersRoute()}/claim/oauth_to_email`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'oauthToEmail', success, error));
+
+        this.track('api', 'api_users_oauth_to_email');
+    }
+
+    emailToLdap = (email, password, ldapId, ldapPassword, success, error) => {
+        var data = {};
+        data.email_password = password;
+        data.email = email;
+        data.ldap_id = ldapId;
+        data.ldap_password = ldapPassword;
+
+        request.
+            post(`${this.getUsersRoute()}/claim/email_to_ldap`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'emailToLdap', success, error));
+
+        this.track('api', 'api_users_email_to_ldap');
+    }
+
+    ldapToEmail = (email, emailPassword, ldapPassword, success, error) => {
+        var data = {};
+        data.email = email;
+        data.ldap_password = ldapPassword;
+        data.email_password = emailPassword;
+
+        request.
+            post(`${this.getUsersRoute()}/claim/ldap_to_email`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'ldapToEmail', success, error));
+
+        this.track('api', 'api_users_oauth_to_email');
+    }
+
     getMeLoggedIn = (success, error) => {
         request.
             get(`${this.getUsersRoute()}/me_logged_in`).
@@ -270,7 +563,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAllPreferences', success, error));
     }
 
-    login = (email, password, mfaToken, success, error) => {
+    login = (email, username, password, mfaToken, success, error) => {
         var outer = this;  // eslint-disable-line consistent-this
 
         request.
@@ -278,7 +571,7 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({email, password, token: mfaToken}).
+            send({email, password, username, token: mfaToken}).
             end(this.handleResponse.bind(
                 this,
                 'login',
@@ -299,6 +592,92 @@ export default class Client {
             ));
 
         this.track('api', 'api_users_login', '', 'email', email);
+    }
+
+    loginByLdap = (ldapId, password, mfaToken, success, error) => {
+        var outer = this;  // eslint-disable-line consistent-this
+
+        request.
+            post(`${this.getUsersRoute()}/login_ldap`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({id: ldapId, password, token: mfaToken}).
+            end(this.handleResponse.bind(
+                this,
+                'loginByLdap',
+                (data, res) => {
+                    if (res && res.header) {
+                        outer.token = res.header[HEADER_TOKEN];
+
+                        if (outer.useToken) {
+                            outer.defaultHeaders[HEADER_AUTH] = `${HEADER_BEARER} ${outer.token}`;
+                        }
+                    }
+
+                    if (success) {
+                        success(data, res);
+                    }
+                },
+                error
+            ));
+
+        this.track('api', 'api_users_loginLdap', '', 'email', ldapId);
+    }
+
+    logout = (success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/logout`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'logout', success, error));
+
+        this.track('api', 'api_users_logout');
+    }
+
+    checkMfa = (method, loginId, success, error) => {
+        var data = {};
+        data.method = method;
+        data.login_id = loginId;
+
+        request.
+            post(`${this.getUsersRoute()}/mfa`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'checkMfa', success, error));
+
+        this.track('api', 'api_users_oauth_to_email');
+    }
+
+    revokeSession = (altId, success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/revoke_session`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({id: altId}).
+            end(this.handleResponse.bind(this, 'revokeSession', success, error));
+    }
+
+    getSessions = (userId, success, error) => {
+        request.
+            get(`${this.getUserNeededRoute(userId)}/sessions`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getSessions', success, error));
+    }
+
+    getAudits = (userId, success, error) => {
+        request.
+            get(`${this.getUserNeededRoute(userId)}/audits`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getAudits', success, error));
     }
 
     // Channel Routes Section
