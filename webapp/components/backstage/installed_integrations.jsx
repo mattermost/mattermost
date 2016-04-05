@@ -11,6 +11,7 @@ import * as Utils from 'utils/utils.jsx';
 import {FormattedMessage} from 'react-intl';
 import InstalledIncomingWebhook from './installed_incoming_webhook.jsx';
 import InstalledOutgoingWebhook from './installed_outgoing_webhook.jsx';
+import InstalledCommand from './installed_command.jsx';
 import {Link} from 'react-router';
 
 export default class InstalledIntegrations extends React.Component {
@@ -24,10 +25,13 @@ export default class InstalledIntegrations extends React.Component {
         this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
         this.regenOutgoingWebhookToken = this.regenOutgoingWebhookToken.bind(this);
         this.deleteOutgoingWebhook = this.deleteOutgoingWebhook.bind(this);
+        this.regenCommandToken = this.regenCommandToken.bind(this);
+        this.deleteCommand = this.deleteCommand.bind(this);
 
         this.state = {
             incomingWebhooks: [],
             outgoingWebhooks: [],
+            commands: [],
             typeFilter: '',
             filter: ''
         };
@@ -55,6 +59,16 @@ export default class InstalledIntegrations extends React.Component {
                 AsyncClient.listOutgoingHooks();
             }
         }
+
+        if (window.mm_config.EnableCommands === 'true') {
+            if (IntegrationStore.hasReceivedCommands()) {
+                this.setState({
+                    commands: IntegrationStore.getCommands()
+                });
+            } else {
+                AsyncClient.listTeamCommands();
+            }
+        }
     }
 
     componentWillUnmount() {
@@ -62,10 +76,24 @@ export default class InstalledIntegrations extends React.Component {
     }
 
     handleIntegrationChange() {
+        const incomingWebhooks = IntegrationStore.getIncomingWebhooks();
+        const outgoingWebhooks = IntegrationStore.getOutgoingWebhooks();
+        const commands = IntegrationStore.getCommands();
+
         this.setState({
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks(),
-            outgoingWebhooks: IntegrationStore.getOutgoingWebhooks()
+            incomingWebhooks,
+            outgoingWebhooks,
+            commands
         });
+
+        // reset the type filter if we were viewing a category that is now empty
+        if ((this.state.typeFilter === 'incomingWebhooks' && incomingWebhooks.length === 0) ||
+            (this.state.typeFilter === 'outgoingWebhooks' && outgoingWebhooks.length === 0) ||
+            (this.state.typeFilter === 'commands' && commands.length === 0)) {
+            this.setState({
+                typeFilter: ''
+            });
+        }
     }
 
     updateTypeFilter(e, typeFilter) {
@@ -94,10 +122,18 @@ export default class InstalledIntegrations extends React.Component {
         AsyncClient.deleteOutgoingHook(outgoingWebhook.id);
     }
 
-    renderTypeFilters(incomingWebhooks, outgoingWebhooks) {
+    regenCommandToken(command) {
+        AsyncClient.regenCommandToken(command.id);
+    }
+
+    deleteCommand(command) {
+        AsyncClient.deleteCommand(command.id);
+    }
+
+    renderTypeFilters(incomingWebhooks, outgoingWebhooks, commands) {
         const fields = [];
 
-        if (incomingWebhooks.length > 0 || outgoingWebhooks.length > 0) {
+        if (incomingWebhooks.length > 0 || outgoingWebhooks.length > 0 || commands.length > 0) {
             let filterClassName = 'filter-sort';
             if (this.state.typeFilter === '') {
                 filterClassName += ' filter-sort--active';
@@ -187,6 +223,39 @@ export default class InstalledIntegrations extends React.Component {
             );
         }
 
+        if (commands.length > 0) {
+            fields.push(
+                <span
+                    key='commandsDivider'
+                    className='divider'
+                >
+                    {'|'}
+                </span>
+            );
+
+            let filterClassName = 'filter-sort';
+            if (this.state.typeFilter === 'commands') {
+                filterClassName += ' filter-sort--active';
+            }
+
+            fields.push(
+                <a
+                    key='commandsFilter'
+                    className={filterClassName}
+                    href='#'
+                    onClick={(e) => this.updateTypeFilter(e, 'commands')}
+                >
+                    <FormattedMessage
+                        id='installed_integrations.commandsFilter'
+                        defaultMessage='Slash Commands ({count})'
+                        values={{
+                            count: commands.length
+                        }}
+                    />
+                </a>
+            );
+        }
+
         return (
             <div className='backstage-filters__sort'>
                 {fields}
@@ -197,7 +266,9 @@ export default class InstalledIntegrations extends React.Component {
     render() {
         const incomingWebhooks = this.state.incomingWebhooks;
         const outgoingWebhooks = this.state.outgoingWebhooks;
+        const commands = this.state.commands;
 
+        // TODO description, name, creator filtering
         const filter = this.state.filter.toLowerCase();
 
         const integrations = [];
@@ -215,7 +286,7 @@ export default class InstalledIntegrations extends React.Component {
                     <InstalledIncomingWebhook
                         key={incomingWebhook.id}
                         incomingWebhook={incomingWebhook}
-                        onDeleteClick={this.deleteIncomingWebhook}
+                        onDelete={this.deleteIncomingWebhook}
                     />
                 );
             }
@@ -237,6 +308,27 @@ export default class InstalledIntegrations extends React.Component {
                         outgoingWebhook={outgoingWebhook}
                         onRegenToken={this.regenOutgoingWebhookToken}
                         onDelete={this.deleteOutgoingWebhook}
+                    />
+                );
+            }
+        }
+
+        if (!this.state.typeFilter || this.state.typeFilter === 'commands') {
+            for (const command of commands) {
+                if (filter) {
+                    const channel = ChannelStore.get(command.channel_id);
+
+                    if (!channel || channel.name.toLowerCase().indexOf(filter) === -1) {
+                        continue;
+                    }
+                }
+
+                integrations.push(
+                    <InstalledCommand
+                        key={command.id}
+                        command={command}
+                        onRegenToken={this.regenCommandToken}
+                        onDelete={this.deleteCommand}
                     />
                 );
             }
@@ -270,7 +362,7 @@ export default class InstalledIntegrations extends React.Component {
                         </Link>
                     </div>
                     <div className='backstage-filters'>
-                        {this.renderTypeFilters(this.state.incomingWebhooks, this.state.outgoingWebhooks)}
+                        {this.renderTypeFilters(incomingWebhooks, outgoingWebhooks, commands)}
                         <div className='backstage-filter__search'>
                             <i className='fa fa-search'></i>
                             <input

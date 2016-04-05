@@ -42,6 +42,7 @@ import InstalledIntegrations from 'components/backstage/installed_integrations.j
 import AddIntegration from 'components/backstage/add_integration.jsx';
 import AddIncomingWebhook from 'components/backstage/add_incoming_webhook.jsx';
 import AddOutgoingWebhook from 'components/backstage/add_outgoing_webhook.jsx';
+import AddCommand from 'components/backstage/add_command.jsx';
 import ErrorPage from 'components/error_page.jsx';
 
 import SignupTeamComplete from 'components/signup_team_complete/components/signup_team_complete.jsx';
@@ -283,6 +284,14 @@ function renderRootComponent() {
                                     navbar: BackstageNavbar,
                                     sidebar: BackstageSidebar,
                                     center: AddOutgoingWebhook
+                                }}
+                            />
+                            <Route
+                                path='command'
+                                components={{
+                                    navbar: BackstageNavbar,
+                                    sidebar: BackstageSidebar,
+                                    center: AddCommand
                                 }}
                             />
                         </Route>

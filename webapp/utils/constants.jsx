@@ -78,6 +78,10 @@ export default {
         RECEIVED_OUTGOING_WEBHOOK: null,
         UPDATED_OUTGOING_WEBHOOK: null,
         REMOVED_OUTGOING_WEBHOOK: null,
+        RECEIVED_COMMANDS: null,
+        RECEIVED_COMMAND: null,
+        UPDATED_COMMAND: null,
+        REMOVED_COMMAND: null,
 
         RECEIVED_MSG: null,
 

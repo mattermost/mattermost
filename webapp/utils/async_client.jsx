@@ -1258,3 +1258,80 @@ export function regenOutgoingHookToken(id) {
         }
     );
 }
+
+export function listTeamCommands() {
+    if (isCallInProgress('listTeamCommands')) {
+        return;
+    }
+
+    callTracker.listTeamCommands = utils.getTimestamp();
+
+    client.listTeamCommands(
+        (data) => {
+            callTracker.listTeamCommands = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_COMMANDS,
+                commands: data
+            });
+        },
+        (err) => {
+            callTracker.listTeamCommands = 0;
+            dispatchError(err, 'listTeamCommands');
+        }
+    );
+}
+
+export function addCommand(command, success, error) {
+    client.addCommand(
+        command,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_COMMAND,
+                command: data
+            });
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'addCommand');
+            }
+        }
+    );
+}
+
+export function deleteCommand(id) {
+    client.deleteCommand(
+        {id},
+        () => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.REMOVED_COMMAND,
+                id
+            });
+        },
+        (err) => {
+            dispatchError(err, 'deleteCommand');
+        }
+    );
+}
+
+export function regenCommandToken(id) {
+    client.regenCommandToken(
+        {id},
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_COMMAND,
+                command: data
+            });
+        },
+        (err) => {
+            dispatchError(err, 'regenCommandToken');
+        }
+    );
+}
+

@@ -59,6 +59,15 @@ export default class BackstageSidebar extends React.Component {
                                     />
                                 )}
                             />
+                            <BackstageSection
+                                name='command'
+                                title={(
+                                    <FormattedMessage
+                                        id='backstage_sidebar.integrations.add.command'
+                                        defaultMessage='Slash Command'
+                                    />
+                                )}
+                            />
                         </BackstageSection>
                     </BackstageCategory>
                 </ul>

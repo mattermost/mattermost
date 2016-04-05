@@ -20,6 +20,9 @@ class IntegrationStore extends EventEmitter {
 
         this.outgoingWebhooks = [];
         this.receivedOutgoingWebhooks = false;
+
+        this.commands = [];
+        this.receivedCommands = false;
     }
 
     addChangeListener(callback) {
@@ -61,7 +64,7 @@ class IntegrationStore extends EventEmitter {
     }
 
     hasReceivedOutgoingWebhooks() {
-        return this.receivedIncomingWebhooks;
+        return this.receivedOutgoingWebhooks;
     }
 
     getOutgoingWebhooks() {
@@ -90,6 +93,41 @@ class IntegrationStore extends EventEmitter {
         for (let i = 0; i < this.outgoingWebhooks.length; i++) {
             if (this.outgoingWebhooks[i].id === id) {
                 this.outgoingWebhooks.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    hasReceivedCommands() {
+        return this.receivedCommands;
+    }
+
+    getCommands() {
+        return this.commands;
+    }
+
+    setCommands(commands) {
+        this.commands = commands;
+        this.receivedCommands = true;
+    }
+
+    addCommand(command) {
+        this.commands.push(command);
+    }
+
+    updateCommand(command) {
+        for (let i = 0; i < this.commands.length; i++) {
+            if (this.commands[i].id === command.id) {
+                this.commands[i] = command;
+                break;
+            }
+        }
+    }
+
+    removeCommand(id) {
+        for (let i = 0; i < this.commands.length; i++) {
+            if (this.commands[i].id === id) {
+                this.commands.splice(i, 1);
                 break;
             }
         }
@@ -127,8 +165,27 @@ class IntegrationStore extends EventEmitter {
             this.removeOutgoingWebhook(action.id);
             this.emitChange();
             break;
+        case ActionTypes.RECEIVED_COMMANDS:
+            this.setCommands(action.commands);
+            this.emitChange();
+            break;
+        case ActionTypes.RECEIVED_COMMAND:
+            this.addCommand(action.command);
+            this.emitChange();
+            break;
+        case ActionTypes.UPDATED_COMMAND:
+            this.updateCommand(action.command);
+            this.emitChange();
+            break;
+        case ActionTypes.REMOVED_COMMAND:
+            this.removeCommand(action.id);
+            this.emitChange();
+            break;
         }
     }
 }
 
-export default new IntegrationStore();
+const instance = new IntegrationStore();
+export default instance;
+window.IntegrationStore = instance;
+
