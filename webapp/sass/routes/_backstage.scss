@@ -199,27 +199,27 @@ body {
 
     .item-details__row + .item-details__row {
         @include clearfix;
-        margin-top: 10px;
         text-overflow: ellipsis;
     }
 
     .item-details__name {
         font-weight: 600;
-        margin-bottom: 1em;
     }
 
     .item-details__type {
         margin-left: 6px;
     }
 
-    .item-details__description {
-        color: $dark-gray;
-        margin-bottom: 1em;
-    }
-
+    .item-details__description,
     .item-details__creation {
         color: $dark-gray;
-        margin-bottom: 1em;
+        display: inline-block;
+        margin-top: 10px;
+        vertical-align: top;
+
+        &:empty {
+            display: none;
+        }
     }
 
     .item-actions {

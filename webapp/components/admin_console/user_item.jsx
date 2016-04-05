@@ -365,16 +365,18 @@ export default class UserItem extends React.Component {
         }
 
         return (
-            <tr>
-                <td className='more-modal__row'>
-                    <img
-                        className='more-modal__image pull-left'
-                        src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
-                        height='36'
-                        width='36'
-                    />
-                    <span className='more-modal__name'>{Utils.getDisplayName(user)}</span>
-                    <span className='more-modal__description'>{email}</span>
+            <div className='more-modal__row'>
+                <img
+                    className='more-modal__image pull-left'
+                    src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
+                    height='36'
+                    width='36'
+                />
+                <div className='more-modal__details'>
+                    <div className='more-modal__name'>{Utils.getDisplayName(user)}</div>
+                    <div className='more-modal__description'>{email}</div>
+                </div>
+                <div className='more-modal__actions'>
                     <div className='dropdown member-drop'>
                         <a
                             href='#'
@@ -409,10 +411,10 @@ export default class UserItem extends React.Component {
                             </li>
                         </ul>
                     </div>
-                    {makeDemoteModal}
-                    {serverError}
-                </td>
-            </tr>
+                </div>
+                {makeDemoteModal}
+                {serverError}
+            </div>
         );
     }
 }

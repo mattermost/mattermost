@@ -165,11 +165,9 @@ export default class UserList extends React.Component {
                     className='form-horizontal'
                     role='form'
                 >
-                    <table className='more-modal__list member-list-holder'>
-                        <tbody>
-                            {memberList}
-                        </tbody>
-                    </table>
+                    <div className='more-modal__list member-list-holder'>
+                        {memberList}
+                    </div>
                 </form>
                 <ResetPasswordModal
                     user={this.state.user}
