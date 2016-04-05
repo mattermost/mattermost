@@ -7,7 +7,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 const Preferences = Constants.Preferences;
 
@@ -166,3 +166,38 @@ TutorialTip.propTypes = {
     placement: React.PropTypes.string.isRequired,
     overlayClass: React.PropTypes.string
 };
+
+export function createMenuTip(toggleFunc, onBottom) {
+    const screens = [];
+
+    screens.push(
+        <div>
+            <FormattedHTMLMessage
+                id='sidebar_header.tutorial'
+                defaultMessage='<h4>Main Menu</h4>
+                <p>The <strong>Main Menu</strong> is where you can <strong>Invite New Members</strong>, access your <strong>Account Settings</strong> and set your <strong>Theme Color</strong>.</p>
+                <p>Team administrators can also access their <strong>Team Settings</strong> from this menu.</p><p>System administrators will find a <strong>System Console</strong> option to administrate the entire system.</p>'
+            />
+        </div>
+    );
+
+    let placement = 'right';
+    let arrow = 'left';
+    if (onBottom) {
+        placement = 'bottom';
+        arrow = 'up';
+    }
+
+    return (
+        <div
+            onClick={toggleFunc}
+        >
+            <TutorialTip
+                ref='tip'
+                placement={placement}
+                screens={screens}
+                overlayClass={'tip-overlay--header--' + arrow}
+            />
+        </div>
+    );
+}

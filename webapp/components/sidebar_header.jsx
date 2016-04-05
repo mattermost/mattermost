@@ -3,18 +3,18 @@
 
 import $ from 'jquery';
 import NavbarDropdown from './navbar_dropdown.jsx';
-import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 
+import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
-
-import {FormattedHTMLMessage} from 'react-intl';
 
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+
+import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
 
 import React from 'react';
 
@@ -36,7 +36,7 @@ export default class SidebarHeader extends React.Component {
     getStateFromStores() {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, this.props.currentUser.id, 999);
 
-        return {showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER};
+        return {showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER && !Utils.isMobile()};
     }
     onPreferenceChange() {
         this.setState(this.getStateFromStores());
@@ -48,33 +48,6 @@ export default class SidebarHeader extends React.Component {
             return;
         }
         $('.team__header').find('.dropdown-toggle').dropdown('toggle');
-    }
-    createTutorialTip() {
-        const screens = [];
-
-        screens.push(
-            <div>
-                <FormattedHTMLMessage
-                    id='sidebar_header.tutorial'
-                    defaultMessage='<h4>Main Menu</h4>
-                    <p>The <strong>Main Menu</strong> is where you can <strong>Invite New Members</strong>, access your <strong>Account Settings</strong> and set your <strong>Theme Color</strong>.</p>
-                    <p>Team administrators can also access their <strong>Team Settings</strong> from this menu.</p><p>System administrators will find a <strong>System Console</strong> option to administrate the entire system.</p>'
-                />
-            </div>
-        );
-
-        return (
-            <div
-                onClick={this.toggleDropdown}
-            >
-                <TutorialTip
-                    ref='tip'
-                    placement='right'
-                    screens={screens}
-                    overlayClass='tip-overlay--header'
-                />
-            </div>
-        );
     }
     render() {
         var me = this.props.currentUser;
@@ -95,7 +68,7 @@ export default class SidebarHeader extends React.Component {
 
         let tutorialTip = null;
         if (this.state.showTutorialTip) {
-            tutorialTip = this.createTutorialTip();
+            tutorialTip = createMenuTip(this.toggleDropdown);
         }
 
         return (

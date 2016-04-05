@@ -4,12 +4,20 @@
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
+
 import UserStore from 'stores/user_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
+
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
+
+const Preferences = Constants.Preferences;
+const TutorialSteps = Constants.TutorialSteps;
 
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router';
+import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
 
 import React from 'react';
 
@@ -17,9 +25,30 @@ export default class SidebarRightMenu extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            showUserSettingsModal: false
-        };
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
+
+        const state = this.getStateFromStores();
+        state.showUserSettingsModal = false;
+
+        this.state = state;
+    }
+
+    componentDidMount() {
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
+    }
+
+    componentWillUnmount() {
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
+    }
+
+    getStateFromStores() {
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+
+        return {showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER && Utils.isMobile()};
+    }
+
+    onPreferenceChange() {
+        this.setState(this.getStateFromStores());
     }
 
     render() {
@@ -158,6 +187,12 @@ export default class SidebarRightMenu extends React.Component {
                 </li>
             );
         }
+
+        let tutorialTip = null;
+        if (this.state.showTutorialTip) {
+            tutorialTip = createMenuTip((e) => e.preventDefault(), true);
+        }
+
         return (
             <div
                 className='sidebar--menu'
@@ -173,6 +208,7 @@ export default class SidebarRightMenu extends React.Component {
                 </div>
 
                 <div className='nav-pills__container'>
+                    {tutorialTip}
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <a
