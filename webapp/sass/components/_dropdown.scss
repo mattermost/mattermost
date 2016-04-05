@@ -1,6 +1,11 @@
 @charset 'UTF-8';
 
 .dropdown-menu {
+
+    &.colorpicker {
+        z-index: 2500;
+    }
+
     .divider {
         @include opacity(.15);
     }

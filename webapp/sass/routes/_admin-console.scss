@@ -87,7 +87,8 @@
                     }
 
                     > h4 {
-                        background: #333;
+                        background: alpha-color($white, .15);
+                        color: $white;
                         margin: 1px 0 0;
                         padding: 10px;
 
