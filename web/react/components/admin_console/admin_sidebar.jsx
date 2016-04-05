@@ -216,7 +216,7 @@ export default class AdminSidebar extends React.Component {
         }
 
         let audits;
-        if (global.window.mm_license.IsLicensed === 'true') {
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.FutureFeatures === 'true') {
             audits = (
                 <li>
                     <a
