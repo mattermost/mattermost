@@ -1,6 +1,8 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
+
 import React from 'react';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -21,10 +23,12 @@ export default class BackstageNavbar extends React.Component {
 
     componentDidMount() {
         TeamStore.addChangeListener(this.handleChange);
+        $('body').addClass('backstage');
     }
 
     componentWillUnmount() {
         TeamStore.removeChangeListener(this.handleChange);
+        $('body').removeClass('backstage');
     }
 
     handleChange() {

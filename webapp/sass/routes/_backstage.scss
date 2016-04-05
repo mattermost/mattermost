@@ -1,3 +1,24 @@
+body {
+    &.backstage {
+        height: auto;
+        overflow: auto;
+
+        .sidebar--right {
+            display: none;
+        }
+
+        .navbar {
+            display: none;
+        }
+
+        .inner-wrap {
+            &:before {
+                display: none;
+            }
+        }
+    }
+}
+
 .backstage-content {
     background-color: $bg--gray;
     height: 100%;
