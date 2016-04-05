@@ -169,6 +169,9 @@ type LdapSettings struct {
 	BindUsername *string
 	BindPassword *string
 
+	// Filtering
+	UserFilter *string
+
 	// User Mapping
 	FirstNameAttribute *string
 	LastNameAttribute  *string
@@ -364,6 +367,11 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.Enable == nil {
 		o.LdapSettings.Enable = new(bool)
 		*o.LdapSettings.Enable = false
+	}
+
+	if o.LdapSettings.UserFilter == nil {
+		o.LdapSettings.UserFilter = new(string)
+		*o.LdapSettings.UserFilter = ""
 	}
 
 	if o.ServiceSettings.SessionLengthWebInDays == nil {

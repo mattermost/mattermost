@@ -1824,6 +1824,14 @@
     "translation": "User not registered on LDAP server"
   },
   {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "User is not permitted to use Mattermost. (LDAP user filter)"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Invalid LDAP Filter"
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
     "translation": "Error attempting to authenticate MFA token"
   },

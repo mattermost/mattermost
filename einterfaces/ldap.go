@@ -12,6 +12,7 @@ type LdapInterface interface {
 	GetUser(id string) (*model.User, *model.AppError)
 	CheckPassword(id string, password string) *model.AppError
 	SwitchToEmail(userId, ldapId, ldapPassword string) *model.AppError
+	ValidateFilter(filter string) *model.AppError
 }
 
 var theLdapInterface LdapInterface

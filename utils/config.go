@@ -13,6 +13,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 )
 
@@ -167,6 +168,11 @@ func LoadConfig(fileName string) {
 			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
 	}
 
+	if err := ValidateLdapFilter(&config); err != nil {
+		panic(T("utils.config.load_config.validating.panic",
+			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
+	}
+
 	configureLog(&config.LogSettings)
 	TestConnection(&config)
 
@@ -242,4 +248,14 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
 
 	return props
+}
+
+func ValidateLdapFilter(cfg *model.Config) *model.AppError {
+	ldapInterface := einterfaces.GetLdapInterface()
+	if *cfg.LdapSettings.Enable && ldapInterface != nil && *cfg.LdapSettings.UserFilter != "" {
+		if err := ldapInterface.ValidateFilter(*cfg.LdapSettings.UserFilter); err != nil {
+			return err
+		}
+	}
+	return nil
 }
