@@ -1,6 +1,6 @@
 .PHONY: build test run clean stop
 
-test:
+test: .npminstall
 	@echo Checking for style guide compliance
 
 	npm run check

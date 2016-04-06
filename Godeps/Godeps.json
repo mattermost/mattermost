@@ -10,6 +10,11 @@
 			"Rev": "a88790d49798560db24af70fb6a10a66e2549a72"
 		},
 		{
+			"ImportPath": "github.com/gorilla/handlers",
+			"Comment": "v1.1-4-gd0f2612",
+			"Rev": "d0f261246491e3a8613039e90764460448dc05f5"
+		},
+		{
 			"ImportPath": "github.com/alecthomas/log4go",
 			"Rev": "8e9057c3b25c409a34c0b9737cdc82cbcafeabce"
 		},
