@@ -92,6 +92,7 @@ export default {
         RECEIVED_SERVER_AUDITS: null,
         RECEIVED_SERVER_COMPLIANCE_REPORTS: null,
         RECEIVED_ALL_TEAMS: null,
+        RECEIVED_BRAND_TEXT: null,
 
         RECEIVED_LOCALE: null,
 

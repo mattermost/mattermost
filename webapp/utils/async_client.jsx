@@ -1335,3 +1335,29 @@ export function regenCommandToken(id) {
     );
 }
 
+export function getBrandText() {
+    if (isCallInProgress('getBrandText')) {
+        return;
+    }
+
+    callTracker.getBrandText = utils.getTimestamp();
+
+    client.getBrandText(
+        (data, textStatus, xhr) => {
+            callTracker.getBrandText = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_BRAND_TEXT,
+                text: data.text
+            });
+        },
+        (err) => {
+            callTracker.getBrandText = 0;
+            dispatchError(err, 'getBrandText');
+        }
+    );
+}

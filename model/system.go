@@ -14,6 +14,7 @@ const (
 	SYSTEM_LAST_SECURITY_TIME   = "LastSecurityTime"
 	SYSTEM_ACTIVE_LICENSE_ID    = "ActiveLicenseId"
 	SYSTEM_LAST_COMPLIANCE_TIME = "LastComplianceTime"
+	SYSTEM_BRAND_HELP_TEXT      = "CustomBrandHelpText"
 )
 
 type System struct {

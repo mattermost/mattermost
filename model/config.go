@@ -158,6 +158,7 @@ type TeamSettings struct {
 	RestrictCreationToDomains string
 	RestrictTeamNames         *bool
 	EnableTeamListing         *bool
+	EnableCustomBrand         *bool
 }
 
 type LdapSettings struct {

@@ -8,7 +8,9 @@ import LoginMfa from './components/login_mfa.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import AdminStore from 'stores/admin_store.jsx';
 
+import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Client from 'utils/client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -24,15 +26,18 @@ export default class Login extends React.Component {
 
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onTeamChange = this.onTeamChange.bind(this);
+        this.onBrandTextChange = this.onBrandTextChange.bind(this);
         this.preSubmit = this.preSubmit.bind(this);
         this.submit = this.submit.bind(this);
 
         const state = this.getStateFromStores();
         state.doneCheckLogin = false;
+        state.brandText = AdminStore.getBrandText();
         this.state = state;
     }
     componentDidMount() {
         TeamStore.addChangeListener(this.onTeamChange);
+        AdminStore.addBrandTextChangeListener(this.onBrandTextChange);
         Client.getMeLoggedIn((data) => {
             if (data && data.logged_in !== 'false') {
                 browserHistory.push('/' + this.props.params.team + '/channels/town-square');
@@ -43,6 +48,7 @@ export default class Login extends React.Component {
     }
     componentWillUnmount() {
         TeamStore.removeChangeListener(this.onTeamChange);
+        AdminStore.removeBrandTextChangeListener(this.onBrandTextChange);
     }
     getStateFromStores() {
         return {
@@ -51,6 +57,9 @@ export default class Login extends React.Component {
     }
     onTeamChange() {
         this.setState(this.getStateFromStores());
+    }
+    onBrandTextChange() {
+        this.setState({brandText: AdminStore.getBrandText()});
     }
     preSubmit(method, loginId, password) {
         if (global.window.mm_config.EnableMultifactorAuthentication !== 'true') {
@@ -344,6 +353,22 @@ export default class Login extends React.Component {
             );
         }
 
+        let brand;
+        if (global.window.mm_license.IsLicensed === 'true' &&
+                global.window.mm_license.CustomBrand === 'true' &&
+                global.window.mm_config.EnableCustomBrand === 'true') {
+            const text = this.state.brandText || '';
+
+            brand = (
+                <div>
+                    <img
+                        src='/api/v1/admin/get_brand_image'
+                    />
+                    <p dangerouslySetInnerHTML={{__html: TextFormatting.formatText(text)}}/>
+                </div>
+            );
+        }
+
         return (
             <div>
                 {extraBox}
@@ -354,6 +379,7 @@ export default class Login extends React.Component {
                 {userSignUp}
                 {forgotPassword}
                 {teamSignUp}
+                {brand}
             </div>
         );
     }

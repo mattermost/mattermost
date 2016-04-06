@@ -114,3 +114,24 @@ func (s SqlSystemStore) Get() StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlSystemStore) GetByName(name string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var system model.System
+		if err := s.GetReplica().SelectOne(&system, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+			result.Err = model.NewLocAppError("SqlSystemStore.GetByName", "store.sql_system.get_by_name.app_error", nil, "")
+		}
+
+		result.Data = &system
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

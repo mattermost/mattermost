@@ -38,6 +38,7 @@ export default class AdminController extends React.Component {
         this.addSelectedTeam = this.addSelectedTeam.bind(this);
         this.onConfigListenerChange = this.onConfigListenerChange.bind(this);
         this.onAllTeamsListenerChange = this.onAllTeamsListenerChange.bind(this);
+        this.onBrandTextChange = this.onBrandTextChange.bind(this);
 
         var selectedTeams = AdminStore.getSelectedTeams();
         if (selectedTeams == null) {
@@ -60,6 +61,7 @@ export default class AdminController extends React.Component {
         AsyncClient.getConfig();
 
         AdminStore.addAllTeamsChangeListener(this.onAllTeamsListenerChange);
+        AdminStore.addBrandTextChangeListener(this.onBrandTextChange);
         AsyncClient.getAllTeams();
 
         $('[data-toggle="tooltip"]').tooltip();
@@ -69,6 +71,7 @@ export default class AdminController extends React.Component {
     componentWillUnmount() {
         AdminStore.removeConfigChangeListener(this.onConfigListenerChange);
         AdminStore.removeAllTeamsChangeListener(this.onAllTeamsListenerChange);
+        AdminStore.removeBrandTextChangeListener(this.onBrandTextChange);
     }
 
     onConfigListenerChange() {
@@ -89,6 +92,12 @@ export default class AdminController extends React.Component {
             selected: this.state.selected,
             selectedTeam: this.state.selectedTeam
 
+        });
+    }
+
+    onBrandTextChange() {
+        this.setState({
+            customBrandText: AdminStore.getBrandText()
         });
     }
 
@@ -153,7 +162,12 @@ export default class AdminController extends React.Component {
             } else if (this.state.selected === 'sql_settings') {
                 tab = <SqlSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'team_settings') {
-                tab = <TeamSettingsTab config={this.state.config}/>;
+                tab = (
+                    <TeamSettingsTab
+                        config={this.state.config}
+                        brandText={this.state.customBrandText}
+                    />
+                );
             } else if (this.state.selected === 'service_settings') {
                 tab = <ServiceSettingsTab config={this.state.config}/>;
             } else if (this.state.selected === 'legal_and_support_settings') {

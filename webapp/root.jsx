@@ -207,6 +207,14 @@ function onLoggedOut(nextState) {
     );
 }
 
+function preLoginScreen() {
+    if (global.window.mm_license.IsLicensed === 'true' &&
+            global.window.mm_license.CustomBrand === 'true' &&
+            global.window.mm_config.EnableCustomBrand === 'true') {
+        AsyncClient.getBrandText();
+    }
+}
+
 function renderRootComponent() {
     ReactDOM.render((
         <Router
@@ -365,6 +373,7 @@ function renderRootComponent() {
                         <Route
                             path='login'
                             component={Login}
+                            onEnter={preLoginScreen}
                         />
                         <Route
                             path='reset_password'

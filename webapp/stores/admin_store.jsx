@@ -14,6 +14,7 @@ const SERVER_AUDIT_CHANGE_EVENT = 'server_audit_change';
 const CONFIG_CHANGE_EVENT = 'config_change';
 const ALL_TEAMS_EVENT = 'all_team_change';
 const SERVER_COMPLIANCE_REPORT_CHANGE_EVENT = 'server_compliance_reports_change';
+const BRAND_TEXT_EVENT = 'brand_text_change';
 
 class AdminStoreClass extends EventEmitter {
     constructor() {
@@ -24,26 +25,7 @@ class AdminStoreClass extends EventEmitter {
         this.config = null;
         this.teams = null;
         this.complianceReports = null;
-
-        this.emitLogChange = this.emitLogChange.bind(this);
-        this.addLogChangeListener = this.addLogChangeListener.bind(this);
-        this.removeLogChangeListener = this.removeLogChangeListener.bind(this);
-
-        this.emitAuditChange = this.emitAuditChange.bind(this);
-        this.addAuditChangeListener = this.addAuditChangeListener.bind(this);
-        this.removeAuditChangeListener = this.removeAuditChangeListener.bind(this);
-
-        this.emitComplianceReportsChange = this.emitComplianceReportsChange.bind(this);
-        this.addComplianceReportsChangeListener = this.addComplianceReportsChangeListener.bind(this);
-        this.removeComplianceReportsChangeListener = this.removeComplianceReportsChangeListener.bind(this);
-
-        this.emitConfigChange = this.emitConfigChange.bind(this);
-        this.addConfigChangeListener = this.addConfigChangeListener.bind(this);
-        this.removeConfigChangeListener = this.removeConfigChangeListener.bind(this);
-
-        this.emitAllTeamsChange = this.emitAllTeamsChange.bind(this);
-        this.addAllTeamsChangeListener = this.addAllTeamsChangeListener.bind(this);
-        this.removeAllTeamsChangeListener = this.removeAllTeamsChangeListener.bind(this);
+        this.customBrandText = null;
     }
 
     emitLogChange() {
@@ -106,6 +88,18 @@ class AdminStoreClass extends EventEmitter {
         this.removeListener(ALL_TEAMS_EVENT, callback);
     }
 
+    emitBrandTextChange() {
+        this.emit(BRAND_TEXT_EVENT);
+    }
+
+    addBrandTextChangeListener(callback) {
+        this.on(BRAND_TEXT_EVENT, callback);
+    }
+
+    removeBrandTextChangeListener(callback) {
+        this.removeListener(BRAND_TEXT_EVENT, callback);
+    }
+
     getLogs() {
         return this.logs;
     }
@@ -157,6 +151,14 @@ class AdminStoreClass extends EventEmitter {
     saveSelectedTeams(teams) {
         BrowserStore.setItem('seleted_teams', teams);
     }
+
+    saveBrandText(text) {
+        this.customBrandText = text;
+    }
+
+    getBrandText() {
+        return this.customBrandText;
+    }
 }
 
 var AdminStore = new AdminStoreClass();
@@ -184,6 +186,10 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_ALL_TEAMS:
         AdminStore.saveAllTeams(action.teams);
         AdminStore.emitAllTeamsChange();
+        break;
+    case ActionTypes.RECEIVED_BRAND_TEXT:
+        AdminStore.saveBrandText(action.text);
+        AdminStore.emitBrandTextChange();
         break;
     default:
     }

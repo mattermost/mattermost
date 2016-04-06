@@ -1738,3 +1738,52 @@ export function updateMfa(data, success, error) {
         }
     });
 }
+
+export function uploadBrandImage(image, success, error) {
+    const formData = new FormData();
+    formData.append('image', image, image.name);
+
+    $.ajax({
+        url: '/api/v1/admin/upload_brand_image',
+        type: 'POST',
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('uploadBrandImage', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function saveBrandText(text, success, error) {
+    $.ajax({
+        url: '/api/v1/admin/save_brand_text',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({text}),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('saveBrandText', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function getBrandText(success, error) {
+    $.ajax({
+        cache: false,
+        url: '/api/v1/admin/get_brand_text',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getBrandText', xhr, status, err);
+            error(e);
+        }
+    });
+}
