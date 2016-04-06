@@ -203,8 +203,6 @@ export default class LoggedIn extends React.Component {
         Websockets.close();
         UserStore.removeChangeListener(this.onUserChanged);
 
-        Utils.resetTheme();
-
         $('body').off('click.userpopover');
         $('body').off('mouseenter mouseleave', '.post');
         $('body').off('mouseenter mouseleave', '.post.post--comment.same--root');

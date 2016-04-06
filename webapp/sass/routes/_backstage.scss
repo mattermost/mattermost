@@ -3,18 +3,19 @@ body {
         height: auto;
         overflow: auto;
 
-        .sidebar--right {
-            display: none;
-        }
-
-        .navbar {
-            display: none;
-        }
-
         .inner-wrap {
+            @include translateX(0);
+            margin-right: 0 !important;
+
             &:before {
                 display: none;
             }
+        }
+
+        .sidebar--right,
+        .sidebar--menu,
+        .navbar {
+            display: none;
         }
     }
 }
@@ -240,11 +241,32 @@ body {
         font-weight: normal;
     }
 
+    .radio,
+    .checkbox {
+        input {
+            height: 16px;
+            margin: 0 5px 0 0;
+            position: relative;
+            top: 2px;
+            width: 16px;
+        }
+    }
+
     .form-control {
         background: $white;
 
         &:focus {
             border-color: $primary-color;
+        }
+    }
+
+    .form__help {
+        color: $dark-gray;
+        font-size: .95em;
+        margin-top: 1em;
+
+        & + .form__help {
+            margin-top: .4em;
         }
     }
 }
