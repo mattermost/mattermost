@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-unit-tests test dist setup-mac prepare-enteprise
+.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-unit-tests test dist setup-mac prepare-enteprise build-linux build-osx build-windows
 
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
@@ -11,14 +11,18 @@ endif
 BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
+BUILD_TYPE_NAME = team
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
 	ifeq ($(BUILD_ENTERPRISE),true)
 		BUILD_ENTERPRISE_READY = true
+		BUILD_TYPE_NAME = enterprise
 	else
 		BUILD_ENTERPRISE_READY = false
+		BUILD_TYPE_NAME = team
 	endif
 else
 	BUILD_ENTERPRISE_READY = false
+	BUILD_TYPE_NAME = team
 endif
 BUILD_WEBAPP_DIR = ./webapp
 
@@ -124,11 +128,19 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/imports.go .
 endif
 
-build: .prebuild prepare-enterprise
-	@echo Building mattermost server
+build-linux: .prebuild prepare-enterprise
+	@echo Build Linux amd64
+	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
 
-	$(GO) clean $(GOFLAGS) -i ./...
-	$(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+build-osx: .prebuild prepare-enterprise
+	@echo Build OSX amd64
+	env GOOS=darwin GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+
+build-windows: .prebuild prepare-enterprise
+	@echo Build Windows amd64
+	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+
+build: build-linux build-windows build-osx
 
 build-client:
 	@echo Building mattermost web app
@@ -139,30 +151,27 @@ build-client:
 package: build build-client
 	@ echo Packaging mattermost
 
-	# Remove any old files
+	@# Remove any old files
 	rm -Rf $(DIST_ROOT)
 
-	# Create needed directories
+	@# Create needed directories
 	mkdir -p $(DIST_PATH)/bin
 	mkdir -p $(DIST_PATH)/logs
 
-	# Copy binary
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
-
-	# Resource directories
+	@# Resource directories
 	cp -RL config $(DIST_PATH)
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
 
-	# Package webapp
+	@# Package webapp
 	mkdir -p $(DIST_PATH)/webapp/dist
 	cp -RL $(BUILD_WEBAPP_DIR)/dist $(DIST_PATH)/webapp
 	mv $(DIST_PATH)/webapp/dist/bundle.js $(DIST_PATH)/webapp/dist/bundle-$(BUILD_NUMBER).js
 	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).js|g' $(DIST_PATH)/webapp/dist/root.html
 	rm $(DIST_PATH)/webapp/dist/root.html.bak
 
-	# Help files
+	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/ENTERPRISE-EDITION-LICENSE.txt $(DIST_PATH)
 else
@@ -171,8 +180,32 @@ endif
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
-	# Create package
-	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
+	@# ----- PLATFORM SPECIFIC -----
+
+	@# Make osx package
+	@# Copy binary
+	cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin
+	@# Package
+	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
+	@# Cleanup
+	rm -f $(DIST_PATH)/bin/platform
+
+	@# Make windows package
+	@# Copy binary
+	cp $(GOPATH)/bin/windows_amd64/platform.exe $(DIST_PATH)/bin
+	@# Package
+	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-windows-amd64.tar.gz mattermost
+	@# Cleanup
+	rm -f $(DIST_PATH)/bin/platform.exe
+
+	@# Make linux package
+	@# Copy binary
+	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
+	@# Package
+	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
+	@# Don't cleanup linux package so dev machines will have an unziped linux package avalilable
+	@#rm -f $(DIST_PATH)/bin/platform
+
 
 run-server: prepare-enterprise start-docker
 	@echo Running mattermost for development
