@@ -18,19 +18,19 @@ export default class ShouldVerifyEmail extends React.Component {
         };
     }
     handleResend() {
-        const teamName = this.props.location.query.teamname;
         const email = this.props.location.query.email;
 
         this.setState({resendStatus: 'sending'});
 
-        Client.resendVerification(() => {
-            this.setState({resendStatus: 'success'});
-        },
-        () => {
-            this.setState({resendStatus: 'failure'});
-        },
-        teamName,
-        email);
+        Client.resendVerification(
+            email,
+            () => {
+                this.setState({resendStatus: 'success'});
+            },
+            () => {
+                this.setState({resendStatus: 'failure'});
+            }
+        );
     }
     render() {
         let resendConfirm = '';

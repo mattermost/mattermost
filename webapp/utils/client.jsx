@@ -1,74 +1,74 @@
 // See License.txt for license information.
 
-import request from 'superagent';
-import BrowserStore from 'stores/browser_store.jsx';
-import $ from 'jquery';
+// import request from 'superagent';
+// import BrowserStore from 'stores/browser_store.jsx';
+// import $ from 'jquery';
 
-import {browserHistory} from 'react-router';
+// import {browserHistory} from 'react-router';
 
-let translations = {
-    connectionError: 'There appears to be a problem with your internet connection.',
-    unknownError: 'We received an unexpected status code from the server.'
-};
+// let translations = {
+//     connectionError: 'There appears to be a problem with your internet connection.',
+//     unknownError: 'We received an unexpected status code from the server.'
+// };
 
-let rootUrl = '';
-const version = '/api/v2';
-let serverVersion = '';
+// let rootUrl = '';
+// const version = '/api/v2';
+// let serverVersion = '';
 
-export function setTranslations(messages) {
-    translations = messages;
-}
+// export function setTranslations(messages) {
+//     translations = messages;
+// }
 
-export function getServerVersion() {
-    return serverVersion;
-}
+// export function getServerVersion() {
+//     return serverVersion;
+// }
 
-export function setRootUrl(url) {
-    rootUrl = url;
-}
+// export function setRootUrl(url) {
+//     rootUrl = url;
+// }
 
-export function track(category, action, label, property, value) {
-    global.window.analytics.track(action, {category, label, property, value});
-}
+// export function track(category, action, label, property, value) {
+//     global.window.analytics.track(action, {category, label, property, value});
+// }
 
-export function trackPage() {
-    global.window.analytics.page();
-}
+// export function trackPage() {
+//     global.window.analytics.page();
+// }
 
-function handleError(methodName, xhr, status, err) {
-    var e = null;
-    try {
-        e = JSON.parse(xhr.responseText);
-    } catch (parseError) {
-        e = null;
-    }
+// function handleError(methodName, xhr, status, err) {
+//     var e = null;
+//     try {
+//         e = JSON.parse(xhr.responseText);
+//     } catch (parseError) {
+//         e = null;
+//     }
 
-    var msg = '';
+//     var msg = '';
 
-    if (e) {
-        msg = 'method=' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
-    } else {
-        msg = 'method=' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
+//     if (e) {
+//         msg = 'method=' + methodName + ' msg=' + e.message + ' detail=' + e.detailed_error + ' rid=' + e.request_id;
+//     } else {
+//         msg = 'method=' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
 
-        if (xhr.status === 0) {
-            e = {message: translations.connectionError};
-        } else {
-            e = {message: translations.unknownError + ' (' + xhr.status + ')'};
-        }
-    }
+//         if (xhr.status === 0) {
+//             e = {message: translations.connectionError};
+//         } else {
+//             e = {message: translations.unknownError + ' (' + xhr.status + ')'};
+//         }
+//     }
 
-    console.error(msg); //eslint-disable-line no-console
-    console.error(e); //eslint-disable-line no-console
+//     console.error(msg); //eslint-disable-line no-console
+//     console.error(e); //eslint-disable-line no-console
 
-    track('api', 'api_weberror', methodName, 'message', msg);
+//     track('api', 'api_weberror', methodName, 'message', msg);
 
-    if (xhr.status === 401) {
-        const team = window.location.pathname.split('/')[1];
-        browserHistory.push('/' + team + '/login?extra=expired&redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
-    }
+//     if (xhr.status === 401) {
+//         const team = window.location.pathname.split('/')[1];
+//         browserHistory.push('/' + team + '/login?extra=expired&redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+//     }
 
-    return e;
-}
+//     return e;
+// }
 
 // export function getTranslations(url, success, error) {
 //     $.ajax({
@@ -1711,22 +1711,22 @@ export function uploadLicenseFile(formData, success, error) {
     track('api', 'api_license_upload');
 }
 
-export function removeLicenseFile(success, error) {
-    $.ajax({
-        url: '/api/v1/license/remove',
-        type: 'POST',
-        cache: false,
-        contentType: false,
-        processData: false,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('removeLicenseFile', xhr, status, err);
-            error(e);
-        }
-    });
+// export function removeLicenseFile(success, error) {
+//     $.ajax({
+//         url: '/api/v1/license/remove',
+//         type: 'POST',
+//         cache: false,
+//         contentType: false,
+//         processData: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('removeLicenseFile', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_license_upload');
-}
+//     track('api', 'api_license_upload');
+// }
 
 // export function getClientLicenceConfigOld(success, error) {
 //     return $.ajax({
@@ -1750,68 +1750,68 @@ export function removeLicenseFile(success, error) {
 //         end(handleResponse.bind(this, 'getClientLicenceConfig', success, error));
 // }
 
-export function getInviteInfo(success, error, id) {
-    $.ajax({
-        url: '/api/v1/teams/get_invite_info',
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify({invite_id: id}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getInviteInfo', xhr, status, err);
-            if (error) {
-                error(e);
-            }
-        }
-    });
-}
+// export function getInviteInfo(success, error, id) {
+//     $.ajax({
+//         url: '/api/v1/teams/get_invite_info',
+//         type: 'POST',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         data: JSON.stringify({invite_id: id}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('getInviteInfo', xhr, status, err);
+//             if (error) {
+//                 error(e);
+//             }
+//         }
+//     });
+// }
 
-export function verifyEmail(success, error, uid, hid) {
-    $.ajax({
-        url: '/api/v1/users/verify_email',
-        type: 'POST',
-        contentType: 'application/json',
-        dataType: 'text',
-        data: JSON.stringify({uid, hid}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('verifyEmail', xhr, status, err);
-            if (error) {
-                error(e);
-            }
-        }
-    });
-}
+// export function verifyEmail(success, error, uid, hid) {
+//     $.ajax({
+//         url: '/api/v1/users/verify_email',
+//         type: 'POST',
+//         contentType: 'application/json',
+//         dataType: 'text',
+//         data: JSON.stringify({uid, hid}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('verifyEmail', xhr, status, err);
+//             if (error) {
+//                 error(e);
+//             }
+//         }
+//     });
+// }
 
-export function resendVerification(success, error, teamName, email) {
-    $.ajax({
-        url: '/api/v1/users/resend_verification',
-        type: 'POST',
-        contentType: 'application/json',
-        dataType: 'text',
-        data: JSON.stringify({team_name: teamName, email}),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('resendVerification', xhr, status, err);
-            if (error) {
-                error(e);
-            }
-        }
-    });
-}
+// export function resendVerification(success, error, teamName, email) {
+//     $.ajax({
+//         url: '/api/v1/users/resend_verification',
+//         type: 'POST',
+//         contentType: 'application/json',
+//         dataType: 'text',
+//         data: JSON.stringify({team_name: teamName, email}),
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('resendVerification', xhr, status, err);
+//             if (error) {
+//                 error(e);
+//             }
+//         }
+//     });
+// }
 
-export function updateMfa(data, success, error) {
-    $.ajax({
-        url: '/api/v1/users/update_mfa',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('updateMfa', xhr, status, err);
-            error(e);
-        }
-    });
-}
+// export function updateMfa(data, success, error) {
+//     $.ajax({
+//         url: '/api/v1/users/update_mfa',
+//         dataType: 'json',
+//         contentType: 'application/json',
+//         type: 'POST',
+//         data: JSON.stringify(data),
+//         success,
+//         error: (xhr, status, err) => {
+//             var e = handleError('updateMfa', xhr, status, err);
+//             error(e);
+//         }
+//     });
+// }

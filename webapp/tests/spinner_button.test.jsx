@@ -14,11 +14,11 @@ import React from 'react';
 describe('SpinnerButton', function() {
     jsdom();
 
-    // it('check props', function() {
-    //     const spinner = TestUtils.renderIntoDocument(
-    //         <SpinnerButton spinning={false}/>
-    //     );
+    it('check props', function() {
+        const spinner = TestUtils.renderIntoDocument(
+            <SpinnerButton spinning={false}/>
+        );
 
-    //     assert.equal(spinner.props.spinning, false, 'should start in the default false state');
-    // });
+        assert.equal(spinner.props.spinning, false, 'should start in the default false state');
+    });
 });

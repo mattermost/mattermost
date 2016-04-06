@@ -55,7 +55,7 @@ class SignupUserComplete extends React.Component {
             teamName = parsedData.name;
             teamId = parsedData.id;
         } else {
-            Client.getInviteInfo(this.inviteInfoRecieved, null, inviteId);
+            Client.getInviteInfo(inviteId, this.inviteInfoRecieved, null);
             data = '';
             hash = '';
         }

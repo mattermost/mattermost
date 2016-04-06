@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-unit-tests test dist setup-mac prepare-enteprise
+.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests test-client
 
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
@@ -111,6 +111,13 @@ test: start-docker
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+
+run-client-tests:
+	sleep 10
+	@echo Running client side unit tests
+	cd webapp && npm test
+
+test-client: run-server run-client-tests stop-server
 
 .prebuild:
 	@echo Preparation for running go code

@@ -920,17 +920,6 @@ func TestSendPasswordReset(t *testing.T) {
 		t.Fatal("Should have errored - bad email")
 	}
 
-	data["email"] = user.Email
-	data["name"] = ""
-	if _, err := Client.SendPasswordReset(data); err == nil {
-		t.Fatal("Should have errored - no name")
-	}
-
-	data["name"] = "junk"
-	if _, err := Client.SendPasswordReset(data); err == nil {
-		t.Fatal("Should have errored - bad name")
-	}
-
 	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: "1", AuthService: "random"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
@@ -1275,12 +1264,6 @@ func TestOAuthToEmail(t *testing.T) {
 	m["team_name"] = team.Name
 	if _, err := Client.OAuthToEmail(m); err == nil {
 		t.Fatal("should have failed - missing email")
-	}
-
-	m["email"] = ruser.Email
-	m["team_name"] = "junk"
-	if _, err := Client.OAuthToEmail(m); err == nil {
-		t.Fatal("should have failed - bad team name")
 	}
 
 	m["team_name"] = team.Name

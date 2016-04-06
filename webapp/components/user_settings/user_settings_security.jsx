@@ -118,11 +118,9 @@ class SecurityTab extends React.Component {
         );
     }
     activateMfa() {
-        const data = {};
-        data.activate = true;
-        data.token = this.state.mfaToken;
-
-        Client.updateMfa(data,
+        Client.updateMfa(
+            this.state.mfaToken,
+            true,
             () => {
                 this.props.updateSection('');
                 AsyncClient.getMe();

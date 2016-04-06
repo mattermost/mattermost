@@ -2285,12 +2285,6 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	teamName := props["team_name"]
-	if len(teamName) == 0 {
-		c.SetInvalidParam("resendVerification", "team_name")
-		return
-	}
-
 	email := props["email"]
 	if len(email) == 0 {
 		c.SetInvalidParam("resendVerification", "email")

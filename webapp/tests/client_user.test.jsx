@@ -14,478 +14,527 @@ import TestHelper from './test_helper.jsx';
 describe('Client.User', function() {
     this.timeout(100000);
 
-    // it('getMe', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().getMe(
-    //             function(data) {
-    //                 assert.equal(data.id, TestHelper.basicUser().id);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+    it('getMe', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getMe(
+                function(data) {
+                    assert.equal(data.id, TestHelper.basicUser().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('getMeLoggedIn', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().getMeLoggedIn(
-    //             function(data) {
-    //                 assert.equal(data.logged_in, 'true');
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+    it('getMeLoggedIn', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getMeLoggedIn(
+                function(data) {
+                    assert.equal(data.logged_in, 'true');
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('createUser', function(done) {
-    //     var client = TestHelper.createClient();
-    //     var user = TestHelper.fakeUser();
-    //     client.createUser(
-    //         user,
-    //         function(data) {
-    //             assert.equal(data.id.length > 0, true);
-    //             assert.equal(data.email, user.email);
-    //             done();
-    //         },
-    //         function(err) {
-    //             done(new Error(err.message));
-    //         }
-    //     );
-    // });
+    it('createUser', function(done) {
+        var client = TestHelper.createClient();
+        var user = TestHelper.fakeUser();
+        client.createUser(
+            user,
+            function(data) {
+                assert.equal(data.id.length > 0, true);
+                assert.equal(data.email, user.email);
+                done();
+            },
+            function(err) {
+                done(new Error(err.message));
+            }
+        );
+    });
 
-    // it('loginByEmail', function(done) {
-    //     var client = TestHelper.createClient();
-    //     var user = TestHelper.fakeUser();
-    //     client.createUser(
-    //         user,
-    //         function() {
-    //             client.login(
-    //                 user.email,
-    //                 null,
-    //                 user.password,
-    //                 null,
-    //                 function(data) {
-    //                     assert.equal(data.id.length > 0, true);
-    //                     assert.equal(data.email, user.email);
-    //                     done();
-    //                 },
-    //                 function(err) {
-    //                     done(new Error(err.message));
-    //                 }
-    //             );
-    //         },
-    //         function(err) {
-    //             done(new Error(err.message));
-    //         }
-    //     );
-    // });
+    it('loginByEmail', function(done) {
+        var client = TestHelper.createClient();
+        var user = TestHelper.fakeUser();
+        client.createUser(
+            user,
+            function() {
+                client.login(
+                    user.email,
+                    null,
+                    user.password,
+                    null,
+                    function(data) {
+                        assert.equal(data.id.length > 0, true);
+                        assert.equal(data.email, user.email);
+                        done();
+                    },
+                    function(err) {
+                        done(new Error(err.message));
+                    }
+                );
+            },
+            function(err) {
+                done(new Error(err.message));
+            }
+        );
+    });
 
-    // it('loginByUsername', function(done) {
-    //     var client = TestHelper.createClient();
-    //     var user = TestHelper.fakeUser();
-    //     client.createUser(
-    //         user,
-    //         function() {
-    //             client.login(
-    //                 null,
-    //                 user.username,
-    //                 user.password,
-    //                 null,
-    //                 function(data) {
-    //                     assert.equal(data.id.length > 0, true);
-    //                     assert.equal(data.email, user.email);
-    //                     done();
-    //                 },
-    //                 function(err) {
-    //                     done(new Error(err.message));
-    //                 }
-    //             );
-    //         },
-    //         function(err) {
-    //             done(new Error(err.message));
-    //         }
-    //     );
-    // });
+    it('loginByUsername', function(done) {
+        var client = TestHelper.createClient();
+        var user = TestHelper.fakeUser();
+        client.createUser(
+            user,
+            function() {
+                client.login(
+                    null,
+                    user.username,
+                    user.password,
+                    null,
+                    function(data) {
+                        assert.equal(data.id.length > 0, true);
+                        assert.equal(data.email, user.email);
+                        done();
+                    },
+                    function(err) {
+                        done(new Error(err.message));
+                    }
+                );
+            },
+            function(err) {
+                done(new Error(err.message));
+            }
+        );
+    });
 
-    // it('loginByLdap', function(done) {
-    //     var client = TestHelper.createClient();
-    //     client.enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
-    //     var user = TestHelper.fakeUser();
-    //     client.createUser(
-    //         user,
-    //         function() {
-    //             client.loginByLdap(
-    //                 user.username,
-    //                 user.password,
-    //                 null,
-    //                 function() {
-    //                     done(new Error());
-    //                 },
-    //                 function(err) {
-    //                     assert.equal(err.id, 'api.user.login_ldap.disabled.app_error');
-    //                     done();
-    //                 }
-    //             );
-    //         },
-    //         function(err) {
-    //             done(new Error(err.message));
-    //         }
-    //     );
-    // });
+    it('loginByLdap', function(done) {
+        var client = TestHelper.createClient();
+        client.enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+        var user = TestHelper.fakeUser();
+        client.createUser(
+            user,
+            function() {
+                client.loginByLdap(
+                    user.username,
+                    user.password,
+                    null,
+                    function() {
+                        done(new Error());
+                    },
+                    function(err) {
+                        assert.equal(err.id, 'api.user.login_ldap.disabled.app_error');
+                        done();
+                    }
+                );
+            },
+            function(err) {
+                done(new Error(err.message));
+            }
+        );
+    });
 
-    // it('updateUser', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         var user = TestHelper.basicUser();
-    //         user.nickname = 'updated';
+    it('updateUser', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
+            user.nickname = 'updated';
 
-    //         TestHelper.basicClient().updateUser(
-    //             user,
-    //             function(data) {
-    //                 assert.equal(data.nickname, 'updated');
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().updateUser(
+                user,
+                function(data) {
+                    assert.equal(data.nickname, 'updated');
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('updatePassword', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         var user = TestHelper.basicUser();
+    it('updatePassword', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().updatePassword(
-    //             user.id,
-    //             user.password,
-    //             'update_password',
-    //             function(data) {
-    //                 assert.equal(data.user_id, user.id);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().updatePassword(
+                user.id,
+                user.password,
+                'update_password',
+                function(data) {
+                    assert.equal(data.user_id, user.id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('updateUserNotifyProps', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         var user = TestHelper.basicUser();
+    it('updateUserNotifyProps', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
 
-    //         var notifyProps = {
-    //             all: 'true',
-    //             channel: 'true',
-    //             desktop: 'all',
-    //             desktop_sound: 'true',
-    //             email: 'false',
-    //             first_name: 'false',
-    //             mention_keys: '',
-    //             user_id: user.id
-    //         };
+            var notifyProps = {
+                all: 'true',
+                channel: 'true',
+                desktop: 'all',
+                desktop_sound: 'true',
+                email: 'false',
+                first_name: 'false',
+                mention_keys: '',
+                user_id: user.id
+            };
 
-    //         TestHelper.basicClient().updateUserNotifyProps(
-    //             notifyProps,
-    //             function(data) {
-    //                 assert.equal(data.notify_props.email, 'false');
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().updateUserNotifyProps(
+                notifyProps,
+                function(data) {
+                    assert.equal(data.notify_props.email, 'false');
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('updateRoles', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         var user = TestHelper.basicUser();
+    it('updateRoles', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().updateRoles(
-    //             user.id,
-    //             '',
-    //             function(data) {
-    //                 assert.equal(data.roles, '');
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().updateRoles(
+                user.id,
+                '',
+                function(data) {
+                    assert.equal(data.roles, '');
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('updateActive', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         var user = TestHelper.basicUser();
+    it('updateActive', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().updateActive(
-    //             user.id,
-    //             false,
-    //             function(data) {
-    //                 assert.equal(data.last_activity_at > 0, true);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().updateActive(
+                user.id,
+                false,
+                function(data) {
+                    assert.equal(data.last_activity_at > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('sendPasswordReset', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         var user = TestHelper.basicUser();
+    it('sendPasswordReset', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().sendPasswordReset(
-    //             user.email,
-    //             function(data) {
-    //                 assert.equal(data.email, user.email);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().sendPasswordReset(
+                user.email,
+                function(data) {
+                    assert.equal(data.email, user.email);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('resetPassword', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
-    //         var user = TestHelper.basicUser();
+    it('resetPassword', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().resetPassword(
-    //             user.id,
-    //             'new_password',
-    //             null,
-    //             null,
-    //             function() {
-    //                 throw Error('shouldnt work');
-    //             },
-    //             function(err) {
-    //                 // this should fail since you're not a system admin
-    //                 assert.equal(err.id, 'api.context.invalid_param.app_error');
-    //                 done();
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().resetPassword(
+                user.id,
+                'new_password',
+                null,
+                null,
+                function() {
+                    throw Error('shouldnt work');
+                },
+                function(err) {
+                    // this should fail since you're not a system admin
+                    assert.equal(err.id, 'api.context.invalid_param.app_error');
+                    done();
+                }
+            );
+        });
+    });
 
-    // it('emailToOAuth', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
-    //         var user = TestHelper.basicUser();
+    it('emailToOAuth', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().emailToOAuth(
-    //             user.email,
-    //             'new_password',
-    //             'gitlab',
-    //             function() {
-    //                 throw Error('shouldnt work');
-    //             },
-    //             function(err) {
-    //                 // this should fail since you're not a system admin
-    //                 assert.equal(err.id, 'api.user.check_user_password.invalid.app_error');
-    //                 done();
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().emailToOAuth(
+                user.email,
+                'new_password',
+                'gitlab',
+                function() {
+                    throw Error('shouldnt work');
+                },
+                function(err) {
+                    // this should fail since you're not a system admin
+                    assert.equal(err.id, 'api.user.check_user_password.invalid.app_error');
+                    done();
+                }
+            );
+        });
+    });
 
-    // it('oauthToEmail', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         var user = TestHelper.basicUser();
+    it('oauthToEmail', function(done) {
+        TestHelper.initBasic(() => {
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().oauthToEmail(
-    //             user.email,
-    //             'new_password',
-    //             function(data) {
-    //                 assert.equal(data.follow_link.length > 0, true);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().oauthToEmail(
+                user.email,
+                'new_password',
+                function(data) {
+                    assert.equal(data.follow_link.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('emailToLdap', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
-    //         var user = TestHelper.basicUser();
+    it('emailToLdap', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().emailToLdap(
-    //             user.email,
-    //             user.password,
-    //             'unknown_id',
-    //             'unknown_pwd',
-    //             function() {
-    //                 throw Error('shouldnt work');
-    //             },
-    //             function(err) {
-    //                 assert.equal(err.id, 'ent.ldap.do_login.licence_disable.app_error');
-    //                 done();
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().emailToLdap(
+                user.email,
+                user.password,
+                'unknown_id',
+                'unknown_pwd',
+                function() {
+                    throw Error('shouldnt work');
+                },
+                function(err) {
+                    assert.equal(err.id, 'ent.ldap.do_login.licence_disable.app_error');
+                    done();
+                }
+            );
+        });
+    });
 
-    // it('ldapToEmail', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
-    //         var user = TestHelper.basicUser();
+    it('ldapToEmail', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            var user = TestHelper.basicUser();
 
-    //         TestHelper.basicClient().ldapToEmail(
-    //             user.email,
-    //             'new_password',
-    //             'new_password',
-    //             function() {
-    //                 throw Error('shouldnt work');
-    //             },
-    //             function(err) {
-    //                 assert.equal(err.id, 'api.user.ldap_to_email.not_ldap_account.app_error');
-    //                 done();
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().ldapToEmail(
+                user.email,
+                'new_password',
+                'new_password',
+                function() {
+                    throw Error('shouldnt work');
+                },
+                function(err) {
+                    assert.equal(err.id, 'api.user.ldap_to_email.not_ldap_account.app_error');
+                    done();
+                }
+            );
+        });
+    });
 
-    // it('logout', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().logout(
-    //             function(data) {
-    //                 assert.equal(data.user_id, TestHelper.basicUser().id);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+    it('logout', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().logout(
+                function(data) {
+                    assert.equal(data.user_id, TestHelper.basicUser().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('checkMfa', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().checkMfa(
-    //             'email',
-    //             TestHelper.generateId(),
-    //             function(data) {
-    //                 assert.equal(data.mfa_required, 'false');
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+    it('checkMfa', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().checkMfa(
+                'email',
+                TestHelper.generateId(),
+                function(data) {
+                    assert.equal(data.mfa_required, 'false');
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('getSessions', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().getSessions(
-    //             TestHelper.basicUser().id,
-    //             function(data) {
-    //                 assert.equal(data[0].user_id, TestHelper.basicUser().id);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+    it('getSessions', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getSessions(
+                TestHelper.basicUser().id,
+                function(data) {
+                    assert.equal(data[0].user_id, TestHelper.basicUser().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('revokeSession', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().getSessions(
-    //             TestHelper.basicUser().id,
-    //             function(sessions) {
-    //                 TestHelper.basicClient().revokeSession(
-    //                     sessions[0].id,
-    //                     function(data) {
-    //                         assert.equal(data.id, sessions[0].id);
-    //                         done();
-    //                     },
-    //                     function(err) {
-    //                         done(new Error(err.message));
-    //                     }
-    //                 );
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+    it('revokeSession', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getSessions(
+                TestHelper.basicUser().id,
+                function(sessions) {
+                    TestHelper.basicClient().revokeSession(
+                        sessions[0].id,
+                        function(data) {
+                            assert.equal(data.id, sessions[0].id);
+                            done();
+                        },
+                        function(err) {
+                            done(new Error(err.message));
+                        }
+                    );
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('getAudits', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().getAudits(
-    //             TestHelper.basicUser().id,
-    //             function(data) {
-    //                 assert.equal(data[0].user_id, TestHelper.basicUser().id);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+    it('getAudits', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getAudits(
+                TestHelper.basicUser().id,
+                function(data) {
+                    assert.equal(data[0].user_id, TestHelper.basicUser().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('getProfiles', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling sicne this unit test causes an error
-    //         TestHelper.basicClient().getProfiles(
-    //             function() {
-    //                 done(new Error('need to be system admin'));
-    //             },
-    //             function(err) {
-    //                 assert.equal(err.id, 'api.context.system_permissions.app_error');
-    //                 done();
-    //             }
-    //         );
-    //     });
-    // });
+    it('getProfiles', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            TestHelper.basicClient().getProfiles(
+                function() {
+                    done(new Error('need to be system admin'));
+                },
+                function(err) {
+                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    done();
+                }
+            );
+        });
+    });
 
-    // it('getProfilesForTeam', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         TestHelper.basicClient().getProfilesForTeam(
-    //             TestHelper.basicTeam().id,
-    //             function(data) {
-    //                 assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+    it('getProfilesForTeam', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getProfilesForTeam(
+                TestHelper.basicTeam().id,
+                function(data) {
+                    assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
 
-    // it('getStatuses', function(done) {
-    //     TestHelper.initBasic(() => {
-    //         var ids = [];
-    //         ids.push(TestHelper.basicUser().id);
+    it('getStatuses', function(done) {
+        TestHelper.initBasic(() => {
+            var ids = [];
+            ids.push(TestHelper.basicUser().id);
 
-    //         TestHelper.basicClient().getStatuses(
-    //             ids,
-    //             function(data) {
-    //                 assert.equal(data[TestHelper.basicUser().id], 'online');
-    //                 done();
-    //             },
-    //             function(err) {
-    //                 done(new Error(err.message));
-    //             }
-    //         );
-    //     });
-    // });
+            TestHelper.basicClient().getStatuses(
+                ids,
+                function(data) {
+                    assert.equal(data[TestHelper.basicUser().id], 'online');
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('verifyEmail', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            TestHelper.basicClient().verifyEmail(
+                'junk',
+                'junk',
+                function() {
+                    done(new Error('should be invalid'));
+                },
+                function(err) {
+                    assert.equal(err.id, 'api.context.invalid_param.app_error');
+                    done();
+                }
+            );
+        });
+    });
+
+    it('resendVerification', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            TestHelper.basicClient().resendVerification(
+                TestHelper.basicUser().email,
+                function() {
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('updateMfa', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            TestHelper.basicClient().updateMfa(
+                'junk',
+                true,
+                function() {
+                    done(new Error('not enabled'));
+                },
+                function(err) {
+                    assert.equal(err.id, 'ent.mfa.license_disable.app_error');
+                    done();
+                }
+            );
+        });
+    });
 });

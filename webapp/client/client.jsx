@@ -313,6 +313,27 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getClientLicenceConfig', success, error));
     }
 
+    removeLicenseFile = (success, error) => {
+        request.
+            post(`${this.getLicenseRoute()}/remove`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'removeLicenseFile', success, error));
+    }
+
+    uploadLicenseFile = (formData, success, error) => {
+        request.
+            post(`${this.getLicenseRoute()}/add`).
+            set(this.defaultHeaders).
+            type('form').
+            accept('application/json').
+            send(formData).
+            end(this.handleResponse.bind(this, 'uploadLicenseFile', success, error));
+
+        this.track('api', 'api_license_upload');
+    }
+
     importSlack = (fileData, success, error) => {
         request.
             post(`${this.getTeamsRoute()}/import_team`).
@@ -450,6 +471,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
         this.track('api', 'api_teams_invite_members');
+    }
+
+    getInviteInfo = (inviteId, success, error) => {
+        request.
+            post(`${this.getTeamsRoute()}/get_invite_info`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({invite_id: inviteId}).
+            end(this.handleResponse.bind(this, 'getInviteInfo', success, error));
     }
 
     // User Routes Setions
@@ -800,6 +831,40 @@ export default class Client {
             accept('application/json').
             send(ids).
             end(this.handleResponse.bind(this, 'getStatuses', success, error));
+    }
+
+    verifyEmail = (uid, hid, success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/verify_email`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({uid, hid}).
+            end(this.handleResponse.bind(this, 'verifyEmail', success, error));
+    }
+
+    resendVerification = (email, success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/resend_verification`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({email}).
+            end(this.handleResponse.bind(this, 'resendVerification', success, error));
+    }
+
+    updateMfa = (token, activate, success, error) => {
+        const data = {};
+        data.activate = activate;
+        data.token = token;
+
+        request.
+            post(`${this.getUsersRoute()}/update_mfa`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateMfa', success, error));
     }
 
     // Channel Routes Section
