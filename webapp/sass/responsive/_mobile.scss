@@ -726,7 +726,7 @@
             top: 0;
             z-index: 0;
         }
-        
+
         &.move--right {
             @include translate3d(290px, 0, 0);
 
@@ -883,8 +883,9 @@
     .backstage-list__item {
         display: block;
 
+        .item-actions,
         .actions {
-            margin-top: 10px;
+            margin-top: 15px;
             padding: 0;
         }
     }
