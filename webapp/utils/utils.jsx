@@ -1207,7 +1207,7 @@ export function importSlack(file, success, error) {
     formData.append('filesize', file.size);
     formData.append('importFrom', 'slack');
 
-    client.importSlack(formData, success, error);
+    Client.importSlack(formData, success, error);
 }
 
 export function getTeamURLFromAddressBar() {

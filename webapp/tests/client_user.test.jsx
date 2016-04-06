@@ -443,14 +443,13 @@ describe('Client.User', function() {
 
     it('getProfiles', function(done) {
         TestHelper.initBasic(() => {
-            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().getProfiles(
-                function() {
-                    done(new Error('need to be system admin'));
+                function(data) {
+                    assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
+                    done();
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.system_permissions.app_error');
-                    done();
+                    done(new Error(err.message));
                 }
             );
         });
