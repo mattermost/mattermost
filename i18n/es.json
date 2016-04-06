@@ -368,6 +368,38 @@
     "translation": "yo"
   },
   {
+    "id": "api.command_msg.desc",
+    "translation": "Envia un mensaje directo a un usuario"
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Ha ocurrido un error mientras se creaba el mensaje directo."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Ha ocurrido un error mientras se enviaba el mensaje al usuario."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[usuario] 'mensaje'"
+  },
+  {
+    "id": "api.command_msg.list.app_error",
+    "translation": "Ha ocurrido un error mientras se listaban los usuarios."
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "No pudimos encontrar el usuario"
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "mensaje"
+  },
+  {
+    "id": "api.command_msg.success",
+    "translation": "Mensaje enviado al usuario."
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "Agrega ¯\\_(ツ)_/¯ a tu mensaje"
   },
@@ -1448,6 +1480,10 @@
     "translation": "LDAP no está disponible en este servidor"
   },
   {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Esta cuenta de usuario no utiliza LDAP"
+  },
+  {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "El campo de contraseña no debe quedar en blanco"
   },
@@ -1824,6 +1860,30 @@
     "translation": "Error intentando autenticar el token AMF"
   },
   {
+    "id": "error.generic.link_message",
+    "translation": "Volver a Mattermost"
+  },
+  {
+    "id": "error.generic.message",
+    "translation": "Ha ocurrido un error."
+  },
+  {
+    "id": "error.generic.title",
+    "translation": "Error"
+  },
+  {
+    "id": "error.not_found.link_message",
+    "translation": "Volver a Mattermost"
+  },
+  {
+    "id": "error.not_found.message",
+    "translation": "La página que estás intentando acceder no existe."
+  },
+  {
+    "id": "error.not_found.title",
+    "translation": "Página no encontrada"
+  },
+  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "No pudimos encontrar el canal: %v, búsqueda realizada con estas posibilidades %v"
   },
@@ -2024,6 +2084,14 @@
     "translation": "Fecha de Creación debe ser válida"
   },
   {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Descripción inválida"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Nombre para mostrar no válido"
+  },
+  {
     "id": "model.command.is_valid.id.app_error",
     "translation": "Id inválido"
   },
@@ -2180,6 +2248,14 @@
     "translation": "Create debe ser un tiempo válido"
   },
   {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Descripción inválida"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Nombre para mostrar no válido"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "Id inválido"
   },
@@ -2242,6 +2318,14 @@
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
     "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Descripción inválida"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Nombre para mostrar no válido"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -2638,6 +2722,10 @@
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
     "translation": "No pudimos encontrar el canal"
+  },
+  {
+    "id": "store.sql_channel.get_by_name.missing.app_error",
+    "translation": "El canal no existe"
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",

@@ -13,7 +13,7 @@ import (
 
 func InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
-	BaseRoutes.NeedTeam.Handle("/websocket", ApiUserRequired(connect)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/websocket", ApiUserRequiredTrustRequester(connect)).Methods("GET")
 	hub.Start()
 }
 

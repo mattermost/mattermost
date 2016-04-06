@@ -61,12 +61,12 @@ class TeamSignupPasswordPage extends React.Component {
                 Client.track('signup', 'signup_team_08_complete');
 
                 var props = this.props;
-
+                
                 Client.login(
                     teamSignup.team.email,
                     null,
                     teamSignup.user.password,
-                    null,
+                    '',
                     () => {
                         UserStore.setLastEmail(teamSignup.team.email);
                         if (this.props.hash > 0) {

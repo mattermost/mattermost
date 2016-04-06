@@ -31,10 +31,6 @@ const holders = defineMessages({
         id: 'user.settings.modal.developer',
         defaultMessage: 'Developer'
     },
-    integrations: {
-        id: 'user.settings.modal.integrations',
-        defaultMessage: 'Integrations'
-    },
     display: {
         id: 'user.settings.modal.display',
         defaultMessage: 'Display'
@@ -227,7 +223,6 @@ class UserSettingsModal extends React.Component {
         if (this.state.currentUser == null) {
             return (<div/>);
         }
-        var isAdmin = Utils.isAdmin(this.state.currentUser.roles);
         var tabs = [];
 
         tabs.push({name: 'general', uiName: formatMessage(holders.general), icon: 'glyphicon glyphicon-cog'});
@@ -235,18 +230,6 @@ class UserSettingsModal extends React.Component {
         tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'glyphicon glyphicon-exclamation-sign'});
         if (global.window.mm_config.EnableOAuthServiceProvider === 'true') {
             tabs.push({name: 'developer', uiName: formatMessage(holders.developer), icon: 'glyphicon glyphicon-th'});
-        }
-
-        if (global.window.mm_config.EnableIncomingWebhooks === 'true' || global.window.mm_config.EnableOutgoingWebhooks === 'true' || global.window.mm_config.EnableCommands === 'true') {
-            var show = global.window.mm_config.EnableOnlyAdminIntegrations !== 'true';
-
-            if (global.window.mm_config.EnableOnlyAdminIntegrations === 'true' && isAdmin) {
-                show = true;
-            }
-
-            if (show) {
-                tabs.push({name: 'integrations', uiName: formatMessage(holders.integrations), icon: 'glyphicon glyphicon-transfer'});
-            }
         }
 
         tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'glyphicon glyphicon-eye-open'});

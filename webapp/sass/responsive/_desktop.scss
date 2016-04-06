@@ -36,6 +36,12 @@
     }
 }
 
+@media screen and (max-width: 1258px) {
+    .backstage-content {
+        margin: 46px 46px 46px 150px;
+    }
+}
+
 @media screen and (max-width: 1140px) {
     .tip-overlay {
         &.tip-overlay--chat {
@@ -47,11 +53,6 @@
             }
         }
     }
-
-    .backstage-content {
-        margin: 46px 46px 46px 150px;
-    }
-
 
     .inner-wrap {
         &.move--left {

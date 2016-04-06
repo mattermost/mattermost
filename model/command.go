@@ -99,7 +99,7 @@ func (o *Command) IsValid() *AppError {
 		return NewLocAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "")
 	}
 
-	if len(o.Trigger) > 1024 {
+	if len(o.Trigger) > 128 {
 		return NewLocAppError("Command.IsValid", "model.command.is_valid.trigger.app_error", nil, "")
 	}
 
