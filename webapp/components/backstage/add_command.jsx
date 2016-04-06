@@ -185,7 +185,7 @@ export default class AddCommand extends React.Component {
                     className='form-group'
                 >
                     <label
-                        className='control-label col-sm-3'
+                        className='control-label col-sm-4'
                         htmlFor='autocompleteHint'
                     >
                         <FormattedMessage
@@ -193,7 +193,7 @@ export default class AddCommand extends React.Component {
                             defaultMessage='Autocomplete Hint'
                         />
                     </label>
-                    <div className='col-md-5 col-sm-9'>
+                    <div className='col-md-5 col-sm-8'>
                         <input
                             id='autocompleteHint'
                             type='text'
@@ -203,7 +203,7 @@ export default class AddCommand extends React.Component {
                             onChange={this.updateAutocompleteHint}
                             placeholder={Utils.localizeMessage('add_command.autocompleteHint.placeholder', 'Example: [Patient Name]')}
                         />
-                        <div className='add-integration__help'>
+                        <div className='form__help'>
                             <FormattedMessage
                                 id='add_command.autocompleteDescription.help'
                                 defaultMessage='Optional hint in the autocomplete list about command parameters'
@@ -218,7 +218,7 @@ export default class AddCommand extends React.Component {
                     className='form-group'
                 >
                     <label
-                        className='control-label col-sm-3'
+                        className='control-label col-sm-4'
                         htmlFor='autocompleteDescription'
                     >
                         <FormattedMessage
@@ -226,7 +226,7 @@ export default class AddCommand extends React.Component {
                             defaultMessage='Autocomplete Description'
                         />
                     </label>
-                    <div className='col-md-5 col-sm-9'>
+                    <div className='col-md-5 col-sm-8'>
                         <input
                             id='description'
                             type='text'
@@ -236,7 +236,7 @@ export default class AddCommand extends React.Component {
                             onChange={this.updateAutocompleteDescription}
                             placeholder={Utils.localizeMessage('add_command.autocompleteDescription.placeholder', 'Example: "Returns search results for patient records"')}
                         />
-                        <div className='add-integration__help'>
+                        <div className='form__help'>
                             <FormattedMessage
                                 id='add_command.autocompleteDescription.help'
                                 defaultMessage='Optional short description of slash command for the autocomplete list.'
@@ -263,7 +263,7 @@ export default class AddCommand extends React.Component {
                     <form className='form-horizontal'>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='displayName'
                             >
                                 <FormattedMessage
@@ -271,7 +271,7 @@ export default class AddCommand extends React.Component {
                                     defaultMessage='Display Name'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='displayName'
                                     type='text'
@@ -284,7 +284,7 @@ export default class AddCommand extends React.Component {
                         </div>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='description'
                             >
                                 <FormattedMessage
@@ -292,7 +292,7 @@ export default class AddCommand extends React.Component {
                                     defaultMessage='Description'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='description'
                                     type='text'
@@ -305,7 +305,7 @@ export default class AddCommand extends React.Component {
                         </div>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='trigger'
                             >
                                 <FormattedMessage
@@ -313,7 +313,7 @@ export default class AddCommand extends React.Component {
                                     defaultMessage='Command Trigger Word'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='trigger'
                                     type='text'
@@ -323,13 +323,13 @@ export default class AddCommand extends React.Component {
                                     onChange={this.updateTrigger}
                                     placeholder={Utils.localizeMessage('add_command.trigger.placeholder', 'Command trigger e.g. "hello" not including the slash')}
                                 />
-                                <div className='add-integration__help'>
+                                <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.trigger.help1'
                                         defaultMessage='Examples: /patient, /client /employee'
                                     />
                                 </div>
-                                <div className='add-integration__help'>
+                                <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.trigger.help2'
                                         defaultMessage='Reserved: /echo, /join, /logout, /me, /shrug'
@@ -339,7 +339,7 @@ export default class AddCommand extends React.Component {
                         </div>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='url'
                             >
                                 <FormattedMessage
@@ -347,7 +347,7 @@ export default class AddCommand extends React.Component {
                                     defaultMessage='Request URL'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='url'
                                     type='text'
@@ -357,7 +357,7 @@ export default class AddCommand extends React.Component {
                                     onChange={this.updateUrl}
                                     placeholder={Utils.localizeMessage('add_command.url.placeholder', 'Must start with http:// or https://')}
                                 />
-                                <div className='add-integration__help'>
+                                <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.url.help'
                                         defaultMessage='The callback URL to receive the HTTP POST or GET event request when the slash command is run.'
@@ -367,7 +367,7 @@ export default class AddCommand extends React.Component {
                         </div>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='method'
                             >
                                 <FormattedMessage
@@ -375,7 +375,7 @@ export default class AddCommand extends React.Component {
                                     defaultMessage='Request Method'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <select
                                     id='method'
                                     className='form-control'
@@ -389,7 +389,7 @@ export default class AddCommand extends React.Component {
                                         {Utils.localizeMessage('add_command.method.get', 'GET')}
                                     </option>
                                 </select>
-                                <div className='add-integration__help'>
+                                <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.method.help'
                                         defaultMessage='The type of command request issued to the Request URL.'
@@ -399,7 +399,7 @@ export default class AddCommand extends React.Component {
                         </div>
                         <div className='form-group'>
                             <label
-                                className='control-lavel col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='username'
                             >
                                 <FormattedMessage
@@ -407,7 +407,7 @@ export default class AddCommand extends React.Component {
                                     defaultMessage='Response Username'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='username'
                                     type='text'
@@ -417,7 +417,7 @@ export default class AddCommand extends React.Component {
                                     onChange={this.updateUsername}
                                     placholder={Utils.localizeMessage('add_command.username.placeholder', 'Username')}
                                 />
-                                <div className='add-integration__help'>
+                                <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.username.help'
                                         defaultMessage='Choose a username override for responses for this slash command. Usernames can consist of up to 22 characters consisting of lowercase letters, numbers and the symbols "-", "_", and ".".'
@@ -427,7 +427,7 @@ export default class AddCommand extends React.Component {
                         </div>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='iconUrl'
                             >
                                 <FormattedMessage
@@ -435,7 +435,7 @@ export default class AddCommand extends React.Component {
                                     defaultMessage='Response Icon'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='iconUrl'
                                     type='text'
@@ -445,7 +445,7 @@ export default class AddCommand extends React.Component {
                                     onChange={this.updateIconUrl}
                                     placeholder={Utils.localizeMessage('add_command.iconUrl.placeholder', 'https://www.example.com/myicon.png')}
                                 />
-                                <div className='add-integration__help'>
+                                <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.iconUrl.help'
                                         defaultMessage='Choose a profile picture override for the post responses to this slash command. Enter the URL of a .png or .jpg file at least 128 pixels by 128 pixels.'
@@ -453,23 +453,20 @@ export default class AddCommand extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
-                            <label
-                                className='control-label col-sm-3'
-                                htmlFor='autocomplete'
-                            >
-                                <FormattedMessage
-                                    id='add_command.autocomplete'
-                                    defaultMessage='Autocomplete'
-                                />
-                            </label>
-                            <div className='col-md-5 col-sm-9'>
-                                <input
-                                    type='checkbox'
-                                    checked={this.state.autocomplete}
-                                    onChange={this.updateAutocomplete}
-                                />
-                                <div className='add-integration__help'>
+                        <div className='form-group padding-bottom'>
+                            <div className='col-sm-12'>
+                                <div className='checkbox'>
+                                    <input
+                                        type='checkbox'
+                                        checked={this.state.autocomplete}
+                                        onChange={this.updateAutocomplete}
+                                    />
+                                    <FormattedMessage
+                                        id='add_command.autocomplete'
+                                        defaultMessage='Autocomplete'
+                                    />
+                                </div>
+                                <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.autocomplete.help'
                                         defaultMessage='Show this command in the autocomplete list'

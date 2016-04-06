@@ -39,38 +39,6 @@
         }
     }
 
-    .padding-top {
-        padding-top: 7px;
-
-        &.x2 {
-            padding-top: 14px;
-        }
-
-        &.x3 {
-            padding-top: 21px;
-        }
-    }
-
-    .padding-bottom {
-        padding-bottom: 7px;
-
-        &.x2 {
-            padding-bottom: 14px;
-        }
-
-        &.x3 {
-            padding-bottom: 21px;
-        }
-
-        .control-label {
-            font-weight: 600;
-
-            &.text-left {
-                text-align: left;
-            }
-        }
-    }
-
     .custom-textarea {
         border-color: $light-gray;
         color: inherit;
@@ -520,7 +488,7 @@
     }
 
     .more-modal__row {
-        border-bottom: 1px solid;
+        border-bottom: 1px solid $light-gray;
         display: flex;
         padding: 8px 15px;
     }

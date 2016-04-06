@@ -114,7 +114,7 @@ export default class AddIncomingWebhook extends React.Component {
                     <form className='form-horizontal'>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='displayName'
                             >
                                 <FormattedMessage
@@ -122,7 +122,7 @@ export default class AddIncomingWebhook extends React.Component {
                                     defaultMessage='Display Name'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='displayName'
                                     type='text'
@@ -135,7 +135,7 @@ export default class AddIncomingWebhook extends React.Component {
                         </div>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='description'
                             >
                                 <FormattedMessage
@@ -143,7 +143,7 @@ export default class AddIncomingWebhook extends React.Component {
                                     defaultMessage='Description'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='description'
                                     type='text'
@@ -156,7 +156,7 @@ export default class AddIncomingWebhook extends React.Component {
                         </div>
                         <div className='form-group'>
                             <label
-                                className='control-label col-sm-3'
+                                className='control-label col-sm-4'
                                 htmlFor='channelId'
                             >
                                 <FormattedMessage
@@ -164,7 +164,7 @@ export default class AddIncomingWebhook extends React.Component {
                                     defaultMessage='Channel'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-9'>
+                            <div className='col-md-5 col-sm-8'>
                                 <ChannelSelect
                                     id='channelId'
                                     value={this.state.channelId}
