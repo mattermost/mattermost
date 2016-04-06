@@ -4,9 +4,9 @@
 package api
 
 import (
-	//"strings"
 	"testing"
 
+	//"strings"
 	//"github.com/mattermost/platform/model"
 )
 
