@@ -419,7 +419,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 							// copy the context and create a mock session for posting the message
 							mockSession := model.Session{
 								UserId:  hook.CreatorId,
-								Teams:   []*model.TeamMember{&model.TeamMember{TeamId: hook.TeamId, UserId: hook.CreatorId}},
+								Teams:   []*model.TeamMember{{TeamId: hook.TeamId, UserId: hook.CreatorId}},
 								IsOAuth: false,
 							}
 

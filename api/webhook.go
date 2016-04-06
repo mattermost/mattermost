@@ -427,7 +427,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	// create a mock session
 	c.Session = model.Session{
 		UserId:  hook.UserId,
-		Teams:   []*model.TeamMember{&model.TeamMember{TeamId: hook.TeamId, UserId: hook.UserId}},
+		Teams:   []*model.TeamMember{{TeamId: hook.TeamId, UserId: hook.UserId}},
 		IsOAuth: false,
 	}
 
