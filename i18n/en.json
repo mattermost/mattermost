@@ -1820,12 +1820,12 @@
     "translation": "Credentials valid but unable to create user."
   },
   {
-    "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "User not registered on LDAP server"
-  },
-  {
     "id": "ent.ldap.do_login.user_filtered.app_error",
     "translation": "User is not permitted to use Mattermost. (LDAP user filter)"
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "User not registered on LDAP server"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
