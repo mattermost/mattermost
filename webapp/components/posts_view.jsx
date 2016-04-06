@@ -426,7 +426,7 @@ export default class PostsView extends React.Component {
         return false;
     }
     componentWillUpdate(nextProps) {
-        if (this.props.postList) {
+        if (this.props.postList && this.props.postList.order.length) {
             if (this.props.postList.order[0] !== nextProps.postList.order[0] && nextProps.scrollType !== PostsView.SCROLL_TYPE_BOTTOM) {
                 this.showUnreadMessageAlert = true;
             } else if (nextProps.scrollType === PostsView.SCROLL_TYPE_BOTTOM || nextProps.scrollType === PostsView.SCROLL_TYPE_NEW_MESSAGE) {
