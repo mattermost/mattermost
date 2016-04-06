@@ -113,9 +113,10 @@ test: start-docker
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 
 run-client-tests:
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
 	sleep 10
 	@echo Running client side unit tests
-	cd webapp && npm test
+	cd $(BUILD_WEBAPP_DIR) && npm test
 
 test-client: run-server run-client-tests stop-server
 

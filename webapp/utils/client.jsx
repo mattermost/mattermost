@@ -1693,23 +1693,23 @@
 //     });
 // }
 
-export function uploadLicenseFile(formData, success, error) {
-    $.ajax({
-        url: '/api/v1/license/add',
-        type: 'POST',
-        data: formData,
-        cache: false,
-        contentType: false,
-        processData: false,
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('uploadLicenseFile', xhr, status, err);
-            error(e);
-        }
-    });
+// export function uploadLicenseFile(formData, success, error) {
+//     $.ajax({
+//         url: '/api/v1/license/add',
+//         type: 'POST',
+//         data: formData,
+//         cache: false,
+//         contentType: false,
+//         processData: false,
+//         success,
+//         error: function onError(xhr, status, err) {
+//             var e = handleError('uploadLicenseFile', xhr, status, err);
+//             error(e);
+//         }
+//     });
 
-    track('api', 'api_license_upload');
-}
+//     track('api', 'api_license_upload');
+// }
 
 // export function removeLicenseFile(success, error) {
 //     $.ajax({

@@ -5,7 +5,6 @@ package web
 
 import (
 	"net/url"
-	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -56,24 +55,6 @@ func TestStatic(t *testing.T) {
 	}
 }
 */
-
-// func TestRunJavascriptUnitTests(t *testing.T) {
-// 	Setup()
-
-// 	// add a short delay to make sure the server is ready to receive requests
-// 	time.Sleep(1 * time.Second)
-
-// 	cmd := exec.Command("npm", "test")
-// 	err := cmd.Start()
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-
-// 	err = cmd.Wait()
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// }
 
 func TestGetAccessToken(t *testing.T) {
 	Setup()

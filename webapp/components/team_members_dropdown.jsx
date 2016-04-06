@@ -108,7 +108,7 @@ export default class TeamMembersDropdown extends React.Component {
     handleDemoteSubmit() {
         Client.updateRoles(
             this.props.user.id,
-            this.state.role,  
+            this.state.role,
             () => {
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {
