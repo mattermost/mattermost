@@ -58,6 +58,17 @@ export default class InstalledCommand extends React.Component {
                         </span>
                     </div>
                     <div className='item-details__row'>
+                        <span className='item-details__token'>
+                            <FormattedMessage
+                                id='installed_integrations.token'
+                                defaultMessage='Token: {token}'
+                                values={{
+                                    token: command.token
+                                }}
+                            />
+                        </span>
+                    </div>
+                    <div className='item-details__row'>
                         <span className='item-details__creation'>
                             <FormattedMessage
                                 id='installed_integrations.creation'
@@ -93,5 +104,11 @@ export default class InstalledCommand extends React.Component {
                 </div>
             </div>
         );
+    }
+
+    static matches(command, filter) {
+        return command.display_name.toLowerCase().indexOf(filter) !== -1 ||
+            command.description.toLowerCase().indexOf(filter) !== -1 ||
+            command.trigger.toLowerCase().indexOf(filter) !== -1;
     }
 }

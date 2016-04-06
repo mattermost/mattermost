@@ -80,4 +80,21 @@ export default class InstalledIncomingWebhook extends React.Component {
             </div>
         );
     }
+
+    static matches(incomingWebhook, filter) {
+        if (incomingWebhook.display_name.toLowerCase().indexOf(filter) !== -1 ||
+            incomingWebhook.description.toLowerCase().indexOf(filter) !== -1) {
+            return true;
+        }
+
+        if (incomingWebhook.channel_id) {
+            const channel = ChannelStore.get(incomingWebhook.channel_id);
+
+            if (channel && channel.name.toLowerCase().indexOf(filter) !== -1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

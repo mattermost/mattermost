@@ -62,6 +62,17 @@ export default class InstalledOutgoingWebhook extends React.Component {
                         </span>
                     </div>
                     <div className='item-details__row'>
+                        <span className='item-details__token'>
+                            <FormattedMessage
+                                id='installed_integrations.token'
+                                defaultMessage='Token: {token}'
+                                values={{
+                                    token: outgoingWebhook.token
+                                }}
+                            />
+                        </span>
+                    </div>
+                    <div className='item-details__row'>
                         <span className='item-details__creation'>
                             <FormattedMessage
                                 id='installed_integrations.creation'
@@ -97,5 +108,28 @@ export default class InstalledOutgoingWebhook extends React.Component {
                 </div>
             </div>
         );
+    }
+
+    static matches(outgoingWebhook, filter) {
+        if (outgoingWebhook.display_name.toLowerCase().indexOf(filter) !== -1 ||
+            outgoingWebhook.description.toLowerCase().indexOf(filter) !== -1) {
+            return true;
+        }
+
+        for (const trigger of outgoingWebhook.trigger_words) {
+            if (trigger.toLowerCase().indexOf(filter) !== -1) {
+                return true;
+            }
+        }
+
+        if (outgoingWebhook.channel_id) {
+            const channel = ChannelStore.get(outgoingWebhook.channel_id);
+
+            if (channel && channel.name.toLowerCase().indexOf(filter) !== -1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

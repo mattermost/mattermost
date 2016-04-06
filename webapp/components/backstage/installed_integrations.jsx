@@ -4,7 +4,6 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -133,128 +132,120 @@ export default class InstalledIntegrations extends React.Component {
     renderTypeFilters(incomingWebhooks, outgoingWebhooks, commands) {
         const fields = [];
 
-        if (incomingWebhooks.length > 0 || outgoingWebhooks.length > 0 || commands.length > 0) {
-            let filterClassName = 'filter-sort';
-            if (this.state.typeFilter === '') {
-                filterClassName += ' filter-sort--active';
-            }
-
-            fields.push(
-                <a
-                    key='allFilter'
-                    className={filterClassName}
-                    href='#'
-                    onClick={(e) => this.updateTypeFilter(e, '')}
-                >
-                    <FormattedMessage
-                        id='installed_integrations.allFilter'
-                        defaultMessage='All ({count})'
-                        values={{
-                            count: incomingWebhooks.length + outgoingWebhooks.length
-                        }}
-                    />
-                </a>
-            );
+        let allFilterClassName = 'filter-sort';
+        if (this.state.typeFilter === '') {
+            allFilterClassName += ' filter-sort--active';
         }
 
-        if (incomingWebhooks.length > 0) {
-            fields.push(
-                <span
-                    key='incomingWebhooksDivider'
-                    className='divider'
-                >
-                    {'|'}
-                </span>
-            );
+        fields.push(
+            <a
+                key='allFilter'
+                className={allFilterClassName}
+                href='#'
+                onClick={(e) => this.updateTypeFilter(e, '')}
+            >
+                <FormattedMessage
+                    id='installed_integrations.allFilter'
+                    defaultMessage='All ({count, number})'
+                    values={{
+                        count: incomingWebhooks.length + outgoingWebhooks.length + commands.length
+                    }}
+                />
+            </a>
+        );
 
-            let filterClassName = 'filter-sort';
-            if (this.state.typeFilter === 'incomingWebhooks') {
-                filterClassName += ' filter-sort--active';
-            }
+        fields.push(
+            <span
+                key='incomingWebhooksDivider'
+                className='divider'
+            >
+                {'|'}
+            </span>
+        );
 
-            fields.push(
-                <a
-                    key='incomingWebhooksFilter'
-                    className={filterClassName}
-                    href='#'
-                    onClick={(e) => this.updateTypeFilter(e, 'incomingWebhooks')}
-                >
-                    <FormattedMessage
-                        id='installed_integrations.incomingWebhooksFilter'
-                        defaultMessage='Incoming Webhooks ({count})'
-                        values={{
-                            count: incomingWebhooks.length
-                        }}
-                    />
-                </a>
-            );
+        let incomingWebhookClassName = 'filter-sort';
+        if (this.state.typeFilter === 'incomingWebhooks') {
+            incomingWebhookClassName += ' filter-sort--active';
         }
 
-        if (outgoingWebhooks.length > 0) {
-            fields.push(
-                <span
-                    key='outgoingWebhooksDivider'
-                    className='divider'
-                >
-                    {'|'}
-                </span>
-            );
+        fields.push(
+            <a
+                key='incomingWebhooksFilter'
+                className={incomingWebhookClassName}
+                href='#'
+                onClick={(e) => this.updateTypeFilter(e, 'incomingWebhooks')}
+            >
+                <FormattedMessage
+                    id='installed_integrations.incomingWebhooksFilter'
+                    defaultMessage='Incoming Webhooks ({count, number})'
+                    values={{
+                        count: incomingWebhooks.length
+                    }}
+                />
+            </a>
+        );
 
-            let filterClassName = 'filter-sort';
-            if (this.state.typeFilter === 'outgoingWebhooks') {
-                filterClassName += ' filter-sort--active';
-            }
+        fields.push(
+            <span
+                key='outgoingWebhooksDivider'
+                className='divider'
+            >
+                {'|'}
+            </span>
+        );
 
-            fields.push(
-                <a
-                    key='outgoingWebhooksFilter'
-                    className={filterClassName}
-                    href='#'
-                    onClick={(e) => this.updateTypeFilter(e, 'outgoingWebhooks')}
-                >
-                    <FormattedMessage
-                        id='installed_integrations.outgoingWebhooksFilter'
-                        defaultMessage='Outgoing Webhooks ({count})'
-                        values={{
-                            count: outgoingWebhooks.length
-                        }}
-                    />
-                </a>
-            );
+        let outgoingWebhookClassName = 'filter-sort';
+        if (this.state.typeFilter === 'outgoingWebhooks') {
+            outgoingWebhookClassName += ' filter-sort--active';
         }
 
-        if (commands.length > 0) {
-            fields.push(
-                <span
-                    key='commandsDivider'
-                    className='divider'
-                >
-                    {'|'}
-                </span>
-            );
+        fields.push(
+            <a
+                key='outgoingWebhooksFilter'
+                className={outgoingWebhookClassName}
+                href='#'
+                onClick={(e) => this.updateTypeFilter(e, 'outgoingWebhooks')}
+            >
+                <FormattedMessage
+                    id='installed_integrations.outgoingWebhooksFilter'
+                    defaultMessage='Outgoing Webhooks ({count, number})'
+                    values={{
+                        count: outgoingWebhooks.length
+                    }}
+                />
+            </a>
+        );
 
-            let filterClassName = 'filter-sort';
-            if (this.state.typeFilter === 'commands') {
-                filterClassName += ' filter-sort--active';
-            }
+        fields.push(
+            <span
+                key='commandsDivider'
+                className='divider'
+            >
+                {'|'}
+            </span>
+        );
 
-            fields.push(
-                <a
-                    key='commandsFilter'
-                    className={filterClassName}
-                    href='#'
-                    onClick={(e) => this.updateTypeFilter(e, 'commands')}
-                >
-                    <FormattedMessage
-                        id='installed_integrations.commandsFilter'
-                        defaultMessage='Slash Commands ({count})'
-                        values={{
-                            count: commands.length
-                        }}
-                    />
-                </a>
-            );
+        let commandClassName = 'filter-sort';
+        if (this.state.typeFilter === 'commands') {
+            commandClassName += ' filter-sort--active';
         }
+
+        fields.push(
+            <a
+                key='commandsFilter'
+                className={commandClassName}
+                href='#'
+                onClick={(e) => this.updateTypeFilter(e, 'commands')}
+            >
+                <FormattedMessage
+                    id='installed_integrations.commandsFilter'
+                    defaultMessage='Slash Commands ({count, number})'
+                    values={{
+                        count: commands.length
+                    }}
+                />
+            </a>
+        );
 
         return (
             <div className='backstage-filters__sort'>
@@ -264,24 +255,38 @@ export default class InstalledIntegrations extends React.Component {
     }
 
     render() {
-        const incomingWebhooks = this.state.incomingWebhooks;
-        const outgoingWebhooks = this.state.outgoingWebhooks;
-        const commands = this.state.commands;
-
-        // TODO description, name, creator filtering
         const filter = this.state.filter.toLowerCase();
+
+        let incomingWebhooks = [];
+        if (this.state.filter) {
+            incomingWebhooks = this.state.incomingWebhooks.filter((incomingWebhook) => {
+                return InstalledIncomingWebhook.matches(incomingWebhook, filter);
+            });
+        } else {
+            incomingWebhooks = this.state.incomingWebhooks;
+        }
+
+        let outgoingWebhooks = [];
+        if (this.state.filter) {
+            outgoingWebhooks = this.state.outgoingWebhooks.filter((outgoingWebhook) => {
+                return InstalledOutgoingWebhook.matches(outgoingWebhook, filter);
+            });
+        } else {
+            outgoingWebhooks = this.state.outgoingWebhooks;
+        }
+
+        let commands = [];
+        if (this.state.filter) {
+            commands = this.state.commands.filter((command) => {
+                return InstalledCommand.matches(command, filter);
+            });
+        } else {
+            commands = this.state.commands;
+        }
 
         const integrations = [];
         if (!this.state.typeFilter || this.state.typeFilter === 'incomingWebhooks') {
             for (const incomingWebhook of incomingWebhooks) {
-                if (filter) {
-                    const channel = ChannelStore.get(incomingWebhook.channel_id);
-
-                    if (!channel || channel.name.toLowerCase().indexOf(filter) === -1) {
-                        continue;
-                    }
-                }
-
                 integrations.push(
                     <InstalledIncomingWebhook
                         key={incomingWebhook.id}
@@ -294,14 +299,6 @@ export default class InstalledIntegrations extends React.Component {
 
         if (!this.state.typeFilter || this.state.typeFilter === 'outgoingWebhooks') {
             for (const outgoingWebhook of outgoingWebhooks) {
-                if (filter) {
-                    const channel = ChannelStore.get(outgoingWebhook.channel_id);
-
-                    if (!channel || channel.name.toLowerCase().indexOf(filter) === -1) {
-                        continue;
-                    }
-                }
-
                 integrations.push(
                     <InstalledOutgoingWebhook
                         key={outgoingWebhook.id}
@@ -315,14 +312,6 @@ export default class InstalledIntegrations extends React.Component {
 
         if (!this.state.typeFilter || this.state.typeFilter === 'commands') {
             for (const command of commands) {
-                if (filter) {
-                    const channel = ChannelStore.get(command.channel_id);
-
-                    if (!channel || channel.name.toLowerCase().indexOf(filter) === -1) {
-                        continue;
-                    }
-                }
-
                 integrations.push(
                     <InstalledCommand
                         key={command.id}
