@@ -5,9 +5,6 @@ package api
 
 import (
 	"testing"
-
-	//"strings"
-	//"github.com/mattermost/platform/model"
 )
 
 func TestMsgCommands(t *testing.T) {
@@ -27,6 +24,9 @@ func TestMsgCommands(t *testing.T) {
 	Client.Must(Client.CreateDirectChannel(data))
 
 	// TODO XXX FIXME
+
+	//"strings"
+	//"github.com/mattermost/platform/model"
 
 	// rs1 := Client.Must(Client.Command("", "/msg user2", false)).Data.(*model.CommandResponse)
 	// if !strings.HasSuffix(rs1.GotoLocation, "/"+team.Name+"/channels/"+user1.Id+"__"+user2.Id) && !strings.HasSuffix(rs1.GotoLocation, "/"+team.Name+"/channels/"+user2.Id+"__"+user1.Id) {
