@@ -4,55 +4,13 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Client from 'utils/client.jsx';
+import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 const DEFAULT_LDAP_PORT = 389;
 const DEFAULT_QUERY_TIMEOUT = 60;
-
-var holders = defineMessages({
-    serverEx: {
-        id: 'admin.ldap.serverEx',
-        defaultMessage: 'Ex "10.0.0.23"'
-    },
-    portEx: {
-        id: 'admin.ldap.portEx',
-        defaultMessage: 'Ex "389"'
-    },
-    baseEx: {
-        id: 'admin.ldap.baseEx',
-        defaultMessage: 'Ex "ou=Unit Name,dc=corp,dc=example,dc=com"'
-    },
-    firstnameAttrEx: {
-        id: 'admin.ldap.firstnameAttrEx',
-        defaultMessage: 'Ex "givenName"'
-    },
-    lastnameAttrEx: {
-        id: 'admin.ldap.lastnameAttrEx',
-        defaultMessage: 'Ex "sn"'
-    },
-    emailAttrEx: {
-        id: 'admin.ldap.emailAttrEx',
-        defaultMessage: 'Ex "mail" or "userPrincipalName"'
-    },
-    usernameAttrEx: {
-        id: 'admin.ldap.usernameAttrEx',
-        defaultMessage: 'Ex "sAMAccountName"'
-    },
-    idAttrEx: {
-        id: 'admin.ldap.idAttrEx',
-        defaultMessage: 'Ex "sAMAccountName"'
-    },
-    queryEx: {
-        id: 'admin.ldap.queryEx',
-        defaultMessage: 'Ex "60"'
-    },
-    saving: {
-        id: 'admin.ldap.saving',
-        defaultMessage: 'Saving Config...'
-    }
-});
 
 import React from 'react';
 
@@ -102,6 +60,7 @@ class LdapSettings extends React.Component {
         config.LdapSettings.EmailAttribute = this.refs.EmailAttribute.value.trim();
         config.LdapSettings.UsernameAttribute = this.refs.UsernameAttribute.value.trim();
         config.LdapSettings.IdAttribute = this.refs.IdAttribute.value.trim();
+        config.LdapSettings.UserFilter = this.refs.UserFilter.value.trim();
 
         let QueryTimeout = DEFAULT_QUERY_TIMEOUT;
         if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.QueryTimeout).value, 10))) {
@@ -129,7 +88,6 @@ class LdapSettings extends React.Component {
         );
     }
     render() {
-        const {formatMessage} = this.props.intl;
         let serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -251,7 +209,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='LdapServer'
                                 ref='LdapServer'
-                                placeholder={formatMessage(holders.serverEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.serverEx', 'Ex "10.0.0.23"')}
                                 defaultValue={this.props.config.LdapSettings.LdapServer}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -280,7 +238,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='LdapPort'
                                 ref='LdapPort'
-                                placeholder={formatMessage(holders.portEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.portEx', 'Ex "389"')}
                                 defaultValue={this.props.config.LdapSettings.LdapPort}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -309,7 +267,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='BaseDN'
                                 ref='BaseDN'
-                                placeholder={formatMessage(holders.baseEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.baseEx', 'Ex "ou=Unit Name,dc=corp,dc=example,dc=com"')}
                                 defaultValue={this.props.config.LdapSettings.BaseDN}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -383,6 +341,35 @@ class LdapSettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
+                            htmlFor='UserFilter'
+                        >
+                            <FormattedMessage
+                                id='admin.ldap.userFilterTitle'
+                                defaultMessage='User Filter:'
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='UserFilter'
+                                ref='UserFilter'
+                                placeholder={Utils.localizeMessage('admin.ldap.userFilterEx', 'Ex. "(objectClass=user)"')}
+                                defaultValue={this.props.config.LdapSettings.UserFilter}
+                                onChange={this.handleChange}
+                                disabled={!this.state.enable}
+                            />
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.ldap.userFilterDisc'
+                                    defaultMessage='LDAP Filter to use when searching for user objects.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
                             htmlFor='FirstNameAttribute'
                         >
                             <FormattedMessage
@@ -396,7 +383,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='FirstNameAttribute'
                                 ref='FirstNameAttribute'
-                                placeholder={formatMessage(holders.firstnameAttrEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.firstnameAttrEx', 'Ex "givenName"')}
                                 defaultValue={this.props.config.LdapSettings.FirstNameAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -425,7 +412,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='LastNameAttribute'
                                 ref='LastNameAttribute'
-                                placeholder={formatMessage(holders.lastnameAttrEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.lastnameAttrEx', 'Ex "sn"')}
                                 defaultValue={this.props.config.LdapSettings.LastNameAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -454,7 +441,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='EmailAttribute'
                                 ref='EmailAttribute'
-                                placeholder={formatMessage(holders.emailAttrEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.emailAttrEx', 'Ex "mail" or "userPrincipalName"')}
                                 defaultValue={this.props.config.LdapSettings.EmailAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -483,7 +470,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='UsernameAttribute'
                                 ref='UsernameAttribute'
-                                placeholder={formatMessage(holders.usernameAttrEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.usernameAttrEx', 'Ex "sAMAccountName"')}
                                 defaultValue={this.props.config.LdapSettings.UsernameAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -512,7 +499,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='IdAttribute'
                                 ref='IdAttribute'
-                                placeholder={formatMessage(holders.idAttrEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.idAttrEx', 'Ex "sAMAccountName"')}
                                 defaultValue={this.props.config.LdapSettings.IdAttribute}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -541,7 +528,7 @@ class LdapSettings extends React.Component {
                                 className='form-control'
                                 id='QueryTimeout'
                                 ref='QueryTimeout'
-                                placeholder={formatMessage(holders.queryEx)}
+                                placeholder={Utils.localizeMessage('admin.ldap.queryEx', 'Ex "60"')}
                                 defaultValue={this.props.config.LdapSettings.QueryTimeout}
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
@@ -563,7 +550,7 @@ class LdapSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(holders.saving)}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + Utils.localizeMessage('admin.ldap.saving', 'Saving Config...')}
                             >
                                 <FormattedMessage
                                     id='admin.ldap.save'
@@ -581,8 +568,7 @@ LdapSettings.defaultProps = {
 };
 
 LdapSettings.propTypes = {
-    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
 
-export default injectIntl(LdapSettings);
+export default LdapSettings;

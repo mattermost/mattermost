@@ -135,6 +135,7 @@
         "BaseDN": "",
         "BindUsername": "",
         "BindPassword": "",
+        "UserFilter": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",
