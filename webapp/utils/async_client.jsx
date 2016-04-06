@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import * as client from './client.jsx';
+import client from './web_client.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
@@ -52,15 +52,15 @@ export function getChannels(checkVersion) {
     callTracker.getChannels = utils.getTimestamp();
 
     return client.getChannels(
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getChannels = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             if (checkVersion) {
-                var serverVersion = xhr.getResponseHeader('X-Version-ID');
+                var serverVersion = client.getServerVersion();
 
                 if (serverVersion !== BrowserStore.getLastServerVersion()) {
                     if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
@@ -94,12 +94,12 @@ export function getChannel(id) {
     callTracker['getChannel' + id] = utils.getTimestamp();
 
     client.getChannel(id,
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker['getChannel' + id] = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CHANNEL,
@@ -151,12 +151,12 @@ export function getMoreChannels(force) {
     if (ChannelStore.getMoreAll().loading || force) {
         callTracker.getMoreChannels = utils.getTimestamp();
         client.getMoreChannels(
-            function getMoreChannelsSuccess(data, textStatus, xhr) {
+            function getMoreChannelsSuccess(data) {
                 callTracker.getMoreChannels = 0;
 
-                if (xhr.status === 304 || !data) {
-                    return;
-                }
+                // if (xhr.status === 304 || !data) {
+                //     return;
+                // }
 
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_MORE_CHANNELS,
@@ -190,12 +190,12 @@ export function getChannelExtraInfo(id, memberLimit) {
         client.getChannelExtraInfo(
             channelId,
             memberLimit,
-            (data, textStatus, xhr) => {
+            (data) => {
                 callTracker['getChannelExtraInfo_' + channelId] = 0;
 
-                if (xhr.status === 304 || !data) {
-                    return;
-                }
+                // if (xhr.status === 304 || !data) {
+                //     return;
+                // }
 
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO,
@@ -217,12 +217,12 @@ export function getProfiles() {
 
     callTracker.getProfiles = utils.getTimestamp();
     client.getProfiles(
-        function getProfilesSuccess(data, textStatus, xhr) {
+        function getProfilesSuccess(data) {
             callTracker.getProfiles = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
@@ -244,12 +244,12 @@ export function getSessions() {
     callTracker.getSessions = utils.getTimestamp();
     client.getSessions(
         UserStore.getCurrentId(),
-        function getSessionsSuccess(data, textStatus, xhr) {
+        function getSessionsSuccess(data) {
             callTracker.getSessions = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SESSIONS,
@@ -271,12 +271,12 @@ export function getAudits() {
     callTracker.getAudits = utils.getTimestamp();
     client.getAudits(
         UserStore.getCurrentId(),
-        function getAuditsSuccess(data, textStatus, xhr) {
+        function getAuditsSuccess(data) {
             callTracker.getAudits = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_AUDITS,
@@ -297,12 +297,12 @@ export function getLogs() {
 
     callTracker.getLogs = utils.getTimestamp();
     client.getLogs(
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getLogs = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_LOGS,
@@ -323,12 +323,12 @@ export function getServerAudits() {
 
     callTracker.getServerAudits = utils.getTimestamp();
     client.getServerAudits(
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getServerAudits = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SERVER_AUDITS,
@@ -349,12 +349,12 @@ export function getComplianceReports() {
 
     callTracker.getComplianceReports = utils.getTimestamp();
     client.getComplianceReports(
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getComplianceReports = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SERVER_COMPLIANCE_REPORTS,
@@ -375,12 +375,12 @@ export function getConfig() {
 
     callTracker.getConfig = utils.getTimestamp();
     client.getConfig(
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getConfig = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CONFIG,
@@ -401,12 +401,12 @@ export function getAllTeams() {
 
     callTracker.getAllTeams = utils.getTimestamp();
     client.getAllTeams(
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getAllTeams = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_ALL_TEAMS,
@@ -428,12 +428,12 @@ export function search(terms) {
     callTracker['search_' + String(terms)] = utils.getTimestamp();
     client.search(
         terms,
-        function searchSuccess(data, textStatus, xhr) {
+        function searchSuccess(data) {
             callTracker['search_' + String(terms)] = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH,
@@ -482,10 +482,10 @@ export function getPostsPage(id, maxPosts) {
             channelId,
             0,
             numPosts,
-            (data, textStatus, xhr) => {
-                if (xhr.status === 304 || !data) {
-                    return;
-                }
+            (data) => {
+                // if (xhr.status === 304 || !data) {
+                //     return;
+                // }
 
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_POSTS,
@@ -539,10 +539,10 @@ export function getPosts(id) {
     client.getPosts(
         channelId,
         latestPostTime,
-        (data, textStatus, xhr) => {
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+        (data) => {
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_POSTS,
@@ -578,10 +578,10 @@ export function getPostsBefore(postId, offset, numPost) {
         postId,
         offset,
         numPost,
-        (data, textStatus, xhr) => {
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+        (data) => {
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_POSTS,
@@ -617,10 +617,10 @@ export function getPostsAfter(postId, offset, numPost) {
         postId,
         offset,
         numPost,
-        (data, textStatus, xhr) => {
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+        (data) => {
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_POSTS,
@@ -648,12 +648,12 @@ export function getMe() {
 
     callTracker.getMe = utils.getTimestamp();
     return client.getMe(
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getMe = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_ME,
@@ -685,12 +685,12 @@ export function getStatuses() {
 
     callTracker.getStatuses = utils.getTimestamp();
     client.getStatuses(teammateIds,
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getStatuses = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_STATUSES,
@@ -711,12 +711,12 @@ export function getMyTeam() {
 
     callTracker.getMyTeam = utils.getTimestamp();
     return client.getMyTeam(
-        function getMyTeamSuccess(data, textStatus, xhr) {
+        function getMyTeamSuccess(data) {
             callTracker.getMyTeam = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_MY_TEAM,
@@ -737,12 +737,12 @@ export function getAllPreferences() {
 
     callTracker.getAllPreferences = utils.getTimestamp();
     client.getAllPreferences(
-        (data, textStatus, xhr) => {
+        (data) => {
             callTracker.getAllPreferences = 0;
 
-            if (xhr.status === 304 || !data) {
-                return;
-            }
+            // if (xhr.status === 304 || !data) {
+                // return;
+            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PREFERENCES,
@@ -770,13 +770,18 @@ export function savePreference(category, name, value, success, error) {
 export function savePreferences(preferences, success, error) {
     client.savePreferences(
         preferences,
-        (data, textStatus, xhr) => {
-            if (xhr.status !== 304) {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_PREFERENCES,
-                    preferences
-                });
-            }
+        (data) => {
+            // if (xhr.status !== 304) {
+            //     AppDispatcher.handleServerAction({
+            //         type: ActionTypes.RECEIVED_PREFERENCES,
+            //         preferences
+            //     });
+            // }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PREFERENCES,
+                preferences
+            });
 
             if (success) {
                 success(data);

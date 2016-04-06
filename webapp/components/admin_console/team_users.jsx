@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import UserItem from './user_item.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';

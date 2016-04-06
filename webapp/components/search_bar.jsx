@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import * as client from 'utils/client.jsx';
+import client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';

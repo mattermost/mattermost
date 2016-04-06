@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import AudioVideoPreview from './audio_video_preview.jsx';
 import Constants from 'utils/constants.jsx';

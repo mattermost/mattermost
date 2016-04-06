@@ -51,10 +51,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.HasPermissionsToTeam(channel.TeamId, "createChannel") {
-		return
-	}
-
 	if channel.Type == model.CHANNEL_DIRECT {
 		c.Err = model.NewLocAppError("createDirectChannel", "api.channel.create_channel.direct_channel.app_error", nil, "")
 		return
@@ -66,6 +62,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	channel.CreatorId = c.Session.UserId
+	channel.TeamId = c.TeamId
 
 	if sc, err := CreateChannel(c, channel, true); err != nil {
 		c.Err = err

@@ -9,6 +9,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-line no-unused-vars
 
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
@@ -31,7 +32,7 @@ export function initialize() {
             protocol = 'wss://';
         }
 
-        const connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + '/api/v1/websocket';
+        const connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + Client.getTeamNeededRoute() + '/websocket';
 
         if (connectFailCount === 0) {
             console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console

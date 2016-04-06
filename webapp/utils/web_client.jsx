@@ -13,6 +13,8 @@ class WebClientClass extends Client {
         super();
         this.enableLogErrorsToConsole(true);
         TeamStore.addChangeListener(this.onTeamStoreChanged);
+
+        this.login = this.login.bind(this);
     }
 
     onTeamStoreChanged = () => {
@@ -38,8 +40,9 @@ class WebClientClass extends Client {
         }
     }
 
-    login = (email, username, password, token, success, error) => { // eslint-disable-line no-unused-vars
-        this.super.login(
+    // not sure why but super.login doesn't work if using an arrow functions
+    login(email, username, password, token, success, error) { // eslint-disable-line no-unused-vars
+        super.login(
             email,
             username,
             password,

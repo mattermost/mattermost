@@ -10,9 +10,8 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
-import * as Client from './client.jsx';
 import * as AsyncClient from './async_client.jsx';
-import * as client from './client.jsx';
+import Client from './web_client.jsx';
 
 import React from 'react';
 import {browserHistory} from 'react-router';
@@ -1112,7 +1111,7 @@ export function fileSizeToString(bytes) {
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
 export function getFileUrl(filename, isDownload) {
     const downloadParam = isDownload ? '?download=1' : '';
-    return getWindowLocationOrigin() + '/api/v1/files/get' + filename + downloadParam;
+    return getWindowLocationOrigin() + Client.getFilesRoute() + '/files/get' + filename + downloadParam;
 }
 
 // Gets the name of a file (including extension) from a given url or file path.
@@ -1402,7 +1401,7 @@ export function localizeMessage(id, defaultMessage) {
 }
 
 export function getProfilePicSrcForPost(post, timestamp) {
-    let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
+    let src = Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
     if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
         if (post.props.override_icon_url) {
             src = post.props.override_icon_url;

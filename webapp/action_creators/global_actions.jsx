@@ -8,7 +8,7 @@ import SearchStore from 'stores/search_store.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as Websockets from './websocket_actions.jsx';
 import * as I18n from 'i18n/i18n.jsx';

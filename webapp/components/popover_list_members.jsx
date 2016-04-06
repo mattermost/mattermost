@@ -7,6 +7,7 @@ import UserStore from 'stores/user_store.jsx';
 import {Popover, Overlay} from 'react-bootstrap';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import Client from 'utils/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router';
@@ -97,7 +98,7 @@ export default class PopoverListMembers extends React.Component {
                                 className='more-modal__image'
                                 width='26px'
                                 height='26px'
-                                src={`/api/v1/users/${m.id}/image?time=${m.update_at}`}
+                                src={`${Client.getUsersRoute()}/${m.id}/image?time=${m.update_at}`}
                             />
                             <div className='more-modal__details'>
                                 <div

@@ -153,7 +153,7 @@ export default class ComplianceReports extends React.Component {
                 var download = '';
                 if (report.status === 'finished') {
                     download = (
-                        <a href={'/api/v1/admin/download_compliance_report/' + report.id}>
+                        <a href={Client.getAdminRoute() + '/download_compliance_report/' + report.id}>
                             <FormattedMessage
                                 id='admin.compliance_table.download'
                                 defaultMessage='Download'

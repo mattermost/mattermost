@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 

@@ -3,6 +3,7 @@
 
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import Client from 'utils/web_client.jsx';
 
 import React from 'react';
 
@@ -22,7 +23,7 @@ class SearchUserSuggestion extends React.Component {
             >
                 <img
                     className='profile-img rounded'
-                    src={'/api/v1/users/' + item.id + '/image?time=' + item.update_at}
+                    src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
                 />
                 <i className='fa fa fa-plus-square'></i>{item.username}
             </div>

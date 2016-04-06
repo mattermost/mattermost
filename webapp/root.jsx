@@ -29,7 +29,6 @@ import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import SignupTeam from 'components/signup_team.jsx';
 
-//import * as Client from 'utils/client.jsx';
 import Client from 'utils/web_client.jsx';
 
 import * as Websockets from 'action_creators/websocket_actions.jsx';
@@ -126,15 +125,6 @@ function preRenderSetup(callwhendone) {
         }
     );
 
-    // Set these here so they don't fail in client.jsx track
-    global.window.analytics = [];
-    global.window.analytics.page = () => {
-        // Do Nothing
-    };
-    global.window.analytics.track = () => {
-        // Do Nothing
-    };
-
     // Make sure the websockets close
     $(window).on('beforeunload',
          () => {
@@ -174,7 +164,7 @@ function preLoggedIn(nextState, replace, callback) {
         }
     );
 
-    // TODO XXX FIXME remove this one I get multi-teams working
+    // TODO XXX FIXME remove this once I get multi-teams working
     Client.getAllTeams(
         (data) => {
             var teamInUrl = Utils.getTeamNameFromUrl();

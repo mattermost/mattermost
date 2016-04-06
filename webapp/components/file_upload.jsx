@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import 'jquery-dragster/jquery.dragster.js';
 import ReactDOM from 'react-dom';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';

@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 
 import {IntlProvider} from 'react-intl';

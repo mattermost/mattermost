@@ -8,7 +8,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
@@ -326,7 +326,7 @@ class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={'/api/v1/oauth/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -344,7 +344,7 @@ class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login google'
                     key='google'
-                    href={'/api/v1/oauth/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={Client.getOAuthRoute() + '/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>

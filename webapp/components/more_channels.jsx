@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import * as client from 'utils/client.jsx';
+import client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import LoadingScreen from './loading_screen.jsx';

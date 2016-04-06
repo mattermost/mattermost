@@ -4,6 +4,7 @@
 import Constants from 'utils/constants.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+import Client from 'utils/web_client.jsx';
 import React from 'react';
 
 export default function UserListRow({user, actions, actionProps}) {
@@ -35,7 +36,7 @@ export default function UserListRow({user, actions, actionProps}) {
                 className='more-modal__image'
                 width='38'
                 height='38'
-                src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
+                src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
             />
             <div
                 className='more-modal__details'

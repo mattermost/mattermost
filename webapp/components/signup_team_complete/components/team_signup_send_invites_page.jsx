@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import EmailItem from './team_signup_email_item.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 

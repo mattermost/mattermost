@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ConfirmModal from '../confirm_modal.jsx';
@@ -357,7 +357,7 @@ export default class UserItem extends React.Component {
             <div className='more-modal__row'>
                 <img
                     className='more-modal__image pull-left'
-                    src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
+                    src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
                     height='36'
                     width='36'
                 />

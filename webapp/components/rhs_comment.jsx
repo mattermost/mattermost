@@ -9,7 +9,7 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 var ActionTypes = Constants.ActionTypes;
 import * as TextFormatting from 'utils/text_formatting.jsx';
@@ -261,7 +261,7 @@ class RhsComment extends React.Component {
                 <div className='post__content'>
                     <div className='post__img'>
                         <img
-                            src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp}
+                            src={Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp}
                             height='36'
                             width='36'
                         />

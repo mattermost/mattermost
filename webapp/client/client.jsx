@@ -229,7 +229,7 @@ export default class Client {
 
     getServerAudits = (success, error) => {
         return request.
-            get(`${this.getAdminRoute()}/config`).
+            get(`${this.getAdminRoute()}/audits`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -238,7 +238,7 @@ export default class Client {
 
     getConfig = (success, error) => {
         return request.
-            get(`${this.getAdminRoute()}/audits`).
+            get(`${this.getAdminRoute()}/config`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -807,7 +807,7 @@ export default class Client {
 
     getProfiles = (success, error) => {
         request.
-            get(`${this.getUsersRoute()}/profiles`).
+            get(`${this.getUsersRoute()}/profiles/${this.getTeamId()}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

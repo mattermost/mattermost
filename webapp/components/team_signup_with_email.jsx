@@ -3,7 +3,7 @@
 
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router';

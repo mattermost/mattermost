@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 
 import React from 'react';
 import ReactDOM from 'react-dom';

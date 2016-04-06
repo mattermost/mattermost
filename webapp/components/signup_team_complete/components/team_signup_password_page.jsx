@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import Constants from 'utils/constants.jsx';

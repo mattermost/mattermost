@@ -9,7 +9,7 @@ import LoginMfa from './components/login_mfa.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -195,7 +195,7 @@ export default class Login extends React.Component {
                 <Link
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    to={'/api/v1/oauth/gitlab/login?team=' + encodeURIComponent(teamName)}
+                    to={Client.getOAuthRoute() + '/gitlab/login?team=' + encodeURIComponent(teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -213,7 +213,7 @@ export default class Login extends React.Component {
                 <Link
                     className='btn btn-custom-login google'
                     key='google'
-                    to={'/api/v1/oauth/google/login?team=' + encodeURIComponent(teamName)}
+                    to={Client.getOAuthRoute() + '/google/login?team=' + encodeURIComponent(teamName)}
                 >
                     <span className='icon'/>
                     <span>
