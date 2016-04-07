@@ -13,7 +13,8 @@ export default class InstalledOutgoingWebhook extends React.Component {
         return {
             outgoingWebhook: React.PropTypes.object.isRequired,
             onRegenToken: React.PropTypes.func.isRequired,
-            onDelete: React.PropTypes.func.isRequired
+            onDelete: React.PropTypes.func.isRequired,
+            filter: React.PropTypes.string
         };
     }
 
@@ -36,31 +37,73 @@ export default class InstalledOutgoingWebhook extends React.Component {
         this.props.onDelete(this.props.outgoingWebhook);
     }
 
+    matchesFilter(outgoingWebhook, channel, filter) {
+        if (!filter) {
+            return true;
+        }
+
+        if (outgoingWebhook.display_name.toLowerCase().indexOf(filter) !== -1 ||
+            outgoingWebhook.description.toLowerCase().indexOf(filter) !== -1) {
+            return true;
+        }
+
+        for (const trigger of outgoingWebhook.trigger_words) {
+            if (trigger.toLowerCase().indexOf(filter) !== -1) {
+                return true;
+            }
+        }
+
+        if (channel) {
+            if (channel && channel.name.toLowerCase().indexOf(filter) !== -1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     render() {
         const outgoingWebhook = this.props.outgoingWebhook;
-
         const channel = ChannelStore.get(outgoingWebhook.channel_id);
-        const channelName = channel ? channel.display_name : 'cannot find channel';
+
+        if (!this.matchesFilter(outgoingWebhook, channel, this.props.filter)) {
+            return null;
+        }
+
+        let displayName;
+        if (outgoingWebhook.display_name) {
+            displayName = outgoingWebhook.display_name;
+        } else if (channel) {
+            displayName = channel.display_name;
+        } else {
+            displayName = (
+                <FormattedMessage
+                    id='installed_outgoing_webhooks.unknown_channel'
+                    defaultMessage='A Private Webhook'
+                />
+            );
+        }
+
+        let description = null;
+        if (outgoingWebhook.description) {
+            description = (
+                <div className='item-details__row'>
+                    <span className='item-details__description'>
+                        {outgoingWebhook.description}
+                    </span>
+                </div>
+            );
+        }
 
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
                     <div className='item-details__row'>
                         <span className='item-details__name'>
-                            {outgoingWebhook.display_name || channelName}
-                        </span>
-                        <span className='item-details__type'>
-                            <FormattedMessage
-                                id='installed_integrations.outgoingWebhookType'
-                                defaultMessage='(Outgoing Webhook)'
-                            />
+                            {displayName}
                         </span>
                     </div>
-                    <div className='item-details__row'>
-                        <span className='item-details__description'>
-                            {outgoingWebhook.description}
-                        </span>
-                    </div>
+                    {description}
                     <div className='item-details__row'>
                         <span className='item-details__token'>
                             <FormattedMessage
@@ -114,12 +157,6 @@ export default class InstalledOutgoingWebhook extends React.Component {
         if (outgoingWebhook.display_name.toLowerCase().indexOf(filter) !== -1 ||
             outgoingWebhook.description.toLowerCase().indexOf(filter) !== -1) {
             return true;
-        }
-
-        for (const trigger of outgoingWebhook.trigger_words) {
-            if (trigger.toLowerCase().indexOf(filter) !== -1) {
-                return true;
-            }
         }
 
         if (outgoingWebhook.channel_id) {

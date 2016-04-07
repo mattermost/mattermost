@@ -99,16 +99,21 @@ export default class AddIncomingWebhook extends React.Component {
 
     render() {
         return (
-            <div className='backstage-content row'>
-                <div className='add-incoming-webhook'>
-                    <div className='backstage-header'>
-                        <h1>
+            <div className='backstage-content'>
+                <div className='backstage-header'>
+                    <h1>
+                        <Link to={'/settings/integrations/incoming_webhooks'}>
                             <FormattedMessage
-                                id='add_incoming_webhook.header'
-                                defaultMessage='Add Incoming Webhook'
+                                id='installed_incoming_webhooks.header'
+                                defaultMessage='Incoming Webhooks'
                             />
-                        </h1>
-                    </div>
+                        </Link>
+                        {'>'}
+                        <FormattedMessage
+                            id='add_incoming_webhook.header'
+                            defaultMessage='Add'
+                        />
+                    </h1>
                 </div>
                 <div className='backstage-form'>
                     <form className='form-horizontal'>
@@ -176,7 +181,7 @@ export default class AddIncomingWebhook extends React.Component {
                             <FormError errors={[this.state.serverError, this.state.clientError]}/>
                             <Link
                                 className='btn btn-sm'
-                                to={'/settings/integrations/add'}
+                                to={'/settings/integrations/incoming_webhooks'}
                             >
                                 <FormattedMessage
                                     id='add_incoming_webhook.cancel'
