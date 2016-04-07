@@ -38,6 +38,7 @@ import AdminConsole from 'components/admin_console/admin_controller.jsx';
 import TutorialView from 'components/tutorial/tutorial_view.jsx';
 import BackstageNavbar from 'components/backstage/backstage_navbar.jsx';
 import BackstageSidebar from 'components/backstage/backstage_sidebar.jsx';
+import Integrations from 'components/backstage/integrations.jsx';
 import InstalledIncomingWebhooks from 'components/backstage/installed_incoming_webhooks.jsx';
 import InstalledOutgoingWebhooks from 'components/backstage/installed_outgoing_webhooks.jsx';
 import InstalledCommands from 'components/backstage/installed_commands.jsx';
@@ -254,7 +255,13 @@ function renderRootComponent() {
                         onEnter={onLoggedOut}
                     />
                     <Route path='settings/integrations'>
-                        <IndexRedirect to='incoming_webhooks'/>
+                        <IndexRoute
+                            components={{
+                                navbar: BackstageNavbar,
+                                sidebar: BackstageSidebar,
+                                center: Integrations
+                            }}
+                        />
                         <Route path='incoming_webhooks'>
                             <IndexRoute
                                 components={{

@@ -284,7 +284,7 @@ body {
     }
 }
 
-.add-integration {
+.integration-option {
     background-color: $white;
     border: 1px solid $light-gray;
     display: inline-block;
@@ -301,16 +301,16 @@ body {
     }
 }
 
-.add-integration__image {
+.integration-option__image {
     height: 80px;
     width: 80px;
 }
 
-.add-integration__title {
+.integration-option__title {
     color: $black;
     margin-bottom: 10px;
 }
 
-.add-integration__description {
+.integration-option__description {
     color: $dark-gray;
 }
