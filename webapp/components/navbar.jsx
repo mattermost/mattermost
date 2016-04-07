@@ -105,20 +105,20 @@ export default class Navbar extends React.Component {
             });
 
             if (e.target.className !== 'navbar-toggle' && e.target.className !== 'icon-bar') {
-                $('.inner-wrap').removeClass('move--right move--left move--left-small');
-                $('.sidebar--left').removeClass('move--right');
-                $('.sidebar--right').removeClass('move--left');
-                $('.sidebar--menu').removeClass('move--left');
+                $('.app__body .inner-wrap').removeClass('move--right move--left move--left-small');
+                $('.app__body .sidebar--left').removeClass('move--right');
+                $('.app__body .sidebar--right').removeClass('move--left');
+                $('.app__body .sidebar--menu').removeClass('move--left');
             }
         }
     }
     toggleLeftSidebar() {
-        $('.inner-wrap').toggleClass('move--right');
-        $('.sidebar--left').toggleClass('move--right');
+        $('.app__body .inner-wrap').toggleClass('move--right');
+        $('.app__body .sidebar--left').toggleClass('move--right');
     }
     toggleRightSidebar() {
-        $('.inner-wrap').toggleClass('move--left-small');
-        $('.sidebar--menu').toggleClass('move--left');
+        $('.app__body .inner-wrap').toggleClass('move--left-small');
+        $('.app__body .sidebar--menu').toggleClass('move--left');
     }
     showSearch() {
         AppDispatcher.handleServerAction({

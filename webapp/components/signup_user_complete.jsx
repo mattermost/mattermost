@@ -25,6 +25,7 @@ class SignupUserComplete extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.inviteInfoRecieved = this.inviteInfoRecieved.bind(this);
+        this.handleLdapSignup = this.handleLdapSignup.bind(this);
 
         this.state = {
             data: '',
@@ -81,6 +82,23 @@ class SignupUserComplete extends React.Component {
             teamId: data.id
         });
     }
+
+    handleLdapSignup(method, loginId, password, token) {
+        Client.loginByLdap(this.state.teamName, loginId, password, token,
+            () => {
+                const redirect = Utils.getUrlParameter('redirect');
+                if (redirect) {
+                    browserHistory.push(decodeURIComponent(redirect));
+                } else {
+                    browserHistory.push('/' + this.state.teamName + '/channels/town-square');
+                }
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
+    }
+
     handleSubmit(e) {
         e.preventDefault();
 
@@ -367,7 +385,7 @@ class SignupUserComplete extends React.Component {
                             defaultMessage='With your LDAP credentials'
                         />
                     </strong></h5>
-                    <LoginLdap teamName={this.state.teamName}/>
+                    <LoginLdap submit={this.handleLdapSignup}/>
                 </div>
             );
         }
@@ -375,7 +393,7 @@ class SignupUserComplete extends React.Component {
         let emailSignup;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
-                <div>
+                <form>
                     <div className='inner__content'>
                         {email}
                         {yourEmailIs}
@@ -431,7 +449,7 @@ class SignupUserComplete extends React.Component {
                             </button>
                         </p>
                     </div>
-                </div>
+                </form>
             );
         }
 
@@ -484,40 +502,36 @@ class SignupUserComplete extends React.Component {
                 </div>
                 <div className='col-sm-12'>
                     <div className='signup-team__container padding--less'>
-                        <div>
-                            <form>
-                                <img
-                                    className='signup-team-logo'
-                                    src={logoImage}
-                                />
-                                <h5 className='margin--less'>
-                                    <FormattedMessage
-                                        id='signup_user_completed.welcome'
-                                        defaultMessage='Welcome to:'
-                                    />
-                                </h5>
-                                <h2 className='signup-team__name'>{this.state.teamName}</h2>
-                                <h2 className='signup-team__subdomain'>
-                                    <FormattedMessage
-                                        id='signup_user_completed.onSite'
-                                        defaultMessage='on {siteName}'
-                                        values={{
-                                            siteName: global.window.mm_config.SiteName
-                                        }}
-                                    />
-                                </h2>
-                                <h4 className='color--light'>
-                                    <FormattedMessage
-                                        id='signup_user_completed.lets'
-                                        defaultMessage="Let's create your account"
-                                    />
-                                </h4>
-                                {signupMessage}
-                                {ldapSignup}
-                                {emailSignup}
-                                {serverError}
-                            </form>
-                        </div>
+                        <img
+                            className='signup-team-logo'
+                            src={logoImage}
+                        />
+                        <h5 className='margin--less'>
+                            <FormattedMessage
+                                id='signup_user_completed.welcome'
+                                defaultMessage='Welcome to:'
+                            />
+                        </h5>
+                        <h2 className='signup-team__name'>{this.state.teamName}</h2>
+                        <h2 className='signup-team__subdomain'>
+                            <FormattedMessage
+                                id='signup_user_completed.onSite'
+                                defaultMessage='on {siteName}'
+                                values={{
+                                    siteName: global.window.mm_config.SiteName
+                                }}
+                            />
+                        </h2>
+                        <h4 className='color--light'>
+                            <FormattedMessage
+                                id='signup_user_completed.lets'
+                                defaultMessage="Let's create your account"
+                            />
+                        </h4>
+                        {signupMessage}
+                        {ldapSignup}
+                        {emailSignup}
+                        {serverError}
                     </div>
                 </div>
             </div>

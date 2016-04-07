@@ -1820,8 +1820,16 @@
     "translation": "Credenciales válidas pero no se pudo crear el usuario."
   },
   {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "El usuario no tiene permitido utilizar Mattermost. (filtro de usuario LDAP)"
+  },
+  {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Usuario no registrado en el servidor LDAP"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Filtro de LDAP inválido"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",

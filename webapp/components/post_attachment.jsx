@@ -87,75 +87,82 @@ class PostAttachment extends React.Component {
             return '';
         }
 
-        const compactTable = fields.filter((field) => field.short).length > 0;
-        let tHead;
-        let tBody;
+        let fieldTables = [];
 
-        if (compactTable) {
-            let headerCols = [];
-            let bodyCols = [];
+        let headerCols = [];
+        let bodyCols = [];
+        let rowPos = 0;
+        let lastWasLong = false;
+        let nrTables = 0;
 
-            fields.forEach((field, i) => {
-                headerCols.push(
-                    <th
-                        className='attachment___field-caption'
-                        key={'attachment__field-caption-' + i}
+        fields.forEach((field, i) => {
+            if (rowPos === 2 || !(field.short === true) || lastWasLong) {
+                fieldTables.push(
+                    <table
+                        className='attachment___fields'
+                        key={'attachment__table__' + nrTables}
                     >
-                        {field.title}
-                    </th>
+                        <thead>
+                            <tr>
+                            {headerCols}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {bodyCols}
+                            </tr>
+                        </tbody>
+                    </table>
                 );
-                bodyCols.push(
-                    <td
-                        className='attachment___field'
-                        key={'attachment__field-' + i}
-                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(field.value || '')}}
+                headerCols = [];
+                bodyCols = [];
+                rowPos = 0;
+                nrTables += 1;
+                lastWasLong = false;
+            }
+            headerCols.push(
+                <th
+                    className='attachment___field-caption'
+                    key={'attachment__field-caption-' + i + '__' + nrTables}
+                    width='50%'
+                >
+                    {field.title}
+                </th>
+            );
+            bodyCols.push(
+                <td
+                    className='attachment___field'
+                    key={'attachment__field-' + i + '__' + nrTables}
+                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(field.value || '')}}
+                >
+                </td>
+            );
+            rowPos += 1;
+            lastWasLong = !(field.short === true);
+        });
+        if (headerCols.length > 0) { // Flush last fields
+            fieldTables.push(
+                    <table
+                        className='attachment___fields'
+                        key={'attachment__table__' + nrTables}
                     >
-                    </td>
+                        <thead>
+                            <tr>
+                            {headerCols}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {bodyCols}
+                            </tr>
+                        </tbody>
+                    </table>
                 );
-            });
-
-            tHead = (
-                <tr>
-                    {headerCols}
-                </tr>
-            );
-            tBody = (
-                <tr>
-                    {bodyCols}
-                </tr>
-            );
-        } else {
-            tBody = [];
-
-            fields.forEach((field, i) => {
-                tBody.push(
-                    <tr key={'attachment__field-' + i}>
-                        <td
-                            className='attachment___field-caption'
-                        >
-                            {field.title}
-                        </td>
-                        <td
-                            className='attachment___field'
-                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(field.value || '')}}
-                        >
-                        </td>
-                    </tr>
-                );
-            });
         }
-
         return (
-            <table
-                className='attachment___fields'
-            >
-                <thead>
-                    {tHead}
-                </thead>
-                <tbody>
-                    {tBody}
-                </tbody>
-            </table>
+            <div>
+                {fieldTables}
+            </div>
         );
     }
 

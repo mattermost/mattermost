@@ -148,6 +148,11 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := utils.ValidateLdapFilter(cfg); err != nil {
+		c.Err = err
+		return
+	}
+
 	c.LogAudit("")
 
 	utils.SaveConfig(utils.CfgFileName, cfg)

@@ -344,32 +344,36 @@
     }
 }
 
-.channel-header__links {
-    font-family: 'Open Sans', sans-serif;
-    font-size: 22px;
-    height: 30px;
-    line-height: 26px;
-    margin-right: 9px;
-    width: 24px;
+.app__body {
 
-    .channel__wrap.move--left & {
-        position: absolute;
-        right: -400px;
-        top: 14px;
-    }
+    .channel-header__links {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 22px;
+        height: 30px;
+        line-height: 26px;
+        margin-right: 9px;
+        width: 24px;
 
-    > a {
-        @include opacity(.6);
-        @include single-transition(all, .1s, ease-in);
-        color: inherit;
-        text-decoration: none;
-
-        &:hover {
-            @include opacity(1);
+        .channel__wrap.move--left & {
+            position: absolute;
+            right: -400px;
+            top: 14px;
         }
 
-        &:focus {
+        > a {
+            @include opacity(.6);
+            @include single-transition(all, .1s, ease-in);
             color: inherit;
+            text-decoration: none;
+
+            &:hover {
+                @include opacity(1);
+            }
+
+            &:focus {
+                color: inherit;
+            }
         }
     }
+
 }

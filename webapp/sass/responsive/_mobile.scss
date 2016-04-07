@@ -251,138 +251,162 @@
         }
     }
 
-    .modal {
-        .info__label {
-            padding-bottom: 5px;
-            text-align: left;
-        }
-
-        .modal-header {
-            .modal-action {
-                margin-top: 10px;
+    .app__body {
+        .modal {
+            .info__label {
+                padding-bottom: 5px;
+                text-align: left;
             }
 
-            button.close {
-                font-size: 27px;
-                font-weight: normal;
-            }
+            .modal-image {
+                .modal-button-bar {
+                    line-height: 30px;
+                    padding: 5px;
+                }
 
-            .modal-title {
-                float: none;
-                max-width: 90%;
-            }
+                .image-wrapper {
+                    > div {
+                        font-size: 12px;
+                        min-width: 250px;
+                    }
 
-            .btn {
-                &.btn-primary {
-                    display: block;
-                    float: none;
-                    margin: 10px 0 6px;
-                    width: 100%;
+                    .modal-close {
+                        @include opacity(1);
+                    }
+                }
+
+                .modal-button-bar {
+                    @include opacity(1);
                 }
             }
-        }
 
-        .settings-modal {
-            &.display--content {
-                .modal-header {
-                    display: none;
+            .modal-header {
+                .modal-action {
+                    margin-top: 10px;
+                }
+
+                button.close {
+                    font-size: 27px;
+                    font-weight: normal;
+                }
+
+                .modal-title {
+                    float: none;
+                    max-width: 90%;
+                }
+
+                .btn {
+                    &.btn-primary {
+                        display: block;
+                        float: none;
+                        margin: 10px 0 6px;
+                        width: 100%;
+                    }
+                }
+            }
+
+            .settings-modal {
+                &.display--content {
+                    .modal-header {
+                        display: none;
+                    }
+
+                    .settings-table {
+                        display: block;
+
+                        .settings-content {
+                            &.minimize-settings {
+                                display: block;
+                            }
+
+                            .section-min:hover {
+                                background: none;
+                            }
+
+                            .no-padding--left {
+                                padding-left: 15px;
+                            }
+                        }
+
+                        .settings-links {
+                            display: none;
+                        }
+
+                        .modal-header {
+                            display: block;
+                            position: absolute;
+                            top: 0;
+                            width: 100%;
+                            z-index: 5;
+
+                            .modal-title {
+                                text-align: center;
+                                width: 100%;
+                            }
+                        }
+
+                        .user-settings {
+                            .tab-header {
+                                display: none;
+                            }
+
+                            .divider-dark.first {
+                                display: none;
+                            }
+                        }
+                    }
                 }
 
                 .settings-table {
-                    display: block;
+                    padding: 0;
+
+                    .nav {
+                        position: relative;
+                        top: auto;
+                        width: 100%;
+
+                        &.position--top {
+                            top: auto;
+                        }
+                    }
 
                     .settings-content {
+                        .section-edit {
+                            position: absolute;
+                            top: 14px;
+                            right: 0;
+                            padding-right: 0;
+
+                            .fa {
+                                display: inline-block;
+                            }
+                        }
+
                         &.minimize-settings {
-                            display: block;
+                            padding: 0;
+                            display: none;
+
+                            .user-settings {
+                                padding: 70px 20px 30px;
+                            }
                         }
 
                         .section-min:hover {
-                            background: none;
-                        }
-
-                        .no-padding--left {
-                            padding-left: 15px;
+                            background: none !important;
                         }
                     }
 
-                    .settings-links {
-                        display: none;
-                    }
+                    .nav {
+                        > li {
+                            > a {
+                                border-top: 1px solid #dddddd;
+                                font-size: 1.1em;
+                                line-height: 2.7;
+                                color: #555555;
 
-                    .modal-header {
-                        display: block;
-                        position: absolute;
-                        top: 0;
-                        width: 100%;
-                        z-index: 5;
-
-                        .modal-title {
-                            text-align: center;
-                            width: 100%;
-                        }
-                    }
-
-                    .user-settings {
-                        .tab-header {
-                            display: none;
-                        }
-
-                        .divider-dark.first {
-                            display: none;
-                        }
-                    }
-                }
-            }
-
-            .settings-table {
-                padding: 0;
-
-                .nav {
-                    position: relative;
-                    top: auto;
-                    width: 100%;
-
-                    &.position--top {
-                        top: auto;
-                    }
-                }
-
-                .settings-content {
-                    .section-edit {
-                        position: absolute;
-                        top: 14px;
-                        right: 0;
-                        padding-right: 0;
-
-                        .fa {
-                            display: inline-block;
-                        }
-                    }
-
-                    &.minimize-settings {
-                        padding: 0;
-                        display: none;
-
-                        .user-settings {
-                            padding: 70px 20px 30px;
-                        }
-                    }
-
-                    .section-min:hover {
-                        background: none !important;
-                    }
-                }
-
-                .nav {
-                    > li {
-                        > a {
-                            border-top: 1px solid #dddddd;
-                            font-size: 1.1em;
-                            line-height: 2.7;
-                            color: #555555;
-
-                            .glyphicon {
-                                margin-left: 7px;
+                                .glyphicon {
+                                    margin-left: 7px;
+                                }
                             }
                         }
                     }
@@ -752,25 +776,6 @@
         }
     }
 
-    .modal {
-        .modal-image {
-            .image-wrapper {
-                > div {
-                    font-size: 12px;
-                    min-width: 250px;
-                }
-
-                .modal-close {
-                    @include opacity(1);
-                }
-            }
-
-            .modal-button-bar {
-                @include opacity(1);
-            }
-        }
-    }
-
     .app__content {
         padding-top: 45px;
         margin: 0;
@@ -798,36 +803,38 @@
 }
 
 @media screen and (max-width: 640px) {
-    .modal {
-        .about-modal {
-            .about-modal__content {
-                display: block;
-            }
+    .app__body {
+        .modal {
+            .about-modal {
+                .about-modal__content {
+                    display: block;
+                }
 
-            .about-modal__hash {
-                p {
-                    word-break: break-all;
+                .about-modal__hash {
+                    p {
+                        word-break: break-all;
 
-                    &:first-child {
-                        float: none;
+                        &:first-child {
+                            float: none;
+                        }
                     }
                 }
-            }
 
-            .about-modal__logo {
-                float: none;
-                padding: 0;
-                text-align: center;
-                width: 100%;
+                .about-modal__logo {
+                    float: none;
+                    padding: 0;
+                    text-align: center;
+                    width: 100%;
 
-                svg {
-                    height: 100px;
-                    width: 100px;
+                    svg {
+                        height: 100px;
+                        width: 100px;
+                    }
                 }
-            }
 
-            .about-modal__logo + div {
-                padding: 2em 0 0;
+                .about-modal__logo + div {
+                    padding: 2em 0 0;
+                }
             }
         }
     }
@@ -890,15 +897,27 @@
         }
     }
 
-    .modal {
-        .settings-modal {
-            .settings-table {
-                .security-links {
-                    display: block;
-                    margin-bottom: 10px;
+    .app__body {
+        .modal {
+            .settings-modal {
+                &.display--content {
+                    .modal-body {
+                        max-height: 90%;
+                    }
+                }
 
-                    &:last-child {
-                        margin-bottom: 0;
+                .modal-body {
+                    max-height: 70%;
+                }
+
+                .settings-table {
+                    .security-links {
+                        display: block;
+                        margin-bottom: 10px;
+
+                        &:last-child {
+                            margin-bottom: 0;
+                        }
                     }
                 }
             }
@@ -907,20 +926,6 @@
 
     .tip-overlay.tip-overlay--sidebar {
         min-height: 350px;
-    }
-
-    .modal {
-        .modal-body {
-            max-height: 70%;
-        }
-
-        .settings-modal {
-            &.display--content {
-                .modal-body {
-                    max-height: 90%;
-                }
-            }
-        }
     }
 
     .member-div {
@@ -949,15 +954,6 @@
     .inner-wrap {
         &.move--right {
             @include translate3d(260px, 0, 0);
-        }
-    }
-
-    .modal {
-        .modal-image {
-            .modal-button-bar {
-                line-height: 30px;
-                padding: 5px;
-            }
         }
     }
 }

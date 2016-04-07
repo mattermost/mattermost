@@ -17,40 +17,15 @@
         padding-bottom: .5em;
     }
 
-    .table {
-        background: $white;
-    }
-
     .form-control {
         background-color: $white;
-        border: 1px solid #ccc;
-        color: #555;
+        border: 1px solid $light-gray;
 
         &:focus {
             @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6));
             border-color: #66afe9;
             outline: 0;
         }
-    }
-
-    .btn {
-        color: #333;
-
-        &.btn-primary {
-            background: $primary-color;
-
-            &:hover,
-            &:focus,
-            &:active {
-                background: #1c6dab;
-            }
-        }
-    }
-
-    .dropdown-menu {
-        background: $white;
-        border: 1px solid rgba(0,0,0,.15);
-        color: inherit;
     }
 
     .sidebar--left {
