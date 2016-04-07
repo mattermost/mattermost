@@ -440,6 +440,16 @@ func (o *Config) SetDefaults() {
 		o.ComplianceSettings.EnableDaily = new(bool)
 		*o.ComplianceSettings.EnableDaily = false
 	}
+
+	if o.LdapSettings.ConnectionSecurity == nil {
+		o.LdapSettings.ConnectionSecurity = new(string)
+		*o.LdapSettings.ConnectionSecurity = ""
+	}
+
+	if o.LdapSettings.SkipCertificateVerification == nil {
+		o.LdapSettings.SkipCertificateVerification = new(bool)
+		*o.LdapSettings.SkipCertificateVerification = false
+	}
 }
 
 func (o *Config) IsValid() *AppError {
