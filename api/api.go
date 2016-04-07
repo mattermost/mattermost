@@ -33,6 +33,14 @@ type Routes struct {
 	Hooks    *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/hooks'
 
 	Files *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/files'
+
+	OAuth *mux.Router // 'api/v2/oauth'
+
+	Admin *mux.Router // 'api/v2/admin'
+
+	Preferences *mux.Router // 'api/v2/preferences'
+
+	License *mux.Router // 'api/v2/license'
 }
 
 var BaseRoutes *Routes
@@ -51,8 +59,11 @@ func InitApi() {
 	BaseRoutes.Commands = BaseRoutes.NeedTeam.PathPrefix("/commands").Subrouter()
 	BaseRoutes.Files = BaseRoutes.NeedTeam.PathPrefix("/files").Subrouter()
 	BaseRoutes.Hooks = BaseRoutes.NeedTeam.PathPrefix("/hooks").Subrouter()
+	BaseRoutes.OAuth = BaseRoutes.Root.PathPrefix("/oauth").Subrouter()
+	BaseRoutes.Admin = BaseRoutes.Root.PathPrefix("/admin").Subrouter()
+	BaseRoutes.Preferences = BaseRoutes.Root.PathPrefix("/preferences").Subrouter()
+	BaseRoutes.License = BaseRoutes.Root.PathPrefix("/license").Subrouter()
 
-	r := Srv.Router.PathPrefix(model.API_URL_SUFFIX).Subrouter()
 	InitUser()
 	InitTeam()
 	InitChannel()
@@ -60,11 +71,12 @@ func InitApi() {
 	InitWebSocket()
 	InitFile()
 	InitCommand()
-	InitAdmin(r)
-	InitOAuth(r)
+	InitAdmin()
+	InitOAuth()
 	InitWebhook()
-	InitPreference(r)
-	InitLicense(r)
+	InitPreference()
+	InitLicense()
+
 	// 404 on any api route before web.go has a chance to serve it
 	Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
 

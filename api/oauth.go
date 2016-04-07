@@ -16,27 +16,24 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-func InitOAuth(r *mux.Router) {
+func InitOAuth() {
 	l4g.Debug(utils.T("api.oauth.init.debug"))
 
-	sr := r.PathPrefix("/oauth").Subrouter()
+	BaseRoutes.Commands.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
+	BaseRoutes.Commands.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
+	BaseRoutes.Commands.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Commands.Handle("/{service:[A-Za-z]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
+	BaseRoutes.Commands.Handle("/{service:[A-Za-z]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
+	BaseRoutes.Commands.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
+	BaseRoutes.Commands.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
-	sr.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
-	sr.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
-	sr.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	sr.Handle("/{service:[A-Za-z]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
-	sr.Handle("/{service:[A-Za-z]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
-	sr.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
-	sr.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
-
-	mr := Srv.Router
-	mr.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
-	mr.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
+	BaseRoutes.Root.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
 	// Handle all the old routes, to be later removed
-	mr.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	mr.Handle("/signup/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	mr.Handle("/login/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/signup/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/login/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 }
 
 func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {

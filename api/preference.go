@@ -11,14 +11,13 @@ import (
 	"net/http"
 )
 
-func InitPreference(r *mux.Router) {
+func InitPreference() {
 	l4g.Debug(utils.T("api.preference.init.debug"))
 
-	sr := r.PathPrefix("/preferences").Subrouter()
-	sr.Handle("/", ApiUserRequired(getAllPreferences)).Methods("GET")
-	sr.Handle("/save", ApiUserRequired(savePreferences)).Methods("POST")
-	sr.Handle("/{category:[A-Za-z0-9_]+}", ApiUserRequired(getPreferenceCategory)).Methods("GET")
-	sr.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getPreference)).Methods("GET")
+	BaseRoutes.Preferences.Handle("/", ApiUserRequired(getAllPreferences)).Methods("GET")
+	BaseRoutes.Preferences.Handle("/save", ApiUserRequired(savePreferences)).Methods("POST")
+	BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", ApiUserRequired(getPreferenceCategory)).Methods("GET")
+	BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getPreference)).Methods("GET")
 }
 
 func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -19,22 +19,21 @@ import (
 	"github.com/mssola/user_agent"
 )
 
-func InitAdmin(r *mux.Router) {
+func InitAdmin() {
 	l4g.Debug(utils.T("api.admin.init.debug"))
 
-	sr := r.PathPrefix("/admin").Subrouter()
-	sr.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
-	sr.Handle("/audits", ApiUserRequired(getAllAudits)).Methods("GET")
-	sr.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
-	sr.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
-	sr.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
-	sr.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
-	sr.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
-	sr.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
-	sr.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
-	sr.Handle("/save_compliance_report", ApiUserRequired(saveComplianceReport)).Methods("POST")
-	sr.Handle("/compliance_reports", ApiUserRequired(getComplianceReports)).Methods("GET")
-	sr.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiUserRequired(downloadComplianceReport)).Methods("GET")
+	BaseRoutes.Admin.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
+	BaseRoutes.Admin.Handle("/audits", ApiUserRequired(getAllAudits)).Methods("GET")
+	BaseRoutes.Admin.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
+	BaseRoutes.Admin.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
+	BaseRoutes.Admin.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
+	BaseRoutes.Admin.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
+	BaseRoutes.Admin.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
+	BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
+	BaseRoutes.Admin.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
+	BaseRoutes.Admin.Handle("/save_compliance_report", ApiUserRequired(saveComplianceReport)).Methods("POST")
+	BaseRoutes.Admin.Handle("/compliance_reports", ApiUserRequired(getComplianceReports)).Methods("GET")
+	BaseRoutes.Admin.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiUserRequired(downloadComplianceReport)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {

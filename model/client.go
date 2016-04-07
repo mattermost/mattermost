@@ -69,16 +69,25 @@ func (c *Client) SetTeamId(teamId string) {
 	c.TeamId = teamId
 }
 
+func (c *Client) GetTeamId() string {
+	if len(c.TeamId) == 0 {
+		println(`You are trying to use a route that requires a team_id, 
+        	but you have not called SetTeamId() in client.go`)
+	}
+
+	return c.TeamId
+}
+
 func (c *Client) ClearTeamId() {
 	c.TeamId = ""
 }
 
 func (c *Client) GetTeamRoute() string {
-	return fmt.Sprintf("/teams/%v", c.TeamId)
+	return fmt.Sprintf("/teams/%v", c.GetTeamId())
 }
 
 func (c *Client) GetChannelRoute(channelId string) string {
-	return fmt.Sprintf("/teams/%v/channels/%v", c.TeamId, channelId)
+	return fmt.Sprintf("/teams/%v/channels/%v", c.GetTeamId(), channelId)
 }
 
 func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppError) {

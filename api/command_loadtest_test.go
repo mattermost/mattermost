@@ -168,7 +168,10 @@ func TestLoadTestUrlCommands(t *testing.T) {
 }
 
 func TestLoadTestJsonCommands(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
+
 	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
@@ -176,18 +179,6 @@ func TestLoadTestJsonCommands(t *testing.T) {
 	}()
 
 	utils.Cfg.ServiceSettings.EnableTesting = true
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
-
-	channel := &model.Channel{DisplayName: "00", Name: "00" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel = Client.Must(Client.CreateChannel(channel)).Data.(*model.Channel)
 
 	command := "/loadtest json "
 	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Command must contain a url" {
@@ -200,9 +191,9 @@ func TestLoadTestJsonCommands(t *testing.T) {
 		t.Fatal("/loadtest url with invalid url should've failed")
 	}
 
-	command = "/loadtest url https://secure.beldienst.nl/test.json" // Chicken-egg so will replace with mattermost/platform URL soon
+	command = "/loadtest json test-slack-attachments"
 	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
-		t.Fatal("/loadtest url for README.md should've executed")
+		t.Fatal("/loadtest json should've executed")
 	}
 
 	time.Sleep(2 * time.Second)
