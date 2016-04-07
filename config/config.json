@@ -132,6 +132,7 @@
         "Enable": false,
         "LdapServer": "",
         "LdapPort": 389,
+        "ConnectionSecurity": "",
         "BaseDN": "",
         "BindUsername": "",
         "BindPassword": "",
@@ -141,6 +142,7 @@
         "EmailAttribute": "",
         "UsernameAttribute": "",
         "IdAttribute": "",
+        "SkipCertificateVerification": false,
         "QueryTimeout": 60
     },
     "ComplianceSettings": {
