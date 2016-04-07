@@ -1,78 +1,82 @@
 @charset 'UTF-8';
 
-.modal {
-    .about-modal {
-        .modal-header {
-            background: transparent;
-            border: none;
-            color: inherit;
-            padding: 20px 25px 0;
+.app__body {
 
-            .close {
+    .modal {
+        .about-modal {
+            .modal-header {
+                background: transparent;
+                border: none;
                 color: inherit;
-                font-weight: normal;
-                right: 15px;
+                padding: 20px 25px 0;
+
+                .close {
+                    color: inherit;
+                    font-weight: normal;
+                    right: 15px;
+                }
+
+                .modal-title {
+                    color: inherit;
+                    font-size: 16px;
+                }
             }
 
-            .modal-title {
-                color: inherit;
-                font-size: 16px;
+            .modal-body {
+                padding: 20px 25px 5px;
             }
-        }
 
-        .modal-body {
-            padding: 20px 25px 5px;
-        }
+            .about-modal__content {
+                @include clearfix;
+                @include display-flex;
+                @include flex-direction(row);
+                padding: 1em 0 3em;
+            }
 
-        .about-modal__content {
-            @include clearfix;
-            @include display-flex;
-            @include flex-direction(row);
-            padding: 1em 0 3em;
-        }
+            .about-modal__copyright {
+                @include opacity(.6);
+                margin-top: .5em;
+            }
 
-        .about-modal__copyright {
-            @include opacity(.6);
-            margin-top: .5em;
-        }
+            .about-modal__footer {
+                font-size: 13.5px;
+            }
 
-        .about-modal__footer {
-            font-size: 13.5px;
-        }
+            .about-modal__title {
+                line-height: 1.5;
+                margin: 0 0 10px;
+            }
 
-        .about-modal__title {
-            line-height: 1.5;
-            margin: 0 0 10px;
-        }
+            .about-modal__subtitle {
+                @include opacity(.6);
+            }
 
-        .about-modal__subtitle {
-            @include opacity(.6);
-        }
+            .about-modal__hash {
+                @include opacity(.4);
+                font-size: .75em;
+                text-align: right;
 
-        .about-modal__hash {
-            @include opacity(.4);
-            font-size: .75em;
-            text-align: right;
+                p {
+                    &:first-child {
+                        float: left;
+                    }
+                }
+            }
 
-            p {
-                &:first-child {
-                    float: left;
+            .about-modal__logo {
+                @include opacity(.9);
+                padding: 0 40px 0 20px;
+
+                svg {
+                    height: 125px;
+                    width: 125px;
+                }
+
+                path {
+                    fill: inherit;
                 }
             }
         }
-
-        .about-modal__logo {
-            @include opacity(.9);
-            padding: 0 40px 0 20px;
-
-            svg {
-                height: 125px;
-                width: 125px;
-            }
-
-            path {
-                fill: inherit;
-            }
-        }
     }
+
 }

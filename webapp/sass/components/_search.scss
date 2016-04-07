@@ -6,14 +6,6 @@
     }
 }
 
-.sidebar--right {
-    &.move--left {
-        .search-bar__container {
-            padding-right: 42px;
-        }
-    }
-}
-
 .search-bar__container {
     @include flex(0 0 56px);
     padding: 12px 8px 0 0;
