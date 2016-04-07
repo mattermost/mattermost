@@ -8,6 +8,8 @@ import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';
+import BooleanSetting from './boolean_setting.jsx';
 
 const DEFAULT_LDAP_PORT = 389;
 const DEFAULT_QUERY_TIMEOUT = 60;
@@ -26,7 +28,9 @@ class LdapSettings extends React.Component {
         this.state = {
             saveNeeded: false,
             serverError: null,
-            enable: this.props.config.LdapSettings.Enable
+            enable: this.props.config.LdapSettings.Enable,
+            connectionSecurity: this.props.config.LdapSettings.ConnectionSecurity,
+            skipCertificateVerification: this.props.config.LdapSettings.SkipCertificateVerification
         };
     }
     handleChange() {
@@ -61,6 +65,8 @@ class LdapSettings extends React.Component {
         config.LdapSettings.UsernameAttribute = this.refs.UsernameAttribute.value.trim();
         config.LdapSettings.IdAttribute = this.refs.IdAttribute.value.trim();
         config.LdapSettings.UserFilter = this.refs.UserFilter.value.trim();
+        config.LdapSettings.ConnectionSecurity = this.state.connectionSecurity.trim();
+        config.LdapSettings.SkipCertificateVerification = this.state.skipCertificateVerification;
 
         let QueryTimeout = DEFAULT_QUERY_TIMEOUT;
         if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.QueryTimeout).value, 10))) {
@@ -251,6 +257,11 @@ class LdapSettings extends React.Component {
                             </p>
                         </div>
                     </div>
+                    <ConnectionSecurityDropdownSetting
+                        currentValue={this.state.connectionSecurity}
+                        handleChange={(e) => this.setState({connectionSecurity: e.target.value, saveNeeded: true})}
+                        isDisabled={!this.state.enable}
+                    />
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
@@ -512,6 +523,25 @@ class LdapSettings extends React.Component {
                             </p>
                         </div>
                     </div>
+                    <BooleanSetting
+                        label={
+                            <FormattedMessage
+                                id='admin.ldap.skipCertificateVerification'
+                                defaultMessage='Skip Certificate Verification'
+                            />
+                        }
+                        currentValue={this.state.skipCertificateVerification}
+                        isDisabled={!this.state.enable}
+                        handleChange={(e) => this.setState({skipCertificateVerification: e.target.value.trim() === 'true', saveNeeded: true})}
+                        helpText={
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.ldap.skipCertificateVerificationDesc'
+                                    defaultMessage='Skips the certificate verificaiton step for TLS or STARTTLS connections. Not recommented for production enviroments where TLS is required. For testing only.'
+                                />
+                            </p>
+                        }
+                    />
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'

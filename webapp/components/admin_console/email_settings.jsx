@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import * as Client from 'utils/client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import crypto from 'crypto';
+import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -33,18 +34,6 @@ var holders = defineMessages({
     smtpPortExample: {
         id: 'admin.email.smtpPortExample',
         defaultMessage: 'Ex: "25", "465"'
-    },
-    connectionSecurityNone: {
-        id: 'admin.email.connectionSecurityNone',
-        defaultMessage: 'None'
-    },
-    connectionSecurityTls: {
-        id: 'admin.email.connectionSecurityTls',
-        defaultMessage: 'TLS (Recommended)'
-    },
-    connectionSecurityStart: {
-        id: 'admin.email.connectionSecurityStart',
-        defaultMessage: 'STARTTLS'
     },
     inviteSaltExample: {
         id: 'admin.email.inviteSaltExample',
@@ -96,7 +85,8 @@ class EmailSettings extends React.Component {
             serverError: null,
             emailSuccess: null,
             emailFail: null,
-            pushNotificationContents: this.props.config.EmailSettings.PushNotificationContents
+            pushNotificationContents: this.props.config.EmailSettings.PushNotificationContents,
+            connectionSecurity: this.props.config.EmailSettings.ConnectionSecurity
         };
     }
 
@@ -138,7 +128,7 @@ class EmailSettings extends React.Component {
         config.EmailSettings.SMTPPort = ReactDOM.findDOMNode(this.refs.SMTPPort).value.trim();
         config.EmailSettings.SMTPUsername = ReactDOM.findDOMNode(this.refs.SMTPUsername).value.trim();
         config.EmailSettings.SMTPPassword = ReactDOM.findDOMNode(this.refs.SMTPPassword).value.trim();
-        config.EmailSettings.ConnectionSecurity = ReactDOM.findDOMNode(this.refs.ConnectionSecurity).value.trim();
+        config.EmailSettings.ConnectionSecurity = this.state.connectionSecurity.trim();
 
         config.EmailSettings.InviteSalt = ReactDOM.findDOMNode(this.refs.InviteSalt).value.trim();
         if (config.EmailSettings.InviteSalt === '') {
@@ -703,61 +693,13 @@ class EmailSettings extends React.Component {
                         </div>
                     </div>
 
+                    <ConnectionSecurityDropdownSetting
+                        currentValue={this.state.connectionSecurity}
+                        handleChange={(e) => this.setState({connectionSecurity: e.target.value, saveNeeded: true})}
+                        isDisabled={!this.state.sendEmailNotifications}
+                    />
                     <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='ConnectionSecurity'
-                        >
-                            <FormattedMessage
-                                id='admin.email.connectionSecurityTitle'
-                                defaultMessage='Connection Security:'
-                            />
-                        </label>
                         <div className='col-sm-8'>
-                            <select
-                                className='form-control'
-                                id='ConnectionSecurity'
-                                ref='ConnectionSecurity'
-                                defaultValue={this.props.config.EmailSettings.ConnectionSecurity}
-                                onChange={this.handleChange}
-                                disabled={!this.state.sendEmailNotifications}
-                            >
-                                <option value=''>{formatMessage(holders.connectionSecurityNone)}</option>
-                                <option value='TLS'>{formatMessage(holders.connectionSecurityTls)}</option>
-                                <option value='STARTTLS'>{formatMessage(holders.connectionSecurityStart)}</option>
-                            </select>
-                            <div className='help-text'>
-                                <table
-                                    className='table table-bordered'
-                                    cellPadding='5'
-                                >
-                                    <tbody>
-                                        <tr><td className='help-text'>
-                                            <FormattedMessage
-                                                id='admin.email.connectionSecurityNone'
-                                                defaultMessage='None'
-                                            />
-                                        </td><td className='help-text'>
-                                            <FormattedMessage
-                                                id='admin.email.connectionSecurityNoneDescription'
-                                                defaultMessage='Mattermost will send email over an unsecure connection.'
-                                            />
-                                        </td></tr>
-                                        <tr><td className='help-text'>{'TLS'}</td><td className='help-text'>
-                                            <FormattedMessage
-                                                id='admin.email.connectionSecurityTlsDescription'
-                                                defaultMessage='Encrypts the communication between Mattermost and your email server.'
-                                            />
-                                        </td></tr>
-                                        <tr><td className='help-text'>{'STARTTLS'}</td><td className='help-text'>
-                                            <FormattedMessage
-                                                id='admin.email.connectionSecurityStartDescription'
-                                                defaultMessage='Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.'
-                                            />
-                                        </td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
                             <div className='help-text'>
                                 <button
                                     className='btn btn-default'
