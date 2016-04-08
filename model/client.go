@@ -621,7 +621,9 @@ func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) CreateDirectChannel(data map[string]string) (*Result, *AppError) {
+func (c *Client) CreateDirectChannel(userId string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["user_id"] = userId
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/create_direct", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
@@ -1070,7 +1072,9 @@ func (c *Client) PostToWebhook(id, payload string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) DeleteIncomingWebhook(data map[string]string) (*Result, *AppError) {
+func (c *Client) DeleteIncomingWebhook(id string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["id"] = id
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/incoming/delete", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
@@ -1132,7 +1136,9 @@ func (c *Client) CreateOutgoingWebhook(hook *OutgoingWebhook) (*Result, *AppErro
 	}
 }
 
-func (c *Client) DeleteOutgoingWebhook(data map[string]string) (*Result, *AppError) {
+func (c *Client) DeleteOutgoingWebhook(id string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["id"] = id
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/delete", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
@@ -1150,7 +1156,9 @@ func (c *Client) ListOutgoingWebhooks() (*Result, *AppError) {
 	}
 }
 
-func (c *Client) RegenOutgoingWebhookToken(data map[string]string) (*Result, *AppError) {
+func (c *Client) RegenOutgoingWebhookToken(id string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["id"] = id
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/regen_token", MapToJson(data)); err != nil {
 		return nil, err
 	} else {

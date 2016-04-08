@@ -139,12 +139,20 @@ func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 }
 
 func (me *TestHelper) CreateChannel(client *model.Client, team *model.Team) *model.Channel {
+	return me.createChannel(client, team, model.CHANNEL_OPEN)
+}
+
+func (me *TestHelper) CreatePrivateChannel(client *model.Client, team *model.Team) *model.Channel {
+	return me.createChannel(client, team, model.CHANNEL_PRIVATE)
+}
+
+func (me *TestHelper) createChannel(client *model.Client, team *model.Team, channelType string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        "name_" + id,
-		Type:        model.CHANNEL_PRIVATE,
+		Type:        channelType,
 		TeamId:      team.Id,
 	}
 

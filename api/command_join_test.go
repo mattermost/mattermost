@@ -27,9 +27,7 @@ func TestJoinCommands(t *testing.T) {
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 	Client.Must(Client.LeaveChannel(channel2.Id))
 
-	data := make(map[string]string)
-	data["user_id"] = user2.Id
-	channel3 := Client.Must(Client.CreateDirectChannel(data)).Data.(*model.Channel)
+	channel3 := Client.Must(Client.CreateDirectChannel(user2.Id)).Data.(*model.Channel)
 
 	rs5 := Client.Must(Client.Command(channel0.Id, "/join "+channel2.Name, false)).Data.(*model.CommandResponse)
 	if !strings.HasSuffix(rs5.GotoLocation, "/"+team.Name+"/channels/"+channel2.Name) {
