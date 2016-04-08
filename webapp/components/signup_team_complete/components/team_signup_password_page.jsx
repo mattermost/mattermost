@@ -81,7 +81,7 @@ class TeamSignupPasswordPage extends React.Component {
                     },
                     (err) => {
                         if (err.id === 'api.user.login.not_verified.app_error') {
-                            browserHistory.push('/verify_email?email=' + encodeURIComponent(teamSignup.team.email) + '&teamname=' + encodeURIComponent(teamSignup.team.name));
+                            browserHistory.push('/should_verify_email?email=' + encodeURIComponent(teamSignup.team.email) + '&teamname=' + encodeURIComponent(teamSignup.team.name));
                         } else {
                             this.setState({serverError: err.message});
                             $('#finish-button').button('reset');

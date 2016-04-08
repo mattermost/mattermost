@@ -55,7 +55,9 @@ class PasswordResetSendLink extends React.Component {
                             <FormattedHTMLMessage
                                 id='password_send.link'
                                 defaultMessage='<p>A password reset link has been sent to <b>{email}</b></p>'
-                                email={email}
+                                values={{
+                                    email
+                                }}
                             />
                             <FormattedMessage
                                 id={'password_send.checkInbox'}

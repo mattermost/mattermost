@@ -90,7 +90,7 @@ export default class Login extends React.Component {
                 },
                 (err) => {
                     if (err.id === 'api.user.login.not_verified.app_error') {
-                        browserHistory.push('/verify_email?teamname=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(loginId));
+                        browserHistory.push('/should_verify_email?teamname=' + encodeURIComponent(team) + '&email=' + encodeURIComponent(loginId));
                         return;
                     }
                     this.setState({serverEmailError: err.message});
