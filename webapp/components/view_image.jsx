@@ -228,7 +228,7 @@ class ViewImageModal extends React.Component {
         }
 
         const filename = this.props.filenames[this.state.imgId];
-        const fileUrl = Utils.getFileUrl(filename, true);
+        const fileUrl = Utils.getFileUrl(filename);
 
         var content;
         if (this.state.loaded[this.state.imgId]) {

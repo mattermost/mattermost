@@ -5,7 +5,7 @@ import React from 'react';
 
 import {Link} from 'react-router';
 
-export default class AddIntegrationOption extends React.Component {
+export default class IntegrationOption extends React.Component {
     static get propTypes() {
         return {
             image: React.PropTypes.string.isRequired,
@@ -21,16 +21,16 @@ export default class AddIntegrationOption extends React.Component {
         return (
             <Link
                 to={link}
-                className='add-integration'
+                className='integration-option'
             >
                 <img
-                    className='add-integration__image'
+                    className='integration-option__image'
                     src={image}
                 />
-                <div className='add-integration__title'>
+                <div className='integration-option__title'>
                     {title}
                 </div>
-                <div className='add-integration__description'>
+                <div className='integration-option__description'>
                     {description}
                 </div>
             </Link>

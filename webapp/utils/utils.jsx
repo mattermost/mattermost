@@ -720,7 +720,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .post:hover, .app__body .more-modal__list .more-modal__row:hover, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.app__body .suggestion-list__content .command:hover, .app__body .mentions__name:hover, .app__body .suggestion--selected, .app__body .dropdown-menu>li>a:focus, .app__body .dropdown-menu>li>a:hover, .app__body .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
-        changeCss('.app__body code, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
+        changeCss('code, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
         changeCss('@media(min-width: 960px){.app__body .post.current--user:hover .post__body ', 'background: none;', 1);
         changeCss('.app__body .sidebar--right', 'color:' + theme.centerChannelColor, 2);
         changeCss('.app__body .search-help-popover .search-autocomplete__item:hover, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__body', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
@@ -1109,9 +1109,14 @@ export function fileSizeToString(bytes) {
 }
 
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
+<<<<<<< HEAD
 export function getFileUrl(filename, isDownload) {
     const downloadParam = isDownload ? '?download=1' : '';
     return getWindowLocationOrigin() + Client.getFilesRoute() + '/files/get' + filename + downloadParam;
+=======
+export function getFileUrl(filename) {
+    return getWindowLocationOrigin() + '/api/v1/files/get' + filename;
+>>>>>>> master
 }
 
 // Gets the name of a file (including extension) from a given url or file path.

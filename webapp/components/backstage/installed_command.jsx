@@ -12,7 +12,8 @@ export default class InstalledCommand extends React.Component {
         return {
             command: React.PropTypes.object.isRequired,
             onRegenToken: React.PropTypes.func.isRequired,
-            onDelete: React.PropTypes.func.isRequired
+            onDelete: React.PropTypes.func.isRequired,
+            filter: React.PropTypes.string
         };
     }
 
@@ -21,6 +22,8 @@ export default class InstalledCommand extends React.Component {
 
         this.handleRegenToken = this.handleRegenToken.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
+
+        this.matchesFilter = this.matchesFilter.bind(this);
     }
 
     handleRegenToken(e) {
@@ -35,26 +38,67 @@ export default class InstalledCommand extends React.Component {
         this.props.onDelete(this.props.command);
     }
 
+    matchesFilter(command, filter) {
+        if (!filter) {
+            return true;
+        }
+
+        return command.display_name.toLowerCase().indexOf(filter) !== -1 ||
+            command.description.toLowerCase().indexOf(filter) !== -1 ||
+            command.trigger.toLowerCase().indexOf(filter) !== -1;
+    }
+
     render() {
         const command = this.props.command;
+
+        if (!this.matchesFilter(command, this.props.filter)) {
+            return null;
+        }
+
+        let name;
+        if (command.display_name) {
+            name = command.display_name;
+        } else {
+            name = (
+                <FormattedMessage
+                    id='installed_integraions.unnamed_command'
+                    defaultMessage='Unnamed Slash Command'
+                />
+            );
+        }
+
+        let description = null;
+        if (command.description) {
+            description = (
+                <div className='item-details__row'>
+                    <span className='item-details__description'>
+                        {command.description}
+                    </span>
+                </div>
+            );
+        }
 
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
                     <div className='item-details__row'>
                         <span className='item-details__name'>
-                            {command.display_name}
+                            {name}
                         </span>
-                        <span className='item-details__type'>
-                            <FormattedMessage
-                                id='installed_integrations.commandType'
-                                defaultMessage='(Slash Command)'
-                            />
+                        <span className='item-details__trigger'>
+                            {'- /' + command.trigger}
                         </span>
                     </div>
+                    {description}
                     <div className='item-details__row'>
-                        <span className='item-details__description'>
-                            {command.description}
+                        <span className='item-details__token'>
+                            <FormattedMessage
+                                id='installed_integrations.token'
+                                defaultMessage='Token: {token}'
+                                values={{
+                                    token: command.token
+                                }}
+                            />
                         </span>
                     </div>
                     <div className='item-details__row'>
@@ -63,7 +107,7 @@ export default class InstalledCommand extends React.Component {
                                 id='installed_integrations.creation'
                                 defaultMessage='Created by {creator} on {createAt, date, full}'
                                 values={{
-                                    creator: Utils.displayUsername(command.creator_Id),
+                                    creator: Utils.displayUsername(command.creator_id),
                                     createAt: command.create_at
                                 }}
                             />
