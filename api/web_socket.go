@@ -14,7 +14,7 @@ import (
 
 func InitWebSocket(r *mux.Router) {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
-	r.Handle("/websocket", ApiUserRequired(connect)).Methods("GET")
+	r.Handle("/websocket", ApiUserRequiredTrustRequester(connect)).Methods("GET")
 	hub.Start()
 }
 

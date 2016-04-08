@@ -28,6 +28,8 @@ const (
 	HEADER_AUTH                   = "Authorization"
 	HEADER_MM_SESSION_TOKEN_INDEX = "X-MM-TokenIndex"
 	SESSION_TOKEN_INDEX           = "session_token_index"
+	HEADER_REQUESTED_WITH         = "X-Requested-With"
+	HEADER_REQUESTED_WITH_XML     = "XMLHttpRequest"
 	API_URL_SUFFIX                = "/api/v1"
 )
 

@@ -61,31 +61,39 @@ type Page struct {
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, true, false, false}
+	return &handler{h, false, false, true, false, false, false}
 }
 
 func AppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false, false}
+	return &handler{h, false, false, false, false, false, false}
 }
 
 func AppHandlerIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false, true}
+	return &handler{h, false, false, false, false, true, false}
 }
 
 func ApiUserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, true, false}
+	return &handler{h, true, false, true, true, false, false}
 }
 
 func ApiUserRequiredActivity(h func(*Context, http.ResponseWriter, *http.Request), isUserActivity bool) http.Handler {
-	return &handler{h, true, false, true, isUserActivity, false}
+	return &handler{h, true, false, true, isUserActivity, false, false}
 }
 
 func UserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, false, false, false}
+	return &handler{h, true, false, false, false, false, false}
 }
 
 func ApiAdminSystemRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, true, true, false, false}
+	return &handler{h, true, true, true, false, false, false}
+}
+
+func ApiAppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{h, false, false, true, false, false, true}
+}
+
+func ApiUserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{h, true, false, true, true, false, true}
 }
 
 type handler struct {
@@ -95,6 +103,7 @@ type handler struct {
 	isApi              bool
 	isUserActivity     bool
 	isTeamIndependent  bool
+	trustRequester     bool
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -148,6 +157,15 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					c.SessionTokenIndex = sessionTokenIndex
 				} else {
 					c.SessionTokenIndex = -1
+				}
+			}
+
+			if len(token) != 0 {
+				if (h.requireSystemAdmin || h.requireUser) && !h.trustRequester {
+					if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
+						c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
+						token = ""
+					}
 				}
 			}
 		} else {
