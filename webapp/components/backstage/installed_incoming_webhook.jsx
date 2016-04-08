@@ -12,7 +12,8 @@ export default class InstalledIncomingWebhook extends React.Component {
     static get propTypes() {
         return {
             incomingWebhook: React.PropTypes.object.isRequired,
-            onDelete: React.PropTypes.func.isRequired
+            onDelete: React.PropTypes.func.isRequired,
+            filter: React.PropTypes.string
         };
     }
 
@@ -28,31 +29,67 @@ export default class InstalledIncomingWebhook extends React.Component {
         this.props.onDelete(this.props.incomingWebhook);
     }
 
+    matchesFilter(incomingWebhook, channel, filter) {
+        if (!filter) {
+            return true;
+        }
+
+        if (incomingWebhook.display_name.toLowerCase().indexOf(filter) !== -1 ||
+            incomingWebhook.description.toLowerCase().indexOf(filter) !== -1) {
+            return true;
+        }
+
+        if (incomingWebhook.channel_id) {
+            if (channel && channel.name.toLowerCase().indexOf(filter) !== -1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     render() {
         const incomingWebhook = this.props.incomingWebhook;
-
         const channel = ChannelStore.get(incomingWebhook.channel_id);
-        const channelName = channel ? channel.display_name : 'cannot find channel';
+
+        if (!this.matchesFilter(incomingWebhook, channel, this.props.filter)) {
+            return null;
+        }
+
+        let displayName;
+        if (incomingWebhook.display_name) {
+            displayName = incomingWebhook.display_name;
+        } else if (channel) {
+            displayName = channel.display_name;
+        } else {
+            displayName = (
+                <FormattedMessage
+                    id='installed_incoming_webhooks.unknown_channel'
+                    defaultMessage='A Private Webhook'
+                />
+            );
+        }
+
+        let description = null;
+        if (incomingWebhook.description) {
+            description = (
+                <div className='item-details__row'>
+                    <span className='item-details__description'>
+                        {incomingWebhook.description}
+                    </span>
+                </div>
+            );
+        }
 
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
                     <div className='item-details__row'>
                         <span className='item-details__name'>
-                            {incomingWebhook.display_name || channelName}
-                        </span>
-                        <span className='item-details__type'>
-                            <FormattedMessage
-                                id='installed_integrations.incomingWebhookType'
-                                defaultMessage='(Incoming Webhook)'
-                            />
+                            {displayName}
                         </span>
                     </div>
-                    <div className='item-details__row'>
-                        <span className='item-details__description'>
-                            {incomingWebhook.description}
-                        </span>
-                    </div>
+                    {description}
                     <div className='tem-details__row'>
                         <span className='item-details__creation'>
                             <FormattedMessage

@@ -7,6 +7,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
 import * as Utils from 'utils/utils.jsx';
 
+import BackstageHeader from './backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {Link} from 'react-router';
@@ -105,7 +106,7 @@ export default class AddCommand extends React.Component {
         AsyncClient.addCommand(
             command,
             () => {
-                browserHistory.push('/settings/integrations/installed');
+                browserHistory.push('/settings/integrations/commands');
             },
             (err) => {
                 this.setState({
@@ -249,16 +250,18 @@ export default class AddCommand extends React.Component {
 
         return (
             <div className='backstage-content row'>
-                <div className='add-command'>
-                    <div className='backstage-header'>
-                        <h1>
-                            <FormattedMessage
-                                id='add_command.header'
-                                defaultMessage='Add Slash Command'
-                            />
-                        </h1>
-                    </div>
-                </div>
+                <BackstageHeader>
+                    <Link to={'/settings/integrations/commands'}>
+                        <FormattedMessage
+                            id='installed_command.header'
+                            defaultMessage='Slash Commands'
+                        />
+                    </Link>
+                    <FormattedMessage
+                        id='add_command.header'
+                        defaultMessage='Add'
+                    />
+                </BackstageHeader>
                 <div className='backstage-form'>
                     <form className='form-horizontal'>
                         <div className='form-group'>
@@ -479,7 +482,7 @@ export default class AddCommand extends React.Component {
                             <FormError errors={[this.state.serverError, this.state.clientError]}/>
                             <Link
                                 className='btn btn-sm'
-                                to={'/settings/integrations/add'}
+                                to={'/settings/integrations/commands'}
                             >
                                 <FormattedMessage
                                     id='add_command.cancel'

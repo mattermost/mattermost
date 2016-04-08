@@ -4,76 +4,76 @@
 import React from 'react';
 
 import {FormattedMessage} from 'react-intl';
-import AddIntegrationOption from './add_integration_option.jsx';
+import IntegrationOption from './integration_option.jsx';
 
 import WebhookIcon from 'images/webhook_icon.jpg';
 
-export default class AddIntegration extends React.Component {
+export default class Integrations extends React.Component {
     render() {
         const options = [];
 
         if (window.mm_config.EnableIncomingWebhooks === 'true') {
             options.push(
-                <AddIntegrationOption
+                <IntegrationOption
                     key='incomingWebhook'
                     image={WebhookIcon}
                     title={
                         <FormattedMessage
-                            id='add_integration.incomingWebhook.title'
+                            id='integrations.incomingWebhook.title'
                             defaultMessage='Incoming Webhook'
                         />
                     }
                     description={
                         <FormattedMessage
-                            id='add_integration.incomingWebhook.description'
-                            defaultMessage='Create webhook URLs for use in external integrations.'
+                            id='integrations.incomingWebhook.description'
+                            defaultMessage='Incoming webhooks allow external integrations to send messages'
                         />
                     }
-                    link={'/settings/integrations/add/incoming_webhook'}
+                    link={'/settings/integrations/incoming_webhooks'}
                 />
             );
         }
 
         if (window.mm_config.EnableOutgoingWebhooks === 'true') {
             options.push(
-                <AddIntegrationOption
+                <IntegrationOption
                     key='outgoingWebhook'
                     image={WebhookIcon}
                     title={
                         <FormattedMessage
-                            id='add_integration.outgoingWebhook.title'
+                            id='integrations.outgoingWebhook.title'
                             defaultMessage='Outgoing Webhook'
                         />
                     }
                     description={
                         <FormattedMessage
-                            id='add_integration.outgoingWebhook.description'
-                            defaultMessage='Create webhooks to send new message events to an external integration.'
+                            id='integrations.outgoingWebhook.description'
+                            defaultMessage='Outgoing webhooks allow external integrations to receive and respond to messages'
                         />
                     }
-                    link={'/settings/integrations/add/outgoing_webhook'}
+                    link={'/settings/integrations/outgoing_webhooks'}
                 />
             );
         }
 
         if (window.mm_config.EnableCommands === 'true') {
             options.push(
-                <AddIntegrationOption
+                <IntegrationOption
                     key='command'
                     image={WebhookIcon}
                     title={
                         <FormattedMessage
-                            id='add_integration.command.title'
+                            id='integrations.command.title'
                             defaultMessage='Slash Command'
                         />
                     }
                     description={
                         <FormattedMessage
-                            id='add_integration.command.description'
-                            defaultMessage='Create slash commands to send events to external integrations and receive a response.'
+                            id='integrations.command.description'
+                            defaultMessage='Slash commands send events to an external integration'
                         />
                     }
-                    link={'/settings/integrations/add/command'}
+                    link={'/settings/integrations/commands'}
                 />
             );
         }
@@ -83,8 +83,8 @@ export default class AddIntegration extends React.Component {
                 <div className='backstage-header'>
                     <h1>
                         <FormattedMessage
-                            id='add_integration.header'
-                            defaultMessage='Add Integration'
+                            id='integrations.header'
+                            defaultMessage='Integrations'
                         />
                     </h1>
                 </div>

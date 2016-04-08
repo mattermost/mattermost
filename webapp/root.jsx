@@ -38,8 +38,10 @@ import AdminConsole from 'components/admin_console/admin_controller.jsx';
 import TutorialView from 'components/tutorial/tutorial_view.jsx';
 import BackstageNavbar from 'components/backstage/backstage_navbar.jsx';
 import BackstageSidebar from 'components/backstage/backstage_sidebar.jsx';
-import InstalledIntegrations from 'components/backstage/installed_integrations.jsx';
-import AddIntegration from 'components/backstage/add_integration.jsx';
+import Integrations from 'components/backstage/integrations.jsx';
+import InstalledIncomingWebhooks from 'components/backstage/installed_incoming_webhooks.jsx';
+import InstalledOutgoingWebhooks from 'components/backstage/installed_outgoing_webhooks.jsx';
+import InstalledCommands from 'components/backstage/installed_commands.jsx';
 import AddIncomingWebhook from 'components/backstage/add_incoming_webhook.jsx';
 import AddOutgoingWebhook from 'components/backstage/add_outgoing_webhook.jsx';
 import AddCommand from 'components/backstage/add_command.jsx';
@@ -253,41 +255,57 @@ function renderRootComponent() {
                         onEnter={onLoggedOut}
                     />
                     <Route path='settings/integrations'>
-                        <IndexRedirect to='installed'/>
-                        <Route
-                            path='installed'
+                        <IndexRoute
                             components={{
                                 navbar: BackstageNavbar,
                                 sidebar: BackstageSidebar,
-                                center: InstalledIntegrations
+                                center: Integrations
                             }}
                         />
-                        <Route path='add'>
+                        <Route path='incoming_webhooks'>
                             <IndexRoute
                                 components={{
                                     navbar: BackstageNavbar,
                                     sidebar: BackstageSidebar,
-                                    center: AddIntegration
+                                    center: InstalledIncomingWebhooks
                                 }}
                             />
                             <Route
-                                path='incoming_webhook'
+                                path='add'
                                 components={{
                                     navbar: BackstageNavbar,
                                     sidebar: BackstageSidebar,
                                     center: AddIncomingWebhook
                                 }}
                             />
+                        </Route>
+                        <Route path='outgoing_webhooks'>
+                            <IndexRoute
+                                components={{
+                                    navbar: BackstageNavbar,
+                                    sidebar: BackstageSidebar,
+                                    center: InstalledOutgoingWebhooks
+                                }}
+                            />
                             <Route
-                                path='outgoing_webhook'
+                                path='add'
                                 components={{
                                     navbar: BackstageNavbar,
                                     sidebar: BackstageSidebar,
                                     center: AddOutgoingWebhook
                                 }}
                             />
+                        </Route>
+                        <Route path='commands'>
+                            <IndexRoute
+                                components={{
+                                    navbar: BackstageNavbar,
+                                    sidebar: BackstageSidebar,
+                                    center: InstalledCommands
+                                }}
+                            />
                             <Route
-                                path='command'
+                                path='add'
                                 components={{
                                     navbar: BackstageNavbar,
                                     sidebar: BackstageSidebar,

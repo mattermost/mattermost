@@ -6,6 +6,7 @@ import React from 'react';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
 
+import BackstageHeader from './backstage_header.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
@@ -68,7 +69,7 @@ export default class AddIncomingWebhook extends React.Component {
         AsyncClient.addIncomingHook(
             hook,
             () => {
-                browserHistory.push('/settings/integrations/installed');
+                browserHistory.push('/settings/integrations/incoming_webhooks');
             },
             (err) => {
                 this.setState({
@@ -99,17 +100,19 @@ export default class AddIncomingWebhook extends React.Component {
 
     render() {
         return (
-            <div className='backstage-content row'>
-                <div className='add-incoming-webhook'>
-                    <div className='backstage-header'>
-                        <h1>
-                            <FormattedMessage
-                                id='add_incoming_webhook.header'
-                                defaultMessage='Add Incoming Webhook'
-                            />
-                        </h1>
-                    </div>
-                </div>
+            <div className='backstage-content'>
+                <BackstageHeader>
+                    <Link to={'/settings/integrations/incoming_webhooks'}>
+                        <FormattedMessage
+                            id='installed_incoming_webhooks.header'
+                            defaultMessage='Incoming Webhooks'
+                        />
+                    </Link>
+                    <FormattedMessage
+                        id='add_incoming_webhook.header'
+                        defaultMessage='Add'
+                    />
+                </BackstageHeader>
                 <div className='backstage-form'>
                     <form className='form-horizontal'>
                         <div className='form-group'>
@@ -176,7 +179,7 @@ export default class AddIncomingWebhook extends React.Component {
                             <FormError errors={[this.state.serverError, this.state.clientError]}/>
                             <Link
                                 className='btn btn-sm'
-                                to={'/settings/integrations/add'}
+                                to={'/settings/integrations/incoming_webhooks'}
                             >
                                 <FormattedMessage
                                     id='add_incoming_webhook.cancel'

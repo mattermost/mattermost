@@ -24,51 +24,32 @@ export default class BackstageSidebar extends React.Component {
                         }
                     >
                         <BackstageSection
-                            name='installed'
+                            name='incoming_webhooks'
                             title={(
                                 <FormattedMessage
-                                    id='backstage_sidebar.integrations.installed'
-                                    defaultMessage='Installed Integrations'
+                                    id='backstage_sidebar.integrations.incoming_webhooks'
+                                    defaultMessage='Incoming Webhooks'
                                 />
                             )}
                         />
                         <BackstageSection
-                            name='add'
+                            name='outgoing_webhooks'
                             title={(
                                 <FormattedMessage
-                                    id='backstage_sidebar.integrations.add'
-                                    defaultMessage='Add Integration'
+                                    id='backstage_sidebar.integrations.outgoing_webhooks'
+                                    defaultMessage='Outgoing Webhooks'
                                 />
                             )}
-                        >
-                            <BackstageSection
-                                name='incoming_webhook'
-                                title={(
-                                    <FormattedMessage
-                                        id='backstage_sidebar.integrations.add.incomingWebhook'
-                                        defaultMessage='Incoming Webhook'
-                                    />
-                                )}
-                            />
-                            <BackstageSection
-                                name='outgoing_webhook'
-                                title={(
-                                    <FormattedMessage
-                                        id='backstage_sidebar.integrations.add.outgoingWebhook'
-                                        defaultMessage='Outgoing Webhook'
-                                    />
-                                )}
-                            />
-                            <BackstageSection
-                                name='command'
-                                title={(
-                                    <FormattedMessage
-                                        id='backstage_sidebar.integrations.add.command'
-                                        defaultMessage='Slash Command'
-                                    />
-                                )}
-                            />
-                        </BackstageSection>
+                        />
+                        <BackstageSection
+                            name='commands'
+                            title={(
+                                <FormattedMessage
+                                    id='backstage_sidebar.integrations.commands'
+                                    defaultMessage='Slash Commands'
+                                />
+                            )}
+                        />
                     </BackstageCategory>
                 </ul>
             </div>
