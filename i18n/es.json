@@ -2208,6 +2208,10 @@
     "translation": "El ancho para la imagen de miniatura es inválido en la configuración de archivos.  Debe ser un número positivo."
   },
   {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "Conexión segura inválida en la configuración de LDAP.  Debe ser '', 'TLS', o 'STARTTLS'"
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Dirección dónde se escuchará el servicio en la configuracón del servicio debe ser asignada."
   },

@@ -1836,7 +1836,7 @@ func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, teamDisplayNa
 func SendEmailChangeVerifyEmailAndForget(c *Context, userId, newUserEmail, teamName, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
-		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, newUserEmail)
+		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, newUserEmail)
 
 		subjectPage := utils.NewHTMLTemplate("email_change_verify_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.email_change_verify_subject",
