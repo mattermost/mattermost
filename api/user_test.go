@@ -1432,6 +1432,73 @@ func TestMeLoggedIn(t *testing.T) {
 	}
 }
 
+func TestMeInitialLoad(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if result, err := th.BasicClient.GetInitialLoad(); err != nil {
+		t.Fatal(err)
+	} else {
+		il := result.Data.(*model.InitialLoad)
+
+		if il.User == nil {
+			t.Fatal("should be valid")
+		}
+
+		if il.Preferences == nil {
+			t.Fatal("should be valid")
+		}
+
+		if len(il.Teams) != 1 {
+			t.Fatal("should be valid")
+		}
+
+		if len(il.TeamMembers) != 1 {
+			t.Fatal("should be valid")
+		}
+
+		if len(il.ClientCfg) == 0 {
+			t.Fatal("should be valid")
+		}
+
+		if len(il.LicenseCfg) == 0 {
+			t.Fatal("should be valid")
+		}
+	}
+
+	th.BasicClient.Logout()
+
+	if result, err := th.BasicClient.GetInitialLoad(); err != nil {
+		t.Fatal(err)
+	} else {
+		il := result.Data.(*model.InitialLoad)
+
+		if il.User != nil {
+			t.Fatal("should be valid")
+		}
+
+		if il.Preferences != nil {
+			t.Fatal("should be valid")
+		}
+
+		if len(il.Teams) != 0 {
+			t.Fatal("should be valid")
+		}
+
+		if len(il.TeamMembers) != 0 {
+			t.Fatal("should be valid")
+		}
+
+		if len(il.ClientCfg) == 0 {
+			t.Fatal("should be valid")
+		}
+
+		if len(il.LicenseCfg) == 0 {
+			t.Fatal("should be valid")
+		}
+	}
+
+}
+
 func TestGenerateMfaQrCode(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()

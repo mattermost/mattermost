@@ -15,7 +15,8 @@ import (
 )
 
 type Routes struct {
-	Root *mux.Router // 'api/v2'
+	Root    *mux.Router // ''
+	ApiRoot *mux.Router // 'api/v2'
 
 	Users    *mux.Router // 'api/v2/users'
 	NeedUser *mux.Router // 'api/v2/users/{user_id:[A-Za-z0-9]+}'
@@ -47,10 +48,11 @@ var BaseRoutes *Routes
 
 func InitApi() {
 	BaseRoutes = &Routes{}
-	BaseRoutes.Root = Srv.Router.PathPrefix(model.API_URL_SUFFIX).Subrouter()
-	BaseRoutes.Users = BaseRoutes.Root.PathPrefix("/users").Subrouter()
+	BaseRoutes.Root = Srv.Router
+	BaseRoutes.ApiRoot = Srv.Router.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	BaseRoutes.Users = BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	BaseRoutes.NeedUser = BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.Teams = BaseRoutes.Root.PathPrefix("/teams").Subrouter()
+	BaseRoutes.Teams = BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
 	BaseRoutes.NeedTeam = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.Channels = BaseRoutes.NeedTeam.PathPrefix("/channels").Subrouter()
 	BaseRoutes.NeedChannel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
@@ -59,10 +61,10 @@ func InitApi() {
 	BaseRoutes.Commands = BaseRoutes.NeedTeam.PathPrefix("/commands").Subrouter()
 	BaseRoutes.Files = BaseRoutes.NeedTeam.PathPrefix("/files").Subrouter()
 	BaseRoutes.Hooks = BaseRoutes.NeedTeam.PathPrefix("/hooks").Subrouter()
-	BaseRoutes.OAuth = BaseRoutes.Root.PathPrefix("/oauth").Subrouter()
-	BaseRoutes.Admin = BaseRoutes.Root.PathPrefix("/admin").Subrouter()
-	BaseRoutes.Preferences = BaseRoutes.Root.PathPrefix("/preferences").Subrouter()
-	BaseRoutes.License = BaseRoutes.Root.PathPrefix("/license").Subrouter()
+	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
+	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
+	BaseRoutes.Preferences = BaseRoutes.ApiRoot.PathPrefix("/preferences").Subrouter()
+	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 
 	InitUser()
 	InitTeam()

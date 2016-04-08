@@ -679,6 +679,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMeLoggedIn', success, error));
     }
 
+    getInitialLoad = (success, error) => {
+        request.
+            get(`${this.getUsersRoute()}/initial_load`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getInitialLoad', success, error));
+    }
+
     getMe = (success, error) => {
         request.
             get(`${this.getUsersRoute()}/me`).

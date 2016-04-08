@@ -42,6 +42,20 @@ describe('Client.User', function() {
         });
     });
 
+    it('getInitialLoad', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getInitialLoad(
+                function(data) {
+                    assert.equal(data.user.id.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('createUser', function(done) {
         var client = TestHelper.createClient();
         var user = TestHelper.fakeUser();

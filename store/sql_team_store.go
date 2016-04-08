@@ -251,6 +251,32 @@ func (s SqlTeamStore) GetAll() StoreChannel {
 	return storeChannel
 }
 
+func (s SqlTeamStore) GetTeamsByUserId(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, TeamMembers WHERE TeamMembers.TeamId = Teams.Id AND TeamMembers.UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetTeamsByUserId", "store.sql_team.get_all.app_error", nil, err.Error())
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 	storeChannel := make(StoreChannel)
 

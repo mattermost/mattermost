@@ -53,6 +53,7 @@ type TeamStore interface {
 	GetByName(name string) StoreChannel
 	GetAll() StoreChannel
 	GetAllTeamListing() StoreChannel
+	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) StoreChannel
 	PermanentDelete(teamId string) StoreChannel
 	AnalyticsTeamCount() StoreChannel

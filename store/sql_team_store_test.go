@@ -180,6 +180,35 @@ func TestTeamStoreGetByIniviteId(t *testing.T) {
 	}
 }
 
+func TestTeamStoreByUserId(t *testing.T) {
+	Setup()
+
+	o1 := &model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.InviteId = model.NewId()
+	o1 = Must(store.Team().Save(o1)).(*model.Team)
+
+	m1 := &model.TeamMember{TeamId: o1.Id, UserId: model.NewId()}
+	Must(store.Team().SaveMember(m1))
+
+	if r1 := <-store.Team().GetTeamsByUserId(m1.UserId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+		if len(teams) == 0 {
+			t.Fatal("Should return a team")
+		}
+
+		if teams[0].Id != o1.Id {
+			t.Fatal("should be a member")
+		}
+
+	}
+}
+
 func TestAllTeamListing(t *testing.T) {
 	Setup()
 

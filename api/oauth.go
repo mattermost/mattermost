@@ -19,13 +19,13 @@ import (
 func InitOAuth() {
 	l4g.Debug(utils.T("api.oauth.init.debug"))
 
-	BaseRoutes.Commands.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
-	BaseRoutes.Commands.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
-	BaseRoutes.Commands.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
-	BaseRoutes.Commands.Handle("/{service:[A-Za-z]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
-	BaseRoutes.Commands.Handle("/{service:[A-Za-z]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
-	BaseRoutes.Commands.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
-	BaseRoutes.Commands.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
 	BaseRoutes.Root.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
 	BaseRoutes.Root.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")

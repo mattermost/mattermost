@@ -54,6 +54,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
+	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
 	BaseRoutes.Users.Handle("/me_logged_in", ApiAppHandler(getMeLoggedIn)).Methods("GET")
 	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
 	BaseRoutes.Users.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
@@ -904,6 +905,50 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(result.Data.(*model.User).ToJson()))
 		return
 	}
+}
+
+func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	il := model.InitialLoad{}
+
+	if len(c.Session.UserId) != 0 {
+		uchan := Srv.Store.User().Get(c.Session.UserId)
+		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
+		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
+
+		il.TeamMembers = c.Session.Teams
+
+		if ru := <-uchan; ru.Err != nil {
+			c.Err = ru.Err
+			return
+		} else {
+			il.User = ru.Data.(*model.User)
+			il.User.Sanitize(map[string]bool{})
+		}
+
+		if rp := <-pchan; rp.Err != nil {
+			c.Err = rp.Err
+			return
+		} else {
+			il.Preferences = rp.Data.(model.Preferences)
+		}
+
+		if rt := <-tchan; rt.Err != nil {
+			c.Err = rt.Err
+			return
+		} else {
+			il.Teams = rt.Data.([]*model.Team)
+
+			for _, team := range il.Teams {
+				team.Sanitize()
+			}
+		}
+	}
+
+	il.ClientCfg = utils.ClientCfg
+	il.LicenseCfg = utils.ClientLicense
+
+	w.Write([]byte(il.ToJson()))
 }
 
 func getMeLoggedIn(c *Context, w http.ResponseWriter, r *http.Request) {
