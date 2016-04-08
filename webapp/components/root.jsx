@@ -72,11 +72,7 @@ export default class Root extends React.Component {
             analytics.load(window.mm_config.SegmentDeveloperKey);
             analytics.page();
             }}();
-        } else {
-            global.window.analytics = {};
-            global.window.analytics.page = function(){};
-            global.window.analytics.track = function(){};
-        }
+        } 
         /*eslint-enable */
 
         // Fastclick
