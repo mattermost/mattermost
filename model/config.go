@@ -162,12 +162,13 @@ type TeamSettings struct {
 
 type LdapSettings struct {
 	// Basic
-	Enable       *bool
-	LdapServer   *string
-	LdapPort     *int
-	BaseDN       *string
-	BindUsername *string
-	BindPassword *string
+	Enable             *bool
+	LdapServer         *string
+	LdapPort           *int
+	ConnectionSecurity *string
+	BaseDN             *string
+	BindUsername       *string
+	BindPassword       *string
 
 	// Filtering
 	UserFilter *string
@@ -180,7 +181,8 @@ type LdapSettings struct {
 	IdAttribute        *string
 
 	// Advanced
-	QueryTimeout *int
+	SkipCertificateVerification *bool
+	QueryTimeout                *int
 }
 
 type ComplianceSettings struct {
@@ -438,6 +440,16 @@ func (o *Config) SetDefaults() {
 		o.ComplianceSettings.EnableDaily = new(bool)
 		*o.ComplianceSettings.EnableDaily = false
 	}
+
+	if o.LdapSettings.ConnectionSecurity == nil {
+		o.LdapSettings.ConnectionSecurity = new(string)
+		*o.LdapSettings.ConnectionSecurity = ""
+	}
+
+	if o.LdapSettings.SkipCertificateVerification == nil {
+		o.LdapSettings.SkipCertificateVerification = new(bool)
+		*o.LdapSettings.SkipCertificateVerification = false
+	}
 }
 
 func (o *Config) IsValid() *AppError {
@@ -524,6 +536,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.RateLimitSettings.PerSec <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.rate_sec.app_error", nil, "")
+	}
+
+	if !(*o.LdapSettings.ConnectionSecurity == CONN_SECURITY_NONE || *o.LdapSettings.ConnectionSecurity == CONN_SECURITY_TLS || *o.LdapSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "")
 	}
 
 	return nil
