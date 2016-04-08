@@ -74,14 +74,14 @@ export default class InstalledCommands extends React.Component {
             <InstalledIntegrations
                 header={
                     <FormattedMessage
-                        id='installed_integrations.commands'
-                        defaultMessage='Installed Commands'
+                        id='installed_commands.header'
+                        defaultMessage='Installed Slash Commands'
                     />
                 }
                 addText={
                     <FormattedMessage
-                        id='installed_integrations.add_command'
-                        defaultMessage='Add Command'
+                        id='installed_commands.add'
+                        defaultMessage='Add Slash Command'
                     />
                 }
                 addLink='/settings/integrations/commands/add'
