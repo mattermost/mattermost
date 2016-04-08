@@ -35,20 +35,11 @@ func BenchmarkCreateDirectChannel(b *testing.B) {
 		b.Fatal("Could not create users")
 	}
 
-	data := make([]map[string]string, len(users))
-
-	for i := range data {
-		newmap := map[string]string{
-			"user_id": users[i].Id,
-		}
-		data[i] = newmap
-	}
-
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < NUM_USERS; j++ {
-			th.BasicClient.CreateDirectChannel(data[j])
+			th.BasicClient.CreateDirectChannel(users[j].Id)
 		}
 	}
 }

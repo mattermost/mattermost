@@ -198,11 +198,14 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if channel.Type != model.CHANNEL_OPEN {
 			c.LogAudit("fail - not open channel")
+			c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.not_open.app_error", nil, "")
+			return
 		}
 
 		if !c.HasPermissionsToChannel(pchan, "createOutgoingHook") {
 			if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.TeamId {
 				c.LogAudit("fail - bad channel permissions")
+				c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.permissions.app_error", nil, "")
 				return
 			}
 		}
@@ -291,7 +294,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
+	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.webhook.regen_outgoing_token.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return

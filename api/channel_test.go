@@ -90,10 +90,7 @@ func TestCreateDirectChannel(t *testing.T) {
 	user := th.BasicUser
 	user2 := th.BasicUser2
 
-	data := make(map[string]string)
-	data["user_id"] = th.BasicUser2.Id
-
-	rchannel, err := Client.CreateDirectChannel(data)
+	rchannel, err := Client.CreateDirectChannel(th.BasicUser2.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,17 +110,15 @@ func TestCreateDirectChannel(t *testing.T) {
 		t.Fatal("channel type was not direct")
 	}
 
-	if _, err := Client.CreateDirectChannel(data); err == nil {
+	if _, err := Client.CreateDirectChannel(th.BasicUser2.Id); err == nil {
 		t.Fatal("channel already exists and should have failed")
 	}
 
-	data["user_id"] = "junk"
-	if _, err := Client.CreateDirectChannel(data); err == nil {
+	if _, err := Client.CreateDirectChannel("junk"); err == nil {
 		t.Fatal("should have failed with bad user id")
 	}
 
-	data["user_id"] = "12345678901234567890123456"
-	if _, err := Client.CreateDirectChannel(data); err == nil {
+	if _, err := Client.CreateDirectChannel("12345678901234567890123456"); err == nil {
 		t.Fatal("should have failed with non-existent user")
 	}
 
@@ -416,9 +411,7 @@ func TestJoinChannel(t *testing.T) {
 		t.Fatal("shouldn't be able to join secret group")
 	}
 
-	data := make(map[string]string)
-	data["user_id"] = th.BasicUser.Id
-	rchannel := Client.Must(Client.CreateDirectChannel(data)).Data.(*model.Channel)
+	rchannel := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id)).Data.(*model.Channel)
 
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team)
@@ -447,9 +440,7 @@ func TestLeaveChannel(t *testing.T) {
 	// No error if you leave a channel you cannot see
 	Client.Must(Client.LeaveChannel(channel3.Id))
 
-	data := make(map[string]string)
-	data["user_id"] = th.BasicUser.Id
-	rchannel := Client.Must(Client.CreateDirectChannel(data)).Data.(*model.Channel)
+	rchannel := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id)).Data.(*model.Channel)
 
 	if _, err := Client.LeaveChannel(rchannel.Id); err == nil {
 		t.Fatal("should have errored, cannot leave direct channel")

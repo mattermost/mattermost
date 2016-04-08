@@ -16,12 +16,9 @@ func TestMsgCommands(t *testing.T) {
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team)
 
-	data := make(map[string]string)
-	data["user_id"] = user2.Id
-	Client.Must(Client.CreateDirectChannel(data))
+	Client.Must(Client.CreateDirectChannel(user2.Id))
 
-	data["user_id"] = user3.Id
-	Client.Must(Client.CreateDirectChannel(data))
+	Client.Must(Client.CreateDirectChannel(user3.Id))
 
 	// TODO XXX FIXME
 

@@ -1728,6 +1728,14 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "Outgoing webhooks can only be created for public channels."
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "Inappropriate permissions to create outcoming webhook."
+  },
+  {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
