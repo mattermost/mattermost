@@ -379,7 +379,6 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("h")
 	data := r.URL.Query().Get("d")
 	teamId := r.URL.Query().Get("t")
-	isDownload := r.URL.Query().Get("download") == "1"
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
 
@@ -419,20 +418,22 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
 	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 
-	if isDownload {
-		// attach extra headers to trigger a download on IE, Edge, and Safari
-		ua := user_agent.New(r.UserAgent())
-		bname, _ := ua.Browser()
+	// attach extra headers to trigger a download on IE, Edge, and Safari
+	ua := user_agent.New(r.UserAgent())
+	bname, _ := ua.Browser()
 
-		parts := strings.Split(filename, "/")
-		filePart := strings.Split(parts[len(parts)-1], "?")[0]
-		w.Header().Set("Content-Disposition", "attachment;filename=\""+filePart+"\"")
+	parts := strings.Split(filename, "/")
+	filePart := strings.Split(parts[len(parts)-1], "?")[0]
+	w.Header().Set("Content-Disposition", "attachment;filename=\""+filePart+"\"")
 
-		if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
-			// trim off anything before the final / so we just get the file's name
-			w.Header().Set("Content-Type", "application/octet-stream")
-		}
+	if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
+		// trim off anything before the final / so we just get the file's name
+		w.Header().Set("Content-Type", "application/octet-stream")
 	}
+
+	// prevent file links from being embedded in iframes
+	w.Header().Set("X-Frame-Options", "DENY")
+	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
 
 	w.Write(f)
 }
