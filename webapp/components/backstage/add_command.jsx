@@ -7,6 +7,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
 import * as Utils from 'utils/utils.jsx';
 
+import BackstageHeader from './backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {Link} from 'react-router';
@@ -249,21 +250,18 @@ export default class AddCommand extends React.Component {
 
         return (
             <div className='backstage-content row'>
-                <div className='backstage-header'>
-                    <h1>
-                        <Link to={'/settings/integrations/commands'}>
-                            <FormattedMessage
-                                id='installed_command.header'
-                                defaultMessage='Slash Commands'
-                            />
-                        </Link>
-                        {'>'}
+                <BackstageHeader>
+                    <Link to={'/settings/integrations/commands'}>
                         <FormattedMessage
-                            id='add_command.header'
-                            defaultMessage='Add'
+                            id='installed_command.header'
+                            defaultMessage='Slash Commands'
                         />
-                    </h1>
-                </div>
+                    </Link>
+                    <FormattedMessage
+                        id='add_command.header'
+                        defaultMessage='Add'
+                    />
+                </BackstageHeader>
                 <div className='backstage-form'>
                     <form className='form-horizontal'>
                         <div className='form-group'>

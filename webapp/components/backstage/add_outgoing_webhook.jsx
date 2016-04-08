@@ -6,6 +6,7 @@ import React from 'react';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
 
+import BackstageHeader from './backstage_header.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
@@ -132,21 +133,18 @@ export default class AddOutgoingWebhook extends React.Component {
     render() {
         return (
             <div className='backstage-content'>
-                <div className='backstage-header'>
-                    <h1>
-                        <Link to={'/settings/integrations/outgoing_webhooks'}>
-                            <FormattedMessage
-                                id='installed_outgoing_webhooks.header'
-                                defaultMessage='Outgoing Webhooks'
-                            />
-                        </Link>
-                        {'>'}
+                <BackstageHeader>
+                    <Link to={'/settings/integrations/outgoing_webhooks'}>
                         <FormattedMessage
-                            id='add_outgoing_webhook.header'
-                            defaultMessage='Add'
+                            id='installed_outgoing_webhooks.header'
+                            defaultMessage='Outgoing Webhooks'
                         />
-                    </h1>
-                </div>
+                    </Link>
+                    <FormattedMessage
+                        id='add_outgoing_webhook.header'
+                        defaultMessage='Add'
+                    />
+                </BackstageHeader>
                 <div className='backstage-form'>
                     <form className='form-horizontal'>
                         <div className='form-group'>
