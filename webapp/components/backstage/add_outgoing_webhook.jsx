@@ -89,7 +89,7 @@ export default class AddOutgoingWebhook extends React.Component {
         AsyncClient.addOutgoingHook(
             hook,
             () => {
-                browserHistory.push('/settings/integrations/installed');
+                browserHistory.push('/settings/integrations/outgoing_webhooks');
             },
             (err) => {
                 this.setState({
