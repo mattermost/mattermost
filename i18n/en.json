@@ -2352,6 +2352,10 @@
     "translation": "Invalid token"
   },
   {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "Invalid trigger words"
+  },
+  {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time"
   },
