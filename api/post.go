@@ -1119,6 +1119,21 @@ func DeletePostFilesAndForget(teamId string, post *model.Post) {
 	}()
 }
 
+func PermanentDeletePosts(c *Context, horizon int64) *model.AppError {
+	l4g.Warn(utils.T("api.post.permanent_delete_posts.attempting.warn"), horizon)
+	c.Path = "/post/permanent_delete_posts"
+	c.LogAuditWithUserId("", fmt.Sprintf("attempt horizon=%v", horizon))
+
+	if result := <-Srv.Store.Post().PermanentDeletePostsByHorizon(horizon); result.Err != nil {
+		return result.Err
+	}
+
+	l4g.Warn(utils.T("api.team.permanent_delete_posts.deleted.warn"), horizon)
+	c.LogAuditWithUserId("", fmt.Sprintf("success horizon=%v", horizon))
+
+	return nil
+}
+
 func getPostsBefore(c *Context, w http.ResponseWriter, r *http.Request) {
 	getPostsBeforeOrAfter(c, w, r, true)
 }

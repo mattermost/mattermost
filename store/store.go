@@ -95,6 +95,7 @@ type PostStore interface {
 	Get(id string) StoreChannel
 	Delete(postId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
+	PermanentDeletePostsByHorizon(horizon int64) StoreChannel
 	GetPosts(channelId string, offset int, limit int) StoreChannel
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel

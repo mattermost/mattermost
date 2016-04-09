@@ -40,10 +40,13 @@ var flagCmdVersion bool
 var flagCmdResetPassword bool
 var flagCmdPermanentDeleteUser bool
 var flagCmdPermanentDeleteTeam bool
+var flagCmdPermanentDeletePosts bool
+var flagConfirmationOverride bool
 var flagConfigFile string
 var flagEmail string
 var flagPassword string
 var flagTeamName string
+var flagDurationRetained string
 var flagRole string
 var flagRunCmds bool
 
@@ -237,6 +240,7 @@ func parseCmds() {
 	flag.StringVar(&flagEmail, "email", "", "")
 	flag.StringVar(&flagPassword, "password", "", "")
 	flag.StringVar(&flagTeamName, "team_name", "", "")
+	flag.StringVar(&flagDurationRetained, "duration_retained", "", "")
 	flag.StringVar(&flagRole, "role", "", "")
 
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
@@ -246,6 +250,8 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteUser, "permanent_delete_user", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteTeam, "permanent_delete_team", false, "")
+	flag.BoolVar(&flagCmdPermanentDeletePosts, "permanent_delete_posts", false, "")
+	flag.BoolVar(&flagConfirmationOverride, "confirmation_override", false, "")
 
 	flag.Parse()
 
@@ -255,7 +261,8 @@ func parseCmds() {
 		flagCmdResetPassword ||
 		flagCmdVersion ||
 		flagCmdPermanentDeleteUser ||
-		flagCmdPermanentDeleteTeam)
+		flagCmdPermanentDeleteTeam ||
+		flagCmdPermanentDeletePosts)
 }
 
 func runCmds() {
@@ -266,6 +273,7 @@ func runCmds() {
 	cmdResetPassword()
 	cmdPermDeleteUser()
 	cmdPermDeleteTeam()
+	cmdPermDeletePosts()
 }
 
 func cmdCreateTeam() {
@@ -554,6 +562,60 @@ func cmdPermDeleteTeam() {
 	}
 }
 
+func cmdPermDeletePosts() {
+	if flagCmdPermanentDeletePosts {
+
+		if len(flagDurationRetained) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -duration_retained")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		c := getMockContext()
+
+		if !flagConfirmationOverride {
+
+			var confirmBackup string
+			fmt.Print("Have you performed a database backup? (YES/NO): ")
+			fmt.Scanln(&confirmBackup)
+			if confirmBackup != "YES" {
+				flushLogAndExit(1)
+			}
+
+			var confirm string
+			fmt.Printf("Are you sure you want to delete posts older than duration: %v?  All data will be permanently deleted? (YES/NO): ", flagDurationRetained)
+			fmt.Scanln(&confirm)
+			if confirm != "YES" {
+				flushLogAndExit(1)
+			}
+
+		}
+
+		// ensure that duration_retained is negative
+		if strings.HasPrefix(flagDurationRetained, "+") {
+			flagDurationRetained = "-" + strings.TrimPrefix(flagDurationRetained, "+")
+		} else if !strings.HasPrefix(flagDurationRetained, "-") {
+			flagDurationRetained = "-" + flagDurationRetained
+		}
+
+		// parse duration and calculate horizon
+		var horizon int64 = 0
+		if duration, err := time.ParseDuration(flagDurationRetained); err == nil {
+			horizon = (time.Now().Add(duration)).UnixNano() / int64(time.Millisecond)
+		} else {
+			fmt.Fprintf(os.Stderr, "error parsing argument for flag: -duration_retained=\"%v\"", flagDurationRetained)
+			flushLogAndExit(1)
+		}
+
+		if err := api.PermanentDeletePosts(c, horizon); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			flushLogAndExit(0)
+		}
+	}
+}
+
 func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
@@ -571,13 +633,13 @@ func getMockContext() *api.Context {
 
 var usage = `Mattermost commands to help configure the system
 
-NAME: 
+NAME:
     platform -- platform configuation tool
-    
-USAGE: 
+
+USAGE:
     platform [options]
-    
-FLAGS: 
+
+FLAGS:
     -config="config.json"             Path to the config file
 
     -email="user@example.com"         Email address used in other commands
@@ -595,7 +657,7 @@ FLAGS:
                                         "system_admin" - Represents a system
                                            admin who has access to all teams
                                            and configuration settings.
-COMMANDS: 
+COMMANDS:
     -create_team                      Creates a team.  It requires the -team_name
                                       and -email flag to create a team.
         Example:
@@ -619,7 +681,7 @@ COMMANDS:
             platform -reset_password -team_name="name" -email="user@example.com" -password="newpassword"
 
     -permanent_delete_user            Permanently deletes a user and all related information
-                                      including posts from the database.  It requires the 
+                                      including posts from the database.  It requires the
                                       -team_name, and -email flag.  You may need to restart the
                                       server to invalidate the cache
         Example:
@@ -632,6 +694,21 @@ COMMANDS:
         Example:
             platform -permanent_delete_team -team_name="name"
 
-    -version                          Display the current of the Mattermost platform 
+    -permanent_delete_posts           Permanently deletes posts older than the number of days
+                                      specified by the required -duration_retained flag.  You may
+                                      need to restart the server to invalidate the cache.
+
+                                      The time.ParseDuration(duration_retained) input parameter is
+                                      a possibly signed sequence of decimal numbers. Typical values
+                                      are "120h" (to retain 5 days of post history) or fractions
+                                      like "48h30m". All unsigned and positively signed durations
+                                      will be converted to negatively signed durations.
+
+                                      Set the optional -confirmation_override flag when executing
+                                      the command from a script or cronjob.
+        Example:
+            platform -permanent_delete_posts -duration_retained=-120h [-confirmation_override]
+
+    -version                          Display the current of the Mattermost platform
 
     -help                             Displays this help page`
