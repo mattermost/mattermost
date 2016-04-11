@@ -138,6 +138,11 @@ func TestUploadFile(t *testing.T) {
 
 func TestGetFile(t *testing.T) {
 	Setup()
+	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	defer func() {
+		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+	}()
+	utils.Cfg.FileSettings.EnablePublicLink = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
