@@ -185,7 +185,4 @@ class IntegrationStore extends EventEmitter {
     }
 }
 
-const instance = new IntegrationStore();
-export default instance;
-window.IntegrationStore = instance;
-
+export default new IntegrationStore();

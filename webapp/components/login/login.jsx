@@ -9,6 +9,7 @@ import LoginMfa from './components/login_mfa.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Client from 'utils/client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -133,6 +134,24 @@ export default class Login extends React.Component {
                 }
             );
         }
+    }
+    createCustomLogin() {
+        if (global.window.mm_license.IsLicensed === 'true' &&
+                global.window.mm_license.CustomBrand === 'true' &&
+                global.window.mm_config.EnableCustomBrand === 'true') {
+            const text = global.window.mm_config.CustomBrandText || '';
+
+            return (
+                <div>
+                    <img
+                        src='/api/v1/admin/get_brand_image'
+                    />
+                    <p dangerouslySetInnerHTML={{__html: TextFormatting.formatText(text)}}/>
+                </div>
+            );
+        }
+
+        return null;
     }
     createLoginOptions(currentTeam) {
         const extraParam = Utils.getUrlParameter('extra');
@@ -364,6 +383,8 @@ export default class Login extends React.Component {
         }
 
         let content;
+        let customContent;
+        let customClass;
         if (this.state.showMfa) {
             content = (
                 <LoginMfa
@@ -375,6 +396,10 @@ export default class Login extends React.Component {
             );
         } else {
             content = this.createLoginOptions(currentTeam);
+            customContent = this.createCustomLogin();
+            if (customContent) {
+                customClass = 'branded';
+            }
         }
 
         return (
@@ -388,24 +413,29 @@ export default class Login extends React.Component {
                     </Link>
                 </div>
                 <div className='col-sm-12'>
-                    <div className='signup-team__container'>
-                        <h5 className='margin--less'>
-                            <FormattedMessage
-                                id='login.signTo'
-                                defaultMessage='Sign in to:'
-                            />
-                        </h5>
-                        <h2 className='signup-team__name'>{currentTeam.display_name}</h2>
-                        <h2 className='signup-team__subdomain'>
-                            <FormattedMessage
-                                id='login.on'
-                                defaultMessage='on {siteName}'
-                                values={{
-                                    siteName: global.window.mm_config.SiteName
-                                }}
-                            />
-                        </h2>
-                        {content}
+                    <div className={'signup-team__container ' + customClass}>
+                        <div className='signup__markdown'>
+                            {customContent}
+                        </div>
+                        <div className='signup__content'>
+                            <h5 className='margin--less'>
+                                <FormattedMessage
+                                    id='login.signTo'
+                                    defaultMessage='Sign in to:'
+                                />
+                            </h5>
+                            <h2 className='signup-team__name'>{currentTeam.display_name}</h2>
+                            <h2 className='signup-team__subdomain'>
+                                <FormattedMessage
+                                    id='login.on'
+                                    defaultMessage='on {siteName}'
+                                    values={{
+                                        siteName: global.window.mm_config.SiteName
+                                    }}
+                                />
+                            </h2>
+                            {content}
+                        </div>
                     </div>
                 </div>
             </div>

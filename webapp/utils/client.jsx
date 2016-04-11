@@ -1738,3 +1738,22 @@ export function updateMfa(data, success, error) {
         }
     });
 }
+
+export function uploadBrandImage(image, success, error) {
+    const formData = new FormData();
+    formData.append('image', image, image.name);
+
+    $.ajax({
+        url: '/api/v1/admin/upload_brand_image',
+        type: 'POST',
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('uploadBrandImage', xhr, status, err);
+            error(e);
+        }
+    });
+}

@@ -10,11 +10,32 @@
         margin-right: 5px;
     }
 }
+
 .signup-team__container {
     margin: 0 auto;
     max-width: 380px;
     padding: 100px 0 50px;
     position: relative;
+
+    &.branded {
+        @include display-flex;
+        @include flex-direction(row);
+        max-width: 900px;
+
+        .signup__markdown {
+            @include flex(1.3 0 0);
+            padding-right: 80px;
+
+            p {
+                color: lighten($black, 50%);
+            }
+        }
+
+        .signup__content {
+            @include flex(1 0 0);
+        }
+
+    }
 
     &.padding--less {
         padding-top: 50px;

@@ -54,7 +54,7 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
 	sr.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 	sr.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
-	sr.Handle("/generate_mfa_qr", ApiUserRequired(generateMfaQrCode)).Methods("GET")
+	sr.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
 	sr.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
 
 	sr.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
@@ -1150,14 +1150,14 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			path := "teams/" + c.Session.TeamId + "/users/" + id + "/profile.png"
 
-			if data, err := readFile(path); err != nil {
+			if data, err := ReadFile(path); err != nil {
 
 				if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 					c.Err = err
 					return
 				}
 
-				if err := writeFile(img, path); err != nil {
+				if err := WriteFile(img, path); err != nil {
 					c.Err = err
 					return
 				}
@@ -1185,7 +1185,13 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(10000000); err != nil {
+	if r.ContentLength > model.MAX_FILE_SIZE {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "")
+		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		return
+	}
+
+	if err := r.ParseMultipartForm(model.MAX_FILE_SIZE); err != nil {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "")
 		return
 	}
@@ -1245,7 +1251,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	path := "teams/" + c.Session.TeamId + "/users/" + c.Session.UserId + "/profile.png"
 
-	if err := writeFile(buf.Bytes(), path); err != nil {
+	if err := WriteFile(buf.Bytes(), path); err != nil {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
 		return
 	}
