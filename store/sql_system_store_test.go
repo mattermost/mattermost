@@ -30,6 +30,12 @@ func TestSqlSystemStore(t *testing.T) {
 	if systems2[system.Name] != system.Value {
 		t.Fatal()
 	}
+
+	result3 := <-store.System().GetByName(system.Name)
+	rsystem := result3.Data.(*model.System)
+	if rsystem.Value != system.Value {
+		t.Fatal()
+	}
 }
 
 func TestSqlSystemStoreSaveOrUpdate(t *testing.T) {

@@ -1339,4 +1339,3 @@ export function regenCommandToken(id) {
         }
     );
 }
-

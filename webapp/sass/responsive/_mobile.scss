@@ -738,16 +738,17 @@
 
     .inner-wrap {
         @include single-transition(all, .5s, ease);
-        &:before{
-            content:"";
+
+        &:before {
             //Some trickery in order for the z-index transition to happen immediately on move-in and delayed on move-out.
-            transition: background-color 0.5s ease, z-index 0s ease 0.5s;
             background-color: transparent;
+            content: '';
             height: 100%;
-            width: calc(100% + 30px);
             left: -15px;
             position: absolute;
             top: 0;
+            transition: background-color 0.5s ease, z-index 0s ease 0.5s;
+            width: calc(100% + 30px);
             z-index: 0;
         }
 
@@ -755,9 +756,9 @@
             @include translate3d(290px, 0, 0);
 
             &:before {
+                background-color: rgba(0, 0, 0, .4);
+                transition: background-color .5s ease;
                 z-index: 9999;
-                transition: background-color 0.5s ease;
-                background-color: rgba(0, 0, 0, 0.4);
             }
         }
 

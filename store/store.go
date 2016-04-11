@@ -189,6 +189,7 @@ type SystemStore interface {
 	SaveOrUpdate(system *model.System) StoreChannel
 	Update(system *model.System) StoreChannel
 	Get() StoreChannel
+	GetByName(name string) StoreChannel
 }
 
 type WebhookStore interface {

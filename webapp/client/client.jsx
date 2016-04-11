@@ -208,6 +208,18 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getComplianceReports', success, error));
     }
 
+    uploadBrandImage = (image, success, error) => {
+        const formData = new FormData();
+        formData.append('image', image, image.name);
+
+        request.
+            post(`${this.getLicenseRoute()}/upload_brand_image`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send(formData).
+            end(this.handleResponse.bind(this, 'uploadBrandImage', success, error));
+    }
+
     saveComplianceReports = (job, success, error) => {
         return request.
             post(`${this.getAdminRoute()}/save_compliance_report`).

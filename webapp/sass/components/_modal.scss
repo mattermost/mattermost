@@ -14,13 +14,18 @@
         max-height: calc(90vh - 62px);
         overflow: auto;
         padding: 20px 15px;
+    }
 
-        .edit-modal-body {
-            overflow: visible;
+    .edit-modal-body {
+        overflow: visible;
 
-            .suggestion-list__content {
-                max-height: 150px;
-            }
+        .custom-textarea {
+            min-height: 8em;
+            max-height: 60vh;
+        }
+
+        .suggestion-list__content {
+            max-height: 150px;
         }
     }
 
