@@ -46,25 +46,6 @@ export default class Root extends React.Component {
         // Setup localization listener
         LocalizationStore.addChangeListener(this.localizationChanged);
 
-        window.onerror = (msg, url, line, column, stack) => {
-            var l = {};
-            l.level = 'ERROR';
-            l.message = 'msg: ' + msg + ' row: ' + line + ' col: ' + column + ' stack: ' + stack + ' url: ' + url;
-
-            $.ajax({
-                url: '/api/v2/admin/log_client',
-                dataType: 'json',
-                contentType: 'application/json',
-                type: 'POST',
-                data: JSON.stringify(l)
-            });
-
-            if (window.mm_config.EnableDeveloper === 'true') {
-                window.ErrorStore.storeLastError({message: 'DEVELOPER MODE: A javascript error has occured.  Please use the javascript console to capture and report the error (row: ' + line + ' col: ' + column + ').'});
-                window.ErrorStore.emitChange();
-            }
-        };
-
         // Ya....
         /*eslint-disable */
         if (window.mm_config.SegmentDeveloperKey != null && window.mm_config.SegmentDeveloperKey !== "") {

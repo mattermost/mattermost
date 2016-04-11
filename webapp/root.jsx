@@ -82,26 +82,46 @@ const notFoundParams = {
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
 function preRenderSetup(callwhendone) {
-    var d1 = $.Deferred(); //eslint-disable-line new-cap
-    var d2 = $.Deferred(); //eslint-disable-line new-cap
+    window.onerror = (msg, url, line, column, stack) => {
+        var l = {};
+        l.level = 'ERROR';
+        l.message = 'msg: ' + msg + ' row: ' + line + ' col: ' + column + ' stack: ' + stack + ' url: ' + url;
 
-    Client.getClientConfig(
+        $.ajax({
+            url: '/api/v2/admin/log_client',
+            dataType: 'json',
+            contentType: 'application/json',
+            type: 'POST',
+            data: JSON.stringify(l)
+        });
+
+        if (window.mm_config && window.mm_config.EnableDeveloper === 'true') {
+            window.ErrorStore.storeLastError({message: 'DEVELOPER MODE: A javascript error has occured.  Please use the javascript console to capture and report the error (row: ' + line + ' col: ' + column + ').'});
+            window.ErrorStore.emitChange();
+        }
+    };
+
+    var d1 = $.Deferred(); //eslint-disable-line new-cap
+
+    Client.getInitialLoad(
         (data) => {
-            if (!data) {
-                return;
+            global.window.mm_config = data.client_cfg;
+            global.window.mm_license = data.license_cfg;
+
+            if (data.user) {
+                global.window.mm_user = data.user;
+                // UserStore.setCurrentUser(data.user);
+                // GlobalActions.newLocalizationSelected(data.locale);
             }
 
-            global.window.mm_config = data;
-            var serverVersion = Client.getServerVersion();
+            if (data.preferences) {
+                PreferenceStore.setPreferencesFromServer(data.preferences);
+            }
 
-            if (serverVersion !== BrowserStore.getLastServerVersion()) {
-                if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
-                    BrowserStore.setLastServerVersion(serverVersion);
-                } else {
-                    BrowserStore.setLastServerVersion(serverVersion);
-                    window.location.reload(true);
-                    console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
-                }
+            if (data.teams) {
+                // TODO XXX FIX ME - need to support more than the first team
+                TeamStore.saveMyTeam(data.teams[0]);
+                Client.setTeamId(TeamStore.getCurrentId());
             }
 
             d1.resolve();
@@ -109,21 +129,6 @@ function preRenderSetup(callwhendone) {
         (err) => {
             AsyncClient.dispatchError(err, 'getClientConfig');
             d1.resolve();
-        }
-    );
-
-    Client.getClientLicenceConfig(
-        (data) => {
-            if (!data) {
-                return;
-            }
-
-            global.window.mm_license = data;
-            d2.resolve();
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getClientLicenceConfig');
-            d2.resolve();
         }
     );
 
@@ -136,6 +141,9 @@ function preRenderSetup(callwhendone) {
 
     function afterIntl() {
         I18n.doAddLocaleData();
+        $.when(d1).done(() => {
+            callwhendone();
+        });
     }
 
     if (global.Intl) {
@@ -143,92 +151,37 @@ function preRenderSetup(callwhendone) {
     } else {
         I18n.safariFix(afterIntl);
     }
-
-    $.when(d1, d2).done(() => {
-        callwhendone();
-    });
 }
 
 function preLoggedIn(nextState, replace, callback) {
     ErrorStore.clearLastError();
 
     var d1 = $.Deferred(); //eslint-disable-line new-cap
-    var d2 = $.Deferred(); //eslint-disable-line new-cap
 
-    Client.getAllPreferences(
+    // XXX TODO FIXME this needs to move down
+    Client.getChannels(
         (data) => {
-            PreferenceStore.setPreferencesFromServer(data);
-            d1.resolve();
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getAllPreferences');
-            d1.resolve();
-        }
-    );
-
-    // TODO XXX FIXME remove this once I get multi-teams working
-    Client.getAllTeams(
-        (data) => {
-            var teamInUrl = Utils.getTeamNameFromUrl();
-
-            for (var key in data) {
-                if (data.hasOwnProperty(key)) {
-                    var team = data[key];
-                    if (team.name === teamInUrl) {
-                        TeamStore.saveMyTeam(team);
-                    }
-                }
-            }
-
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_ALL_TEAMS,
-                teams: data,
+                type: ActionTypes.RECEIVED_CHANNELS,
+                channels: data.channels,
                 members: data.members
             });
 
-            d2.resolve();
+            d1.resolve();
         },
         (err) => {
-            AsyncClient.dispatchError(err, 'getAllTeams');
-            d2.resolve();
+            AsyncClient.dispatchError(err, 'getChannels');
+            d1.resolve();
         }
     );
 
-    $.when(d1, d2).done(() => {
-        var d3 = $.Deferred(); //eslint-disable-line new-cap
-
-        Client.setTeamId(TeamStore.getCurrentId());
-        Client.getChannels(
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_CHANNELS,
-                    channels: data.channels,
-                    members: data.members
-                });
-
-                d3.resolve();
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getChannels');
-                d3.resolve();
-            }
-        );
-
-        $.when(d3).done(() => {
-            callback();
-        });
+    $.when(d1).done(() => {
+        callback();
     });
-
-    //const d2 = AsyncClient.getChannels();
-
-    // $.when(d1, d2).done(() => {
-    //     callback();
-    // });
 }
 
 function onPermalinkEnter(nextState) {
     const postId = nextState.params.postid;
-
     GlobalActions.emitPostFocusEvent(postId);
 }
 

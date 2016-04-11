@@ -1109,14 +1109,8 @@ export function fileSizeToString(bytes) {
 }
 
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
-<<<<<<< HEAD
-export function getFileUrl(filename, isDownload) {
-    const downloadParam = isDownload ? '?download=1' : '';
-    return getWindowLocationOrigin() + Client.getFilesRoute() + '/files/get' + filename + downloadParam;
-=======
 export function getFileUrl(filename) {
-    return getWindowLocationOrigin() + '/api/v1/files/get' + filename;
->>>>>>> master
+    return getWindowLocationOrigin() + Client.getFilesRoute() + '/files/get' + filename;
 }
 
 // Gets the name of a file (including extension) from a given url or file path.
