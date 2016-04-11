@@ -1,223 +1,110 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import crypto from 'crypto';
-
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
-
-const holders = defineMessages({
-    storeLocal: {
-        id: 'admin.image.storeLocal',
-        defaultMessage: 'Local File System'
-    },
-    storeAmazonS3: {
-        id: 'admin.image.storeAmazonS3',
-        defaultMessage: 'Amazon S3'
-    },
-    localExample: {
-        id: 'admin.image.localExample',
-        defaultMessage: 'Ex "./data/"'
-    },
-    amazonS3IdExample: {
-        id: 'admin.image.amazonS3IdExample',
-        defaultMessage: 'Ex "AKIADTOVBGERKLCBV"'
-    },
-    amazonS3SecretExample: {
-        id: 'admin.image.amazonS3SecretExample',
-        defaultMessage: 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
-    },
-    amazonS3BucketExample: {
-        id: 'admin.image.amazonS3BucketExample',
-        defaultMessage: 'Ex "mattermost-media"'
-    },
-    amazonS3RegionExample: {
-        id: 'admin.image.amazonS3RegionExample',
-        defaultMessage: 'Ex "us-east-1"'
-    },
-    thumbWidthExample: {
-        id: 'admin.image.thumbWidthExample',
-        defaultMessage: 'Ex "120"'
-    },
-    thumbHeightExample: {
-        id: 'admin.image.thumbHeightExample',
-        defaultMessage: 'Ex "100"'
-    },
-    previewWidthExample: {
-        id: 'admin.image.previewWidthExample',
-        defaultMessage: 'Ex "1024"'
-    },
-    previewHeightExample: {
-        id: 'admin.image.previewHeightExample',
-        defaultMessage: 'Ex "0"'
-    },
-    profileWidthExample: {
-        id: 'admin.image.profileWidthExample',
-        defaultMessage: 'Ex "1024"'
-    },
-    profileHeightExample: {
-        id: 'admin.image.profileHeightExample',
-        defaultMessage: 'Ex "0"'
-    },
-    publicLinkExample: {
-        id: 'admin.image.publicLinkExample',
-        defaultMessage: 'Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"'
-    },
-    saving: {
-        id: 'admin.image.saving',
-        defaultMessage: 'Saving Config...'
-    }
-});
-
 import React from 'react';
 
-class FileSettings extends React.Component {
+import * as Utils from 'utils/utils.jsx';
+
+import AdminSettings from './admin_settings.jsx';
+import {FormattedMessage} from 'react-intl';
+import SettingsGroup from './settings_group.jsx';
+import TextSetting from './text_setting.jsx';
+
+export class ImageSettingsPage extends AdminSettings {
     constructor(props) {
         super(props);
 
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleGenerate = this.handleGenerate.bind(this);
+        this.getConfigFromState = this.getConfigFromState.bind(this);
 
-        this.state = {
-            saveNeeded: false,
-            serverError: null,
-            DriverName: this.props.config.FileSettings.DriverName
-        };
+        this.renderSettings = this.renderSettings.bind(this);
+
+        this.state = Object.assign(this.state, {
+            thumbnailWidth: props.config.FileSettings.ThumbnailWidth,
+            thumbnailHeight: props.config.FileSettings.ThumbnailHeight,
+            profileWidth: props.config.FileSettings.ProfileWidth,
+            profileHeight: props.config.FileSettings.ProfileHeight,
+            previewWidth: props.config.FileSettings.PreviewWidth,
+            previewHeight: props.config.FileSettings.PreviewHeight
+        });
     }
 
-    handleChange(action) {
-        var s = {saveNeeded: true, serverError: this.state.serverError};
+    getConfigFromState(config) {
+        config.FileSettings.ThumbnailWidth = this.parseInt(this.state.thumbnailWidth);
+        config.FileSettings.ThumbnailHeight = this.parseInt(this.state.thumbnailHeight);
+        config.FileSettings.ProfileWidth = this.parseInt(this.state.profileWidth);
+        config.FileSettings.ProfileHeight = this.parseInt(this.state.profileHeight);
+        config.FileSettings.PreviewWidth = this.parseInt(this.state.previewWidth);
+        config.FileSettings.PreviewHeight = this.parseInt(this.state.previewHeight);
 
-        if (action === 'DriverName') {
-            s.DriverName = ReactDOM.findDOMNode(this.refs.DriverName).value;
-        }
-
-        this.setState(s);
+        return config;
     }
 
-    handleGenerate(e) {
-        e.preventDefault();
-        ReactDOM.findDOMNode(this.refs.PublicLinkSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
-        var s = {saveNeeded: true, serverError: this.state.serverError};
-        this.setState(s);
-    }
-
-    handleSubmit(e) {
-        e.preventDefault();
-        $('#save-button').button('loading');
-
-        var config = this.props.config;
-        config.FileSettings.DriverName = ReactDOM.findDOMNode(this.refs.DriverName).value;
-        config.FileSettings.Directory = ReactDOM.findDOMNode(this.refs.Directory).value;
-        config.FileSettings.AmazonS3AccessKeyId = ReactDOM.findDOMNode(this.refs.AmazonS3AccessKeyId).value;
-        config.FileSettings.AmazonS3SecretAccessKey = ReactDOM.findDOMNode(this.refs.AmazonS3SecretAccessKey).value;
-        config.FileSettings.AmazonS3Bucket = ReactDOM.findDOMNode(this.refs.AmazonS3Bucket).value;
-        config.FileSettings.AmazonS3Region = ReactDOM.findDOMNode(this.refs.AmazonS3Region).value;
-        config.FileSettings.EnablePublicLink = ReactDOM.findDOMNode(this.refs.EnablePublicLink).checked;
-
-        config.FileSettings.PublicLinkSalt = ReactDOM.findDOMNode(this.refs.PublicLinkSalt).value.trim();
-
-        if (config.FileSettings.PublicLinkSalt === '') {
-            config.FileSettings.PublicLinkSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
-            ReactDOM.findDOMNode(this.refs.PublicLinkSalt).value = config.FileSettings.PublicLinkSalt;
-        }
-
-        var thumbnailWidth = 120;
-        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.ThumbnailWidth).value, 10))) {
-            thumbnailWidth = parseInt(ReactDOM.findDOMNode(this.refs.ThumbnailWidth).value, 10);
-        }
-        config.FileSettings.ThumbnailWidth = thumbnailWidth;
-        ReactDOM.findDOMNode(this.refs.ThumbnailWidth).value = thumbnailWidth;
-
-        var thumbnailHeight = 100;
-        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.ThumbnailHeight).value, 10))) {
-            thumbnailHeight = parseInt(ReactDOM.findDOMNode(this.refs.ThumbnailHeight).value, 10);
-        }
-        config.FileSettings.ThumbnailHeight = thumbnailHeight;
-        ReactDOM.findDOMNode(this.refs.ThumbnailHeight).value = thumbnailHeight;
-
-        var previewWidth = 1024;
-        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.PreviewWidth).value, 10))) {
-            previewWidth = parseInt(ReactDOM.findDOMNode(this.refs.PreviewWidth).value, 10);
-        }
-        config.FileSettings.PreviewWidth = previewWidth;
-        ReactDOM.findDOMNode(this.refs.PreviewWidth).value = previewWidth;
-
-        var previewHeight = 0;
-        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.PreviewHeight).value, 10))) {
-            previewHeight = parseInt(ReactDOM.findDOMNode(this.refs.PreviewHeight).value, 10);
-        }
-        config.FileSettings.PreviewHeight = previewHeight;
-        ReactDOM.findDOMNode(this.refs.PreviewHeight).value = previewHeight;
-
-        var profileWidth = 128;
-        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.ProfileWidth).value, 10))) {
-            profileWidth = parseInt(ReactDOM.findDOMNode(this.refs.ProfileWidth).value, 10);
-        }
-        config.FileSettings.ProfileWidth = profileWidth;
-        ReactDOM.findDOMNode(this.refs.ProfileWidth).value = profileWidth;
-
-        var profileHeight = 128;
-        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.ProfileHeight).value, 10))) {
-            profileHeight = parseInt(ReactDOM.findDOMNode(this.refs.ProfileHeight).value, 10);
-        }
-        config.FileSettings.ProfileHeight = profileHeight;
-        ReactDOM.findDOMNode(this.refs.ProfileHeight).value = profileHeight;
-
-        Client.saveConfig(
-            config,
-            () => {
-                AsyncClient.getConfig();
-                this.setState({
-                    serverError: null,
-                    saveNeeded: false
-                });
-                $('#save-button').button('reset');
-            },
-            (err) => {
-                this.setState({
-                    serverError: err.message,
-                    saveNeeded: true
-                });
-                $('#save-button').button('reset');
-            }
+    renderTitle() {
+        return (
+            <h3>
+                <FormattedMessage
+                    id='admin.files.title'
+                    defaultMessage='File Settings'
+                />
+            </h3>
         );
     }
 
-    render() {
-        const {formatMessage} = this.props.intl;
-        var serverError = '';
-        if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
-        }
-
-        var saveClass = 'btn';
-        if (this.state.saveNeeded) {
-            saveClass = 'btn btn-primary';
-        }
-
-        var enableFile = false;
-        var enableS3 = false;
-
-        if (this.state.DriverName === 'local') {
-            enableFile = true;
-        }
-
-        if (this.state.DriverName === 'amazons3') {
-            enableS3 = true;
-        }
-
+    renderSettings() {
         return (
-            <div className='wrapper--fixed'>
-                <h3>
+            <ImageSettings
+                thumbnailWidth={this.state.thumbnailWidth}
+                thumbnailHeight={this.state.thumbnailHeight}
+                profileWidth={this.state.profileWidth}
+                profileHeight={this.state.profileHeight}
+                previewWidth={this.state.previewWidth}
+                previewHeight={this.state.previewHeight}
+                onChange={this.handleChange}
+            />
+        );
+    }
+}
+
+export class ImageSettings extends React.Component {
+    static get propTypes() {
+        return {
+            thumbnailWidth: React.PropTypes.oneOfType([
+                React.PropTypes.string,
+                React.PropTypes.number
+            ]).isRequired,
+            thumbnailHeight: React.PropTypes.oneOfType([
+                React.PropTypes.string,
+                React.PropTypes.number
+            ]).isRequired,
+            profileWidth: React.PropTypes.oneOfType([
+                React.PropTypes.string,
+                React.PropTypes.number
+            ]).isRequired,
+            profileHeight: React.PropTypes.oneOfType([
+                React.PropTypes.string,
+                React.PropTypes.number
+            ]).isRequired,
+            previewWidth: React.PropTypes.oneOfType([
+                React.PropTypes.string,
+                React.PropTypes.number
+            ]).isRequired,
+            previewHeight: React.PropTypes.oneOfType([
+                React.PropTypes.string,
+                React.PropTypes.number
+            ]).isRequired,
+            onChange: React.PropTypes.func.isRequired
+        };
+    }
+
+    render() {
+        return (
+            <SettingsGroup
+                header={
                     <FormattedMessage
-                        id='admin.image.fileSettings'
-                        defaultMessage='File Settings'
+                        id='admin.files.images'
+                        defaultMessage='Images'
                     />
+<<<<<<< HEAD
                 </h3>
                 <form
                     className='form-horizontal'
@@ -690,3 +577,119 @@ FileSettings.propTypes = {
 };
 
 export default injectIntl(FileSettings);
+=======
+                }
+            >
+                <TextSetting
+                    id='thumbnailWidth'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.thumbWidthTitle'
+                            defaultMessage='Thumbnail Width:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.thumbWidthExample', 'Ex "120"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.thumbWidthDescription'
+                            defaultMessage='Width of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'
+                        />
+                    }
+                    value={this.props.thumbnailWidth}
+                    onChange={this.props.onChange}
+                />
+                <TextSetting
+                    id='thumbnailHeight'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.thumbHeightTitle'
+                            defaultMessage='Thumbnail Height:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.thumbHeightExample', 'Ex "100"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.thumbHeightDescription'
+                            defaultMessage='Height of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'
+                        />
+                    }
+                    value={this.props.thumbnailHeight}
+                    onChange={this.props.onChange}
+                />
+                <TextSetting
+                    id='profileWidth'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.profileWidthTitle'
+                            defaultMessage='Profile Width:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.profileWidthExample', 'Ex "1024"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.profileWidthDescription'
+                            defaultMessage='Width of profile picture.'
+                        />
+                    }
+                    value={this.props.profileWidth}
+                    onChange={this.props.onChange}
+                />
+                <TextSetting
+                    id='profileHeight'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.profileHeightTitle'
+                            defaultMessage='Profile Height:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.profileHeightExample', 'Ex "0"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.profileHeightDescription'
+                            defaultMessage='Height of profile picture.'
+                        />
+                    }
+                    value={this.props.profileHeight}
+                    onChange={this.props.onChange}
+                />
+                <TextSetting
+                    id='previewWidth'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.previewWidthTitle'
+                            defaultMessage='Preview Width:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.previewWidthExample', 'Ex "1024"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.previewWidthDescription'
+                            defaultMessage='Maximum width of preview image. Updating this value changes how preview images render in future, but does not change images created in the past.'
+                        />
+                    }
+                    value={this.props.previewWidth}
+                    onChange={this.props.onChange}
+                />
+                <TextSetting
+                    id='previewHeight'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.previewHeightTitle'
+                            defaultMessage='Preview Height:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.previewHeightExample', 'Ex "0"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.previewHeightDescription'
+                            defaultMessage='Maximum height of preview image ("0": Sets to auto-size). Updating this value changes how preview images render in future, but does not change images created in the past.'
+                        />
+                    }
+                    value={this.props.previewHeight}
+                    onChange={this.props.onChange}
+                />
+            </SettingsGroup>
+        );
+    }
+}
+>>>>>>> 6d02983... Reorganized system console

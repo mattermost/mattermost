@@ -118,7 +118,8 @@
 
 // Team Header in Sidebar
 .sidebar--left,
-.sidebar--menu {
+.sidebar--menu,
+.admin-sidebar {
     .team__header {
         @include legacy-pie-clearfix;
         padding: 9px 10px;

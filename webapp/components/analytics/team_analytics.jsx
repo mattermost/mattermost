@@ -5,6 +5,7 @@ import LineChart from './line_chart.jsx';
 import StatisticCount from './statistic_count.jsx';
 import TableChart from './table_chart.jsx';
 
+import AdminStore from 'stores/admin_store.jsx';
 import AnalyticsStore from 'stores/analytics_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
@@ -13,23 +14,34 @@ import Constants from 'utils/constants.jsx';
 const StatTypes = Constants.StatTypes;
 
 import {formatPostsPerDayData, formatUsersWithPostsPerDayData} from './system_analytics.jsx';
-import {injectIntl, intlShape, FormattedMessage, FormattedDate} from 'react-intl';
+import {FormattedMessage, FormattedDate} from 'react-intl';
 
 import React from 'react';
 
-class TeamAnalytics extends React.Component {
+export default class TeamAnalytics extends React.Component {
+    static get propTypes() {
+        return {
+            params: React.PropTypes.object.isRequired
+        };
+    }
+
     constructor(props) {
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.onAllTeamsChange = this.onAllTeamsChange.bind(this);
 
-        this.state = {stats: AnalyticsStore.getAllTeam(this.props.team.id)};
+        this.state = {
+            team: AdminStore.getTeam(this.props.params.team),
+            stats: AnalyticsStore.getAllTeam(this.props.params.team)
+        };
     }
 
     componentDidMount() {
         AnalyticsStore.addChangeListener(this.onChange);
+        AdminStore.addAllTeamsChangeListener(this.onAllTeamsChange);
 
-        this.getData(this.props.team.id);
+        this.getData(this.props.params.team);
     }
 
     getData(id) {
@@ -41,11 +53,14 @@ class TeamAnalytics extends React.Component {
 
     componentWillUnmount() {
         AnalyticsStore.removeChangeListener(this.onChange);
+        AdminStore.removeAllTeamsChangeListener(this.onAllTeamsChange);
     }
 
     componentWillReceiveProps(nextProps) {
-        this.getData(nextProps.team.id);
-        this.setState({stats: AnalyticsStore.getAllTeam(nextProps.team.id)});
+        this.getData(nextProps.params.team);
+        this.setState({
+            stats: AnalyticsStore.getAllTeam(nextProps.params.team)
+        });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -53,7 +68,7 @@ class TeamAnalytics extends React.Component {
             return true;
         }
 
-        if (!Utils.areObjectsEqual(nextProps.team, this.props.team)) {
+        if (!Utils.areObjectsEqual(nextProps.params.team, this.props.params.team)) {
             return true;
         }
 
@@ -61,10 +76,22 @@ class TeamAnalytics extends React.Component {
     }
 
     onChange() {
-        this.setState({stats: AnalyticsStore.getAllTeam(this.props.team.id)});
+        this.setState({
+            stats: AnalyticsStore.getAllTeam(this.props.params.team)
+        });
+    }
+
+    onAllTeamsChange() {
+        this.setState({
+            team: AdminStore.getTeam(this.props.params.team)
+        });
     }
 
     render() {
+        if (!this.state.team || !this.state.stats) {
+            return null;
+        }
+
         const stats = this.state.stats;
         const postCountsDay = formatPostsPerDayData(stats[StatTypes.POST_PER_DAY]);
         const userCountsWithPostsDay = formatUsersWithPostsPerDayData(stats[StatTypes.USERS_WITH_POSTS_PER_DAY]);
@@ -78,7 +105,7 @@ class TeamAnalytics extends React.Component {
                         id='analytics.team.title'
                         defaultMessage='Team Statistics for {team}'
                         values={{
-                            team: this.props.team.name
+                            team: this.state.team.name
                         }}
                     />
                 </h3>
@@ -174,13 +201,6 @@ class TeamAnalytics extends React.Component {
         );
     }
 }
-
-TeamAnalytics.propTypes = {
-    intl: intlShape.isRequired,
-    team: React.PropTypes.object.isRequired
-};
-
-export default injectIntl(TeamAnalytics);
 
 export function formatRecentUsersData(data) {
     if (data == null) {

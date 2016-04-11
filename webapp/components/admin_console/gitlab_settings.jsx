@@ -1,122 +1,104 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-
-import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-
-const holders = defineMessages({
-    clientIdExample: {
-        id: 'admin.gitlab.clientIdExample',
-        defaultMessage: 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
-    },
-    clientSecretExample: {
-        id: 'admin.gitlab.clientSecretExample',
-        defaultMessage: 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
-    },
-    authExample: {
-        id: 'admin.gitlab.authExample',
-        defaultMessage: 'Ex ""'
-    },
-    tokenExample: {
-        id: 'admin.gitlab.tokenExample',
-        defaultMessage: 'Ex ""'
-    },
-    userExample: {
-        id: 'admin.gitlab.userExample',
-        defaultMessage: 'Ex ""'
-    },
-    saving: {
-        id: 'admin.gitlab.saving',
-        defaultMessage: 'Saving Config...'
-    }
-});
-
 import React from 'react';
 
-class GitLabSettings extends React.Component {
+import * as Utils from 'utils/utils.jsx';
+
+import AdminSettings from './admin_settings.jsx';
+import {FormattedMessage} from 'react-intl';
+import SettingsGroup from './settings_group.jsx';
+import TextSetting from './text_setting.jsx';
+
+export class GitLabSettingsPage extends AdminSettings {
     constructor(props) {
         super(props);
 
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.getConfigFromState = this.getConfigFromState.bind(this);
 
-        this.state = {
-            Enable: this.props.config.GitLabSettings.Enable,
-            saveNeeded: false,
-            serverError: null
-        };
+        this.renderSettings = this.renderSettings.bind(this);
+
+        this.state = Object.assign(this.state, {
+            gitlabId: props.config.GitLabSettings.Id,
+            gitlabSecret: props.config.GitLabSettings.Secret,
+            gitlabUserApiEndpoint: props.config.GitLabSettings.UserApiEndpoint,
+            gitlabAuthEndpoint: props.config.GitLabSettings.AuthEndpoint,
+            gitlabTokenEndpoint: props.config.GitLabSettings.TokenEndpoint
+        });
     }
 
-    handleChange(action) {
-        var s = {saveNeeded: true, serverError: this.state.serverError};
+    getConfigFromState(config) {
+        config.GitLabSettings.Id = this.state.gitlabId;
+        config.GitLabSettings.Secret = this.state.gitlabSecret;
+        config.GitLabSettings.UserApiEndpoint = this.state.gitlabUserApiEndpoint;
+        config.GitLabSettings.AuthEndpoint = this.state.gitlabAuthEndpoint;
+        config.GitLabSettings.TokenEndpoint = this.state.gitlabTokenEndpoint;
 
-        if (action === 'EnableTrue') {
-            s.Enable = true;
-        }
-
-        if (action === 'EnableFalse') {
-            s.Enable = false;
-        }
-
-        this.setState(s);
+        return config;
     }
 
-    handleSubmit(e) {
-        e.preventDefault();
-        $('#save-button').button('loading');
-
-        var config = this.props.config;
-        config.GitLabSettings.Enable = ReactDOM.findDOMNode(this.refs.Enable).checked;
-        config.GitLabSettings.Secret = ReactDOM.findDOMNode(this.refs.Secret).value.trim();
-        config.GitLabSettings.Id = ReactDOM.findDOMNode(this.refs.Id).value.trim();
-        config.GitLabSettings.AuthEndpoint = ReactDOM.findDOMNode(this.refs.AuthEndpoint).value.trim();
-        config.GitLabSettings.TokenEndpoint = ReactDOM.findDOMNode(this.refs.TokenEndpoint).value.trim();
-        config.GitLabSettings.UserApiEndpoint = ReactDOM.findDOMNode(this.refs.UserApiEndpoint).value.trim();
-
-        Client.saveConfig(
-            config,
-            () => {
-                AsyncClient.getConfig();
-                this.setState({
-                    serverError: null,
-                    saveNeeded: false
-                });
-                $('#save-button').button('reset');
-            },
-            (err) => {
-                this.setState({
-                    serverError: err.message,
-                    saveNeeded: true
-                });
-                $('#save-button').button('reset');
-            }
+    renderTitle() {
+        return (
+            <h3>
+                <FormattedMessage
+                    id='admin.authentication.title'
+                    defaultMessage='Authentication Settings'
+                />
+            </h3>
         );
     }
 
-    render() {
-        const {formatMessage} = this.props.intl;
-        var serverError = '';
-        if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
-        }
+    renderSettings() {
+        return (
+            <GitLabSettings
+                enableSignUpWithGitlab={this.props.config.GitLabSettings.Enable}
+                gitlabId={this.state.gitlabId}
+                gitlabSecret={this.state.gitlabSecret}
+                gitlabUserApiEndpoint={this.state.gitlabUserApiEndpoint}
+                gitlabAuthEndpoint={this.state.gitlabAuthEndpoint}
+                gitlabTokenEndpoint={this.state.gitlabTokenEndpoint}
+                onChange={this.handleChange}
+            />
+        );
+    }
+}
 
-        var saveClass = 'btn';
-        if (this.state.saveNeeded) {
-            saveClass = 'btn btn-primary';
+export class GitLabSettings extends React.Component {
+    static get propTypes() {
+        return {
+            enableSignUpWithGitlab: React.PropTypes.bool.isRequired,
+            gitlabId: React.PropTypes.string.isRequired,
+            gitlabSecret: React.PropTypes.string.isRequired,
+            gitlabUserApiEndpoint: React.PropTypes.string.isRequired,
+            gitlabAuthEndpoint: React.PropTypes.string.isRequired,
+            gitlabTokenEndpoint: React.PropTypes.string.isRequired,
+            onChange: React.PropTypes.func.isRequired
+        };
+    }
+
+    render() {
+        let disabledMessage = null;
+        if (!this.props.enableSignUpWithGitlab) {
+            disabledMessage = (
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <FormattedMessage
+                            id='admin.authentication.gitlab.disabled'
+                            defaultMessage='GitLab settings cannot be changed while GitLab Sign Up is disabled.'
+                        />
+                    </div>
+                </div>
+            );
         }
 
         return (
-            <div className='wrapper--fixed'>
-
-                <h3>
+            <SettingsGroup
+                header={
                     <FormattedMessage
-                        id='admin.gitlab.settingsTitle'
-                        defaultMessage='GitLab Settings'
+                        id='admin.authentication.gitlab'
+                        defaultMessage='GitLab'
                     />
+<<<<<<< HEAD
                 </h3>
                 <form
                     className='form-horizontal'
@@ -347,36 +329,107 @@ class GitLabSettings extends React.Component {
 
                 </form>
             </div>
+=======
+                }
+            >
+                {disabledMessage}
+                <TextSetting
+                    id='gitlabId'
+                    label={
+                        <FormattedMessage
+                            id='admin.gitlab.clientIdTitle'
+                            defaultMessage='Id:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.gitlab.clientIdExample', 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.gitlab.clientIdDescription'
+                            defaultMessage='Obtain this value via the instructions above for logging into GitLab'
+                        />
+                    }
+                    value={this.props.gitlabId}
+                    onChange={this.props.onChange}
+                    disabled={!this.props.enableSignUpWithGitlab}
+                />
+                <TextSetting
+                    id='gitlabSecret'
+                    label={
+                        <FormattedMessage
+                            id='admin.gitlab.clientSecretTitle'
+                            defaultMessage='Secret:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.gitlab.clientSecretExample', 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.gitab.clientSecretDescription'
+                            defaultMessage='Obtain this value via the instructions above for logging into GitLab.'
+                        />
+                    }
+                    value={this.props.gitlabSecret}
+                    onChange={this.props.onChange}
+                    disabled={!this.props.enableSignUpWithGitlab}
+                />
+                <TextSetting
+                    id='gitlabUserApiEndpoint'
+                    label={
+                        <FormattedMessage
+                            id='admin.gitlab.userTitle'
+                            defaultMessage='User API Endpoint:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.gitlab.userExample', 'Ex ""')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.gitlab.userDescription'
+                            defaultMessage='Enter https://<your-gitlab-url>/api/v3/user.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
+                        />
+                    }
+                    value={this.props.gitlabUserApiEndpoint}
+                    onChange={this.props.onChange}
+                    disabled={!this.props.enableSignUpWithGitlab}
+                />
+                <TextSetting
+                    id='gitlabAuthEndpoint'
+                    label={
+                        <FormattedMessage
+                            id='admin.gitlab.authTitle'
+                            defaultMessage='Auth Endpoint:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.gitlab.authExample', 'Ex ""')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.gitlab.authDescription'
+                            defaultMessage='Enter https://<your-gitlab-url>/oauth/authorize (example https://example.com:3000/oauth/authorize).   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
+                        />
+                    }
+                    value={this.props.gitlabAuthEndpoint}
+                    onChange={this.props.onChange}
+                    disabled={!this.props.enableSignUpWithGitlab}
+                />
+                <TextSetting
+                    id='gitlabTokenEndpoint'
+                    label={
+                        <FormattedMessage
+                            id='admin.gitlab.tokenTitle'
+                            defaultMessage='Token Endpoint:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.gitlab.tokenExample', 'Ex ""')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.gitlab.tokenDescription'
+                            defaultMessage='Enter https://<your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
+                        />
+                    }
+                    value={this.props.gitlabTokenEndpoint}
+                    onChange={this.props.onChange}
+                    disabled={!this.props.enableSignUpWithGitlab}
+                />
+            </SettingsGroup>
+>>>>>>> 6d02983... Reorganized system console
         );
     }
 }
-
-//config.GitLabSettings.Scope = ReactDOM.findDOMNode(this.refs.Scope).value.trim();
-//  <div className='form-group'>
-//     <label
-//         className='control-label col-sm-4'
-//         htmlFor='Scope'
-//     >
-//         {'Scope:'}
-//     </label>
-//     <div className='col-sm-8'>
-//         <input
-//             type='text'
-//             className='form-control'
-//             id='Scope'
-//             ref='Scope'
-//             placeholder='Not currently used by GitLab. Please leave blank'
-//             defaultValue={this.props.config.GitLabSettings.Scope}
-//             onChange={this.handleChange}
-//             disabled={!this.state.Allow}
-//         />
-//         <p className='help-text'>{'This field is not yet used by GitLab OAuth. Other OAuth providers may use this field to specify the scope of account data from OAuth provider that is sent to Mattermost.'}</p>
-//     </div>
-// </div>
-
-GitLabSettings.propTypes = {
-    intl: intlShape.isRequired,
-    config: React.PropTypes.object
-};
-
-export default injectIntl(GitLabSettings);
