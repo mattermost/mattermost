@@ -95,6 +95,23 @@ export default class InstalledOutgoingWebhook extends React.Component {
             );
         }
 
+        let triggerWords = null;
+        if (outgoingWebhook.trigger_words && outgoingWebhook.trigger_words.length > 0) {
+            triggerWords = (
+                <div className='item-details__row'>
+                    <span className='item-details__trigger-words'>
+                        <FormattedMessage
+                            id='installed_integrations.triggerWords'
+                            defaultMessage='Trigger Words: {triggerWords}'
+                            values={{
+                                triggerWords: outgoingWebhook.trigger_words.join(', ')
+                            }}
+                        />
+                    </span>
+                </div>
+            );
+        }
+
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
@@ -104,6 +121,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
                         </span>
                     </div>
                     {description}
+                    {triggerWords}
                     <div className='item-details__row'>
                         <span className='item-details__token'>
                             <FormattedMessage
@@ -128,7 +146,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
                         </span>
                     </div>
                 </div>
-                <div className='actions'>
+                <div className='item-actions'>
                     <a
                         href='#'
                         onClick={this.handleRegenToken}
@@ -151,22 +169,5 @@ export default class InstalledOutgoingWebhook extends React.Component {
                 </div>
             </div>
         );
-    }
-
-    static matches(outgoingWebhook, filter) {
-        if (outgoingWebhook.display_name.toLowerCase().indexOf(filter) !== -1 ||
-            outgoingWebhook.description.toLowerCase().indexOf(filter) !== -1) {
-            return true;
-        }
-
-        if (outgoingWebhook.channel_id) {
-            const channel = ChannelStore.get(outgoingWebhook.channel_id);
-
-            if (channel && channel.name.toLowerCase().indexOf(filter) !== -1) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

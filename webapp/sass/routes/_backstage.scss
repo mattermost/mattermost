@@ -192,6 +192,7 @@ body {
     }
 
     .item-details {
+        color: $dark-gray;
         flex-grow: 1;
         flex-shrink: 1;
         overflow: hidden;
@@ -204,6 +205,7 @@ body {
     }
 
     .item-details__name {
+        color: black;
         font-weight: 600;
     }
 
@@ -213,8 +215,8 @@ body {
 
     .item-details__description,
     .item-details__token,
+    .item-details__trigger-words,
     .item-details__creation {
-        color: $dark-gray;
         display: inline-block;
         margin-top: 10px;
         vertical-align: top;
@@ -222,6 +224,10 @@ body {
         &:empty {
             display: none;
         }
+    }
+
+    .item-details__trigger-words {
+        white-space: nowrap;
     }
 
     .item-actions {

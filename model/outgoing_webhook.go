@@ -98,6 +98,14 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.words.app_error", nil, "")
 	}
 
+	if len(o.TriggerWords) != 0 {
+		for _, triggerWord := range o.TriggerWords {
+			if len(triggerWord) == 0 {
+				return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "")
+			}
+		}
+	}
+
 	if len(o.CallbackURLs) == 0 || len(fmt.Sprintf("%s", o.CallbackURLs)) > 1024 {
 		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.callback.app_error", nil, "")
 	}

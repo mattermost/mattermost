@@ -78,6 +78,11 @@ export default class InstalledCommand extends React.Component {
             );
         }
 
+        let trigger = '- /' + command.trigger;
+        if (command.auto_complete && command.auto_complete_hint) {
+            trigger += ' ' + command.auto_complete_hint;
+        }
+
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
@@ -86,7 +91,7 @@ export default class InstalledCommand extends React.Component {
                             {name}
                         </span>
                         <span className='item-details__trigger'>
-                            {'- /' + command.trigger}
+                            {trigger}
                         </span>
                     </div>
                     {description}

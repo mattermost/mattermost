@@ -138,6 +138,12 @@ func TestGetFile(t *testing.T) {
 	user := th.BasicUser
 	channel := th.BasicChannel
 
+	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	defer func() {
+		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+	}()
+	utils.Cfg.FileSettings.EnablePublicLink = true
+
 	if utils.Cfg.FileSettings.DriverName != "" {
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)

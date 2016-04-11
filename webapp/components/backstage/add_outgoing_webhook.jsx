@@ -50,7 +50,18 @@ export default class AddOutgoingWebhook extends React.Component {
             clientError: ''
         });
 
-        if (!this.state.channelId && !this.state.triggerWords) {
+        const triggerWords = [];
+        if (this.state.triggerWords) {
+            for (let triggerWord of this.state.triggerWords.split('\n')) {
+                triggerWord = triggerWord.trim();
+
+                if (triggerWord.length > 0) {
+                    triggerWords.push(triggerWord);
+                }
+            }
+        }
+
+        if (!this.state.channelId && triggerWords.length === 0) {
             this.setState({
                 saving: false,
                 clientError: (
@@ -64,7 +75,16 @@ export default class AddOutgoingWebhook extends React.Component {
             return;
         }
 
-        if (!this.state.callbackUrls) {
+        const callbackUrls = [];
+        for (let callbackUrl of this.state.callbackUrls.split('\n')) {
+            callbackUrl = callbackUrl.trim();
+
+            if (callbackUrl.length > 0) {
+                callbackUrls.push(callbackUrl);
+            }
+        }
+
+        if (callbackUrls.length === 0) {
             this.setState({
                 saving: false,
                 clientError: (
@@ -80,8 +100,8 @@ export default class AddOutgoingWebhook extends React.Component {
 
         const hook = {
             channel_id: this.state.channelId,
-            trigger_words: this.state.triggerWords.split('\n').map((word) => word.trim()),
-            callback_urls: this.state.callbackUrls.split('\n').map((url) => url.trim()),
+            trigger_words: triggerWords,
+            callback_urls: callbackUrls,
             display_name: this.state.displayName,
             description: this.state.description
         };

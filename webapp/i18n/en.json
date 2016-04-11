@@ -619,7 +619,7 @@
   "backstage_sidebar.integrations": "Integrations",
   "backstage_sidebar.integrations.incoming_webhooks": "Incoming Webhooks",
   "backstage_sidebar.integrations.outgoing_webhooks": "Outgoing Webhooks",
-  "backstage_sidebar.integrations.commands": "Commands",
+  "backstage_sidebar.integrations.commands": "Slash Commands",
   "center_panel.recent": "Click here to jump to recent messages. ",
   "chanel_header.addMembers": "Add Members",
   "change_url.close": "Close",

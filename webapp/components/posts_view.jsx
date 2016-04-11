@@ -41,7 +41,8 @@ export default class PostsView extends React.Component {
         this.state = {
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             isScrolling: false,
-            topPostId: null
+            topPostId: null,
+            showUnreadMessageAlert: false
         };
     }
     static get SCROLL_TYPE_FREE() {
@@ -386,6 +387,13 @@ export default class PostsView extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
+        if (this.props.postList && this.props.postList.order.length) {
+            if (this.props.postList.order[0] !== nextProps.postList.order[0] && nextProps.scrollType !== PostsView.SCROLL_TYPE_BOTTOM && nextProps.scrollType !== PostsView.SCROLL_TYPE_NEW_MESSAGE) {
+                this.setState({showUnreadMessageAlert: true});
+            } else if (nextProps.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
+                this.setState({showUnreadMessageAlert: false});
+            }
+        }
         if (!this.props.isActive && nextProps.isActive) {
             this.updateState();
             PreferenceStore.addChangeListener(this.updateState);
@@ -513,6 +521,18 @@ export default class PostsView extends React.Component {
                             {moreMessagesBottom}
                         </div>
                     </div>
+                </div>
+                <div
+                    className='post-list__new-messages-below'
+                    onClick={this.scrollToBottomAnimated}
+                    hidden={!this.state.showUnreadMessageAlert}
+                >
+                        <i className='fa fa-arrow-circle-o-down'></i>
+                        &nbsp;
+                        <FormattedMessage
+                            id='posts_view.newMsg'
+                            defaultMessage='New Messages'
+                        />
                 </div>
             </div>
         );
