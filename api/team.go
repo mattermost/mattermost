@@ -492,6 +492,7 @@ func findTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		m := make(map[string]*model.Team)
 		for _, v := range teams {
 			v.Sanitize()
+			v.InviteId = ""
 			m[v.Id] = v
 		}
 
