@@ -326,7 +326,6 @@ export default class Client {
         request.
             post(`${this.getLicenseRoute()}/add`).
             set(this.defaultHeaders).
-            type('form').
             accept('application/json').
             send(formData).
             end(this.handleResponse.bind(this, 'uploadLicenseFile', success, error));
