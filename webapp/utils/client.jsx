@@ -770,7 +770,7 @@ export function createChannel(channel, success, error) {
         }
     });
 
-    track('api', 'api_channels_create', channel.type, 'name', channel.name);
+    track('api', 'api_channels_create');
 }
 
 export function createDirectChannel(channel, userId, success, error) {
@@ -787,7 +787,7 @@ export function createDirectChannel(channel, userId, success, error) {
         }
     });
 
-    track('api', 'api_channels_create_direct', channel.type, 'name', channel.name);
+    track('api', 'api_channels_create_direct');
 }
 
 export function updateChannel(channel, success, error) {
