@@ -2200,7 +2200,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := ldapInterface.SwitchToEmail(user.Id, ldapId, ldapPassword); err != nil {
+	if err := ldapInterface.SwitchToLdap(user.Id, ldapId, ldapPassword); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail - ldap switch failed")
 		c.Err = err
 		return
