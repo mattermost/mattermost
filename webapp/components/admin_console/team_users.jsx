@@ -1,7 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import AdminStore from 'stores/admin_store.jsx';
 import Client from 'utils/web_client.jsx';
+import FormError from 'components/form_error.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 import UserItem from './user_item.jsx';
 import ResetPasswordModal from './reset_password_modal.jsx';
@@ -11,8 +13,16 @@ import {FormattedMessage} from 'react-intl';
 import React from 'react';
 
 export default class UserList extends React.Component {
+    static get propTypes() {
+        return {
+            params: React.PropTypes.object.isRequired
+        };
+    }
+
     constructor(props) {
         super(props);
+
+        this.onAllTeamsChange = this.onAllTeamsChange.bind(this);
 
         this.getTeamProfiles = this.getTeamProfiles.bind(this);
         this.getCurrentTeamProfiles = this.getCurrentTeamProfiles.bind(this);
@@ -21,7 +31,7 @@ export default class UserList extends React.Component {
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
 
         this.state = {
-            teamId: props.team.id,
+            team: AdminStore.getTeam(this.props.params.team),
             users: null,
             serverError: null,
             showPasswordModal: false,
@@ -33,8 +43,14 @@ export default class UserList extends React.Component {
         this.getCurrentTeamProfiles();
     }
 
+    onAllTeamsChange() {
+        this.setState({
+            team: AdminStore.getTeam(this.props.params.team)
+        });
+    }
+
     getCurrentTeamProfiles() {
-        this.getTeamProfiles(this.props.team.id);
+        this.getTeamProfiles(this.props.params.team);
     }
 
     getTeamProfiles(teamId) {
@@ -61,7 +77,6 @@ export default class UserList extends React.Component {
                 });
 
                 this.setState({
-                    teamId: this.state.teamId,
                     users: memberList,
                     serverError: this.state.serverError,
                     showPasswordModal: this.state.showPasswordModal,
@@ -70,7 +85,6 @@ export default class UserList extends React.Component {
             },
             (err) => {
                 this.setState({
-                    teamId: this.state.teamId,
                     users: null,
                     serverError: err.message,
                     showPasswordModal: this.state.showPasswordModal,
@@ -82,7 +96,6 @@ export default class UserList extends React.Component {
 
     doPasswordReset(user) {
         this.setState({
-            teamId: this.state.teamId,
             users: this.state.users,
             serverError: this.state.serverError,
             showPasswordModal: true,
@@ -92,7 +105,6 @@ export default class UserList extends React.Component {
 
     doPasswordResetDismiss() {
         this.setState({
-            teamId: this.state.teamId,
             users: this.state.users,
             serverError: this.state.serverError,
             showPasswordModal: false,
@@ -102,7 +114,6 @@ export default class UserList extends React.Component {
 
     doPasswordResetSubmit() {
         this.setState({
-            teamId: this.state.teamId,
             users: this.state.users,
             serverError: this.state.serverError,
             showPasswordModal: false,
@@ -110,14 +121,19 @@ export default class UserList extends React.Component {
         });
     }
 
-    componentWillReceiveProps(newProps) {
-        this.getTeamProfiles(newProps.team.id);
+    componentWillReceiveProps(nextProps) {
+        this.getTeamProfiles(nextProps.params.team);
+
+        if (nextProps.params.team !== this.props.params.team) {
+            this.setState({
+                team: AdminStore.getTeam(nextProps.params.team)
+            });
+        }
     }
 
     render() {
-        var serverError = '';
-        if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+        if (!this.state.team) {
+            return null;
         }
 
         if (this.state.users == null) {
@@ -128,11 +144,11 @@ export default class UserList extends React.Component {
                             id='admin.userList.title'
                             defaultMessage='Users for {team}'
                             values={{
-                                team: this.props.team.name
+                                team: this.state.team.name
                             }}
                         />
                     </h3>
-                    {serverError}
+                    <FormError error={this.state.serverError}/>
                     <LoadingScreen/>
                 </div>
             );
@@ -155,12 +171,12 @@ export default class UserList extends React.Component {
                         id='admin.userList.title2'
                         defaultMessage='Users for {team} ({count})'
                         values={{
-                            team: this.props.team.name,
+                            team: this.state.team.name,
                             count: this.state.users.length
                         }}
                     />
                 </h3>
-                {serverError}
+                <FormError error={this.state.serverError}/>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -172,7 +188,7 @@ export default class UserList extends React.Component {
                 <ResetPasswordModal
                     user={this.state.user}
                     show={this.state.showPasswordModal}
-                    team={this.props.team}
+                    team={this.state.team}
                     onModalSubmit={this.doPasswordResetSubmit}
                     onModalDismissed={this.doPasswordResetDismiss}
                 />
@@ -180,7 +196,3 @@ export default class UserList extends React.Component {
         );
     }
 }
-
-UserList.propTypes = {
-    team: React.PropTypes.object
-};
