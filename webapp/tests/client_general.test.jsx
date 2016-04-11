@@ -282,12 +282,12 @@ describe('Client.General', function() {
 
             TestHelper.basicClient().getPublicLink(
                 data,
-                function(rdata) {
-                    assert.equal(rdata.public_link.length > 0, true);
-                    done();
+                function() {
+                    done(new Error('not enabled'));
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    assert.equal(err.id, 'api.file.get_public_link.disabled.app_error');
+                    done();
                 }
             );
         });

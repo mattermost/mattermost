@@ -459,6 +459,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.FileSettings.EnablePublicLink {
 		c.Err = model.NewLocAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	props := model.MapFromJson(r.Body)

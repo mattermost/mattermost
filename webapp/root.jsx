@@ -110,6 +110,7 @@ function preRenderSetup(callwhendone) {
 
             if (data.user) {
                 global.window.mm_user = data.user;
+
                 // UserStore.setCurrentUser(data.user);
                 // GlobalActions.newLocalizationSelected(data.locale);
             }
