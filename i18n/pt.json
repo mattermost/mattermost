@@ -77,7 +77,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v adicionado ao canal pelo %v"
+    "translation": "%v adicionado ao canal por %v"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -368,6 +368,38 @@
     "translation": "me"
   },
   {
+    "id": "api.command_msg.desc",
+    "translation": "Enviar Mensagem Direta para um usuário"
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Ocorreu um erro durante a criação da mensagem direta."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Ocorreu um erro durante a mensagem do usuário."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[usuario] 'mensagem'"
+  },
+  {
+    "id": "api.command_msg.list.app_error",
+    "translation": "Ocorreu um erro durante a listagem de usuários."
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Não foi possível encontrar o usuário"
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "[mensagem]"
+  },
+  {
+    "id": "api.command_msg.success",
+    "translation": "Mensagem enviada."
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "Adiciona ¯\\_(ツ)_/¯ na sua mensagem"
   },
@@ -477,7 +509,7 @@
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
-    "translation": "Public links have been disabled by the system administrator"
+    "translation": "Links públicos foram desabilitados pelo administrador do sistema"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1448,6 +1480,10 @@
     "translation": "LDAP não está disponível neste servidor"
   },
   {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "Está conta de usuário não utiliza LDAP"
+  },
+  {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "Campo senha não pode estar em branco"
   },
@@ -1784,8 +1820,16 @@
     "translation": "Credenciais válidas, mas incapaz de criar usuário."
   },
   {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "Usuário não autorizado a usar o Mattermost. (LDAP filtro usuario)"
+  },
+  {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Usuário não registrado no servidor LDAP"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Filtro LDAP Inválido"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -1822,6 +1866,30 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Erro ao tentar autenticar o token MFA"
+  },
+  {
+    "id": "error.generic.link_message",
+    "translation": "Voltar ao Mattermost"
+  },
+  {
+    "id": "error.generic.message",
+    "translation": "Ocorreu um erro."
+  },
+  {
+    "id": "error.generic.title",
+    "translation": "Erro"
+  },
+  {
+    "id": "error.not_found.link_message",
+    "translation": "Voltar ao Mattermost"
+  },
+  {
+    "id": "error.not_found.message",
+    "translation": "A página que você estava tentando alcançar não existe."
+  },
+  {
+    "id": "error.not_found.title",
+    "translation": "Página não encontrada"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -2024,6 +2092,14 @@
     "translation": "Create deve ser um tempo válido"
   },
   {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Descrição inválida"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Nome para exibição inválido"
+  },
+  {
     "id": "model.command.is_valid.id.app_error",
     "translation": "ID inválida"
   },
@@ -2132,6 +2208,10 @@
     "translation": "Definição da largura do thumbnail inválida.  Deve ser um número positivo."
   },
   {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "Inválida segurança de conexão em configurações de LDAP.  Deve ser '', 'TLS', or 'STARTTLS'"
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Inválido endereço de escuta em configurações de serviço Deve ser ajustado."
   },
@@ -2178,6 +2258,14 @@
   {
     "id": "model.incoming_hook.create_at.app_error",
     "translation": "Create deve ser um tempo válido"
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Descrição inválida"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Nome para exibição inválido"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -2244,6 +2332,14 @@
     "translation": "Create deve ser um tempo válido"
   },
   {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Descrição inválida"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Nome para exibição inválido"
+  },
+  {
     "id": "model.outgoing_hook.is_valid.id.app_error",
     "translation": "ID inválida"
   },
@@ -2254,6 +2350,10 @@
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
     "translation": "Token inválido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "Invalid trigger words"
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -2638,6 +2738,10 @@
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
     "translation": "Não foi possível encontrar o canal existente"
+  },
+  {
+    "id": "store.sql_channel.get_by_name.missing.app_error",
+    "translation": "Canal não existe"
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
