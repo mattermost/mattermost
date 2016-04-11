@@ -158,6 +158,8 @@ type TeamSettings struct {
 	RestrictCreationToDomains string
 	RestrictTeamNames         *bool
 	EnableTeamListing         *bool
+	EnableCustomBrand         *bool
+	CustomBrandText           *string
 }
 
 type LdapSettings struct {
@@ -294,6 +296,16 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.EnableTeamListing == nil {
 		o.TeamSettings.EnableTeamListing = new(bool)
 		*o.TeamSettings.EnableTeamListing = false
+	}
+
+	if o.TeamSettings.EnableCustomBrand == nil {
+		o.TeamSettings.EnableCustomBrand = new(bool)
+		*o.TeamSettings.EnableCustomBrand = false
+	}
+
+	if o.TeamSettings.CustomBrandText == nil {
+		o.TeamSettings.CustomBrandText = new(string)
+		*o.TeamSettings.CustomBrandText = ""
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {

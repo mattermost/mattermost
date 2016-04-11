@@ -24,26 +24,6 @@ class AdminStoreClass extends EventEmitter {
         this.config = null;
         this.teams = null;
         this.complianceReports = null;
-
-        this.emitLogChange = this.emitLogChange.bind(this);
-        this.addLogChangeListener = this.addLogChangeListener.bind(this);
-        this.removeLogChangeListener = this.removeLogChangeListener.bind(this);
-
-        this.emitAuditChange = this.emitAuditChange.bind(this);
-        this.addAuditChangeListener = this.addAuditChangeListener.bind(this);
-        this.removeAuditChangeListener = this.removeAuditChangeListener.bind(this);
-
-        this.emitComplianceReportsChange = this.emitComplianceReportsChange.bind(this);
-        this.addComplianceReportsChangeListener = this.addComplianceReportsChangeListener.bind(this);
-        this.removeComplianceReportsChangeListener = this.removeComplianceReportsChangeListener.bind(this);
-
-        this.emitConfigChange = this.emitConfigChange.bind(this);
-        this.addConfigChangeListener = this.addConfigChangeListener.bind(this);
-        this.removeConfigChangeListener = this.removeConfigChangeListener.bind(this);
-
-        this.emitAllTeamsChange = this.emitAllTeamsChange.bind(this);
-        this.addAllTeamsChangeListener = this.addAllTeamsChangeListener.bind(this);
-        this.removeAllTeamsChangeListener = this.removeAllTeamsChangeListener.bind(this);
     }
 
     emitLogChange() {

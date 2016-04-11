@@ -201,6 +201,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["EnableTeamListing"] = strconv.FormatBool(*c.TeamSettings.EnableTeamListing)
+	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
+	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 

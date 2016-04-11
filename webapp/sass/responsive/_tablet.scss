@@ -1,6 +1,17 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 960px) {
+    .signup-team__container {
+        &.branded {
+            display: block;
+            margin: 0 auto;
+            max-width: 380px;
+
+            .signup__markdown {
+                display: none;
+            }
+        }
+    }
     .sidebar--right {
         @include single-transition(all, .5s, ease);
         @include translateX(100%);

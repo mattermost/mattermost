@@ -35,6 +35,8 @@ func InitAdmin(r *mux.Router) {
 	sr.Handle("/save_compliance_report", ApiUserRequired(saveComplianceReport)).Methods("POST")
 	sr.Handle("/compliance_reports", ApiUserRequired(getComplianceReports)).Methods("GET")
 	sr.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiUserRequired(downloadComplianceReport)).Methods("GET")
+	sr.Handle("/upload_brand_image", ApiAdminSystemRequired(uploadBrandImage)).Methods("POST")
+	sr.Handle("/get_brand_image", ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -421,4 +423,78 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("getAnalytics", "name")
 	}
 
+}
+
+func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if r.ContentLength > model.MAX_FILE_SIZE {
+		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "")
+		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		return
+	}
+
+	if err := r.ParseMultipartForm(model.MAX_FILE_SIZE); err != nil {
+		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.parse.app_error", nil, "")
+		return
+	}
+
+	m := r.MultipartForm
+
+	imageArray, ok := m.File["image"]
+	if !ok {
+		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.no_file.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if len(imageArray) <= 0 {
+		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.array.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	brandInterface := einterfaces.GetBrandInterface()
+	if brandInterface == nil {
+		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if err := brandInterface.SaveBrandImage(imageArray[0]); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+
+	rdata := map[string]string{}
+	rdata["status"] = "OK"
+	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		c.Err = model.NewLocAppError("getBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	brandInterface := einterfaces.GetBrandInterface()
+	if brandInterface == nil {
+		c.Err = model.NewLocAppError("getBrandImage", "api.admin.get_brand_image.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if img, err := brandInterface.GetBrandImage(); err != nil {
+		w.Write(nil)
+	} else {
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(img)
+	}
 }
