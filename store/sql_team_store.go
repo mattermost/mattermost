@@ -6,6 +6,7 @@ package store
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"strings"
 )
 
 type SqlTeamStore struct {
@@ -222,6 +223,8 @@ func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
 
 	go func() {
 		result := StoreResult{}
+
+		email = strings.ToLower(email)
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, Users WHERE Teams.Id = Users.TeamId AND Users.Email = :Email", map[string]interface{}{"Email": email}); err != nil {
