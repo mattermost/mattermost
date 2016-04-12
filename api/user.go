@@ -50,7 +50,7 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/logout", ApiUserRequired(logout)).Methods("POST")
 	sr.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	sr.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
-	sr.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
+	sr.Handle("/attach_device", ApiUserRequiredTrustRequester(attachDeviceId)).Methods("POST")
 	sr.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
 	sr.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
 

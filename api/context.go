@@ -161,7 +161,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if len(token) != 0 {
-				if (h.requireSystemAdmin || h.requireUser) && !h.trustRequester {
+				if (h.requireSystemAdmin || h.requireUser) && !h.trustRequester && h.isApi {
 					if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
 						c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
 						token = ""
