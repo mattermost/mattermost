@@ -16,6 +16,10 @@ const CHANGE_EVENT_STATUSES = 'change_statuses';
 class UserStoreClass extends EventEmitter {
     constructor() {
         super();
+        this.clear();
+    }
+
+    clear() {
         this.profiles = {};
         this.statuses = {};
         this.sessions = {};

@@ -228,7 +228,7 @@ export default class SidebarRightMenu extends React.Component {
                         {manageLink}
                         {consoleLink}
                         <li>
-                            <Link to={Utils.getTeamURLFromAddressBar() + '/logout'}>
+                            <Link to='/logout'>
                                 <i className='fa fa-sign-out'></i>
                                 <FormattedMessage
                                     id='sidebar_right_menu.logout'

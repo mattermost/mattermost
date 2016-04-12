@@ -17,7 +17,10 @@ func TestCreateChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	team := th.BasicTeam
+	Client.Must(Client.Logout())
 	team2 := th.CreateTeam(th.BasicClient)
+	th.LoginBasic()
+	th.BasicClient.SetTeamId(team.Id)
 
 	channel := model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	rchannel, err := Client.CreateChannel(&channel)

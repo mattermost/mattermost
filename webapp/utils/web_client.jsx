@@ -13,8 +13,6 @@ class WebClientClass extends Client {
         super();
         this.enableLogErrorsToConsole(true);
         TeamStore.addChangeListener(this.onTeamStoreChanged);
-
-        this.login = this.login.bind(this);
     }
 
     onTeamStoreChanged = () => {
@@ -42,8 +40,8 @@ class WebClientClass extends Client {
 
     // not sure why but super.login doesn't work if using an () => arrow functions.
     // I think this might be a webpack issue.
-    login(email, username, password, token, success, error) { // eslint-disable-line no-unused-vars
-        super.login(
+    webLogin(email, username, password, token, success, error) { // eslint-disable-line no-unused-vars
+        this.login(
             email,
             username,
             password,

@@ -319,9 +319,31 @@ func createTeamWithLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	team := model.TeamFromJson(r.Body)
+	var user *model.User
+
+	if len(c.Session.UserId) > 0 {
+		uchan := Srv.Store.User().Get(c.Session.UserId)
+
+		if result := <-uchan; result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			user = result.Data.(*model.User)
+			team.Email = user.Email
+		}
+	}
+
 	rteam := CreateTeam(c, team)
 	if c.Err != nil {
 		return
+	}
+
+	if user != nil {
+		err := JoinUserToTeam(team, user)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	w.Write([]byte(rteam.ToJson()))
@@ -376,6 +398,8 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	if err := JoinDefaultChannels(team.Id, user, channelRole); err != nil {
 		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
 	}
+
+	RemoveAllSessionsForUserId(user.Id)
 
 	return nil
 }

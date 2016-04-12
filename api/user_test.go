@@ -821,6 +821,8 @@ func TestUserUpdateActive(t *testing.T) {
 		t.Fatal("Should have errored, not admin")
 	}
 
+	Client.Must(Client.Logout())
+
 	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 

@@ -571,6 +571,20 @@ func GetSession(token string) *model.Session {
 	return session
 }
 
+func RemoveAllSessionsForUserId(userId string) {
+
+	keys := sessionCache.Keys()
+
+	for _, key := range keys {
+		if ts, ok := sessionCache.Get(key); ok {
+			session := ts.(*model.Session)
+			if session.UserId == userId {
+				sessionCache.Remove(key)
+			}
+		}
+	}
+}
+
 func AddSessionToCache(session *model.Session) {
 	sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*utils.Cfg.ServiceSettings.SessionCacheInMinutes*60))
 }

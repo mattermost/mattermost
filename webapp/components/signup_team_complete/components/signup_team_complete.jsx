@@ -74,6 +74,7 @@ export default class SignupTeamComplete extends React.Component {
 
 SignupTeamComplete.defaultProps = {
 };
+
 SignupTeamComplete.propTypes = {
     location: React.PropTypes.object,
     children: React.PropTypes.node

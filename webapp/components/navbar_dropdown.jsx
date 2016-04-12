@@ -163,8 +163,7 @@ export default class NavbarDropdown extends React.Component {
                 <li key='newTeam_li'>
                     <Link
                         key='newTeam_a'
-                        target='_blank'
-                        to={Utils.getWindowLocationOrigin() + '/signup_team'}
+                        to='/create_team'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.create'
@@ -245,7 +244,7 @@ export default class NavbarDropdown extends React.Component {
                         {inviteLink}
                         {teamLink}
                         <li>
-                            <Link to={'/' + this.props.teamName + '/logout'}>
+                            <Link to='/logout'>
                                 <FormattedMessage
                                     id='navbar_dropdown.logout'
                                     defaultMessage='Logout'

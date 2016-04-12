@@ -10,7 +10,7 @@ import 'sass/styles.scss';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Router, Route, IndexRoute, IndexRedirect, Redirect, browserHistory} from 'react-router';
+import {Router, Route, IndexRoute, Redirect, browserHistory} from 'react-router';
 import Root from 'components/root.jsx';
 import LoggedIn from 'components/logged_in.jsx';
 import NotLoggedIn from 'components/not_logged_in.jsx';
@@ -26,8 +26,8 @@ import ChannelStore from 'stores/channel_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import SignupTeam from 'components/signup_team.jsx';
 
 import Client from 'utils/web_client.jsx';
 
@@ -69,6 +69,10 @@ import LDAPToEmail from 'components/claim/components/ldap_to_email.jsx';
 import EmailToLDAP from 'components/claim/components/email_to_ldap.jsx';
 
 import Login from 'components/login/login.jsx';
+import SelectTeam from 'components/select_team/select_team.jsx';
+import CreateTeam from 'components/create_team/create_team.jsx';
+import CreateTeamDisplayName from 'components/create_team/components/display_name.jsx';
+import CreateTeamTeamUrl from 'components/create_team/components/team_url.jsx';
 
 import * as I18n from 'i18n/i18n.jsx';
 
@@ -103,32 +107,8 @@ function preRenderSetup(callwhendone) {
 
     var d1 = $.Deferred(); //eslint-disable-line new-cap
 
-    Client.getInitialLoad(
-        (data) => {
-            global.window.mm_config = data.client_cfg;
-            global.window.mm_license = data.license_cfg;
-
-            if (data.user) {
-                global.window.mm_user = data.user;
-
-                // UserStore.setCurrentUser(data.user);
-                // GlobalActions.newLocalizationSelected(data.locale);
-            }
-
-            if (data.preferences) {
-                PreferenceStore.setPreferencesFromServer(data.preferences);
-            }
-
-            if (data.teams) {
-                // TODO XXX FIX ME - need to support more than the first team
-                TeamStore.saveMyTeam(data.teams[0]);
-                Client.setTeamId(TeamStore.getCurrentId());
-            }
-
-            d1.resolve();
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getClientConfig');
+    GlobalActions.emitInitialLoad(
+        () => {
             d1.resolve();
         }
     );
@@ -156,10 +136,26 @@ function preRenderSetup(callwhendone) {
 
 function preLoggedIn(nextState, replace, callback) {
     ErrorStore.clearLastError();
+    callback();
+}
+
+function preNeedsTeam(nextState, replace, callback) {
+    // First check to make sure you're in the current team
+    // for the current url.
+    var teamName = Utils.getTeamNameFromUrl();
+    var team = TeamStore.getByName(teamName);
+
+    if (!team) {
+        browserHistory.push('/error');
+        return;
+    }
+
+    TeamStore.saveMyTeam(team);
+    TeamStore.emitChange();
 
     var d1 = $.Deferred(); //eslint-disable-line new-cap
+    var d2 = $.Deferred(); //eslint-disable-line new-cap
 
-    // XXX TODO FIXME this needs to move down
     Client.getChannels(
         (data) => {
             AppDispatcher.handleServerAction({
@@ -176,7 +172,22 @@ function preLoggedIn(nextState, replace, callback) {
         }
     );
 
-    $.when(d1).done(() => {
+    Client.getProfiles(
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES,
+                profiles: data
+            });
+
+            d2.resolve();
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getProfiles');
+            d2.resolve();
+        }
+    );
+
+    $.when(d1, d2).done(() => {
         callback();
     });
 }
@@ -212,18 +223,19 @@ function doChannelChange(state) {
     GlobalActions.emitChannelClickEvent(channel);
 }
 
-function onLoggedOut(nextState) {
-    const teamName = nextState.params.team;
+function onLoggedOut() {
     Client.logout(
         () => {
-            browserHistory.push('/' + teamName + '/login');
             BrowserStore.signalLogout();
             BrowserStore.clear();
             ErrorStore.clearLastError();
             PreferenceStore.clear();
+            UserStore.clear();
+            TeamStore.clear();
+            browserHistory.push('/');
         },
         () => {
-            browserHistory.push('/' + teamName + '/login');
+            browserHistory.push('/');
         }
     );
 }
@@ -241,113 +253,44 @@ function renderRootComponent() {
                     path='error'
                     component={ErrorPage}
                 />
-                <Route
-                    component={LoggedIn}
-                    onEnter={preLoggedIn}
-                >
-                    <Route
-                        path=':team/channels/:channel'
-                        onEnter={onChannelEnter}
-                        onChange={onChannelChange}
-                        components={{
-                            sidebar: Sidebar,
-                            center: ChannelView
-                        }}
-                    />
-                    <Route
-                        path=':team/pl/:postid'
-                        onEnter={onPermalinkEnter}
-                        components={{
-                            sidebar: Sidebar,
-                            center: PermalinkView
-                        }}
-                    />
-                    <Route
-                        path=':team/tutorial'
-                        components={{
-                            sidebar: Sidebar,
-                            center: TutorialView
-                        }}
-                    />
-                    <Route
-                        path=':team/logout'
-                        onEnter={onLoggedOut}
-                    />
-                    <Route path='settings/integrations'>
-                        <IndexRoute
-                            components={{
-                                navbar: BackstageNavbar,
-                                sidebar: BackstageSidebar,
-                                center: Integrations
-                            }}
-                        />
-                        <Route path='incoming_webhooks'>
-                            <IndexRoute
-                                components={{
-                                    navbar: BackstageNavbar,
-                                    sidebar: BackstageSidebar,
-                                    center: InstalledIncomingWebhooks
-                                }}
-                            />
-                            <Route
-                                path='add'
-                                components={{
-                                    navbar: BackstageNavbar,
-                                    sidebar: BackstageSidebar,
-                                    center: AddIncomingWebhook
-                                }}
-                            />
-                        </Route>
-                        <Route path='outgoing_webhooks'>
-                            <IndexRoute
-                                components={{
-                                    navbar: BackstageNavbar,
-                                    sidebar: BackstageSidebar,
-                                    center: InstalledOutgoingWebhooks
-                                }}
-                            />
-                            <Route
-                                path='add'
-                                components={{
-                                    navbar: BackstageNavbar,
-                                    sidebar: BackstageSidebar,
-                                    center: AddOutgoingWebhook
-                                }}
-                            />
-                        </Route>
-                        <Route path='commands'>
-                            <IndexRoute
-                                components={{
-                                    navbar: BackstageNavbar,
-                                    sidebar: BackstageSidebar,
-                                    center: InstalledCommands
-                                }}
-                            />
-                            <Route
-                                path='add'
-                                components={{
-                                    navbar: BackstageNavbar,
-                                    sidebar: BackstageSidebar,
-                                    center: AddCommand
-                                }}
-                            />
-                        </Route>
-                        <Redirect
-                            from='*'
-                            to='/error'
-                            query={notFoundParams}
-                        />
-                    </Route>
-                    <Route
-                        path='admin_console'
-                        component={AdminConsole}
-                    />
-                </Route>
                 <Route component={NotLoggedIn}>
                     <Route
-                        path='signup_team'
-                        component={SignupTeam}
+                        path='logout'
+                        onEnter={onLoggedOut}
                     />
+                    <Route
+                        path='login'
+                        component={Login}
+                    />
+                    <Route
+                        path='reset_password'
+                        component={PasswordResetSendLink}
+                    />
+                    <Route
+                        path='reset_password_complete'
+                        component={PasswordResetForm}
+                    />
+                    <Route
+                        path='claim'
+                        component={Claim}
+                    >
+                        <Route
+                            path='oauth_to_email'
+                            component={OAuthToEmail}
+                        />
+                        <Route
+                            path='email_to_oauth'
+                            component={EmailToOAuth}
+                        />
+                        <Route
+                            path='email_to_ldap'
+                            component={EmailToLDAP}
+                        />
+                        <Route
+                            path='ldap_to_email'
+                            component={LDAPToEmail}
+                        />
+                    </Route>
                     <Route
                         path='signup_team_complete'
                         component={SignupTeamComplete}
@@ -394,51 +337,136 @@ function renderRootComponent() {
                         path='do_verify_email'
                         component={DoVerifyEmail}
                     />
+                </Route>
+                <Route
+                    component={LoggedIn}
+                    onEnter={preLoggedIn}
+                >
+                    <Route component={NotLoggedIn}>
+                        <Route
+                            path='select_team'
+                            component={SelectTeam}
+                        />
+                        <Route
+                            path='create_team'
+                            component={CreateTeam}
+                        >
+                            <IndexRoute component={CreateTeamDisplayName}/>
+                            <Route
+                                path='display_name'
+                                component={CreateTeamDisplayName}
+                            />
+                            <Route
+                                path='team_url'
+                                component={CreateTeamTeamUrl}
+                            />
+                        </Route>
+                    </Route>
+                    <Route
+                        path='admin_console'
+                        component={AdminConsole}
+                    />
                     <Route
                         path=':team'
                         component={NeedsTeam}
+                        onEnter={preNeedsTeam}
                     >
-                        <IndexRedirect to='login'/>
                         <Route
-                            path='login'
-                            component={Login}
+                            path='channels/:channel'
+                            onEnter={onChannelEnter}
+                            onChange={onChannelChange}
+                            components={{
+                                sidebar: Sidebar,
+                                center: ChannelView
+                            }}
                         />
                         <Route
-                            path='reset_password'
-                            component={PasswordResetSendLink}
+                            path='pl/:postid'
+                            onEnter={onPermalinkEnter}
+                            components={{
+                                sidebar: Sidebar,
+                                center: PermalinkView
+                            }}
                         />
                         <Route
-                            path='reset_password_complete'
-                            component={PasswordResetForm}
+                            path='tutorial'
+                            components={{
+                                sidebar: Sidebar,
+                                center: TutorialView
+                            }}
                         />
-                        <Route
-                            path='claim'
-                            component={Claim}
-                        >
-                            <Route
-                                path='oauth_to_email'
-                                component={OAuthToEmail}
+                        <Route path='settings/integrations'>
+                            <IndexRoute
+                                components={{
+                                    navbar: BackstageNavbar,
+                                    sidebar: BackstageSidebar,
+                                    center: Integrations
+                                }}
                             />
-                            <Route
-                                path='email_to_oauth'
-                                component={EmailToOAuth}
-                            />
-                            <Route
-                                path='email_to_ldap'
-                                component={EmailToLDAP}
-                            />
-                            <Route
-                                path='ldap_to_email'
-                                component={LDAPToEmail}
+                            <Route path='incoming_webhooks'>
+                                <IndexRoute
+                                    components={{
+                                        navbar: BackstageNavbar,
+                                        sidebar: BackstageSidebar,
+                                        center: InstalledIncomingWebhooks
+                                    }}
+                                />
+                                <Route
+                                    path='add'
+                                    components={{
+                                        navbar: BackstageNavbar,
+                                        sidebar: BackstageSidebar,
+                                        center: AddIncomingWebhook
+                                    }}
+                                />
+                            </Route>
+                            <Route path='outgoing_webhooks'>
+                                <IndexRoute
+                                    components={{
+                                        navbar: BackstageNavbar,
+                                        sidebar: BackstageSidebar,
+                                        center: InstalledOutgoingWebhooks
+                                    }}
+                                />
+                                <Route
+                                    path='add'
+                                    components={{
+                                        navbar: BackstageNavbar,
+                                        sidebar: BackstageSidebar,
+                                        center: AddOutgoingWebhook
+                                    }}
+                                />
+                            </Route>
+                            <Route path='commands'>
+                                <IndexRoute
+                                    components={{
+                                        navbar: BackstageNavbar,
+                                        sidebar: BackstageSidebar,
+                                        center: InstalledCommands
+                                    }}
+                                />
+                                <Route
+                                    path='add'
+                                    components={{
+                                        navbar: BackstageNavbar,
+                                        sidebar: BackstageSidebar,
+                                        center: AddCommand
+                                    }}
+                                />
+                            </Route>
+                            <Redirect
+                                from='*'
+                                to='/error'
+                                query={notFoundParams}
                             />
                         </Route>
-                        <Redirect
-                            from='*'
-                            to='/error'
-                            query={notFoundParams}
-                        />
                     </Route>
                 </Route>
+                <Redirect
+                    from='*'
+                    to='/error'
+                    query={notFoundParams}
+                />
             </Route>
         </Router>
     ),

@@ -1,8 +1,10 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+//import $ from 'jquery';
+//import Client from 'utils/web_client.jsx';
+
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-import Client from 'utils/web_client.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 
 import {IntlProvider} from 'react-intl';
@@ -12,6 +14,7 @@ import React from 'react';
 import FastClick from 'fastclick';
 
 import {browserHistory} from 'react-router';
+import UserStore from 'stores/user_store.jsx';
 
 export default class Root extends React.Component {
     constructor(props) {
@@ -27,15 +30,22 @@ export default class Root extends React.Component {
     localizationChanged() {
         this.setState({locale: LocalizationStore.getLocale(), translations: LocalizationStore.getTranslations()});
     }
+
     redirectIfNecessary(props) {
         if (props.location.pathname === '/') {
-            Client.getMeLoggedIn((data) => {
-                if (!data || data.logged_in === 'false') {
-                    browserHistory.push('/signup_team');
-                } else {
-                    browserHistory.push('/' + data.team_name + '/channels/town-square');
-                }
-            });
+            if (UserStore.getCurrentUser()) {
+                browserHistory.push('/select_team');
+            } else {
+                browserHistory.push('/login');
+            }
+
+            // Client.getMeLoggedIn((data) => {
+            //     if (!data || data.logged_in === 'false') {
+            //         browserHistory.push('/signup_team');
+            //     } else {
+            //         browserHistory.push('/' + data.team_name + '/channels/town-square');
+            //     }
+            // });
         }
     }
     componentWillReceiveProps(newProps) {

@@ -9,12 +9,12 @@ import {Link} from 'react-router';
 
 export default class NotLoggedIn extends React.Component {
     componentDidMount() {
-        $('body').attr('class', 'sticky');
-        $('#root').attr('class', 'container-fluid');
+        $('body').addClass('sticky');
+        $('#root').addClass('container-fluid');
     }
     componentWillUnmount() {
-        $('body').attr('class', '');
-        $('#root').attr('class', '');
+        $('body').removeClass('sticky');
+        $('#root').removeClass('container-fluid');
     }
     render() {
         return (

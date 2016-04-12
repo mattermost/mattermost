@@ -3,8 +3,6 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import * as Utils from 'utils/utils.jsx';
-import TeamStore from 'stores/team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -12,18 +10,12 @@ import {FormattedMessage} from 'react-intl';
 
 import {Link} from 'react-router';
 
-function getStateFromStores() {
-    return {currentTeam: TeamStore.getCurrent()};
-}
-
 import React from 'react';
 
 export default class AdminNavbarDropdown extends React.Component {
     constructor(props) {
         super(props);
         this.blockToggle = false;
-
-        this.state = getStateFromStores();
     }
 
     componentDidMount() {
@@ -64,19 +56,19 @@ export default class AdminNavbarDropdown extends React.Component {
                     >
                         <li>
                             <Link
-                                to={'/' + this.state.currentTeam.name + '/channels/town-square'}
+                                to={'/select_team'}
                             >
                                 <FormattedMessage
                                     id='admin.nav.switch'
                                     defaultMessage='Switch to {display_name}'
                                     values={{
-                                        display_name: this.state.currentTeam.display_name
+                                        display_name: global.window.mm_config.SiteName
                                     }}
                                 />
                             </Link>
                         </li>
                         <li>
-                            <Link to={Utils.getTeamURLFromAddressBar() + '/logout'}>
+                            <Link to='/logout'>
                                 <FormattedMessage
                                     id='admin.nav.logout'
                                     defaultMessage='Logout'

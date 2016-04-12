@@ -61,6 +61,60 @@ export function emitChannelClickEvent(channel) {
     }
 }
 
+export function emitInitialLoad(callback) {
+    Client.getInitialLoad(
+            (data) => {
+                global.window.mm_config = data.client_cfg;
+                global.window.mm_license = data.license_cfg;
+
+                if (data.user && data.user.id) {
+                    global.window.mm_user = data.user;
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_ME,
+                        me: data.user
+                    });
+                }
+
+                if (data.preferences) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_PREFERENCES,
+                        preferences: data.preferences
+                    });
+                }
+
+                if (data.teams) {
+                    var teams = {};
+                    data.teams.forEach((team) => {
+                        teams[team.id] = team;
+                    });
+
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_ALL_TEAMS,
+                        teams
+                    });
+                }
+
+                if (data.team_members) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_TEAM_MEMBERS,
+                        team_members: data.team_members
+                    });
+                }
+
+                if (callback) {
+                    callback();
+                }
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'getInitialLoad');
+
+                if (callback) {
+                    callback();
+                }
+            }
+        );
+}
+
 export function emitPostFocusEvent(postId) {
     AsyncClient.getChannels(true);
     Client.getPostById(
@@ -271,10 +325,6 @@ export function sendEphemeralPost(message, channelId) {
     emitPostRecievedEvent(post);
 }
 
-export function loadTeamRequiredPage() {
-    AsyncClient.getAllTeams();
-}
-
 export function newLocalizationSelected(locale) {
     if (locale === 'en') {
         AppDispatcher.handleServerAction({
@@ -311,8 +361,6 @@ export function loadBrowserLocale() {
 export function viewLoggedIn() {
     AsyncClient.getChannels();
     AsyncClient.getChannelExtraInfo();
-    AsyncClient.getMyTeam();
-    AsyncClient.getMe();
 
     // Clear pending posts (shouldn't have pending posts if we are loading)
     PostStore.clearPendingPosts();

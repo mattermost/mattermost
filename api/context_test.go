@@ -27,3 +27,25 @@ func TestContext(t *testing.T) {
 		t.Fatal("should have permissions")
 	}
 }
+
+func TestCache(t *testing.T) {
+	session := &model.Session{
+		Id:     model.NewId(),
+		Token:  model.NewId(),
+		UserId: model.NewId(),
+	}
+
+	sessionCache.AddWithExpiresInSecs(session.Token, session, 5*60)
+
+	keys := sessionCache.Keys()
+	if len(keys) != 1 {
+		t.Fatal("should have only 1 item")
+	}
+
+	RemoveAllSessionsForUserId(session.UserId)
+
+	keys = sessionCache.Keys()
+	if len(keys) != 0 {
+		t.Fatal("should have only 0 items")
+	}
+}

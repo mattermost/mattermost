@@ -24,7 +24,6 @@ class SignupUserComplete extends React.Component {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.inviteInfoRecieved = this.inviteInfoRecieved.bind(this);
         this.handleLdapSignup = this.handleLdapSignup.bind(this);
 
         this.state = {
@@ -56,7 +55,31 @@ class SignupUserComplete extends React.Component {
             teamName = parsedData.name;
             teamId = parsedData.id;
         } else {
-            Client.getInviteInfo(inviteId, this.inviteInfoRecieved, null);
+            Client.getInviteInfo(
+                inviteId,
+                (inviteData) => {
+                    if (!inviteData) {
+                        return;
+                    }
+
+                    this.setState({
+                        teamDisplayName: inviteData.display_name,
+                        teamName: inviteData.name,
+                        teamId: inviteData.id
+                    });
+                },
+                () => {
+                    this.setState({
+                        noOpenServerError: true,
+                        serverError:
+                            <FormattedMessage
+                                id='signup_user_completed.no_open_server'
+                                defaultMessage='This server does not allow open signups or the invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                            />
+                    });
+                }
+            );
+
             data = '';
             hash = '';
         }
@@ -69,17 +92,6 @@ class SignupUserComplete extends React.Component {
             teamDisplayName,
             teamName,
             teamId
-        });
-    }
-    inviteInfoRecieved(data) {
-        if (!data) {
-            return;
-        }
-
-        this.setState({
-            teamDisplayName: data.display_name,
-            teamName: data.name,
-            teamId: data.id
         });
     }
 
@@ -236,7 +248,7 @@ class SignupUserComplete extends React.Component {
 
         // If we haven't got a team id yet we are waiting for
         // the client so just show the standard loading screen
-        if (this.state.teamId === '') {
+        if (this.state.teamId === '' && !this.state.noOpenServerError) {
             return (<LoadingScreen/>);
         }
 
@@ -492,12 +504,20 @@ class SignupUserComplete extends React.Component {
             );
         }
 
+        if (this.state.noOpenServerError) {
+            signupMessage = null;
+            ldapSignup = null;
+            emailSignup = null;
+        }
+
         return (
             <div>
                 <div className='signup-header'>
                     <Link to='/'>
-                        <span classNameNameName='fa fa-chevron-left'/>
-                        <FormattedMessage id='web.header.back'/>
+                        <span className='fa fa-chevron-left'/>
+                        <FormattedMessage
+                            id='web.header.back'
+                        />
                     </Link>
                 </div>
                 <div className='col-sm-12'>
@@ -506,22 +526,12 @@ class SignupUserComplete extends React.Component {
                             className='signup-team-logo'
                             src={logoImage}
                         />
-                        <h5 className='margin--less'>
+                        <h1>{global.window.mm_config.SiteName}</h1>
+                        <h4 className='color--light'>
                             <FormattedMessage
-                                id='signup_user_completed.welcome'
-                                defaultMessage='Welcome to:'
+                                id='web.root.singup_info'
                             />
-                        </h5>
-                        <h2 className='signup-team__name'>{this.state.teamName}</h2>
-                        <h2 className='signup-team__subdomain'>
-                            <FormattedMessage
-                                id='signup_user_completed.onSite'
-                                defaultMessage='on {siteName}'
-                                values={{
-                                    siteName: global.window.mm_config.SiteName
-                                }}
-                            />
-                        </h2>
+                        </h4>
                         <h4 className='color--light'>
                             <FormattedMessage
                                 id='signup_user_completed.lets'
