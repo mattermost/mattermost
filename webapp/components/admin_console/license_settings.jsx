@@ -131,7 +131,6 @@ class LicenseSettings extends React.Component {
             licenseKey = (
                 <div className='col-sm-8'>
                     <button
-                        disabled={this.props.config.LdapSettings.Enable}
                         className='btn btn-danger'
                         onClick={this.handleRemove}
                         id='remove-button'
@@ -145,10 +144,7 @@ class LicenseSettings extends React.Component {
                     <br/>
                     <br/>
                     <p className='help-text'>
-                        <FormattedHTMLMessage
-                            id='admin.licence.keyMigration'
-                            defaultMessage='If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start, <a href="http://mattermost.com" target="_blank">disable all Enterprise Edition features on this server</a>. This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.'
-                        />
+                        {'If you migrate servers you may need to remove your license key to install it elsewhere. You can remove the key here, which will revert functionality to that of Team Edition.'}
                     </p>
                 </div>
             );
