@@ -66,7 +66,7 @@ export default class RhsThread extends React.Component {
     }
     componentDidUpdate() {
         if ($('.post-right__scroll')[0]) {
-            $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
+            $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
         }
         this.resize();
     }
@@ -122,7 +122,7 @@ export default class RhsThread extends React.Component {
         this.setState({profiles});
     }
     resize() {
-        $('.post-right__scroll').scrollTop(100000);
+        $('.post-right__scroll').parent().scrollTop(100000);
     }
     render() {
         const posts = this.state.posts;
