@@ -241,6 +241,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.FileSettings.ProfileWidth)
 
 	props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
+	props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
+	props["LdapPasswordFieldName"] = *c.LdapSettings.PasswordFieldName
 
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
