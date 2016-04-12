@@ -52,6 +52,14 @@
     "translation": "Error leyendo el archivo de registro"
   },
   {
+    "id": "api.admin.get_brand_image.not_available.app_error",
+    "translation": "La marca personalizada no está configurada o no está soportada en este servidor"
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "El almacenamiento para las imagénes no está configurado."
+  },
+  {
     "id": "api.admin.init.debug",
     "translation": "Inicializando rutas del API para la administración"
   },
@@ -62,6 +70,30 @@
   {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Configuración de pruebas de correo"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Arreglo vacio bajo 'image' en la solicitud"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "No hay un archivo bajo 'image' en la solicitud"
+  },
+  {
+    "id": "api.admin.upload_brand_image.not_available.app_error",
+    "translation": "La marca personalizada no está configurada o no está soportada en este servidor"
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "No se pudo analizar el formulario multipart"
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "No se pudo subir la imagen. El almacenamiento de imagenes no está configurado."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "No se pudo subir el archivo. El archivo es muy grande."
   },
   {
     "id": "api.api.init.parsing_templates.debug",
@@ -1772,6 +1804,30 @@
     "translation": "Permisos inapropiados para regenerar un token para el Webhook saliente"
   },
   {
+    "id": "ent.brand.save_brand_image.decode.app_error",
+    "translation": "No se puede decodificar la imagen."
+  },
+  {
+    "id": "ent.brand.save_brand_image.decode_config.app_error",
+    "translation": "No se puede decodificar la configuración de la imagen."
+  },
+  {
+    "id": "ent.brand.save_brand_image.encode.app_error",
+    "translation": "No se puede codificar la imagene como un PNG."
+  },
+  {
+    "id": "ent.brand.save_brand_image.open.app_error",
+    "translation": "No se puede abrir la imagen."
+  },
+  {
+    "id": "ent.brand.save_brand_image.save_image.app_error",
+    "translation": "No se puede guardar la imagen"
+  },
+  {
+    "id": "ent.brand.save_brand_image.too_large.app_error",
+    "translation": "No se puede abrir la imagen. La imagen es muy grande."
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "La característica de Cumplimiento está deshabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia enterprise."
   },
@@ -2350,6 +2406,10 @@
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
     "translation": "Token inválido"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "Palabras gatilladoras inválidas"
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -3206,6 +3266,10 @@
   {
     "id": "store.sql_system.get.app_error",
     "translation": "Encontramos un error buscando las propiedades del sistema"
+  },
+  {
+    "id": "store.sql_system.get_by_name.app_error",
+    "translation": "No pudimos encontrar las variables del sistema."
   },
   {
     "id": "store.sql_system.save.app_error",
