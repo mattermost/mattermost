@@ -1880,13 +1880,44 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func fail(status int, what, details string) *model.AppError {
-	err := model.NewLocAppError("UpdateStatus", what, nil, details)
-	err.StatusCode = status
-	return err
+func generateFailFunc(funcName string) func(status int, what, details string) *model.AppError {
+	return func(status int, what, details string) *model.AppError {
+		err := model.NewLocAppError(funcName, what, nil, details)
+		err.StatusCode = status
+		return err
+	}
+}
+
+func GetStatus(userId string) (status string, err *model.AppError) {
+	err = nil
+	status = ""
+	fail := generateFailFunc("GetStatus")
+
+	if len(userId) != 26 {
+		err = fail(http.StatusBadRequest, "", "user_id")
+		return
+	}
+
+	result := <-Srv.Store.User().Get(userId)
+
+	if result.Err != nil {
+		err = fail(http.StatusNotFound, "", result.Err.Error())
+		return
+	}
+
+	if result.Data == nil {
+		err = fail(http.StatusBadRequest, "api.user.update_status.valid_account.app_error", "")
+		return
+	}
+
+	user := result.Data.(*model.User)
+	status = user.GetStatus()
+	return
 }
 
 func UpdateStatus(userId, status string) *model.AppError {
+	fail := generateFailFunc("UpdateStatus")
+
 	// TODO: magic number 26
 	if len(userId) != 26 {
 		return fail(http.StatusBadRequest, "", "user_id")
