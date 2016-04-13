@@ -250,6 +250,25 @@ func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlPostStore) PermanentDeletePostsByHorizon(horizon int64) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE CreateAt < :Horizon", map[string]interface{}{"Horizon": horizon})
+		if err != nil {
+			var horizonstr = strconv.FormatInt(horizon, 10)
+			result.Err = model.NewLocAppError("SqlPostStore.DeletePosts", "store.sql_post.permanent_delete_posts.app_error", nil, "horizon="+horizonstr+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
@@ -874,10 +893,10 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 		result := StoreResult{}
 
 		query :=
-			`SELECT 
+			`SELECT
 			    Name, COUNT(Value) AS Value
 			FROM
-			    (SELECT 
+			    (SELECT
 			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 			            '1' AS Value
 			    FROM
@@ -897,10 +916,10 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
-				`SELECT 
+				`SELECT
 				    Name, COUNT(Value) AS Value
 				FROM
-				    (SELECT 
+				    (SELECT
 				        TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name,
 				            '1' AS Value
 				    FROM
