@@ -30,6 +30,8 @@ func Setup() {
 		ApiClient = model.NewClient(URL)
 
 		api.Srv.Store.MarkSystemRanUnitTests()
+
+		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
 }
 
