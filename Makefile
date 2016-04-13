@@ -132,7 +132,7 @@ test-client: run-server run-client-tests stop-server
 
 prepare-enterprise:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Enterprise build selected, perparing
+	@echo Enterprise build selected, preparing
 	cp $(BUILD_ENTERPRISE_DIR)/imports.go .
 endif
 

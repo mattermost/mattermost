@@ -353,10 +353,9 @@ func (c *Client) Logout() (*Result, *AppError) {
 	}
 }
 
-func (c *Client) CheckMfa(method, teamName, loginId string) (*Result, *AppError) {
+func (c *Client) CheckMfa(method, loginId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["method"] = method
-	m["team_name"] = teamName
 	m["login_id"] = loginId
 
 	if r, err := c.DoApiPost("/users/mfa", MapToJson(m)); err != nil {

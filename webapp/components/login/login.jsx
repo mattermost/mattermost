@@ -60,7 +60,7 @@ export default class Login extends React.Component {
             return;
         }
 
-        Client.checkMfa(method, this.state.currentTeam.name, loginId,
+        Client.checkMfa(method, loginId,
             (data) => {
                 if (data.mfa_required === 'true') {
                     this.setState({showMfa: true, method, loginId, password});

@@ -317,6 +317,11 @@ func TestGetPublicLink(t *testing.T) {
 	channel := th.BasicChannel
 
 	if utils.Cfg.FileSettings.DriverName != "" {
+		enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+		defer func() {
+			utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		}()
+		utils.Cfg.FileSettings.EnablePublicLink = true
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)

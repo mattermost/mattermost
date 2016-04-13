@@ -41,9 +41,11 @@ var flagCmdCreateUser bool
 var flagCmdAssignRole bool
 var flagCmdVersion bool
 var flagCmdResetPassword bool
+var flagCmdResetMfa bool
 var flagCmdPermanentDeleteUser bool
 var flagCmdPermanentDeleteTeam bool
 var flagConfigFile string
+var flagUsername string
 var flagEmail string
 var flagPassword string
 var flagTeamName string
@@ -221,6 +223,7 @@ func parseCmds() {
 	}
 
 	flag.StringVar(&flagConfigFile, "config", "config.json", "")
+	flag.StringVar(&flagUsername, "username", "", "")
 	flag.StringVar(&flagEmail, "email", "", "")
 	flag.StringVar(&flagPassword, "password", "", "")
 	flag.StringVar(&flagTeamName, "team_name", "", "")
@@ -231,6 +234,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
+	flag.BoolVar(&flagCmdResetMfa, "reset_mfa", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteUser, "permanent_delete_user", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteTeam, "permanent_delete_team", false, "")
 
@@ -240,6 +244,7 @@ func parseCmds() {
 		flagCmdCreateUser ||
 		flagCmdAssignRole ||
 		flagCmdResetPassword ||
+		flagCmdResetMfa ||
 		flagCmdVersion ||
 		flagCmdPermanentDeleteUser ||
 		flagCmdPermanentDeleteTeam)
@@ -251,6 +256,7 @@ func runCmds() {
 	cmdCreateUser()
 	cmdAssignRole()
 	cmdResetPassword()
+	cmdResetMfa()
 	cmdPermDeleteUser()
 	cmdPermDeleteTeam()
 }
@@ -434,6 +440,40 @@ func cmdResetPassword() {
 	}
 }
 
+func cmdResetMfa() {
+	if flagCmdResetMfa {
+		if len(flagEmail) == 0 && len(flagUsername) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email OR -username")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var user *model.User
+		if len(flagEmail) > 0 {
+			if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+				l4g.Error("%v", result.Err)
+				flushLogAndExit(1)
+			} else {
+				user = result.Data.(*model.User)
+			}
+		} else {
+			if result := <-api.Srv.Store.User().GetByUsername(flagUsername); result.Err != nil {
+				l4g.Error("%v", result.Err)
+				flushLogAndExit(1)
+			} else {
+				user = result.Data.(*model.User)
+			}
+		}
+
+		if err := api.DeactivateMfa(user.Id); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		os.Exit(0)
+	}
+}
+
 func cmdPermDeleteUser() {
 	if flagCmdPermanentDeleteUser {
 		if len(flagTeamName) == 0 {
@@ -548,6 +588,8 @@ USAGE:
 FLAGS: 
     -config="config.json"             Path to the config file
 
+    -username="someuser"              Username used in other commands
+
     -email="user@example.com"         Email address used in other commands
 
     -password="mypassword"            Password used in other commands
@@ -585,6 +627,11 @@ COMMANDS:
                                       -team_name, -email and -password flag.
         Example:
             platform -reset_password -team_name="name" -email="user@example.com" -password="newpassword"
+
+    -reset_mfa                        Turns off multi-factor authentication for a user.  It requires the
+                                      -email or -username flag.
+        Example:
+            platform -reset_mfa -username="someuser"
 
     -permanent_delete_user            Permanently deletes a user and all related information
                                       including posts from the database.  It requires the 
