@@ -739,17 +739,19 @@
     .inner-wrap {
         @include single-transition(all, .5s, ease);
 
-        &:before {
-            //Some trickery in order for the z-index transition to happen immediately on move-in and delayed on move-out.
-            background-color: transparent;
-            content: '';
-            height: 100%;
-            left: -15px;
-            position: absolute;
-            top: 0;
-            transition: background-color 0.5s ease, z-index 0s ease 0.5s;
-            width: calc(100% + 30px);
-            z-index: 0;
+        .app__body & {
+            &:before {
+                //Some trickery in order for the z-index transition to happen immediately on move-in and delayed on move-out.
+                background-color: transparent;
+                content: '';
+                height: 100%;
+                left: -15px;
+                position: absolute;
+                top: 0;
+                transition: background-color 0.5s ease, z-index 0s ease 0.5s;
+                width: calc(100% + 30px);
+                z-index: 0;
+            }
         }
 
         &.move--right {
