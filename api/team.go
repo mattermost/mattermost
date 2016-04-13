@@ -42,6 +42,7 @@ func InitTeam() {
 	// These should be moved to the global admain console
 	BaseRoutes.Teams.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
+	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequired(addUserToTeamFromInvite)).Methods("POST")
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -566,6 +567,77 @@ func addUserToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.MapToJson(params)))
+}
+
+func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	params := model.MapFromJson(r.Body)
+	hash := params["hash"]
+	data := params["data"]
+	inviteId := params["invite_id"]
+
+	teamId := ""
+	var team *model.Team
+
+	if len(hash) > 0 {
+		props := model.MapFromJson(strings.NewReader(data))
+
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+			c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_invalid.app_error", nil, "")
+			return
+		}
+
+		t, err := strconv.ParseInt(props["time"], 10, 64)
+		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+			c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_expired.app_error", nil, "")
+			return
+		}
+
+		teamId = props["id"]
+
+		// try to load the team to make sure it exists
+		if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			team = result.Data.(*model.Team)
+		}
+	}
+
+	if len(inviteId) > 0 {
+		if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			team = result.Data.(*model.Team)
+			teamId = team.Id
+		}
+	}
+
+	if len(teamId) == 0 {
+		c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_invalid.app_error", nil, "")
+		return
+	}
+
+	uchan := Srv.Store.User().Get(c.Session.UserId)
+
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	err := JoinUserToTeam(team, user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	team.Sanitize()
+
+	w.Write([]byte(team.ToJson()))
 }
 
 func FindTeamByName(name string) bool {

@@ -100,9 +100,13 @@ class TeamSettings extends React.Component {
         config.TeamSettings.RestrictCreationToDomains = this.refs.RestrictCreationToDomains.value.trim();
         config.TeamSettings.EnableTeamCreation = this.refs.EnableTeamCreation.checked;
         config.TeamSettings.EnableUserCreation = this.refs.EnableUserCreation.checked;
+        config.TeamSettings.EnableOpenServer = this.refs.EnableOpenServer.checked;
         config.TeamSettings.RestrictTeamNames = this.refs.RestrictTeamNames.checked;
         config.TeamSettings.EnableTeamListing = this.refs.EnableTeamListing.checked;
-        config.TeamSettings.EnableCustomBrand = this.refs.EnableCustomBrand.checked;
+
+        if (this.refs.EnableCustomBrand) {
+            config.TeamSettings.EnableCustomBrand = this.refs.EnableCustomBrand.checked;
+        }
 
         if (this.refs.CustomBrandText) {
             config.TeamSettings.CustomBrandText = this.refs.CustomBrandText.value;
@@ -526,6 +530,53 @@ class TeamSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.team.userCreationDescription'
                                     defaultMessage='When false, the ability to create accounts is disabled. The create account button displays error when pressed.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableOpenServer'
+                        >
+                            <FormattedMessage
+                                id='admin.team.openServerTitle'
+                                defaultMessage='Enable Open Server: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOpenServer'
+                                    value='true'
+                                    ref='EnableOpenServer'
+                                    defaultChecked={this.props.config.TeamSettings.EnableOpenServer}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.team.true'
+                                        defaultMessage='true'
+                                    />
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOpenServer'
+                                    value='false'
+                                    defaultChecked={!this.props.config.TeamSettings.EnableOpenServer}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.team.false'
+                                        defaultMessage='false'
+                                    />
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.team.openServerDescription'
+                                    defaultMessage='When true, anyone can signup for a user account on this server without the need to be invited.'
                                 />
                             </p>
                         </div>

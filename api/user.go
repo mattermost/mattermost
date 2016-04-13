@@ -140,6 +140,11 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if !*utils.Cfg.TeamSettings.EnableOpenServer && len(teamId) == 0 {
+		c.Err = model.NewLocAppError("createUser", "api.user.create_user.no_open_server", nil, "email="+user.Email)
+		return
+	}
+
 	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
 		c.Err = model.NewLocAppError("createUser", "api.user.create_user.accepted_domain.app_error", nil, "")
 		return

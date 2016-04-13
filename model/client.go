@@ -228,6 +228,19 @@ func (c *Client) AddUserToTeam(userId string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) AddUserToTeamFromInvite(hash, dataToHash, inviteId string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["hash"] = hash
+	data["data"] = dataToHash
+	data["invite_id"] = inviteId
+	if r, err := c.DoApiPost("/teams/add_user_to_team_from_invite", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) InviteMembers(invites *Invites) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/invite_members", invites.ToJson()); err != nil {
 		return nil, err

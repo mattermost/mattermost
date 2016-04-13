@@ -168,6 +168,59 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 }
 
+func TestAddUserToTeamFromInvite(t *testing.T) {
+	th := Setup().InitBasic()
+	th.BasicClient.Logout()
+	Client := th.BasicClient
+
+	props := make(map[string]string)
+	props["email"] = strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com"
+	props["name"] = "Test Company name"
+	props["time"] = fmt.Sprintf("%v", model.GetMillis())
+
+	data := model.MapToJson(props)
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: props["email"], Type: model.TEAM_OPEN}
+	user := model.User{Email: props["email"], Nickname: "Corey Hulen", Password: "hello"}
+
+	ts := model.TeamSignup{Team: team, User: user, Invites: []string{"success+test@simulator.amazonses.com"}, Data: data, Hash: hash}
+
+	rts, err := Client.CreateTeamFromSignup(&ts)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if rts.Data.(*model.TeamSignup).Team.DisplayName != team.DisplayName {
+		t.Fatal("full name didn't match")
+	}
+
+	ruser := rts.Data.(*model.TeamSignup).User
+	rteam := rts.Data.(*model.TeamSignup).Team
+	Client.SetTeamId(rteam.Id)
+
+	if result, err := Client.LoginById(ruser.Id, user.Password); err != nil {
+		t.Fatal(err)
+	} else {
+		if result.Data.(*model.User).Email != user.Email {
+			t.Fatal("email's didn't match")
+		}
+	}
+
+	user2 := th.CreateUser(th.BasicClient)
+	Client.Must(Client.Logout())
+	Client.Must(Client.LoginByEmail("", user2.Email, user2.Password))
+
+	if result, err := th.BasicClient.AddUserToTeamFromInvite("", "", rteam.InviteId); err != nil {
+		t.Fatal(err)
+	} else {
+		rtm := result.Data.(*model.Team)
+		if rtm.Id != rteam.Id {
+			t.Fatal()
+		}
+	}
+}
+
 func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic()
 	th.BasicClient.Logout()

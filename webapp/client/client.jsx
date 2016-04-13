@@ -484,6 +484,18 @@ export default class Client {
         this.track('api', 'api_teams_invite_members');
     }
 
+    addUserToTeamFromInvite = (data, hash, inviteId, success, error) => {
+        request.
+            post(`${this.getTeamsRoute()}/add_user_to_team_from_invite`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({hash, data, invite_id: inviteId}).
+            end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
+
+        this.track('api', 'api_teams_invite_members');
+    }
+
     getInviteInfo = (inviteId, success, error) => {
         request.
             post(`${this.getTeamsRoute()}/get_invite_info`).

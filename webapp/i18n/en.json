@@ -520,6 +520,8 @@
   "admin.team.uploading": "Uploading..",
   "admin.team.userCreationDescription": "When false, the ability to create accounts is disabled. The create account button displays error when pressed.",
   "admin.team.userCreationTitle": "Enable User Creation: ",
+  "admin.team.openServerDescription": "When true, anyone can signup for a user account on this server without the need to be invited.",
+  "admin.team.openServerTitle": "Enable Open Server: ",
   "admin.team_analytics.activeUsers": "Active Users With Posts",
   "admin.team_analytics.totalPosts": "Total Posts",
   "admin.userList.title": "Users for {team}",

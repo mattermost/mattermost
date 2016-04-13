@@ -155,6 +155,7 @@ type TeamSettings struct {
 	MaxUsersPerTeam           int
 	EnableTeamCreation        bool
 	EnableUserCreation        bool
+	EnableOpenServer          *bool
 	RestrictCreationToDomains string
 	RestrictTeamNames         *bool
 	EnableTeamListing         *bool
@@ -306,6 +307,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.CustomBrandText == nil {
 		o.TeamSettings.CustomBrandText = new(string)
 		*o.TeamSettings.CustomBrandText = ""
+	}
+
+	if o.TeamSettings.EnableOpenServer == nil {
+		o.TeamSettings.EnableOpenServer = new(bool)
+		*o.TeamSettings.EnableOpenServer = false
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {

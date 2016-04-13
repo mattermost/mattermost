@@ -34,7 +34,10 @@ class SignupUserComplete extends React.Component {
             email: '',
             teamDisplayName: '',
             teamName: '',
-            teamId: ''
+            teamId: '',
+            openServer: false,
+            loading: true,
+            inviteId: ''
         };
     }
     componentWillMount() {
@@ -47,17 +50,42 @@ class SignupUserComplete extends React.Component {
         let teamName = '';
         let teamId = '';
         let openServer = false;
+        let loading = true;
 
         if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
-            // If we have a hash in the url then we are attempting to access a private team
-            if (hash) {
+            // if we are already logged in then attempt to just join the team
+            if (UserStore.getCurrentUser()) {
+                loading = true;
+                Client.addUserToTeamFromInvite(
+                    data,
+                    hash,
+                    inviteId,
+                    () => {
+                        GlobalActions.emitInitialLoad(
+                            () => {
+                                browserHistory.push('/select_team');
+                            }
+                        );
+                    },
+                    (err) => {
+                        this.setState({
+                            noOpenServerError: true,
+                            serverError: err.message,
+                            loading: false
+                        });
+                    }
+                );
+            } else if (hash) {
+                // If we have a hash in the url then we are attempting to access a private team
                 const parsedData = JSON.parse(data);
                 usedBefore = BrowserStore.getGlobalItem(hash);
                 email = parsedData.email;
                 teamDisplayName = parsedData.display_name;
                 teamName = parsedData.name;
                 teamId = parsedData.id;
+                loading = false;
             } else {
+                loading = true;
                 Client.getInviteInfo(
                     inviteId,
                     (inviteData) => {
@@ -66,16 +94,17 @@ class SignupUserComplete extends React.Component {
                         }
 
                         this.setState({
-                            noOpenServerError: false,
                             serverError: null,
                             teamDisplayName: inviteData.display_name,
                             teamName: inviteData.name,
-                            teamId: inviteData.id
+                            teamId: inviteData.id,
+                            loading: false
                         });
                     },
                     () => {
                         this.setState({
                             noOpenServerError: true,
+                            loading: false,
                             serverError:
                                 <FormattedMessage
                                     id='signup_user_completed.invalid_invite'
@@ -88,12 +117,12 @@ class SignupUserComplete extends React.Component {
                 data = '';
                 hash = '';
             }
-        }
-
-        // If this is the first account then let them create an account anyway.
-        // The server will verify it's the first account before allowing creation.
-        if (UserStore.getNoAccounts()) { // or it's an open server
+        } else if (global.window.mm_config.EnableOpenServer === 'true' || UserStore.getNoAccounts()) {
+            // If this is the first account then let them create an account anyway.
+            // The server will verify it's the first account before allowing creation.
+            // Of if the server is open then we don't care.
             openServer = true;
+            loading = false;
         } else {
             this.setState({
                 noOpenServerError: true,
@@ -101,7 +130,8 @@ class SignupUserComplete extends React.Component {
                     <FormattedMessage
                         id='signup_user_completed.no_open_server'
                         defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
-                    />
+                    />,
+                loading: false
             });
         }
 
@@ -114,7 +144,8 @@ class SignupUserComplete extends React.Component {
             teamName,
             teamId,
             openServer,
-            inviteId
+            inviteId,
+            loading
         });
     }
 
@@ -280,12 +311,8 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        if (!this.state.openServer) {
-            // If we haven't got a team id yet we are waiting for
-            // the client so just show the standard loading screen
-            if (this.state.teamId === '' && !this.state.noOpenServerError) {
-                return (<LoadingScreen/>);
-            }
+        if (this.state.loading) {
+            return (<LoadingScreen/>);
         }
 
         // set up error labels

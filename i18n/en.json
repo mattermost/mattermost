@@ -1452,6 +1452,10 @@
     "translation": "Could not add user initial to default profile picture"
   },
   {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
+  },
+  {
     "id": "api.user.create_user.accepted_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
