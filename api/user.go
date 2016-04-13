@@ -2434,28 +2434,13 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	mfaInterface := einterfaces.GetMfaInterface()
-	if mfaInterface == nil {
-		c.Err = model.NewLocAppError("generateMfaQrCode", "api.user.update_mfa.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	if activate {
-		var user *model.User
-		if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			user = result.Data.(*model.User)
-		}
-
-		if err := mfaInterface.Activate(user, token); err != nil {
+		if err := ActivateMfa(c.Session.UserId, token); err != nil {
 			c.Err = err
 			return
 		}
 	} else {
-		if err := mfaInterface.Deactivate(c.Session.UserId); err != nil {
+		if err := DeactivateMfa(c.Session.UserId); err != nil {
 			c.Err = err
 			return
 		}
@@ -2464,6 +2449,43 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func ActivateMfa(userId, token string) *model.AppError {
+	mfaInterface := einterfaces.GetMfaInterface()
+	if mfaInterface == nil {
+		err := model.NewLocAppError("ActivateMfa", "api.user.update_mfa.not_available.app_error", nil, "")
+		err.StatusCode = http.StatusNotImplemented
+		return err
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+		return result.Err
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if err := mfaInterface.Activate(user, token); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeactivateMfa(userId string) *model.AppError {
+	mfaInterface := einterfaces.GetMfaInterface()
+	if mfaInterface == nil {
+		err := model.NewLocAppError("DeactivateMfa", "api.user.update_mfa.not_available.app_error", nil, "")
+		err.StatusCode = http.StatusNotImplemented
+		return err
+	}
+
+	if err := mfaInterface.Deactivate(userId); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2481,12 +2503,6 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		method != model.USER_AUTH_SERVICE_USERNAME &&
 		method != model.USER_AUTH_SERVICE_LDAP {
 		c.SetInvalidParam("checkMfa", "method")
-		return
-	}
-
-	teamName := props["team_name"]
-	if len(teamName) == 0 {
-		c.SetInvalidParam("checkMfa", "team_name")
 		return
 	}
 

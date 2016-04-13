@@ -1571,7 +1571,7 @@ func TestCheckMfa(t *testing.T) {
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
-	if result, err := Client.CheckMfa(model.USER_AUTH_SERVICE_EMAIL, team.Name, user.Email); err != nil {
+	if result, err := Client.CheckMfa(model.USER_AUTH_SERVICE_EMAIL, user.Email); err != nil {
 		t.Fatal(err)
 	} else {
 		resp := result.Data.(map[string]string)

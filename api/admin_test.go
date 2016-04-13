@@ -102,6 +102,7 @@ func TestEmailTest(t *testing.T) {
 
 func TestGetTeamAnalyticsStandard(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	th.CreatePrivateChannel(th.BasicClient, th.BasicTeam)
 
 	if _, err := th.BasicClient.GetTeamAnalytics(th.BasicTeam.Id, "standard"); err == nil {
 		t.Fatal("Shouldn't have permissions")
@@ -127,7 +128,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[1].Value != 0 {
+		if rows[1].Value != 1 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
