@@ -52,6 +52,20 @@ export default class LoginLdap extends React.Component {
             errorClass = ' has-error';
         }
 
+        let loginPlaceholder;
+        if (global.window.mm_config.LdapLoginFieldName) {
+            loginPlaceholder = global.window.mm_config.LdapLoginFieldName;
+        } else {
+            loginPlaceholder = Utils.localizeMessage('login_ldap.username', 'LDAP Username');
+        }
+
+        let passwordPlaceholder;
+        if (global.window.mm_config.LdapPasswordFieldName) {
+            passwordPlaceholder = global.window.mm_config.LdapPasswordFieldName;
+        } else {
+            passwordPlaceholder = Utils.localizeMessage('login_ldap.pwd', 'LDAP Password');
+        }
+
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='signup__email-container'>
@@ -63,7 +77,7 @@ export default class LoginLdap extends React.Component {
                             autoFocus={true}
                             className='form-control'
                             ref='id'
-                            placeholder={Utils.localizeMessage('login_ldap.username', 'LDAP Username')}
+                            placeholder={loginPlaceholder}
                             spellCheck='false'
                         />
                     </div>
@@ -72,7 +86,7 @@ export default class LoginLdap extends React.Component {
                             type='password'
                             className='form-control'
                             ref='password'
-                            placeholder={Utils.localizeMessage('login_ldap.pwd', 'LDAP Password')}
+                            placeholder={passwordPlaceholder}
                             spellCheck='false'
                         />
                     </div>

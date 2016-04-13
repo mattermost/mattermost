@@ -185,6 +185,10 @@ type LdapSettings struct {
 	// Advanced
 	SkipCertificateVerification *bool
 	QueryTimeout                *int
+
+	// Customization
+	LoginFieldName    *string
+	PasswordFieldName *string
 }
 
 type ComplianceSettings struct {
@@ -386,6 +390,16 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.UserFilter == nil {
 		o.LdapSettings.UserFilter = new(string)
 		*o.LdapSettings.UserFilter = ""
+	}
+
+	if o.LdapSettings.LoginFieldName == nil {
+		o.LdapSettings.LoginFieldName = new(string)
+		*o.LdapSettings.LoginFieldName = ""
+	}
+
+	if o.LdapSettings.PasswordFieldName == nil {
+		o.LdapSettings.PasswordFieldName = new(string)
+		*o.LdapSettings.PasswordFieldName = ""
 	}
 
 	if o.ServiceSettings.SessionLengthWebInDays == nil {
