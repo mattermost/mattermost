@@ -23,3 +23,9 @@ body {
     scrollbar-shadow-color: #2D2C4D;
     scrollbar-track-color: rgba(0, 0, 0, .1);
 }
+
+.scrollbar--horizontal,
+.scrollbar--vertical {
+    @include border-radius(2px);
+    @include alpha-property(background-color, $black, .5);
+}

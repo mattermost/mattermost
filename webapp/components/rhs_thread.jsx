@@ -13,8 +13,25 @@ import RootPost from './rhs_root_post.jsx';
 import Comment from './rhs_comment.jsx';
 import Constants from 'utils/constants.jsx';
 import FileUploadOverlay from './file_upload_overlay.jsx';
+import Scrollbars from 'react-custom-scrollbars';
 
 import React from 'react';
+
+export function renderThumbHorizontal(props) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--horizontal'
+        />);
+}
+
+export function renderThumbVertical(props) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--vertical'
+        />);
+}
 
 export default class RhsThread extends React.Component {
     constructor(props) {
@@ -46,15 +63,11 @@ export default class RhsThread extends React.Component {
         window.addEventListener('resize', this.handleResize);
 
         this.mounted = true;
-        if (!Utils.isMobile()) {
-            $('.sidebar--right .post-right__scroll').perfectScrollbar();
-        }
     }
     componentDidUpdate() {
         if ($('.post-right__scroll')[0]) {
-            $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
+            $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
         }
-        $('.sidebar--right .post-right__scroll').perfectScrollbar('update');
         this.resize();
     }
     componentWillUnmount() {
@@ -109,7 +122,7 @@ export default class RhsThread extends React.Component {
         this.setState({profiles});
     }
     resize() {
-        $('.post-right__scroll').scrollTop(100000);
+        $('.post-right__scroll').parent().scrollTop(100000);
     }
     render() {
         const posts = this.state.posts;
@@ -180,40 +193,48 @@ export default class RhsThread extends React.Component {
                         fromSearch={this.props.fromSearch}
                         isMentionSearch={this.props.isMentionSearch}
                     />
-                    <div className='post-right__scroll'>
-                        <RootPost
-                            ref={selected.id}
-                            post={selected}
-                            commentCount={postsArray.length}
-                            user={profile}
-                            currentUser={this.props.currentUser}
-                        />
-                        <div className='post-right-comments-container'>
-                            {postsArray.map((comPost) => {
-                                let p;
-                                if (UserStore.getCurrentId() === comPost.user_id) {
-                                    p = UserStore.getCurrentUser();
-                                } else {
-                                    p = profiles[comPost.user_id];
-                                }
-                                return (
-                                    <Comment
-                                        ref={comPost.id}
-                                        key={comPost.id + 'commentKey'}
-                                        post={comPost}
-                                        user={p}
-                                        currentUser={this.props.currentUser}
-                                    />
-                                );
-                            })}
-                        </div>
-                        <div className='post-create__container'>
-                            <CreateComment
-                                channelId={selected.channel_id}
-                                rootId={selected.id}
+                    <Scrollbars
+                        autoHide={true}
+                        autoHideTimeout={500}
+                        autoHideDuration={500}
+                        renderThumbHorizontal={renderThumbHorizontal}
+                        renderThumbVertical={renderThumbVertical}
+                    >
+                        <div className='post-right__scroll'>
+                            <RootPost
+                                ref={selected.id}
+                                post={selected}
+                                commentCount={postsArray.length}
+                                user={profile}
+                                currentUser={this.props.currentUser}
                             />
+                            <div className='post-right-comments-container'>
+                                {postsArray.map((comPost) => {
+                                    let p;
+                                    if (UserStore.getCurrentId() === comPost.user_id) {
+                                        p = UserStore.getCurrentUser();
+                                    } else {
+                                        p = profiles[comPost.user_id];
+                                    }
+                                    return (
+                                        <Comment
+                                            ref={comPost.id}
+                                            key={comPost.id + 'commentKey'}
+                                            post={comPost}
+                                            user={p}
+                                            currentUser={this.props.currentUser}
+                                        />
+                                    );
+                                })}
+                            </div>
+                            <div className='post-create__container'>
+                                <CreateComment
+                                    channelId={selected.channel_id}
+                                    rootId={selected.id}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    </Scrollbars>
                 </div>
             </div>
         );

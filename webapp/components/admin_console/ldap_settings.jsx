@@ -373,7 +373,7 @@ class LdapSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.ldap.userFilterDisc'
-                                    defaultMessage='LDAP Filter to use when searching for user objects.'
+                                    defaultMessage='Optionally enter an LDAP Filter to use when searching for user objects. Only the users selected by the query will be able to access Mattermost. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'
                                 />
                             </p>
                         </div>
@@ -537,7 +537,7 @@ class LdapSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.ldap.skipCertificateVerificationDesc'
-                                    defaultMessage='Skips the certificate verificaiton step for TLS or STARTTLS connections. Not recommented for production enviroments where TLS is required. For testing only.'
+                                    defaultMessage='Skips the certificate verification step for TLS or STARTTLS connections. Not recommended for production environments where TLS is required. For testing only.'
                                 />
                             </p>
                         }

@@ -38,14 +38,14 @@ func TestCache(t *testing.T) {
 	sessionCache.AddWithExpiresInSecs(session.Token, session, 5*60)
 
 	keys := sessionCache.Keys()
-	if len(keys) != 1 {
-		t.Fatal("should have only 1 item")
+	if len(keys) <= 0 {
+		t.Fatal("should have items")
 	}
 
 	RemoveAllSessionsForUserId(session.UserId)
 
-	keys = sessionCache.Keys()
-	if len(keys) != 0 {
-		t.Fatal("should have only 0 items")
+	rkeys := sessionCache.Keys()
+	if len(rkeys) != len(keys)-1 {
+		t.Fatal("should have one less")
 	}
 }
