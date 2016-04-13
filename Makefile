@@ -63,10 +63,30 @@ start-docker:
 		echo starting mattermost-postgres; \
 		docker run --name mattermost-postgres -p 5432:5432 -e POSTGRES_USER=mmuser -e POSTGRES_PASSWORD=mostest \
 		-d postgres:9.4 > /dev/null; \
-		sleep 10; \
 	elif [ $(shell docker ps | grep -ci mattermost-postgres) -eq 0 ]; then \
 		echo restarting mattermost-postgres; \
 		docker start mattermost-postgres > /dev/null; \
+	fi
+
+	@echo Ldap test user test.one
+	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 0 ]; then \
+		echo starting mattermost-openldap; \
+		docker run --name mattermost-openldap -p 389:389 -p 636:636 \
+			-e LDAP_TLS_VERIFY_CLIENT="never" \
+			-e LDAP_ORGANISATION="Mattermost Test" \
+			-e LDAP_DOMAIN="mm.test.com" \
+			-e LDAP_ADMIN_PASSWORD="mostest" \
+			-d osixia/openldap:1.1.2 > /dev/null;\
+		sleep 10; \
+		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
+		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
+		docker exec -ti mattermost-openldap bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';\
+		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
+		docker exec -ti mattermost-openldap bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';\
+		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
+	elif [ $(shell docker ps | grep -ci mattermost-openldap) -eq 0 ]; then \
+		echo restarting mattermost-openldap; \
+		docker start mattermost-openldap > /dev/null; \
 		sleep 10; \
 	fi
 
@@ -82,20 +102,31 @@ stop-docker:
 		echo stopping mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
 	fi
+	
+	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \
+		echo stopping mattermost-openldap; \
+		docker stop mattermost-openldap > /dev/null; \
+	fi
 
 clean-docker:
 	@echo Removing docker containers
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
-		echo stopping mattermost-mysql; \
+		echo removing mattermost-mysql; \
 		docker stop mattermost-mysql > /dev/null; \
 		docker rm -v mattermost-mysql > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 1 ]; then \
-		echo stopping mattermost-postgres; \
+		echo removing mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
 		docker rm -v mattermost-postgres > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \
+		echo removing mattermost-openldap; \
+		docker stop mattermost-openldap > /dev/null; \
+		docker rm -v mattermost-openldap > /dev/null; \
 	fi
 
 check-style:
@@ -110,11 +141,18 @@ check-style:
 	fi
 
 test: start-docker
+	@echo Running tests
+
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running Enteprise tests
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/ldap || exit 1
+	#$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/compliance || exit 1
+endif
 
 run-client-tests:
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
