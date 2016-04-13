@@ -320,6 +320,8 @@ func (us SqlUserStore) UpdateAuthData(userId, service, authData, email string) S
 	go func() {
 		result := StoreResult{}
 
+		email = strings.ToLower(email)
+
 		updateAt := model.GetMillis()
 
 		query := `
@@ -508,6 +510,8 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
+		email = strings.ToLower(email)
+
 		user := model.User{}
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND Email = :Email", map[string]interface{}{"TeamId": teamId, "Email": email}); err != nil {
@@ -666,7 +670,7 @@ func (us SqlUserStore) PermanentDelete(userId string) StoreChannel {
 		result := StoreResult{}
 
 		if _, err := us.GetMaster().Exec("DELETE FROM Users WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetByEmail", "store.sql_user.permanent_delete.app_error", nil, "userId="+userId+", "+err.Error())
+			result.Err = model.NewLocAppError("SqlUserStore.PermanentDelete", "store.sql_user.permanent_delete.app_error", nil, "userId="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result
