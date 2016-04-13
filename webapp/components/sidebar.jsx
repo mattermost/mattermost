@@ -184,15 +184,10 @@ export default class Sidebar extends React.Component {
             windowHeight: Utils.windowHeight()
         });
     }
-    hideSidebar() {
-        $('.inner-wrap').toggleClass('move--right');
-        $('.sidebar--left').toggleClass('move--right');
-    }
     onChange() {
         this.setState(this.getStateFromStores());
     }
     updateTitle() {
-        this.hideSidebar();
         const channel = ChannelStore.getCurrent();
         if (channel && this.state.currentTeam) {
             let currentSiteName = '';
