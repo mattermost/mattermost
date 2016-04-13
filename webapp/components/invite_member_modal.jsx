@@ -59,6 +59,8 @@ class InviteMemberModal extends React.Component {
         this.removeInviteFields = this.removeInviteFields.bind(this);
         this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
 
+        const team = TeamStore.getCurrent();
+
         this.state = {
             show: false,
             inviteIds: [0],
@@ -70,7 +72,7 @@ class InviteMemberModal extends React.Component {
             userCreationEnabled: global.window.mm_config.EnableUserCreation === 'true',
             showConfirmModal: false,
             isSendingEmails: false,
-            teamType: null
+            teamType: team ? team.type : null
         };
     }
 
