@@ -15,6 +15,7 @@ type InitialLoad struct {
 	Preferences Preferences       `json:"preferences"`
 	ClientCfg   map[string]string `json:"client_cfg"`
 	LicenseCfg  map[string]string `json:"license_cfg"`
+	NoAccounts  bool              `json:"no_accounts"`
 }
 
 func (me *InitialLoad) ToJson() string {

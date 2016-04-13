@@ -25,6 +25,7 @@ class UserStoreClass extends EventEmitter {
         this.sessions = {};
         this.audits = {};
         this.currentUserId = '';
+        this.noAccounts = false;
     }
 
     emitChange(userId) {
@@ -262,6 +263,14 @@ class UserStoreClass extends EventEmitter {
 
     getStatus(id) {
         return this.getStatuses()[id];
+    }
+
+    getNoAccounts() {
+        return this.noAccounts;
+    }
+
+    setNoAccounts(noAccounts) {
+        this.noAccounts = noAccounts;
     }
 }
 

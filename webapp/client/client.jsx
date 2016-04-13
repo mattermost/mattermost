@@ -497,8 +497,18 @@ export default class Client {
     // User Routes Setions
 
     createUser = (user, success, error) => {
+        this.createUserWithInvite(user, success, error);
+    }
+
+    createUserWithInvite = (user, data, emailHash, inviteId, success, error) => {
+        var url = `${this.getUsersRoute()}/create`;
+
+        if (data || emailHash || inviteId) {
+            url += '?d=' + encodeURIComponent(data) + '&h=' + encodeURIComponent(emailHash) + '&iid=' + encodeURIComponent(inviteId);
+        }
+
         request.
-            post(`${this.getUsersRoute()}/create`).
+            post(url).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

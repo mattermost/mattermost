@@ -3,6 +3,7 @@
 
 import LoadingScreen from 'components/loading_screen.jsx';
 import LoginLdap from 'components/login/components/login_ldap.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -45,43 +46,63 @@ class SignupUserComplete extends React.Component {
         let teamDisplayName = '';
         let teamName = '';
         let teamId = '';
+        let openServer = false;
 
-        // If we have a hash in the url then we are attempting to access a private team
-        if (hash) {
-            const parsedData = JSON.parse(data);
-            usedBefore = BrowserStore.getGlobalItem(hash);
-            email = parsedData.email;
-            teamDisplayName = parsedData.display_name;
-            teamName = parsedData.name;
-            teamId = parsedData.id;
-        } else {
-            Client.getInviteInfo(
-                inviteId,
-                (inviteData) => {
-                    if (!inviteData) {
-                        return;
+        if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
+            // If we have a hash in the url then we are attempting to access a private team
+            if (hash) {
+                const parsedData = JSON.parse(data);
+                usedBefore = BrowserStore.getGlobalItem(hash);
+                email = parsedData.email;
+                teamDisplayName = parsedData.display_name;
+                teamName = parsedData.name;
+                teamId = parsedData.id;
+            } else {
+                Client.getInviteInfo(
+                    inviteId,
+                    (inviteData) => {
+                        if (!inviteData) {
+                            return;
+                        }
+
+                        this.setState({
+                            noOpenServerError: false,
+                            serverError: null,
+                            teamDisplayName: inviteData.display_name,
+                            teamName: inviteData.name,
+                            teamId: inviteData.id
+                        });
+                    },
+                    () => {
+                        this.setState({
+                            noOpenServerError: true,
+                            serverError:
+                                <FormattedMessage
+                                    id='signup_user_completed.invalid_invite'
+                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                                />
+                        });
                     }
+                );
 
-                    this.setState({
-                        teamDisplayName: inviteData.display_name,
-                        teamName: inviteData.name,
-                        teamId: inviteData.id
-                    });
-                },
-                () => {
-                    this.setState({
-                        noOpenServerError: true,
-                        serverError:
-                            <FormattedMessage
-                                id='signup_user_completed.no_open_server'
-                                defaultMessage='This server does not allow open signups or the invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                            />
-                    });
-                }
-            );
+                data = '';
+                hash = '';
+            }
+        }
 
-            data = '';
-            hash = '';
+        // If this is the first account then let them create an account anyway.
+        // The server will verify it's the first account before allowing creation.
+        if (UserStore.getNoAccounts()) { // or it's an open server
+            openServer = true;
+        } else {
+            this.setState({
+                noOpenServerError: true,
+                serverError:
+                    <FormattedMessage
+                        id='signup_user_completed.no_open_server'
+                        defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
+                    />
+            });
         }
 
         this.setState({
@@ -91,7 +112,9 @@ class SignupUserComplete extends React.Component {
             email,
             teamDisplayName,
             teamName,
-            teamId
+            teamId,
+            openServer,
+            inviteId
         });
     }
 
@@ -102,7 +125,11 @@ class SignupUserComplete extends React.Component {
                 if (redirect) {
                     browserHistory.push(decodeURIComponent(redirect));
                 } else {
-                    browserHistory.push('/' + this.state.teamName + '/channels/town-square');
+                    GlobalActions.emitInitialLoad(
+                        () => {
+                            browserHistory.push('/select_team');
+                        }
+                    );
                 }
             },
             (err) => {
@@ -195,14 +222,16 @@ class SignupUserComplete extends React.Component {
         });
 
         const user = {
-            team_id: this.state.teamId,
             email: providedEmail,
             username: providedUsername,
             password: providedPassword,
             allow_marketing: true
         };
 
-        Client.createUser(user, this.state.data, this.state.hash,
+        Client.createUserWithInvite(user,
+            this.state.data,
+            this.state.hash,
+            this.state.inviteId,
             () => {
                 Client.track('signup', 'signup_user_02_complete');
                 Client.login(
@@ -215,7 +244,12 @@ class SignupUserComplete extends React.Component {
                         if (this.state.hash > 0) {
                             BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
                         }
-                        browserHistory.push('/' + this.state.teamName + '/channels/town-square');
+
+                        GlobalActions.emitInitialLoad(
+                            () => {
+                                browserHistory.push('/select_team');
+                            }
+                        );
                     },
                     (err) => {
                         if (err.id === 'api.user.login.not_verified.app_error') {
@@ -246,10 +280,12 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        // If we haven't got a team id yet we are waiting for
-        // the client so just show the standard loading screen
-        if (this.state.teamId === '' && !this.state.noOpenServerError) {
-            return (<LoadingScreen/>);
+        if (!this.state.openServer) {
+            // If we haven't got a team id yet we are waiting for
+            // the client so just show the standard loading screen
+            if (this.state.teamId === '' && !this.state.noOpenServerError) {
+                return (<LoadingScreen/>);
+            }
         }
 
         // set up error labels
@@ -504,10 +540,23 @@ class SignupUserComplete extends React.Component {
             );
         }
 
+        let terms = (
+            <p>
+                <FormattedHTMLMessage
+                    id='team_signup_password.agreement'
+                    defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
+                    values={{
+                        siteName: global.window.mm_config.SiteName
+                    }}
+                />
+            </p>
+        );
+
         if (this.state.noOpenServerError) {
             signupMessage = null;
             ldapSignup = null;
             emailSignup = null;
+            terms = null;
         }
 
         return (
@@ -542,6 +591,7 @@ class SignupUserComplete extends React.Component {
                         {ldapSignup}
                         {emailSignup}
                         {serverError}
+                        {terms}
                     </div>
                 </div>
             </div>

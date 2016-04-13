@@ -50,14 +50,6 @@ import AddOutgoingWebhook from 'components/backstage/add_outgoing_webhook.jsx';
 import AddCommand from 'components/backstage/add_command.jsx';
 import ErrorPage from 'components/error_page.jsx';
 
-import SignupTeamComplete from 'components/signup_team_complete/components/signup_team_complete.jsx';
-import WelcomePage from 'components/signup_team_complete/components/team_signup_welcome_page.jsx';
-import TeamDisplayNamePage from 'components/signup_team_complete/components/team_signup_display_name_page.jsx';
-import TeamURLPage from 'components/signup_team_complete/components/team_signup_url_page.jsx';
-import SendInivtesPage from 'components/signup_team_complete/components/team_signup_send_invites_page.jsx';
-import UsernamePage from 'components/signup_team_complete/components/team_signup_username_page.jsx';
-import PasswordPage from 'components/signup_team_complete/components/team_signup_password_page.jsx';
-import FinishedPage from 'components/signup_team_complete/components/team_signup_finished.jsx';
 import AppDispatcher from './dispatcher/app_dispatcher.jsx';
 import Constants from './utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -289,36 +281,6 @@ function renderRootComponent() {
                         <Route
                             path='ldap_to_email'
                             component={LDAPToEmail}
-                        />
-                    </Route>
-                    <Route
-                        path='signup_team_complete'
-                        component={SignupTeamComplete}
-                    >
-                        <IndexRoute component={FinishedPage}/>
-                        <Route
-                            path='welcome'
-                            component={WelcomePage}
-                        />
-                        <Route
-                            path='team_display_name'
-                            component={TeamDisplayNamePage}
-                        />
-                        <Route
-                            path='team_url'
-                            component={TeamURLPage}
-                        />
-                        <Route
-                            path='send_invites'
-                            component={SendInivtesPage}
-                        />
-                        <Route
-                            path='username'
-                            component={UsernamePage}
-                        />
-                        <Route
-                            path='password'
-                            component={PasswordPage}
                         />
                     </Route>
                     <Route

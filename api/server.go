@@ -74,7 +74,7 @@ func StartServer() {
 	}
 
 	go func() {
-		err := manners.ListenAndServe(utils.Cfg.ServiceSettings.ListenAddress, handlers.RecoveryHandler()(handler))
+		err := manners.ListenAndServe(utils.Cfg.ServiceSettings.ListenAddress, handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(handler))
 		if err != nil {
 			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
 			time.Sleep(time.Second)

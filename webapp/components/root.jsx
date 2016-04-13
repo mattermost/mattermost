@@ -33,19 +33,13 @@ export default class Root extends React.Component {
 
     redirectIfNecessary(props) {
         if (props.location.pathname === '/') {
-            if (UserStore.getCurrentUser()) {
+            if (UserStore.getNoAccounts()) {
+                browserHistory.push('/signup_user_complete');
+            } else if (UserStore.getCurrentUser()) {
                 browserHistory.push('/select_team');
             } else {
                 browserHistory.push('/login');
             }
-
-            // Client.getMeLoggedIn((data) => {
-            //     if (!data || data.logged_in === 'false') {
-            //         browserHistory.push('/signup_team');
-            //     } else {
-            //         browserHistory.push('/' + data.team_name + '/channels/town-square');
-            //     }
-            // });
         }
     }
     componentWillReceiveProps(newProps) {

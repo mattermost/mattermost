@@ -316,7 +316,7 @@ export default class Login extends React.Component {
                         defaultMessage="Don't have an account? "
                     />
                     <Link
-                        to={'/signup_user_complete/?id=12345'}
+                        to={'/signup_user_complete'}
                         className='signup-team-login'
                     >
                         <FormattedMessage

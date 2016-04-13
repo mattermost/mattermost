@@ -129,6 +129,17 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.EmailVerified = true
 	}
 
+	inviteId := r.URL.Query().Get("iid")
+	if len(inviteId) > 0 {
+		if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			team = result.Data.(*model.Team)
+			teamId = team.Id
+		}
+	}
+
 	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
 		c.Err = model.NewLocAppError("createUser", "api.user.create_user.accepted_domain.app_error", nil, "")
 		return
@@ -911,6 +922,15 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	il := model.InitialLoad{}
 
+	var cchan store.StoreChannel
+
+	if sessionCache.Len() == 0 {
+		// Below is a speical case when intializating a new server
+		// Lets check to make sure the server is really empty
+
+		cchan = Srv.Store.User().GetTotalUsersCount()
+	}
+
 	if len(c.Session.UserId) != 0 {
 		uchan := Srv.Store.User().Get(c.Session.UserId)
 		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
@@ -941,6 +961,18 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			for _, team := range il.Teams {
 				team.Sanitize()
+			}
+		}
+	}
+
+	if cchan != nil {
+		if cr := <-cchan; cr.Err != nil {
+			c.Err = cr.Err
+			return
+		} else {
+			count := cr.Data.(int64)
+			if count <= 0 {
+				il.NoAccounts = true
 			}
 		}
 	}

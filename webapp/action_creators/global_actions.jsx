@@ -4,6 +4,7 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -66,6 +67,8 @@ export function emitInitialLoad(callback) {
             (data) => {
                 global.window.mm_config = data.client_cfg;
                 global.window.mm_license = data.license_cfg;
+
+                UserStore.setNoAccounts(data.no_accounts);
 
                 if (data.user && data.user.id) {
                     global.window.mm_user = data.user;
