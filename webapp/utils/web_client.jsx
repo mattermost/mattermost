@@ -40,7 +40,7 @@ class WebClientClass extends Client {
 
     // not sure why but super.login doesn't work if using an () => arrow functions.
     // I think this might be a webpack issue.
-    webLogin(email, username, password, token, success, error) { // eslint-disable-line no-unused-vars
+    webLogin(email, username, password, token, success, error) {
         this.login(
             email,
             username,

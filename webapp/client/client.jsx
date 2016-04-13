@@ -497,7 +497,7 @@ export default class Client {
     // User Routes Setions
 
     createUser = (user, success, error) => {
-        this.createUserWithInvite(user, success, error);
+        this.createUserWithInvite(user, null, null, null, success, error);
     }
 
     createUserWithInvite = (user, data, emailHash, inviteId, success, error) => {
