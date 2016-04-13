@@ -368,6 +368,64 @@
     "translation": "me"
   },
   {
+    "id": "api.command_online.desc",
+    "translation": "Changes your status to online"
+  },
+  {
+    "id": "api.command_online.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_online.name",
+    "translation": "online"
+  },
+  {
+    "id": "api.command_online.ok",
+    "translation": "You are now online"
+  },
+  {
+    "id": "api.command_online.error",
+    "translation": "Something went wrong... cannot change your status"
+  },  {
+    "id": "api.command_offline.desc",
+    "translation": "Changes your status to offline"
+  },
+  {
+    "id": "api.command_offline.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_offline.name",
+    "translation": "offline"
+  },
+  {
+    "id": "api.command_offline.ok",
+    "translation": "You are now offline"
+  },
+  {
+    "id": "api.command_offline.error",
+    "translation": "Something went wrong... cannot change your status"
+  },  {
+    "id": "api.command_away.desc",
+    "translation": "Changes your status to away"
+  },
+  {
+    "id": "api.command_away.hint",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "away"
+  },
+  {
+    "id": "api.command_away.ok",
+    "translation": "You are now away"
+  },
+  {
+    "id": "api.command_away.error",
+    "translation": "Something went wrong... cannot change your status"
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "Adds ¯\\_(ツ)_/¯ to your message"
   },
@@ -2370,6 +2428,10 @@
   {
     "id": "model.user.is_valid.theme.app_error",
     "translation": "Invalid theme"
+  },
+  {
+    "id": "model.user.is_valid.status.app_error",
+    "translation": "Invalid status"
   },
   {
     "id": "model.user.is_valid.update_at.app_error",

@@ -38,7 +38,12 @@ func createTwoUsers() (u1, u2 testUser) {
 }
 
 func createUsers(count int) []testUser {
-	serverTeam := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	serverTeam := model.Team{
+		DisplayName: "Name",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "test@nowhere.com",
+		Type:        model.TEAM_OPEN}
+
 	r, _ := Client.CreateTeam(&serverTeam)
 	clientTeam := r.Data.(*model.Team)
 	team := &testTeam{server: serverTeam, client: *clientTeam}
@@ -47,7 +52,11 @@ func createUsers(count int) []testUser {
 	for i := range users {
 		user := &users[i]
 		user.team = team
-		user.server = model.User{TeamId: team.client.Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+		user.server = model.User{
+			TeamId:   team.client.Id,
+			Email:    strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com",
+			Nickname: "Corey Hulen",
+			Password: "pwd"}
 		user.client = *Client.Must(Client.CreateUser(&user.server, "")).Data.(*model.User)
 		store.Must(Srv.Store.User().VerifyEmail(user.client.Id))
 	}

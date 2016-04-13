@@ -124,8 +124,7 @@ func (u *User) IsValid() *AppError {
 	}
 
 	if u.ManualStatus != "" && !isValidStatus(u.ManualStatus) {
-		// TODO: error id
-		return NewLocAppError("User.IsValid", "", nil, "user_id="+u.Id)
+		return NewLocAppError("User.IsValid", "model.user.is_valid.status.app_error", nil, "user_id="+u.Id)
 	}
 
 	return nil
@@ -146,8 +145,7 @@ func (u *User) SetStatus(status string) *AppError {
 		u.ManualStatus = status
 		return nil
 	} else {
-		// TODO: last parameter
-		return NewLocAppError("User.SetStatus", "", nil, "")
+		return NewLocAppError("User.SetStatus", "model.user.is_valid.status.app_error", nil, "status="+status)
 	}
 }
 

@@ -25,21 +25,20 @@ func (me *OnlineProvider) GetTrigger() string {
 
 func (me *OnlineProvider) GetCommand(c *Context) *model.Command {
 	return &model.Command{
-		Trigger:      CMD_ONLINE,
-		AutoComplete: true,
-		// TODO: translations
-		AutoCompleteDesc: "online", //c.T("api.command_shrug.desc"),
-		AutoCompleteHint: "online", //c.T("api.command_shrug.hint"),
-		DisplayName:      "online", //c.T("api.command_shrug.name"),
+		Trigger:          CMD_ONLINE,
+		AutoComplete:     true,
+		AutoCompleteDesc: c.T("api.command_online.desc"),
+		AutoCompleteHint: c.T("api.command_online.hint"),
+		DisplayName:      c.T("api.command_online.name"),
 	}
 }
 
 func (me *OnlineProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
 	err := UpdateStatus(c.Session.UserId, model.USER_ONLINE)
 	if err == nil {
-		message = "You are now online"
+		message = c.T("api.command_online.ok")
 	} else {
-		message = "Something went wrong... cannot change your status"
+		message = c.T("api.command_online.error")
 		l4g.Error(err.ToJson())
 	}
 

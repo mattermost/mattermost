@@ -25,21 +25,20 @@ func (me *AwayProvider) GetTrigger() string {
 
 func (me *AwayProvider) GetCommand(c *Context) *model.Command {
 	return &model.Command{
-		Trigger:      CMD_AWAY,
-		AutoComplete: true,
-		// TODO: translations
-		AutoCompleteDesc: "away", //c.T("api.command_shrug.desc"),
-		AutoCompleteHint: "away", //c.T("api.command_shrug.hint"),
-		DisplayName:      "away", //c.T("api.command_shrug.name"),
+		Trigger:          CMD_AWAY,
+		AutoComplete:     true,
+		AutoCompleteDesc: c.T("api.command_away.desc"),
+		AutoCompleteHint: c.T("api.command_away.hint"),
+		DisplayName:      c.T("api.command_away.name"),
 	}
 }
 
 func (me *AwayProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
 	err := UpdateStatus(c.Session.UserId, model.USER_AWAY)
 	if err == nil {
-		message = "You are now away"
+		message = c.T("api.command_away.ok")
 	} else {
-		message = "Something went wrong... cannot change your status"
+		message = c.T("api.command_away.error")
 		l4g.Error(err.ToJson())
 	}
 

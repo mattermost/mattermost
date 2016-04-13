@@ -51,13 +51,12 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	// ADDED for 2.0 REMOVE for 2.4
 	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
+	us.CreateColumnIfNotExists("Users", "ManualStatus", "varchar(7)", "character varying(7)", model.DEFAULT_LOCALE)
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_team_id", "Users", "TeamId")
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
-	// TODO: versions
-	us.CreateColumnIfNotExists("Users", "ManualStatus", "varchar(7)", "character varying(7)", model.DEFAULT_LOCALE)
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -144,7 +143,6 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.LastPingAt = oldUser.LastPingAt
 			user.EmailVerified = oldUser.EmailVerified
 			user.FailedAttempts = oldUser.FailedAttempts
-			//user.ManualStatus = oldUser.ManualStatus
 
 			if !allowActiveUpdate {
 				user.Roles = oldUser.Roles

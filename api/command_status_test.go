@@ -4,13 +4,10 @@
 package api
 
 import (
-	"strings"
-	"testing"
-	//"time"
-
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
-	//"github.com/mattermost/platform/store"
+	"strings"
+	"testing"
 )
 
 func TestStatusCommand(t *testing.T) {

@@ -25,21 +25,20 @@ func (me *OfflineProvider) GetTrigger() string {
 
 func (me *OfflineProvider) GetCommand(c *Context) *model.Command {
 	return &model.Command{
-		Trigger:      CMD_OFFLINE,
-		AutoComplete: true,
-		// TODO: translations
-		AutoCompleteDesc: "offline", //c.T("api.command_shrug.desc"),
-		AutoCompleteHint: "offline", //c.T("api.command_shrug.hint"),
-		DisplayName:      "offline", //c.T("api.command_shrug.name"),
+		Trigger:          CMD_OFFLINE,
+		AutoComplete:     true,
+		AutoCompleteDesc: c.T("api.command_offline.desc"),
+		AutoCompleteHint: c.T("api.command_offline.hint"),
+		DisplayName:      c.T("api.command_offline.name"),
 	}
 }
 
 func (me *OfflineProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
 	err := UpdateStatus(c.Session.UserId, model.USER_OFFLINE)
 	if err == nil {
-		message = "You are now offline"
+		message = c.T("api.command_offline.ok")
 	} else {
-		message = "Something went wrong... cannot change your status"
+		message = c.T("api.command_offline.error")
 		l4g.Error(err.ToJson())
 	}
 
