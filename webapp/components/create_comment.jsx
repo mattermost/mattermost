@@ -203,7 +203,7 @@ class CreateComment extends React.Component {
         draft.message = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
-        $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
+        $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
         this.setState({messageText: messageText});
     }
     handleKeyDown(e) {
