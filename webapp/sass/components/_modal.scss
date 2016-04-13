@@ -441,87 +441,87 @@
         }
     }
 
-    .more-modal__list {
-        display: flex;
-        flex-direction: column;
-        overflow: auto;
+}
 
-        .popover & {
-            font-size: .95em;
+.more-modal__list {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
 
-            .more-modal__row {
-                padding: 5px 10px;
-            }
+    .popover & {
+        font-size: .95em;
 
-            .more-modal__name {
-                font-weight: normal;
-            }
-        }
-
-        .more-modal__image {
-            @include border-radius(60px);
-            flex-grow: 0;
-            flex-shrink: 0;
-            margin-right: 8px;
-        }
-
-        .more-modal__details {
-            flex-grow: 1;
-            flex-shrink: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .more-modal__actions {
-            flex-grow: 0;
-            flex-shrink: 0;
-            padding-left: 20px;
+        .more-modal__row {
+            padding: 5px 10px;
         }
 
         .more-modal__name {
-            font-size: .95em;
-            font-weight: 600;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .more-modal__description {
-            @include opacity(.7);
-            display: block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .more-modal__row {
-            border-bottom: 1px solid $light-gray;
-            display: flex;
-            padding: 8px 15px;
-        }
-
-        p {
-            @include opacity(.8);
-            font-size: .9em;
-            margin: 5px 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-weight: normal;
         }
     }
 
-    .filtered-user-list {
+    .more-modal__image {
+        @include border-radius(60px);
+        flex-grow: 0;
+        flex-shrink: 0;
+        margin-right: 8px;
+    }
+
+    .more-modal__details {
+        flex-grow: 1;
+        flex-shrink: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .more-modal__actions {
+        flex-grow: 0;
+        flex-shrink: 0;
+        padding-left: 20px;
+    }
+
+    .more-modal__name {
+        font-size: .95em;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .more-modal__description {
+        @include opacity(.7);
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .more-modal__row {
+        border-bottom: 1px solid $light-gray;
         display: flex;
-        flex-direction: column;
-
-        .filter-row {
-            flex-grow: 0;
-            flex-shrink: 0;
-        }
-
-        .user-list {
-            flex-grow: 1;
-            flex-shrink: 1;
-        }
+        padding: 8px 15px;
     }
 
+    p {
+        @include opacity(.8);
+        font-size: .9em;
+        margin: 5px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.filtered-user-list {
+    display: flex;
+    flex-direction: column;
+
+    .filter-row {
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+
+    .user-list {
+        flex-grow: 1;
+        flex-shrink: 1;
+    }
 }
