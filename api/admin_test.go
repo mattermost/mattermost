@@ -77,7 +77,8 @@ func TestSaveConfig(t *testing.T) {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = false
+	// TODO XXX FIXME - figure out a good way to have an open server for testings
+	//*utils.Cfg.TeamSettings.EnableOpenServer = false
 
 	if result, err := th.SystemAdminClient.SaveConfig(utils.Cfg); err != nil {
 		t.Fatal(err)
@@ -89,7 +90,7 @@ func TestSaveConfig(t *testing.T) {
 		}
 	}
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	//*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
 func TestEmailTest(t *testing.T) {
