@@ -40,6 +40,8 @@ func SetupEnterprise(platformDir string) *TestHelper {
 		InitApi()
 		utils.EnableDebugLogForTest()
 		Srv.Store.MarkSystemRanUnitTests()
+
+		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
 
 	return &TestHelper{}
