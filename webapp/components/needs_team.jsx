@@ -21,6 +21,8 @@ import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
 
+import * as Websockets from 'action_creators/websocket_actions.jsx';
+
 // Modals
 import GetPostLinkModal from 'components/get_post_link_modal.jsx';
 import GetTeamInviteLinkModal from 'components/get_team_invite_link_modal.jsx';
@@ -54,6 +56,10 @@ export default class NeedsTeam extends React.Component {
     componentWillMount() {
         UserStore.addChangeListener(this.onUserChanged);
 
+        // TODO XXX FIX ME - needs to be in logged_in.jsx
+        // Initalize websockets
+        Websockets.initialize();
+
         // Emit view action
         GlobalActions.viewLoggedIn();
 
@@ -80,6 +86,9 @@ export default class NeedsTeam extends React.Component {
         UserStore.removeChangeListener(this.onUserChanged);
         $(window).off('focus');
         $(window).off('blur');
+
+        // TODO XXX FIX ME - needs to be in logged_in.jsx
+        Websockets.close();
     }
 
     render() {
