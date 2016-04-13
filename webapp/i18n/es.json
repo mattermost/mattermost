@@ -287,7 +287,6 @@
   "admin.ldap.userFilterTitle": "Filtro de Usuario:",
   "admin.ldap.usernameAttrEx": "Ej \"sAMAccountName\"",
   "admin.ldap.usernameAttrTitle": "Atributo Usuario:",
-  "admin.licence.keyMigration": "Si estás migrando servidores es posible que necesites remover tu licencia de este servidor para poder instalarlo en un servidor nuevo. Para empezar, <a href=\"http://mattermost.com\" target=\"_blank\">deshabilita todas las características de la Edición Enterprise de este servidor</a>. Esta operación habilitará la opción para remover la licencia y degradar este servidor de la Edición Enterprise a la Edición Team.",
   "admin.license.choose": "Seleccionar Archivo",
   "admin.license.chooseFile": "Escoger Archivo",
   "admin.license.edition": "Edición: ",

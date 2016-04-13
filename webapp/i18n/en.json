@@ -287,7 +287,6 @@
   "admin.ldap.userFilterTitle": "User Filter:",
   "admin.ldap.usernameAttrEx": "Ex \"sAMAccountName\"",
   "admin.ldap.usernameAttrTitle": "Username Attribute:",
-  "admin.licence.keyMigration": "If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start, <a href=\"http://mattermost.com\" target=\"_blank\">disable all Enterprise Edition features on this server</a>. This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.",
   "admin.license.choose": "Choose File",
   "admin.license.chooseFile": "Choose File",
   "admin.license.edition": "Edition: ",
