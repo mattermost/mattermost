@@ -67,6 +67,8 @@ class LdapSettings extends React.Component {
         config.LdapSettings.UserFilter = this.refs.UserFilter.value.trim();
         config.LdapSettings.ConnectionSecurity = this.state.connectionSecurity.trim();
         config.LdapSettings.SkipCertificateVerification = this.state.skipCertificateVerification;
+        config.LdapSettings.LoginFieldName = this.refs.LoginFieldName.value.trim();
+        config.LdapSettings.PasswordFieldName = this.refs.PasswordFieldName.value.trim();
 
         let QueryTimeout = DEFAULT_QUERY_TIMEOUT;
         if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.QueryTimeout).value, 10))) {
@@ -373,7 +375,7 @@ class LdapSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.ldap.userFilterDisc'
-                                    defaultMessage='LDAP Filter to use when searching for user objects.'
+                                    defaultMessage='Optionally enter an LDAP Filter to use when searching for user objects. Only the users selected by the query will be able to access Mattermost. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'
                                 />
                             </p>
                         </div>
@@ -537,7 +539,7 @@ class LdapSettings extends React.Component {
                             <p className='help-text'>
                                 <FormattedMessage
                                     id='admin.ldap.skipCertificateVerificationDesc'
-                                    defaultMessage='Skips the certificate verificaiton step for TLS or STARTTLS connections. Not recommented for production enviroments where TLS is required. For testing only.'
+                                    defaultMessage='Skips the certificate verification step for TLS or STARTTLS connections. Not recommended for production environments where TLS is required. For testing only.'
                                 />
                             </p>
                         }
@@ -571,6 +573,67 @@ class LdapSettings extends React.Component {
                             </p>
                         </div>
                     </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='LoginFieldName'
+                        >
+                            <FormattedMessage
+                                id='admin.ldap.loginNameTitle'
+                                defaultMessage='Login Field Name:'
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='LoginFieldName'
+                                ref='LoginFieldName'
+                                placeholder={Utils.localizeMessage('admin.ldap.loginNameEx', 'Ex "LDAP Username"')}
+                                defaultValue={this.props.config.LdapSettings.LoginFieldName}
+                                onChange={this.handleChange}
+                                disabled={!this.state.enable}
+                            />
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.ldap.loginNameDesc'
+                                    defaultMessage='The placeholder text that appears in the login field on the login page. Defaults to "LDAP Username".'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='PasswordFieldName'
+                        >
+                            <FormattedMessage
+                                id='admin.ldap.passwordFieldTitle'
+                                defaultMessage='Password Field Name:'
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='PasswordFieldName'
+                                ref='PasswordFieldName'
+                                placeholder={Utils.localizeMessage('admin.ldap.passwordFieldEx', 'Ex "LDAP Password"')}
+                                defaultValue={this.props.config.LdapSettings.PasswordFieldName}
+                                onChange={this.handleChange}
+                                disabled={!this.state.enable}
+                            />
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.ldap.passwordFieldDesc'
+                                    defaultMessage='The placeholder text that appears in the password field on the login page. Defaults to "LDAP Password".'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
                     <div className='form-group'>
                         <div className='col-sm-12'>
                             {serverError}

@@ -242,7 +242,6 @@
   "admin.ldap.uernameAttrDesc": "Attribut du serveur LDAP utilisé pour le champ \"nom d'utilisateur\" dans Mattermost. Utilisez de préférence le même champ que l'attribut \"identifiant d'utilisateur\".",
   "admin.ldap.usernameAttrEx": "Exemple : \"sAMAccountName\"",
   "admin.ldap.usernameAttrTitle": "Attribut \"nom d'utilisateur\" :",
-  "admin.licence.keyMigration": "If you’re migrating servers you may need to remove your license key from this server in order to install it on a new server. To start, <a href=\"http://mattermost.com\" target=\"_blank\">disable all Enterprise Edition features on this server</a>. This will enable the ability to remove the license key and downgrade this server from Enterprise Edition to Team Edition.",
   "admin.license.chooseFile": "Parcourir",
   "admin.license.keyRemove": "Remove Enterprise License and Downgrade Server",
   "admin.license.noFile": "Aucun fichier chargé",

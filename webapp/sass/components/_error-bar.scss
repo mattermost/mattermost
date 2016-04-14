@@ -10,20 +10,22 @@
     width: 100%;
     z-index: 9999;
 
-    &__close {
-        color: $white;
-        font-family: 'Open Sans', sans-serif;
-        font-size: 20px;
-        font-weight: 600;
-        padding: 0 10px;
-        position: absolute;
-        right: 0;
-        text-decoration: none;
-        top: 0;
-
-        &:hover {
+    a {
+        &.error-bar__close {
             color: $white;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            padding: 0 10px;
+            position: absolute;
+            right: 0;
             text-decoration: none;
+            top: 0;
+
+            &:hover {
+                color: $white;
+                text-decoration: none;
+            }
         }
     }
 }

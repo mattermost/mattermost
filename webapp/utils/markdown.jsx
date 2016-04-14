@@ -126,7 +126,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         try {
             const unescaped = decodeURIComponent(unescape(href)).replace(/[^\w:]/g, '').toLowerCase();
 
-            if (unescaped.indexOf('javascript:') === 0 || unescaped.indexOf('vbscript:') === 0) { // eslint-disable-line no-script-url
+            if (unescaped.indexOf('javascript:') === 0 || unescaped.indexOf('vbscript:') === 0 || unescaped.indexOf('data:') === 0) { // eslint-disable-line no-script-url
                 return '';
             }
         } catch (e) {
