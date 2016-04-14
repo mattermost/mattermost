@@ -153,20 +153,13 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	config := utils.ClientLicense
-
-	var etag string
-	if config["IsLicensed"] == "false" {
-		etag = model.Etag(config["IsLicensed"])
-	} else {
-		etag = model.Etag(config["IsLicensed"], config["IssuedAt"])
-	}
-
+	etag := utils.GetClientLicenseEtag()
 	if HandleEtag(etag, w, r) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	clientLicense := utils.ClientLicense
 
-	w.Write([]byte(model.MapToJson(config)))
+	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	w.Write([]byte(model.MapToJson(clientLicense)))
 }
