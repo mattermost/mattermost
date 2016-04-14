@@ -109,6 +109,21 @@ describe('Client.Team', function() {
         });
     });
 
+    it('getAllTeamListings', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getAllTeamListings(
+                function(data) {
+                    console.log(data);
+                    assert.equal(data != null, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getMyTeam', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getMyTeam(

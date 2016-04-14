@@ -5,7 +5,9 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ErrorBar from 'components/error_bar.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 import Client from 'utils/web_client.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
@@ -24,12 +26,13 @@ export default class Login extends React.Component {
         super(props);
         this.onTeamChange = this.onTeamChange.bind(this);
 
-        const state = this.getStateFromStores();
+        const state = this.getStateFromStores(false);
         this.state = state;
     }
 
     componentDidMount() {
         TeamStore.addChangeListener(this.onTeamChange);
+        AsyncClient.getAllTeamListings();
     }
 
     componentWillUnmount() {
@@ -37,13 +40,15 @@ export default class Login extends React.Component {
     }
 
     onTeamChange() {
-        this.setState(this.getStateFromStores());
+        this.setState(this.getStateFromStores(true));
     }
 
-    getStateFromStores() {
+    getStateFromStores(loaded) {
         return {
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getTeamMembers(),
+            teamListings: TeamStore.getTeamListings(),
+            loaded
         };
     }
 
@@ -76,11 +81,13 @@ export default class Login extends React.Component {
         }
 
         var teamContents = [];
+        var isAlreadyMember = new Map();
 
         for (var index in this.state.teamMembers) {
             if (this.state.teamMembers.hasOwnProperty(index)) {
                 var teamMember = this.state.teamMembers[index];
                 var team = this.state.teams[teamMember.team_id];
+                isAlreadyMember[teamMember.team_id] = true;
                 teamContents.push(
                     <div
                         key={'team_' + team.name}
@@ -101,27 +108,75 @@ export default class Login extends React.Component {
         }
 
         if (!teamContents || teamContents.length === 0) {
-            content = (
-                <div className='signup__content'>
+            teamContents = (
+                <div className='signup-team-dir-err'>
                     <div>
-                        {'You do not appear to be a member of any teams.  Please ask your administrator for an invite or create a new team.'}
+                        <FormattedMessage
+                            id='signup_team.no_teams'
+                            defaultMessage='You do not appear to be a member of any team.  Please ask your administrator for an invite, join an open team if one exists or possibly create a new team.'
+                        />
                     </div>
                 </div>
             );
-        } else {
-            content = (
+        }
+
+        content = (
+            <div className='signup__content'>
+                <h4>
+                    <FormattedMessage
+                        id='signup_team.choose'
+                        defaultMessage='Teams you are a member of:'
+                    />
+                </h4>
+                <div className='signup-team-all'>
+                    {teamContents}
+                </div>
+            </div>
+        );
+
+        var openTeamContents = [];
+
+        for (var id in this.state.teamListings) {
+            if (this.state.teamListings.hasOwnProperty(id) && !isAlreadyMember[id]) {
+                var openTeam = this.state.teamListings[id];
+                openTeamContents.push(
+                    <div
+                        key={'team_' + openTeam.name}
+                        className='signup-team-dir'
+                    >
+                        <Link
+                            to={`/signup_user_complete/?id=${openTeam.invite_id}`}
+                        >
+                            <span className='signup-team-dir__name'>{openTeam.display_name}</span>
+                            <span
+                                className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
+                                aria-hidden='true'
+                            />
+                        </Link>
+                    </div>
+                );
+            }
+        }
+
+        var openContent;
+        if (openTeamContents.length > 0) {
+            openContent = (
                 <div className='signup__content'>
                     <h4>
                         <FormattedMessage
-                            id='signup_team.choose'
-                            defaultMessage='Choose a Team'
+                            id='signup_team.join_open'
+                            defaultMessage='Open teams you can join: '
                         />
                     </h4>
                     <div className='signup-team-all'>
-                        {teamContents}
+                        {openTeamContents}
                     </div>
                 </div>
             );
+        }
+
+        if (!this.state.loaded) {
+            openContent = <LoadingScreen/>;
         }
 
         var isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
@@ -187,6 +242,7 @@ export default class Login extends React.Component {
                             />
                         </h4>
                         {content}
+                        {openContent}
                         {teamSignUp}
                         {adminConsoleLink}
                     </div>

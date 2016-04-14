@@ -29,6 +29,7 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
 	BaseRoutes.Teams.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
+	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
 	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
 
@@ -432,6 +433,24 @@ func isTeamCreationAllowed(c *Context, email string) bool {
 	}
 
 	return true
+}
+
+func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
+	if result := <-Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		teams := result.Data.([]*model.Team)
+		m := make(map[string]*model.Team)
+		for _, v := range teams {
+			m[v.Id] = v
+			if !c.IsSystemAdmin() {
+				m[v.Id].Sanitize()
+			}
+		}
+
+		w.Write([]byte(model.TeamMapToJson(m)))
+	}
 }
 
 func getAll(c *Context, w http.ResponseWriter, r *http.Request) {

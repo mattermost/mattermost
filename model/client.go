@@ -201,6 +201,16 @@ func (c *Client) GetAllTeams() (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetAllTeamListings() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/teams/all_team_listings", "", ""); err != nil {
+		return nil, err
+	} else {
+
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) FindTeamByName(name string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["name"] = name

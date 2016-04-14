@@ -420,6 +420,28 @@ export function getAllTeams() {
     );
 }
 
+export function getAllTeamListings() {
+    if (isCallInProgress('getAllTeamListings')) {
+        return;
+    }
+
+    callTracker.getAllTeamListings = utils.getTimestamp();
+    client.getAllTeamListings(
+        (data) => {
+            callTracker.getAllTeamListings = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_ALL_TEAM_LISTINGS,
+                teams: data
+            });
+        },
+        (err) => {
+            callTracker.getAllTeams = 0;
+            dispatchError(err, 'getAllTeamListings');
+        }
+    );
+}
+
 export function search(terms) {
     if (isCallInProgress('search_' + String(terms))) {
         return;

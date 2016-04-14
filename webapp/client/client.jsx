@@ -451,6 +451,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAllTeams', success, error));
     }
 
+    getAllTeamListings = (success, error) => {
+        request.
+            get(`${this.getTeamsRoute()}/all_team_listings`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getAllTeamListings', success, error));
+    }
+
     getMyTeam = (success, error) => {
         request.
             get(`${this.getTeamNeededRoute()}/me`).

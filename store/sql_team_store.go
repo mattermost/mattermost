@@ -283,10 +283,10 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		query := "SELECT * FROM Teams WHERE AllowTeamListing = 1"
+		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1"
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowTeamListing = true"
+			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true"
 		}
 
 		var data []*model.Team

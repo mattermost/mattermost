@@ -419,6 +419,17 @@
         }
     }
 
+    .signup-team-dir-err {
+        background: #fafafa;
+        border-top: 1px solid #d5d5d5;
+        color: inherit;
+        padding: 5px 15px;
+
+        &:first-child {
+            border: none;
+        }
+    }
+
     .signup-team-dir__name {
         float: left;
         overflow: hidden;

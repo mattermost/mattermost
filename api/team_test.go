@@ -237,13 +237,68 @@ func TestGetAllTeams(t *testing.T) {
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 	Client.SetTeamId(team.Id)
 
-	enableIncomingHooks := *utils.Cfg.TeamSettings.EnableTeamListing
+	enableTeamListing := *utils.Cfg.TeamSettings.EnableTeamListing
 	defer func() {
-		*utils.Cfg.TeamSettings.EnableTeamListing = enableIncomingHooks
+		*utils.Cfg.TeamSettings.EnableTeamListing = enableTeamListing
 	}()
 	*utils.Cfg.TeamSettings.EnableTeamListing = true
 
 	if r1, err := Client.GetAllTeams(); err != nil {
+		t.Fatal(err)
+	} else {
+		teams := r1.Data.(map[string]*model.Team)
+		if teams[team.Id].Name != team.Name {
+			t.Fatal()
+		}
+		if teams[team.Id].Email != "" {
+			t.Fatal("Non admin users shoudn't get full listings")
+		}
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.SetTeamId(team.Id)
+
+	if r1, err := Client.GetAllTeams(); err != nil {
+		t.Fatal(err)
+	} else {
+		teams := r1.Data.(map[string]*model.Team)
+		if teams[team.Id].Name != team.Name {
+			t.Fatal()
+		}
+		if teams[team.Id].Email != team.Email {
+			t.Fatal()
+		}
+	}
+}
+
+func TestGetAllTeamListings(t *testing.T) {
+	th := Setup().InitBasic()
+	th.BasicClient.Logout()
+	Client := th.BasicClient
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user, team)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.SetTeamId(team.Id)
+
+	enableTeamListing := *utils.Cfg.TeamSettings.EnableTeamListing
+	defer func() {
+		*utils.Cfg.TeamSettings.EnableTeamListing = enableTeamListing
+	}()
+	*utils.Cfg.TeamSettings.EnableTeamListing = true
+
+	if r1, err := Client.GetAllTeamListings(); err != nil {
 		t.Fatal(err)
 	} else {
 		teams := r1.Data.(map[string]*model.Team)
