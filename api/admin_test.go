@@ -383,3 +383,25 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 		}
 	}
 }
+
+func TestAdminResetMfa(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if _, err := th.BasicClient.AdminResetMfa("12345678901234567890123456"); err == nil {
+		t.Fatal("should have failed - not an admin")
+	}
+
+	if _, err := th.SystemAdminClient.AdminResetMfa(""); err == nil {
+		t.Fatal("should have failed - empty user id")
+	}
+
+	if _, err := th.SystemAdminClient.AdminResetMfa("12345678901234567890123456"); err == nil {
+		t.Fatal("should have failed - bad user id")
+	}
+
+	if _, err := th.SystemAdminClient.AdminResetMfa(th.BasicUser.Id); err == nil {
+		t.Fatal("should have failed - not licensed or configured")
+	}
+
+	// need to add more test cases when enterprise bits can be loaded into tests
+}

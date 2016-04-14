@@ -401,6 +401,18 @@ func (c *Client) UpdateMfa(activate bool, token string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) AdminResetMfa(userId string) (*Result, *AppError) {
+	m := make(map[string]string)
+	m["user_id"] = userId
+
+	if r, err := c.DoApiPost("/admin/reset_mfa", MapToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) RevokeSession(sessionAltId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["id"] = sessionAltId
