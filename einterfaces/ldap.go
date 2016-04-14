@@ -8,7 +8,7 @@ import (
 )
 
 type LdapInterface interface {
-	DoLogin(team *model.Team, id string, password string) (*model.User, *model.AppError)
+	DoLogin(id string, password string) (*model.User, *model.AppError)
 	GetUser(id string) (*model.User, *model.AppError)
 	CheckPassword(id string, password string) *model.AppError
 	SwitchToLdap(userId, ldapId, ldapPassword string) *model.AppError

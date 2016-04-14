@@ -712,7 +712,6 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	password := props["password"]
 	id := props["id"]
-	teamName := props["teamName"]
 	mfaToken := props["token"]
 
 	if len(password) == 0 {
@@ -727,8 +726,6 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamc := Srv.Store.Team().GetByName(teamName)
-
 	ldapInterface := einterfaces.GetLdapInterface()
 	if ldapInterface == nil {
 		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.not_available.app_error", nil, "")
@@ -736,15 +733,7 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var team *model.Team
-	if result := <-teamc; result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
-	user, err := ldapInterface.DoLogin(team, id, password)
+	user, err := ldapInterface.DoLogin(id, password)
 	if err != nil {
 		c.Err = err
 		return

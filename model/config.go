@@ -181,6 +181,7 @@ type LdapSettings struct {
 	LastNameAttribute  *string
 	EmailAttribute     *string
 	UsernameAttribute  *string
+	NicknameAttribute  *string
 	IdAttribute        *string
 
 	// Advanced
@@ -467,6 +468,11 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.SkipCertificateVerification == nil {
 		o.LdapSettings.SkipCertificateVerification = new(bool)
 		*o.LdapSettings.SkipCertificateVerification = false
+	}
+
+	if o.LdapSettings.NicknameAttribute == nil {
+		o.LdapSettings.NicknameAttribute = new(string)
+		*o.LdapSettings.NicknameAttribute = ""
 	}
 }
 
