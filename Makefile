@@ -109,7 +109,7 @@ check-style:
 		exit 1; \
 	fi
 
-test: start-docker
+test: .prebuild start-docker
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
@@ -140,7 +140,11 @@ build-windows: .prebuild prepare-enterprise
 	@echo Build Windows amd64
 	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
 
-build: build-linux build-windows build-osx
+build-freebsd: .prebuild prepare-enterprise
+	@echo Build FreeBSD amd64
+	env GOOS=freebsd GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+
+build: build-linux build-windows build-osx build-freebsd
 
 build-client:
 	@echo Building mattermost web app
@@ -184,7 +188,11 @@ endif
 
 	@# Make osx package
 	@# Copy binary
-	cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin
+	@if [ $(shell uname) == "Darwin" ]; then \
+		cp $(GOPATH)/bin/platform $(DIST_PATH)/bin; \
+	else \
+		cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin; \
+	fi
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
 	@# Cleanup
@@ -192,7 +200,11 @@ endif
 
 	@# Make windows package
 	@# Copy binary
-	cp $(GOPATH)/bin/windows_amd64/platform.exe $(DIST_PATH)/bin
+	@if [ $(OS) == "Windows_NT" ]; then \
+		cp $(GOPATH)/bin/platform.exe $(DIST_PATH)/bin; \
+	else \
+		cp $(GOPATH)/bin/windows_amd64/platform.exe $(DIST_PATH)/bin; \
+	fi
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-windows-amd64.tar.gz mattermost
 	@# Cleanup
@@ -200,11 +212,27 @@ endif
 
 	@# Make linux package
 	@# Copy binary
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
+	@if [ $(shell uname) == "Linux" ]; then \
+		cp $(GOPATH)/bin/platform $(DIST_PATH)/bin; \
+	else \
+		cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin; \
+	fi
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
-	@# Don't cleanup linux package so dev machines will have an unziped linux package avalilable
-	@#rm -f $(DIST_PATH)/bin/platform
+	@# Cleanup
+	rm -f $(DIST_PATH)/bin/platform
+
+	@if [ $(shell uname) == "FreeBSD" ]; then \
+		cp $(GOPATH)/bin/platform $(DIST_PATH)/bin; \
+	else \
+		cp $(GOPATH)/bin/freebsd_amd64/platform $(DIST_PATH)/bin; \
+	fi
+	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-freebsd-amd64.tar.gz mattermost
+	@# Cleanup
+	rm -f $(DIST_PATH)/bin/platform
+
+	@# Copy binary of current system
+	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
 
 
 run-server: prepare-enterprise start-docker
