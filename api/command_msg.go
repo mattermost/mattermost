@@ -87,9 +87,11 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 						return &model.CommandResponse{Text: c.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 					}
 				}
+
 				return &model.CommandResponse{GotoLocation: c.GetTeamURL() + "/channels/" + channelName, Text: c.T("api.command_msg.success"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 		}
 	}
+
 	return &model.CommandResponse{Text: c.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }

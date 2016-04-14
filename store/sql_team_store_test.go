@@ -14,7 +14,7 @@ func TestTeamStoreSave(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 
@@ -37,7 +37,7 @@ func TestTeamStoreUpdate(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	if err := (<-store.Team().Save(&o1)).Err; err != nil {
@@ -66,7 +66,7 @@ func TestTeamStoreUpdateDisplayName(t *testing.T) {
 
 	o1 := &model.Team{}
 	o1.DisplayName = "Display Name"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	o1 = (<-store.Team().Save(o1)).Data.(*model.Team)
@@ -88,7 +88,7 @@ func TestTeamStoreGet(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	Must(store.Team().Save(&o1))
@@ -111,7 +111,7 @@ func TestTeamStoreGetByName(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 
@@ -137,7 +137,7 @@ func TestTeamStoreGetByIniviteId(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
@@ -185,7 +185,7 @@ func TestTeamStoreByUserId(t *testing.T) {
 
 	o1 := &model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
@@ -214,7 +214,7 @@ func TestAllTeamListing(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	o1.AllowTeamListing = true
@@ -243,7 +243,7 @@ func TestDelete(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	o1.AllowTeamListing = true
@@ -266,7 +266,7 @@ func TestTeamCount(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "a" + model.NewId() + "b"
+	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 	o1.AllowTeamListing = true

@@ -1312,14 +1312,6 @@
     "translation": "Configuración del equipo en {{ .SiteName }}"
   },
   {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "Haz actualizado el método con el que inicias sesión en {{.TeamURL}} para el equipo {{.TeamDisplayName}} por {{.Method}}.<br>Si este cambio no fue realizado por ti, por favor contacta a un administrador del sistema."
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "Cambio del método de inicio de sesión para {{.TeamDisplayName}} en {{ .SiteName }}"
-  },
-  {
     "id": "api.templates.verify_body.button",
     "translation": "Confirmar Correo"
   },

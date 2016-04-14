@@ -653,57 +653,39 @@ func TestFuzzyPosts(t *testing.T) {
 	}
 }
 
-// TODO XXX FIX ME - Need to figure out how DM work with users as FCO
+func TestMakeDirectChannelVisible(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
 
-// func TestMakeDirectChannelVisible(t *testing.T) {
-// 	Setup()
+	th.LoginBasic2()
 
-// 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-// 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	preferences := &model.Preferences{
+		{
+			UserId:   user2.Id,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     user1.Id,
+			Value:    "false",
+		},
+	}
+	Client.Must(Client.SetPreferences(preferences))
 
-// 	user1 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-// 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-// 	LinkUserToTeam(user1.Id, team.Id)
-// 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+	Client.Must(Client.Logout())
+	th.LoginBasic()
+	th.BasicClient.SetTeamId(team.Id)
 
-// 	user2 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-// 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-// 	LinkUserToTeam(user2.Id, team.Id)
-// 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	channel := Client.Must(Client.CreateDirectChannel(user2.Id)).Data.(*model.Channel)
 
-// 	// user2 will be created with prefs created to show user1 in the sidebar so set that to false to get rid of it
-// 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+	makeDirectChannelVisible(team.Id, channel.Id)
 
-// 	preferences := &model.Preferences{
-// 		{
-// 			UserId:   user2.Id,
-// 			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-// 			Name:     user1.Id,
-// 			Value:    "false",
-// 		},
-// 	}
-// 	Client.Must(Client.SetPreferences(preferences))
-
-// 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
-
-// 	channel := Client.Must(Client.CreateDirectChannel(map[string]string{"user_id": user2.Id})).Data.(*model.Channel)
-
-// 	makeDirectChannelVisible(team.Id, channel.Id)
-
-// 	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user2.Id); err != nil {
-// 		t.Fatal("Errored trying to set direct channel to be visible for user1")
-// 	} else if pref := result.Data.(*model.Preference); pref.Value != "true" {
-// 		t.Fatal("Failed to set direct channel to be visible for user1")
-// 	}
-
-// 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
-
-// 	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user1.Id); err != nil {
-// 		t.Fatal("Errored trying to set direct channel to be visible for user2")
-// 	} else if pref := result.Data.(*model.Preference); pref.Value != "true" {
-// 		t.Fatal("Failed to set direct channel to be visible for user2")
-// 	}
-// }
+	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user2.Id); err != nil {
+		t.Fatal("Errored trying to set direct channel to be visible for user1")
+	} else if pref := result.Data.(*model.Preference); pref.Value != "true" {
+		t.Fatal("Failed to set direct channel to be visible for user1")
+	}
+}
 
 func TestGetOutOfChannelMentions(t *testing.T) {
 	th := Setup().InitBasic()

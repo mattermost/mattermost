@@ -58,10 +58,8 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	if us.DoesColumnExist("Users", "TeamId") {
 		us.RemoveIndexIfExists("idx_users_team_id", "Users")
 		us.RemoveColumnIfExists("Users", "TeamId")
-
-		// TODO XXX FIX ME need patch these after the fact
-		// table.SetUniqueTogether("Email", "TeamId")
-		// table.SetUniqueTogether("Username", "TeamId")
+		us.CreateUniqueIndexIfNotExists("idx_users_email_unique", "Users", "Email")
+		us.CreateUniqueIndexIfNotExists("idx_users_username_unique", "Users", "Username")
 	}
 }
 

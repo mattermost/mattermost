@@ -80,29 +80,6 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
-// XXX TODO FIX ME need to figure out how allowed domains on team lvl work
-
-// func TestCreateUserAllowedDomains(t *testing.T) {
-// 	th := Setup()
-// 	Client := th.CreateClient()
-
-// 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_INVITE, AllowedDomains: "spinpunch.com, @nowh.com,@hello.com"}
-// 	Client.CreateTeam(&team)
-
-// 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "hello"}
-
-// 	_, err := Client.CreateUser(&user, "")
-// 	if err == nil {
-// 		t.Fatal("should have failed")
-// 	}
-
-// 	user.Email = "test@nowh.com"
-// 	_, err = Client.CreateUser(&user, "")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// }
-
 func TestLogin(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()
@@ -1394,43 +1371,6 @@ func TestEmailToLDAP(t *testing.T) {
 	m["email_password"] = "pwd"
 	if _, err := Client.EmailToLDAP(m); err == nil {
 		t.Fatal("should have failed - missing ldap bits or user")
-	}
-}
-
-func TestMeLoggedIn(t *testing.T) {
-	th := Setup()
-	Client := th.CreateClient()
-
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	rteam, _ := Client.CreateTeam(&team)
-
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
-	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
-	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
-
-	Client.AuthToken = "invalid"
-
-	if result, err := Client.GetMeLoggedIn(); err != nil {
-		t.Fatal(err)
-	} else {
-		meLoggedIn := result.Data.(map[string]string)
-
-		if val, ok := meLoggedIn["logged_in"]; !ok || val != "false" {
-			t.Fatal("Got: " + val)
-		}
-	}
-
-	Client.LoginByEmail(team.Name, user.Email, user.Password)
-
-	if result, err := Client.GetMeLoggedIn(); err != nil {
-		t.Fatal(err)
-	} else {
-		meLoggedIn := result.Data.(map[string]string)
-
-		if val, ok := meLoggedIn["logged_in"]; !ok || val != "true" {
-			t.Fatal("Got: " + val)
-		}
 	}
 }
 

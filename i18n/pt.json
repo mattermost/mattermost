@@ -1280,14 +1280,6 @@
     "translation": "{{ .SiteName }} Configuração da Equipe"
   },
   {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "Você atualizou seu método de login para {{.TeamDisplayName}} no {{ .TeamURL }} para {{.Method}}.<br>Se esta mudança não foi iniciada por você, por favor entre em contato com o administrador do sistema."
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "Você atualizou seu método de login para {{.TeamDisplayName}} em {{ .SiteName }}"
-  },
-  {
     "id": "api.templates.verify_body.button",
     "translation": "Verificar Email"
   },

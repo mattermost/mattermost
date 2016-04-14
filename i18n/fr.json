@@ -1236,14 +1236,6 @@
     "translation": "Paramétrage Équipe {{ .SiteName }}"
   },
   {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "Vous avez mis à jour la méthode de connexion de {{.TeamDisplayName}} sur {{.TeamURL}} pour {{.Method}}.<br>Si cette modification n'a pas été effectuée par vous, veuillez prendre contact avec votre administrateur système."
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "Vous avez mis à jour la méthode de connexion de {{.TeamDisplayName}} sur {{ .SiteName }}"
-  },
-  {
     "id": "api.templates.verify_body.button",
     "translation": "Vérifier l'adresse électronique"
   },

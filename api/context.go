@@ -98,7 +98,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
 	c.TeamId = mux.Vars(r)["team_id"]
-	h.isApi = IsApiCall(r) // TODO XXX FIXME refactor h.isApi
+	h.isApi = IsApiCall(r)
 
 	token := ""
 	isTokenFromQueryString := false

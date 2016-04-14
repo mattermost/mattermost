@@ -55,7 +55,6 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
-	BaseRoutes.Users.Handle("/me_logged_in", ApiAppHandler(getMeLoggedIn)).Methods("GET")
 	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
 	BaseRoutes.Users.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
@@ -975,28 +974,6 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 	il.LicenseCfg = utils.ClientLicense
 
 	w.Write([]byte(il.ToJson()))
-}
-
-func getMeLoggedIn(c *Context, w http.ResponseWriter, r *http.Request) {
-	data := make(map[string]string)
-	data["logged_in"] = "false"
-	data["team_name"] = ""
-
-	// TODO XXX FIX ME - this is a hack to get it working.  Needs to support multi-teams
-	if len(c.Session.UserId) != 0 && len(c.Session.Teams) > 0 {
-		teamChan := Srv.Store.Team().Get(c.Session.Teams[0].TeamId)
-		var team *model.Team
-		if tr := <-teamChan; tr.Err != nil {
-			c.Err = tr.Err
-			return
-		} else {
-			team = tr.Data.(*model.Team)
-		}
-		data["logged_in"] = "true"
-		data["team_name"] = team.Name
-	}
-
-	w.Write([]byte(model.MapToJson(data)))
 }
 
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2115,7 +2092,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), strings.Title(service)+" SSO")
+	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), strings.Title(service)+" SSO")
 }
 
 func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2157,7 +2134,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, "", c.GetSiteURL(), c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
+	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	RevokeAllSession(c, c.Session.UserId)
 	if c.Err != nil {
@@ -2232,7 +2209,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, "", c.GetSiteURL(), c.GetSiteURL(), "LDAP")
+	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), "LDAP")
 
 	m := map[string]string{}
 	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
@@ -2302,7 +2279,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, "", c.GetSiteURL(), c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
+	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	m := map[string]string{}
 	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
@@ -2311,18 +2288,18 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(m)))
 }
 
-func sendSignInChangeEmailAndForget(c *Context, email, teamDisplayName, teamURL, siteURL, method string) {
+func sendSignInChangeEmailAndForget(c *Context, email, siteURL, method string) {
 	go func() {
 
 		subjectPage := utils.NewHTMLTemplate("signin_change_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.singin_change_email.subject",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName, "SiteName": utils.ClientCfg["SiteName"]})
+			map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
 
 		bodyPage := utils.NewHTMLTemplate("signin_change_body", c.Locale)
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Title"] = c.T("api.templates.signin_change_email.body.title")
 		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.singin_change_email.body.info",
-			map[string]interface{}{"TeamDisplayName": teamDisplayName, "TeamURL": teamURL, "Method": method}))
+			map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method}))
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error(utils.T("api.user.send_sign_in_change_email_and_forget.error"), err)

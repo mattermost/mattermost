@@ -43,15 +43,11 @@ func TestGetAllPreferences(t *testing.T) {
 
 	th.LoginBasic2()
 
-	// TODO XXX FIXME - figure out how this works in user as a FCO model
-
-	// // note that user2 will automatically have a preference set for them to show user1 for direct messages
-	// if result, err := Client.GetAllPreferences(); err != nil {
-	// 	t.Fatal(err)
-	// } else if data := result.Data.(model.Preferences); len(data) != 2 {
-	// 	t.Log(data.ToJson())
-	// 	t.Fatal("received the wrong number of preferences")
-	// }
+	if result, err := Client.GetAllPreferences(); err != nil {
+		t.Fatal(err)
+	} else if data := result.Data.(model.Preferences); len(data) == 0 {
+		t.Fatal("received the wrong number of preferences")
+	}
 }
 
 func TestSetPreferences(t *testing.T) {

@@ -426,15 +426,24 @@ func (ss SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, 
 	return true
 }
 
+func (ss SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) {
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, true)
+}
+
 func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT)
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, false)
 }
 
 func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT)
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT, false)
 }
 
-func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string) {
+func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string, unique bool) {
+
+	uniqueStr := ""
+	if unique {
+		uniqueStr = "UNIQUE "
+	}
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
@@ -447,7 +456,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		if indexType == INDEX_TYPE_FULL_TEXT {
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
 		} else {
-			query = "CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}
 
 		_, err = ss.GetMaster().Exec(query)
@@ -474,7 +483,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 			fullTextIndex = " FULLTEXT "
 		}
 
-		_, err = ss.GetMaster().Exec("CREATE " + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
+		_, err = ss.GetMaster().Exec("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)

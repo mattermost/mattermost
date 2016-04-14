@@ -1232,15 +1232,6 @@ func (c *Client) GetClientLicenceConfig() (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetMeLoggedIn() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/me_logged_in", "", ""); err != nil {
-		return nil, err
-	} else {
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
 func (c *Client) GetInitialLoad() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/initial_load", "", ""); err != nil {
 		return nil, err

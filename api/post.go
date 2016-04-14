@@ -25,7 +25,6 @@ import (
 func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
-	// TODO XXX FIXME find a place for theses
 	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 
