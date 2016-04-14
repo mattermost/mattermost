@@ -18,6 +18,10 @@
     &.btn-danger {
         color: $white;
 
+        .app__body & {
+            color: $white;
+        }
+
         &:hover,
         &:focus,
         &:active {
