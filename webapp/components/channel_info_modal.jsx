@@ -37,7 +37,9 @@ class ChannelInfoModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButtton={true}>
-                    {channel.display_name}
+                    <Modal.Title>
+                        {channel.display_name}
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
                     <div className='row form-group'>
