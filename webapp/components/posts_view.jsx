@@ -527,12 +527,12 @@ export default class PostsView extends React.Component {
                     onClick={this.scrollToBottomAnimated}
                     hidden={!this.state.showUnreadMessageAlert}
                 >
-                        <i className='fa fa-arrow-circle-o-down'></i>
-                        &nbsp;
-                        <FormattedMessage
-                            id='posts_view.newMsg'
-                            defaultMessage='New Messages'
-                        />
+                    <i className='fa fa-angle-down'></i>
+                    &nbsp;
+                    <FormattedMessage
+                        id='posts_view.newMsg'
+                        defaultMessage='New Messages'
+                    />
                 </div>
             </div>
         );
