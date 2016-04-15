@@ -376,6 +376,19 @@ export default class Client {
         this.track('api', 'api_teams_signup');
     }
 
+    adminResetMfa = (userId, success, error) => {
+        const data = {};
+        data.user_id = userId;
+
+        request.
+            post(`${this.getAdminRoute()}/reset_mfa`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'adminResetMfa', success, error));
+    }
+
     // Team Routes Section
 
     createTeamFromSignup = (teamSignup, success, error) => {

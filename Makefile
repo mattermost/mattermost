@@ -143,13 +143,13 @@ check-style:
 test: start-docker
 	@echo Running tests
 
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=240s ./api || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Running Enteprise tests
+	@echo Running Enterprise tests
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/ldap || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/compliance || exit 1
 endif
