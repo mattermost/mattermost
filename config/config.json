@@ -147,7 +147,9 @@
         "NicknameAttribute": "",
         "IdAttribute": "",
         "SkipCertificateVerification": false,
-        "QueryTimeout": 60
+        "QueryTimeout": 60,
+        "LoginFieldName": "",
+        "PasswordFieldName": ""
     },
     "ComplianceSettings": {
         "Enable": false,

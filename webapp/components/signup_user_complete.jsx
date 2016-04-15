@@ -218,8 +218,10 @@ class SignupUserComplete extends React.Component {
                 nameError: (
                     <FormattedMessage
                         id='signup_user_completed.usernameLength'
-                        min={Constants.MIN_USERNAME_LENGTH}
-                        max={Constants.MAX_USERNAME_LENGTH}
+                        values={{
+                            min: Constants.MIN_USERNAME_LENGTH,
+                            max: Constants.MAX_USERNAME_LENGTH
+                        }}
                     />
                 ),
                 emailError: '',
@@ -237,7 +239,9 @@ class SignupUserComplete extends React.Component {
                 passwordError: (
                     <FormattedMessage
                         id='signup_user_completed.passwordLength'
-                        min={Constants.MIN_PASSWORD_LENGTH}
+                        values={{
+                            min: Constants.MIN_PASSWORD_LENGTH
+                        }}
                     />
                 ),
                 serverError: ''
