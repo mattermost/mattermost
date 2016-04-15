@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/manualtesting"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mattermost/platform/web"
 
@@ -36,6 +37,7 @@ import (
 
 //ENTERPRISE_IMPORTS
 
+var flagCmdUpdateDb30 bool
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdAssignRole bool
@@ -68,6 +70,10 @@ func main() {
 	l4g.Info(utils.T("mattermost.entreprise_enabled"), model.BuildEnterpriseReady)
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(flagConfigFile))
+
+	// Speical case for upgrading the db to 3.0
+	// ADDED for 3.0 REMOVE for 3.4
+	cmdUpdateDb30()
 
 	api.NewServer()
 	api.InitApi()
@@ -229,6 +235,7 @@ func parseCmds() {
 	flag.StringVar(&flagTeamName, "team_name", "", "")
 	flag.StringVar(&flagRole, "role", "", "")
 
+	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
 	flag.BoolVar(&flagCmdCreateUser, "create_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
@@ -259,6 +266,156 @@ func runCmds() {
 	cmdResetMfa()
 	cmdPermDeleteUser()
 	cmdPermDeleteTeam()
+}
+
+// ADDED for 3.0 REMOVE for 3.4
+func cmdUpdateDb30() {
+	if flagCmdUpdateDb30 {
+		api.Srv = &api.Server{}
+		api.Srv.Store = store.NewSqlStoreForUpgrade30()
+
+		l4g.Info("Attempting to run speical upgrade of the database schema to version 3.0 for user model changes")
+		time.Sleep(time.Second)
+
+		var confirmBackup string
+		fmt.Println("\nPlease see http://docs.mattermost.com/administration/upgrade.html#upgrade-database-30")
+		fmt.Println("**WARNING** This upgrade process will be irreversible.")
+		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirmBackup)
+		if confirmBackup != "YES" {
+			fmt.Fprintln(os.Stderr, "you must answer 'YES' to continue")
+			flushLogAndExit(1)
+		}
+
+		var flagTeamName string
+		var teams []*model.Team
+		if result := <-api.Srv.Store.Team().GetAll(); result.Err != nil {
+			l4g.Error("Failed to load teams details=%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			teams = result.Data.([]*model.Team)
+			fmt.Println(fmt.Sprintf("We found %v teams.", len(teams)))
+
+			for _, team := range teams {
+				fmt.Println(team.Name)
+			}
+
+			fmt.Print("\nPlease pick a primary team from the list above: ")
+			fmt.Scanln(&flagTeamName)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("Failed to find primary team details=%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		l4g.Info("Starting speical 3.0 database upgrade with performed_backup=YES team_name=%v", team.Name)
+		l4g.Info("Primary team %v will be left unchanged", team.Name)
+		l4g.Info("Upgrading primary team %v", team.Name)
+
+		uniqueEmails := make(map[string]bool)
+		uniqueUsernames := make(map[string]bool)
+		primaryUsers := convertTeamTo30(team, uniqueEmails, uniqueUsernames)
+
+		for _, user := range primaryUsers {
+			uniqueEmails[user.Email] = true
+			uniqueUsernames[user.Username] = true
+		}
+
+		for _, otherTeam := range teams {
+			if otherTeam.Id != team.Id {
+				l4g.Info("Upgrading team %v", otherTeam.Name)
+				users := convertTeamTo30(otherTeam, uniqueEmails, uniqueUsernames)
+				l4g.Info("Upgraded %v users", len(users))
+
+			}
+		}
+
+		l4g.Info("Finished running speical upgrade of the database schema to version 3.0 for user model changes")
+
+		flushLogAndExit(0)
+	}
+}
+
+func convertTeamTo30(team *model.Team, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) map[string]*model.User {
+
+	var users map[string]*model.User
+	if result := <-api.Srv.Store.User().GetProfiles(team.Id); result.Err != nil {
+		l4g.Error("Failed to load profiles for team details=%v", result.Err)
+		flushLogAndExit(1)
+	} else {
+		users = result.Data.(map[string]*model.User)
+	}
+
+	var members []*model.TeamMember
+	if result := <-api.Srv.Store.Team().GetMembers(team.Id); result.Err != nil {
+		l4g.Error("Failed to load team membership details=%v", result.Err)
+		flushLogAndExit(1)
+	} else {
+		members = result.Data.([]*model.TeamMember)
+	}
+
+	for _, user := range users {
+		shouldUpdateUser := false
+		previousRole := user.Roles
+		previousEmail := user.Email
+		previousUsername := user.Username
+
+		member := &model.TeamMember{
+			TeamId: team.Id,
+			UserId: user.Id,
+		}
+
+		if user.IsInRole(model.ROLE_TEAM_ADMIN) {
+			member.Roles = model.ROLE_TEAM_ADMIN
+			user.Roles = ""
+			shouldUpdateUser = true
+		}
+
+		exists := false
+		for _, member := range members {
+			if member.UserId == user.Id {
+				exists = true
+				break
+			}
+		}
+
+		if !exists {
+			if result := <-api.Srv.Store.Team().SaveMember(member); result.Err != nil {
+				l4g.Error("Failed to save membership for %v details=%v", user.Email, result.Err)
+				flushLogAndExit(1)
+			}
+		}
+
+		if uniqueEmails[user.Email] {
+			shouldUpdateUser = true
+			emailParts := strings.Split(user.Email, "@")
+			if len(emailParts) == 2 {
+				user.Email = emailParts[0] + "+" + team.Name + "@" + emailParts[1]
+			} else {
+				user.Email = user.Email + "." + team.Name
+			}
+		}
+
+		if uniqueUsernames[user.Username] {
+			shouldUpdateUser = true
+			user.Username = user.Username + "." + team.Name
+		}
+
+		if shouldUpdateUser {
+			if result := <-api.Srv.Store.User().UpdateWithUpgrade(user, false, true); result.Err != nil {
+				l4g.Error("Failed to update user %v details=%v", user.Email, result.Err)
+				flushLogAndExit(1)
+			}
+
+			l4g.Info("modified user_id=%v, changed email from=%v to=%v, changed username from=%v to %v changed roles from=%v to=%v", user.Id, previousEmail, user.Email, previousUsername, user.Username, previousRole, user.Roles)
+		}
+	}
+
+	return users
 }
 
 func cmdCreateTeam() {

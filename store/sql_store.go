@@ -36,25 +36,25 @@ const (
 )
 
 type SqlStore struct {
-	master     *gorp.DbMap
-	replicas   []*gorp.DbMap
-	team       TeamStore
-	channel    ChannelStore
-	post       PostStore
-	user       UserStore
-	audit      AuditStore
-	compliance ComplianceStore
-	session    SessionStore
-	oauth      OAuthStore
-	system     SystemStore
-	webhook    WebhookStore
-	command    CommandStore
-	preference PreferenceStore
-	license    LicenseStore
+	master        *gorp.DbMap
+	replicas      []*gorp.DbMap
+	team          TeamStore
+	channel       ChannelStore
+	post          PostStore
+	user          UserStore
+	audit         AuditStore
+	compliance    ComplianceStore
+	session       SessionStore
+	oauth         OAuthStore
+	system        SystemStore
+	webhook       WebhookStore
+	command       CommandStore
+	preference    PreferenceStore
+	license       LicenseStore
+	schemaVersion string
 }
 
-func NewSqlStore() Store {
-
+func initConnection() *SqlStore {
 	sqlStore := &SqlStore{}
 
 	sqlStore.master = setupConnection("master", utils.Cfg.SqlSettings.DriverName,
@@ -75,23 +75,41 @@ func NewSqlStore() Store {
 		}
 	}
 
-	schemaVersion := sqlStore.GetCurrentSchemaVersion()
+	sqlStore.schemaVersion = sqlStore.GetCurrentSchemaVersion()
+	return sqlStore
+}
+
+func NewSqlStore() Store {
+
+	sqlStore := initConnection()
 
 	// If the version is already set then we are potentially in an 'upgrade needed' state
-	if schemaVersion != "" {
+	if sqlStore.schemaVersion != "" {
 		// Check to see if it's the most current database schema version
-		if !model.IsCurrentVersion(schemaVersion) {
+		if !model.IsCurrentVersion(sqlStore.schemaVersion) {
 			// If we are upgrading from the previous version then print a warning and continue
-			if model.IsPreviousVersionsSupported(schemaVersion) {
-				l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), schemaVersion)
+			if model.IsPreviousVersionsSupported(sqlStore.schemaVersion) {
+				l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), sqlStore.schemaVersion)
 				l4g.Warn(utils.T("store.sql.schema_upgrade_attempt.warn"), model.CurrentVersion)
 			} else {
 				// If this is an 'upgrade needed' state but the user is attempting to skip a version then halt the world
-				l4g.Critical(utils.T("store.sql.schema_version.critical"), schemaVersion)
+				l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.schemaVersion)
 				time.Sleep(time.Second)
-				panic(fmt.Sprintf(utils.T("store.sql.schema_version.critical"), schemaVersion))
+				panic(fmt.Sprintf(utils.T("store.sql.schema_version.critical"), sqlStore.schemaVersion))
 			}
 		}
+	}
+
+	// This is a speical case for upgrading the schema to the 3.0 user model
+	// ADDED for 3.0 REMOVE for 3.4
+	if sqlStore.schemaVersion == "2.2.0" ||
+		sqlStore.schemaVersion == "2.1.0" ||
+		sqlStore.schemaVersion == "2.0.0" {
+		l4g.Critical("The database schema version of %v cannot be automatically upgraded to 3.0+", sqlStore.schemaVersion)
+		l4g.Critical("You will need to run the command line tool './platform -upgrade_db_30'")
+		l4g.Critical("Please see 'http://docs.mattermost.com/administration/upgrade.html#upgrade-database-30' for more information on how to upgrade.")
+		time.Sleep(time.Second)
+		os.Exit(-1)
 	}
 
 	sqlStore.team = NewSqlTeamStore(sqlStore)
@@ -111,6 +129,8 @@ func NewSqlStore() Store {
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.creating_tables.critical"), err)
+		time.Sleep(time.Second)
+		os.Exit(-1)
 	}
 
 	sqlStore.team.(*SqlTeamStore).UpgradeSchemaIfNeeded()
@@ -143,14 +163,43 @@ func NewSqlStore() Store {
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
-	if model.IsPreviousVersionsSupported(schemaVersion) && !model.IsCurrentVersion(schemaVersion) {
+	if model.IsPreviousVersionsSupported(sqlStore.schemaVersion) && !model.IsCurrentVersion(sqlStore.schemaVersion) {
 		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
+		sqlStore.schemaVersion = model.CurrentVersion
 		l4g.Warn(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
 	}
 
-	if schemaVersion == "" {
+	if sqlStore.schemaVersion == "" {
 		sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion})
+		sqlStore.schemaVersion = model.CurrentVersion
 		l4g.Info(utils.T("store.sql.schema_set.info"), model.CurrentVersion)
+	}
+
+	return sqlStore
+}
+
+// ADDED for 3.0 REMOVE for 3.4
+// This is a speical case for upgrading the schema to the 3.0 user model
+func NewSqlStoreForUpgrade30() *SqlStore {
+	sqlStore := initConnection()
+
+	// Do not allow this upgrad to run unless you're the specific versions below
+	if !(sqlStore.schemaVersion == "2.2.0" ||
+		sqlStore.schemaVersion == "2.1.0" ||
+		sqlStore.schemaVersion == "2.0.0") {
+		l4g.Critical(utils.T("store.sql.upgrade_user_model.critical"), sqlStore.schemaVersion)
+		time.Sleep(time.Second)
+		os.Exit(-1)
+	}
+
+	sqlStore.team = NewSqlTeamStore(sqlStore)
+	sqlStore.user = NewSqlUserStore(sqlStore)
+
+	err := sqlStore.master.CreateTablesIfNotExists()
+	if err != nil {
+		l4g.Critical(utils.T("store.sql.creating_tables.critical"), err)
+		time.Sleep(time.Second)
+		os.Exit(-1)
 	}
 
 	return sqlStore

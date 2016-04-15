@@ -108,6 +108,10 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 }
 
 func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreChannel {
+	return us.UpdateWithUpgrade(user, allowActiveUpdate, false)
+}
+
+func (us SqlUserStore) UpdateWithUpgrade(user *model.User, allowActiveUpdate bool, specialUpgradeCase bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -146,21 +150,23 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 				user.DeleteAt = oldUser.DeleteAt
 			}
 
-			if user.IsSSOUser() {
-				user.Email = oldUser.Email
-			} else if !user.IsLDAPUser() && user.Email != oldUser.Email {
-				user.EmailVerified = false
-			}
-
-			if user.Username != oldUser.Username {
-				nonUsernameKeys := []string{}
-				splitKeys := strings.Split(user.NotifyProps["mention_keys"], ",")
-				for _, key := range splitKeys {
-					if key != oldUser.Username && key != "@"+oldUser.Username {
-						nonUsernameKeys = append(nonUsernameKeys, key)
-					}
+			if !specialUpgradeCase {
+				if user.IsSSOUser() {
+					user.Email = oldUser.Email
+				} else if !user.IsLDAPUser() && user.Email != oldUser.Email {
+					user.EmailVerified = false
 				}
-				user.NotifyProps["mention_keys"] = strings.Join(nonUsernameKeys, ",") + "," + user.Username + ",@" + user.Username
+
+				if user.Username != oldUser.Username {
+					nonUsernameKeys := []string{}
+					splitKeys := strings.Split(user.NotifyProps["mention_keys"], ",")
+					for _, key := range splitKeys {
+						if key != oldUser.Username && key != "@"+oldUser.Username {
+							nonUsernameKeys = append(nonUsernameKeys, key)
+						}
+					}
+					user.NotifyProps["mention_keys"] = strings.Join(nonUsernameKeys, ",") + "," + user.Username + ",@" + user.Username
+				}
 			}
 
 			if count, err := us.GetMaster().Update(user); err != nil {
