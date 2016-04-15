@@ -36,6 +36,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiUserRequired(downloadComplianceReport)).Methods("GET")
 	BaseRoutes.Admin.Handle("/upload_brand_image", ApiAdminSystemRequired(uploadBrandImage)).Methods("POST")
 	BaseRoutes.Admin.Handle("/get_brand_image", ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
+	BaseRoutes.Admin.Handle("/reset_mfa", ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -496,4 +497,23 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
 		w.Write(img)
 	}
+}
+
+func adminResetMfa(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	userId := props["user_id"]
+	if len(userId) != 26 {
+		c.SetInvalidParam("resetMfa", "user_id")
+		return
+	}
+
+	if err := DeactivateMfa(userId); err != nil {
+		c.Err = err
+		return
+	}
+
+	rdata := map[string]string{}
+	rdata["status"] = "ok"
+	w.Write([]byte(model.MapToJson(rdata)))
 }

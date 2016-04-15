@@ -222,6 +222,7 @@ func (u *User) IsAway() bool {
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = ""
+	u.MfaSecret = ""
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
@@ -240,6 +241,8 @@ func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = ""
 	u.AuthService = ""
+	u.MfaActive = false
+	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.LastPingAt = 0
 	u.AllowMarketing = false

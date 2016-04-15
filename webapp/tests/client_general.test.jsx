@@ -193,6 +193,23 @@ describe('Client.General', function() {
         });
     });
 
+    it('Admin.adminResetMfa', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+
+            TestHelper.basicClient().adminResetMfa(
+                TestHelper.basicUser().id,
+                function() {
+                    done(new Error('should need a license'));
+                },
+                function(err) {
+                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    done();
+                }
+            );
+        });
+    });
+
     it('License.getClientLicenceConfig', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getClientLicenceConfig(

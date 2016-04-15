@@ -1025,10 +1025,11 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 			if c.IsSystemAdmin() {
 				options["fullname"] = true
 				options["email"] = true
+			} else {
+				p.ClearNonProfileFields()
 			}
 
 			p.Sanitize(options)
-			p.ClearNonProfileFields()
 			profiles[k] = p
 		}
 

@@ -1472,6 +1472,17 @@ func TestUpdateMfa(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()
 
+	if utils.License.Features.MFA == nil {
+		utils.License.Features.MFA = new(bool)
+	}
+
+	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
+	defer func() {
+		utils.IsLicensed = false
+		*utils.License.Features.MFA = false
+		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
+	}()
+
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
@@ -1496,7 +1507,15 @@ func TestUpdateMfa(t *testing.T) {
 		t.Fatal("should have failed - not licensed")
 	}
 
-	// need to add more test cases when license and config can be configured for tests
+	utils.IsLicensed = true
+	*utils.License.Features.MFA = true
+	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
+
+	if _, err := Client.UpdateMfa(true, "123456"); err == nil {
+		t.Fatal("should have failed - bad token")
+	}
+
+	// need to add more test cases when enterprise bits can be loaded into tests
 }
 
 func TestCheckMfa(t *testing.T) {
@@ -1520,5 +1539,5 @@ func TestCheckMfa(t *testing.T) {
 		}
 	}
 
-	// need to add more test cases when license and config can be configured for tests
+	// need to add more test cases when enterprise bits can be loaded into tests
 }
