@@ -200,10 +200,10 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 								// parse attachment field links into Markdown format
 								for j, fInt := range fields {
 									field := fInt.(map[string]interface{})
-									if _, ok := field["text"]; ok {
-										fText := field["text"].(string)
-										fText = linkWithTextRegex.ReplaceAllString(fText, "[${2}](${1})")
-										field["text"] = fText
+									if _, ok := field["value"]; ok {
+										fValue := field["value"].(string)
+										fValue = linkWithTextRegex.ReplaceAllString(fValue, "[${2}](${1})")
+										field["value"] = fValue
 										fields[j] = field
 									}
 								}
