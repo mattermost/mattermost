@@ -48,3 +48,21 @@ func TestValidateLicense(t *testing.T) {
 		t.Fatal("should have failed - bad license")
 	}
 }
+
+func TestClientLicenseEtag(t *testing.T) {
+	etag1 := GetClientLicenseEtag()
+
+	ClientLicense["SomeFeature"] = "true"
+
+	etag2 := GetClientLicenseEtag()
+	if etag1 == etag2 {
+		t.Fatal("etags should not match")
+	}
+
+	ClientLicense["SomeFeature"] = "false"
+
+	etag3 := GetClientLicenseEtag()
+	if etag2 == etag3 {
+		t.Fatal("etags should not match")
+	}
+}

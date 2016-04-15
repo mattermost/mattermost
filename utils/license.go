@@ -5,11 +5,13 @@ package utils
 
 import (
 	"crypto"
+	"crypto/md5"
 	"crypto/rsa"
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -128,4 +130,14 @@ func getClientLicense(l *model.License) map[string]string {
 	}
 
 	return props
+}
+
+func GetClientLicenseEtag() string {
+	value := ""
+
+	for k, v := range ClientLicense {
+		value += fmt.Sprintf("%s:%s;", k, v)
+	}
+
+	return model.Etag(fmt.Sprintf("%x", md5.Sum([]byte(value))))
 }

@@ -1125,8 +1125,8 @@ func (c *Client) MockSession(sessionToken string) {
 	c.AuthType = HEADER_BEARER
 }
 
-func (c *Client) GetClientLicenceConfig() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/license/client_config", "", ""); err != nil {
+func (c *Client) GetClientLicenceConfig(etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/license/client_config", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

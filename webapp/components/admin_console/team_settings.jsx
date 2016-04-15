@@ -102,7 +102,10 @@ class TeamSettings extends React.Component {
         config.TeamSettings.EnableUserCreation = this.refs.EnableUserCreation.checked;
         config.TeamSettings.RestrictTeamNames = this.refs.RestrictTeamNames.checked;
         config.TeamSettings.EnableTeamListing = this.refs.EnableTeamListing.checked;
-        config.TeamSettings.EnableCustomBrand = this.refs.EnableCustomBrand.checked;
+
+        if (this.refs.EnableCustomBrand) {
+            config.TeamSettings.EnableCustomBrand = this.refs.EnableCustomBrand.checked;
+        }
 
         if (this.refs.CustomBrandText) {
             config.TeamSettings.CustomBrandText = this.refs.CustomBrandText.value;
