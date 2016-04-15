@@ -28,20 +28,6 @@ describe('Client.User', function() {
         });
     });
 
-    it('getMeLoggedIn', function(done) {
-        TestHelper.initBasic(() => {
-            TestHelper.basicClient().getMeLoggedIn(
-                function(data) {
-                    assert.equal(data.logged_in, 'true');
-                    done();
-                },
-                function(err) {
-                    done(new Error(err.message));
-                }
-            );
-        });
-    });
-
     it('getInitialLoad', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getInitialLoad(

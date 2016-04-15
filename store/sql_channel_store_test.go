@@ -469,6 +469,11 @@ func TestChannelStorePermissionsTo(t *testing.T) {
 		t.Fatal("should have permissions")
 	}
 
+	count = (<-store.Channel().CheckPermissionsToNoTeam(o1.Id, m1.UserId)).Data.(int64)
+	if count != 1 {
+		t.Fatal("should have permissions")
+	}
+
 	count = (<-store.Channel().CheckPermissionsTo("junk", o1.Id, m1.UserId)).Data.(int64)
 	if count != 0 {
 		t.Fatal("shouldn't have permissions")
@@ -479,7 +484,17 @@ func TestChannelStorePermissionsTo(t *testing.T) {
 		t.Fatal("shouldn't have permissions")
 	}
 
+	count = (<-store.Channel().CheckPermissionsToNoTeam("junk", m1.UserId)).Data.(int64)
+	if count != 0 {
+		t.Fatal("shouldn't have permissions")
+	}
+
 	count = (<-store.Channel().CheckPermissionsTo(o1.TeamId, o1.Id, "junk")).Data.(int64)
+	if count != 0 {
+		t.Fatal("shouldn't have permissions")
+	}
+
+	count = (<-store.Channel().CheckPermissionsToNoTeam(o1.Id, "junk")).Data.(int64)
 	if count != 0 {
 		t.Fatal("shouldn't have permissions")
 	}

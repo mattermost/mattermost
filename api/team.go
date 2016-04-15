@@ -402,6 +402,7 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	}
 
 	RemoveAllSessionsForUserId(user.Id)
+	InvalidateCacheForUser(user.Id)
 
 	return nil
 }

@@ -497,7 +497,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	}
 
 	go func() {
-		UpdateChannelAccessCache(channel.TeamId, user.Id, channel.Id)
+		InvalidateCacheForUser(user.Id)
 
 		message := model.NewMessage(channel.TeamId, channel.Id, user.Id, model.ACTION_USER_ADDED)
 		PublishAndForget(message)
@@ -913,7 +913,7 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 		return cmresult.Err
 	}
 
-	UpdateChannelAccessCacheAndForget(channel.TeamId, userIdToRemove, channel.Id)
+	InvalidateCacheForUser(userIdToRemove)
 
 	message := model.NewMessage(channel.TeamId, channel.Id, userIdToRemove, model.ACTION_USER_REMOVED)
 	message.Add("remover_id", removerUserId)

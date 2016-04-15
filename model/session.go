@@ -27,7 +27,7 @@ type Session struct {
 	Roles          string        `json:"roles"`
 	IsOAuth        bool          `json:"is_oauth"`
 	Props          StringMap     `json:"props"`
-	Teams          []*TeamMember `json:"teams" db:"-"`
+	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
 }
 
 func (me *Session) ToJson() string {
@@ -96,7 +96,7 @@ func (me *Session) AddProp(key string, value string) {
 }
 
 func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
-	for _, team := range me.Teams {
+	for _, team := range me.TeamMembers {
 		if team.TeamId == teamId {
 			return team
 		}

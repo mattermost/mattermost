@@ -8,6 +8,7 @@ import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as Websockets from 'action_creators/websocket_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router';
@@ -72,6 +73,9 @@ export default class LoggedIn extends React.Component {
     componentWillMount() {
         // Listen for user
         UserStore.addChangeListener(this.onUserChanged);
+
+        // Initalize websockets
+        Websockets.initialize();
 
         // Get all statuses regularally. (Soon to be switched to websocket)
         this.intervalId = setInterval(() => AsyncClient.getStatuses(), CLIENT_STATUS_INTERVAL);
@@ -156,6 +160,7 @@ export default class LoggedIn extends React.Component {
         $('#root').attr('class', '');
         clearInterval(this.intervalId);
 
+        Websockets.close();
         UserStore.removeChangeListener(this.onUserChanged);
 
         $('body').off('click.userpopover');

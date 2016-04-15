@@ -1264,16 +1264,11 @@ export function openDirectChannelToUser(user, successCb, errorCb) {
         };
 
         Client.createDirectChannel(
-            channel,
             user.id,
             (data) => {
                 Client.getChannel(
                     data.id,
-                    (data2, textStatus, xhr) => {
-                        if (xhr.status === 304 || !data2) {
-                            return;
-                        }
-
+                    (data2) => {
                         AppDispatcher.handleServerAction({
                             type: ActionTypes.RECEIVED_CHANNEL,
                             channel: data2.channel,

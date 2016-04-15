@@ -321,7 +321,7 @@ func (c *Context) HasPermissionsToTeam(teamId string, where string) bool {
 		return true
 	}
 
-	for _, teamMember := range c.Session.Teams {
+	for _, teamMember := range c.Session.TeamMembers {
 		if teamId == teamMember.TeamId {
 			return true
 		}

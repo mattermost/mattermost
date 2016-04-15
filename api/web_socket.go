@@ -13,7 +13,7 @@ import (
 
 func InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
-	BaseRoutes.NeedTeam.Handle("/websocket", ApiUserRequiredTrustRequester(connect)).Methods("GET")
+	BaseRoutes.Users.Handle("/websocket", ApiUserRequiredTrustRequester(connect)).Methods("GET")
 	hub.Start()
 }
 
@@ -33,7 +33,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wc := NewWebConn(ws, c.TeamId, c.Session.UserId, c.Session.Id)
+	wc := NewWebConn(ws, c.Session.UserId, c.Session.Id)
 	hub.Register(wc)
 	go wc.writePump()
 	wc.readPump()

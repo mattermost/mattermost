@@ -81,7 +81,7 @@ func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 			result.Err = model.NewLocAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+rtcs.Err.Error())
 			return
 		} else {
-			session.Teams = rtcs.Data.([]*model.TeamMember)
+			session.TeamMembers = rtcs.Data.([]*model.TeamMember)
 		}
 
 		storeChannel <- result
@@ -112,7 +112,7 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 				result.Err = model.NewLocAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+rtcs.Err.Error())
 				return
 			} else {
-				sessions[0].Teams = rtcs.Data.([]*model.TeamMember)
+				sessions[0].TeamMembers = rtcs.Data.([]*model.TeamMember)
 			}
 		}
 
@@ -150,7 +150,7 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 			return
 		} else {
 			for _, session := range sessions {
-				session.Teams = rtcs.Data.([]*model.TeamMember)
+				session.TeamMembers = rtcs.Data.([]*model.TeamMember)
 			}
 		}
 

@@ -22,7 +22,6 @@ export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
         const otherUserId = Utils.getUserIdFromChannelName(chan);
         Client.createDirectChannel(
-            chan,
             otherUserId,
             (data) => {
                 success(data);

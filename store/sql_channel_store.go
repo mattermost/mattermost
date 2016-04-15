@@ -719,6 +719,37 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) StoreChanne
 	return storeChannel
 }
 
+func (s SqlChannelStore) CheckPermissionsToNoTeam(channelId string, userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		count, err := s.GetReplica().SelectInt(
+			`SELECT
+			    COUNT(0)
+			FROM
+			    Channels,
+			    ChannelMembers
+			WHERE
+			    Channels.Id = ChannelMembers.ChannelId
+			        AND Channels.DeleteAt = 0
+			        AND ChannelMembers.ChannelId = :ChannelId
+			        AND ChannelMembers.UserId = :UserId`,
+			map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.CheckPermissionsTo", "store.sql_channel.check_permissions.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

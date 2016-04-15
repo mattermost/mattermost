@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
@@ -32,7 +33,7 @@ export function initialize() {
             protocol = 'wss://';
         }
 
-        const connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + Client.getTeamNeededRoute() + '/websocket';
+        const connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + Client.getUsersRoute() + '/websocket';
 
         if (connectFailCount === 0) {
             console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
@@ -146,6 +147,11 @@ function handleMessage(msg) {
 
 export function sendMessage(msg) {
     if (conn && conn.readyState === WebSocket.OPEN) {
+        var teamId = TeamStore.getCurrentId();
+        if (teamId && teamId.length > 0) {
+            msg.team_id = teamId;
+        }
+
         conn.send(JSON.stringify(msg));
     } else if (!conn || conn.readyState === WebSocket.Closed) {
         conn = null;

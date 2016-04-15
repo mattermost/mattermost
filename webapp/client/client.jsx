@@ -712,15 +712,6 @@ export default class Client {
         this.track('api', 'api_users_oauth_to_email');
     }
 
-    getMeLoggedIn = (success, error) => {
-        request.
-            get(`${this.getUsersRoute()}/me_logged_in`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            end(this.handleResponse.bind(this, 'getMeLoggedIn', success, error));
-    }
-
     getInitialLoad = (success, error) => {
         request.
             get(`${this.getUsersRoute()}/initial_load`).

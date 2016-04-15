@@ -20,7 +20,7 @@ func TestSocket(t *testing.T) {
 	channel2 := th.CreateChannel(Client, team)
 	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
 
-	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + Client.GetTeamRoute() + "/websocket"
+	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + "/users/websocket"
 
 	header1 := http.Header{}
 	header1.Set(model.HEADER_AUTH, "BEARER "+Client.AuthToken)
@@ -45,7 +45,7 @@ func TestSocket(t *testing.T) {
 	var rmsg model.Message
 
 	// Test sending message without a channelId
-	m := model.NewMessage("", "", "", model.ACTION_TYPING)
+	m := model.NewMessage(team.Id, "", "", model.ACTION_TYPING)
 	m.Add("RootId", model.NewId())
 	m.Add("ParentId", model.NewId())
 
@@ -66,7 +66,7 @@ func TestSocket(t *testing.T) {
 	}
 
 	// Test sending messsage to Channel you have access to
-	m = model.NewMessage("", channel1.Id, "", model.ACTION_TYPING)
+	m = model.NewMessage(team.Id, channel1.Id, "", model.ACTION_TYPING)
 	m.Add("RootId", model.NewId())
 	m.Add("ParentId", model.NewId())
 

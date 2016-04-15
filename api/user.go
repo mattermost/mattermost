@@ -929,7 +929,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
 		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
 
-		il.TeamMembers = c.Session.Teams
+		il.TeamMembers = c.Session.TeamMembers
 
 		if ru := <-uchan; ru.Err != nil {
 			c.Err = ru.Err
