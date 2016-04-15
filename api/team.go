@@ -321,8 +321,13 @@ func createTeamWithLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	team := model.TeamFromJson(r.Body)
-	var user *model.User
 
+	if team == nil {
+		c.SetInvalidParam("createTeam", "team")
+		return
+	}
+
+	var user *model.User
 	if len(c.Session.UserId) > 0 {
 		uchan := Srv.Store.User().Get(c.Session.UserId)
 
