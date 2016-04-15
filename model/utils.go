@@ -50,6 +50,14 @@ func (er *AppError) Translate(T goi18n.TranslateFunc) {
 	}
 }
 
+func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
+	if er.params == nil {
+		return T(er.Id)
+	} else {
+		return T(er.Id, er.params)
+	}
+}
+
 func (er *AppError) ToJson() string {
 	b, err := json.Marshal(er)
 	if err != nil {
