@@ -27,7 +27,7 @@ export default function UserListRow({user, actions, actionProps}) {
         );
     });
 
-    if(!user.status) {
+    if (!user.status) {
         var status = UserStore.getStatus(user.id);
         user.status = status ? 'status-' + status : '';
     }

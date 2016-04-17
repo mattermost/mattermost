@@ -87,7 +87,7 @@ export default class PopoverListMembers extends React.Component {
                 }
 
                 if (name) {
-                    if(!m.status) {
+                    if (!m.status) {
                         var status = UserStore.getStatus(m.id);
                         m.status = status ? 'status-' + status : '';
                     }
