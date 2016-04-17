@@ -674,9 +674,9 @@ export function getStatuses() {
 
     const teammateIds = [];
     for (const [name, value] of preferences) {
-        if (value === 'true') {
+        // if (value === 'true') {
             teammateIds.push(name);
-        }
+        // }
     }
 
     if (isCallInProgress('getStatuses') || teammateIds.length === 0) {
