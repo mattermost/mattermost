@@ -31,6 +31,11 @@
         position: absolute;
         right: 10px;
         top: 5px;
+
+        &.light {
+            opacity: .5;
+            right: initial;
+        }
     }
 
     .status {
