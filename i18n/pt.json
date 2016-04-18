@@ -52,6 +52,14 @@
     "translation": "Erro ao ler o arquivo de log"
   },
   {
+    "id": "api.admin.get_brand_image.not_available.app_error",
+    "translation": "Marca personalizada não está configurado ou não é suportado pelo servidor"
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "O armazenamento de imagem não está configurado."
+  },
+  {
     "id": "api.admin.init.debug",
     "translation": "Inicializando admin api routes"
   },
@@ -62,6 +70,30 @@
   {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Teste de Configurações de EMail"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Matriz vazia em 'image' na requisição"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Nenhum arquivo em 'image' no pedido"
+  },
+  {
+    "id": "api.admin.upload_brand_image.not_available.app_error",
+    "translation": "Marca personalizada não está configurado ou não é suportado pelo servidor"
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Não foi possível processar o formulário multipart"
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Não é possível fazer upload da imagem. Armazenamento de imagem não está configurado."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Não foi possível enviar o arquivo. Arquivo é muito grande."
   },
   {
     "id": "api.api.init.parsing_templates.debug",
@@ -209,11 +241,11 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-    "translation": "%s atualizado do cabeçalho do canal de: %s para: %s"
+    "translation": "%s atualizou o cabeçalho do canal de: %s para: %s"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s atualizado do cabeçalho do canal para: %s"
+    "translation": "%s atualizou o cabeçalho do canal para: %s"
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
@@ -545,7 +577,7 @@
   },
   {
     "id": "api.file.move_file.configured.app_error",
-    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+    "translation": "O armazenamento de arquivos não está configurado corretamente. Por favor, configure o S3 ou o armazenamento de arquivos no servidor local."
   },
   {
     "id": "api.file.move_file.delete_from_s3.app_error",
@@ -1772,6 +1804,30 @@
     "translation": "Permissões inadequadas para re-gerar o token do webhook de saída"
   },
   {
+    "id": "ent.brand.save_brand_image.decode.app_error",
+    "translation": "Não foi possível ler a imagem."
+  },
+  {
+    "id": "ent.brand.save_brand_image.decode_config.app_error",
+    "translation": "Não foi possível ler as configurações de imagem."
+  },
+  {
+    "id": "ent.brand.save_brand_image.encode.app_error",
+    "translation": "Não foi possível codificar a imagem como PNG."
+  },
+  {
+    "id": "ent.brand.save_brand_image.open.app_error",
+    "translation": "Não foi possível abrir a imagem."
+  },
+  {
+    "id": "ent.brand.save_brand_image.save_image.app_error",
+    "translation": "Não foi possível salvar a imagem"
+  },
+  {
+    "id": "ent.brand.save_brand_image.too_large.app_error",
+    "translation": "Não foi possível abrir a imagem. Imagem é muito grande."
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funcionalidade Compliance desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
   },
@@ -2353,7 +2409,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
-    "translation": "Invalid trigger words"
+    "translation": "Palavras gatilho inválida"
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -2641,7 +2697,7 @@
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
-    "translation": "A funcionalidade de mais de uma replica está desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
+    "translation": "A funcionalidade de mais de uma réplica está desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
   },
   {
     "id": "store.sql.remove_index.critical",
@@ -3212,6 +3268,10 @@
     "translation": "Encontramos um erro ao procurar as propriedades de sistema"
   },
   {
+    "id": "store.sql_system.get_by_name.app_error",
+    "translation": "Não foi possível encontrar a variável do sistema."
+  },
+  {
     "id": "store.sql_system.save.app_error",
     "translation": "Encontramos um erro ao salvar as propriedades do sistema"
   },
@@ -3389,7 +3449,7 @@
   },
   {
     "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Este nome de usuário já foi usado, Por favor escolha outro."
+    "translation": "Este nome de usuário já está em uso. Por favor, escolha outro."
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
