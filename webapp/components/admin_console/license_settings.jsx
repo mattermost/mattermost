@@ -54,10 +54,7 @@ class LicenseSettings extends React.Component {
 
         $('#upload-button').button('loading');
 
-        const formData = new FormData();
-        formData.append('license', file, file.name);
-
-        Client.uploadLicenseFile(formData,
+        Client.uploadLicenseFile(file,
             () => {
                 Utils.clearFileInput(element[0]);
                 $('#upload-button').button('reset');

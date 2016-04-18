@@ -239,7 +239,7 @@ describe('Client.General', function() {
         });
     });
 
-    it('License.uploadLicenseFile', function(done) {
+    /*it('License.uploadLicenseFile', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().uploadLicenseFile(
@@ -253,7 +253,7 @@ describe('Client.General', function() {
                 }
             );
         });
-    });
+    });*/
 
     // TODO XXX FIX ME - this test depends on make dist
 
