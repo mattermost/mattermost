@@ -7,7 +7,6 @@ import Client from 'utils/web_client.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
 
 export default class EmailToOAuth extends React.Component {
     constructor(props) {
@@ -37,7 +36,7 @@ export default class EmailToOAuth extends React.Component {
             this.props.newType,
             (data) => {
                 if (data.follow_link) {
-                    browserHistory.push(data.follow_link);
+                    window.location.href = data.follow_link;
                 }
             },
             (error) => {
@@ -91,9 +90,8 @@ export default class EmailToOAuth extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.email_to_oauth.enterPwd'
-                            defaultMessage='Enter the password for your {team} {site} account'
+                            defaultMessage='Enter the password for your {site} account'
                             values={{
-                                team: this.props.teamDisplayName,
                                 site: global.window.mm_config.SiteName
                             }}
                         />
@@ -131,7 +129,5 @@ EmailToOAuth.defaultProps = {
 };
 EmailToOAuth.propTypes = {
     newType: React.PropTypes.string,
-    email: React.PropTypes.string,
-    teamName: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string
+    email: React.PropTypes.string
 };

@@ -5,8 +5,6 @@ package api
 
 import (
 	"bytes"
-	"crypto/tls"
-	b64 "encoding/base64"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
@@ -256,7 +254,7 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 	}
 }
 
-func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader, team *model.Team) *model.User {
+func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader, teamId string) *model.User {
 	var user *model.User
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
@@ -274,34 +272,29 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	suchan := Srv.Store.User().GetByAuth(user.AuthData, service)
 	euchan := Srv.Store.User().GetByEmail(user.Email)
 
-	if team.Email == "" {
-		team.Email = user.Email
-		if result := <-Srv.Store.Team().Update(team); result.Err != nil {
-			c.Err = result.Err
-			return nil
-		}
-	} else {
-		found := true
-		count := 0
-		for found {
-			if found = IsUsernameTaken(user.Username, team.Id); c.Err != nil {
-				return nil
-			} else if found {
-				user.Username = user.Username + strconv.Itoa(count)
-				count += 1
-			}
+	var tchan store.StoreChannel
+	if len(teamId) != 0 {
+		tchan = Srv.Store.Team().Get(teamId)
+	}
+
+	found := true
+	count := 0
+	for found {
+		if found = IsUsernameTaken(user.Username); found {
+			user.Username = user.Username + strconv.Itoa(count)
+			count += 1
 		}
 	}
 
 	if result := <-suchan; result.Err == nil {
-		c.Err = model.NewLocAppError("signupCompleteOAuth", "api.user.create_oauth_user.already_used.app_error",
-			map[string]interface{}{"Service": service, "DisplayName": team.DisplayName}, "email="+user.Email)
+		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_used.app_error",
+			map[string]interface{}{"Service": service}, "email="+user.Email)
 		return nil
 	}
 
 	if result := <-euchan; result.Err == nil {
-		c.Err = model.NewLocAppError("signupCompleteOAuth", "api.user.create_oauth_user.already_attached.app_error",
-			map[string]interface{}{"Service": service, "DisplayName": team.DisplayName}, "email="+user.Email)
+		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error",
+			map[string]interface{}{"Service": service}, "email="+user.Email)
 		return nil
 	}
 
@@ -313,10 +306,17 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 		return nil
 	}
 
-	err = JoinUserToTeam(team, user)
-	if err != nil {
-		c.Err = err
-		return nil
+	if tchan != nil {
+		if result := <-tchan; result.Err != nil {
+			c.Err = result.Err
+			return nil
+		} else {
+			err = JoinUserToTeam(result.Data.(*model.Team), user)
+			if err != nil {
+				c.Err = err
+				return nil
+			}
+		}
 	}
 
 	Login(c, w, r, ruser, "")
@@ -527,7 +527,7 @@ func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, usernam
 	return nil
 }
 
-func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader, team *model.Team) *model.User {
+func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader) *model.User {
 	buf := bytes.Buffer{}
 	buf.ReadFrom(userData)
 
@@ -549,8 +549,8 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 
 	var user *model.User
 	if result := <-Srv.Store.User().GetByAuth(authData, service); result.Err != nil {
-		if result.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR && team.AllowOpenInvite {
-			return CreateOAuthUser(c, w, r, service, bytes.NewReader(buf.Bytes()), team)
+		if result.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
+			return CreateOAuthUser(c, w, r, service, bytes.NewReader(buf.Bytes()), "")
 		}
 		c.Err = result.Err
 		return nil
@@ -1823,119 +1823,7 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetAuthorizationCode(c *Context, service, teamName string, props map[string]string, loginHint string) (string, *model.AppError) {
-
-	sso := utils.Cfg.GetSSOService(service)
-	if sso != nil && !sso.Enable {
-		return "", model.NewLocAppError("GetAuthorizationCode", "api.user.get_authorization_code.unsupported.app_error", nil, "service="+service)
-	}
-
-	clientId := sso.Id
-	endpoint := sso.AuthEndpoint
-	scope := sso.Scope
-
-	props["hash"] = model.HashPassword(clientId)
-	props["team"] = teamName
-	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
-
-	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete"
-
-	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
-
-	if len(scope) > 0 {
-		authUrl += "&scope=" + utils.UrlEncode(scope)
-	}
-
-	if len(loginHint) > 0 {
-		authUrl += "&login_hint=" + utils.UrlEncode(loginHint)
-	}
-
-	return authUrl, nil
-}
-
-func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, map[string]string, *model.AppError) {
-	sso := utils.Cfg.GetSSOService(service)
-	if sso == nil || !sso.Enable {
-		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service)
-	}
-
-	stateStr := ""
-	if b, err := b64.StdEncoding.DecodeString(state); err != nil {
-		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error())
-	} else {
-		stateStr = string(b)
-	}
-
-	stateProps := model.MapFromJson(strings.NewReader(stateStr))
-
-	if !model.ComparePassword(stateProps["hash"], sso.Id) {
-		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "")
-	}
-
-	ok := true
-	teamName := ""
-	if teamName, ok = stateProps["team"]; !ok {
-		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state_team.app_error", nil, "")
-	}
-
-	tchan := Srv.Store.Team().GetByName(teamName)
-
-	p := url.Values{}
-	p.Set("client_id", sso.Id)
-	p.Set("client_secret", sso.Secret)
-	p.Set("code", code)
-	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
-	p.Set("redirect_uri", redirectUri)
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-	}
-	client := &http.Client{Transport: tr}
-	req, _ := http.NewRequest("POST", sso.TokenEndpoint, strings.NewReader(p.Encode()))
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Accept", "application/json")
-
-	var ar *model.AccessResponse
-	if resp, err := client.Do(req); err != nil {
-		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error())
-	} else {
-		ar = model.AccessResponseFromJson(resp.Body)
-		if ar == nil {
-			return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "")
-		}
-	}
-
-	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
-		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType)
-	}
-
-	if len(ar.AccessToken) == 0 {
-		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "")
-	}
-
-	p = url.Values{}
-	p.Set("access_token", ar.AccessToken)
-	req, _ = http.NewRequest("GET", sso.UserApiEndpoint, strings.NewReader(""))
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
-
-	if resp, err := client.Do(req); err != nil {
-		return nil, nil, nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error",
-			map[string]interface{}{"Service": service}, err.Error())
-	} else {
-		if result := <-tchan; result.Err != nil {
-			return nil, nil, nil, result.Err
-		} else {
-			return resp.Body, result.Data.(*model.Team), stateProps, nil
-		}
-	}
-
-}
-
-func IsUsernameTaken(name string, teamId string) bool {
+func IsUsernameTaken(name string) bool {
 
 	if !model.IsValidUsername(name) {
 		return false
@@ -1993,7 +1881,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	stateProps["email"] = email
 
 	m := map[string]string{}
-	if authUrl, err := GetAuthorizationCode(c, service, "", stateProps, ""); err != nil {
+	if authUrl, err := GetAuthorizationCode(c, service, stateProps, ""); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail - oauth issue")
 		c.Err = err
 		return
@@ -2003,52 +1891,6 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "success")
 	w.Write([]byte(model.MapToJson(m)))
-}
-
-func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team, email string) {
-	authData := ""
-	ssoEmail := ""
-	provider := einterfaces.GetOauthProvider(service)
-	if provider == nil {
-		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
-			map[string]interface{}{"Service": service}, "")
-		return
-	} else {
-		ssoUser := provider.GetUserFromJson(userData)
-		authData = ssoUser.AuthData
-		ssoEmail = ssoUser.Email
-	}
-
-	if len(authData) == 0 {
-		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
-			map[string]interface{}{"Service": service}, "")
-		return
-	}
-
-	if len(email) == 0 {
-		c.Err = model.NewLocAppError("CompleteClaimWithOAuth", "api.user.complete_switch_with_oauth.blank_email.app_error", nil, "")
-		return
-	}
-
-	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		user = result.Data.(*model.User)
-	}
-
-	RevokeAllSession(c, user.Id)
-	if c.Err != nil {
-		return
-	}
-
-	if result := <-Srv.Store.User().UpdateAuthData(user.Id, service, authData, ssoEmail); result.Err != nil {
-		c.Err = result.Err
-		return
-	}
-
-	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), strings.Title(service)+" SSO")
 }
 
 func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2098,7 +1940,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	m := map[string]string{}
-	m["follow_link"] = c.GetSiteURL() + "/login?extra=signin_change"
+	m["follow_link"] = "/login?extra=signin_change"
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(m)))
@@ -2169,7 +2011,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), "LDAP")
 
 	m := map[string]string{}
-	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
+	m["follow_link"] = "/login?extra=signin_change"
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(m)))
@@ -2239,7 +2081,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	m := map[string]string{}
-	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
+	m["follow_link"] = "/login?extra=signin_change"
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(m)))

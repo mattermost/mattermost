@@ -527,9 +527,9 @@ class SecurityTab extends React.Component {
             if (global.window.mm_config.EnableSignUpWithEmail === 'true' && user.auth_service !== '') {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
-                    link = '/' + teamName + '/claim/ldap_to_email?email=' + encodeURIComponent(user.email);
+                    link = '/claim/ldap_to_email?email=' + encodeURIComponent(user.email);
                 } else {
-                    link = '/' + teamName + '/claim/oauth_to_email?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service;
+                    link = '/claim/oauth_to_email?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service;
                 }
 
                 emailOption = (
@@ -554,7 +554,7 @@ class SecurityTab extends React.Component {
                     <div>
                         <Link
                             className='btn btn-primary'
-                            to={'/' + teamName + '/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
+                            to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchGitlab'
@@ -590,7 +590,7 @@ class SecurityTab extends React.Component {
                     <div>
                         <Link
                             className='btn btn-primary'
-                            to={'/' + teamName + '/claim/email_to_ldap?email=' + encodeURIComponent(user.email)}
+                            to={'/claim/email_to_ldap?email=' + encodeURIComponent(user.email)}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchLdap'
@@ -654,6 +654,13 @@ class SecurityTab extends React.Component {
                 <FormattedMessage
                     id='user.settings.security.gitlab'
                     defaultMessage='GitLab SSO'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.ldap'
+                    defaultMessage='LDAP'
                 />
             );
         }
