@@ -402,6 +402,28 @@ func (us SqlUserStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
+func (us SqlUserStore) GetAll() StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.User
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users"); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetAll", "store.sql_user.get.app_error", nil, err.Error())
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
 func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

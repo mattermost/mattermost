@@ -673,6 +673,10 @@ func (ss SqlStore) License() LicenseStore {
 	return ss.license
 }
 
+func (ss SqlStore) DropAllTables() {
+	ss.master.TruncateTables()
+}
+
 type mattermConverter struct{}
 
 func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {

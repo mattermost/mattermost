@@ -505,13 +505,13 @@ func TestUserUnreadCount(t *testing.T) {
 	c1 := model.Channel{}
 	c1.TeamId = teamId
 	c1.DisplayName = "Unread Messages"
-	c1.Name = "unread-messages"
+	c1.Name = "unread-messages-" + model.NewId()
 	c1.Type = model.CHANNEL_OPEN
 
 	c2 := model.Channel{}
 	c2.TeamId = teamId
 	c2.DisplayName = "Unread Direct"
-	c2.Name = "unread-direct"
+	c2.Name = "unread-direct-" + model.NewId()
 	c2.Type = model.CHANNEL_DIRECT
 
 	u1 := &model.User{}

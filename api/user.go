@@ -1537,8 +1537,25 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
+	if result := <-Srv.Store.Team().RemoveAllMembersByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
 	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
 	c.LogAuditWithUserId("", fmt.Sprintf("success userId=%v", user.Id))
+
+	return nil
+}
+
+func PermanentDeleteAllUsers(c *Context) *model.AppError {
+	if result := <-Srv.Store.User().GetAll(); result.Err != nil {
+		return result.Err
+	} else {
+		users := result.Data.([]*model.User)
+		for _, user := range users {
+			PermanentDeleteUser(c, user)
+		}
+	}
 
 	return nil
 }

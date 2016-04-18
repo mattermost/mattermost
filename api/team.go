@@ -787,16 +787,11 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.User().GetForExport(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Channel().PermanentDeleteByTeam(team.Id); result.Err != nil {
 		return result.Err
-	} else {
-		users := result.Data.([]*model.User)
-		for _, user := range users {
-			PermanentDeleteUser(c, user)
-		}
 	}
 
-	if result := <-Srv.Store.Channel().PermanentDeleteByTeam(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Team().RemoveAllMembersByTeam(team.Id); result.Err != nil {
 		return result.Err
 	}
 
