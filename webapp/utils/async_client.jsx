@@ -673,8 +673,8 @@ export function getStatuses() {
     const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
     const teammateIds = [];
-    for (const name of preferences) {
-        teammateIds.push(name);
+    for (const preference of preferences) {
+        teammateIds.push(preference.name);
     }
 
     if (isCallInProgress('getStatuses') || teammateIds.length === 0) {
