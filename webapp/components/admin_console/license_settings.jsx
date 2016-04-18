@@ -153,7 +153,12 @@ class LicenseSettings extends React.Component {
             edition = (
                 <p>
                     {'Mattermost Enterprise Edition. Unlock enterprise features in this software through the purchase of a subscription from '}
-                    <a href='https://mattermost.com/'>{'https://mattermost.com/'}</a>
+                    <a
+                        target='_blank'
+                        href='https://mattermost.com/'
+                    >
+                        {'https://mattermost.com/'}
+                    </a>
                 </p>
             );
 
@@ -174,7 +179,7 @@ class LicenseSettings extends React.Component {
             licenseKey = (
                 <div className='col-sm-8'>
                     <div className='file__upload'>
-                        <button className='btn btn-default'>
+                        <button className='btn btn-primary'>
                             <FormattedMessage
                                 id='admin.license.choose'
                                 defaultMessage='Choose File'
