@@ -202,10 +202,10 @@ export default class Login extends React.Component {
         const oauthLogins = [];
         if (gitlabSigninEnabled) {
             oauthLogins.push(
-                <Link
+                <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    to={Client.getOAuthRoute() + '/gitlab/login'}
+                    href={Client.getOAuthRoute() + '/gitlab/login'}
                 >
                     <span className='icon'/>
                     <span>
@@ -214,7 +214,7 @@ export default class Login extends React.Component {
                             defaultMessage='with GitLab'
                         />
                     </span>
-                </Link>
+                </a>
             );
         }
 

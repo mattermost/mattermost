@@ -84,10 +84,9 @@ export default class OAuthToEmail extends React.Component {
                     </p>
                     <p>
                         <FormattedMessage
-                            id='claim.oauth_to_email_newPwd'
-                            defaultMessage='Enter a new password for your {team} {site} account'
+                            id='claim.oauth_to_email.enterNewPwd'
+                            defaultMessage='Enter a new password for your {site} account'
                             values={{
-                                team: this.props.teamDisplayName,
                                 site: global.window.mm_config.SiteName
                             }}
                         />
@@ -134,8 +133,6 @@ export default class OAuthToEmail extends React.Component {
 OAuthToEmail.defaultProps = {
 };
 OAuthToEmail.propTypes = {
-    teamName: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string,
     currentType: React.PropTypes.string,
     email: React.PropTypes.string
 };

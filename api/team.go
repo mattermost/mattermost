@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -26,7 +25,6 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/create_from_signup", ApiAppHandler(createTeamFromSignup)).Methods("POST")
 	BaseRoutes.Teams.Handle("/create_with_ldap", ApiAppHandler(createTeamWithLdap)).Methods("POST")
-	BaseRoutes.Teams.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
 	BaseRoutes.Teams.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
@@ -96,67 +94,6 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", " *")
 	w.Write([]byte(model.MapToJson(m)))
-}
-
-func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	service := params["service"]
-
-	sso := utils.Cfg.GetSSOService(service)
-	if sso != nil && !sso.Enable {
-		c.SetInvalidParam("createTeamFromSSO", "service")
-		return
-	}
-
-	team := model.TeamFromJson(r.Body)
-
-	if team == nil {
-		c.SetInvalidParam("createTeamFromSSO", "team")
-		return
-	}
-
-	if !isTeamCreationAllowed(c, team.Email) {
-		return
-	}
-
-	team.PreSave()
-
-	team.Name = model.CleanTeamName(team.Name)
-
-	if err := team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); err != nil {
-		c.Err = err
-		return
-	}
-
-	team.Id = ""
-
-	found := true
-	count := 0
-	for found {
-		if found = FindTeamByName(team.Name); c.Err != nil {
-			return
-		} else if found {
-			team.Name = team.Name + strconv.Itoa(count)
-			count += 1
-		}
-	}
-
-	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		rteam := result.Data.(*model.Team)
-
-		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
-			c.Err = nil
-			return
-		}
-
-		data := map[string]string{"follow_link": c.GetSiteURL() + model.API_URL_SUFFIX + "/oauth/" + service + "/signup?team=" + rteam.Name}
-		w.Write([]byte(model.MapToJson(data)))
-
-	}
-
 }
 
 func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {

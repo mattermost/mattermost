@@ -1416,14 +1416,6 @@
     "translation": "OAuth para {{.Service}} no está disponible en este servidor"
   },
   {
-    "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "El Equipo {{.DisplayName}} ya tiene un usuario con esta dirección de correo asociada a tu cuenta de {{.Service}}"
-  },
-  {
-    "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "Esta cuenta de {{.Service}} ya fue utilizada para registrarse en el equipo {{.DisplayName}}"
-  },
-  {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "No se pudo crear el usuario basandose en el objeto de {{.Service}}"
   },

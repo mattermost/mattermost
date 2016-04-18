@@ -1425,11 +1425,11 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Team {{.DisplayName}} already has a user with the email address attached to your {{.Service}} account"
+    "translation": "An existing user is already attached to your {{.Service}} account"
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "This {{.Service}} account has already been used to sign up for team {{.DisplayName}}"
+    "translation": "This {{.Service}} account has already been used to sign up"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",

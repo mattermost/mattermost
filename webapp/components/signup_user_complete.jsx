@@ -423,7 +423,7 @@ class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search}
                 >
                     <span className='icon'/>
                     <span>
