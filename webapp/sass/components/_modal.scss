@@ -464,6 +464,7 @@
         @include border-radius(60px);
         flex-grow: 0;
         flex-shrink: 0;
+	  	max-width: none;
 
         &-wrapper {
             position: relative;
