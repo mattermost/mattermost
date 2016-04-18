@@ -46,6 +46,8 @@ var flagCmdResetPassword bool
 var flagCmdResetMfa bool
 var flagCmdPermanentDeleteUser bool
 var flagCmdPermanentDeleteTeam bool
+var flagCmdPermanentDeleteAllUsers bool
+var flagCmdResetDatabase bool
 var flagConfigFile string
 var flagUsername string
 var flagEmail string
@@ -244,6 +246,8 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdResetMfa, "reset_mfa", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteUser, "permanent_delete_user", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteTeam, "permanent_delete_team", false, "")
+	flag.BoolVar(&flagCmdPermanentDeleteAllUsers, "permanent_delete_all_users", false, "")
+	flag.BoolVar(&flagCmdResetDatabase, "reset_database", false, "")
 
 	flag.Parse()
 
@@ -254,7 +258,9 @@ func parseCmds() {
 		flagCmdResetMfa ||
 		flagCmdVersion ||
 		flagCmdPermanentDeleteUser ||
-		flagCmdPermanentDeleteTeam)
+		flagCmdPermanentDeleteTeam ||
+		flagCmdPermanentDeleteAllUsers ||
+		flagCmdResetDatabase)
 }
 
 func runCmds() {
@@ -266,6 +272,8 @@ func runCmds() {
 	cmdResetMfa()
 	cmdPermDeleteUser()
 	cmdPermDeleteTeam()
+	cmdPermDeleteAllUsers()
+	cmdResetDatabase()
 }
 
 // ADDED for 3.0 REMOVE for 3.4
@@ -715,12 +723,6 @@ func cmdResetMfa() {
 
 func cmdPermDeleteUser() {
 	if flagCmdPermanentDeleteUser {
-		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
-			os.Exit(1)
-		}
-
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
 			flag.Usage()
@@ -741,6 +743,7 @@ func cmdPermDeleteUser() {
 		fmt.Print("Have you performed a database backup? (YES/NO): ")
 		fmt.Scanln(&confirmBackup)
 		if confirmBackup != "YES" {
+			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
 
@@ -748,6 +751,7 @@ func cmdPermDeleteUser() {
 		fmt.Printf("Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): ", user.Email)
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
+			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
 
@@ -755,6 +759,7 @@ func cmdPermDeleteUser() {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
+			fmt.Print("SUCCESS: User deleted.")
 			flushLogAndExit(0)
 		}
 	}
@@ -782,6 +787,7 @@ func cmdPermDeleteTeam() {
 		fmt.Print("Have you performed a database backup? (YES/NO): ")
 		fmt.Scanln(&confirmBackup)
 		if confirmBackup != "YES" {
+			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
 
@@ -789,6 +795,7 @@ func cmdPermDeleteTeam() {
 		fmt.Printf("Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): ", team.Name)
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
+			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
 
@@ -796,8 +803,63 @@ func cmdPermDeleteTeam() {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
+			fmt.Print("SUCCESS: Team deleted.")
 			flushLogAndExit(0)
 		}
+	}
+}
+
+func cmdPermDeleteAllUsers() {
+	if flagCmdPermanentDeleteAllUsers {
+		c := getMockContext()
+
+		var confirmBackup string
+		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirmBackup)
+		if confirmBackup != "YES" {
+			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
+			flushLogAndExit(1)
+		}
+
+		var confirm string
+		fmt.Printf("Are you sure you want to delete all the users?  All data will be permanently deleted? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
+			flushLogAndExit(1)
+		}
+
+		if err := api.PermanentDeleteAllUsers(c); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			fmt.Print("SUCCESS: All users deleted.")
+			flushLogAndExit(0)
+		}
+	}
+}
+
+func cmdResetDatabase() {
+	if flagCmdResetDatabase {
+		var confirmBackup string
+		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirmBackup)
+		if confirmBackup != "YES" {
+			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
+			flushLogAndExit(1)
+		}
+
+		var confirm string
+		fmt.Printf("Are you sure you want to delete everything?  ALL data will be permanently deleted? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
+			flushLogAndExit(1)
+		}
+
+		api.Srv.Store.DropAllTables()
+		fmt.Print("SUCCESS: Database reset.")
+		flushLogAndExit(0)
 	}
 }
 
@@ -872,14 +934,28 @@ COMMANDS:
         Example:
             platform -reset_mfa -username="someuser"
 
+    -reset_database                   Completely erases the database causing the loss of all data. This 
+									  will reset Mattermost to it's initial state. (note this will not 
+									  erase your configuration.)
+
+        Example:
+            platform -reset_mfa -username="someuser"
+
     -permanent_delete_user            Permanently deletes a user and all related information
+                                      including posts from the database.  It requires the 
+                                      -email flag.  You may need to restart the
+                                      server to invalidate the cache
+        Example:
+            platform -permanent_delete_user -email="user@example.com"
+
+    -permanent_delete_all_users       Permanently deletes all users and all related information
                                       including posts from the database.  It requires the 
                                       -team_name, and -email flag.  You may need to restart the
                                       server to invalidate the cache
         Example:
-            platform -permanent_delete_user -team_name="name" -email="user@example.com"
+            platform -permanent_delete_all_users -team_name="name" -email="user@example.com"
 
-    -permanent_delete_team            Permanently deletes a team and all users along with
+    -permanent_delete_team            Permanently deletes a team allong with
                                       all related information including posts from the database.
                                       It requires the -team_name flag.  You may need to restart
                                       the server to invalidate the cache.
