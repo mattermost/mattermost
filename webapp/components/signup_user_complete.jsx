@@ -150,7 +150,7 @@ class SignupUserComplete extends React.Component {
     }
 
     handleLdapSignup(method, loginId, password, token) {
-        Client.loginByLdap(this.state.teamName, loginId, password, token,
+        Client.loginByLdap(loginId, password, token,
             () => {
                 const redirect = Utils.getUrlParameter('redirect');
                 if (redirect) {
