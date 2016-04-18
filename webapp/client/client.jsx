@@ -152,7 +152,7 @@ export default class Client {
             } else {
                 msg = 'method=' + methodName + ' status=' + err.status + ' statusCode=' + err.statusCode + ' err=' + err;
 
-                if (err.status === 0) {
+                if (err.status === 0 || !err.status) {
                     e = {message: this.translations.connectionError};
                 } else {
                     e = {message: this.translations.unknownError + ' (' + err.status + ')'};

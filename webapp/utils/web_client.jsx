@@ -1,6 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import Client from '../client/client.jsx';
 import {browserHistory} from 'react-router';
 import TeamStore from '../stores/team_store.jsx';

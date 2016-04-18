@@ -1113,7 +1113,7 @@ export function fileSizeToString(bytes) {
 
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
 export function getFileUrl(filename) {
-    return getWindowLocationOrigin() + Client.getFilesRoute() + '/files/get' + filename;
+    return getWindowLocationOrigin() + Client.getFilesRoute() + '/get' + filename;
 }
 
 // Gets the name of a file (including extension) from a given url or file path.

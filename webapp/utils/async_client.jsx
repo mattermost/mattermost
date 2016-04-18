@@ -11,6 +11,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as utils from './utils.jsx';
+import ErrorStore from 'stores/error_store.jsx';
 
 import Constants from './constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -135,9 +136,13 @@ export function updateLastViewedAt(id) {
         channelId,
         () => {
             callTracker.updateLastViewed = 0;
+            ErrorStore.clearLastError();
+            ErrorStore.emitChange();
         },
         (err) => {
             callTracker.updateLastViewed = 0;
+            var count = ErrorStore.getConnectionErrorCount();
+            ErrorStore.setConnectionErrorCount(count + 1);
             dispatchError(err, 'updateLastViewedAt');
         }
     );
