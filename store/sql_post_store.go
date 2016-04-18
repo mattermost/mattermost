@@ -652,7 +652,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 						ChannelMembers
 					WHERE
 						Id = ChannelId
-							AND TeamId = :TeamId
+							AND (TeamId = :TeamId OR TeamId = '')
 							AND UserId = :UserId
 							AND DeleteAt = 0
 							CHANNEL_FILTER)

@@ -28,17 +28,6 @@ func NewSqlAuditStore(sqlStore *SqlStore) AuditStore {
 }
 
 func (s SqlAuditStore) UpgradeSchemaIfNeeded() {
-	// ADDED for 2.2 REMOVE for 2.6
-	extraLength := s.GetMaxLengthOfColumnIfExists("Audits", "ExtraInfo")
-	if len(extraLength) > 0 && extraLength != "1024" {
-		s.AlterColumnTypeIfExists("Audits", "ExtraInfo", "VARCHAR(1024)", "VARCHAR(1024)")
-	}
-
-	// ADDED for 2.2 REMOVE for 2.6
-	actionLength := s.GetMaxLengthOfColumnIfExists("Audits", "Action")
-	if len(actionLength) > 0 && actionLength != "512" {
-		s.AlterColumnTypeIfExists("Audits", "Action", "VARCHAR(512)", "VARCHAR(512)")
-	}
 }
 
 func (s SqlAuditStore) CreateIndexesIfNotExists() {

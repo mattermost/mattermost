@@ -273,9 +273,22 @@ func cmdUpdateDb30() {
 	if flagCmdUpdateDb30 {
 		api.Srv = &api.Server{}
 		api.Srv.Store = store.NewSqlStoreForUpgrade30()
+		store := api.Srv.Store.(*store.SqlStore)
 
 		l4g.Info("Attempting to run speical upgrade of the database schema to version 3.0 for user model changes")
 		time.Sleep(time.Second)
+
+		if !store.DoesColumnExist("Users", "TeamId") {
+			fmt.Println("**WARNING** the database schema appears to be upgraded to 3.0")
+			flushLogAndExit(1)
+		}
+
+		if !(store.SchemaVersion == "2.2.0" ||
+			store.SchemaVersion == "2.1.0" ||
+			store.SchemaVersion == "2.0.0") {
+			fmt.Println("**WARNING** the database schema needs to be version 2.2.0, 2.1.0 or 2.0.0 to upgrade")
+			flushLogAndExit(1)
+		}
 
 		var confirmBackup string
 		fmt.Println("\nPlease see http://docs.mattermost.com/administration/upgrade.html#upgrade-database-30")
@@ -300,7 +313,7 @@ func cmdUpdateDb30() {
 				fmt.Println(team.Name)
 			}
 
-			fmt.Print("\nPlease pick a primary team from the list above: ")
+			fmt.Print("Please pick a primary team from the list above: ")
 			fmt.Scanln(&flagTeamName)
 		}
 
@@ -325,6 +338,8 @@ func cmdUpdateDb30() {
 			uniqueUsernames[user.Username] = true
 		}
 
+		l4g.Info("Upgraded %v users", len(primaryUsers))
+
 		for _, otherTeam := range teams {
 			if otherTeam.Id != team.Id {
 				l4g.Info("Upgrading team %v", otherTeam.Name)
@@ -334,20 +349,58 @@ func cmdUpdateDb30() {
 			}
 		}
 
+		l4g.Info("Altering other scheme changes needed 3.0 for user model changes")
+
+		extraLength := store.GetMaxLengthOfColumnIfExists("Audits", "ExtraInfo")
+		if len(extraLength) > 0 && extraLength != "1024" {
+			store.AlterColumnTypeIfExists("Audits", "ExtraInfo", "VARCHAR(1024)", "VARCHAR(1024)")
+		}
+
+		actionLength := store.GetMaxLengthOfColumnIfExists("Audits", "Action")
+		if len(actionLength) > 0 && actionLength != "512" {
+			store.AlterColumnTypeIfExists("Audits", "Action", "VARCHAR(512)", "VARCHAR(512)")
+		}
+
+		if store.DoesColumnExist("Sessions", "TeamId") {
+			store.RemoveColumnIfExists("Sessions", "TeamId")
+			store.GetMaster().Exec(`TRUNCATE Sessions`)
+		}
+
+		// ADDED for 2.2 REMOVE for 2.6
+		store.CreateColumnIfNotExists("Users", "MfaActive", "tinyint(1)", "boolean", "0")
+		store.CreateColumnIfNotExists("Users", "MfaSecret", "varchar(128)", "character varying(128)", "")
+
+		// ADDED for 2.2 REMOVE for 2.6
+		if store.DoesColumnExist("Users", "TeamId") {
+			store.RemoveIndexIfExists("idx_users_team_id", "Users")
+			store.CreateUniqueIndexIfNotExists("idx_users_email_unique", "Users", "Email")
+			store.CreateUniqueIndexIfNotExists("idx_users_username_unique", "Users", "Username")
+			store.RemoveColumnIfExists("Users", "TeamId")
+		}
+
 		l4g.Info("Finished running speical upgrade of the database schema to version 3.0 for user model changes")
+
+		<-api.Srv.Store.System().Update(&model.System{Name: "Version", Value: model.CurrentVersion})
+		l4g.Warn(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
 
 		flushLogAndExit(0)
 	}
 }
 
-func convertTeamTo30(team *model.Team, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) map[string]*model.User {
+type UserForUpgrade struct {
+	Id       string
+	Username string
+	Email    string
+	Roles    string
+	TeamId   string
+}
 
-	var users map[string]*model.User
-	if result := <-api.Srv.Store.User().GetProfiles(team.Id); result.Err != nil {
-		l4g.Error("Failed to load profiles for team details=%v", result.Err)
+func convertTeamTo30(team *model.Team, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) []*UserForUpgrade {
+	store := api.Srv.Store.(*store.SqlStore)
+	var users []*UserForUpgrade
+	if _, err := store.GetMaster().Select(&users, "SELECT Users.Id, Users.Username, Users.Email, Users.Roles, Users.TeamId FROM Users WHERE Users.TeamId = :TeamId", map[string]interface{}{"TeamId": team.Id}); err != nil {
+		l4g.Error("Failed to load profiles for team details=%v", err)
 		flushLogAndExit(1)
-	} else {
-		users = result.Data.(map[string]*model.User)
 	}
 
 	var members []*model.TeamMember
@@ -369,7 +422,7 @@ func convertTeamTo30(team *model.Team, uniqueEmails map[string]bool, uniqueUsern
 			UserId: user.Id,
 		}
 
-		if user.IsInRole(model.ROLE_TEAM_ADMIN) {
+		if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) {
 			member.Roles = model.ROLE_TEAM_ADMIN
 			user.Roles = ""
 			shouldUpdateUser = true
@@ -406,8 +459,23 @@ func convertTeamTo30(team *model.Team, uniqueEmails map[string]bool, uniqueUsern
 		}
 
 		if shouldUpdateUser {
-			if result := <-api.Srv.Store.User().UpdateWithUpgrade(user, false, true); result.Err != nil {
-				l4g.Error("Failed to update user %v details=%v", user.Email, result.Err)
+			if _, err := store.GetMaster().Exec(`
+				UPDATE Users 
+				SET 
+				    Email = :Email,
+				    Username = :Username,
+				    Roles = :Roles
+				WHERE
+				    Id = :Id
+				`,
+				map[string]interface{}{
+					"Email":    user.Email,
+					"Username": user.Username,
+					"Roles":    user.Roles,
+					"Id":       user.Id,
+				},
+			); err != nil {
+				l4g.Error("Failed to update user %v details=%v", user.Email, err)
 				flushLogAndExit(1)
 			}
 

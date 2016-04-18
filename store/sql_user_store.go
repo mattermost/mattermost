@@ -49,18 +49,6 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	// ADDED for 2.0 REMOVE for 2.4
 	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
-
-	// ADDED for 2.2 REMOVE for 2.6
-	us.CreateColumnIfNotExists("Users", "MfaActive", "tinyint(1)", "boolean", "0")
-	us.CreateColumnIfNotExists("Users", "MfaSecret", "varchar(128)", "character varying(128)", "")
-
-	// ADDED for 2.2 REMOVE for 2.6
-	if us.DoesColumnExist("Users", "TeamId") {
-		us.RemoveIndexIfExists("idx_users_team_id", "Users")
-		us.RemoveColumnIfExists("Users", "TeamId")
-		us.CreateUniqueIndexIfNotExists("idx_users_email_unique", "Users", "Email")
-		us.CreateUniqueIndexIfNotExists("idx_users_username_unique", "Users", "Username")
-	}
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
@@ -108,10 +96,6 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 }
 
 func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreChannel {
-	return us.UpdateWithUpgrade(user, allowActiveUpdate, false)
-}
-
-func (us SqlUserStore) UpdateWithUpgrade(user *model.User, allowActiveUpdate bool, specialUpgradeCase bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -150,23 +134,21 @@ func (us SqlUserStore) UpdateWithUpgrade(user *model.User, allowActiveUpdate boo
 				user.DeleteAt = oldUser.DeleteAt
 			}
 
-			if !specialUpgradeCase {
-				if user.IsSSOUser() {
-					user.Email = oldUser.Email
-				} else if !user.IsLDAPUser() && user.Email != oldUser.Email {
-					user.EmailVerified = false
-				}
+			if user.IsSSOUser() {
+				user.Email = oldUser.Email
+			} else if !user.IsLDAPUser() && user.Email != oldUser.Email {
+				user.EmailVerified = false
+			}
 
-				if user.Username != oldUser.Username {
-					nonUsernameKeys := []string{}
-					splitKeys := strings.Split(user.NotifyProps["mention_keys"], ",")
-					for _, key := range splitKeys {
-						if key != oldUser.Username && key != "@"+oldUser.Username {
-							nonUsernameKeys = append(nonUsernameKeys, key)
-						}
+			if user.Username != oldUser.Username {
+				nonUsernameKeys := []string{}
+				splitKeys := strings.Split(user.NotifyProps["mention_keys"], ",")
+				for _, key := range splitKeys {
+					if key != oldUser.Username && key != "@"+oldUser.Username {
+						nonUsernameKeys = append(nonUsernameKeys, key)
 					}
-					user.NotifyProps["mention_keys"] = strings.Join(nonUsernameKeys, ",") + "," + user.Username + ",@" + user.Username
 				}
+				user.NotifyProps["mention_keys"] = strings.Join(nonUsernameKeys, ",") + "," + user.Username + ",@" + user.Username
 			}
 
 			if count, err := us.GetMaster().Update(user); err != nil {

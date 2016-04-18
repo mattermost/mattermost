@@ -35,12 +35,6 @@ func (me SqlSessionStore) UpgradeSchemaIfNeeded() {
 	if len(deviceIdLength) > 0 && deviceIdLength != "512" {
 		me.AlterColumnTypeIfExists("Sessions", "DeviceId", "VARCHAR(512)", "VARCHAR(512)")
 	}
-
-	// ADDED for 2.2 REMOVE for 2.6
-	if me.DoesColumnExist("Sessions", "TeamId") {
-		me.RemoveColumnIfExists("Sessions", "TeamId")
-		me.GetMaster().Exec(`TRUNCATE Sessions`)
-	}
 }
 
 func (me SqlSessionStore) CreateIndexesIfNotExists() {

@@ -226,6 +226,7 @@ func (me *LoadTestProvider) UsersCommand(c *Context, channelId string, message s
 	}
 
 	client := model.NewClient(c.GetSiteURL())
+	client.SetTeamId(team.Id)
 	userCreator := NewAutoUserCreator(client, team)
 	userCreator.Fuzzy = doFuzz
 	userCreator.CreateTestUsers(usersr)
@@ -255,6 +256,7 @@ func (me *LoadTestProvider) ChannelsCommand(c *Context, channelId string, messag
 	}
 
 	client := model.NewClient(c.GetSiteURL())
+	client.SetTeamId(team.Id)
 	client.MockSession(c.Session.Token)
 	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = doFuzz
@@ -297,6 +299,7 @@ func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message s
 	}
 
 	client := model.NewClient(c.GetSiteURL())
+	client.SetTeamId(c.TeamId)
 	client.MockSession(c.Session.Token)
 	testPoster := NewAutoPostCreator(client, channelId)
 	testPoster.Fuzzy = doFuzz
