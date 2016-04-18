@@ -54,7 +54,7 @@ export default class PremadeThemeChooser extends React.Component {
                 {premadeThemes}
                 <div className='col-sm-12 padding-bottom x2'>
                     <a
-                        href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-themes'
+                        href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
                         target='_blank'
                     >
                         <FormattedMessage
