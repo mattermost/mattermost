@@ -380,13 +380,15 @@ export default class Sidebar extends React.Component {
 
         var badge = null;
         if (channelMember) {
-            badge = [];
-            if (unreadCount.msgs) {
-                badge.push(<span className='badge pull-right light small'>{unreadCount.msgs}</span>);
-                this.badgesActive = true;
+            if (unreadCount.mentions || unreadCount.msgs) {
+                badge = [];
             }
             if (unreadCount.mentions) {
                 badge.push(<span className='badge pull-right small'>{unreadCount.mentions}</span>);
+                this.badgesActive = true;
+            }
+            if (unreadCount.msgs) {
+                badge.push(<span className='badge pull-right light small'>{unreadCount.msgs}</span>);
                 this.badgesActive = true;
             }
         } else if (this.state.loadingDMChannel === index && channel.type === 'D') {
@@ -481,7 +483,7 @@ export default class Sidebar extends React.Component {
                     {icon}
                     {status}
                     {channel.display_name}
-                    {badge}
+                    <span className='badge-container'>{badge}</span>
                     {closeButton}
                 </Link>
                 {tutorialTip}
