@@ -43,6 +43,7 @@ type Store interface {
 	License() LicenseStore
 	MarkSystemRanUnitTests()
 	Close()
+	DropAllTables()
 }
 
 type TeamStore interface {
@@ -62,6 +63,8 @@ type TeamStore interface {
 	GetMembers(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
+	RemoveAllMembersByTeam(teamId string) StoreChannel
+	RemoveAllMembersByUser(userId string) StoreChannel
 }
 
 type ChannelStore interface {
@@ -126,6 +129,7 @@ type UserStore interface {
 	UpdateMfaSecret(userId, secret string) StoreChannel
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
+	GetAll() StoreChannel
 	GetProfiles(teamId string) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel

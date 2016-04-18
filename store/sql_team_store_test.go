@@ -356,4 +356,50 @@ func TestTeamMembers(t *testing.T) {
 
 		}
 	}
+
+	Must(store.Team().SaveMember(m1))
+
+	if r1 := <-store.Team().RemoveAllMembersByTeam(teamId1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.([]*model.TeamMember)
+
+		if len(ms) != 0 {
+			t.Fatal()
+		}
+	}
+
+	uid := model.NewId()
+	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
+	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
+	Must(store.Team().SaveMember(m4))
+	Must(store.Team().SaveMember(m5))
+
+	if r1 := <-store.Team().GetTeamsForUser(uid); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.([]*model.TeamMember)
+
+		if len(ms) != 2 {
+			t.Fatal()
+		}
+	}
+
+	if r1 := <-store.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	if r1 := <-store.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.([]*model.TeamMember)
+
+		if len(ms) != 0 {
+			t.Fatal()
+		}
+	}
 }
