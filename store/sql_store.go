@@ -185,6 +185,7 @@ func NewSqlStoreForUpgrade30() *SqlStore {
 
 	sqlStore.team = NewSqlTeamStore(sqlStore)
 	sqlStore.user = NewSqlUserStore(sqlStore)
+	sqlStore.system = NewSqlSystemStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {

@@ -333,11 +333,6 @@ func cmdUpdateDb30() {
 		uniqueUsernames := make(map[string]bool)
 		primaryUsers := convertTeamTo30(team, uniqueEmails, uniqueUsernames)
 
-		for _, user := range primaryUsers {
-			uniqueEmails[user.Email] = true
-			uniqueUsernames[user.Username] = true
-		}
-
 		l4g.Info("Upgraded %v users", len(primaryUsers))
 
 		for _, otherTeam := range teams {
@@ -350,6 +345,18 @@ func cmdUpdateDb30() {
 		}
 
 		l4g.Info("Altering other scheme changes needed 3.0 for user model changes")
+
+		if _, err := store.GetMaster().Exec(`
+				UPDATE Channels 
+				SET 
+				    TeamId = ''
+				WHERE
+				    Type = 'D'
+				`,
+		); err != nil {
+			l4g.Error("Failed to update direct channel types details=%v", err)
+			flushLogAndExit(1)
+		}
 
 		extraLength := store.GetMaxLengthOfColumnIfExists("Audits", "ExtraInfo")
 		if len(extraLength) > 0 && extraLength != "1024" {
@@ -380,7 +387,11 @@ func cmdUpdateDb30() {
 
 		l4g.Info("Finished running speical upgrade of the database schema to version 3.0 for user model changes")
 
-		<-api.Srv.Store.System().Update(&model.System{Name: "Version", Value: model.CurrentVersion})
+		if result := <-store.System().Update(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
+			l4g.Error("Failed to update system schema version details=%v", result.Err)
+			flushLogAndExit(1)
+		}
+
 		l4g.Warn(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
 
 		flushLogAndExit(0)
@@ -481,6 +492,9 @@ func convertTeamTo30(team *model.Team, uniqueEmails map[string]bool, uniqueUsern
 
 			l4g.Info("modified user_id=%v, changed email from=%v to=%v, changed username from=%v to %v changed roles from=%v to=%v", user.Id, previousEmail, user.Email, previousUsername, user.Username, previousRole, user.Roles)
 		}
+
+		uniqueEmails[user.Email] = true
+		uniqueUsernames[user.Username] = true
 	}
 
 	return users
