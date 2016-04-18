@@ -87,7 +87,7 @@ export default class TeamSignUp extends React.Component {
                         <div>
                             <FormattedMessage
                                 id='signup_team.noTeams'
-                                defaultMessage='There are no teams include in the Team Directory and team creation has been disabled.'
+                                defaultMessage='There are no teams included in the Team Directory and team creation has been disabled.'
                             />
                         </div>
                     );
