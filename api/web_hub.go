@@ -106,6 +106,16 @@ func shouldSendEvent(webCon *WebConn, msg *model.Message) bool {
 		if msg.Action == model.ACTION_TYPING {
 			return false
 		}
+
+		// We have to make sure the user is in the channel. Otherwise system messages that
+		// post about users in channels they are not in trigger warnings.
+		if len(msg.ChannelId) > 0 {
+			allowed := webCon.HasPermissionsToChannel(msg.ChannelId)
+
+			if !allowed {
+				return false
+			}
+		}
 	} else {
 		// Don't share a user's view or preference events with other users
 		if msg.Action == model.ACTION_CHANNEL_VIEWED {
