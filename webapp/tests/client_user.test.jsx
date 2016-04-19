@@ -264,8 +264,7 @@ describe('Client.User', function() {
             TestHelper.basicClient().resetPassword(
                 user.id,
                 'new_password',
-                null,
-                null,
+                '',
                 function() {
                     throw Error('shouldnt work');
                 },

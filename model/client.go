@@ -1054,7 +1054,9 @@ func (c *Client) UpdateUserPassword(userId, currentPassword, newPassword string)
 	}
 }
 
-func (c *Client) SendPasswordReset(data map[string]string) (*Result, *AppError) {
+func (c *Client) SendPasswordReset(email string) (*Result, *AppError) {
+	data := map[string]string{}
+	data["email"] = email
 	if r, err := c.DoApiPost("/users/send_password_reset", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
@@ -1063,7 +1065,11 @@ func (c *Client) SendPasswordReset(data map[string]string) (*Result, *AppError) 
 	}
 }
 
-func (c *Client) ResetPassword(data map[string]string) (*Result, *AppError) {
+func (c *Client) ResetPassword(code, newPassword, userId string) (*Result, *AppError) {
+	data := map[string]string{}
+	data["code"] = code
+	data["new_password"] = newPassword
+	data["user_id"] = userId
 	if r, err := c.DoApiPost("/users/reset_password", MapToJson(data)); err != nil {
 		return nil, err
 	} else {

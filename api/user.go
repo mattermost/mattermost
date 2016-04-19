@@ -1582,14 +1582,15 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newProps := make(map[string]string)
-	newProps["user_id"] = user.Id
-	newProps["time"] = fmt.Sprintf("%v", model.GetMillis())
+	recovery := &model.PasswordRecovery{}
+	recovery.UserId = user.Id
 
-	data := model.MapToJson(newProps)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.PasswordResetSalt))
+	if result := <-Srv.Store.PasswordRecovery().SaveOrUpdate(recovery); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
 
-	link := fmt.Sprintf("%s/reset_password_complete?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
+	link := fmt.Sprintf("%s/reset_password_complete?code=%s", c.GetSiteURL(), url.QueryEscape(recovery.Code))
 
 	subjectPage := utils.NewHTMLTemplate("reset_subject", c.Locale)
 	subjectPage.Props["Subject"] = c.T("api.templates.reset_subject")
@@ -1621,32 +1622,41 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := props["user_id"]
-	hash := props["hash"]
-	timeStr := ""
 
-	if !c.IsSystemAdmin() {
-		if len(hash) == 0 {
-			c.SetInvalidParam("resetPassword", "hash")
+	if !c.IsSystemAdmin() || len(userId) == 0 {
+		code := props["code"]
+		if len(code) != model.PASSWORD_RECOVERY_CODE_SIZE {
+			c.SetInvalidParam("resetPassword", "code")
 			return
 		}
 
-		data := model.MapFromJson(strings.NewReader(props["data"]))
-
-		userId = data["user_id"]
-
-		timeStr = data["time"]
-		if len(timeStr) == 0 {
-			c.SetInvalidParam("resetPassword", "data:time")
+		if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
+			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
 			return
+		} else {
+			recovery := result.Data.(*model.PasswordRecovery)
+
+			if model.GetMillis()-recovery.CreateAt < model.PASSWORD_RECOVER_EXPIRY_TIME {
+				userId = recovery.UserId
+			} else {
+				c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
+				return
+			}
+
+			go func() {
+				if result := <-Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
+					l4g.Error("%v", result.Err)
+				}
+			}()
 		}
 	}
+
+	c.LogAuditWithUserId(userId, "attempt")
 
 	if len(userId) != 26 {
 		c.SetInvalidParam("resetPassword", "user_id")
 		return
 	}
-
-	c.LogAuditWithUserId(userId, "attempt")
 
 	var user *model.User
 	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
@@ -1661,19 +1671,6 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.IsSystemAdmin() {
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", props["data"], utils.Cfg.EmailSettings.PasswordResetSalt)) {
-			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, "")
-			return
-		}
-
-		t, err := strconv.ParseInt(timeStr, 10, 64)
-		if err != nil || model.GetMillis()-t > 1000*60*60 { // one hour
-			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
-			return
-		}
-	}
-
 	if result := <-Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -1683,8 +1680,9 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sendPasswordChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.user.reset_password.method"))
 
-	props["new_password"] = ""
-	w.Write([]byte(model.MapToJson(props)))
+	rdata := map[string]string{}
+	rdata["status"] = "ok"
+	w.Write([]byte(model.MapToJson(rdata)))
 }
 
 func sendPasswordChangeEmailAndForget(c *Context, email, siteURL, method string) {

@@ -41,6 +41,7 @@ type Store interface {
 	Command() CommandStore
 	Preference() PreferenceStore
 	License() LicenseStore
+	PasswordRecovery() PasswordRecoveryStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -237,4 +238,11 @@ type PreferenceStore interface {
 type LicenseStore interface {
 	Save(license *model.LicenseRecord) StoreChannel
 	Get(id string) StoreChannel
+}
+
+type PasswordRecoveryStore interface {
+	SaveOrUpdate(recovery *model.PasswordRecovery) StoreChannel
+	Delete(userId string) StoreChannel
+	Get(userId string) StoreChannel
+	GetByCode(code string) StoreChannel
 }

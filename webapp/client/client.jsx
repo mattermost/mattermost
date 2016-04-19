@@ -639,11 +639,10 @@ export default class Client {
         this.track('api', 'api_users_send_password_reset');
     }
 
-    resetPassword = (userId, newPassword, hash, dataToHash, success, error) => {
+    resetPassword = (userId, newPassword, code, success, error) => {
         var data = {};
         data.new_password = newPassword;
-        data.hash = hash;
-        data.data = dataToHash;
+        data.code = code;
         data.user_id = userId;
 
         request.
