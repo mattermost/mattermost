@@ -11,7 +11,7 @@ import * as Utils from 'utils/utils.jsx';
 import FormError from 'components/form_error.jsx';
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 
-export default class GeneratedSetting extends React.Component {
+export default class BrandImageSetting extends React.Component {
     static get propTypes() {
         return {
             disabled: React.PropTypes.bool.isRequired
