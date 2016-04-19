@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests test-client build-linux build-osx build-windows
+.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows
 
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
@@ -154,13 +154,19 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/compliance || exit 1
 endif
 
+setup-run-client-tests:
+	sed -i'.bak' 's|"EnableOpenServer": false,|"EnableOpenServer": true,|g' config/config.json
+
+cleanup-run-client-tests:
+	sed -i'.bak' 's|"EnableOpenServer": true,|"EnableOpenServer": false,|g' config/config.json
+
 run-client-tests:
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
 	sleep 10
 	@echo Running client side unit tests
 	cd $(BUILD_WEBAPP_DIR) && npm test
 
-test-client: run-server run-client-tests stop-server
+test-client: setup-run-client-tests run-server run-client-tests stop-server cleanup-run-client-tests
 
 .prebuild:
 	@echo Preparation for running go code

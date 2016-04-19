@@ -30,7 +30,7 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "EnableOpenServer": true,
+        "EnableOpenServer": false,
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
