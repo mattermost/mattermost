@@ -27,6 +27,7 @@ export default class BrandImageSetting extends React.Component {
         this.state = {
             brandImage: null,
             brandImageExists: false,
+            brandImageTimestamp: Date.now(),
             uploading: false,
             uploadCompleted: false,
             error: ''
@@ -34,7 +35,7 @@ export default class BrandImageSetting extends React.Component {
     }
 
     componentWillMount() {
-        $.get(Client.getAdminRoute() + '/get_brand_image').done(() => {
+        $.get(Client.getAdminRoute() + '/get_brand_image?t=' + this.state.brandImageTimestamp).done(() => {
             this.setState({brandImageExists: true});
         });
     }
@@ -75,6 +76,7 @@ export default class BrandImageSetting extends React.Component {
                 this.setState({
                     brandImageExists: true,
                     brandImage: null,
+                    brandImageTimestamp: Date.now(),
                     uploading: false
                 });
             },
@@ -108,7 +110,7 @@ export default class BrandImageSetting extends React.Component {
             img = (
                 <img
                     className='brand-img'
-                    src={Client.getAdminRoute() + '/get_brand_image'}
+                    src={Client.getAdminRoute() + '/get_brand_image?t=' + this.state.brandImageTimestamp}
                 />
             );
         } else {
