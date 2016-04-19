@@ -1657,31 +1657,38 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		}()
 	}
 
-	var user *model.User
-	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		user = result.Data.(*model.User)
-	}
-
-	if len(user.AuthData) != 0 {
-		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
-		return
-	}
-
-	if result := <-Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
-		c.Err = result.Err
+	if err := ResetPassword(c, userId, newPassword); err != nil {
+		c.Err = err
 		return
 	}
 
 	c.LogAuditWithUserId(userId, "success")
 
-	sendPasswordChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.user.reset_password.method"))
-
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
+	var user *model.User
+	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+		return result.Err
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if len(user.AuthData) != 0 {
+		return model.NewLocAppError("ResetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
+
+	}
+
+	if result := <-Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
+		return result.Err
+	}
+
+	sendPasswordChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.user.reset_password.method"))
+
+	return nil
 }
 
 func sendPasswordChangeEmailAndForget(c *Context, email, siteURL, method string) {

@@ -536,21 +536,8 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *model.User
-	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		user = result.Data.(*model.User)
-	}
-
-	if len(user.AuthData) != 0 {
-		c.Err = model.NewLocAppError("resetPassword", "api.admin.admin_reset_password.sso.app_error", nil, "userId="+user.Id)
-		return
-	}
-
-	if result := <-Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
-		c.Err = result.Err
+	if err := ResetPassword(c, userId, newPassword); err != nil {
+		c.Err = err
 		return
 	}
 
