@@ -259,12 +259,10 @@ describe('Client.User', function() {
     it('resetPassword', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
-            var user = TestHelper.basicUser();
 
             TestHelper.basicClient().resetPassword(
-                user.id,
-                'new_password',
                 '',
+                'new_password',
                 function() {
                     throw Error('shouldnt work');
                 },

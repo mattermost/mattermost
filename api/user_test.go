@@ -922,52 +922,19 @@ func TestResetPassword(t *testing.T) {
 		recovery = result.Data.(*model.PasswordRecovery)
 	}
 
-	if _, err := Client.ResetPassword("", "newpwd", user.Id); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := Client.ResetPassword("", "newpwd", ""); err == nil {
-		t.Fatal("Should have errored - empty user id")
-	}
-
-	if _, err := Client.ResetPassword("", "newpwd", "123"); err == nil {
-		t.Fatal("Should have errored - bad user id")
-	}
-
-	if _, err := Client.ResetPassword("", "newpwd", "12345678901234567890123456"); err == nil {
-		t.Fatal("Should have errored - bad user id")
-	}
-
-	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: "1", AuthService: "random"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	LinkUserToTeam(user2, team)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
-
-	if _, err := Client.ResetPassword("", "newpwd", user2.Id); err == nil {
-		t.Fatal("should have errored - SSO user can't reset password")
-	}
-
-	Client.Logout()
-	Client.Must(Client.LoginById(user.Id, "newpwd"))
-	Client.SetTeamId(team.Id)
-
-	if _, err := Client.ResetPassword(recovery.Code, "newpwd", ""); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := Client.ResetPassword(recovery.Code, "", ""); err == nil {
+	if _, err := Client.ResetPassword(recovery.Code, ""); err == nil {
 		t.Fatal("Should have errored - no password")
 	}
 
-	if _, err := Client.ResetPassword(recovery.Code, "newp", ""); err == nil {
+	if _, err := Client.ResetPassword(recovery.Code, "newp"); err == nil {
 		t.Fatal("Should have errored - password too short")
 	}
 
-	if _, err := Client.ResetPassword("", "newpwd", ""); err == nil {
+	if _, err := Client.ResetPassword("", "newpwd"); err == nil {
 		t.Fatal("Should have errored - no code")
 	}
 
-	if _, err := Client.ResetPassword("junk", "newpwd", ""); err == nil {
+	if _, err := Client.ResetPassword("junk", "newpwd"); err == nil {
 		t.Fatal("Should have errored - bad code")
 	}
 
@@ -975,8 +942,32 @@ func TestResetPassword(t *testing.T) {
 	for i := 0; i < model.PASSWORD_RECOVERY_CODE_SIZE; i++ {
 		code += "a"
 	}
-	if _, err := Client.ResetPassword(code, "newpwd", ""); err == nil {
+	if _, err := Client.ResetPassword(code, "newpwd"); err == nil {
 		t.Fatal("Should have errored - bad code")
+	}
+
+	if _, err := Client.ResetPassword(recovery.Code, "newpwd"); err != nil {
+		t.Fatal(err)
+	}
+
+	Client.Logout()
+	Client.Must(Client.LoginById(user.Id, "newpwd"))
+	Client.SetTeamId(team.Id)
+
+	Client.Must(Client.SendPasswordReset(user.Email))
+
+	if result := <-Srv.Store.PasswordRecovery().Get(user.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		recovery = result.Data.(*model.PasswordRecovery)
+	}
+
+	if result := <-Srv.Store.User().UpdateAuthData(user.Id, "random", "1", ""); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if _, err := Client.ResetPassword(recovery.Code, "newpwd"); err == nil {
+		t.Fatal("Should have errored - sso user")
 	}
 }
 

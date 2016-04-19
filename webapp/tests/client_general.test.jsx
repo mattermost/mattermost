@@ -210,6 +210,26 @@ describe('Client.General', function() {
         });
     });
 
+    it('Admin.adminResetPassword', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            var user = TestHelper.basicUser();
+
+            TestHelper.basicClient().resetPassword(
+                user.id,
+                'new_password',
+                function() {
+                    throw Error('shouldnt work');
+                },
+                function(err) {
+                    // this should fail since you're not a system admin
+                    assert.equal(err.id, 'api.context.invalid_param.app_error');
+                    done();
+                }
+            );
+        });
+    });
+
     it('License.getClientLicenceConfig', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getClientLicenceConfig(

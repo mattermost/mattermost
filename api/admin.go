@@ -37,6 +37,7 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/upload_brand_image", ApiAdminSystemRequired(uploadBrandImage)).Methods("POST")
 	BaseRoutes.Admin.Handle("/get_brand_image", ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
 	BaseRoutes.Admin.Handle("/reset_mfa", ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
+	BaseRoutes.Admin.Handle("/reset_password", ApiAdminSystemRequired(adminResetPassword)).Methods("POST")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -504,7 +505,7 @@ func adminResetMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := props["user_id"]
 	if len(userId) != 26 {
-		c.SetInvalidParam("resetMfa", "user_id")
+		c.SetInvalidParam("adminResetMfa", "user_id")
 		return
 	}
 
@@ -512,6 +513,48 @@ func adminResetMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	c.LogAudit("")
+
+	rdata := map[string]string{}
+	rdata["status"] = "ok"
+	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	userId := props["user_id"]
+	if len(userId) != 26 {
+		c.SetInvalidParam("adminResetPassword", "user_id")
+		return
+	}
+
+	newPassword := props["new_password"]
+	if len(newPassword) < model.MIN_PASSWORD_LENGTH {
+		c.SetInvalidParam("adminResetPassword", "new_password")
+		return
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if len(user.AuthData) != 0 {
+		c.Err = model.NewLocAppError("resetPassword", "api.admin.admin_reset_password.sso.app_error", nil, "userId="+user.Id)
+		return
+	}
+
+	if result := <-Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	c.LogAudit("")
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"

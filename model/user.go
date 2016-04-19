@@ -27,6 +27,7 @@ const (
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"
+	MIN_PASSWORD_LENGTH        = 5
 )
 
 type User struct {

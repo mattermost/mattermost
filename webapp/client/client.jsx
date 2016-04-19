@@ -389,6 +389,22 @@ export default class Client {
             end(this.handleResponse.bind(this, 'adminResetMfa', success, error));
     }
 
+    adminResetPassword = (userId, newPassword, success, error) => {
+        var data = {};
+        data.new_password = newPassword;
+        data.user_id = userId;
+
+        request.
+            post(`${this.getAdminRoute()}/reset_password`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'adminResetPassword', success, error));
+
+        this.track('api', 'api_admin_reset_password');
+    }
+
     // Team Routes Section
 
     createTeamFromSignup = (teamSignup, success, error) => {
@@ -639,11 +655,10 @@ export default class Client {
         this.track('api', 'api_users_send_password_reset');
     }
 
-    resetPassword = (userId, newPassword, code, success, error) => {
+    resetPassword = (code, newPassword, success, error) => {
         var data = {};
         data.new_password = newPassword;
         data.code = code;
-        data.user_id = userId;
 
         request.
             post(`${this.getUsersRoute()}/reset_password`).

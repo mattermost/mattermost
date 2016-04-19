@@ -40,12 +40,9 @@ class ResetPasswordModal extends React.Component {
 
         this.setState({serverError: null});
 
-        Client.resetPassword(
+        Client.adminResetPassword(
             this.props.user.id,
             password,
-            null,
-            null,
-
             () => {
                 this.props.onModalSubmit(ReactDOM.findDOMNode(this.refs.password).value);
             },

@@ -41,9 +41,8 @@ class PasswordResetForm extends React.Component {
         });
 
         Client.resetPassword(
-            null,
-            password,
             this.props.location.query.code,
+            password,
             () => {
                 this.setState({error: null});
                 browserHistory.push('/login?extra=' + Constants.PASSWORD_CHANGE);

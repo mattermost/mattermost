@@ -1616,48 +1616,41 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	newPassword := props["new_password"]
-	if len(newPassword) < 5 {
+	if len(newPassword) < model.MIN_PASSWORD_LENGTH {
 		c.SetInvalidParam("resetPassword", "new_password")
 		return
 	}
 
-	userId := props["user_id"]
-
-	c.LogAuditWithUserId(userId, "attempt")
-
-	if !c.IsSystemAdmin() || len(userId) == 0 {
-		code := props["code"]
-		if len(code) != model.PASSWORD_RECOVERY_CODE_SIZE {
-			c.SetInvalidParam("resetPassword", "code")
-			return
-		}
-
-		if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
-			c.LogAuditWithUserId(userId, "fail - bad code")
-			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
-			return
-		} else {
-			recovery := result.Data.(*model.PasswordRecovery)
-
-			if model.GetMillis()-recovery.CreateAt < model.PASSWORD_RECOVER_EXPIRY_TIME {
-				userId = recovery.UserId
-			} else {
-				c.LogAuditWithUserId(userId, "fail - link expired")
-				c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
-				return
-			}
-
-			go func() {
-				if result := <-Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
-					l4g.Error("%v", result.Err)
-				}
-			}()
-		}
+	code := props["code"]
+	if len(code) != model.PASSWORD_RECOVERY_CODE_SIZE {
+		c.SetInvalidParam("resetPassword", "code")
+		return
 	}
 
-	if len(userId) != 26 {
-		c.SetInvalidParam("resetPassword", "user_id")
+	c.LogAudit("attempt")
+
+	userId := ""
+
+	if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
+		c.LogAuditWithUserId(userId, "fail - bad code")
+		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
 		return
+	} else {
+		recovery := result.Data.(*model.PasswordRecovery)
+
+		if model.GetMillis()-recovery.CreateAt < model.PASSWORD_RECOVER_EXPIRY_TIME {
+			userId = recovery.UserId
+		} else {
+			c.LogAuditWithUserId(userId, "fail - link expired")
+			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
+			return
+		}
+
+		go func() {
+			if result := <-Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
+				l4g.Error("%v", result.Err)
+			}
+		}()
 	}
 
 	var user *model.User

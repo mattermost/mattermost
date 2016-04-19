@@ -1600,6 +1600,10 @@
     "translation": "Cannot reset password for SSO accounts"
   },
   {
+    "id": "api.admin.admin_reset_password.sso.app_error",
+    "translation": "Cannot reset password for SSO accounts"
+  },
+  {
     "id": "api.user.reset_password.wrong_team.app_error",
     "translation": "Trying to reset password for user on wrong team."
   },
