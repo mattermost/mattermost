@@ -5,6 +5,7 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import InstalledOutgoingWebhook from './installed_outgoing_webhook.jsx';
@@ -82,7 +83,7 @@ export default class InstalledOutgoingWebhooks extends React.Component {
                         defaultMessage='Add Outgoing Webhook'
                     />
                 }
-                addLink='/settings/integrations/outgoing_webhooks/add'
+                addLink={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/outgoing_webhooks/add'}
             >
                 {outgoingWebhooks}
             </InstalledIntegrations>

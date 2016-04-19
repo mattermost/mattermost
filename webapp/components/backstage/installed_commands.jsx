@@ -5,6 +5,7 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import InstalledCommand from './installed_command.jsx';
@@ -84,7 +85,7 @@ export default class InstalledCommands extends React.Component {
                         defaultMessage='Add Slash Command'
                     />
                 }
-                addLink='/settings/integrations/commands/add'
+                addLink={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands/add'}
             >
                 {commands}
             </InstalledIntegrations>

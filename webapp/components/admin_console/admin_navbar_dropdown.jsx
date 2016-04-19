@@ -56,9 +56,8 @@ export default class AdminNavbarDropdown extends React.Component {
                         role='menu'
                     >
                         <li>
-                            <a
-                                href='#'
-                                onClick={GlobalActions.emitUserLoggedOutEvent}
+                            <Link
+                                to={'/select_team'}
                             >
                                 <FormattedMessage
                                     id='admin.nav.switch'
@@ -67,15 +66,18 @@ export default class AdminNavbarDropdown extends React.Component {
                                         display_name: global.window.mm_config.SiteName
                                     }}
                                 />
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <Link to='/logout'>
+                            <a
+                                href='#'
+                                onClick={GlobalActions.emitUserLoggedOutEvent}
+                            >
                                 <FormattedMessage
                                     id='admin.nav.logout'
                                     defaultMessage='Logout'
                                 />
-                            </Link>
+                            </a>
                         </li>
                     </ul>
                 </li>

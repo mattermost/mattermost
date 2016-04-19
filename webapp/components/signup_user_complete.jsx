@@ -124,6 +124,7 @@ class SignupUserComplete extends React.Component {
             openServer = true;
             loading = false;
         } else {
+            loading = false;
             this.setState({
                 noOpenServerError: true,
                 serverError:

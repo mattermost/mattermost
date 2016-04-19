@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import * as Utils from 'utils/utils.jsx';
 import BackstageCategory from './backstage_category.jsx';
 import BackstageSection from './backstage_section.jsx';
 import {FormattedMessage} from 'react-intl';
@@ -14,7 +15,7 @@ export default class BackstageSidebar extends React.Component {
                 <ul>
                     <BackstageCategory
                         name='integrations'
-                        parentLink={'/settings'}
+                        parentLink={'/' + Utils.getTeamNameFromUrl() + '/settings'}
                         icon='fa-link'
                         title={
                             <FormattedMessage

@@ -137,7 +137,20 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !*utils.Cfg.TeamSettings.EnableOpenServer && len(teamId) == 0 {
+	firstAccount := false
+	if sessionCache.Len() == 0 {
+		if cr := <-Srv.Store.User().GetTotalUsersCount(); cr.Err != nil {
+			c.Err = cr.Err
+			return
+		} else {
+			count := cr.Data.(int64)
+			if count <= 0 {
+				firstAccount = true
+			}
+		}
+	}
+
+	if !firstAccount && !*utils.Cfg.TeamSettings.EnableOpenServer && len(teamId) == 0 {
 		c.Err = model.NewLocAppError("createUser", "api.user.create_user.no_open_server", nil, "email="+user.Email)
 		return
 	}
