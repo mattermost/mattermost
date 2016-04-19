@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import * as Client from '../../utils/client.jsx';
+import * as Client from '../../utils/web_client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 

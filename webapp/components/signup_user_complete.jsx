@@ -574,7 +574,7 @@ class SignupUserComplete extends React.Component {
         let terms = (
             <p>
                 <FormattedHTMLMessage
-                    id='team_signup_password.agreement'
+                    id='create_team.agreement'
                     defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
                     values={{
                         siteName: global.window.mm_config.SiteName

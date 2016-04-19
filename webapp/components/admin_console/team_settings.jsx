@@ -104,7 +104,6 @@ class TeamSettings extends React.Component {
         config.TeamSettings.EnableUserCreation = this.refs.EnableUserCreation.checked;
         config.TeamSettings.EnableOpenServer = this.refs.EnableOpenServer.checked;
         config.TeamSettings.RestrictTeamNames = this.refs.RestrictTeamNames.checked;
-        config.TeamSettings.EnableTeamListing = this.refs.EnableTeamListing.checked;
 
         if (this.refs.EnableCustomBrand) {
             config.TeamSettings.EnableCustomBrand = this.refs.EnableCustomBrand.checked;
@@ -656,53 +655,6 @@ class TeamSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.team.restrictNameDesc'
                                     defaultMessage='When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='EnableTeamListing'
-                        >
-                            <FormattedMessage
-                                id='admin.team.dirTitle'
-                                defaultMessage='Enable Team Directory: '
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='EnableTeamListing'
-                                    value='true'
-                                    ref='EnableTeamListing'
-                                    defaultChecked={this.props.config.TeamSettings.EnableTeamListing}
-                                    onChange={this.handleChange}
-                                />
-                                    <FormattedMessage
-                                        id='admin.team.true'
-                                        defaultMessage='true'
-                                    />
-                            </label>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='EnableTeamListing'
-                                    value='false'
-                                    defaultChecked={!this.props.config.TeamSettings.EnableTeamListing}
-                                    onChange={this.handleChange}
-                                />
-                                    <FormattedMessage
-                                        id='admin.team.false'
-                                        defaultMessage='false'
-                                    />
-                            </label>
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.team.dirDesc'
-                                    defaultMessage='When true, teams that are configured to show in team directory will show on main page inplace of creating a new team.'
                                 />
                             </p>
                         </div>

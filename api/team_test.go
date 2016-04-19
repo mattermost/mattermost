@@ -226,7 +226,7 @@ func TestGetAllTeams(t *testing.T) {
 	th.BasicClient.Logout()
 	Client := th.BasicClient
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN, AllowTeamListing: true}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
@@ -236,12 +236,6 @@ func TestGetAllTeams(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 	Client.SetTeamId(team.Id)
-
-	enableTeamListing := *utils.Cfg.TeamSettings.EnableTeamListing
-	defer func() {
-		*utils.Cfg.TeamSettings.EnableTeamListing = enableTeamListing
-	}()
-	*utils.Cfg.TeamSettings.EnableTeamListing = true
 
 	if r1, err := Client.GetAllTeams(); err != nil {
 		t.Fatal(err)
@@ -291,12 +285,6 @@ func TestGetAllTeamListings(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 	Client.SetTeamId(team.Id)
-
-	enableTeamListing := *utils.Cfg.TeamSettings.EnableTeamListing
-	defer func() {
-		*utils.Cfg.TeamSettings.EnableTeamListing = enableTeamListing
-	}()
-	*utils.Cfg.TeamSettings.EnableTeamListing = true
 
 	if r1, err := Client.GetAllTeamListings(); err != nil {
 		t.Fatal(err)

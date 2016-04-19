@@ -158,7 +158,6 @@ type TeamSettings struct {
 	EnableOpenServer          *bool
 	RestrictCreationToDomains string
 	RestrictTeamNames         *bool
-	EnableTeamListing         *bool
 	EnableCustomBrand         *bool
 	CustomBrandText           *string
 }
@@ -297,11 +296,6 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictTeamNames == nil {
 		o.TeamSettings.RestrictTeamNames = new(bool)
 		*o.TeamSettings.RestrictTeamNames = true
-	}
-
-	if o.TeamSettings.EnableTeamListing == nil {
-		o.TeamSettings.EnableTeamListing = new(bool)
-		*o.TeamSettings.EnableTeamListing = false
 	}
 
 	if o.TeamSettings.EnableCustomBrand == nil {

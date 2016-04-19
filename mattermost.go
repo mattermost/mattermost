@@ -390,6 +390,7 @@ func cmdUpdateDb30() {
 			store.RemoveIndexIfExists("idx_users_team_id", "Users")
 			store.CreateUniqueIndexIfNotExists("idx_users_email_unique", "Users", "Email")
 			store.CreateUniqueIndexIfNotExists("idx_users_username_unique", "Users", "Username")
+			store.RemoveColumnIfExists("Teams", "AllowTeamListing")
 			store.RemoveColumnIfExists("Users", "TeamId")
 		}
 

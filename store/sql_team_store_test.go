@@ -217,7 +217,7 @@ func TestAllTeamListing(t *testing.T) {
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1.AllowTeamListing = true
+	o1.AllowOpenInvite = true
 	Must(store.Team().Save(&o1))
 
 	o2 := model.Team{}
@@ -246,7 +246,7 @@ func TestDelete(t *testing.T) {
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1.AllowTeamListing = true
+	o1.AllowOpenInvite = true
 	Must(store.Team().Save(&o1))
 
 	o2 := model.Team{}
@@ -269,7 +269,7 @@ func TestTeamCount(t *testing.T) {
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1.AllowTeamListing = true
+	o1.AllowOpenInvite = true
 	Must(store.Team().Save(&o1))
 
 	if r1 := <-store.Team().AnalyticsTeamCount(); r1.Err != nil {

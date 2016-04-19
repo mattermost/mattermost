@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -24,7 +23,6 @@ func InitTeam() {
 
 	BaseRoutes.Teams.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/create_from_signup", ApiAppHandler(createTeamFromSignup)).Methods("POST")
-	BaseRoutes.Teams.Handle("/create_with_ldap", ApiAppHandler(createTeamWithLdap)).Methods("POST")
 	BaseRoutes.Teams.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
@@ -176,78 +174,6 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		JoinUserToTeam(rteam, ruser)
 
 		InviteMembers(c, rteam, ruser, teamSignup.Invites)
-
-		teamSignup.Team = *rteam
-		teamSignup.User = *ruser
-
-		w.Write([]byte(teamSignup.ToJson()))
-	}
-}
-
-func createTeamWithLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	ldap := einterfaces.GetLdapInterface()
-	if ldap == nil {
-		c.Err = model.NewLocAppError("createTeamWithLdap", "ent.ldap.do_login.licence_disable.app_error", nil, "")
-		return
-	}
-
-	teamSignup := model.TeamSignupFromJson(r.Body)
-
-	if teamSignup == nil {
-		c.SetInvalidParam("createTeam", "teamSignup")
-		return
-	}
-
-	teamSignup.Team.PreSave()
-
-	if err := teamSignup.Team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); err != nil {
-		c.Err = err
-		return
-	}
-
-	if !isTeamCreationAllowed(c, teamSignup.Team.Email) {
-		return
-	}
-
-	teamSignup.Team.Id = ""
-
-	found := FindTeamByName(teamSignup.Team.Name)
-
-	if found {
-		c.Err = model.NewLocAppError("createTeamFromSignup", "api.team.create_team_from_signup.unavailable.app_error", nil, "d="+teamSignup.Team.Name)
-		return
-	}
-
-	user, err := ldap.GetUser(teamSignup.User.Username)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	err = ldap.CheckPassword(teamSignup.User.Username, teamSignup.User.Password)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if result := <-Srv.Store.Team().Save(&teamSignup.Team); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		rteam := result.Data.(*model.Team)
-
-		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
-			c.Err = nil
-			return
-		}
-
-		ruser, err := CreateUser(user)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		JoinUserToTeam(rteam, ruser)
 
 		teamSignup.Team = *rteam
 		teamSignup.User = *ruser
@@ -699,7 +625,6 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	oldTeam.DisplayName = team.DisplayName
 	oldTeam.InviteId = team.InviteId
 	oldTeam.AllowOpenInvite = team.AllowOpenInvite
-	oldTeam.AllowTeamListing = team.AllowTeamListing
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
 	//oldTeam.Type = team.Type

@@ -398,26 +398,6 @@ export default class Client {
             end(this.handleResponse.bind(this, 'createTeamFromSignup', success, error));
     }
 
-    createTeamWithLdap = (teamSignup, success, error) => {
-        request.
-            post(`${this.getTeamsRoute()}/create_with_ldap`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            send(teamSignup).
-            end(this.handleResponse.bind(this, 'createTeamWithLdap', success, error));
-    }
-
-    createTeamWithSSO = (team, service, success, error) => {
-        request.
-            post(`${this.getTeamsRoute()}/create_with_ldap/${service}`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            send(team).
-            end(this.handleResponse.bind(this, 'createTeamWithSSO', success, error));
-    }
-
     findTeamByName = (teamName, success, error) => {
         request.
             post(`${this.getTeamsRoute()}/find_team_by_name`).

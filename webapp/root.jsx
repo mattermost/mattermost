@@ -13,7 +13,7 @@ import ReactDOM from 'react-dom';
 import {Router, Route, IndexRoute, Redirect, browserHistory} from 'react-router';
 import Root from 'components/root.jsx';
 import LoggedIn from 'components/logged_in.jsx';
-import NotLoggedIn from 'components/not_logged_in.jsx';
+import HeaderFooterTemplate from 'components/header_footer_template.jsx';
 import NeedsTeam from 'components/needs_team.jsx';
 import PasswordResetSendLink from 'components/password_reset_send_link.jsx';
 import PasswordResetForm from 'components/password_reset_form.jsx';
@@ -30,7 +30,6 @@ import Client from 'utils/web_client.jsx';
 
 import * as Websockets from 'action_creators/websocket_actions.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-import SignupTeamConfirm from 'components/signup_team_confirm.jsx';
 import SignupUserComplete from 'components/signup_user_complete.jsx';
 import ShouldVerifyEmail from 'components/should_verify_email.jsx';
 import DoVerifyEmail from 'components/do_verify_email.jsx';
@@ -226,7 +225,7 @@ function renderRootComponent() {
                     path='error'
                     component={ErrorPage}
                 />
-                <Route component={NotLoggedIn}>
+                <Route component={HeaderFooterTemplate}>
                     <Route
                         path='login'
                         component={Login}
@@ -265,10 +264,6 @@ function renderRootComponent() {
                         component={SignupUserComplete}
                     />
                     <Route
-                        path='signup_team_confirm'
-                        component={SignupTeamConfirm}
-                    />
-                    <Route
                         path='should_verify_email'
                         component={ShouldVerifyEmail}
                     />
@@ -281,7 +276,7 @@ function renderRootComponent() {
                     component={LoggedIn}
                     onEnter={preLoggedIn}
                 >
-                    <Route component={NotLoggedIn}>
+                    <Route component={HeaderFooterTemplate}>
                         <Route
                             path='select_team'
                             component={SelectTeam}

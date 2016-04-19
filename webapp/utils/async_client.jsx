@@ -56,10 +56,6 @@ export function getChannels(checkVersion) {
         (data) => {
             callTracker.getChannels = 0;
 
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             if (checkVersion) {
                 var serverVersion = client.getServerVersion();
 
@@ -97,10 +93,6 @@ export function getChannel(id) {
     client.getChannel(id,
         (data) => {
             callTracker['getChannel' + id] = 0;
-
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CHANNEL,
@@ -159,10 +151,6 @@ export function getMoreChannels(force) {
             function getMoreChannelsSuccess(data) {
                 callTracker.getMoreChannels = 0;
 
-                // if (xhr.status === 304 || !data) {
-                //     return;
-                // }
-
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_MORE_CHANNELS,
                     channels: data.channels,
@@ -198,10 +186,6 @@ export function getChannelExtraInfo(id, memberLimit) {
             (data) => {
                 callTracker['getChannelExtraInfo_' + channelId] = 0;
 
-                // if (xhr.status === 304 || !data) {
-                //     return;
-                // }
-
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_CHANNEL_EXTRA_INFO,
                     extra_info: data
@@ -224,10 +208,6 @@ export function getProfiles() {
     client.getProfiles(
         function getProfilesSuccess(data) {
             callTracker.getProfiles = 0;
-
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PROFILES,
@@ -252,10 +232,6 @@ export function getSessions() {
         function getSessionsSuccess(data) {
             callTracker.getSessions = 0;
 
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SESSIONS,
                 sessions: data
@@ -279,10 +255,6 @@ export function getAudits() {
         function getAuditsSuccess(data) {
             callTracker.getAudits = 0;
 
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_AUDITS,
                 audits: data
@@ -304,10 +276,6 @@ export function getLogs() {
     client.getLogs(
         (data) => {
             callTracker.getLogs = 0;
-
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_LOGS,
@@ -331,10 +299,6 @@ export function getServerAudits() {
         (data) => {
             callTracker.getServerAudits = 0;
 
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SERVER_AUDITS,
                 audits: data
@@ -356,10 +320,6 @@ export function getComplianceReports() {
     client.getComplianceReports(
         (data) => {
             callTracker.getComplianceReports = 0;
-
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SERVER_COMPLIANCE_REPORTS,
@@ -383,10 +343,6 @@ export function getConfig() {
         (data) => {
             callTracker.getConfig = 0;
 
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_CONFIG,
                 config: data
@@ -408,10 +364,6 @@ export function getAllTeams() {
     client.getAllTeams(
         (data) => {
             callTracker.getAllTeams = 0;
-
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_ALL_TEAMS,
@@ -457,10 +409,6 @@ export function search(terms) {
         terms,
         function searchSuccess(data) {
             callTracker['search_' + String(terms)] = 0;
-
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH,
@@ -510,10 +458,6 @@ export function getPostsPage(id, maxPosts) {
             0,
             numPosts,
             (data) => {
-                // if (xhr.status === 304 || !data) {
-                //     return;
-                // }
-
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_POSTS,
                     id: channelId,
@@ -567,10 +511,6 @@ export function getPosts(id) {
         channelId,
         latestPostTime,
         (data) => {
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_POSTS,
                 id: channelId,
@@ -606,10 +546,6 @@ export function getPostsBefore(postId, offset, numPost) {
         offset,
         numPost,
         (data) => {
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_POSTS,
                 id: channelId,
@@ -645,10 +581,6 @@ export function getPostsAfter(postId, offset, numPost) {
         offset,
         numPost,
         (data) => {
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_POSTS,
                 id: channelId,
@@ -677,10 +609,6 @@ export function getMe() {
     return client.getMe(
         (data) => {
             callTracker.getMe = 0;
-
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_ME,
@@ -715,10 +643,6 @@ export function getStatuses() {
         (data) => {
             callTracker.getStatuses = 0;
 
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_STATUSES,
                 statuses: data
@@ -741,10 +665,6 @@ export function getMyTeam() {
         function getMyTeamSuccess(data) {
             callTracker.getMyTeam = 0;
 
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_MY_TEAM,
                 team: data
@@ -766,10 +686,6 @@ export function getAllPreferences() {
     client.getAllPreferences(
         (data) => {
             callTracker.getAllPreferences = 0;
-
-            // if (xhr.status === 304 || !data) {
-                // return;
-            // }
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PREFERENCES,
@@ -798,13 +714,6 @@ export function savePreferences(preferences, success, error) {
     client.savePreferences(
         preferences,
         (data) => {
-            // if (xhr.status !== 304) {
-            //     AppDispatcher.handleServerAction({
-            //         type: ActionTypes.RECEIVED_PREFERENCES,
-            //         preferences
-            //     });
-            // }
-
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_PREFERENCES,
                 preferences
