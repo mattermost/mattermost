@@ -5,6 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
 import Constants from 'utils/constants.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -55,8 +56,9 @@ export default class AdminNavbarDropdown extends React.Component {
                         role='menu'
                     >
                         <li>
-                            <Link
-                                to={'/select_team'}
+                            <a
+                                href='#'
+                                onClick={GlobalActions.emitUserLoggedOutEvent}
                             >
                                 <FormattedMessage
                                     id='admin.nav.switch'
@@ -65,7 +67,7 @@ export default class AdminNavbarDropdown extends React.Component {
                                         display_name: global.window.mm_config.SiteName
                                     }}
                                 />
-                            </Link>
+                            </a>
                         </li>
                         <li>
                             <Link to='/logout'>

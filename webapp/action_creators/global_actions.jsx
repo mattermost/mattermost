@@ -5,6 +5,10 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
+import ErrorStore from 'stores/error_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -384,4 +388,22 @@ export function emitRemoteUserTypingEvent(channelId, userId, postParentId) {
         userId,
         postParentId
     });
+}
+
+export function emitUserLoggedOutEvent(redirectTo) {
+    const rURL = (redirectTo && typeof redirectTo === 'string') ? redirectTo : '/';
+    Client.logout(
+        () => {
+            BrowserStore.signalLogout();
+            BrowserStore.clear();
+            ErrorStore.clearLastError();
+            PreferenceStore.clear();
+            UserStore.clear();
+            TeamStore.clear();
+            browserHistory.push(rURL);
+        },
+        () => {
+            browserHistory.push(rURL);
+        }
+    );
 }

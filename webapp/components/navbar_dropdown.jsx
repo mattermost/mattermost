@@ -289,12 +289,15 @@ export default class NavbarDropdown extends React.Component {
                         {inviteLink}
                         {teamLink}
                         <li>
-                            <Link to='/logout'>
+                            <a
+                                href='#'
+                                onClick={GlobalActions.emitUserLoggedOutEvent}
+                            >
                                 <FormattedMessage
                                     id='navbar_dropdown.logout'
                                     defaultMessage='Logout'
                                 />
-                            </Link>
+                            </a>
                         </li>
                         {adminDivider}
                         {teamSettings}

@@ -2,9 +2,9 @@
 // See License.txt for license information.
 
 import Client from '../client/client.jsx';
-import {browserHistory} from 'react-router';
 import TeamStore from '../stores/team_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 const HTTP_UNAUTHORIZED = 401;
 
@@ -33,8 +33,7 @@ class WebClientClass extends Client {
 
     handleError = (err, res) => { // eslint-disable-line no-unused-vars
         if (err.status === HTTP_UNAUTHORIZED) {
-            const team = window.location.pathname.split('/')[1];
-            browserHistory.push('/' + team + '/login?extra=expired');
+            GlobalActions.emitUserLoggedOutEvent('/login');
         }
     }
 

@@ -21,12 +21,9 @@ import ChannelView from 'components/channel_view.jsx';
 import PermalinkView from 'components/permalink_view.jsx';
 import Sidebar from 'components/sidebar.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import Client from 'utils/web_client.jsx';
@@ -215,23 +212,6 @@ function doChannelChange(state) {
     GlobalActions.emitChannelClickEvent(channel);
 }
 
-function onLoggedOut() {
-    Client.logout(
-        () => {
-            BrowserStore.signalLogout();
-            BrowserStore.clear();
-            ErrorStore.clearLastError();
-            PreferenceStore.clear();
-            UserStore.clear();
-            TeamStore.clear();
-            browserHistory.push('/');
-        },
-        () => {
-            browserHistory.push('/');
-        }
-    );
-}
-
 function renderRootComponent() {
     ReactDOM.render((
         <Router
@@ -246,10 +226,6 @@ function renderRootComponent() {
                     component={ErrorPage}
                 />
                 <Route component={NotLoggedIn}>
-                    <Route
-                        path='logout'
-                        onEnter={onLoggedOut}
-                    />
                     <Route
                         path='login'
                         component={Login}
