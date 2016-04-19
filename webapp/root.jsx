@@ -189,17 +189,17 @@ function onPermalinkEnter(nextState) {
     GlobalActions.emitPostFocusEvent(postId);
 }
 
-function onChannelEnter(nextState) {
-    doChannelChange(nextState);
+function onChannelEnter(nextState, replace) {
+    doChannelChange(nextState, replace);
 }
 
-function onChannelChange(prevState, nextState) {
+function onChannelChange(prevState, nextState, replace) {
     if (prevState.params.channel !== nextState.params.channel) {
-        doChannelChange(nextState);
+        doChannelChange(nextState, replace);
     }
 }
 
-function doChannelChange(state) {
+function doChannelChange(state, replace) {
     let channel;
     if (state.location.query.fakechannel) {
         channel = JSON.parse(state.location.query.fakechannel);
@@ -209,7 +209,8 @@ function doChannelChange(state) {
             channel = ChannelStore.getMoreByName(state.params.channel);
         }
         if (!channel) {
-            console.error('Unable to get channel to change to.'); //eslint-disable-line no-console
+            replace('/');
+            return;
         }
     }
     GlobalActions.emitChannelClickEvent(channel);
