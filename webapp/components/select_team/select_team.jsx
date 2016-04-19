@@ -8,6 +8,7 @@ import ErrorBar from 'components/error_bar.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
@@ -219,12 +220,15 @@ export default class Login extends React.Component {
             <div>
                 <ErrorBar/>
                 <div className='signup-header'>
-                    <Link to='/logout'>
+                    <a
+                        href='#'
+                        onClick={GlobalActions.emitUserLoggedOutEvent}
+                    >
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='navbar_dropdown.logout'
                         />
-                    </Link>
+                    </a>
                 </div>
                 <div className='col-sm-12'>
                     <div className={'signup-team__container ' + customClass}>

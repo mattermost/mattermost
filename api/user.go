@@ -44,7 +44,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/send_password_reset", ApiAppHandler(sendPasswordReset)).Methods("POST")
 	BaseRoutes.Users.Handle("/reset_password", ApiAppHandler(resetPassword)).Methods("POST")
 	BaseRoutes.Users.Handle("/login", ApiAppHandler(login)).Methods("POST")
-	BaseRoutes.Users.Handle("/logout", ApiUserRequired(logout)).Methods("POST")
+	BaseRoutes.Users.Handle("/logout", ApiAppHandler(logout)).Methods("POST")
 	BaseRoutes.Users.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	BaseRoutes.Users.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
 	BaseRoutes.Users.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
@@ -419,7 +419,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(props["password"]) == 0 {
 		c.Err = model.NewLocAppError("login", "api.user.login.blank_pwd.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
@@ -432,7 +432,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = LoginByUsername(c, w, r, props["username"], props["name"], props["password"], props["token"], props["device_id"])
 	} else {
 		c.Err = model.NewLocAppError("login", "api.user.login.not_provided.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
@@ -453,7 +453,7 @@ func doUserPasswordAuthenticationAndLogin(c *Context, w http.ResponseWriter, r *
 	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail")
 		c.Err = err
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusUnauthorized
 		return false
 	} else {
 		Login(c, w, r, user, deviceId)
@@ -486,7 +486,7 @@ func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, passw
 func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, mfaToken, deviceId string) *model.User {
 	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.Err = result.Err
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusUnauthorized
 		return nil
 	} else {
 		user := result.Data.(*model.User)
@@ -508,7 +508,7 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, username, name, password, mfaToken, deviceId string) *model.User {
 	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
 		c.Err = result.Err
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusUnauthorized
 		return nil
 	} else {
 		user := result.Data.(*model.User)
@@ -576,13 +576,13 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(password) == 0 {
 		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.blank_pwd.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	if len(id) == 0 {
 		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.need_id.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
@@ -603,7 +603,7 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("fail")
 		}
 		c.Err = err
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusUnauthorized
 		return
 	}
 	c.LogAuditWithUserId(user.Id, "attempt")
@@ -611,7 +611,7 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err = checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail")
 		c.Err = err
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusUnauthorized
 		return
 	}
 
@@ -642,7 +642,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		// A special case where we logout of all other sessions with the same Id
 		if result := <-Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
 			c.Err = result.Err
-			c.Err.StatusCode = http.StatusForbidden
+			c.Err.StatusCode = http.StatusInternalServerError
 			return
 		} else {
 			sessions := result.Data.([]*model.Session)
@@ -688,7 +688,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 
 	if result := <-Srv.Store.Session().Save(session); result.Err != nil {
 		c.Err = result.Err
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusInternalServerError
 		return
 	} else {
 		session = result.Data.(*model.Session)
@@ -736,7 +736,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	// A special case where we logout of all other sessions with the same Id
 	if result := <-Srv.Store.Session().GetSessions(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusInternalServerError
 		return
 	} else {
 		sessions := result.Data.([]*model.Session)
@@ -838,9 +838,11 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 	c.RemoveSessionCookie(w, r)
-	if result := <-Srv.Store.Session().Remove(c.Session.Id); result.Err != nil {
-		c.Err = result.Err
-		return
+	if c.Session.Id != "" {
+		if result := <-Srv.Store.Session().Remove(c.Session.Id); result.Err != nil {
+			c.Err = result.Err
+			return
+		}
 	}
 }
 
@@ -1316,7 +1318,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user.AuthData != "" {
 		c.LogAudit("failed - tried to update user password who was logged in through oauth")
 		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService)
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
@@ -1328,7 +1330,6 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if uresult := <-Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(newPassword)); uresult.Err != nil {
 		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.failed.app_error", nil, uresult.Err.Error())
-		c.Err.StatusCode = http.StatusForbidden
 		return
 	} else {
 		c.LogAudit("completed")
@@ -2149,7 +2150,7 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.Err = model.NewLocAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "")
-	c.Err.StatusCode = http.StatusForbidden
+	c.Err.StatusCode = http.StatusBadRequest
 }
 
 func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {

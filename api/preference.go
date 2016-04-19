@@ -43,7 +43,7 @@ func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewLocAppError("savePreferences", "api.preference.save_preferences.set.app_error", nil,
 				c.T("api.preference.save_preferences.set_details.app_error",
 					map[string]interface{}{"SessionUserId": c.Session.UserId, "PreferenceUserId": preference.UserId}))
-			c.Err.StatusCode = http.StatusUnauthorized
+			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
 	}

@@ -213,7 +213,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		if oldChannel.Name == model.DEFAULT_CHANNEL {
 			if (len(channel.Name) > 0 && channel.Name != oldChannel.Name) || (len(channel.Type) > 0 && channel.Type != oldChannel.Type) {
 				c.Err = model.NewLocAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "")
-				c.Err.StatusCode = http.StatusForbidden
+				c.Err.StatusCode = http.StatusBadRequest
 				return
 			}
 		}
@@ -560,13 +560,13 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if channel.Type == model.CHANNEL_DIRECT {
 			c.Err = model.NewLocAppError("leave", "api.channel.leave.direct.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
+			c.Err.StatusCode = http.StatusBadRequest
 			return
 		}
 
 		if channel.Name == model.DEFAULT_CHANNEL {
 			c.Err = model.NewLocAppError("leave", "api.channel.leave.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "")
-			c.Err.StatusCode = http.StatusForbidden
+			c.Err.StatusCode = http.StatusBadRequest
 			return
 		}
 
@@ -636,7 +636,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if channel.Name == model.DEFAULT_CHANNEL {
 			c.Err = model.NewLocAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "")
-			c.Err.StatusCode = http.StatusForbidden
+			c.Err.StatusCode = http.StatusBadRequest
 			return
 		}
 
