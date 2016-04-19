@@ -276,6 +276,11 @@ func runCmds() {
 	cmdResetDatabase()
 }
 
+type TeamForUpgrade struct {
+	Id   string
+	Name string
+}
+
 // ADDED for 3.0 REMOVE for 3.4
 func cmdUpdateDb30() {
 	if flagCmdUpdateDb30 {
@@ -304,33 +309,38 @@ func cmdUpdateDb30() {
 		fmt.Print("Have you performed a database backup? (YES/NO): ")
 		fmt.Scanln(&confirmBackup)
 		if confirmBackup != "YES" {
-			fmt.Fprintln(os.Stderr, "you must answer 'YES' to continue")
+			fmt.Fprintln(os.Stderr, "ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
 
 		var flagTeamName string
-		var teams []*model.Team
-		if result := <-api.Srv.Store.Team().GetAll(); result.Err != nil {
-			l4g.Error("Failed to load teams details=%v", result.Err)
+		var teams []*TeamForUpgrade
+
+		if _, err := store.GetMaster().Select(&teams, "SELECT Id, Name FROM Teams"); err != nil {
+			l4g.Error("Failed to load all teams details=%v", err)
 			flushLogAndExit(1)
-		} else {
-			teams = result.Data.([]*model.Team)
-			fmt.Println(fmt.Sprintf("We found %v teams.", len(teams)))
-
-			for _, team := range teams {
-				fmt.Println(team.Name)
-			}
-
-			fmt.Print("Please pick a primary team from the list above: ")
-			fmt.Scanln(&flagTeamName)
 		}
 
-		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
-			l4g.Error("Failed to find primary team details=%v", result.Err)
+		fmt.Println(fmt.Sprintf("We found %v teams.", len(teams)))
+
+		for _, team := range teams {
+			fmt.Println(team.Name)
+		}
+
+		fmt.Print("Please pick a primary team from the list above: ")
+		fmt.Scanln(&flagTeamName)
+
+		var team *TeamForUpgrade
+		for _, t := range teams {
+			if t.Name == flagTeamName {
+				team = t
+				break
+			}
+		}
+
+		if team == nil {
+			l4g.Error("Failed to find primary team details")
 			flushLogAndExit(1)
-		} else {
-			team = result.Data.(*model.Team)
 		}
 
 		l4g.Info("Starting speical 3.0 database upgrade with performed_backup=YES team_name=%v", team.Name)
@@ -401,7 +411,8 @@ func cmdUpdateDb30() {
 			flushLogAndExit(1)
 		}
 
-		l4g.Warn(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
+		l4g.Info(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
+		fmt.Println("**SUCCESS** with upgrade")
 
 		flushLogAndExit(0)
 	}
@@ -415,7 +426,7 @@ type UserForUpgrade struct {
 	TeamId   string
 }
 
-func convertTeamTo30(team *model.Team, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) []*UserForUpgrade {
+func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) []*UserForUpgrade {
 	store := api.Srv.Store.(*store.SqlStore)
 	var users []*UserForUpgrade
 	if _, err := store.GetMaster().Select(&users, "SELECT Users.Id, Users.Username, Users.Email, Users.Roles, Users.TeamId FROM Users WHERE Users.TeamId = :TeamId", map[string]interface{}{"TeamId": team.Id}); err != nil {
