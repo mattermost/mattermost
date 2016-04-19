@@ -1623,6 +1623,8 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := props["user_id"]
 
+	c.LogAuditWithUserId(userId, "attempt")
+
 	if !c.IsSystemAdmin() || len(userId) == 0 {
 		code := props["code"]
 		if len(code) != model.PASSWORD_RECOVERY_CODE_SIZE {
@@ -1631,6 +1633,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
+			c.LogAuditWithUserId(userId, "fail - bad code")
 			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
 			return
 		} else {
@@ -1639,6 +1642,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 			if model.GetMillis()-recovery.CreateAt < model.PASSWORD_RECOVER_EXPIRY_TIME {
 				userId = recovery.UserId
 			} else {
+				c.LogAuditWithUserId(userId, "fail - link expired")
 				c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
 				return
 			}
@@ -1650,8 +1654,6 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 			}()
 		}
 	}
-
-	c.LogAuditWithUserId(userId, "attempt")
 
 	if len(userId) != 26 {
 		c.SetInvalidParam("resetPassword", "user_id")
@@ -1674,9 +1676,9 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else {
-		c.LogAuditWithUserId(userId, "success")
 	}
+
+	c.LogAuditWithUserId(userId, "success")
 
 	sendPasswordChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.user.reset_password.method"))
 
