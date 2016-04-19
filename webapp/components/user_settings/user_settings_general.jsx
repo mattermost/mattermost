@@ -225,11 +225,9 @@ class UserSettingsGeneralTab extends React.Component {
             return;
         }
 
-        var formData = new FormData();
-        formData.append('image', picture, picture.name);
         this.setState({loadingPicture: true});
 
-        Client.uploadProfileImage(formData,
+        Client.uploadProfileImage(picture,
             () => {
                 this.submitActive = false;
                 AsyncClient.getMe();

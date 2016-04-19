@@ -209,14 +209,11 @@ export default class Client {
     }
 
     uploadBrandImage = (image, success, error) => {
-        const formData = new FormData();
-        formData.append('image', image, image.name);
-
         request.
-            post(`${this.getLicenseRoute()}/upload_brand_image`).
+            post(`${this.getAdminRoute()}/upload_brand_image`).
             set(this.defaultHeaders).
             accept('application/json').
-            send(formData).
+            attach('image', image, image.name).
             end(this.handleResponse.bind(this, 'uploadBrandImage', success, error));
     }
 
@@ -334,12 +331,12 @@ export default class Client {
             end(this.handleResponse.bind(this, 'removeLicenseFile', success, error));
     }
 
-    uploadLicenseFile = (formData, success, error) => {
+    uploadLicenseFile = (license, success, error) => {
         request.
             post(`${this.getLicenseRoute()}/add`).
             set(this.defaultHeaders).
             accept('application/json').
-            send(formData).
+            attach('license', license, license.name).
             end(this.handleResponse.bind(this, 'uploadLicenseFile', success, error));
 
         this.track('api', 'api_license_upload');
@@ -922,6 +919,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateMfa', success, error));
     }
 
+    uploadProfileImage = (image, success, error) => {
+        request.
+            post(`${this.getUsersRoute()}/newimage`).
+            set(this.defaultHeaders).
+            attach('image', image, image.name).
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'uploadProfileImage', success, error));
+    }
+
     // Channel Routes Section
 
     createChannel = (channel, success, error) => {
@@ -1302,6 +1308,17 @@ export default class Client {
             accept('application/json').
             send(data).
             end(this.handleResponse.bind(this, 'getPublicLink', success, error));
+    }
+
+    uploadFile = (file, filename, channelId, clientId, success, error) => {
+        return request.
+            post(`${this.getFilesRoute()}/upload`).
+            set(this.defaultHeaders).
+            attach('files', file, filename).
+            field('channel_id', channelId).
+            field('client_ids', clientId).
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'uploadFile', success, error));
     }
 
     // Routes for OAuth

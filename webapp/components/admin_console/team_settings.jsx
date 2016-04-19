@@ -42,6 +42,7 @@ class TeamSettings extends React.Component {
         this.handleImageSubmit = this.handleImageSubmit.bind(this);
 
         this.uploading = false;
+        this.timestamp = 0;
 
         this.state = {
             saveNeeded: false,
@@ -53,7 +54,7 @@ class TeamSettings extends React.Component {
 
     componentWillMount() {
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true') {
-            $.get('/api/v1/admin/get_brand_image').done(() => this.setState({brandImageExists: true}));
+            $.get(Client.getAdminRoute() + '/get_brand_image').done(() => this.setState({brandImageExists: true}));
         }
     }
 
@@ -89,6 +90,7 @@ class TeamSettings extends React.Component {
         if (element.prop('files').length > 0) {
             this.setState({fileSelected: true, brandImage: element.prop('files')[0]});
         }
+        $('#upload-button').button('reset');
     }
 
     handleSubmit(e) {
@@ -156,6 +158,7 @@ class TeamSettings extends React.Component {
         Client.uploadBrandImage(this.state.brandImage,
             () => {
                 $('#upload-button').button('complete');
+                this.timestamp = Utils.getTimestamp();
                 this.setState({brandImageExists: true, brandImage: null});
                 this.uploading = false;
             },
@@ -194,7 +197,7 @@ class TeamSettings extends React.Component {
                 img = (
                     <img
                         className='brand-img'
-                        src='/api/v1/admin/get_brand_image'
+                        src={Client.getAdminRoute() + '/get_brand_image?t=' + this.timestamp}
                     />
                 );
             } else {
