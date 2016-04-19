@@ -1541,6 +1541,10 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
+	if result := <-Srv.Store.PasswordRecovery().Delete(user.Id); result.Err != nil {
+		return result.Err
+	}
+
 	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
 	c.LogAuditWithUserId("", fmt.Sprintf("success userId=%v", user.Id))
 
