@@ -5,7 +5,7 @@ import React from 'react';
 
 import {FormattedMessage} from 'react-intl';
 
-export default class SpinnerButton extends React.Component {
+export default class SaveButton extends React.Component {
     static get propTypes() {
         return {
             saving: React.PropTypes.bool.isRequired,
