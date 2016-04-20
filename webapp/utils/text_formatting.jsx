@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import Autolinker from 'autolinker';
+import {browserHistory} from 'react-router';
 import Constants from './constants.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
@@ -398,10 +399,13 @@ function replaceNewlines(text) {
 export function handleClick(e) {
     const mentionAttribute = e.target.getAttributeNode('data-mention');
     const hashtagAttribute = e.target.getAttributeNode('data-hashtag');
+    const linkAttribute = e.target.getAttributeNode('data-link');
 
     if (mentionAttribute) {
         Utils.searchForTerm(mentionAttribute.value);
     } else if (hashtagAttribute) {
         Utils.searchForTerm(hashtagAttribute.value);
+    } else if (linkAttribute) {
+        browserHistory.push(linkAttribute.value);
     }
 }
