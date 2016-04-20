@@ -30,8 +30,8 @@ const (
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
 
 	API_URL_SUFFIX_V1 = "/api/v1"
-	API_URL_SUFFIX_V2 = "/api/v2"
-	API_URL_SUFFIX    = API_URL_SUFFIX_V2
+	API_URL_SUFFIX_V3 = "/api/v3"
+	API_URL_SUFFIX    = API_URL_SUFFIX_V3
 )
 
 type Result struct {
@@ -42,7 +42,7 @@ type Result struct {
 
 type Client struct {
 	Url        string       // The location of the server like "http://localhost:8065"
-	ApiUrl     string       // The api location of the server like "http://localhost:8065/api/v2"
+	ApiUrl     string       // The api location of the server like "http://localhost:8065/api/v3"
 	HttpClient *http.Client // The http client
 	AuthToken  string
 	AuthType   string

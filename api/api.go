@@ -16,32 +16,32 @@ import (
 
 type Routes struct {
 	Root    *mux.Router // ''
-	ApiRoot *mux.Router // 'api/v2'
+	ApiRoot *mux.Router // 'api/v3'
 
-	Users    *mux.Router // 'api/v2/users'
-	NeedUser *mux.Router // 'api/v2/users/{user_id:[A-Za-z0-9]+}'
+	Users    *mux.Router // 'api/v3/users'
+	NeedUser *mux.Router // 'api/v3/users/{user_id:[A-Za-z0-9]+}'
 
-	Teams    *mux.Router // 'api/v2/teams'
-	NeedTeam *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}'
+	Teams    *mux.Router // 'api/v3/teams'
+	NeedTeam *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}'
 
-	Channels    *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/channels'
-	NeedChannel *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
+	Channels    *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels'
+	NeedChannel *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
 
-	Posts    *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts'
-	NeedPost *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
+	Posts    *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts'
+	NeedPost *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
 
-	Commands *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/commands'
-	Hooks    *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/hooks'
+	Commands *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/commands'
+	Hooks    *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks'
 
-	Files *mux.Router // 'api/v2/teams/{team_id:[A-Za-z0-9]+}/files'
+	Files *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/files'
 
-	OAuth *mux.Router // 'api/v2/oauth'
+	OAuth *mux.Router // 'api/v3/oauth'
 
-	Admin *mux.Router // 'api/v2/admin'
+	Admin *mux.Router // 'api/v3/admin'
 
-	Preferences *mux.Router // 'api/v2/preferences'
+	Preferences *mux.Router // 'api/v3/preferences'
 
-	License *mux.Router // 'api/v2/license'
+	License *mux.Router // 'api/v3/license'
 }
 
 var BaseRoutes *Routes

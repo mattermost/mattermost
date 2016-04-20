@@ -16,7 +16,7 @@ export default class Client {
         this.useToken = false;
         this.token = '';
         this.url = '';
-        this.urlVersion = '/api/v2';
+        this.urlVersion = '/api/v3';
         this.defaultHeaders = {
             'X-Requested-With': 'XMLHttpRequest'
         };
