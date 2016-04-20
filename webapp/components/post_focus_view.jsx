@@ -27,6 +27,7 @@ export default class PostFocusView extends React.Component {
 
         this.state = {
             scrollType: PostsView.SCROLL_TYPE_POST,
+            currentChannel: ChannelStore.getCurrentId().slice(),
             scrollPostId: focusedPostId,
             postList: PostStore.getVisiblePosts(focusedPostId),
             atTop: PostStore.getVisibilityAtTop(focusedPostId),
@@ -48,9 +49,13 @@ export default class PostFocusView extends React.Component {
     }
 
     onChannelChange() {
-        this.setState({
-            scrollType: PostsView.SCROLL_TYPE_POST
-        });
+        const currentChannel = ChannelStore.getCurrentId();
+        if (this.state.currentChannel !== currentChannel) {
+            this.setState({
+                currentChannel: currentChannel.slice(),
+                scrollType: PostsView.SCROLL_TYPE_POST
+            });
+        }
     }
 
     onUserChange() {
