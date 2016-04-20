@@ -33,12 +33,11 @@ class EditPostModal extends React.Component {
         this.handleEdit = this.handleEdit.bind(this);
         this.handleEditInput = this.handleEditInput.bind(this);
         this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
-        this.handleUserInput = this.handleUserInput.bind(this);
         this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
-        this.state = {editText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: ''};
+        this.state = {editText: '', originalText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: ''};
     }
     handleEdit() {
         var updatedPost = {};
@@ -85,9 +84,6 @@ class EditPostModal extends React.Component {
             this.handleEdit(e);
         }
     }
-    handleUserInput(e) {
-        this.setState({editText: e.target.value});
-    }
     handleEditPostEvent(options) {
         this.setState({
             editText: options.message || '',
@@ -115,7 +111,7 @@ class EditPostModal extends React.Component {
         var self = this;
 
         $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', () => {
-            self.setState({editText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: ''});
+            self.setState({editText: '', originalText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: ''});
         });
 
         $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', (e) => {
@@ -123,7 +119,15 @@ class EditPostModal extends React.Component {
             if (!button) {
                 return;
             }
-            self.setState({editText: $(button).attr('data-message'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments'), refocusId: $(button).attr('data-refocusid')});
+            self.setState({
+                editText: $(button).attr('data-message'),
+                originalText: $(button).attr('data-message'),
+                title: $(button).attr('data-title'),
+                channel_id: $(button).attr('data-channelid'),
+                post_id: $(button).attr('data-postid'),
+                comments: $(button).attr('data-comments'),
+                refocusId: $(button).attr('data-refocusid')
+            });
         });
 
         $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', () => {
