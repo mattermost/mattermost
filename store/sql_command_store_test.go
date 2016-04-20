@@ -16,6 +16,7 @@ func TestCommandStoreSave(t *testing.T) {
 	o1.Method = model.COMMAND_METHOD_POST
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
+	o1.Trigger = "trigger"
 
 	if err := (<-store.Command().Save(&o1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
@@ -34,6 +35,7 @@ func TestCommandStoreGet(t *testing.T) {
 	o1.Method = model.COMMAND_METHOD_POST
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
+	o1.Trigger = "trigger"
 
 	o1 = (<-store.Command().Save(o1)).Data.(*model.Command)
 
@@ -58,6 +60,7 @@ func TestCommandStoreGetByTeam(t *testing.T) {
 	o1.Method = model.COMMAND_METHOD_POST
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
+	o1.Trigger = "trigger"
 
 	o1 = (<-store.Command().Save(o1)).Data.(*model.Command)
 
@@ -86,6 +89,7 @@ func TestCommandStoreDelete(t *testing.T) {
 	o1.Method = model.COMMAND_METHOD_POST
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
+	o1.Trigger = "trigger"
 
 	o1 = (<-store.Command().Save(o1)).Data.(*model.Command)
 
@@ -115,6 +119,7 @@ func TestCommandStoreDeleteByUser(t *testing.T) {
 	o1.Method = model.COMMAND_METHOD_POST
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
+	o1.Trigger = "trigger"
 
 	o1 = (<-store.Command().Save(o1)).Data.(*model.Command)
 
@@ -144,6 +149,7 @@ func TestCommandStoreUpdate(t *testing.T) {
 	o1.Method = model.COMMAND_METHOD_POST
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
+	o1.Trigger = "trigger"
 
 	o1 = (<-store.Command().Save(o1)).Data.(*model.Command)
 
@@ -162,6 +168,7 @@ func TestCommandCount(t *testing.T) {
 	o1.Method = model.COMMAND_METHOD_POST
 	o1.TeamId = model.NewId()
 	o1.URL = "http://nowhere.com/"
+	o1.Trigger = "trigger"
 
 	o1 = (<-store.Command().Save(o1)).Data.(*model.Command)
 
