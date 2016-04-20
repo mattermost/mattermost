@@ -8,6 +8,7 @@ import $ from 'jquery';
 import {browserHistory} from 'react-router';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
@@ -38,21 +39,24 @@ export default class NeedsTeam extends React.Component {
     constructor(params) {
         super(params);
 
-        this.onUserChanged = this.onUserChanged.bind(this);
+        this.onChanged = this.onChanged.bind(this);
 
         this.state = {
-            profiles: UserStore.getProfiles()
+            profiles: UserStore.getProfiles(),
+            team: TeamStore.getCurrent()
         };
     }
 
-    onUserChanged() {
+    onChanged() {
         this.setState({
-            profiles: UserStore.getProfiles()
+            profiles: UserStore.getProfiles(),
+            team: TeamStore.getCurrent()
         });
     }
 
     componentWillMount() {
-        UserStore.addChangeListener(this.onUserChanged);
+        UserStore.addChangeListener(this.onChanged);
+        TeamStore.addChangeListener(this.onChanged);
 
         // Emit view action
         GlobalActions.viewLoggedIn();
@@ -77,7 +81,8 @@ export default class NeedsTeam extends React.Component {
     }
 
     componentWillUnmount() {
-        UserStore.removeChangeListener(this.onUserChanged);
+        UserStore.removeChangeListener(this.onChanged);
+        TeamStore.addChangeListener(this.onChanged);
         $(window).off('focus');
         $(window).off('blur');
     }
@@ -106,7 +111,8 @@ export default class NeedsTeam extends React.Component {
                     <div className='row main'>
                         {React.cloneElement(this.props.center, {
                             user: this.props.user,
-                            profiles: this.state.profiles
+                            profiles: this.state.profiles,
+                            team: this.state.team
                         })}
                     </div>
                 </div>

@@ -32,17 +32,22 @@ export default class NotifyCounts extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
 
         this.state = getCountsStateFromStores();
+        this.mounted = false;
     }
     componentDidMount() {
+        this.mounted = true;
         ChannelStore.addChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {
+        this.mounted = false;
         ChannelStore.removeChangeListener(this.onListenerChange);
     }
     onListenerChange() {
-        var newState = getCountsStateFromStores();
-        if (!utils.areObjectsEqual(newState, this.state)) {
-            this.setState(newState);
+        if (this.mounted) {
+            var newState = getCountsStateFromStores();
+            if (!utils.areObjectsEqual(newState, this.state)) {
+                this.setState(newState);
+            }
         }
     }
     render() {

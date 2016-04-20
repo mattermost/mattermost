@@ -140,6 +140,18 @@ export function emitPostFocusEvent(postId) {
     );
 }
 
+export function emitCloseRightHandSide() {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH,
+        results: null
+    });
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_POST_SELECTED,
+        postId: null
+    });
+}
+
 export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
     Client.getPost(
         post.channel_id,

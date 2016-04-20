@@ -138,6 +138,8 @@ function preNeedsTeam(nextState, replace, callback) {
         return;
     }
 
+    GlobalActions.emitCloseRightHandSide();
+
     TeamStore.saveMyTeam(team);
     TeamStore.emitChange();
 

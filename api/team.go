@@ -8,7 +8,6 @@ import (
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"html/template"
 	"net/http"
@@ -393,15 +392,6 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		user = result.Data.(*model.User)
-	}
-
-	var invNum int64 = 0
-	for i, invite := range invites.Invites {
-		if result := <-Srv.Store.User().GetByEmail(invite["email"]); result.Err == nil || result.Err.Id != store.MISSING_ACCOUNT_ERROR {
-			invNum = int64(i)
-			c.Err = model.NewLocAppError("invite_members", "api.team.invite_members.already.app_error", nil, strconv.FormatInt(invNum, 10))
-			return
-		}
 	}
 
 	ia := make([]string, len(invites.Invites))

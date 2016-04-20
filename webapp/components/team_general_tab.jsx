@@ -98,6 +98,14 @@ class GeneralTab extends React.Component {
         };
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            name: nextProps.team.display_name,
+            invite_id: nextProps.team.invite_id,
+            allow_open_invite: nextProps.team.allow_open_invite
+        });
+    }
+
     handleGenerateInviteId(e) {
         e.preventDefault();
 
@@ -205,12 +213,6 @@ class GeneralTab extends React.Component {
                 this.setState(state);
             }
         );
-    }
-
-    componentWillReceiveProps(newProps) {
-        if (newProps.team && newProps.teamDisplayName) {
-            this.setState({name: newProps.teamDisplayName});
-        }
     }
 
     handleClose() {

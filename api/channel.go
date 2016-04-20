@@ -780,7 +780,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		extraMembers := ecmresult.Data.([]model.ExtraMember)
 		memberCount := ccmresult.Data.(int64)
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "getChannelExtraInfo") {
+		if len(channel.TeamId) > 0 && !c.HasPermissionsToTeam(channel.TeamId, "getChannelExtraInfo") {
 			return
 		}
 

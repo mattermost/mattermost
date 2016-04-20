@@ -25,6 +25,7 @@ export default class TeamSettings extends React.Component {
     }
     onChange() {
         var team = TeamStore.getCurrent();
+
         if (!Utils.areObjectsEqual(this.state.team, team)) {
             this.setState({team});
         }
