@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import client from './web_client.jsx';
+import Client from './web_client.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
@@ -19,6 +19,8 @@ const StatTypes = Constants.StatTypes;
 
 // Used to track in progress async calls
 const callTracker = {};
+
+const ASYNC_CLIENT_TIMEOUT = 5000;
 
 export function dispatchError(err, method) {
     AppDispatcher.handleServerAction({
@@ -37,7 +39,7 @@ function isCallInProgress(callName) {
         return false;
     }
 
-    if (utils.getTimestamp() - callTracker[callName] > 5000) {
+    if (utils.getTimestamp() - callTracker[callName] > ASYNC_CLIENT_TIMEOUT) {
         //console.log('AsyncClient call ' + callName + ' expired after more than 5 seconds');
         return false;
     }
@@ -52,12 +54,12 @@ export function getChannels(checkVersion) {
 
     callTracker.getChannels = utils.getTimestamp();
 
-    return client.getChannels(
+    return Client.getChannels(
         (data) => {
             callTracker.getChannels = 0;
 
             if (checkVersion) {
-                var serverVersion = client.getServerVersion();
+                var serverVersion = Client.getServerVersion();
 
                 if (serverVersion !== BrowserStore.getLastServerVersion()) {
                     if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
@@ -90,7 +92,7 @@ export function getChannel(id) {
 
     callTracker['getChannel' + id] = utils.getTimestamp();
 
-    client.getChannel(id,
+    Client.getChannel(id,
         (data) => {
             callTracker['getChannel' + id] = 0;
 
@@ -124,7 +126,7 @@ export function updateLastViewedAt(id) {
     }
 
     callTracker[`updateLastViewed${channelId}`] = utils.getTimestamp();
-    client.updateLastViewedAt(
+    Client.updateLastViewedAt(
         channelId,
         () => {
             callTracker.updateLastViewed = 0;
@@ -147,8 +149,8 @@ export function getMoreChannels(force) {
 
     if (ChannelStore.getMoreAll().loading || force) {
         callTracker.getMoreChannels = utils.getTimestamp();
-        client.getMoreChannels(
-            function getMoreChannelsSuccess(data) {
+        Client.getMoreChannels(
+            (data) => {
                 callTracker.getMoreChannels = 0;
 
                 AppDispatcher.handleServerAction({
@@ -157,7 +159,7 @@ export function getMoreChannels(force) {
                     members: data.members
                 });
             },
-            function getMoreChannelsFailure(err) {
+            (err) => {
                 callTracker.getMoreChannels = 0;
                 dispatchError(err, 'getMoreChannels');
             }
@@ -180,7 +182,7 @@ export function getChannelExtraInfo(id, memberLimit) {
 
         callTracker['getChannelExtraInfo_' + channelId] = utils.getTimestamp();
 
-        client.getChannelExtraInfo(
+        Client.getChannelExtraInfo(
             channelId,
             memberLimit,
             (data) => {
@@ -205,8 +207,8 @@ export function getProfiles() {
     }
 
     callTracker.getProfiles = utils.getTimestamp();
-    client.getProfiles(
-        function getProfilesSuccess(data) {
+    Client.getProfiles(
+        (data) => {
             callTracker.getProfiles = 0;
 
             AppDispatcher.handleServerAction({
@@ -214,7 +216,7 @@ export function getProfiles() {
                 profiles: data
             });
         },
-        function getProfilesFailure(err) {
+        (err) => {
             callTracker.getProfiles = 0;
             dispatchError(err, 'getProfiles');
         }
@@ -227,9 +229,9 @@ export function getSessions() {
     }
 
     callTracker.getSessions = utils.getTimestamp();
-    client.getSessions(
+    Client.getSessions(
         UserStore.getCurrentId(),
-        function getSessionsSuccess(data) {
+        (data) => {
             callTracker.getSessions = 0;
 
             AppDispatcher.handleServerAction({
@@ -237,7 +239,7 @@ export function getSessions() {
                 sessions: data
             });
         },
-        function getSessionsFailure(err) {
+        (err) => {
             callTracker.getSessions = 0;
             dispatchError(err, 'getSessions');
         }
@@ -250,9 +252,9 @@ export function getAudits() {
     }
 
     callTracker.getAudits = utils.getTimestamp();
-    client.getAudits(
+    Client.getAudits(
         UserStore.getCurrentId(),
-        function getAuditsSuccess(data) {
+        (data) => {
             callTracker.getAudits = 0;
 
             AppDispatcher.handleServerAction({
@@ -260,7 +262,7 @@ export function getAudits() {
                 audits: data
             });
         },
-        function getAuditsFailure(err) {
+        (err) => {
             callTracker.getAudits = 0;
             dispatchError(err, 'getAudits');
         }
@@ -273,7 +275,7 @@ export function getLogs() {
     }
 
     callTracker.getLogs = utils.getTimestamp();
-    client.getLogs(
+    Client.getLogs(
         (data) => {
             callTracker.getLogs = 0;
 
@@ -295,7 +297,7 @@ export function getServerAudits() {
     }
 
     callTracker.getServerAudits = utils.getTimestamp();
-    client.getServerAudits(
+    Client.getServerAudits(
         (data) => {
             callTracker.getServerAudits = 0;
 
@@ -317,7 +319,7 @@ export function getComplianceReports() {
     }
 
     callTracker.getComplianceReports = utils.getTimestamp();
-    client.getComplianceReports(
+    Client.getComplianceReports(
         (data) => {
             callTracker.getComplianceReports = 0;
 
@@ -339,7 +341,7 @@ export function getConfig() {
     }
 
     callTracker.getConfig = utils.getTimestamp();
-    client.getConfig(
+    Client.getConfig(
         (data) => {
             callTracker.getConfig = 0;
 
@@ -361,7 +363,7 @@ export function getAllTeams() {
     }
 
     callTracker.getAllTeams = utils.getTimestamp();
-    client.getAllTeams(
+    Client.getAllTeams(
         (data) => {
             callTracker.getAllTeams = 0;
 
@@ -383,7 +385,7 @@ export function getAllTeamListings() {
     }
 
     callTracker.getAllTeamListings = utils.getTimestamp();
-    client.getAllTeamListings(
+    Client.getAllTeamListings(
         (data) => {
             callTracker.getAllTeamListings = 0;
 
@@ -405,9 +407,9 @@ export function search(terms) {
     }
 
     callTracker['search_' + String(terms)] = utils.getTimestamp();
-    client.search(
+    Client.search(
         terms,
-        function searchSuccess(data) {
+        (data) => {
             callTracker['search_' + String(terms)] = 0;
 
             AppDispatcher.handleServerAction({
@@ -415,7 +417,7 @@ export function search(terms) {
                 results: data
             });
         },
-        function searchFailure(err) {
+        (err) => {
             callTracker['search_' + String(terms)] = 0;
             dispatchError(err, 'search');
         }
@@ -453,7 +455,7 @@ export function getPostsPage(id, maxPosts) {
     if (channelId != null) {
         callTracker['getPostsPage_' + channelId] = utils.getTimestamp();
 
-        client.getPostsPage(
+        Client.getPostsPage(
             channelId,
             0,
             numPosts,
@@ -507,7 +509,7 @@ export function getPosts(id) {
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
 
-    client.getPosts(
+    Client.getPosts(
         channelId,
         latestPostTime,
         (data) => {
@@ -540,7 +542,7 @@ export function getPostsBefore(postId, offset, numPost) {
         return;
     }
 
-    client.getPostsBefore(
+    Client.getPostsBefore(
         channelId,
         postId,
         offset,
@@ -575,7 +577,7 @@ export function getPostsAfter(postId, offset, numPost) {
         return;
     }
 
-    client.getPostsAfter(
+    Client.getPostsAfter(
         channelId,
         postId,
         offset,
@@ -606,7 +608,7 @@ export function getMe() {
     }
 
     callTracker.getMe = utils.getTimestamp();
-    return client.getMe(
+    return Client.getMe(
         (data) => {
             callTracker.getMe = 0;
 
@@ -639,7 +641,7 @@ export function getStatuses() {
     }
 
     callTracker.getStatuses = utils.getTimestamp();
-    client.getStatuses(teammateIds,
+    Client.getStatuses(teammateIds,
         (data) => {
             callTracker.getStatuses = 0;
 
@@ -661,8 +663,8 @@ export function getMyTeam() {
     }
 
     callTracker.getMyTeam = utils.getTimestamp();
-    return client.getMyTeam(
-        function getMyTeamSuccess(data) {
+    return Client.getMyTeam(
+        (data) => {
             callTracker.getMyTeam = 0;
 
             AppDispatcher.handleServerAction({
@@ -670,7 +672,7 @@ export function getMyTeam() {
                 team: data
             });
         },
-        function getMyTeamFailure(err) {
+        (err) => {
             callTracker.getMyTeam = 0;
             dispatchError(err, 'getMyTeam');
         }
@@ -683,7 +685,7 @@ export function getAllPreferences() {
     }
 
     callTracker.getAllPreferences = utils.getTimestamp();
-    client.getAllPreferences(
+    Client.getAllPreferences(
         (data) => {
             callTracker.getAllPreferences = 0;
 
@@ -711,7 +713,7 @@ export function savePreference(category, name, value, success, error) {
 }
 
 export function savePreferences(preferences, success, error) {
-    client.savePreferences(
+    Client.savePreferences(
         preferences,
         (data) => {
             AppDispatcher.handleServerAction({
@@ -734,12 +736,12 @@ export function savePreferences(preferences, success, error) {
 }
 
 export function getSuggestedCommands(command, suggestionId, component) {
-    client.listCommands(
+    Client.listCommands(
         (data) => {
             var matches = [];
             data.forEach((cmd) => {
                 if (('/' + cmd.trigger).indexOf(command) === 0) {
-                    let s = '/' + cmd.trigger;
+                    const s = '/' + cmd.trigger;
                     let hint = '';
                     if (cmd.auto_complete_hint && cmd.auto_complete_hint.length !== 0) {
                         hint = cmd.auto_complete_hint;
@@ -783,7 +785,7 @@ export function getFileInfo(filename) {
 
     callTracker[callName] = utils.getTimestamp();
 
-    client.getFileInfo(
+    Client.getFileInfo(
         filename,
         (data) => {
             callTracker[callName] = 0;
@@ -811,7 +813,7 @@ export function getStandardAnalytics(teamId) {
 
     callTracker[callName] = utils.getTimestamp();
 
-    client.getAnalytics(
+    Client.getAnalytics(
         'standard',
         teamId,
         (data) => {
@@ -864,7 +866,7 @@ export function getAdvancedAnalytics(teamId) {
 
     callTracker[callName] = utils.getTimestamp();
 
-    client.getAnalytics(
+    Client.getAnalytics(
         'extra_counts',
         teamId,
         (data) => {
@@ -921,7 +923,7 @@ export function getPostsPerDayAnalytics(teamId) {
 
     callTracker[callName] = utils.getTimestamp();
 
-    client.getAnalytics(
+    Client.getAnalytics(
         'post_counts_day',
         teamId,
         (data) => {
@@ -955,7 +957,7 @@ export function getUsersPerDayAnalytics(teamId) {
 
     callTracker[callName] = utils.getTimestamp();
 
-    client.getAnalytics(
+    Client.getAnalytics(
         'user_counts_with_posts_day',
         teamId,
         (data) => {
@@ -989,7 +991,7 @@ export function getRecentAndNewUsersAnalytics(teamId) {
 
     callTracker[callName] = utils.getTimestamp();
 
-    client.getProfilesForTeam(
+    Client.getProfilesForTeam(
         teamId,
         (users) => {
             const stats = {};
@@ -1070,7 +1072,7 @@ export function listIncomingHooks() {
 
     callTracker.listIncomingHooks = utils.getTimestamp();
 
-    client.listIncomingHooks(
+    Client.listIncomingHooks(
         (data) => {
             callTracker.listIncomingHooks = 0;
 
@@ -1093,7 +1095,7 @@ export function listOutgoingHooks() {
 
     callTracker.listOutgoingHooks = utils.getTimestamp();
 
-    client.listOutgoingHooks(
+    Client.listOutgoingHooks(
         (data) => {
             callTracker.listOutgoingHooks = 0;
 
@@ -1110,7 +1112,7 @@ export function listOutgoingHooks() {
 }
 
 export function addIncomingHook(hook, success, error) {
-    client.addIncomingHook(
+    Client.addIncomingHook(
         hook,
         (data) => {
             AppDispatcher.handleServerAction({
@@ -1133,7 +1135,7 @@ export function addIncomingHook(hook, success, error) {
 }
 
 export function addOutgoingHook(hook, success, error) {
-    client.addOutgoingHook(
+    Client.addOutgoingHook(
         hook,
         (data) => {
             AppDispatcher.handleServerAction({
@@ -1156,7 +1158,7 @@ export function addOutgoingHook(hook, success, error) {
 }
 
 export function deleteIncomingHook(id) {
-    client.deleteIncomingHook(
+    Client.deleteIncomingHook(
         id,
         () => {
             AppDispatcher.handleServerAction({
@@ -1171,7 +1173,7 @@ export function deleteIncomingHook(id) {
 }
 
 export function deleteOutgoingHook(id) {
-    client.deleteOutgoingHook(
+    Client.deleteOutgoingHook(
         id,
         () => {
             AppDispatcher.handleServerAction({
@@ -1186,7 +1188,7 @@ export function deleteOutgoingHook(id) {
 }
 
 export function regenOutgoingHookToken(id) {
-    client.regenOutgoingHookToken(
+    Client.regenOutgoingHookToken(
         id,
         (data) => {
             AppDispatcher.handleServerAction({
@@ -1207,7 +1209,7 @@ export function listTeamCommands() {
 
     callTracker.listTeamCommands = utils.getTimestamp();
 
-    client.listTeamCommands(
+    Client.listTeamCommands(
         (data) => {
             callTracker.listTeamCommands = 0;
 
@@ -1224,7 +1226,7 @@ export function listTeamCommands() {
 }
 
 export function addCommand(command, success, error) {
-    client.addCommand(
+    Client.addCommand(
         command,
         (data) => {
             AppDispatcher.handleServerAction({
@@ -1247,7 +1249,7 @@ export function addCommand(command, success, error) {
 }
 
 export function deleteCommand(id) {
-    client.deleteCommand(
+    Client.deleteCommand(
         id,
         () => {
             AppDispatcher.handleServerAction({
@@ -1262,7 +1264,7 @@ export function deleteCommand(id) {
 }
 
 export function regenCommandToken(id) {
-    client.regenCommandToken(
+    Client.regenCommandToken(
         id,
         (data) => {
             AppDispatcher.handleServerAction({
