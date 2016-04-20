@@ -3,33 +3,26 @@
 
 import * as Utils from 'utils/utils.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
-
+import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
-
-const holders = defineMessages({
-    notFound: {
-        id: 'channel_info.notFound',
-        defaultMessage: 'No Channel Found'
-    }
-});
 
 import React from 'react';
 
-class ChannelInfoModal extends React.Component {
+export default class ChannelInfoModal extends React.Component {
     render() {
-        const {formatMessage} = this.props.intl;
         let channel = this.props.channel;
         if (!channel) {
+            const notFound = Utils.localizeMessage('channel_info.notFound', 'No Channel Found');
+
             channel = {
-                display_name: formatMessage(holders.notFound),
-                name: formatMessage(holders.notFound),
-                purpose: formatMessage(holders.notFound),
-                id: formatMessage(holders.notFound)
+                display_name: notFound,
+                name: notFound,
+                purpose: notFound,
+                id: notFound
             };
         }
 
-        const channelURL = Utils.getShortenedTeamURL() + channel.name;
+        const channelURL = Utils.getTeamURLFromAddressBar() + '/channels/' + channel.name;
 
         return (
             <Modal
@@ -97,10 +90,7 @@ class ChannelInfoModal extends React.Component {
 }
 
 ChannelInfoModal.propTypes = {
-    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
 };
-
-export default injectIntl(ChannelInfoModal);
