@@ -45,7 +45,7 @@ func TestCreateCommand(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 
 	if _, err := Client.CreateCommand(cmd); err == nil {
 		t.Fatal("should have failed because not admin")
@@ -68,7 +68,7 @@ func TestCreateCommand(t *testing.T) {
 		t.Fatal("team ids didn't match")
 	}
 
-	cmd = &model.Command{CreatorId: "123", TeamId: "456", URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd = &model.Command{CreatorId: "123", TeamId: "456", URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	if result, err := Client.CreateCommand(cmd); err != nil {
 		t.Fatal(err)
 	} else {
@@ -91,7 +91,7 @@ func TestListTeamCommands(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	cmd1 := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd1 := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd1 = Client.Must(Client.CreateCommand(cmd1)).Data.(*model.Command)
 
 	if result, err := Client.ListTeamCommands(); err != nil {
@@ -115,7 +115,7 @@ func TestRegenToken(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)
 
 	data := make(map[string]string)
@@ -140,7 +140,7 @@ func TestDeleteCommand(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)
 
 	data := make(map[string]string)
