@@ -1141,7 +1141,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'executeCommand', success, error));
     }
 
-    addCommand = (command, suggest, success, error) => {
+    addCommand = (command, success, error) => {
         request.
             post(`${this.getCommandsRoute()}/create`).
             set(this.defaultHeaders).
@@ -1151,7 +1151,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addCommand', success, error));
     }
 
-    deleteCommand = (commandId, suggest, success, error) => {
+    deleteCommand = (commandId, success, error) => {
         request.
             post(`${this.getCommandsRoute()}/delete`).
             set(this.defaultHeaders).
@@ -1345,7 +1345,7 @@ export default class Client {
 
     // Routes for Hooks
 
-    addIncomingHook = (hook, suggest, success, error) => {
+    addIncomingHook = (hook, success, error) => {
         request.
             post(`${this.getHooksRoute()}/incoming/create`).
             set(this.defaultHeaders).
@@ -1355,7 +1355,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addIncomingHook', success, error));
     }
 
-    deleteIncomingHook = (hookId, suggest, success, error) => {
+    deleteIncomingHook = (hookId, success, error) => {
         request.
             post(`${this.getHooksRoute()}/incoming/delete`).
             set(this.defaultHeaders).
@@ -1374,7 +1374,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'listIncomingHooks', success, error));
     }
 
-    addOutgoingHook = (hook, suggest, success, error) => {
+    addOutgoingHook = (hook, success, error) => {
         request.
             post(`${this.getHooksRoute()}/outgoing/create`).
             set(this.defaultHeaders).
@@ -1384,7 +1384,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addOutgoingHook', success, error));
     }
 
-    deleteOutgoingHook = (hookId, suggest, success, error) => {
+    deleteOutgoingHook = (hookId, success, error) => {
         request.
             post(`${this.getHooksRoute()}/outgoing/delete`).
             set(this.defaultHeaders).
