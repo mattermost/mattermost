@@ -99,6 +99,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.center !== this.props.center) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
         }
@@ -203,13 +207,18 @@ export default class Post extends React.Component {
             }
         }
 
+        let centerClass = '';
+        if (this.props.center) {
+            centerClass = 'center';
+        }
+
         return (
             <div>
                 <div
                     id={'post_' + post.id}
                     className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass}
                 >
-                    <div className='post__content'>
+                    <div className={'post__content ' + centerClass}>
                         <div className='post__img'>{profilePic}</div>
                         <div>
                             <PostHeader
@@ -251,5 +260,6 @@ Post.propTypes = {
     shouldHighlight: React.PropTypes.bool,
     displayNameType: React.PropTypes.string,
     hasProfiles: React.PropTypes.bool,
-    currentUser: React.PropTypes.object.isRequired
+    currentUser: React.PropTypes.object.isRequired,
+    center: React.PropTypes.bool
 };

@@ -359,9 +359,12 @@ body.ios {
 .post-create__container {
     form {
         margin: 0 auto;
-        max-width: 1028px;
-        padding: .5em 14px 0;
+        padding: .5em 30px 0;
         width: 100%;
+    }
+
+    .center {
+        max-width: 1028px;
     }
 
     .post-create-body {
@@ -607,15 +610,19 @@ body.ios {
     .post__content {
         display: table;
         margin: 0 auto;
-        max-width: 1000px;
         position: relative;
         table-layout: fixed;
         width: 100%;
+        padding: 0 15px;
 
         > div {
             display: table-cell;
             vertical-align: top;
         }
+    }
+
+    .center {
+        max-width: 1000px;
     }
 
     .post__header {

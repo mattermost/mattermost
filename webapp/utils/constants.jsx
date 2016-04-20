@@ -517,7 +517,11 @@ export default {
         DISPLAY_PREFER_NICKNAME: 'nickname_full_name',
         DISPLAY_PREFER_FULL_NAME: 'full_name',
         CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
-        TUTORIAL_STEP: 'tutorial_step'
+        TUTORIAL_STEP: 'tutorial_step',
+        CHANNEL_DISPLAY_MODE: 'channel_display_mode',
+        CHANNEL_DISPLAY_MODE_CENTERED: 'centered',
+        CHANNEL_DISPLAY_MODE_FULL_SCREEN: 'full',
+        CHANNEL_DISPLAY_MODE_DEFAULT: 'centered'
     },
     TutorialSteps: {
         INTRO_SCREENS: 0,
