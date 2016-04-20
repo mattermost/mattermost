@@ -4,8 +4,6 @@
 package api
 
 import (
-	"time"
-
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -73,7 +71,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 		Nickname: userName,
 		Password: USER_PASSWORD}
 
-	result, err := cfg.client.CreateUser(user, "")
+	result, err := cfg.client.CreateUserWithInvite(user, "", "", cfg.team.InviteId)
 	if err != nil {
 		err.Translate(utils.T)
 		l4g.Error(err.Error())
@@ -84,15 +82,6 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 
 	// We need to cheat to verify the user's email
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
-
-	err = JoinUserToTeam(cfg.team, ruser)
-	if err != nil {
-		err.Translate(utils.T)
-		l4g.Error(err.Error())
-		l4g.Close()
-		time.Sleep(time.Second)
-		panic(err)
-	}
 
 	return result.Data.(*model.User), true
 }

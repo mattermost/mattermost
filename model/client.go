@@ -278,6 +278,18 @@ func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) CreateUserWithInvite(user *User, hash string, data string, inviteId string) (*Result, *AppError) {
+
+	url := "/users/create?d=" + url.QueryEscape(data) + "&h=" + url.QueryEscape(hash) + "&iid=" + url.QueryEscape(inviteId)
+
+	if r, err := c.DoApiPost(url, user.ToJson()); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) CreateUserFromSignup(user *User, data string, hash string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/create?d="+url.QueryEscape(data)+"&h="+hash, user.ToJson()); err != nil {
 		return nil, err

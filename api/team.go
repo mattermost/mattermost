@@ -507,10 +507,14 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 		user = result.Data.(*model.User)
 	}
 
-	err := JoinUserToTeam(team, user)
-	if err != nil {
-		c.Err = err
-		return
+	tm := c.Session.GetTeamByTeamId(teamId)
+
+	if tm == nil {
+		err := JoinUserToTeam(team, user)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	team.Sanitize()
