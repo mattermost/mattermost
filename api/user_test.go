@@ -881,21 +881,15 @@ func TestSendPasswordReset(t *testing.T) {
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	data := make(map[string]string)
-	data["email"] = user.Email
-	data["name"] = team.Name
-
-	if _, err := Client.SendPasswordReset(data); err != nil {
+	if _, err := Client.SendPasswordReset(user.Email); err != nil {
 		t.Fatal(err)
 	}
 
-	data["email"] = ""
-	if _, err := Client.SendPasswordReset(data); err == nil {
+	if _, err := Client.SendPasswordReset(""); err == nil {
 		t.Fatal("Should have errored - no email")
 	}
 
-	data["email"] = "junk@junk.com"
-	if _, err := Client.SendPasswordReset(data); err == nil {
+	if _, err := Client.SendPasswordReset("junk@junk.com"); err == nil {
 		t.Fatal("Should have errored - bad email")
 	}
 
@@ -904,111 +898,76 @@ func TestSendPasswordReset(t *testing.T) {
 	LinkUserToTeam(user2, team)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	data["email"] = user2.Email
-	data["name"] = team.Name
-	if _, err := Client.SendPasswordReset(data); err == nil {
+	if _, err := Client.SendPasswordReset(user2.Email); err == nil {
 		t.Fatal("should have errored - SSO user can't send reset password link")
 	}
 }
 
 func TestResetPassword(t *testing.T) {
-	th := Setup()
-	Client := th.CreateClient()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
 
 	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	data := make(map[string]string)
-	data["new_password"] = "newpwd"
-	props := make(map[string]string)
-	props["user_id"] = user.Id
-	props["time"] = fmt.Sprintf("%v", model.GetMillis())
-	data["data"] = model.MapToJson(props)
-	data["hash"] = model.HashPassword(fmt.Sprintf("%v:%v", data["data"], utils.Cfg.EmailSettings.PasswordResetSalt))
-	data["name"] = team.Name
+	Client.Must(Client.SendPasswordReset(user.Email))
 
-	if _, err := Client.ResetPassword(data); err != nil {
-		t.Fatal(err)
+	var recovery *model.PasswordRecovery
+	if result := <-Srv.Store.PasswordRecovery().Get(user.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		recovery = result.Data.(*model.PasswordRecovery)
 	}
 
-	data["new_password"] = ""
-	if _, err := Client.ResetPassword(data); err == nil {
+	if _, err := Client.ResetPassword(recovery.Code, ""); err == nil {
 		t.Fatal("Should have errored - no password")
 	}
 
-	data["new_password"] = "npwd"
-	if _, err := Client.ResetPassword(data); err == nil {
+	if _, err := Client.ResetPassword(recovery.Code, "newp"); err == nil {
 		t.Fatal("Should have errored - password too short")
 	}
 
-	data["new_password"] = "newpwd"
-	data["hash"] = ""
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("Should have errored - no hash")
+	if _, err := Client.ResetPassword("", "newpwd"); err == nil {
+		t.Fatal("Should have errored - no code")
 	}
 
-	data["hash"] = "junk"
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("Should have errored - bad hash")
+	if _, err := Client.ResetPassword("junk", "newpwd"); err == nil {
+		t.Fatal("Should have errored - bad code")
 	}
 
-	props["user_id"] = ""
-	data["data"] = model.MapToJson(props)
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("Should have errored - no user id")
+	code := ""
+	for i := 0; i < model.PASSWORD_RECOVERY_CODE_SIZE; i++ {
+		code += "a"
+	}
+	if _, err := Client.ResetPassword(code, "newpwd"); err == nil {
+		t.Fatal("Should have errored - bad code")
 	}
 
-	data["user_id"] = "12345678901234567890123456"
-	data["data"] = model.MapToJson(props)
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("Should have errored - bad user id")
+	if _, err := Client.ResetPassword(recovery.Code, "newpwd"); err != nil {
+		t.Fatal(err)
 	}
 
-	props["user_id"] = user.Id
-	props["time"] = ""
-	data["data"] = model.MapToJson(props)
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("Should have errored - no time")
+	Client.Logout()
+	Client.Must(Client.LoginById(user.Id, "newpwd"))
+	Client.SetTeamId(team.Id)
+
+	Client.Must(Client.SendPasswordReset(user.Email))
+
+	if result := <-Srv.Store.PasswordRecovery().Get(user.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		recovery = result.Data.(*model.PasswordRecovery)
 	}
 
-	props["time"] = fmt.Sprintf("%v", model.GetMillis())
-	data["data"] = model.MapToJson(props)
-	data["domain"] = ""
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("Should have errored - no domain")
+	if result := <-Srv.Store.User().UpdateAuthData(user.Id, "random", "1", ""); result.Err != nil {
+		t.Fatal(result.Err)
 	}
 
-	data["domain"] = "junk"
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("Should have errored - bad domain")
-	}
-
-	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test2@nowhere.com", Type: model.TEAM_OPEN}
-	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
-
-	data["domain"] = team2.Name
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("Should have errored - domain team doesn't match user team")
-	}
-
-	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: "1", AuthService: "random"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	LinkUserToTeam(user2, team)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
-
-	data["new_password"] = "newpwd"
-	props["user_id"] = user2.Id
-	props["time"] = fmt.Sprintf("%v", model.GetMillis())
-	data["data"] = model.MapToJson(props)
-	data["hash"] = model.HashPassword(fmt.Sprintf("%v:%v", data["data"], utils.Cfg.EmailSettings.PasswordResetSalt))
-	data["name"] = team.Name
-	if _, err := Client.ResetPassword(data); err == nil {
-		t.Fatal("should have errored - SSO user can't reset password")
+	if _, err := Client.ResetPassword(recovery.Code, "newpwd"); err == nil {
+		t.Fatal("Should have errored - sso user")
 	}
 }
 

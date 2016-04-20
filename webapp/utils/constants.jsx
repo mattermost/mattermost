@@ -207,6 +207,7 @@ export default {
     LDAP_SERVICE: 'ldap',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',
+    PASSWORD_CHANGE: 'password_change',
     SIGNIN_VERIFIED: 'verified',
     SESSION_EXPIRED: 'expired',
     POST_CHUNK_SIZE: 60,

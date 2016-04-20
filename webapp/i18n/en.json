@@ -924,6 +924,7 @@
   "ldap_signup.team_error": "Please enter a team name",
   "loading_screen.loading": "Loading",
   "login.changed": " Sign-in method changed successfully",
+  "login.passwordChanged": " Password updated successfully",
   "login.create": "Create one now",
   "login.createTeam": "Create a new team",
   "login.find": "Find your other teams",

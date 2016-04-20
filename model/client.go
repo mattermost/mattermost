@@ -1054,7 +1054,9 @@ func (c *Client) UpdateUserPassword(userId, currentPassword, newPassword string)
 	}
 }
 
-func (c *Client) SendPasswordReset(data map[string]string) (*Result, *AppError) {
+func (c *Client) SendPasswordReset(email string) (*Result, *AppError) {
+	data := map[string]string{}
+	data["email"] = email
 	if r, err := c.DoApiPost("/users/send_password_reset", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
@@ -1063,8 +1065,23 @@ func (c *Client) SendPasswordReset(data map[string]string) (*Result, *AppError) 
 	}
 }
 
-func (c *Client) ResetPassword(data map[string]string) (*Result, *AppError) {
+func (c *Client) ResetPassword(code, newPassword string) (*Result, *AppError) {
+	data := map[string]string{}
+	data["code"] = code
+	data["new_password"] = newPassword
 	if r, err := c.DoApiPost("/users/reset_password", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) AdminResetPassword(userId, newPassword string) (*Result, *AppError) {
+	data := map[string]string{}
+	data["user_id"] = userId
+	data["new_password"] = newPassword
+	if r, err := c.DoApiPost("/admin/reset_password", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

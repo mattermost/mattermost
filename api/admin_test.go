@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"strings"
 	"testing"
 )
 
@@ -403,4 +404,52 @@ func TestAdminResetMfa(t *testing.T) {
 	}
 
 	// need to add more test cases when enterprise bits can be loaded into tests
+}
+
+func TestAdminResetPassword(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user, team)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	if _, err := Client.AdminResetPassword("", "newpwd"); err == nil {
+		t.Fatal("Should have errored - empty user id")
+	}
+
+	if _, err := Client.AdminResetPassword("123", "newpwd"); err == nil {
+		t.Fatal("Should have errored - bad user id")
+	}
+
+	if _, err := Client.AdminResetPassword("12345678901234567890123456", "newpwd"); err == nil {
+		t.Fatal("Should have errored - bad user id")
+	}
+
+	if _, err := Client.AdminResetPassword("12345678901234567890123456", "newp"); err == nil {
+		t.Fatal("Should have errored - password too short")
+	}
+
+	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: "1", AuthService: "random"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	LinkUserToTeam(user2, team)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	if _, err := Client.AdminResetPassword(user2.Id, "newpwd"); err == nil {
+		t.Fatal("should have errored - SSO user can't reset password")
+	}
+
+	if _, err := Client.AdminResetPassword(user.Id, "newpwd"); err != nil {
+		t.Fatal(err)
+	}
+
+	Client.Logout()
+	Client.Must(Client.LoginById(user.Id, "newpwd"))
+	Client.SetTeamId(team.Id)
+
+	if _, err := Client.AdminResetPassword(user.Id, "newpwd"); err == nil {
+		t.Fatal("Should have errored - not sytem admin")
+	}
 }

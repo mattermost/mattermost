@@ -190,6 +190,16 @@ export default class Login extends React.Component {
                         />
                     </div>
                 );
+            } else if (extraParam === Constants.PASSWORD_CHANGE) {
+                extraBox = (
+                    <div className='alert alert-success'>
+                        <i className='fa fa-check'/>
+                        <FormattedMessage
+                            id='login.passwordChanged'
+                            defaultMessage=' Password updated successfully'
+                        />
+                    </div>
+                );
             }
         }
 
