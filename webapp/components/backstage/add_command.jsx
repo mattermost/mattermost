@@ -89,6 +89,8 @@ export default class AddCommand extends React.Component {
                     />
                 )
             });
+
+            return;
         }
 
         if (!command.url) {
@@ -101,6 +103,8 @@ export default class AddCommand extends React.Component {
                     />
                 )
             });
+
+            return;
         }
 
         AsyncClient.addCommand(
