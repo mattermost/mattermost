@@ -44,9 +44,15 @@ class EditPostModal extends React.Component {
         var updatedPost = {};
         updatedPost.message = this.state.editText.trim();
 
+        if (updatedPost.message === this.state.originalText.trim()) {
+            // no changes so just close the modal
+            $('#edit_post').modal('hide');
+            return;
+        }
+
         if (updatedPost.message.length === 0) {
             var tempState = this.state;
-            delete tempState.editText;
+            Reflect.deleteProperty(tempState, 'editText');
             BrowserStore.setItem('edit_state_transfer', tempState);
             $('#edit_post').modal('hide');
             GlobalActions.showDeletePostModal(PostStore.getPost(this.state.channel_id, this.state.post_id), this.state.comments);
@@ -85,6 +91,7 @@ class EditPostModal extends React.Component {
     handleEditPostEvent(options) {
         this.setState({
             editText: options.message || '',
+            originalText: options.message || '',
             title: options.title || '',
             post_id: options.postId || '',
             channel_id: options.channelId || '',
@@ -163,17 +170,17 @@ class EditPostModal extends React.Component {
                                 aria-label='Close'
                                 onClick={this.handleEditClose}
                             >
-                                <span aria-hidden='true'>&times;</span>
+                                <span aria-hidden='true'>{'×'}</span>
                             </button>
-                        <h4 className='modal-title'>
-                            <FormattedMessage
-                                id='edit_post.edit'
-                                defaultMessage='Edit {title}'
-                                values={{
-                                    title: this.state.title
-                                }}
-                            />
-                        </h4>
+                            <h4 className='modal-title'>
+                                <FormattedMessage
+                                    id='edit_post.edit'
+                                    defaultMessage='Edit {title}'
+                                    values={{
+                                        title: this.state.title
+                                    }}
+                                />
+                            </h4>
                         </div>
                         <div className='edit-modal-body modal-body'>
                             <Textbox
