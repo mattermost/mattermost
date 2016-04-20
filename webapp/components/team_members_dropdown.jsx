@@ -89,12 +89,13 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
     }
-    handleDemote(user, role) {
+    handleDemote(user, role, newRole) {
         this.setState({
             serverError: this.state.serverError,
             showDemoteModal: true,
             user,
-            role
+            role,
+            newRole
         });
     }
     handleDemoteCancel() {
@@ -102,13 +103,14 @@ export default class TeamMembersDropdown extends React.Component {
             serverError: null,
             showDemoteModal: false,
             user: null,
-            role: null
+            role: null,
+            newRole: null
         });
     }
     handleDemoteSubmit() {
         Client.updateRoles(
             this.props.user.id,
-            this.state.role,
+            this.state.newRole,
             () => {
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {
@@ -132,6 +134,7 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
 
+        const teamMember = this.props.teamMember;
         const user = this.props.user;
         let currentRoles = (
             <FormattedMessage
@@ -160,8 +163,10 @@ export default class TeamMembersDropdown extends React.Component {
             }
         }
 
-        let showMakeMember = user.roles === 'admin' || user.roles === 'system_admin';
-        let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
+        let showMakeMember = teamMember.roles === 'admin' || user.roles === 'system_admin';
+
+        //let showMakeAdmin = teamMember.roles === '' && user.roles !== 'system_admin';
+        let showMakeAdmin = false;
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';
 
@@ -323,5 +328,6 @@ export default class TeamMembersDropdown extends React.Component {
 }
 
 TeamMembersDropdown.propTypes = {
-    user: React.PropTypes.object.isRequired
+    user: React.PropTypes.object.isRequired,
+    teamMember: React.PropTypes.object.isRequired
 };

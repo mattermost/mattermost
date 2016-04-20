@@ -214,7 +214,10 @@ export default class UserItem extends React.Component {
 
         const email = user.email;
         let showMakeMember = user.roles === 'admin' || user.roles === 'system_admin';
-        let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
+
+        //let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
+        let showMakeAdmin = false;
+
         let showMakeSystemAdmin = user.roles === '' || user.roles === 'admin';
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';

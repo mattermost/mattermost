@@ -475,6 +475,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMyTeam', success, error));
     }
 
+    getTeamMembers = (teamId, success, error) => {
+        request.
+            get(`${this.getTeamsRoute()}/members/${teamId}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamMembers', success, error));
+    }
+
     inviteMembers = (data, success, error) => {
         request.
             post(`${this.getTeamNeededRoute()}/invite_members`).

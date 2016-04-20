@@ -39,6 +39,7 @@ class TeamStoreClass extends EventEmitter {
     clear() {
         this.teams = {};
         this.team_members = [];
+        this.members_for_team = [];
         this.teamListings = {};
         this.currentTeamId = '';
     }
@@ -138,6 +139,14 @@ class TeamStoreClass extends EventEmitter {
         return this.team_members;
     }
 
+    saveMembersForTeam(members) {
+        this.members_for_team = members;
+    }
+
+    getMembersForTeam() {
+        return this.members_for_team;
+    }
+
     saveTeamListings(teams) {
         this.teamListings = teams;
     }
@@ -167,6 +176,10 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_ALL_TEAM_LISTINGS:
         TeamStore.saveTeamListings(action.teams);
+        TeamStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_MEMBERS_FOR_TEAM:
+        TeamStore.saveMembersForTeam(action.team_members);
         TeamStore.emitChange();
         break;
     default:

@@ -138,6 +138,21 @@ describe('Client.Team', function() {
         });
     });
 
+    it('GetTeamMembers', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getTeamMembers(
+                TestHelper.basicTeam().id,
+                function(data) {
+                    assert.equal(data.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('inviteMembers', function(done) {
         TestHelper.initBasic(() => {
             var data = {};

@@ -491,3 +491,14 @@ func TestGetMyTeam(t *testing.T) {
 		}
 	}
 }
+
+func TestGetTeamMembers(t *testing.T) {
+	th := Setup().InitBasic()
+
+	if result, err := th.BasicClient.GetTeamMembers(th.BasicTeam.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		members := result.Data.([]*model.TeamMember)
+		t.Log(members)
+	}
+}

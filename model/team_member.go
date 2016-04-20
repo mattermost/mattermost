@@ -39,6 +39,25 @@ func TeamMemberFromJson(data io.Reader) *TeamMember {
 	}
 }
 
+func TeamMembersToJson(o []*TeamMember) string {
+	if b, err := json.Marshal(o); err != nil {
+		return "[]"
+	} else {
+		return string(b)
+	}
+}
+
+func TeamMembersFromJson(data io.Reader) []*TeamMember {
+	decoder := json.NewDecoder(data)
+	var o []*TeamMember
+	err := decoder.Decode(&o)
+	if err == nil {
+		return o
+	} else {
+		return nil
+	}
+}
+
 func (o *TeamMember) IsValid() *AppError {
 
 	if len(o.TeamId) != 26 {

@@ -4,6 +4,8 @@
 import FilteredUserList from './filtered_user_list.jsx';
 import TeamMembersDropdown from './team_members_dropdown.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 import React from 'react';
 
@@ -13,18 +15,23 @@ export default class MemberListTeam extends React.Component {
 
         this.getUsers = this.getUsers.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.onTeamChange = this.onTeamChange.bind(this);
 
         this.state = {
-            users: this.getUsers()
+            users: this.getUsers(),
+            teamMembers: TeamStore.getMembersForTeam()
         };
     }
 
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
+        TeamStore.addChangeListener(this.onTeamChange);
+        AsyncClient.getTeamMembers(TeamStore.getCurrentId());
     }
 
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
+        TeamStore.removeChangeListener(this.onTeamChange);
     }
 
     getUsers() {
@@ -46,11 +53,18 @@ export default class MemberListTeam extends React.Component {
         });
     }
 
+    onTeamChange() {
+        this.setState({
+            teamMembers: TeamStore.getMembersForTeam()
+        });
+    }
+
     render() {
         return (
             <FilteredUserList
                 style={this.props.style}
                 users={this.state.users}
+                teamMembers={this.state.teamMembers}
                 actions={[TeamMembersDropdown]}
             />
         );

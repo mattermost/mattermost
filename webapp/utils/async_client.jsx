@@ -201,6 +201,29 @@ export function getChannelExtraInfo(id, memberLimit) {
     }
 }
 
+export function getTeamMembers(teamId) {
+    if (isCallInProgress('getTeamMembers')) {
+        return;
+    }
+
+    callTracker.getTeamMembers = utils.getTimestamp();
+    Client.getTeamMembers(
+        teamId,
+        (data) => {
+            callTracker.getTeamMembers = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MEMBERS_FOR_TEAM,
+                team_members: data
+            });
+        },
+        (err) => {
+            callTracker.getTeamMembers = 0;
+            dispatchError(err, 'getTeamMembers');
+        }
+    );
+}
+
 export function getProfiles() {
     if (isCallInProgress('getProfiles')) {
         return;

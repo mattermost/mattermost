@@ -1119,6 +1119,15 @@ func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetTeamMembers(teamId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/teams/members/"+teamId, "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) RegisterApp(app *OAuthApp) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/oauth/register", app.ToJson()); err != nil {
 		return nil, err
