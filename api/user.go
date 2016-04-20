@@ -122,10 +122,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		sendWelcomeEmail = false
 	}
 
-	if user.IsSSOUser() {
-		user.EmailVerified = true
-	}
-
 	inviteId := r.URL.Query().Get("iid")
 	if len(inviteId) > 0 {
 		if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {

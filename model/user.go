@@ -344,8 +344,8 @@ func IsInRole(userRoles string, inRole string) bool {
 	return false
 }
 
-func (u *User) IsSSOUser() bool {
-	if len(u.AuthData) != 0 && len(u.AuthService) != 0 && u.AuthService != USER_AUTH_SERVICE_LDAP {
+func (u *User) IsOAuthUser() bool {
+	if u.AuthService == USER_AUTH_SERVICE_GITLAB {
 		return true
 	}
 	return false
