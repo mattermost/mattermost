@@ -40,6 +40,7 @@ export default class PostsView extends React.Component {
 
         this.state = {
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+            centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isScrolling: false,
             topPostId: null,
             showUnreadMessageAlert: false
@@ -61,7 +62,10 @@ export default class PostsView extends React.Component {
         return 5;
     }
     updateState() {
-        this.setState({displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false')});
+        this.setState({
+            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+            centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED
+        });
     }
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom
@@ -247,6 +251,7 @@ export default class PostsView extends React.Component {
                     displayNameType={this.state.displayNameType}
                     user={profile}
                     currentUser={this.props.currentUser}
+                    center={this.state.centerPosts}
                 />
             );
 
@@ -373,6 +378,7 @@ export default class PostsView extends React.Component {
             this.updateScrolling();
         }
         window.addEventListener('resize', this.handleResize);
+        PreferenceStore.addChangeListener(this.updateState);
         $('body').addClass('app__body');
     }
     componentWillUnmount() {
@@ -427,6 +433,9 @@ export default class PostsView extends React.Component {
             return true;
         }
         if (this.state.isScrolling !== nextState.isScrolling) {
+            return true;
+        }
+        if (this.state.centerPosts !== nextState.centerPosts) {
             return true;
         }
         if (!Utils.areObjectsEqual(this.props.profiles, nextProps.profiles)) {
