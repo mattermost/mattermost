@@ -310,7 +310,7 @@ func cmdUpdateDb30() {
 		}
 
 		var confirmBackup string
-		fmt.Println("\nPlease see http://docs.mattermost.com/administration/upgrade.html#upgrade-database-30")
+		fmt.Println("\nPlease see http://www.mattermost.org/upgrade-to-3-0/")
 		fmt.Println("**WARNING** This upgrade process will be irreversible.")
 		fmt.Print("Have you performed a database backup? (YES/NO): ")
 		fmt.Scanln(&confirmBackup)

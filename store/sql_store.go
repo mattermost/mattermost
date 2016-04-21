@@ -108,7 +108,7 @@ func NewSqlStore() Store {
 		sqlStore.SchemaVersion == "2.0.0" {
 		l4g.Critical("The database version of %v cannot be automatically upgraded to 3.0 schema", sqlStore.SchemaVersion)
 		l4g.Critical("You will need to run the command line tool './platform -upgrade_db_30'")
-		l4g.Critical("Please see 'http://docs.mattermost.com/administration/upgrade.html#upgrade-database-30' for more information on how to upgrade.")
+		l4g.Critical("Please see 'http://www.mattermost.org/upgrade-to-3-0/' for more information on how to upgrade.")
 		time.Sleep(time.Second)
 		os.Exit(1)
 	}
