@@ -549,10 +549,10 @@ func cmdPermDeleteTeam() {
 
 func cmdUploadLicense() {
 	if flagCmdUploadLicense {
-		/*if model.BuildEnterpriseReady != "true" {
+		if model.BuildEnterpriseReady != "true" {
 			fmt.Fprintln(os.Stderr, "build must be enterprise ready")
 			os.Exit(1)
-		}*/
+		}
 
 		if len(flagLicenseFile) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
