@@ -43,7 +43,9 @@ var flagCmdVersion bool
 var flagCmdResetPassword bool
 var flagCmdPermanentDeleteUser bool
 var flagCmdPermanentDeleteTeam bool
+var flagCmdUploadLicense bool
 var flagConfigFile string
+var flagLicenseFile string
 var flagEmail string
 var flagPassword string
 var flagTeamName string
@@ -221,6 +223,7 @@ func parseCmds() {
 	}
 
 	flag.StringVar(&flagConfigFile, "config", "config.json", "")
+	flag.StringVar(&flagLicenseFile, "license", "", "")
 	flag.StringVar(&flagEmail, "email", "", "")
 	flag.StringVar(&flagPassword, "password", "", "")
 	flag.StringVar(&flagTeamName, "team_name", "", "")
@@ -233,6 +236,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteUser, "permanent_delete_user", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteTeam, "permanent_delete_team", false, "")
+	flag.BoolVar(&flagCmdUploadLicense, "upload_license", false, "")
 
 	flag.Parse()
 
@@ -242,7 +246,8 @@ func parseCmds() {
 		flagCmdResetPassword ||
 		flagCmdVersion ||
 		flagCmdPermanentDeleteUser ||
-		flagCmdPermanentDeleteTeam)
+		flagCmdPermanentDeleteTeam ||
+		flagCmdUploadLicense)
 }
 
 func runCmds() {
@@ -253,6 +258,7 @@ func runCmds() {
 	cmdResetPassword()
 	cmdPermDeleteUser()
 	cmdPermDeleteTeam()
+	cmdUploadLicense()
 }
 
 func cmdCreateTeam() {
@@ -541,6 +547,37 @@ func cmdPermDeleteTeam() {
 	}
 }
 
+func cmdUploadLicense() {
+	if flagCmdUploadLicense {
+		if model.BuildEnterpriseReady != "true" {
+			fmt.Fprintln(os.Stderr, "build must be enterprise ready")
+			os.Exit(1)
+		}
+
+		if len(flagLicenseFile) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var fileBytes []byte
+		var err error
+		if fileBytes, err = ioutil.ReadFile(flagLicenseFile); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		if _, err := api.SaveLicense(fileBytes); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			flushLogAndExit(0)
+		}
+
+		os.Exit(0)
+	}
+}
+
 func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
@@ -566,6 +603,8 @@ USAGE:
     
 FLAGS: 
     -config="config.json"             Path to the config file
+
+    -license="ex.mattermost-license"  Path to your license file
 
     -email="user@example.com"         Email address used in other commands
 
@@ -618,6 +657,11 @@ COMMANDS:
                                       the server to invalidate the cache.
         Example:
             platform -permanent_delete_team -team_name="name"
+
+    -upload_license                   Uploads a license to the server. Requires the -license flag.
+
+        Example:
+            platform -upload_license -license="/path/to/license/example.mattermost-license"
 
     -version                          Display the current of the Mattermost platform 
 
