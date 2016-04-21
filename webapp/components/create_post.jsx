@@ -83,6 +83,7 @@ class CreatePost extends React.Component {
             submitting: false,
             initialText: draft.messageText,
             ctrlSend: false,
+            centerTextbox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             showTutorialTip: false,
             showPostDeletedModal: false
         };
@@ -305,7 +306,8 @@ class CreatePost extends React.Component {
 
         // wait to load these since they may have changed since the component was constructed (particularly in the case of skipping the tutorial)
         this.setState({
-            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            ctrlSend: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            centerTextbox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER
         });
     }
@@ -336,7 +338,8 @@ class CreatePost extends React.Component {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         this.setState({
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER,
-            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
+            ctrlSend: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            centerTextbox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED
         });
     }
     getFileCount(channelId) {
@@ -441,11 +444,17 @@ class CreatePost extends React.Component {
             tutorialTip = this.createTutorialTip();
         }
 
+        let centerClass = '';
+        if (this.state.centerTextbox) {
+            centerClass = 'center';
+        }
+
         return (
             <form
                 id='create_post'
                 ref='topDiv'
                 role='form'
+                className={centerClass}
                 onSubmit={this.handleSubmit}
             >
                 <div className='post-create'>

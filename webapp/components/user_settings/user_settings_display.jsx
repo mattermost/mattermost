@@ -22,7 +22,8 @@ function getDisplayStateFromStores() {
     return {
         militaryTime: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', 'false'),
         nameFormat: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'username'),
-        selectedFont: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT)
+        selectedFont: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT),
+        channelDisplayMode: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT)
     };
 }
 
@@ -63,8 +64,14 @@ export default class UserSettingsDisplay extends React.Component {
             name: 'selected_font',
             value: this.state.selectedFont
         };
+        const channelDisplayModePreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.CHANNEL_DISPLAY_MODE,
+            value: this.state.channelDisplayMode
+        };
 
-        AsyncClient.savePreferences([timePreference, namePreference, fontPreference],
+        AsyncClient.savePreferences([timePreference, namePreference, fontPreference, channelDisplayModePreference],
             () => {
                 this.updateSection('');
             },
@@ -78,6 +85,9 @@ export default class UserSettingsDisplay extends React.Component {
     }
     handleNameRadio(nameFormat) {
         this.setState({nameFormat});
+    }
+    handleChannelDisplayModeRadio(channelDisplayMode) {
+        this.setState({channelDisplayMode});
     }
     handleFont(selectedFont) {
         Utils.applyFont(selectedFont);
@@ -102,6 +112,7 @@ export default class UserSettingsDisplay extends React.Component {
         const serverError = this.state.serverError || null;
         let clockSection;
         let nameFormatSection;
+        let channelDisplayModeSection;
         let fontSection;
         let languagesSection;
 
@@ -339,6 +350,105 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
+        if (this.props.activeSection === Preferences.CHANNEL_DISPLAY_MODE) {
+            const channelDisplayMode = [false, false];
+            if (this.state.channelDisplayMode === Preferences.CHANNEL_DISPLAY_MODE_CENTERED) {
+                channelDisplayMode[0] = true;
+            } else {
+                channelDisplayMode[1] = true;
+            }
+
+            const inputs = [
+                <div key='userDisplayNameOptions'>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={channelDisplayMode[0]}
+                                onChange={this.handleChannelDisplayModeRadio.bind(this, Preferences.CHANNEL_DISPLAY_MODE_CENTERED)}
+                            />
+                            <FormattedMessage
+                                id='user.settings.display.fixedWidthCentered'
+                                defaultMessage='Fixed with, centered'
+                            />
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={channelDisplayMode[1]}
+                                onChange={this.handleChannelDisplayModeRadio.bind(this, Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN)}
+                            />
+                            <FormattedMessage
+                                id='user.settings.display.fullScreen'
+                                defaultMessage='Full screen'
+                            />
+                        </label>
+                        <br/>
+                    </div>
+                    <div>
+                        <br/>
+                        <FormattedMessage
+                            id='user.settings.display.channeldisplaymode'
+                            defaultMessage='How to display channels.'
+                        />
+                    </div>
+                </div>
+            ];
+
+            channelDisplayModeSection = (
+                <SettingItemMax
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.channelDisplayTitle'
+                            defaultMessage='Channel Display Mode'
+                        />
+                    }
+                    inputs={inputs}
+                    submit={this.handleSubmit}
+                    server_error={serverError}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            let describe;
+            if (this.state.channelDisplayMode === Preferences.CHANNEL_DISPLAY_MODE_CENTERED) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.display.fixedWidthCentered'
+                        defaultMessage='Fixed with, centered'
+                    />
+                );
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.display.fullScreen'
+                        defaultMessage='Full screen'
+                    />
+                );
+            }
+
+            channelDisplayModeSection = (
+                <SettingItemMin
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.channelDisplayTitle'
+                            defaultMessage='Channel Display Mode'
+                        />
+                    }
+                    describe={describe}
+                    updateSection={() => {
+                        this.props.updateSection(Preferences.CHANNEL_DISPLAY_MODE);
+                    }}
+                />
+            );
+        }
+
         if (this.props.activeSection === 'font') {
             const options = [];
             Object.keys(Constants.FONTS).forEach((fontName, idx) => {
@@ -490,6 +600,8 @@ export default class UserSettingsDisplay extends React.Component {
                     {clockSection}
                     <div className='divider-dark'/>
                     {nameFormatSection}
+                    <div className='divider-dark'/>
+                    {channelDisplayModeSection}
                     <div className='divider-dark'/>
                     {languagesSection}
                 </div>
