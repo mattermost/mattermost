@@ -212,21 +212,21 @@ export function emitLoadMorePostsFocusedBottomEvent() {
     AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE);
 }
 
-export function emitPostRecievedEvent(post, websocketMessageProps) {
+export function emitPostRecievedEvent(post, msg) {
     if (ChannelStore.getCurrentId() === post.channel_id) {
         if (window.isActive) {
             AsyncClient.updateLastViewedAt();
         } else {
             AsyncClient.getChannel(post.channel_id);
         }
-    } else {
+    } else if (msg && TeamStore.getCurrentId() === msg.team_id) {
         AsyncClient.getChannel(post.channel_id);
     }
 
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_POST,
         post,
-        websocketMessageProps
+        websocketMessageProps: msg.props
     });
 }
 

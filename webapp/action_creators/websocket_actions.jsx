@@ -168,7 +168,7 @@ export function close() {
 
 function handleNewPostEvent(msg) {
     const post = JSON.parse(msg.props.post);
-    GlobalActions.emitPostRecievedEvent(post, msg.props);
+    GlobalActions.emitPostRecievedEvent(post, msg);
 }
 
 function handlePostEditEvent(msg) {
@@ -200,7 +200,7 @@ function handleUserAddedEvent(msg) {
         AsyncClient.getChannelExtraInfo();
     }
 
-    if (UserStore.getCurrentId() === msg.user_id) {
+    if (TeamStore.getCurrentId() === msg.team_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
     }
 }
@@ -226,7 +226,7 @@ function handleUserRemovedEvent(msg) {
 
 function handleChannelViewedEvent(msg) {
     // Useful for when multiple devices have the app open to different channels
-    if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
+    if (TeamStore.getCurrentId() === msg.team_id && ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
     }
 }
@@ -237,5 +237,7 @@ function handlePreferenceChangedEvent(msg) {
 }
 
 function handleUserTypingEvent(msg) {
-    GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.props.parent_id);
+    if (TeamStore.getCurrentId() === msg.team_id) {
+        GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.props.parent_id);
+    }
 }
