@@ -201,8 +201,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["EnableTeamListing"] = strconv.FormatBool(*c.TeamSettings.EnableTeamListing)
-	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
-	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 
@@ -220,7 +218,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
-	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 
@@ -240,16 +237,31 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.FileSettings.ProfileHeight)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.FileSettings.ProfileWidth)
 
-	props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
-	props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
-	props["LdapPasswordFieldName"] = *c.LdapSettings.PasswordFieldName
-
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 
 	props["AllowCorsFrom"] = *c.ServiceSettings.AllowCorsFrom
 
-	props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
+	if License.Features != nil {
+		if *License.Features.CustomBrand {
+			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
+			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
+		}
+
+		if *License.Features.LDAP {
+			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
+			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
+			props["LdapPasswordFieldName"] = *c.LdapSettings.PasswordFieldName
+		}
+
+		if *License.Features.MFA {
+			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
+		}
+
+		if *License.Features.Compliance {
+			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
+		}
+	}
 
 	return props
 }
