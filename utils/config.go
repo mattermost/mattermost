@@ -249,7 +249,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["AllowCorsFrom"] = *c.ServiceSettings.AllowCorsFrom
 
-	if License.Features != nil {
+	if IsLicensed {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
