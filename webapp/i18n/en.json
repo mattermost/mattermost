@@ -1114,7 +1114,7 @@
   "signup_team.choose": "Choose a Team",
   "signup_team.createTeam": "Or Create a Team",
   "signup_team.disabled": "Team creation has been disabled.  Please contact an administrator for access.",
-  "signup_team.noTeams": "There are no teams include in the Team Directory and team creation has been disabled.",
+  "signup_team.noTeams": "There are no teams included in the Team Directory and team creation has been disabled.",
   "signup_team.none": "No team creation method has been enabled.  Please contact an administrator for access.",
   "signup_team_complete.completed": "You've already completed the signup process for this invitation or this invitation has expired.",
   "signup_team_confirm.checkEmail": "Please check your email: <strong>{email}</strong><br />Your email contains a link to set up your team",
