@@ -186,13 +186,28 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps["desktop"] = USER_NOTIFY_ALL
 	u.NotifyProps["desktop_sound"] = "true"
 	u.NotifyProps["mention_keys"] = u.Username + ",@" + u.Username
-	u.NotifyProps["first_name"] = "false"
 	u.NotifyProps["all"] = "true"
 	u.NotifyProps["channel"] = "true"
-	splitName := strings.Split(u.Nickname, " ")
-	if len(splitName) > 0 && splitName[0] != "" {
+
+	if u.FirstName == "" {
+		u.NotifyProps["first_name"] = "false"
+	} else {
 		u.NotifyProps["first_name"] = "true"
-		u.NotifyProps["mention_keys"] += "," + splitName[0]
+	}
+}
+
+func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
+	nonUsernameKeys := []string{}
+	splitKeys := strings.Split(user.NotifyProps["mention_keys"], ",")
+	for _, key := range splitKeys {
+		if key != oldUsername && key != "@"+oldUsername {
+			nonUsernameKeys = append(nonUsernameKeys, key)
+		}
+	}
+
+	user.NotifyProps["mention_keys"] = user.Username + ",@" + user.Username
+	if len(nonUsernameKeys) > 0 {
+		user.NotifyProps["mention_keys"] += "," + strings.Join(nonUsernameKeys, ",")
 	}
 }
 

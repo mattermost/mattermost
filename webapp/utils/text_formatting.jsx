@@ -213,7 +213,6 @@ function highlightCurrentMentions(text, tokens) {
     }
 
     for (const mention of UserStore.getCurrentMentionKeys()) {
-        // occasionally we get an empty mention which matches a bunch of empty strings
         if (!mention) {
             continue;
         }
