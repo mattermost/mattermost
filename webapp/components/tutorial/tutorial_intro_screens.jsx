@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
@@ -34,12 +33,6 @@ export default class TutorialIntroScreens extends React.Component {
         this.createCircles = this.createCircles.bind(this);
 
         this.state = {currentScreen: 0};
-    }
-    componentDidMount() {
-        $('body').addClass('app__body');
-    }
-    componentWillUnmount() {
-        $('body').removeClass('app__body');
     }
     handleNext() {
         if (this.state.currentScreen < 2) {

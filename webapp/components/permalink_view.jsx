@@ -1,6 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import React from 'react';
 
 import ChannelHeader from 'components/channel_header.jsx';
@@ -45,10 +46,14 @@ export default class PermalinkView extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.updateState);
         TeamStore.addChangeListener(this.updateState);
+
+        $('body').addClass('app__body');
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.updateState);
         TeamStore.removeChangeListener(this.updateState);
+
+        $('body').removeClass('app__body');
     }
     componentWillReceiveProps(nextProps) {
         this.setState(this.getStateFromStores(nextProps));
