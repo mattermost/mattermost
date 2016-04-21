@@ -860,6 +860,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAudits', success, error));
     }
 
+    getDirectProfiles = (success, error) => {
+        request.
+            get(`${this.getUsersRoute()}/direct_profiles`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getDirectProfiles', success, error));
+    }
+
     getProfiles = (success, error) => {
         request.
             get(`${this.getUsersRoute()}/profiles/${this.getTeamId()}`).
@@ -871,7 +880,7 @@ export default class Client {
 
     getProfilesForTeam = (teamId, success, error) => {
         request.
-            get(`${this.getUsersRoute()}/profiles/${teamId}`).
+            get(`${this.getUsersRoute()}/profiles/${teamId}?skip_direct=true`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

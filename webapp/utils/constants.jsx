@@ -61,6 +61,7 @@ export default {
         RECEIVED_ADD_MENTION: null,
 
         RECEIVED_PROFILES: null,
+        RECEIVED_DIRECT_PROFILES: null,
         RECEIVED_ME: null,
         RECEIVED_SESSIONS: null,
         RECEIVED_AUDITS: null,

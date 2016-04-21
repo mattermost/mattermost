@@ -54,7 +54,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
 	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
-	BaseRoutes.Users.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
+	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
@@ -168,6 +168,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+
+		addDirectChannelsAndForget(team.Id, ruser)
 	}
 
 	if sendWelcomeEmail {
@@ -320,11 +322,14 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 			c.Err = result.Err
 			return nil
 		} else {
-			err = JoinUserToTeam(result.Data.(*model.Team), user)
+			team := result.Data.(*model.Team)
+			err = JoinUserToTeam(team, user)
 			if err != nil {
 				c.Err = err
 				return nil
 			}
+
+			addDirectChannelsAndForget(team.Id, user)
 		}
 	}
 
@@ -893,6 +898,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		uchan := Srv.Store.User().Get(c.Session.UserId)
 		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
 		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
+		dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
 
 		il.TeamMembers = c.Session.TeamMembers
 
@@ -920,6 +926,30 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 			for _, team := range il.Teams {
 				team.Sanitize()
 			}
+		}
+
+		if dp := <-dpchan; dp.Err != nil {
+			c.Err = dp.Err
+			return
+		} else {
+			profiles := dp.Data.(map[string]*model.User)
+
+			for k, p := range profiles {
+				options := utils.Cfg.GetSanitizeOptions()
+				options["passwordupdate"] = false
+
+				if c.IsSystemAdmin() {
+					options["fullname"] = true
+					options["email"] = true
+				} else {
+					p.ClearNonProfileFields()
+				}
+
+				p.Sanitize(options)
+				profiles[k] = p
+			}
+
+			il.DirectProfiles = profiles
 		}
 	}
 
@@ -978,6 +1008,39 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := <-Srv.Store.User().GetProfiles(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for k, p := range profiles {
+			options := utils.Cfg.GetSanitizeOptions()
+			options["passwordupdate"] = false
+
+			if c.IsSystemAdmin() {
+				options["fullname"] = true
+				options["email"] = true
+			} else {
+				p.ClearNonProfileFields()
+			}
+
+			p.Sanitize(options)
+			profiles[k] = p
+		}
+
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(model.UserMapToJson(profiles)))
+		return
+	}
+}
+
+func getDirectProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
+	etag := (<-Srv.Store.User().GetEtagForDirectProfiles(c.Session.UserId)).Data.(string)
+	if HandleEtag(etag, w, r) {
+		return
+	}
+
+	if result := <-Srv.Store.User().GetDirectProfiles(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

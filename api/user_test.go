@@ -340,6 +340,26 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func TestGetDirectProfiles(t *testing.T) {
+	th := Setup().InitBasic()
+
+	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
+
+	if result, err := th.BasicClient.GetDirectProfiles(""); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) != 1 {
+			t.Fatal("map was wrong length")
+		}
+
+		if users[th.BasicUser2.Id] == nil {
+			t.Fatal("missing expected user")
+		}
+	}
+}
+
 func TestGetAudits(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()

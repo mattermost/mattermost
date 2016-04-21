@@ -326,6 +326,24 @@ func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetProfilesForTeam(teamId string, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/profiles/"+teamId+"?skip_direct=true", "", etag); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetDirectProfiles(etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/direct_profiles", "", etag); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["id"] = id

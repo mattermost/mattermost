@@ -438,6 +438,20 @@ describe('Client.User', function() {
         });
     });
 
+    it('getDirectProfiles', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getDirectProfiles(
+                function(data) {
+                    assert.equal(Object.keys(data).length === 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.getDirectProfiles));
+                }
+            );
+        });
+    });
+
     it('getProfiles', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getProfiles(

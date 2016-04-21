@@ -232,6 +232,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		cchan := Srv.Store.Channel().Get(post.ChannelId)
 		uchan := Srv.Store.User().Get(post.UserId)
 		pchan := Srv.Store.User().GetProfiles(c.TeamId)
+		dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
 		mchan := Srv.Store.Channel().GetMembers(post.ChannelId)
 
 		var team *model.Team
@@ -256,6 +257,16 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 			return
 		} else {
 			profiles = result.Data.(map[string]*model.User)
+		}
+
+		if result := <-dpchan; result.Err != nil {
+			l4g.Error(utils.T("api.post.handle_post_events_and_forget.profiles.error"), c.TeamId, result.Err)
+			return
+		} else {
+			dps := result.Data.(map[string]*model.User)
+			for k, v := range dps {
+				profiles[k] = v
+			}
 		}
 
 		var members []model.ChannelMember

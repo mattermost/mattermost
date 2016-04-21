@@ -107,6 +107,13 @@ export function emitInitialLoad(callback) {
                     });
                 }
 
+                if (data.direct_profiles) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_DIRECT_PROFILES,
+                        profiles: data.direct_profiles
+                    });
+                }
+
                 if (callback) {
                     callback();
                 }

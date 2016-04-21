@@ -21,6 +21,7 @@ class UserStoreClass extends EventEmitter {
 
     clear() {
         this.profiles = {};
+        this.direct_profiles = {};
         this.statuses = {};
         this.sessions = {};
         this.audits = {};
@@ -121,7 +122,12 @@ class UserStoreClass extends EventEmitter {
             return this.getCurrentUser();
         }
 
-        return this.getProfiles()[userId];
+        const user = this.getProfiles()[userId];
+        if (user) {
+            return user;
+        }
+
+        return this.getDirectProfiles()[userId];
     }
 
     getProfileByUsername(username) {
@@ -140,6 +146,14 @@ class UserStoreClass extends EventEmitter {
         }
 
         return profileUsernameMap;
+    }
+
+    getDirectProfiles() {
+        return this.direct_profiles;
+    }
+
+    saveDirectProfiles(profiles) {
+        this.direct_profiles = profiles;
     }
 
     getProfiles() {
@@ -283,6 +297,10 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
     switch (action.type) {
     case ActionTypes.RECEIVED_PROFILES:
         UserStore.saveProfiles(action.profiles);
+        UserStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_DIRECT_PROFILES:
+        UserStore.saveDirectProfiles(action.profiles);
         UserStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ME:

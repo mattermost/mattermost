@@ -132,12 +132,14 @@ type UserStore interface {
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
 	GetProfiles(teamId string) StoreChannel
+	GetDirectProfiles(userId string) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData string, authService string) StoreChannel
 	GetByUsername(username string) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
+	GetEtagForDirectProfiles(userId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetForExport(teamId string) StoreChannel
 	GetTotalUsersCount() StoreChannel

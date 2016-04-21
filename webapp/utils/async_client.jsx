@@ -246,6 +246,28 @@ export function getProfiles() {
     );
 }
 
+export function getDirectProfiles() {
+    if (isCallInProgress('getDirectProfiles')) {
+        return;
+    }
+
+    callTracker.getDirectProfiles = utils.getTimestamp();
+    Client.getDirectProfiles(
+        (data) => {
+            callTracker.getDirectProfiles = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_DIRECT_PROFILES,
+                profiles: data
+            });
+        },
+        (err) => {
+            callTracker.getDirectProfiles = 0;
+            dispatchError(err, 'getDirectProfiles');
+        }
+    );
+}
+
 export function getSessions() {
     if (isCallInProgress('getSessions')) {
         return;
