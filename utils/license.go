@@ -51,6 +51,7 @@ func SetLicense(license *model.License) bool {
 		License = license
 		IsLicensed = true
 		ClientLicense = getClientLicense(license)
+		ClientCfg = getClientConfig(Cfg)
 		return true
 	}
 
@@ -61,6 +62,7 @@ func RemoveLicense() {
 	License = &model.License{}
 	IsLicensed = false
 	ClientLicense = getClientLicense(License)
+	ClientCfg = getClientConfig(Cfg)
 }
 
 func ValidateLicense(signed []byte) (bool, string) {
