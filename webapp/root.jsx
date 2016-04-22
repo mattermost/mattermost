@@ -10,7 +10,7 @@ import 'sass/styles.scss';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Router, Route, IndexRoute, Redirect, browserHistory} from 'react-router';
+import {IndexRedirect, Router, Route, IndexRoute, Redirect, browserHistory} from 'react-router';
 import Root from 'components/root.jsx';
 import LoggedIn from 'components/logged_in.jsx';
 import HeaderFooterTemplate from 'components/header_footer_template.jsx';
@@ -134,7 +134,7 @@ function preNeedsTeam(nextState, replace, callback) {
     var team = TeamStore.getByName(teamName);
 
     if (!team) {
-        browserHistory.push('/error');
+        browserHistory.push('/');
         return;
     }
 
@@ -307,6 +307,7 @@ function renderRootComponent() {
                         component={NeedsTeam}
                         onEnter={preNeedsTeam}
                     >
+                        <IndexRedirect to='channels/town-square'/>
                         <Route
                             path='channels/:channel'
                             onEnter={onChannelEnter}
