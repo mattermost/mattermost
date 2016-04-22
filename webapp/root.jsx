@@ -10,7 +10,7 @@ import 'sass/styles.scss';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Router, Route, IndexRoute, Redirect, browserHistory} from 'react-router';
+import {Router, Route, IndexRoute, IndexRedirect, Redirect, browserHistory} from 'react-router';
 import Root from 'components/root.jsx';
 import LoggedIn from 'components/logged_in.jsx';
 import HeaderFooterTemplate from 'components/header_footer_template.jsx';
@@ -33,7 +33,6 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 import SignupUserComplete from 'components/signup_user_complete.jsx';
 import ShouldVerifyEmail from 'components/should_verify_email.jsx';
 import DoVerifyEmail from 'components/do_verify_email.jsx';
-import AdminConsole from 'components/admin_console/admin_controller.jsx';
 import TutorialView from 'components/tutorial/tutorial_view.jsx';
 import BackstageNavbar from 'components/backstage/backstage_navbar.jsx';
 import BackstageSidebar from 'components/backstage/backstage_sidebar.jsx';
@@ -49,6 +48,45 @@ import ErrorPage from 'components/error_page.jsx';
 import AppDispatcher from './dispatcher/app_dispatcher.jsx';
 import Constants from './utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+
+import AdminConsole from 'components/admin_console/admin_console.jsx';
+import SystemAnalytics from 'components/analytics/system_analytics.jsx';
+import GeneralSettings from 'components/admin_console/general_settings.jsx';
+import {ConfigurationSettingsPage} from 'components/admin_console/configuration_settings.jsx';
+import {UsersAndTeamsSettingsPage} from 'components/admin_console/users_and_teams_settings.jsx';
+import {PrivacySettingsPage} from 'components/admin_console/privacy_settings.jsx';
+import {LogSettingsPage} from 'components/admin_console/log_settings.jsx';
+import AuthenticationSettings from 'components/admin_console/authentication_settings.jsx';
+import {OnboardingSettingsPage} from 'components/admin_console/onboarding_settings.jsx';
+import {GitLabSettingsPage} from 'components/admin_console/gitlab_settings.jsx';
+import {LdapSettingsPage} from 'components/admin_console/ldap_settings.jsx';
+import SecuritySettings from 'components/admin_console/security_settings.jsx';
+import {SignupSettingsPage} from 'components/admin_console/signup_settings.jsx';
+import {LoginSettingsPage} from 'components/admin_console/login_settings.jsx';
+import {PublicLinkSettingsPage} from 'components/admin_console/public_link_settings.jsx';
+import {SessionSettingsPage} from 'components/admin_console/session_settings.jsx';
+import {ConnectionSettingsPage} from 'components/admin_console/connection_settings.jsx';
+import NotificationSettings from 'components/admin_console/notification_settings.jsx';
+import {EmailSettingsPage} from 'components/admin_console/email_settings.jsx';
+import {PushSettingsPage} from 'components/admin_console/push_settings.jsx';
+import IntegrationSettings from 'components/admin_console/integration_settings.jsx';
+import {WebhookSettingsPage} from 'components/admin_console/webhook_settings.jsx';
+import {ExternalServiceSettingsPage} from 'components/admin_console/external_service_settings.jsx';
+import {DatabaseSettingsPage} from 'components/admin_console/database_settings.jsx';
+import FileSettings from 'components/admin_console/file_settings.jsx';
+import {StorageSettingsPage} from 'components/admin_console/storage_settings.jsx';
+import {ImageSettingsPage} from 'components/admin_console/image_settings.jsx';
+import CustomizationSettings from 'components/admin_console/customization_settings.jsx';
+import {WhiteLabelingSettingsPage} from 'components/admin_console/white_labeling_settings.jsx';
+import {LegalAndSupportSettingsPage} from 'components/admin_console/legal_and_support_settings.jsx';
+import {ComplianceSettingsPage} from 'components/admin_console/compliance_settings.jsx';
+import {RateSettingsPage} from 'components/admin_console/rate_settings.jsx';
+import {DeveloperSettingsPage} from 'components/admin_console/developer_settings.jsx';
+import TeamUsers from 'components/admin_console/team_users.jsx';
+import TeamAnalytics from 'components/analytics/team_analytics.jsx';
+import LicenseSettings from 'components/admin_console/license_settings.jsx';
+import Audits from 'components/admin_console/audits.jsx';
+import Logs from 'components/admin_console/logs.jsx';
 
 import Claim from 'components/claim/claim.jsx';
 import EmailToOAuth from 'components/claim/components/email_to_oauth.jsx';
@@ -301,7 +339,173 @@ function renderRootComponent() {
                     <Route
                         path='admin_console'
                         component={AdminConsole}
-                    />
+                    >
+                        <IndexRedirect to='system_analytics'/>
+                        <Route
+                            path='system_analytics'
+                            component={SystemAnalytics}
+                        />
+                        <Route path='general'>
+                            <IndexRoute component={GeneralSettings}/>
+                            <Route
+                                path='configuration'
+                                component={ConfigurationSettingsPage}
+                            />
+                            <Route
+                                path='users_and_teams'
+                                component={UsersAndTeamsSettingsPage}
+                            />
+                            <Route
+                                path='privacy'
+                                component={PrivacySettingsPage}
+                            />
+                            <Route
+                                path='logging'
+                                component={LogSettingsPage}
+                            />
+                        </Route>
+                        <Route path='authentication'>
+                            <IndexRoute
+                                component={AuthenticationSettings}
+                            />
+                            <Route
+                                path='onboarding'
+                                component={OnboardingSettingsPage}
+                            />
+                            <Route
+                                path='gitlab'
+                                component={GitLabSettingsPage}
+                            />
+                            <Route
+                                path='ldap'
+                                component={LdapSettingsPage}
+                            />
+                        </Route>
+                        <Route path='security'>
+                            <IndexRoute
+                                component={SecuritySettings}
+                            />
+                            <Route
+                                path='sign_up'
+                                component={SignupSettingsPage}
+                            />
+                            <Route
+                                path='login'
+                                component={LoginSettingsPage}
+                            />
+                            <Route
+                                path='public_links'
+                                component={PublicLinkSettingsPage}
+                            />
+                            <Route
+                                path='sessions'
+                                component={SessionSettingsPage}
+                            />
+                            <Route
+                                path='connections'
+                                component={ConnectionSettingsPage}
+                            />
+                        </Route>
+                        <Route path='notifications'>
+                            <IndexRoute
+                                component={NotificationSettings}
+                            />
+                            <Route
+                                path='email'
+                                component={EmailSettingsPage}
+                            />
+                            <Route
+                                path='push'
+                                component={PushSettingsPage}
+                            />
+                        </Route>
+                        <Route path='integrations'>
+                            <IndexRoute
+                                component={IntegrationSettings}
+                            />
+                            <Route
+                                path='webhooks'
+                                component={WebhookSettingsPage}
+                            />
+                            <Route
+                                path='external'
+                                component={ExternalServiceSettingsPage}
+                            />
+                        </Route>
+                        <Route
+                            path='database'
+                            component={DatabaseSettingsPage}
+                        />
+                        <Route path='files'>
+                            <IndexRoute
+                                component={FileSettings}
+                            />
+                            <Route
+                                path='storage'
+                                component={StorageSettingsPage}
+                            />
+                            <Route
+                                path='images'
+                                component={ImageSettingsPage}
+                            />
+                        </Route>
+                        <Route path='customization'>
+                            <IndexRoute
+                                component={CustomizationSettings}
+                            />
+                            <Route
+                                path='white_labeling'
+                                component={WhiteLabelingSettingsPage}
+                            />
+                            <Route
+                                path='legal_and_support'
+                                component={LegalAndSupportSettingsPage}
+                            />
+                        </Route>
+                        <Route
+                            path='compliance'
+                            component={ComplianceSettingsPage}
+                        />
+                        <Route
+                            path='rate'
+                            component={RateSettingsPage}
+                        />
+                        <Route
+                            path='developer'
+                            component={DeveloperSettingsPage}
+                        />
+                        <Route path='team'>
+                            <Redirect
+                                from=':team'
+                                to=':team/users'
+                            />
+                            <Route
+                                path=':team/users'
+                                component={TeamUsers}
+                            />
+                            <Route
+                                path=':team/analytics'
+                                component={TeamAnalytics}
+                            />
+                            <Redirect
+                                from='*'
+                                to='/error'
+                                query={notFoundParams}
+                            />
+                        </Route>
+                        <Route
+                            path='license'
+                            component={LicenseSettings}
+                        />
+                        <Route
+                            path='audits'
+                            component={Audits}
+                        />
+                        <Route
+                            path='logs'
+                            component={Logs}
+                        />
+                    </Route>
                     <Route
                         path=':team'
                         component={NeedsTeam}
