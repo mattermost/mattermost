@@ -1,8 +1,8 @@
 # Mattermost
 
-Mattermost is an open source, self-hosted Slack-alternative written in Go and React. 
+Mattermost Team Edition is an open source, self-hosted Slack-alternative. 
 
-It installs as a single Linux binary under an MIT license. 
+It's written in Golang and React and runs as a single Linux binary with either MySQL or Postgres. Every month on the 16th a new compiled version is released under an MIT license. 
 
 - See [product documentation](http://docs.mattermost.com/) for full details. 
 - Learn more about the project at [https://mattermost.org](https://mattermost.org). 
