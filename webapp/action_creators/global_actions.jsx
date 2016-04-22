@@ -223,10 +223,15 @@ export function emitPostRecievedEvent(post, msg) {
         AsyncClient.getChannel(post.channel_id);
     }
 
+    var websocketMessageProps = null;
+    if (msg) {
+        websocketMessageProps = msg.props;
+    }
+
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_POST,
         post,
-        websocketMessageProps: msg.props
+        websocketMessageProps
     });
 }
 
