@@ -150,8 +150,8 @@ test: start-docker
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running Enterprise tests
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/ldap || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/compliance || exit 1
+	#$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/ldap || exit 1
+	#$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/compliance || exit 1
 endif
 
 setup-run-client-tests:
