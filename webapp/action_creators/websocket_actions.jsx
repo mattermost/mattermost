@@ -3,12 +3,14 @@
 
 import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-line no-unused-vars
 
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
@@ -31,7 +33,7 @@ export function initialize() {
             protocol = 'wss://';
         }
 
-        const connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + '/api/v1/websocket';
+        const connUrl = protocol + location.host + ((/:\d+/).test(location.host) ? '' : Utils.getWebsocketPort(protocol)) + Client.getUsersRoute() + '/websocket';
 
         if (connectFailCount === 0) {
             console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
@@ -145,6 +147,11 @@ function handleMessage(msg) {
 
 export function sendMessage(msg) {
     if (conn && conn.readyState === WebSocket.OPEN) {
+        var teamId = TeamStore.getCurrentId();
+        if (teamId && teamId.length > 0) {
+            msg.team_id = teamId;
+        }
+
         conn.send(JSON.stringify(msg));
     } else if (!conn || conn.readyState === WebSocket.Closed) {
         conn = null;
@@ -161,7 +168,7 @@ export function close() {
 
 function handleNewPostEvent(msg) {
     const post = JSON.parse(msg.props.post);
-    GlobalActions.emitPostRecievedEvent(post, msg.props);
+    GlobalActions.emitPostRecievedEvent(post, msg);
 }
 
 function handlePostEditEvent(msg) {
@@ -193,7 +200,7 @@ function handleUserAddedEvent(msg) {
         AsyncClient.getChannelExtraInfo();
     }
 
-    if (UserStore.getCurrentId() === msg.user_id) {
+    if (TeamStore.getCurrentId() === msg.team_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
     }
 }
@@ -219,7 +226,7 @@ function handleUserRemovedEvent(msg) {
 
 function handleChannelViewedEvent(msg) {
     // Useful for when multiple devices have the app open to different channels
-    if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
+    if (TeamStore.getCurrentId() === msg.team_id && ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
     }
 }
@@ -230,5 +237,7 @@ function handlePreferenceChangedEvent(msg) {
 }
 
 function handleUserTypingEvent(msg) {
-    GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.props.parent_id);
+    if (TeamStore.getCurrentId() === msg.team_id) {
+        GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.props.parent_id);
+    }
 }

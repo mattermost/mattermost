@@ -9,6 +9,7 @@ import UserProfile from 'components/user_profile.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
+import Client from 'utils/web_client.jsx';
 
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
@@ -40,7 +41,7 @@ export function createDMIntroMessage(channel) {
                 <div className='post-profile-img__container channel-intro-img'>
                     <img
                         className='post-profile-img'
-                        src={'/api/v1/users/' + teammate.id + '/image?time=' + teammate.update_at}
+                        src={Client.getUsersRoute() + '/' + teammate.id + '/image?time=' + teammate.update_at}
                         height='50'
                         width='50'
                     />

@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -38,23 +38,21 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-func InitCommand(r *mux.Router) {
+func InitCommand() {
 	l4g.Debug(utils.T("api.command.init.debug"))
 
-	sr := r.PathPrefix("/commands").Subrouter()
+	BaseRoutes.Commands.Handle("/execute", ApiUserRequired(executeCommand)).Methods("POST")
+	BaseRoutes.Commands.Handle("/list", ApiUserRequired(listCommands)).Methods("GET")
 
-	sr.Handle("/execute", ApiUserRequired(executeCommand)).Methods("POST")
-	sr.Handle("/list", ApiUserRequired(listCommands)).Methods("GET")
+	BaseRoutes.Commands.Handle("/create", ApiUserRequired(createCommand)).Methods("POST")
+	BaseRoutes.Commands.Handle("/list_team_commands", ApiUserRequired(listTeamCommands)).Methods("GET")
+	BaseRoutes.Commands.Handle("/regen_token", ApiUserRequired(regenCommandToken)).Methods("POST")
+	BaseRoutes.Commands.Handle("/delete", ApiUserRequired(deleteCommand)).Methods("POST")
 
-	sr.Handle("/create", ApiUserRequired(createCommand)).Methods("POST")
-	sr.Handle("/list_team_commands", ApiUserRequired(listTeamCommands)).Methods("GET")
-	sr.Handle("/regen_token", ApiUserRequired(regenCommandToken)).Methods("POST")
-	sr.Handle("/delete", ApiUserRequired(deleteCommand)).Methods("POST")
-
-	sr.Handle("/test", ApiAppHandler(testCommand)).Methods("POST")
-	sr.Handle("/test", ApiAppHandler(testCommand)).Methods("GET")
-	sr.Handle("/test_e", ApiAppHandler(testEphemeralCommand)).Methods("POST")
-	sr.Handle("/test_e", ApiAppHandler(testEphemeralCommand)).Methods("GET")
+	BaseRoutes.Teams.Handle("/command_test", ApiAppHandler(testCommand)).Methods("POST")
+	BaseRoutes.Teams.Handle("/command_test", ApiAppHandler(testCommand)).Methods("GET")
+	BaseRoutes.Teams.Handle("/command_test_e", ApiAppHandler(testEphemeralCommand)).Methods("POST")
+	BaseRoutes.Teams.Handle("/command_test_e", ApiAppHandler(testEphemeralCommand)).Methods("GET")
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -70,7 +68,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if *utils.Cfg.ServiceSettings.EnableCommands {
-		if result := <-Srv.Store.Command().GetByTeam(c.Session.TeamId); result.Err != nil {
+		if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -99,7 +97,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(channelId) > 0 {
-		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+		cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
 		if !c.HasPermissionsToChannel(cchan, "checkCommand") {
 			return
@@ -124,10 +122,10 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		chanChan := Srv.Store.Channel().Get(channelId)
-		teamChan := Srv.Store.Team().Get(c.Session.TeamId)
+		teamChan := Srv.Store.Team().Get(c.TeamId)
 		userChan := Srv.Store.User().Get(c.Session.UserId)
 
-		if result := <-Srv.Store.Command().GetByTeam(c.Session.TeamId); result.Err != nil {
+		if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -254,7 +252,7 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 		post.Message = response.Text
 		post.CreateAt = model.GetMillis()
 		SendEphemeralPost(
-			c.Session.TeamId,
+			c.TeamId,
 			c.Session.UserId,
 			post,
 		)
@@ -288,7 +286,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd.CreatorId = c.Session.UserId
-	cmd.TeamId = c.Session.TeamId
+	cmd.TeamId = c.TeamId
 
 	if result := <-Srv.Store.Command().Save(cmd); result.Err != nil {
 		c.Err = result.Err
@@ -315,7 +313,7 @@ func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Command().GetByTeam(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -356,7 +354,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		cmd = result.Data.(*model.Command)
 
-		if c.Session.TeamId != cmd.TeamId || (c.Session.UserId != cmd.CreatorId && !c.IsTeamAdmin()) {
+		if c.TeamId != cmd.TeamId || (c.Session.UserId != cmd.CreatorId && !c.IsTeamAdmin()) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("regenToken", "api.command.regen.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -402,7 +400,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.TeamId != result.Data.(*model.Command).TeamId || (c.Session.UserId != result.Data.(*model.Command).CreatorId && !c.IsTeamAdmin()) {
+		if c.TeamId != result.Data.(*model.Command).TeamId || (c.Session.UserId != result.Data.(*model.Command).CreatorId && !c.IsTeamAdmin()) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteCommand", "api.command.delete.app_error", nil, "user_id="+c.Session.UserId)
 			return

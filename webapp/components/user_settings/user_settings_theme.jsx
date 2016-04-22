@@ -11,7 +11,7 @@ import SettingItemMax from '../setting_item_max.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import Constants from 'utils/constants.jsx';

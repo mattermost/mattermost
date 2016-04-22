@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	ROLE_TEAM_ADMIN            = "admin"
 	ROLE_SYSTEM_ADMIN          = "system_admin"
 	USER_AWAY_TIMEOUT          = 5 * 60 * 1000 // 5 minutes
 	USER_OFFLINE_TIMEOUT       = 1 * 60 * 1000 // 1 minute
@@ -28,6 +27,7 @@ const (
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"
+	MIN_PASSWORD_LENGTH        = 5
 )
 
 type User struct {
@@ -35,7 +35,6 @@ type User struct {
 	CreateAt           int64     `json:"create_at,omitempty"`
 	UpdateAt           int64     `json:"update_at,omitempty"`
 	DeleteAt           int64     `json:"delete_at"`
-	TeamId             string    `json:"team_id"`
 	Username           string    `json:"username"`
 	Password           string    `json:"password,omitempty"`
 	AuthData           string    `json:"auth_data,omitempty"`
@@ -74,10 +73,6 @@ func (u *User) IsValid() *AppError {
 
 	if u.UpdateAt == 0 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.update_at.app_error", nil, "user_id="+u.Id)
-	}
-
-	if len(u.TeamId) != 26 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.team_id.app_error", nil, "")
 	}
 
 	if !IsValidUsername(u.Username) {
@@ -228,6 +223,7 @@ func (u *User) IsAway() bool {
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = ""
+	u.MfaSecret = ""
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
@@ -246,6 +242,8 @@ func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = ""
 	u.AuthService = ""
+	u.MfaActive = false
+	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.LastPingAt = 0
 	u.AllowMarketing = false
@@ -301,7 +299,7 @@ func (u *User) GetDisplayName() string {
 	}
 }
 
-func IsValidRoles(userRoles string) bool {
+func IsValidUserRoles(userRoles string) bool {
 
 	roles := strings.Split(userRoles, " ")
 
@@ -316,10 +314,6 @@ func IsValidRoles(userRoles string) bool {
 
 func isValidRole(role string) bool {
 	if role == "" {
-		return true
-	}
-
-	if role == ROLE_TEAM_ADMIN {
 		return true
 	}
 
@@ -351,8 +345,8 @@ func IsInRole(userRoles string, inRole string) bool {
 	return false
 }
 
-func (u *User) IsSSOUser() bool {
-	if len(u.AuthData) != 0 && len(u.AuthService) != 0 && u.AuthService != USER_AUTH_SERVICE_LDAP {
+func (u *User) IsOAuthUser() bool {
+	if u.AuthService == USER_AUTH_SERVICE_GITLAB {
 		return true
 	}
 	return false

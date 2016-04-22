@@ -41,12 +41,10 @@ func (er *AppError) Error() string {
 }
 
 func (er *AppError) Translate(T goi18n.TranslateFunc) {
-	if len(er.Message) == 0 {
-		if er.params == nil {
-			er.Message = T(er.Id)
-		} else {
-			er.Message = T(er.Id, er.params)
-		}
+	if er.params == nil {
+		er.Message = T(er.Id)
+	} else {
+		er.Message = T(er.Id, er.params)
 	}
 }
 
@@ -83,6 +81,7 @@ func NewLocAppError(where string, id string, params map[string]interface{}, deta
 	ap := &AppError{}
 	ap.Id = id
 	ap.params = params
+	ap.Message = id
 	ap.Where = where
 	ap.DetailedError = details
 	ap.StatusCode = 500

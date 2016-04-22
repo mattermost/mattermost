@@ -8,7 +8,7 @@ import (
 )
 
 type MfaInterface interface {
-	GenerateQrCode(team *model.Team, user *model.User) ([]byte, *model.AppError)
+	GenerateQrCode(user *model.User) ([]byte, *model.AppError)
 	Activate(user *model.User, token string) *model.AppError
 	Deactivate(userId string) *model.AppError
 	ValidateToken(secret, token string) (bool, *model.AppError)

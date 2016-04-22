@@ -10,9 +10,8 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
-import * as Client from './client.jsx';
 import * as AsyncClient from './async_client.jsx';
-import * as client from './client.jsx';
+import Client from './web_client.jsx';
 
 import React from 'react';
 import {browserHistory} from 'react-router';
@@ -1114,7 +1113,7 @@ export function fileSizeToString(bytes) {
 
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
 export function getFileUrl(filename) {
-    return getWindowLocationOrigin() + '/api/v1/files/get' + filename;
+    return getWindowLocationOrigin() + Client.getFilesRoute() + '/get' + filename;
 }
 
 // Gets the name of a file (including extension) from a given url or file path.
@@ -1210,11 +1209,15 @@ export function importSlack(file, success, error) {
     formData.append('filesize', file.size);
     formData.append('importFrom', 'slack');
 
-    client.importSlack(formData, success, error);
+    Client.importSlack(formData, success, error);
 }
 
 export function getTeamURLFromAddressBar() {
     return window.location.origin + '/' + window.location.pathname.split('/')[1];
+}
+
+export function getTeamNameFromUrl() {
+    return window.location.pathname.split('/')[1];
 }
 
 export function getTeamURLNoOriginFromAddressBar() {
@@ -1263,16 +1266,11 @@ export function openDirectChannelToUser(user, successCb, errorCb) {
         };
 
         Client.createDirectChannel(
-            channel,
             user.id,
             (data) => {
                 Client.getChannel(
                     data.id,
-                    (data2, textStatus, xhr) => {
-                        if (xhr.status === 304 || !data2) {
-                            return;
-                        }
-
+                    (data2) => {
                         AppDispatcher.handleServerAction({
                             type: ActionTypes.RECEIVED_CHANNEL,
                             channel: data2.channel,
@@ -1400,7 +1398,7 @@ export function localizeMessage(id, defaultMessage) {
 }
 
 export function getProfilePicSrcForPost(post, timestamp) {
-    let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
+    let src = Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
     if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
         if (post.props.override_icon_url) {
             src = post.props.override_icon_url;

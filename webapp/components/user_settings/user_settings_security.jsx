@@ -10,7 +10,7 @@ import ToggleModalButton from '../toggle_modal_button.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -96,12 +96,10 @@ class SecurityTab extends React.Component {
             return;
         }
 
-        var data = {};
-        data.user_id = user.id;
-        data.current_password = currentPassword;
-        data.new_password = newPassword;
-
-        Client.updatePassword(data,
+        Client.updatePassword(
+            user.id,
+            currentPassword,
+            newPassword,
             () => {
                 this.props.updateSection('');
                 AsyncClient.getMe();
@@ -120,11 +118,9 @@ class SecurityTab extends React.Component {
         );
     }
     activateMfa() {
-        const data = {};
-        data.activate = true;
-        data.token = this.state.mfaToken;
-
-        Client.updateMfa(data,
+        Client.updateMfa(
+            this.state.mfaToken,
+            true,
             () => {
                 this.props.updateSection('');
                 AsyncClient.getMe();
@@ -224,7 +220,7 @@ class SecurityTab extends React.Component {
                         <div className='col-sm-7'>
                             <img
                                 className='qr-code-img'
-                                src={'/api/v1/users/generate_mfa_qr?time=' + this.props.user.update_at}
+                                src={Client.getUsersRoute() + '/generate_mfa_qr?time=' + this.props.user.update_at}
                             />
                         </div>
                         <br/>
@@ -531,9 +527,9 @@ class SecurityTab extends React.Component {
             if (global.window.mm_config.EnableSignUpWithEmail === 'true' && user.auth_service !== '') {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
-                    link = '/' + teamName + '/claim/ldap_to_email?email=' + encodeURIComponent(user.email);
+                    link = '/claim/ldap_to_email?email=' + encodeURIComponent(user.email);
                 } else {
-                    link = '/' + teamName + '/claim/oauth_to_email?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service;
+                    link = '/claim/oauth_to_email?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service;
                 }
 
                 emailOption = (
@@ -558,7 +554,7 @@ class SecurityTab extends React.Component {
                     <div>
                         <Link
                             className='btn btn-primary'
-                            to={'/' + teamName + '/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
+                            to={'/claim/email_to_oauth?email=' + encodeURIComponent(user.email) + '&old_type=' + user.auth_service + '&new_type=' + Constants.GITLAB_SERVICE}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchGitlab'
@@ -594,7 +590,7 @@ class SecurityTab extends React.Component {
                     <div>
                         <Link
                             className='btn btn-primary'
-                            to={'/' + teamName + '/claim/email_to_ldap?email=' + encodeURIComponent(user.email)}
+                            to={'/claim/email_to_ldap?email=' + encodeURIComponent(user.email)}
                         >
                             <FormattedMessage
                                 id='user.settings.security.switchLdap'
@@ -658,6 +654,13 @@ class SecurityTab extends React.Component {
                 <FormattedMessage
                     id='user.settings.security.gitlab'
                     defaultMessage='GitLab SSO'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.ldap'
+                    defaultMessage='LDAP'
                 />
             );
         }

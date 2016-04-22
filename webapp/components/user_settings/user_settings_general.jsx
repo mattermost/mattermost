@@ -9,7 +9,7 @@ import SettingPicture from '../setting_picture.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -225,11 +225,9 @@ class UserSettingsGeneralTab extends React.Component {
             return;
         }
 
-        var formData = new FormData();
-        formData.append('image', picture, picture.name);
         this.setState({loadingPicture: true});
 
-        Client.uploadProfileImage(formData,
+        Client.uploadProfileImage(picture,
             () => {
                 this.submitActive = false;
                 AsyncClient.getMe();
@@ -781,7 +779,7 @@ class UserSettingsGeneralTab extends React.Component {
                 <SettingPicture
                     title={formatMessage(holders.profilePicture)}
                     submit={this.submitPicture}
-                    src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update}
+                    src={Client.getUsersRoute() + '/' + user.id + '/image?time=' + user.last_picture_update}
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={(e) => {

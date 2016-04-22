@@ -90,6 +90,17 @@ export default class InstalledIncomingWebhook extends React.Component {
                         </span>
                     </div>
                     {description}
+                    <div className='item-details__row'>
+                        <span className='item-details__url'>
+                            <FormattedMessage
+                                id='installed_integrations.url'
+                                defaultMessage='URL: {url}'
+                                values={{
+                                    url: Utils.getWindowLocationOrigin() + '/hooks/' + incomingWebhook.id
+                                }}
+                            />
+                        </span>
+                    </div>
                     <div className='tem-details__row'>
                         <span className='item-details__creation'>
                             <FormattedMessage

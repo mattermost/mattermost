@@ -4,7 +4,7 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import SpinnerButton from 'components/spinner_button.jsx';
@@ -37,13 +37,9 @@ export default class ChannelInviteButton extends React.Component {
             addingUser: true
         });
 
-        const data = {
-            user_id: this.props.user.id
-        };
-
         Client.addChannelMember(
             this.props.channel.id,
-            data,
+            this.props.user.id,
             () => {
                 this.setState({
                     addingUser: false

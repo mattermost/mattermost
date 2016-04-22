@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import AdminNavbarDropdown from './admin_navbar_dropdown.jsx';
 import UserStore from 'stores/user_store.jsx';
+import Client from 'utils/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -41,7 +42,7 @@ export default class SidebarHeader extends React.Component {
             profilePicture = (
                 <img
                     className='user__picture'
-                    src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at}
+                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.update_at}
                 />
             );
         }

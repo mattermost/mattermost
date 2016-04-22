@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {Modal} from 'react-bootstrap';
 import LoadingScreen from './loading_screen.jsx';

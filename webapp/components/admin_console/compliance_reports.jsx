@@ -7,7 +7,7 @@ import * as Utils from '../../utils/utils.jsx';
 import AdminStore from '../../stores/admin_store.jsx';
 import UserStore from '../../stores/user_store.jsx';
 
-import * as Client from '../../utils/client.jsx';
+import * as Client from '../../utils/web_client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
 import {FormattedMessage, FormattedDate, FormattedTime} from 'react-intl';
@@ -153,7 +153,7 @@ export default class ComplianceReports extends React.Component {
                 var download = '';
                 if (report.status === 'finished') {
                     download = (
-                        <a href={'/api/v1/admin/download_compliance_report/' + report.id}>
+                        <a href={Client.getAdminRoute() + '/download_compliance_report/' + report.id}>
                             <FormattedMessage
                                 id='admin.compliance_table.download'
                                 defaultMessage='Download'

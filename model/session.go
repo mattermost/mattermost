@@ -17,17 +17,17 @@ const (
 )
 
 type Session struct {
-	Id             string    `json:"id"`
-	Token          string    `json:"token"`
-	CreateAt       int64     `json:"create_at"`
-	ExpiresAt      int64     `json:"expires_at"`
-	LastActivityAt int64     `json:"last_activity_at"`
-	UserId         string    `json:"user_id"`
-	TeamId         string    `json:"team_id"`
-	DeviceId       string    `json:"device_id"`
-	Roles          string    `json:"roles"`
-	IsOAuth        bool      `json:"is_oauth"`
-	Props          StringMap `json:"props"`
+	Id             string        `json:"id"`
+	Token          string        `json:"token"`
+	CreateAt       int64         `json:"create_at"`
+	ExpiresAt      int64         `json:"expires_at"`
+	LastActivityAt int64         `json:"last_activity_at"`
+	UserId         string        `json:"user_id"`
+	DeviceId       string        `json:"device_id"`
+	Roles          string        `json:"roles"`
+	IsOAuth        bool          `json:"is_oauth"`
+	Props          StringMap     `json:"props"`
+	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
 }
 
 func (me *Session) ToJson() string {
@@ -93,6 +93,16 @@ func (me *Session) AddProp(key string, value string) {
 	}
 
 	me.Props[key] = value
+}
+
+func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
+	for _, team := range me.TeamMembers {
+		if team.TeamId == teamId {
+			return team
+		}
+	}
+
+	return nil
 }
 
 func SessionsToJson(o []*Session) string {

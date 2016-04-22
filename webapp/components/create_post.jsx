@@ -11,7 +11,7 @@ import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -172,7 +172,7 @@ class CreatePost extends React.Component {
         GlobalActions.emitUserPostedEvent(post);
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
-        Client.createPost(post, channel,
+        Client.createPost(post,
             (data) => {
                 AsyncClient.getPosts();
 

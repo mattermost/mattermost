@@ -1312,14 +1312,6 @@
     "translation": "Configuración del equipo en {{ .SiteName }}"
   },
   {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "Haz actualizado el método con el que inicias sesión en {{.TeamURL}} para el equipo {{.TeamDisplayName}} por {{.Method}}.<br>Si este cambio no fue realizado por ti, por favor contacta a un administrador del sistema."
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "Cambio del método de inicio de sesión para {{.TeamDisplayName}} en {{ .SiteName }}"
-  },
-  {
     "id": "api.templates.verify_body.button",
     "translation": "Confirmar Correo"
   },
@@ -1422,14 +1414,6 @@
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
     "translation": "OAuth para {{.Service}} no está disponible en este servidor"
-  },
-  {
-    "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "El Equipo {{.DisplayName}} ya tiene un usuario con esta dirección de correo asociada a tu cuenta de {{.Service}}"
-  },
-  {
-    "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "Esta cuenta de {{.Service}} ya fue utilizada para registrarse en el equipo {{.DisplayName}}"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -3234,10 +3218,6 @@
   {
     "id": "store.sql_session.remove.app_error",
     "translation": "No pudimos remover la sesión"
-  },
-  {
-    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "No pudimos remover todas las sesiones para el equipo"
   },
   {
     "id": "store.sql_session.save.app_error",

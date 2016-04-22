@@ -10,7 +10,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -48,7 +48,7 @@ export default class Post extends React.Component {
         e.preventDefault();
 
         var post = this.props.post;
-        Client.createPost(post, post.channel_id,
+        Client.createPost(post,
             (data) => {
                 AsyncClient.getPosts();
 

@@ -30,9 +30,9 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
+        "EnableOpenServer": false,
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
-        "EnableTeamListing": false,
         "EnableCustomBrand": false,
         "CustomBrandText": ""
     },
@@ -143,6 +143,7 @@
         "LastNameAttribute": "",
         "EmailAttribute": "",
         "UsernameAttribute": "",
+        "NicknameAttribute": "",
         "IdAttribute": "",
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,

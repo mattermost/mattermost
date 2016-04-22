@@ -6,6 +6,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 
@@ -13,20 +14,71 @@ import (
 	_ "github.com/nicksnyder/go-i18n/i18n"
 )
 
+type Routes struct {
+	Root    *mux.Router // ''
+	ApiRoot *mux.Router // 'api/v3'
+
+	Users    *mux.Router // 'api/v3/users'
+	NeedUser *mux.Router // 'api/v3/users/{user_id:[A-Za-z0-9]+}'
+
+	Teams    *mux.Router // 'api/v3/teams'
+	NeedTeam *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}'
+
+	Channels    *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels'
+	NeedChannel *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
+
+	Posts    *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts'
+	NeedPost *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
+
+	Commands *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/commands'
+	Hooks    *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks'
+
+	Files *mux.Router // 'api/v3/teams/{team_id:[A-Za-z0-9]+}/files'
+
+	OAuth *mux.Router // 'api/v3/oauth'
+
+	Admin *mux.Router // 'api/v3/admin'
+
+	Preferences *mux.Router // 'api/v3/preferences'
+
+	License *mux.Router // 'api/v3/license'
+}
+
+var BaseRoutes *Routes
+
 func InitApi() {
-	r := Srv.Router.PathPrefix("/api/v1").Subrouter()
-	InitUser(r)
-	InitTeam(r)
-	InitChannel(r)
-	InitPost(r)
-	InitWebSocket(r)
-	InitFile(r)
-	InitCommand(r)
-	InitAdmin(r)
-	InitOAuth(r)
-	InitWebhook(r)
-	InitPreference(r)
-	InitLicense(r)
+	BaseRoutes = &Routes{}
+	BaseRoutes.Root = Srv.Router
+	BaseRoutes.ApiRoot = Srv.Router.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	BaseRoutes.Users = BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
+	BaseRoutes.NeedUser = BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.Teams = BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
+	BaseRoutes.NeedTeam = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.Channels = BaseRoutes.NeedTeam.PathPrefix("/channels").Subrouter()
+	BaseRoutes.NeedChannel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.Posts = BaseRoutes.NeedChannel.PathPrefix("/posts").Subrouter()
+	BaseRoutes.NeedPost = BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.Commands = BaseRoutes.NeedTeam.PathPrefix("/commands").Subrouter()
+	BaseRoutes.Files = BaseRoutes.NeedTeam.PathPrefix("/files").Subrouter()
+	BaseRoutes.Hooks = BaseRoutes.NeedTeam.PathPrefix("/hooks").Subrouter()
+	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
+	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
+	BaseRoutes.Preferences = BaseRoutes.ApiRoot.PathPrefix("/preferences").Subrouter()
+	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
+
+	InitUser()
+	InitTeam()
+	InitChannel()
+	InitPost()
+	InitWebSocket()
+	InitFile()
+	InitCommand()
+	InitAdmin()
+	InitOAuth()
+	InitWebhook()
+	InitPreference()
+	InitLicense()
+
 	// 404 on any api route before web.go has a chance to serve it
 	Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
 

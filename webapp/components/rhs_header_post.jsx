@@ -3,6 +3,7 @@
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -21,16 +22,7 @@ export default class RhsHeaderPost extends React.Component {
     }
     handleClose(e) {
         e.preventDefault();
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH,
-            results: null
-        });
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_POST_SELECTED,
-            postId: null
-        });
+        GlobalActions.emitCloseRightHandSide();
     }
     handleBack(e) {
         e.preventDefault();

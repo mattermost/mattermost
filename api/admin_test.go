@@ -7,33 +7,18 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"strings"
 	"testing"
 )
 
 func TestGetLogs(t *testing.T) {
-	Setup()
+	th := Setup().InitSystemAdmin().InitBasic()
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if _, err := Client.GetLogs(); err == nil {
+	if _, err := th.BasicClient.GetLogs(); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if logs, err := Client.GetLogs(); err != nil {
+	if logs, err := th.SystemAdminClient.GetLogs(); err != nil {
 		t.Fatal(err)
 	} else if len(logs.Data.([]string)) <= 0 {
 		t.Fatal()
@@ -41,29 +26,13 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestGetAllAudits(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic().InitSystemAdmin()
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if _, err := Client.GetAllAudits(); err == nil {
+	if _, err := th.BasicClient.GetAllAudits(); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if audits, err := Client.GetAllAudits(); err != nil {
+	if audits, err := th.SystemAdminClient.GetAllAudits(); err != nil {
 		t.Fatal(err)
 	} else if len(audits.Data.(model.Audits)) <= 0 {
 		t.Fatal()
@@ -71,9 +40,9 @@ func TestGetAllAudits(t *testing.T) {
 }
 
 func TestGetClientProperties(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic()
 
-	if result, err := Client.GetClientProperties(); err != nil {
+	if result, err := th.BasicClient.GetClientProperties(); err != nil {
 		t.Fatal(err)
 	} else {
 		props := result.Data.(map[string]string)
@@ -85,29 +54,13 @@ func TestGetClientProperties(t *testing.T) {
 }
 
 func TestGetConfig(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic().InitSystemAdmin()
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if _, err := Client.GetConfig(); err == nil {
+	if _, err := th.BasicClient.GetConfig(); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if result, err := Client.GetConfig(); err != nil {
+	if result, err := th.SystemAdminClient.GetConfig(); err != nil {
 		t.Fatal(err)
 	} else {
 		cfg := result.Data.(*model.Config)
@@ -119,29 +72,15 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestSaveConfig(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic().InitSystemAdmin()
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if _, err := Client.SaveConfig(utils.Cfg); err == nil {
+	if _, err := th.BasicClient.SaveConfig(utils.Cfg); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	*utils.Cfg.TeamSettings.EnableOpenServer = false
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if result, err := Client.SaveConfig(utils.Cfg); err != nil {
+	if result, err := th.SystemAdminClient.SaveConfig(utils.Cfg); err != nil {
 		t.Fatal(err)
 	} else {
 		cfg := result.Data.(*model.Config)
@@ -150,66 +89,31 @@ func TestSaveConfig(t *testing.T) {
 			t.Fatal()
 		}
 	}
+
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
 func TestEmailTest(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic().InitSystemAdmin()
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if _, err := Client.TestEmail(utils.Cfg); err == nil {
+	if _, err := th.BasicClient.TestEmail(utils.Cfg); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if _, err := Client.TestEmail(utils.Cfg); err != nil {
+	if _, err := th.SystemAdminClient.TestEmail(utils.Cfg); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestGetTeamAnalyticsStandard(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic().InitSystemAdmin()
+	th.CreatePrivateChannel(th.BasicClient, th.BasicTeam)
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
-
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
-	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
-
-	if _, err := Client.GetTeamAnalytics(team.Id, "standard"); err == nil {
+	if _, err := th.BasicClient.GetTeamAnalytics(th.BasicTeam.Id, "standard"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if result, err := Client.GetTeamAnalytics(team.Id, "standard"); err != nil {
+	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "standard"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)
@@ -219,7 +123,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[0].Value != 2 {
+		if rows[0].Value != 3 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -249,7 +153,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[3].Value != 1 {
+		if rows[3].Value != 2 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -265,7 +169,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.GetSystemAnalytics("standard"); err != nil {
+	if result, err := th.SystemAdminClient.GetSystemAnalytics("standard"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)
@@ -275,7 +179,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[0].Value < 2 {
+		if rows[0].Value < 3 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -323,39 +227,17 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 }
 
 func TestGetPostCount(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
-
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
-	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+	th := Setup().InitBasic().InitSystemAdmin()
 
 	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
 	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
-		map[string]interface{}{"ChannelId": channel1.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
+		map[string]interface{}{"ChannelId": th.BasicChannel.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
-	if _, err := Client.GetTeamAnalytics(team.Id, "post_counts_day"); err == nil {
+	if _, err := th.BasicClient.GetTeamAnalytics(th.BasicTeam.Id, "post_counts_day"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if result, err := Client.GetTeamAnalytics(team.Id, "post_counts_day"); err != nil {
+	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "post_counts_day"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)
@@ -368,39 +250,17 @@ func TestGetPostCount(t *testing.T) {
 }
 
 func TestUserCountsWithPostsByDay(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
-
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
-	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+	th := Setup().InitBasic().InitSystemAdmin()
 
 	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
 	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
-		map[string]interface{}{"ChannelId": channel1.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
+		map[string]interface{}{"ChannelId": th.BasicChannel.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
-	if _, err := Client.GetTeamAnalytics(team.Id, "user_counts_with_posts_day"); err == nil {
+	if _, err := th.BasicClient.GetTeamAnalytics(th.BasicTeam.Id, "user_counts_with_posts_day"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if result, err := Client.GetTeamAnalytics(team.Id, "user_counts_with_posts_day"); err != nil {
+	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "user_counts_with_posts_day"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)
@@ -413,38 +273,15 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 }
 
 func TestGetTeamAnalyticsExtra(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic().InitSystemAdmin()
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+	th.CreatePost(th.BasicClient, th.BasicChannel)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
-
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
-	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
-
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "#test a" + model.NewId() + "a"}
-	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
-
-	if _, err := Client.GetTeamAnalytics("", "extra_counts"); err == nil {
+	if _, err := th.BasicClient.GetTeamAnalytics("", "extra_counts"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	if result, err := Client.GetTeamAnalytics(team.Id, "extra_counts"); err != nil {
+	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "extra_counts"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)
@@ -464,7 +301,7 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[1].Value != 1 {
+		if rows[1].Value != 0 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -510,7 +347,7 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 		}
 	}
 
-	if result, err := Client.GetSystemAnalytics("extra_counts"); err != nil {
+	if result, err := th.SystemAdminClient.GetSystemAnalytics("extra_counts"); err != nil {
 		t.Fatal(err)
 	} else {
 		rows := result.Data.(model.AnalyticsRows)
@@ -521,11 +358,6 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 		}
 
 		if rows[1].Name != "hashtag_post_count" {
-			t.Log(rows.ToJson())
-			t.Fatal()
-		}
-
-		if rows[1].Value < 1 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -549,5 +381,75 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
+	}
+}
+
+func TestAdminResetMfa(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if _, err := th.BasicClient.AdminResetMfa("12345678901234567890123456"); err == nil {
+		t.Fatal("should have failed - not an admin")
+	}
+
+	if _, err := th.SystemAdminClient.AdminResetMfa(""); err == nil {
+		t.Fatal("should have failed - empty user id")
+	}
+
+	if _, err := th.SystemAdminClient.AdminResetMfa("12345678901234567890123456"); err == nil {
+		t.Fatal("should have failed - bad user id")
+	}
+
+	if _, err := th.SystemAdminClient.AdminResetMfa(th.BasicUser.Id); err == nil {
+		t.Fatal("should have failed - not licensed or configured")
+	}
+
+	// need to add more test cases when enterprise bits can be loaded into tests
+}
+
+func TestAdminResetPassword(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+
+	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user, team)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	if _, err := Client.AdminResetPassword("", "newpwd"); err == nil {
+		t.Fatal("Should have errored - empty user id")
+	}
+
+	if _, err := Client.AdminResetPassword("123", "newpwd"); err == nil {
+		t.Fatal("Should have errored - bad user id")
+	}
+
+	if _, err := Client.AdminResetPassword("12345678901234567890123456", "newpwd"); err == nil {
+		t.Fatal("Should have errored - bad user id")
+	}
+
+	if _, err := Client.AdminResetPassword("12345678901234567890123456", "newp"); err == nil {
+		t.Fatal("Should have errored - password too short")
+	}
+
+	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: "1", AuthService: "random"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	LinkUserToTeam(user2, team)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	if _, err := Client.AdminResetPassword(user2.Id, "newpwd"); err == nil {
+		t.Fatal("should have errored - SSO user can't reset password")
+	}
+
+	if _, err := Client.AdminResetPassword(user.Id, "newpwd"); err != nil {
+		t.Fatal(err)
+	}
+
+	Client.Logout()
+	Client.Must(Client.LoginById(user.Id, "newpwd"))
+	Client.SetTeamId(team.Id)
+
+	if _, err := Client.AdminResetPassword(user.Id, "newpwd"); err == nil {
+		t.Fatal("Should have errored - not sytem admin")
 	}
 }

@@ -89,6 +89,8 @@ export default class AddCommand extends React.Component {
                     />
                 )
             });
+
+            return;
         }
 
         if (!command.url) {
@@ -101,12 +103,14 @@ export default class AddCommand extends React.Component {
                     />
                 )
             });
+
+            return;
         }
 
         AsyncClient.addCommand(
             command,
             () => {
-                browserHistory.push('/settings/integrations/commands');
+                browserHistory.push('/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands');
             },
             (err) => {
                 this.setState({
@@ -251,7 +255,7 @@ export default class AddCommand extends React.Component {
         return (
             <div className='backstage-content row'>
                 <BackstageHeader>
-                    <Link to={'/settings/integrations/commands'}>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands'}>
                         <FormattedMessage
                             id='installed_command.header'
                             defaultMessage='Slash Commands'
@@ -482,7 +486,7 @@ export default class AddCommand extends React.Component {
                             <FormError errors={[this.state.serverError, this.state.clientError]}/>
                             <Link
                                 className='btn btn-sm'
-                                to={'/settings/integrations/commands'}
+                                to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands'}
                             >
                                 <FormattedMessage
                                     id='add_command.cancel'

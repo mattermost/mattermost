@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import 'jquery-dragster/jquery.dragster.js';
 import ReactDOM from 'react-dom';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -49,9 +49,9 @@ class FileUpload extends React.Component {
     fileUploadSuccess(channelId, data) {
         this.props.onFileUpload(data.filenames, data.client_ids, channelId);
 
-        var requests = this.state.requests;
+        const requests = JSON.parse(JSON.stringify(this.state.requests));
         for (var j = 0; j < data.client_ids.length; j++) {
-            delete requests[data.client_ids[j]];
+            Reflect.deleteProperty(requests, data.client_ids[j]);
         }
         this.setState({requests});
     }
@@ -64,13 +64,13 @@ class FileUpload extends React.Component {
         // clear any existing errors
         this.props.onUploadError(null);
 
-        var channelId = this.props.channelId || ChannelStore.getCurrentId();
+        const channelId = this.props.channelId || ChannelStore.getCurrentId();
 
-        var uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
-        var numUploads = 0;
+        const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
+        let numUploads = 0;
 
         // keep track of how many files have been too large
-        var tooLargeFiles = [];
+        const tooLargeFiles = [];
 
         for (let i = 0; i < files.length && numUploads < uploadsRemaining; i++) {
             if (files[i].size > Constants.MAX_FILE_SIZE) {
@@ -81,18 +81,15 @@ class FileUpload extends React.Component {
             // generate a unique id that can be used by other components to refer back to this upload
             const clientId = Utils.generateId();
 
-            // prepare data to be uploaded
-            var formData = new FormData();
-            formData.append('channel_id', channelId);
-            formData.append('files', files[i], files[i].name);
-            formData.append('client_ids', clientId);
-
-            var request = Client.uploadFile(formData,
+            const request = Client.uploadFile(files[i],
+                files[i].name,
+                channelId,
+                clientId,
                 this.fileUploadSuccess.bind(this, channelId),
                 this.fileUploadFail.bind(this, clientId)
             );
 
-            var requests = this.state.requests;
+            const requests = this.state.requests;
             requests[clientId] = request;
             this.setState({requests});
 
@@ -231,8 +228,6 @@ class FileUpload extends React.Component {
                         // generate a unique id that can be used by other components to refer back to this file upload
                         var clientId = Utils.generateId();
 
-                        var formData = new FormData();
-                        formData.append('channel_id', channelId);
                         var d = new Date();
                         var hour;
                         if (d.getHours() < 10) {
@@ -247,16 +242,17 @@ class FileUpload extends React.Component {
                             min = String(d.getMinutes());
                         }
 
-                        var name = formatMessage(holders.pasted) + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
-                        formData.append('files', file, name);
-                        formData.append('client_ids', clientId);
+                        const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
 
-                        var request = Client.uploadFile(formData,
+                        const request = Client.uploadFile(file,
+                            name,
+                            channelId,
+                            clientId,
                             self.fileUploadSuccess.bind(self, channelId),
                             self.fileUploadFail.bind(self, clientId)
                         );
 
-                        var requests = self.state.requests;
+                        const requests = self.state.requests;
                         requests[clientId] = request;
                         self.setState({requests});
 
@@ -280,13 +276,13 @@ class FileUpload extends React.Component {
     }
 
     cancelUpload(clientId) {
-        var requests = this.state.requests;
-        var request = requests[clientId];
+        const requests = JSON.parse(JSON.stringify(this.state.requests));
+        const request = requests[clientId];
 
         if (request) {
             request.abort();
 
-            delete requests[clientId];
+            Reflect.deleteProperty(requests, clientId);
             this.setState({requests});
         }
     }

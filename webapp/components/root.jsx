@@ -1,10 +1,10 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
+//import $ from 'jquery';
+//import Client from 'utils/web_client.jsx';
+
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-import * as Client from 'utils/client.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 
 import {IntlProvider} from 'react-intl';
@@ -14,6 +14,7 @@ import React from 'react';
 import FastClick from 'fastclick';
 
 import {browserHistory} from 'react-router';
+import UserStore from 'stores/user_store.jsx';
 
 export default class Root extends React.Component {
     constructor(props) {
@@ -29,15 +30,16 @@ export default class Root extends React.Component {
     localizationChanged() {
         this.setState({locale: LocalizationStore.getLocale(), translations: LocalizationStore.getTranslations()});
     }
+
     redirectIfNecessary(props) {
         if (props.location.pathname === '/') {
-            Client.getMeLoggedIn((data) => {
-                if (!data || data.logged_in === 'false') {
-                    browserHistory.push('/signup_team');
-                } else {
-                    browserHistory.push('/' + data.team_name + '/channels/town-square');
-                }
-            });
+            if (UserStore.getNoAccounts()) {
+                browserHistory.push('/signup_user_complete');
+            } else if (UserStore.getCurrentUser()) {
+                browserHistory.push('/select_team');
+            } else {
+                browserHistory.push('/login');
+            }
         }
     }
     componentWillReceiveProps(newProps) {
@@ -47,28 +49,6 @@ export default class Root extends React.Component {
         // Setup localization listener
         LocalizationStore.addChangeListener(this.localizationChanged);
 
-        // Browser store check version
-        BrowserStore.checkVersion();
-
-        window.onerror = (msg, url, line, column, stack) => {
-            var l = {};
-            l.level = 'ERROR';
-            l.message = 'msg: ' + msg + ' row: ' + line + ' col: ' + column + ' stack: ' + stack + ' url: ' + url;
-
-            $.ajax({
-                url: '/api/v1/admin/log_client',
-                dataType: 'json',
-                contentType: 'application/json',
-                type: 'POST',
-                data: JSON.stringify(l)
-            });
-
-            if (window.mm_config.EnableDeveloper === 'true') {
-                window.ErrorStore.storeLastError({message: 'DEVELOPER MODE: A javascript error has occured.  Please use the javascript console to capture and report the error (row: ' + line + ' col: ' + column + ').'});
-                window.ErrorStore.emitChange();
-            }
-        };
-
         // Ya....
         /*eslint-disable */
         if (window.mm_config.SegmentDeveloperKey != null && window.mm_config.SegmentDeveloperKey !== "") {
@@ -76,11 +56,7 @@ export default class Root extends React.Component {
             analytics.load(window.mm_config.SegmentDeveloperKey);
             analytics.page();
             }}();
-        } else {
-            global.window.analytics = {};
-            global.window.analytics.page = function(){};
-            global.window.analytics.track = function(){};
-        }
+        } 
         /*eslint-enable */
 
         // Fastclick

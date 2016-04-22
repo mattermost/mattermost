@@ -19,68 +19,125 @@ func TestCommandJson(t *testing.T) {
 }
 
 func TestCommandIsValid(t *testing.T) {
-	o := Command{}
+	o := Command{
+		Id:          NewId(),
+		Token:       NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		CreatorId:   NewId(),
+		TeamId:      NewId(),
+		Trigger:     "trigger",
+		URL:         "http://example.com",
+		Method:      COMMAND_METHOD_GET,
+		DisplayName: "",
+		Description: "",
+	}
 
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.Id = ""
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
 	}
 
-	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
-
-	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
-
-	o.CreatorId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
-
-	o.CreatorId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
-
-	o.Token = "123"
+	o.Token = ""
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Token = NewId()
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.CreateAt = 0
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.TeamId = "123"
+	o.CreateAt = GetMillis()
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.UpdateAt = 0
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.UpdateAt = GetMillis()
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.CreatorId = ""
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.CreatorId = NewId()
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.TeamId = ""
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.TeamId = NewId()
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.Trigger = ""
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.URL = "nowhere.com/"
+	o.Trigger = strings.Repeat("1", 129)
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.URL = "http://nowhere.com/"
+	o.Trigger = strings.Repeat("1", 128)
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.URL = ""
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.URL = "1234"
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.URL = "https://example.com"
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.Method = "https://example.com"
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Method = COMMAND_METHOD_GET
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.Method = COMMAND_METHOD_POST
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}

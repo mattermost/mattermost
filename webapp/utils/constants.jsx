@@ -61,6 +61,7 @@ export default {
         RECEIVED_ADD_MENTION: null,
 
         RECEIVED_PROFILES: null,
+        RECEIVED_DIRECT_PROFILES: null,
         RECEIVED_ME: null,
         RECEIVED_SESSIONS: null,
         RECEIVED_AUDITS: null,
@@ -92,6 +93,9 @@ export default {
         RECEIVED_SERVER_AUDITS: null,
         RECEIVED_SERVER_COMPLIANCE_REPORTS: null,
         RECEIVED_ALL_TEAMS: null,
+        RECEIVED_ALL_TEAM_LISTINGS: null,
+        RECEIVED_TEAM_MEMBERS: null,
+        RECEIVED_MEMBERS_FOR_TEAM: null,
 
         RECEIVED_LOCALE: null,
 
@@ -205,6 +209,7 @@ export default {
     LDAP_SERVICE: 'ldap',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',
+    PASSWORD_CHANGE: 'password_change',
     SIGNIN_VERIFIED: 'verified',
     SESSION_EXPIRED: 'expired',
     POST_CHUNK_SIZE: 60,

@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import {Modal} from 'react-bootstrap';
 
@@ -40,12 +40,9 @@ class ResetPasswordModal extends React.Component {
 
         this.setState({serverError: null});
 
-        var data = {};
-        data.new_password = password;
-        data.name = this.props.team.name;
-        data.user_id = this.props.user.id;
-
-        Client.resetPassword(data,
+        Client.adminResetPassword(
+            this.props.user.id,
+            password,
             () => {
                 this.props.onModalSubmit(ReactDOM.findDOMNode(this.refs.password).value);
             },

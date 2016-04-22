@@ -13,7 +13,9 @@ import (
 )
 
 func BenchmarkUploadFile(b *testing.B) {
-	_, _, channel := SetupBenchmark()
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 
@@ -25,7 +27,10 @@ func BenchmarkUploadFile(b *testing.B) {
 }
 
 func BenchmarkGetFile(b *testing.B) {
-	team, _, channel := SetupBenchmark()
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 	filenames, err := testPoster.UploadTestFile()
@@ -53,7 +58,9 @@ func BenchmarkGetFile(b *testing.B) {
 }
 
 func BenchmarkGetPublicLink(b *testing.B) {
-	_, _, channel := SetupBenchmark()
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 	filenames, err := testPoster.UploadTestFile()

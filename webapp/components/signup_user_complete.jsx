@@ -3,12 +3,13 @@
 
 import LoadingScreen from 'components/loading_screen.jsx';
 import LoginLdap from 'components/login/components/login_ldap.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
@@ -24,7 +25,6 @@ class SignupUserComplete extends React.Component {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.inviteInfoRecieved = this.inviteInfoRecieved.bind(this);
         this.handleLdapSignup = this.handleLdapSignup.bind(this);
 
         this.state = {
@@ -34,7 +34,10 @@ class SignupUserComplete extends React.Component {
             email: '',
             teamDisplayName: '',
             teamName: '',
-            teamId: ''
+            teamId: '',
+            openServer: false,
+            loading: true,
+            inviteId: ''
         };
     }
     componentWillMount() {
@@ -46,19 +49,91 @@ class SignupUserComplete extends React.Component {
         let teamDisplayName = '';
         let teamName = '';
         let teamId = '';
+        let openServer = false;
+        let loading = true;
 
-        // If we have a hash in the url then we are attempting to access a private team
-        if (hash) {
-            const parsedData = JSON.parse(data);
-            usedBefore = BrowserStore.getGlobalItem(hash);
-            email = parsedData.email;
-            teamDisplayName = parsedData.display_name;
-            teamName = parsedData.name;
-            teamId = parsedData.id;
+        if ((inviteId && inviteId.length > 0) || (hash && hash.length > 0)) {
+            // if we are already logged in then attempt to just join the team
+            if (UserStore.getCurrentUser()) {
+                loading = true;
+                Client.addUserToTeamFromInvite(
+                    data,
+                    hash,
+                    inviteId,
+                    () => {
+                        GlobalActions.emitInitialLoad(
+                            () => {
+                                browserHistory.push('/select_team');
+                            }
+                        );
+                    },
+                    (err) => {
+                        this.setState({
+                            noOpenServerError: true,
+                            serverError: err.message,
+                            loading: false
+                        });
+                    }
+                );
+            } else if (hash) {
+                // If we have a hash in the url then we are attempting to access a private team
+                const parsedData = JSON.parse(data);
+                usedBefore = BrowserStore.getGlobalItem(hash);
+                email = parsedData.email;
+                teamDisplayName = parsedData.display_name;
+                teamName = parsedData.name;
+                teamId = parsedData.id;
+                loading = false;
+            } else {
+                loading = true;
+                Client.getInviteInfo(
+                    inviteId,
+                    (inviteData) => {
+                        if (!inviteData) {
+                            return;
+                        }
+
+                        this.setState({
+                            serverError: null,
+                            teamDisplayName: inviteData.display_name,
+                            teamName: inviteData.name,
+                            teamId: inviteData.id,
+                            loading: false
+                        });
+                    },
+                    () => {
+                        this.setState({
+                            noOpenServerError: true,
+                            loading: false,
+                            serverError:
+                                <FormattedMessage
+                                    id='signup_user_completed.invalid_invite'
+                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                                />
+                        });
+                    }
+                );
+
+                data = '';
+                hash = '';
+            }
+        } else if (global.window.mm_config.EnableOpenServer === 'true' || UserStore.getNoAccounts()) {
+            // If this is the first account then let them create an account anyway.
+            // The server will verify it's the first account before allowing creation.
+            // Of if the server is open then we don't care.
+            openServer = true;
+            loading = false;
         } else {
-            Client.getInviteInfo(this.inviteInfoRecieved, null, inviteId);
-            data = '';
-            hash = '';
+            loading = false;
+            this.setState({
+                noOpenServerError: true,
+                serverError:
+                    <FormattedMessage
+                        id='signup_user_completed.no_open_server'
+                        defaultMessage='This server does not allow open signups.  Please speak with your Administrator to receive an invitation.'
+                    />,
+                loading: false
+            });
         }
 
         this.setState({
@@ -68,29 +143,25 @@ class SignupUserComplete extends React.Component {
             email,
             teamDisplayName,
             teamName,
-            teamId
-        });
-    }
-    inviteInfoRecieved(data) {
-        if (!data) {
-            return;
-        }
-
-        this.setState({
-            teamDisplayName: data.display_name,
-            teamName: data.name,
-            teamId: data.id
+            teamId,
+            openServer,
+            inviteId,
+            loading
         });
     }
 
     handleLdapSignup(method, loginId, password, token) {
-        Client.loginByLdap(this.state.teamName, loginId, password, token,
+        Client.loginByLdap(loginId, password, token,
             () => {
                 const redirect = Utils.getUrlParameter('redirect');
                 if (redirect) {
                     browserHistory.push(decodeURIComponent(redirect));
                 } else {
-                    browserHistory.push('/' + this.state.teamName + '/channels/town-square');
+                    GlobalActions.emitInitialLoad(
+                        () => {
+                            browserHistory.push('/select_team');
+                        }
+                    );
                 }
             },
             (err) => {
@@ -187,28 +258,34 @@ class SignupUserComplete extends React.Component {
         });
 
         const user = {
-            team_id: this.state.teamId,
             email: providedEmail,
             username: providedUsername,
             password: providedPassword,
             allow_marketing: true
         };
 
-        Client.createUser(user, this.state.data, this.state.hash,
+        Client.createUserWithInvite(user,
+            this.state.data,
+            this.state.hash,
+            this.state.inviteId,
             () => {
                 Client.track('signup', 'signup_user_02_complete');
-
-                Client.loginByEmail(
-                    this.state.teamName,
+                Client.login(
                     user.email,
+                    null,
                     user.password,
-                    '', // No MFA Token
+                    '',
                     () => {
                         UserStore.setLastEmail(user.email);
                         if (this.state.hash > 0) {
                             BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
                         }
-                        browserHistory.push('/' + this.state.teamName + '/channels/town-square');
+
+                        GlobalActions.emitInitialLoad(
+                            () => {
+                                browserHistory.push('/select_team');
+                            }
+                        );
                     },
                     (err) => {
                         if (err.id === 'api.user.login.not_verified.app_error') {
@@ -239,9 +316,7 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        // If we haven't got a team id yet we are waiting for
-        // the client so just show the standard loading screen
-        if (this.state.teamId === '') {
+        if (this.state.loading) {
             return (<LoadingScreen/>);
         }
 
@@ -349,7 +424,7 @@ class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={'/api/v1/oauth/gitlab/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search}
                 >
                     <span className='icon'/>
                     <span>
@@ -367,7 +442,7 @@ class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login google'
                     key='google'
-                    href={'/api/v1/oauth/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
+                    href={Client.getOAuthRoute() + '/google/signup' + window.location.search + '&team=' + encodeURIComponent(this.state.teamName)}
                 >
                     <span className='icon'/>
                     <span>
@@ -497,12 +572,33 @@ class SignupUserComplete extends React.Component {
             );
         }
 
+        let terms = (
+            <p>
+                <FormattedHTMLMessage
+                    id='create_team.agreement'
+                    defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
+                    values={{
+                        siteName: global.window.mm_config.SiteName
+                    }}
+                />
+            </p>
+        );
+
+        if (this.state.noOpenServerError) {
+            signupMessage = null;
+            ldapSignup = null;
+            emailSignup = null;
+            terms = null;
+        }
+
         return (
             <div>
                 <div className='signup-header'>
                     <Link to='/'>
-                        <span classNameNameName='fa fa-chevron-left'/>
-                        <FormattedMessage id='web.header.back'/>
+                        <span className='fa fa-chevron-left'/>
+                        <FormattedMessage
+                            id='web.header.back'
+                        />
                     </Link>
                 </div>
                 <div className='col-sm-12'>
@@ -511,22 +607,12 @@ class SignupUserComplete extends React.Component {
                             className='signup-team-logo'
                             src={logoImage}
                         />
-                        <h5 className='margin--less'>
+                        <h1>{global.window.mm_config.SiteName}</h1>
+                        <h4 className='color--light'>
                             <FormattedMessage
-                                id='signup_user_completed.welcome'
-                                defaultMessage='Welcome to:'
+                                id='web.root.singup_info'
                             />
-                        </h5>
-                        <h2 className='signup-team__name'>{this.state.teamName}</h2>
-                        <h2 className='signup-team__subdomain'>
-                            <FormattedMessage
-                                id='signup_user_completed.onSite'
-                                defaultMessage='on {siteName}'
-                                values={{
-                                    siteName: global.window.mm_config.SiteName
-                                }}
-                            />
-                        </h2>
+                        </h4>
                         <h4 className='color--light'>
                             <FormattedMessage
                                 id='signup_user_completed.lets'
@@ -537,6 +623,7 @@ class SignupUserComplete extends React.Component {
                         {ldapSignup}
                         {emailSignup}
                         {serverError}
+                        {terms}
                     </div>
                 </div>
             </div>

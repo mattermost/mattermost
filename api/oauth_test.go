@@ -5,22 +5,14 @@ package api
 
 import (
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/url"
-	"strings"
 	"testing"
 )
 
 func TestRegisterApp(t *testing.T) {
-	Setup()
-
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	rteam, _ := Client.CreateTeam(&team)
-
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
-	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+	th := Setup().InitBasic()
+	Client := th.BasicClient
 
 	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -38,7 +30,7 @@ func TestRegisterApp(t *testing.T) {
 			t.Fatal("not logged in - should have failed")
 		}
 
-		Client.Must(Client.LoginById(ruser.Id, "pwd"))
+		th.LoginBasic()
 
 		if result, err := Client.RegisterApp(app); err != nil {
 			t.Fatal(err)
@@ -70,18 +62,10 @@ func TestRegisterApp(t *testing.T) {
 }
 
 func TestAllowOAuth(t *testing.T) {
-	Setup()
-
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	rteam, _ := Client.CreateTeam(&team)
-
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
-	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+	th := Setup().InitBasic()
+	Client := th.BasicClient
 
 	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
-
-	Client.Must(Client.LoginById(ruser.Id, "pwd"))
 
 	state := "123"
 

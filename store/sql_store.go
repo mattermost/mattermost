@@ -36,25 +36,26 @@ const (
 )
 
 type SqlStore struct {
-	master     *gorp.DbMap
-	replicas   []*gorp.DbMap
-	team       TeamStore
-	channel    ChannelStore
-	post       PostStore
-	user       UserStore
-	audit      AuditStore
-	compliance ComplianceStore
-	session    SessionStore
-	oauth      OAuthStore
-	system     SystemStore
-	webhook    WebhookStore
-	command    CommandStore
-	preference PreferenceStore
-	license    LicenseStore
+	master        *gorp.DbMap
+	replicas      []*gorp.DbMap
+	team          TeamStore
+	channel       ChannelStore
+	post          PostStore
+	user          UserStore
+	audit         AuditStore
+	compliance    ComplianceStore
+	session       SessionStore
+	oauth         OAuthStore
+	system        SystemStore
+	webhook       WebhookStore
+	command       CommandStore
+	preference    PreferenceStore
+	license       LicenseStore
+	recovery      PasswordRecoveryStore
+	SchemaVersion string
 }
 
-func NewSqlStore() Store {
-
+func initConnection() *SqlStore {
 	sqlStore := &SqlStore{}
 
 	sqlStore.master = setupConnection("master", utils.Cfg.SqlSettings.DriverName,
@@ -75,23 +76,41 @@ func NewSqlStore() Store {
 		}
 	}
 
-	schemaVersion := sqlStore.GetCurrentSchemaVersion()
+	sqlStore.SchemaVersion = sqlStore.GetCurrentSchemaVersion()
+	return sqlStore
+}
+
+func NewSqlStore() Store {
+
+	sqlStore := initConnection()
 
 	// If the version is already set then we are potentially in an 'upgrade needed' state
-	if schemaVersion != "" {
+	if sqlStore.SchemaVersion != "" {
 		// Check to see if it's the most current database schema version
-		if !model.IsCurrentVersion(schemaVersion) {
+		if !model.IsCurrentVersion(sqlStore.SchemaVersion) {
 			// If we are upgrading from the previous version then print a warning and continue
-			if model.IsPreviousVersionsSupported(schemaVersion) {
-				l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), schemaVersion)
+			if model.IsPreviousVersionsSupported(sqlStore.SchemaVersion) {
+				l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), sqlStore.SchemaVersion)
 				l4g.Warn(utils.T("store.sql.schema_upgrade_attempt.warn"), model.CurrentVersion)
 			} else {
 				// If this is an 'upgrade needed' state but the user is attempting to skip a version then halt the world
-				l4g.Critical(utils.T("store.sql.schema_version.critical"), schemaVersion)
+				l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.SchemaVersion)
 				time.Sleep(time.Second)
-				panic(fmt.Sprintf(utils.T("store.sql.schema_version.critical"), schemaVersion))
+				panic(fmt.Sprintf(utils.T("store.sql.schema_version.critical"), sqlStore.SchemaVersion))
 			}
 		}
+	}
+
+	// This is a speical case for upgrading the schema to the 3.0 user model
+	// ADDED for 3.0 REMOVE for 3.4
+	if sqlStore.SchemaVersion == "2.2.0" ||
+		sqlStore.SchemaVersion == "2.1.0" ||
+		sqlStore.SchemaVersion == "2.0.0" {
+		l4g.Critical("The database version of %v cannot be automatically upgraded to 3.0 schema", sqlStore.SchemaVersion)
+		l4g.Critical("You will need to run the command line tool './platform -upgrade_db_30'")
+		l4g.Critical("Please see 'http://www.mattermost.org/upgrade-to-3-0/' for more information on how to upgrade.")
+		time.Sleep(time.Second)
+		os.Exit(1)
 	}
 
 	sqlStore.team = NewSqlTeamStore(sqlStore)
@@ -107,10 +126,13 @@ func NewSqlStore() Store {
 	sqlStore.command = NewSqlCommandStore(sqlStore)
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
 	sqlStore.license = NewSqlLicenseStore(sqlStore)
+	sqlStore.recovery = NewSqlPasswordRecoveryStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.creating_tables.critical"), err)
+		time.Sleep(time.Second)
+		os.Exit(1)
 	}
 
 	sqlStore.team.(*SqlTeamStore).UpgradeSchemaIfNeeded()
@@ -126,6 +148,7 @@ func NewSqlStore() Store {
 	sqlStore.command.(*SqlCommandStore).UpgradeSchemaIfNeeded()
 	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
 	sqlStore.license.(*SqlLicenseStore).UpgradeSchemaIfNeeded()
+	sqlStore.recovery.(*SqlPasswordRecoveryStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -140,17 +163,39 @@ func NewSqlStore() Store {
 	sqlStore.command.(*SqlCommandStore).CreateIndexesIfNotExists()
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 	sqlStore.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
+	sqlStore.recovery.(*SqlPasswordRecoveryStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
-	if model.IsPreviousVersionsSupported(schemaVersion) && !model.IsCurrentVersion(schemaVersion) {
+	if model.IsPreviousVersionsSupported(sqlStore.SchemaVersion) && !model.IsCurrentVersion(sqlStore.SchemaVersion) {
 		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
+		sqlStore.SchemaVersion = model.CurrentVersion
 		l4g.Warn(utils.T("store.sql.upgraded.warn"), model.CurrentVersion)
 	}
 
-	if schemaVersion == "" {
+	if sqlStore.SchemaVersion == "" {
 		sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion})
+		sqlStore.SchemaVersion = model.CurrentVersion
 		l4g.Info(utils.T("store.sql.schema_set.info"), model.CurrentVersion)
+	}
+
+	return sqlStore
+}
+
+// ADDED for 3.0 REMOVE for 3.4
+// This is a speical case for upgrading the schema to the 3.0 user model
+func NewSqlStoreForUpgrade30() *SqlStore {
+	sqlStore := initConnection()
+
+	sqlStore.team = NewSqlTeamStore(sqlStore)
+	sqlStore.user = NewSqlUserStore(sqlStore)
+	sqlStore.system = NewSqlSystemStore(sqlStore)
+
+	err := sqlStore.master.CreateTablesIfNotExists()
+	if err != nil {
+		l4g.Critical(utils.T("store.sql.creating_tables.critical"), err)
+		time.Sleep(time.Second)
+		os.Exit(1)
 	}
 
 	return sqlStore
@@ -426,15 +471,24 @@ func (ss SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, 
 	return true
 }
 
+func (ss SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) {
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, true)
+}
+
 func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT)
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, false)
 }
 
 func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT)
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT, false)
 }
 
-func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string) {
+func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string, unique bool) {
+
+	uniqueStr := ""
+	if unique {
+		uniqueStr = "UNIQUE "
+	}
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
@@ -447,7 +501,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		if indexType == INDEX_TYPE_FULL_TEXT {
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
 		} else {
-			query = "CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}
 
 		_, err = ss.GetMaster().Exec(query)
@@ -474,7 +528,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 			fullTextIndex = " FULLTEXT "
 		}
 
-		_, err = ss.GetMaster().Exec("CREATE " + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
+		_, err = ss.GetMaster().Exec("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
@@ -621,6 +675,14 @@ func (ss SqlStore) Preference() PreferenceStore {
 
 func (ss SqlStore) License() LicenseStore {
 	return ss.license
+}
+
+func (ss SqlStore) PasswordRecovery() PasswordRecoveryStore {
+	return ss.recovery
+}
+
+func (ss SqlStore) DropAllTables() {
+	ss.master.TruncateTables()
 }
 
 type mattermConverter struct{}

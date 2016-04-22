@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Textbox from './textbox.jsx';
@@ -33,20 +33,25 @@ class EditPostModal extends React.Component {
         this.handleEdit = this.handleEdit.bind(this);
         this.handleEditInput = this.handleEditInput.bind(this);
         this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
-        this.handleUserInput = this.handleUserInput.bind(this);
         this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
-        this.state = {editText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: ''};
+        this.state = {editText: '', originalText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: ''};
     }
     handleEdit() {
         var updatedPost = {};
         updatedPost.message = this.state.editText.trim();
 
+        if (updatedPost.message === this.state.originalText.trim()) {
+            // no changes so just close the modal
+            $('#edit_post').modal('hide');
+            return;
+        }
+
         if (updatedPost.message.length === 0) {
             var tempState = this.state;
-            delete tempState.editText;
+            Reflect.deleteProperty(tempState, 'editText');
             BrowserStore.setItem('edit_state_transfer', tempState);
             $('#edit_post').modal('hide');
             GlobalActions.showDeletePostModal(PostStore.getPost(this.state.channel_id, this.state.post_id), this.state.comments);
@@ -79,12 +84,10 @@ class EditPostModal extends React.Component {
             this.handleEdit(e);
         }
     }
-    handleUserInput(e) {
-        this.setState({editText: e.target.value});
-    }
     handleEditPostEvent(options) {
         this.setState({
             editText: options.message || '',
+            originalText: options.message || '',
             title: options.title || '',
             post_id: options.postId || '',
             channel_id: options.channelId || '',
@@ -108,7 +111,7 @@ class EditPostModal extends React.Component {
         var self = this;
 
         $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', () => {
-            self.setState({editText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: ''});
+            self.setState({editText: '', originalText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: ''});
         });
 
         $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', (e) => {
@@ -116,7 +119,15 @@ class EditPostModal extends React.Component {
             if (!button) {
                 return;
             }
-            self.setState({editText: $(button).attr('data-message'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments'), refocusId: $(button).attr('data-refocusid')});
+            self.setState({
+                editText: $(button).attr('data-message'),
+                originalText: $(button).attr('data-message'),
+                title: $(button).attr('data-title'),
+                channel_id: $(button).attr('data-channelid'),
+                post_id: $(button).attr('data-postid'),
+                comments: $(button).attr('data-comments'),
+                refocusId: $(button).attr('data-refocusid')
+            });
         });
 
         $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', () => {
@@ -163,17 +174,17 @@ class EditPostModal extends React.Component {
                                 aria-label='Close'
                                 onClick={this.handleEditClose}
                             >
-                                <span aria-hidden='true'>&times;</span>
+                                <span aria-hidden='true'>{'×'}</span>
                             </button>
-                        <h4 className='modal-title'>
-                            <FormattedMessage
-                                id='edit_post.edit'
-                                defaultMessage='Edit {title}'
-                                values={{
-                                    title: this.state.title
-                                }}
-                            />
-                        </h4>
+                            <h4 className='modal-title'>
+                                <FormattedMessage
+                                    id='edit_post.edit'
+                                    defaultMessage='Edit {title}'
+                                    values={{
+                                        title: this.state.title
+                                    }}
+                                />
+                            </h4>
                         </div>
                         <div className='edit-modal-body modal-body'>
                             <Textbox

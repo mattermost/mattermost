@@ -5,6 +5,7 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
+import * as Utils from 'utils/utils.jsx';
 
 import BackstageHeader from './backstage_header.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
@@ -109,7 +110,7 @@ export default class AddOutgoingWebhook extends React.Component {
         AsyncClient.addOutgoingHook(
             hook,
             () => {
-                browserHistory.push('/settings/integrations/outgoing_webhooks');
+                browserHistory.push('/' + Utils.getTeamNameFromUrl() + '/settings/integrations/outgoing_webhooks');
             },
             (err) => {
                 this.setState({
@@ -154,7 +155,7 @@ export default class AddOutgoingWebhook extends React.Component {
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
-                    <Link to={'/settings/integrations/outgoing_webhooks'}>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/outgoing_webhooks'}>
                         <FormattedMessage
                             id='installed_outgoing_webhooks.header'
                             defaultMessage='Outgoing Webhooks'
@@ -273,7 +274,7 @@ export default class AddOutgoingWebhook extends React.Component {
                             <FormError errors={[this.state.serverError, this.state.clientError]}/>
                             <Link
                                 className='btn btn-sm'
-                                to={'/settings/integrations/outgoing_webhooks'}
+                                to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/outgoing_webhooks'}
                             >
                                 <FormattedMessage
                                     id='add_outgoing_webhook.cancel'

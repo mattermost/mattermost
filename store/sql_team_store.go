@@ -6,7 +6,6 @@ package store
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strings"
 )
 
 type SqlTeamStore struct {
@@ -25,6 +24,11 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 		table.ColMap("CompanyName").SetMaxSize(64)
 		table.ColMap("AllowedDomains").SetMaxSize(500)
 		table.ColMap("InviteId").SetMaxSize(32)
+
+		tablem := db.AddTableWithName(model.TeamMember{}, "TeamMembers").SetKeys(false, "TeamId", "UserId")
+		tablem.ColMap("TeamId").SetMaxSize(26)
+		tablem.ColMap("UserId").SetMaxSize(26)
+		tablem.ColMap("Roles").SetMaxSize(64)
 	}
 
 	return s
@@ -36,6 +40,9 @@ func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
 	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
+
+	s.CreateIndexIfNotExists("idx_teammembers_team_id", "TeamMembers", "TeamId")
+	s.CreateIndexIfNotExists("idx_teammembers_user_id", "TeamMembers", "UserId")
 }
 
 func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
@@ -218,34 +225,6 @@ func (s SqlTeamStore) GetByName(name string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		email = strings.ToLower(email)
-
-		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, Users WHERE Teams.Id = Users.TeamId AND Users.Email = :Email", map[string]interface{}{"Email": email}); err != nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.GetTeamsForEmail", "store.sql_team.get_teams_for_email.app_error", nil, "email="+email+", "+err.Error())
-		}
-
-		for _, team := range data {
-			if len(team.InviteId) == 0 {
-				team.InviteId = team.Id
-			}
-		}
-
-		result.Data = data
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (s SqlTeamStore) GetAll() StoreChannel {
 	storeChannel := make(StoreChannel)
 
@@ -272,16 +251,42 @@ func (s SqlTeamStore) GetAll() StoreChannel {
 	return storeChannel
 }
 
+func (s SqlTeamStore) GetTeamsByUserId(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, TeamMembers WHERE TeamMembers.TeamId = Teams.Id AND TeamMembers.UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetTeamsByUserId", "store.sql_team.get_all.app_error", nil, err.Error())
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		query := "SELECT * FROM Teams WHERE AllowTeamListing = 1"
+		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1"
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowTeamListing = true"
+			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true"
 		}
 
 		var data []*model.Team
@@ -331,6 +336,168 @@ func (s SqlTeamStore) AnalyticsTeamCount() StoreChannel {
 			result.Err = model.NewLocAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error())
 		} else {
 			result.Data = c
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if result.Err = member.IsValid(); result.Err != nil {
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		if count, err := s.GetMaster().SelectInt("SELECT COUNT(0) FROM TeamMembers WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": member.TeamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, "teamId="+member.TeamId+", "+err.Error())
+			storeChannel <- result
+			close(storeChannel)
+			return
+		} else if int(count) > utils.Cfg.TeamSettings.MaxUsersPerTeam {
+			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "teamId="+member.TeamId)
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		if err := s.GetMaster().Insert(member); err != nil {
+			if IsUniqueConstraintError(err.Error(), "TeamId", "teammembers_pkey") {
+				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.exists.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
+			} else {
+				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
+			}
+		} else {
+			result.Data = member
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) UpdateMember(member *model.TeamMember) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if result.Err = member.IsValid(); result.Err != nil {
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		if _, err := s.GetMaster().Update(member); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.UpdateMember", "store.sql_team.save_member.save.app_error", nil, err.Error())
+		} else {
+			result.Data = member
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetMembers(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var members []*model.TeamMember
+		_, err := s.GetReplica().Select(&members, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "teamId="+teamId+" "+err.Error())
+		} else {
+			result.Data = members
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetTeamsForUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var members []*model.TeamMember
+		_, err := s.GetReplica().Select(&members, "SELECT * FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error())
+		} else {
+			result.Data = members
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) RemoveMember(teamId string, userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE TeamId = :TeamId AND UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.RemoveMember", "store.sql_team.remove_member.app_error", nil, "team_id="+teamId+", user_id="+userId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.RemoveMember", "store.sql_team.remove_member.app_error", nil, "team_id="+teamId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) RemoveAllMembersByUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.RemoveMember", "store.sql_team.remove_member.app_error", nil, "user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result

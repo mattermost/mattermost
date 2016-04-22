@@ -9,7 +9,7 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -97,12 +97,9 @@ export default class ChannelMembersModal extends React.Component {
     handleRemove(user) {
         const userId = user.id;
 
-        const data = {};
-        data.user_id = userId;
-
         Client.removeChannelMember(
             ChannelStore.getCurrentId(),
-            data,
+            userId,
             () => {
                 const memberList = this.state.memberList.slice();
                 for (let i = 0; i < memberList.length; i++) {

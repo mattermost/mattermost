@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -42,6 +42,7 @@ class TeamSettings extends React.Component {
         this.handleImageSubmit = this.handleImageSubmit.bind(this);
 
         this.uploading = false;
+        this.timestamp = 0;
 
         this.state = {
             saveNeeded: false,
@@ -53,7 +54,7 @@ class TeamSettings extends React.Component {
 
     componentWillMount() {
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true') {
-            $.get('/api/v1/admin/get_brand_image').done(() => this.setState({brandImageExists: true}));
+            $.get(Client.getAdminRoute() + '/get_brand_image').done(() => this.setState({brandImageExists: true}));
         }
     }
 
@@ -89,6 +90,7 @@ class TeamSettings extends React.Component {
         if (element.prop('files').length > 0) {
             this.setState({fileSelected: true, brandImage: element.prop('files')[0]});
         }
+        $('#upload-button').button('reset');
     }
 
     handleSubmit(e) {
@@ -100,8 +102,8 @@ class TeamSettings extends React.Component {
         config.TeamSettings.RestrictCreationToDomains = this.refs.RestrictCreationToDomains.value.trim();
         config.TeamSettings.EnableTeamCreation = this.refs.EnableTeamCreation.checked;
         config.TeamSettings.EnableUserCreation = this.refs.EnableUserCreation.checked;
+        config.TeamSettings.EnableOpenServer = this.refs.EnableOpenServer.checked;
         config.TeamSettings.RestrictTeamNames = this.refs.RestrictTeamNames.checked;
-        config.TeamSettings.EnableTeamListing = this.refs.EnableTeamListing.checked;
 
         if (this.refs.EnableCustomBrand) {
             config.TeamSettings.EnableCustomBrand = this.refs.EnableCustomBrand.checked;
@@ -155,6 +157,7 @@ class TeamSettings extends React.Component {
         Client.uploadBrandImage(this.state.brandImage,
             () => {
                 $('#upload-button').button('complete');
+                this.timestamp = Utils.getTimestamp();
                 this.setState({brandImageExists: true, brandImage: null});
                 this.uploading = false;
             },
@@ -193,7 +196,7 @@ class TeamSettings extends React.Component {
                 img = (
                     <img
                         className='brand-img'
-                        src='/api/v1/admin/get_brand_image'
+                        src={Client.getAdminRoute() + '/get_brand_image?t=' + this.timestamp}
                     />
                 );
             } else {
@@ -537,6 +540,53 @@ class TeamSettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
+                            htmlFor='EnableOpenServer'
+                        >
+                            <FormattedMessage
+                                id='admin.team.openServerTitle'
+                                defaultMessage='Enable Open Server: '
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOpenServer'
+                                    value='true'
+                                    ref='EnableOpenServer'
+                                    defaultChecked={this.props.config.TeamSettings.EnableOpenServer}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.team.true'
+                                        defaultMessage='true'
+                                    />
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOpenServer'
+                                    value='false'
+                                    defaultChecked={!this.props.config.TeamSettings.EnableOpenServer}
+                                    onChange={this.handleChange}
+                                />
+                                    <FormattedMessage
+                                        id='admin.team.false'
+                                        defaultMessage='false'
+                                    />
+                            </label>
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.team.openServerDescription'
+                                    defaultMessage='When true, anyone can signup for a user account on this server without the need to be invited.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
                             htmlFor='RestrictCreationToDomains'
                         >
                             <FormattedMessage
@@ -605,53 +655,6 @@ class TeamSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.team.restrictNameDesc'
                                     defaultMessage='When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='EnableTeamListing'
-                        >
-                            <FormattedMessage
-                                id='admin.team.dirTitle'
-                                defaultMessage='Enable Team Directory: '
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='EnableTeamListing'
-                                    value='true'
-                                    ref='EnableTeamListing'
-                                    defaultChecked={this.props.config.TeamSettings.EnableTeamListing}
-                                    onChange={this.handleChange}
-                                />
-                                    <FormattedMessage
-                                        id='admin.team.true'
-                                        defaultMessage='true'
-                                    />
-                            </label>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='EnableTeamListing'
-                                    value='false'
-                                    defaultChecked={!this.props.config.TeamSettings.EnableTeamListing}
-                                    onChange={this.handleChange}
-                                />
-                                    <FormattedMessage
-                                        id='admin.team.false'
-                                        defaultMessage='false'
-                                    />
-                            </label>
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.team.dirDesc'
-                                    defaultMessage='When true, teams that are configured to show in team directory will show on main page inplace of creating a new team.'
                                 />
                             </p>
                         </div>

@@ -30,6 +30,8 @@ func Setup() {
 		ApiClient = model.NewClient(URL)
 
 		api.Srv.Store.MarkSystemRanUnitTests()
+
+		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
 }
 
@@ -62,8 +64,9 @@ func TestGetAccessToken(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := ApiClient.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
 	ruser := ApiClient.Must(ApiClient.CreateUser(&user, "")).Data.(*model.User)
+	api.JoinUserToTeam(rteam.Data.(*model.Team), ruser)
 	store.Must(api.Srv.Store.User().VerifyEmail(ruser.Id))
 
 	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -77,6 +80,7 @@ func TestGetAccessToken(t *testing.T) {
 	} else {
 
 		ApiClient.Must(ApiClient.LoginById(ruser.Id, "pwd"))
+		ApiClient.SetTeamId(rteam.Data.(*model.Team).Id)
 		app = ApiClient.Must(ApiClient.RegisterApp(app)).Data.(*model.OAuthApp)
 
 		redirect := ApiClient.Must(ApiClient.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, app.Id, app.CallbackUrls[0], "all", "123")).Data.(map[string]string)["redirect"]
@@ -191,15 +195,17 @@ func TestIncomingWebhook(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
 	store.Must(api.Srv.Store.User().VerifyEmail(user.Id))
+	api.JoinUserToTeam(team, user)
 
 	c := &api.Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
 	api.UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	ApiClient.LoginByEmail(team.Name, user.Email, "pwd")
+	ApiClient.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = ApiClient.Must(ApiClient.CreateChannel(channel1)).Data.(*model.Channel)

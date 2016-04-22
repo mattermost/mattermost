@@ -155,9 +155,9 @@ type TeamSettings struct {
 	MaxUsersPerTeam           int
 	EnableTeamCreation        bool
 	EnableUserCreation        bool
+	EnableOpenServer          *bool
 	RestrictCreationToDomains string
 	RestrictTeamNames         *bool
-	EnableTeamListing         *bool
 	EnableCustomBrand         *bool
 	CustomBrandText           *string
 }
@@ -180,6 +180,7 @@ type LdapSettings struct {
 	LastNameAttribute  *string
 	EmailAttribute     *string
 	UsernameAttribute  *string
+	NicknameAttribute  *string
 	IdAttribute        *string
 
 	// Advanced
@@ -297,11 +298,6 @@ func (o *Config) SetDefaults() {
 		*o.TeamSettings.RestrictTeamNames = true
 	}
 
-	if o.TeamSettings.EnableTeamListing == nil {
-		o.TeamSettings.EnableTeamListing = new(bool)
-		*o.TeamSettings.EnableTeamListing = false
-	}
-
 	if o.TeamSettings.EnableCustomBrand == nil {
 		o.TeamSettings.EnableCustomBrand = new(bool)
 		*o.TeamSettings.EnableCustomBrand = false
@@ -310,6 +306,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.CustomBrandText == nil {
 		o.TeamSettings.CustomBrandText = new(string)
 		*o.TeamSettings.CustomBrandText = ""
+	}
+
+	if o.TeamSettings.EnableOpenServer == nil {
+		o.TeamSettings.EnableOpenServer = new(bool)
+		*o.TeamSettings.EnableOpenServer = false
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -475,6 +476,11 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.SkipCertificateVerification == nil {
 		o.LdapSettings.SkipCertificateVerification = new(bool)
 		*o.LdapSettings.SkipCertificateVerification = false
+	}
+
+	if o.LdapSettings.NicknameAttribute == nil {
+		o.LdapSettings.NicknameAttribute = new(string)
+		*o.LdapSettings.NicknameAttribute = ""
 	}
 }
 

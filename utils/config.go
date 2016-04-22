@@ -57,6 +57,14 @@ func FindDir(dir string) string {
 	return fileName + "/"
 }
 
+func DisableDebugLogForTest() {
+	l4g.Global["stdout"].Level = l4g.WARNING
+}
+
+func EnableDebugLogForTest() {
+	l4g.Global["stdout"].Level = l4g.DEBUG
+}
+
 func ConfigureCmdLineLog() {
 	ls := model.LogSettings{}
 	ls.EnableConsole = true
@@ -199,11 +207,10 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
+	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
-	props["EnableTeamListing"] = strconv.FormatBool(*c.TeamSettings.EnableTeamListing)
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
-
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
@@ -242,7 +249,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["AllowCorsFrom"] = *c.ServiceSettings.AllowCorsFrom
 
-	if License.Features != nil {
+	if IsLicensed {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText

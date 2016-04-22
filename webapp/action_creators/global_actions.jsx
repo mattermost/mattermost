@@ -4,11 +4,16 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
+import ErrorStore from 'stores/error_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as Websockets from './websocket_actions.jsx';
 import * as I18n from 'i18n/i18n.jsx';
@@ -21,7 +26,6 @@ export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
         const otherUserId = Utils.getUserIdFromChannelName(chan);
         Client.createDirectChannel(
-            chan,
             otherUserId,
             (data) => {
                 success(data);
@@ -61,6 +65,69 @@ export function emitChannelClickEvent(channel) {
     }
 }
 
+export function emitInitialLoad(callback) {
+    Client.getInitialLoad(
+            (data) => {
+                global.window.mm_config = data.client_cfg;
+                global.window.mm_license = data.license_cfg;
+
+                UserStore.setNoAccounts(data.no_accounts);
+
+                if (data.user && data.user.id) {
+                    global.window.mm_user = data.user;
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_ME,
+                        me: data.user
+                    });
+                }
+
+                if (data.preferences) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_PREFERENCES,
+                        preferences: data.preferences
+                    });
+                }
+
+                if (data.teams) {
+                    var teams = {};
+                    data.teams.forEach((team) => {
+                        teams[team.id] = team;
+                    });
+
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_ALL_TEAMS,
+                        teams
+                    });
+                }
+
+                if (data.team_members) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_TEAM_MEMBERS,
+                        team_members: data.team_members
+                    });
+                }
+
+                if (data.direct_profiles) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_DIRECT_PROFILES,
+                        profiles: data.direct_profiles
+                    });
+                }
+
+                if (callback) {
+                    callback();
+                }
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'getInitialLoad');
+
+                if (callback) {
+                    callback();
+                }
+            }
+        );
+}
+
 export function emitPostFocusEvent(postId) {
     AsyncClient.getChannels(true);
     Client.getPostById(
@@ -78,6 +145,18 @@ export function emitPostFocusEvent(postId) {
             AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
         }
     );
+}
+
+export function emitCloseRightHandSide() {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH,
+        results: null
+    });
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_POST_SELECTED,
+        postId: null
+    });
 }
 
 export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
@@ -133,21 +212,21 @@ export function emitLoadMorePostsFocusedBottomEvent() {
     AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE);
 }
 
-export function emitPostRecievedEvent(post, websocketMessageProps) {
+export function emitPostRecievedEvent(post, msg) {
     if (ChannelStore.getCurrentId() === post.channel_id) {
         if (window.isActive) {
             AsyncClient.updateLastViewedAt();
         } else {
             AsyncClient.getChannel(post.channel_id);
         }
-    } else {
+    } else if (msg && TeamStore.getCurrentId() === msg.team_id) {
         AsyncClient.getChannel(post.channel_id);
     }
 
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_POST,
         post,
-        websocketMessageProps
+        websocketMessageProps: msg.props
     });
 }
 
@@ -271,10 +350,6 @@ export function sendEphemeralPost(message, channelId) {
     emitPostRecievedEvent(post);
 }
 
-export function loadTeamRequiredPage() {
-    AsyncClient.getAllTeams();
-}
-
 export function newLocalizationSelected(locale) {
     if (locale === 'en') {
         AppDispatcher.handleServerAction({
@@ -311,8 +386,6 @@ export function loadBrowserLocale() {
 export function viewLoggedIn() {
     AsyncClient.getChannels();
     AsyncClient.getChannelExtraInfo();
-    AsyncClient.getMyTeam();
-    AsyncClient.getMe();
 
     // Clear pending posts (shouldn't have pending posts if we are loading)
     PostStore.clearPendingPosts();
@@ -334,4 +407,22 @@ export function emitRemoteUserTypingEvent(channelId, userId, postParentId) {
         userId,
         postParentId
     });
+}
+
+export function emitUserLoggedOutEvent(redirectTo) {
+    const rURL = (redirectTo && typeof redirectTo === 'string') ? redirectTo : '/';
+    Client.logout(
+        () => {
+            BrowserStore.signalLogout();
+            BrowserStore.clear();
+            ErrorStore.clearLastError();
+            PreferenceStore.clear();
+            UserStore.clear();
+            TeamStore.clear();
+            browserHistory.push(rURL);
+        },
+        () => {
+            browserHistory.push(rURL);
+        }
+    );
 }

@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -38,12 +38,9 @@ export default class OAuthToEmail extends React.Component {
         state.error = null;
         this.setState(state);
 
-        var postData = {};
-        postData.password = password;
-        postData.email = this.props.email;
-        postData.team_name = this.props.teamName;
-
-        Client.oauthToEmail(postData,
+        Client.oauthToEmail(
+            this.props.email,
+            password,
             (data) => {
                 if (data.follow_link) {
                     browserHistory.push(data.follow_link);
@@ -87,10 +84,9 @@ export default class OAuthToEmail extends React.Component {
                     </p>
                     <p>
                         <FormattedMessage
-                            id='claim.oauth_to_email_newPwd'
-                            defaultMessage='Enter a new password for your {team} {site} account'
+                            id='claim.oauth_to_email.enterNewPwd'
+                            defaultMessage='Enter a new password for your {site} account'
                             values={{
-                                team: this.props.teamDisplayName,
                                 site: global.window.mm_config.SiteName
                             }}
                         />
@@ -137,8 +133,6 @@ export default class OAuthToEmail extends React.Component {
 OAuthToEmail.defaultProps = {
 };
 OAuthToEmail.propTypes = {
-    teamName: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string,
     currentType: React.PropTypes.string,
     email: React.PropTypes.string
 };

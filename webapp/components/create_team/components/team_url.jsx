@@ -4,8 +4,11 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import Constants from 'utils/constants.jsx';
+import {browserHistory} from 'react-router';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -13,30 +16,30 @@ import logoImage from 'images/logo.png';
 
 const holders = defineMessages({
     required: {
-        id: 'team_signup_url.required',
+        id: 'create_team_url.required',
         defaultMessage: 'This field is required'
     },
     regex: {
-        id: 'team_signup_url.regex',
+        id: 'create_team_url.regex',
         defaultMessage: "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
     },
     charLength: {
-        id: 'team_signup_url.charLength',
+        id: 'create_team_url.charLength',
         defaultMessage: 'Name must be 4 or more characters up to a maximum of 15'
     },
     taken: {
-        id: 'team_signup_url.taken',
+        id: 'create_team_url.taken',
         defaultMessage: 'URL is taken or contains a reserved word'
     },
     unavailable: {
-        id: 'team_signup_url.unavailable',
+        id: 'create_team_url.unavailable',
         defaultMessage: 'This URL is unavailable. Please try another.'
     }
 });
 
 import React from 'react';
 
-class TeamSignupUrlPage extends React.Component {
+class TeamUrl extends React.Component {
     constructor(props) {
         super(props);
 
@@ -48,7 +51,7 @@ class TeamSignupUrlPage extends React.Component {
     }
     submitBack(e) {
         e.preventDefault();
-        this.props.state.wizard = 'team_display_name';
+        this.props.state.wizard = 'display_name';
         this.props.updateParent(this.props.state);
     }
     submitNext(e) {
@@ -81,25 +84,39 @@ class TeamSignupUrlPage extends React.Component {
             }
         }
 
-        Client.findTeamByName(name,
-              (data) => {
-                  if (data) {
-                      this.setState({nameError: formatMessage(holders.unavailable)});
-                  } else {
-                      if (global.window.mm_config.SendEmailNotifications === 'true') {
-                          this.props.state.wizard = 'send_invites';
-                      } else {
-                          this.props.state.wizard = 'username';
-                      }
-                      this.props.state.team.type = 'O';
+        $('#finish-button').button('loading');
+        var teamSignup = JSON.parse(JSON.stringify(this.props.state));
+        teamSignup.team.type = 'O';
+        teamSignup.team.name = name;
 
-                      this.props.state.team.name = name;
-                      this.props.updateParent(this.props.state);
-                  }
-              },
-              (err) => {
-                  this.setState({nameError: err.message});
-              }
+        Client.findTeamByName(name,
+            (findTeam) => {
+                if (findTeam) {
+                    this.setState({nameError: formatMessage(holders.unavailable)});
+                    $('#finish-button').button('reset');
+                } else {
+                    Client.createTeam(teamSignup.team,
+                        (team) => {
+                            Client.track('signup', 'signup_team_08_complete');
+                            $('#sign-up-button').button('reset');
+                            TeamStore.saveTeam(team);
+                            TeamStore.appendTeamMember({team_id: team.id, user_id: UserStore.getCurrentId(), roles: 'admin'});
+                            TeamStore.emitChange();
+                            browserHistory.push('/' + team.name + '/channels/town-square');
+                        },
+                        (err) => {
+                            this.setState({nameError: err.message});
+                            $('#finish-button').button('reset');
+                        }
+                    );
+
+                    $('#finish-button').button('reset');
+                }
+            },
+            (err) => {
+                this.setState({nameError: err.message});
+                $('#finish-button').button('reset');
+            }
         );
     }
     handleFocus(e) {
@@ -130,7 +147,7 @@ class TeamSignupUrlPage extends React.Component {
                     />
                     <h2>
                         <FormattedMessage
-                            id='team_signup_url.teamUrl'
+                            id='create_team_url.teamUrl'
                             defaultMessage='Team URL'
                         />
                     </h2>
@@ -163,13 +180,13 @@ class TeamSignupUrlPage extends React.Component {
                     </div>
                     <p>
                         <FormattedMessage
-                            id='team_signup_url.webAddress'
+                            id='create_team_url.webAddress'
                             defaultMessage='Choose the web address of your new team:'
                         />
                     </p>
                     <ul className='color--light'>
                         <FormattedHTMLMessage
-                            id='team_signup_url.hint'
+                            id='create_team_url.hint'
                             defaultMessage="<li>Short and memorable is best</li>
                             <li>Use lowercase letters, numbers and dashes</li>
                             <li>Must start with a letter and can't end in a dash</li>"
@@ -177,13 +194,14 @@ class TeamSignupUrlPage extends React.Component {
                     </ul>
                     <button
                         type='submit'
+                        id='finish-button'
                         className='btn btn-primary margin--extra'
                         onClick={this.submitNext}
                     >
                         <FormattedMessage
-                            id='team_signup_url.next'
-                            defaultMessage='Next'
-                        /><i className='glyphicon glyphicon-chevron-right'></i>
+                            id='create_team_password.finish'
+                            defaultMessage='Finish'
+                        />
                     </button>
                     <div className='margin--extra'>
                         <a
@@ -191,7 +209,7 @@ class TeamSignupUrlPage extends React.Component {
                             onClick={this.submitBack}
                         >
                             <FormattedMessage
-                                id='team_signup_url.back'
+                                id='create_team_url.back'
                                 defaultMessage='Back to previous step'
                             />
                         </a>
@@ -202,10 +220,10 @@ class TeamSignupUrlPage extends React.Component {
     }
 }
 
-TeamSignupUrlPage.propTypes = {
+TeamUrl.propTypes = {
     intl: intlShape.isRequired,
     state: React.PropTypes.object,
     updateParent: React.PropTypes.func
 };
 
-export default injectIntl(TeamSignupUrlPage);
+export default injectIntl(TeamUrl);

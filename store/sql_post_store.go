@@ -652,7 +652,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 						ChannelMembers
 					WHERE
 						Id = ChannelId
-							AND TeamId = :TeamId
+							AND (TeamId = :TeamId OR TeamId = '')
 							AND UserId = :UserId
 							AND DeleteAt = 0
 							CHANNEL_FILTER)
@@ -693,9 +693,11 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 					SELECT
 						Id
 					FROM
-						Users
+						Users,
+						TeamMembers
 					WHERE
-						TeamId = :TeamId
+						TeamMembers.TeamId = :TeamId
+						AND Users.Id = TeamMembers.UserId
 						AND Username IN (`+inClause+`))`, 1)
 		} else if len(params.FromUsers) == 1 {
 			queryParams["FromUser"] = params.FromUsers[0]
@@ -704,9 +706,11 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 					SELECT
 						Id
 					FROM
-						Users
+						Users,
+						TeamMembers
 					WHERE
-						TeamId = :TeamId
+						TeamMembers.TeamId = :TeamId
+						AND Users.Id = TeamMembers.UserId
 						AND Username = :FromUser)`, 1)
 		} else {
 			searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)

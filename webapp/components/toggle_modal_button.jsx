@@ -15,7 +15,8 @@ export default class ModalToggleButton extends React.Component {
         };
     }
 
-    show() {
+    show(e) {
+        e.preventDefault();
         this.setState({show: true});
     }
 
@@ -29,10 +30,10 @@ export default class ModalToggleButton extends React.Component {
         // allow callers to provide an onClick which will be called before the modal is shown
         let clickHandler = this.show;
         if (onClick) {
-            clickHandler = () => {
+            clickHandler = (e) => {
                 onClick();
 
-                this.show();
+                this.show(e);
             };
         }
 

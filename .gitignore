@@ -47,6 +47,8 @@ _testmain.go
 *mattermost.log
 *npm-debug.log*
 
+.tmp
+
 # Vim temporary files
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]

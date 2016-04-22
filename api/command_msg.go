@@ -46,7 +46,7 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 	targetUser = strings.SplitN(message, " ", 2)[0]
 	targetUser = strings.TrimPrefix(targetUser, "@")
 
-	if profileList := <-Srv.Store.User().GetProfiles(c.Session.TeamId); profileList.Err != nil {
+	if profileList := <-Srv.Store.User().GetProfiles(c.TeamId); profileList.Err != nil {
 		c.Err = profileList.Err
 		return &model.CommandResponse{Text: c.T("api.command_msg.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
@@ -62,7 +62,7 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 				//Find the channel based on this user
 				channelName := model.GetDMNameFromIds(c.Session.UserId, userProfile.Id)
 
-				if channel := <-Srv.Store.Channel().GetByName(c.Session.TeamId, channelName); channel.Err != nil {
+				if channel := <-Srv.Store.Channel().GetByName(c.TeamId, channelName); channel.Err != nil {
 					if channel.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
 						if directChannel, err := CreateDirectChannel(c, userProfile.Id); err != nil {
 							c.Err = err
@@ -78,7 +78,7 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 					targetChannelId = channel.Data.(*model.Channel).Id
 				}
 
-				makeDirectChannelVisible(c.Session.TeamId, targetChannelId)
+				makeDirectChannelVisible(c.TeamId, targetChannelId)
 				if len(parsedMessage) > 0 {
 					post := &model.Post{}
 					post.Message = parsedMessage
@@ -87,9 +87,11 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 						return &model.CommandResponse{Text: c.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 					}
 				}
+
 				return &model.CommandResponse{GotoLocation: c.GetTeamURL() + "/channels/" + channelName, Text: c.T("api.command_msg.success"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 		}
 	}
+
 	return &model.CommandResponse{Text: c.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }

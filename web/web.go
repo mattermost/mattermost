@@ -62,5 +62,11 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if !CheckBrowserCompatability(c, r) {
 		return
 	}
+
+	if api.IsApiCall(r) {
+		api.Handle404(w, r)
+		return
+	}
+
 	http.ServeFile(w, r, utils.FindDir(CLIENT_DIR)+"root.html")
 }

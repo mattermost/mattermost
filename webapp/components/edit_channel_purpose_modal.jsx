@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
@@ -49,12 +49,9 @@ export default class EditChannelPurposeModal extends React.Component {
             return;
         }
 
-        const data = {
-            channel_id: this.props.channel.id,
-            channel_purpose: ReactDOM.findDOMNode(this.refs.purpose).value.trim()
-        };
-
-        Client.updateChannelPurpose(data,
+        Client.updateChannelPurpose(
+            this.props.channel.id,
+            ReactDOM.findDOMNode(this.refs.purpose).value.trim(),
             () => {
                 AsyncClient.getChannel(this.props.channel.id);
 

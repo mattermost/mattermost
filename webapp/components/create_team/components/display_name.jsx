@@ -3,7 +3,8 @@
 
 import ReactDOM from 'react-dom';
 import * as utils from 'utils/utils.jsx';
-import * as client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
+import {Link} from 'react-router';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
 
@@ -11,11 +12,11 @@ import logoImage from 'images/logo.png';
 
 const holders = defineMessages({
     required: {
-        id: 'team_signup_display_name.required',
+        id: 'create_team_display_name.required',
         defaultMessage: 'This field is required'
     },
     charLength: {
-        id: 'team_signup_display_name.charLength',
+        id: 'create_team_display_name.charLength',
         defaultMessage: 'Name must be 4 or more characters up to a maximum of 15'
     }
 });
@@ -26,16 +27,11 @@ class TeamSignupDisplayNamePage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.submitBack = this.submitBack.bind(this);
         this.submitNext = this.submitNext.bind(this);
 
         this.state = {};
     }
-    submitBack(e) {
-        e.preventDefault();
-        this.props.state.wizard = 'welcome';
-        this.props.updateParent(this.props.state);
-    }
+
     submitNext(e) {
         e.preventDefault();
 
@@ -54,12 +50,14 @@ class TeamSignupDisplayNamePage extends React.Component {
         this.props.state.team.name = utils.cleanUpUrlable(displayName);
         this.props.updateParent(this.props.state);
     }
+
     handleFocus(e) {
         e.preventDefault();
         e.currentTarget.select();
     }
+
     render() {
-        client.track('signup', 'signup_team_02_name');
+        Client.track('signup', 'signup_team_02_name');
 
         var nameError = null;
         var nameDivClass = 'form-group';
@@ -77,7 +75,7 @@ class TeamSignupDisplayNamePage extends React.Component {
                     />
                     <h2>
                         <FormattedMessage
-                            id='team_signup_display_name.teamName'
+                            id='create_team_display_name.teamName'
                             defaultMessage='Team Name'
                         />
                     </h2>
@@ -101,7 +99,7 @@ class TeamSignupDisplayNamePage extends React.Component {
                     </div>
                     <div>
                         <FormattedMessage
-                            id='team_signup_display_name.nameHelp'
+                            id='create_team_display_name.nameHelp'
                             defaultMessage='Name your team in any language. Your team name shows in menus and headings.'
                         />
                     </div>
@@ -111,20 +109,17 @@ class TeamSignupDisplayNamePage extends React.Component {
                         onClick={this.submitNext}
                     >
                         <FormattedMessage
-                            id='team_signup_display_name.next'
+                            id='create_team_display_name.next'
                             defaultMessage='Next'
                         /><i className='glyphicon glyphicon-chevron-right'></i>
                     </button>
                     <div className='margin--extra'>
-                        <a
-                            href='#'
-                            onClick={this.submitBack}
-                        >
+                        <Link to='/select_team'>
                             <FormattedMessage
-                                id='team_signup_display_name.back'
+                                id='create_team_display_name.back'
                                 defaultMessage='Back to previous step'
                             />
-                        </a>
+                        </Link>
                     </div>
                 </form>
             </div>

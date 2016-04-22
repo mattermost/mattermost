@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
@@ -100,7 +100,7 @@ class FileAttachment extends React.Component {
     getFileInfoFromName(name) {
         var fileInfo = utils.splitFileLocation(name);
 
-        fileInfo.path = utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
+        fileInfo.path = utils.getWindowLocationOrigin() + Client.getFilesRoute() + '/get' + fileInfo.path;
 
         return fileInfo;
     }

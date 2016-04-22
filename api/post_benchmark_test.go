@@ -16,7 +16,10 @@ func BenchmarkCreatePost(b *testing.B) {
 	var (
 		NUM_POSTS_RANGE = utils.Range{NUM_POSTS, NUM_POSTS}
 	)
-	_, _, channel := SetupBenchmark()
+
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 
@@ -32,7 +35,10 @@ func BenchmarkUpdatePost(b *testing.B) {
 		NUM_POSTS_RANGE = utils.Range{NUM_POSTS, NUM_POSTS}
 		UPDATE_POST_LEN = 100
 	)
-	_, _, channel := SetupBenchmark()
+
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 	posts, valid := testPoster.CreateTestPosts(NUM_POSTS_RANGE)
@@ -59,7 +65,10 @@ func BenchmarkGetPosts(b *testing.B) {
 	var (
 		NUM_POSTS_RANGE = utils.Range{NUM_POSTS, NUM_POSTS}
 	)
-	_, _, channel := SetupBenchmark()
+
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 	testPoster.CreateTestPosts(NUM_POSTS_RANGE)
@@ -75,7 +84,10 @@ func BenchmarkSearchPosts(b *testing.B) {
 	var (
 		NUM_POSTS_RANGE = utils.Range{NUM_POSTS, NUM_POSTS}
 	)
-	_, _, channel := SetupBenchmark()
+
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 	testPoster.CreateTestPosts(NUM_POSTS_RANGE)
@@ -93,7 +105,10 @@ func BenchmarkEtagCache(b *testing.B) {
 	var (
 		NUM_POSTS_RANGE = utils.Range{NUM_POSTS, NUM_POSTS}
 	)
-	_, _, channel := SetupBenchmark()
+
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 	testPoster.CreateTestPosts(NUM_POSTS_RANGE)
@@ -111,7 +126,10 @@ func BenchmarkDeletePosts(b *testing.B) {
 	var (
 		NUM_POSTS_RANGE = utils.Range{NUM_POSTS, NUM_POSTS}
 	)
-	_, _, channel := SetupBenchmark()
+
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
 
 	testPoster := NewAutoPostCreator(Client, channel.Id)
 	posts, valid := testPoster.CreateTestPosts(NUM_POSTS_RANGE)

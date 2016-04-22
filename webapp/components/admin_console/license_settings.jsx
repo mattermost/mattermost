@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -54,10 +54,7 @@ class LicenseSettings extends React.Component {
 
         $('#upload-button').button('loading');
 
-        const formData = new FormData();
-        formData.append('license', file, file.name);
-
-        Client.uploadLicenseFile(formData,
+        Client.uploadLicenseFile(file,
             () => {
                 Utils.clearFileInput(element[0]);
                 $('#upload-button').button('reset');

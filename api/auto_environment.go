@@ -28,14 +28,15 @@ func CreateTestEnvironmentWithTeams(client *model.Client, rangeTeams utils.Range
 	environment := TestEnvironment{teams, make([]TeamEnvironment, len(teams))}
 
 	for i, team := range teams {
-		userCreator := NewAutoUserCreator(client, team.Id)
+		userCreator := NewAutoUserCreator(client, team)
 		userCreator.Fuzzy = fuzzy
 		randomUser, err := userCreator.createRandomUser()
 		if err != true {
 			return TestEnvironment{}, false
 		}
 		client.LoginById(randomUser.Id, USER_PASSWORD)
-		teamEnvironment, err := CreateTestEnvironmentInTeam(client, team.Id, rangeChannels, rangeUsers, rangePosts, fuzzy)
+		client.SetTeamId(team.Id)
+		teamEnvironment, err := CreateTestEnvironmentInTeam(client, team, rangeChannels, rangeUsers, rangePosts, fuzzy)
 		if err != true {
 			return TestEnvironment{}, false
 		}
@@ -45,7 +46,7 @@ func CreateTestEnvironmentWithTeams(client *model.Client, rangeTeams utils.Range
 	return environment, true
 }
 
-func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TeamEnvironment, bool) {
+func CreateTestEnvironmentInTeam(client *model.Client, team *model.Team, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TeamEnvironment, bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	// We need to create at least one user
@@ -53,7 +54,7 @@ func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChann
 		rangeUsers.Begin = 1
 	}
 
-	userCreator := NewAutoUserCreator(client, teamID)
+	userCreator := NewAutoUserCreator(client, team)
 	userCreator.Fuzzy = fuzzy
 	users, err := userCreator.CreateTestUsers(rangeUsers)
 	if err != true {
@@ -64,7 +65,7 @@ func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChann
 		usernames[i] = user.Username
 	}
 
-	channelCreator := NewAutoChannelCreator(client, teamID)
+	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = fuzzy
 	channels, err := channelCreator.CreateTestChannels(rangeChannels)
 
@@ -79,6 +80,7 @@ func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChann
 	if err != true {
 		return TeamEnvironment{}, false
 	}
+
 	numPosts := utils.RandIntFromRange(rangePosts)
 	numImages := utils.RandIntFromRange(rangePosts) / 4
 	for j := 0; j < numPosts; j++ {

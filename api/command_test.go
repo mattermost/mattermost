@@ -8,21 +8,12 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
 func TestListCommands(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+	th := Setup().InitBasic()
+	Client := th.BasicClient
 
 	if results, err := Client.ListCommands(); err != nil {
 		t.Fatal(err)
@@ -43,7 +34,10 @@ func TestListCommands(t *testing.T) {
 }
 
 func TestCreateCommand(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.BasicClient
+	user := th.SystemAdminUser
+	team := th.SystemAdminTeam
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
 	defer func() {
@@ -51,26 +45,13 @@ func TestCreateCommand(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 
 	if _, err := Client.CreateCommand(cmd); err == nil {
 		t.Fatal("should have failed because not admin")
 	}
 
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client = th.SystemAdminClient
 
 	var rcmd *model.Command
 	if result, err := Client.CreateCommand(cmd); err != nil {
@@ -87,7 +68,7 @@ func TestCreateCommand(t *testing.T) {
 		t.Fatal("team ids didn't match")
 	}
 
-	cmd = &model.Command{CreatorId: "123", TeamId: "456", URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd = &model.Command{CreatorId: "123", TeamId: "456", URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	if result, err := Client.CreateCommand(cmd); err != nil {
 		t.Fatal(err)
 	} else {
@@ -101,27 +82,16 @@ func TestCreateCommand(t *testing.T) {
 }
 
 func TestListTeamCommands(t *testing.T) {
-	Setup()
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	cmd1 := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd1 := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd1 = Client.Must(Client.CreateCommand(cmd1)).Data.(*model.Command)
 
 	if result, err := Client.ListTeamCommands(); err != nil {
@@ -136,27 +106,16 @@ func TestListTeamCommands(t *testing.T) {
 }
 
 func TestRegenToken(t *testing.T) {
-	Setup()
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)
 
 	data := make(map[string]string)
@@ -172,27 +131,16 @@ func TestRegenToken(t *testing.T) {
 }
 
 func TestDeleteCommand(t *testing.T) {
-	Setup()
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)
 
 	data := make(map[string]string)
@@ -209,31 +157,18 @@ func TestDeleteCommand(t *testing.T) {
 }
 
 func TestTestCommand(t *testing.T) {
-	Setup()
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	channel1 := th.SystemAdminChannel
+
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-
-	c := &Context{}
-	c.RequestId = model.NewId()
-	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
-
-	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
-
 	cmd1 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/commands/test",
+		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_POST,
 		Trigger: "test",
 	}
@@ -253,7 +188,7 @@ func TestTestCommand(t *testing.T) {
 	}
 
 	cmd2 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/commands/test",
+		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_GET,
 		Trigger: "test2",
 	}

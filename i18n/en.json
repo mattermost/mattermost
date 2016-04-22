@@ -1313,11 +1313,11 @@
   },
   {
     "id": "api.templates.singin_change_email.body.info",
-    "translation": "You updated your sign-in method for {{.TeamDisplayName}} on {{ .TeamURL }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "You updated your sign-in method for on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.singin_change_email.subject",
-    "translation": "You updated your sign-in method for {{.TeamDisplayName}} on {{ .SiteName }}"
+    "translation": "You updated your sign-in method on {{ .SiteName }}"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1425,11 +1425,11 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Team {{.DisplayName}} already has a user with the email address attached to your {{.Service}} account"
+    "translation": "An existing user is already attached to your {{.Service}} account"
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "This {{.Service}} account has already been used to sign up for team {{.DisplayName}}"
+    "translation": "This {{.Service}} account has already been used to sign up"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -1450,6 +1450,10 @@
   {
     "id": "api.user.create_profile_image.initial.app_error",
     "translation": "Could not add user initial to default profile picture"
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
@@ -1758,6 +1762,14 @@
   {
     "id": "api.webhook.create_incoming.disabled.app_errror",
     "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "Outgoing webhooks can only be created for public channels."
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "Inappropriate permissions to create outcoming webhook."
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
@@ -2110,6 +2122,18 @@
   {
     "id": "model.channel.is_valid.type.app_error",
     "translation": "Invalid type"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "Invalid team id"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.team_member.is_valid.role.app_error",
+    "translation": "Invalid role"
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
@@ -2944,6 +2968,22 @@
     "translation": "We encountered an error updating the channel member"
   },
   {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "A team member with that id already exists"
+  },
+  {
+    "id": "store.sql_team.save_member.save.app_error",
+    "translation": "We couldn't save the team member"
+  },
+  {
+    "id": "store.sql_team.get_members.app_error",
+    "translation": "We couldn't get the team members"
+  },
+  {
+    "id": "store.sql_team.remove_member.app_error",
+    "translation": "We couldn't remove the team member"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "We couldn't count the commands"
   },
@@ -3237,7 +3277,7 @@
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "We couldn't remove all the sessions for the team"
+    "translation": "We couldn't remove all the sessions"
   },
   {
     "id": "store.sql_session.save.app_error",

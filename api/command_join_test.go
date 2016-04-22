@@ -8,20 +8,13 @@ import (
 	"testing"
 
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 )
 
 func TestJoinCommands(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+	user2 := th.BasicUser2
 
 	channel0 := &model.Channel{DisplayName: "00", Name: "00" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel0 = Client.Must(Client.CreateChannel(channel0)).Data.(*model.Channel)
@@ -34,13 +27,7 @@ func TestJoinCommands(t *testing.T) {
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 	Client.Must(Client.LeaveChannel(channel2.Id))
 
-	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-
-	data := make(map[string]string)
-	data["user_id"] = user2.Id
-	channel3 := Client.Must(Client.CreateDirectChannel(data)).Data.(*model.Channel)
+	channel3 := Client.Must(Client.CreateDirectChannel(user2.Id)).Data.(*model.Channel)
 
 	rs5 := Client.Must(Client.Command(channel0.Id, "/join "+channel2.Name, false)).Data.(*model.CommandResponse)
 	if !strings.HasSuffix(rs5.GotoLocation, "/"+team.Name+"/channels/"+channel2.Name) {
@@ -54,7 +41,7 @@ func TestJoinCommands(t *testing.T) {
 
 	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
 
-	if len(c1.Channels) != 5 { // 4 because of town-square, off-topic and direct
+	if len(c1.Channels) != 6 { // 4 because of town-square, off-topic and direct
 		t.Fatal("didn't join channel")
 	}
 

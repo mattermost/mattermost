@@ -46,7 +46,7 @@ export default class BackstageNavbar extends React.Component {
             <div className='backstage-navbar row'>
                 <Link
                     className='backstage-navbar__back'
-                    to={`/${this.state.team.display_name}/channels/town-square`}
+                    to={`/${this.state.team.name}/channels/town-square`}
                 >
                     <i className='fa fa-angle-left'/>
                     <span>

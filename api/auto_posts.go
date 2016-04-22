@@ -74,7 +74,7 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 		return nil, false
 	}
 
-	resp, appErr := cfg.client.UploadFile("/files/upload", body.Bytes(), writer.FormDataContentType())
+	resp, appErr := cfg.client.UploadPostAttachment(body.Bytes(), writer.FormDataContentType())
 	if appErr != nil {
 		return nil, false
 	}

@@ -6,7 +6,6 @@ package api
 import (
 	"bytes"
 	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"io"
@@ -19,13 +18,12 @@ const (
 	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
 )
 
-func InitLicense(r *mux.Router) {
+func InitLicense() {
 	l4g.Debug(utils.T("api.license.init.debug"))
 
-	sr := r.PathPrefix("/license").Subrouter()
-	sr.Handle("/add", ApiAdminSystemRequired(addLicense)).Methods("POST")
-	sr.Handle("/remove", ApiAdminSystemRequired(removeLicense)).Methods("POST")
-	sr.Handle("/client_config", ApiAppHandler(getClientLicenceConfig)).Methods("GET")
+	BaseRoutes.License.Handle("/add", ApiAdminSystemRequired(addLicense)).Methods("POST")
+	BaseRoutes.License.Handle("/remove", ApiAdminSystemRequired(removeLicense)).Methods("POST")
+	BaseRoutes.License.Handle("/client_config", ApiAppHandler(getClientLicenceConfig)).Methods("GET")
 }
 
 func LoadLicense() {

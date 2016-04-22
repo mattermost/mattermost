@@ -5,12 +5,14 @@ import LoginEmail from './components/login_email.jsx';
 import LoginUsername from './components/login_username.jsx';
 import LoginLdap from './components/login_ldap.jsx';
 import LoginMfa from './components/login_mfa.jsx';
+import ErrorBar from 'components/error_bar.jsx';
 
-import TeamStore from 'stores/team_store.jsx';
+import * as GlobalActions from '../../action_creators/global_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import Client from 'utils/web_client.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-import * as Client from 'utils/client.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -18,40 +20,24 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router';
 
 import React from 'react';
+import logoImage from 'images/logo.png';
 
 export default class Login extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getStateFromStores = this.getStateFromStores.bind(this);
-        this.onTeamChange = this.onTeamChange.bind(this);
         this.preSubmit = this.preSubmit.bind(this);
         this.submit = this.submit.bind(this);
+        this.finishSignin = this.finishSignin.bind(this);
 
-        const state = this.getStateFromStores();
-        state.doneCheckLogin = false;
+        const state = {};
+        state.showMfa = false;
         this.state = state;
     }
     componentDidMount() {
-        TeamStore.addChangeListener(this.onTeamChange);
-        Client.getMeLoggedIn((data) => {
-            if (data && data.logged_in !== 'false') {
-                browserHistory.push('/' + this.props.params.team + '/channels/town-square');
-            } else {
-                this.setState({doneCheckLogin: true}); //eslint-disable-line react/no-did-mount-set-state
-            }
-        });
-    }
-    componentWillUnmount() {
-        TeamStore.removeChangeListener(this.onTeamChange);
-    }
-    getStateFromStores() {
-        return {
-            currentTeam: TeamStore.getByName(this.props.params.team)
-        };
-    }
-    onTeamChange() {
-        this.setState(this.getStateFromStores());
+        if (UserStore.getCurrentUser()) {
+            browserHistory.push('/select_team');
+        }
     }
     preSubmit(method, loginId, password) {
         if (global.window.mm_config.EnableMultifactorAuthentication !== 'true') {
@@ -59,7 +45,7 @@ export default class Login extends React.Component {
             return;
         }
 
-        Client.checkMfa(method, this.state.currentTeam.name, loginId,
+        Client.checkMfa(method, loginId,
             (data) => {
                 if (data.mfa_required === 'true') {
                     this.setState({showMfa: true, method, loginId, password});
@@ -78,27 +64,41 @@ export default class Login extends React.Component {
             }
         );
     }
+    finishSignin() {
+        GlobalActions.emitInitialLoad(
+            () => {
+                browserHistory.push('/select_team');
+            }
+        );
+    }
+
     submit(method, loginId, password, token) {
         this.setState({showMfa: false, serverEmailError: null, serverUsernameError: null, serverLdapError: null});
 
-        const team = this.state.currentTeam.name;
-
         if (method === Constants.EMAIL_SERVICE) {
-            Client.loginByEmail(team, loginId, password, token,
+            Client.webLogin(
+                loginId,
+                null,
+                password,
+                token,
                 () => {
                     UserStore.setLastEmail(loginId);
-                    browserHistory.push('/' + team + '/channels/town-square');
+                    this.finishSignin();
                 },
                 (err) => {
                     if (err.id === 'api.user.login.not_verified.app_error') {
-                        browserHistory.push('/should_verify_email?teamname=' + encodeURIComponent(team) + '&email=' + encodeURIComponent(loginId));
+                        browserHistory.push('/should_verify_email?&email=' + encodeURIComponent(loginId));
                         return;
                     }
                     this.setState({serverEmailError: err.message});
                 }
             );
         } else if (method === Constants.USERNAME_SERVICE) {
-            Client.loginByUsername(team, loginId, password, token,
+            Client.webLogin(
+                null,
+                loginId,
+                password,
+                token,
                 () => {
                     UserStore.setLastUsername(loginId);
 
@@ -106,7 +106,7 @@ export default class Login extends React.Component {
                     if (redirect) {
                         browserHistory.push(decodeURIComponent(redirect));
                     } else {
-                        browserHistory.push('/' + team + '/channels/town-square');
+                        this.finishSignin();
                     }
                 },
                 (err) => {
@@ -120,13 +120,16 @@ export default class Login extends React.Component {
                 }
             );
         } else if (method === Constants.LDAP_SERVICE) {
-            Client.loginByLdap(team, loginId, password, token,
+            Client.loginByLdap(
+                loginId,
+                password,
+                token,
                 () => {
                     const redirect = Utils.getUrlParameter('redirect');
                     if (redirect) {
                         browserHistory.push(decodeURIComponent(redirect));
                     } else {
-                        browserHistory.push('/' + team + '/channels/town-square');
+                        this.finishSignin();
                     }
                 },
                 (err) => {
@@ -144,7 +147,7 @@ export default class Login extends React.Component {
             return (
                 <div>
                     <img
-                        src='/api/v1/admin/get_brand_image'
+                        src={Client.getAdminRoute() + '/get_brand_image'}
                     />
                     <p dangerouslySetInnerHTML={{__html: TextFormatting.formatText(text)}}/>
                 </div>
@@ -153,7 +156,7 @@ export default class Login extends React.Component {
 
         return null;
     }
-    createLoginOptions(currentTeam) {
+    createLoginOptions() {
         const extraParam = Utils.getUrlParameter('extra');
         let extraBox = '';
         if (extraParam) {
@@ -187,10 +190,19 @@ export default class Login extends React.Component {
                         />
                     </div>
                 );
+            } else if (extraParam === Constants.PASSWORD_CHANGE) {
+                extraBox = (
+                    <div className='alert alert-success'>
+                        <i className='fa fa-check'/>
+                        <FormattedMessage
+                            id='login.passwordChanged'
+                            defaultMessage=' Password updated successfully'
+                        />
+                    </div>
+                );
             }
         }
 
-        const teamName = currentTeam.name;
         const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
         const gitlabSigninEnabled = global.window.mm_config.EnableSignUpWithGitLab === 'true';
         const googleSigninEnabled = global.window.mm_config.EnableSignUpWithGoogle === 'true';
@@ -200,10 +212,10 @@ export default class Login extends React.Component {
         const oauthLogins = [];
         if (gitlabSigninEnabled) {
             oauthLogins.push(
-                <Link
+                <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    to={'/api/v1/oauth/gitlab/login?team=' + encodeURIComponent(teamName)}
+                    href={Client.getOAuthRoute() + '/gitlab/login'}
                 >
                     <span className='icon'/>
                     <span>
@@ -212,7 +224,7 @@ export default class Login extends React.Component {
                             defaultMessage='with GitLab'
                         />
                     </span>
-                </Link>
+                </a>
             );
         }
 
@@ -221,7 +233,7 @@ export default class Login extends React.Component {
                 <Link
                     className='btn btn-custom-login google'
                     key='google'
-                    to={'/api/v1/oauth/google/login?team=' + encodeURIComponent(teamName)}
+                    to={Client.getOAuthRoute() + '/google/login'}
                 >
                     <span className='icon'/>
                     <span>
@@ -238,7 +250,6 @@ export default class Login extends React.Component {
         if (emailSigninEnabled) {
             emailLogin = (
                 <LoginEmail
-                    teamName={teamName}
                     serverError={this.state.serverEmailError}
                     submit={this.preSubmit}
                 />
@@ -263,7 +274,6 @@ export default class Login extends React.Component {
         if (usernameSigninEnabled) {
             usernameLogin = (
                 <LoginUsername
-                    teamName={teamName}
                     serverError={this.state.serverUsernameError}
                     submit={this.preSubmit}
                 />
@@ -288,7 +298,6 @@ export default class Login extends React.Component {
         if (ldapEnabled) {
             ldapLogin = (
                 <LoginLdap
-                    teamName={teamName}
                     serverError={this.state.serverLdapError}
                     submit={this.preSubmit}
                 />
@@ -309,54 +318,34 @@ export default class Login extends React.Component {
             }
         }
 
-        let userSignUp;
-        if (currentTeam.allow_open_invite) {
-            userSignUp = (
-                <div>
-                    <span>
+        const userSignUp = (
+            <div>
+                <span>
+                    <FormattedMessage
+                        id='login.noAccount'
+                        defaultMessage="Don't have an account? "
+                    />
+                    <Link
+                        to={'/signup_user_complete'}
+                        className='signup-team-login'
+                    >
                         <FormattedMessage
-                            id='login.noAccount'
-                            defaultMessage="Don't have an account? "
+                            id='login.create'
+                            defaultMessage='Create one now'
                         />
-                        <Link
-                            to={'/signup_user_complete/?id=' + currentTeam.invite_id}
-                            className='signup-team-login'
-                        >
-                            <FormattedMessage
-                                id='login.create'
-                                defaultMessage='Create one now'
-                            />
-                        </Link>
-                    </span>
-                </div>
-            );
-        }
+                    </Link>
+                </span>
+            </div>
+        );
 
         let forgotPassword;
         if (usernameSigninEnabled || emailSigninEnabled) {
             forgotPassword = (
                 <div className='form-group'>
-                    <Link to={'/' + teamName + '/reset_password'}>
+                    <Link to={'/reset_password'}>
                         <FormattedMessage
                             id='login.forgot'
                             defaultMessage='I forgot my password'
-                        />
-                    </Link>
-                </div>
-            );
-        }
-
-        let teamSignUp;
-        if (global.window.mm_config.EnableTeamCreation === 'true' && !Utils.isMobileApp()) {
-            teamSignUp = (
-                <div className='margin--extra'>
-                    <Link
-                        to='/'
-                        className='signup-team-login'
-                    >
-                        <FormattedMessage
-                            id='login.createTeam'
-                            defaultMessage='Create a new team'
                         />
                     </Link>
                 </div>
@@ -372,16 +361,10 @@ export default class Login extends React.Component {
                 {ldapLogin}
                 {userSignUp}
                 {forgotPassword}
-                {teamSignUp}
             </div>
         );
     }
     render() {
-        const currentTeam = this.state.currentTeam;
-        if (currentTeam == null || !this.state.doneCheckLogin) {
-            return <div/>;
-        }
-
         let content;
         let customContent;
         let customClass;
@@ -395,7 +378,7 @@ export default class Login extends React.Component {
                 />
             );
         } else {
-            content = this.createLoginOptions(currentTeam);
+            content = this.createLoginOptions();
             customContent = this.createCustomLogin();
             if (customContent) {
                 customClass = 'branded';
@@ -404,36 +387,23 @@ export default class Login extends React.Component {
 
         return (
             <div>
-                <div className='signup-header'>
-                    <Link to='/'>
-                        <span className='fa fa-chevron-left'/>
-                        <FormattedMessage
-                            id='web.header.back'
-                        />
-                    </Link>
-                </div>
+                <ErrorBar/>
                 <div className='col-sm-12'>
                     <div className={'signup-team__container ' + customClass}>
                         <div className='signup__markdown'>
                             {customContent}
                         </div>
+                        <img
+                            className='signup-team-logo'
+                            src={logoImage}
+                        />
+                        <h1>{global.window.mm_config.SiteName}</h1>
+                        <h4 className='color--light'>
+                            <FormattedMessage
+                                id='web.root.singup_info'
+                            />
+                        </h4>
                         <div className='signup__content'>
-                            <h5 className='margin--less'>
-                                <FormattedMessage
-                                    id='login.signTo'
-                                    defaultMessage='Sign in to:'
-                                />
-                            </h5>
-                            <h2 className='signup-team__name'>{currentTeam.display_name}</h2>
-                            <h2 className='signup-team__subdomain'>
-                                <FormattedMessage
-                                    id='login.on'
-                                    defaultMessage='on {siteName}'
-                                    values={{
-                                        siteName: global.window.mm_config.SiteName
-                                    }}
-                                />
-                            </h2>
                             {content}
                         </div>
                     </div>

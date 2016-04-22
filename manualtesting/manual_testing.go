@@ -66,7 +66,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
 			Name:        utils.RandomName(utils.Range{20, 20}, utils.LOWERCASE),
-			Email:       utils.RandomEmail(utils.Range{20, 20}, utils.LOWERCASE),
+			Email:       "success+" + model.NewId() + "simulator.amazonses.com",
 			Type:        model.TEAM_OPEN,
 		}
 
@@ -88,8 +88,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 		// Create user for testing
 		user := &model.User{
-			TeamId:   teamID,
-			Email:    utils.RandomEmail(utils.Range{20, 20}, utils.LOWERCASE),
+			Email:    "success+" + model.NewId() + "simulator.amazonses.com",
 			Nickname: username[0],
 			Password: api.USER_PASSWORD}
 
@@ -98,7 +97,10 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		api.Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
+
+		<-api.Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
+		<-api.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: result.Data.(*model.User).Id})
+
 		newuser := result.Data.(*model.User)
 		userID = newuser.Id
 

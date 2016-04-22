@@ -67,17 +67,17 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_DIRECT
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
-	u2 := model.User{}
-	u2.TeamId = model.NewId()
+	u2 := &model.User{}
 	u2.Email = model.NewId()
 	u2.Nickname = model.NewId()
-	Must(store.User().Save(&u2))
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
@@ -163,17 +163,17 @@ func TestChannelStoreGet(t *testing.T) {
 		t.Fatal("Missing id should have failed")
 	}
 
-	u1 := model.User{}
-	u1.TeamId = model.NewId()
+	u1 := &model.User{}
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	u2 := model.User{}
-	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
 	u2.Nickname = model.NewId()
 	Must(store.User().Save(&u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
 
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
@@ -309,16 +309,16 @@ func TestChannelMemberStore(t *testing.T) {
 	t1 := c1t1.ExtraUpdateAt
 
 	u1 := model.User{}
-	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
 	Must(store.User().Save(&u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	u2 := model.User{}
-	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
 	u2.Nickname = model.NewId()
 	Must(store.User().Save(&u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
 
 	o1 := model.ChannelMember{}
 	o1.ChannelId = c1.Id
@@ -405,16 +405,16 @@ func TestChannelDeleteMemberStore(t *testing.T) {
 	t1 := c1t1.ExtraUpdateAt
 
 	u1 := model.User{}
-	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
 	Must(store.User().Save(&u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
 	u2 := model.User{}
-	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
 	u2.Nickname = model.NewId()
 	Must(store.User().Save(&u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
 
 	o1 := model.ChannelMember{}
 	o1.ChannelId = c1.Id
@@ -469,6 +469,11 @@ func TestChannelStorePermissionsTo(t *testing.T) {
 		t.Fatal("should have permissions")
 	}
 
+	count = (<-store.Channel().CheckPermissionsToNoTeam(o1.Id, m1.UserId)).Data.(int64)
+	if count != 1 {
+		t.Fatal("should have permissions")
+	}
+
 	count = (<-store.Channel().CheckPermissionsTo("junk", o1.Id, m1.UserId)).Data.(int64)
 	if count != 0 {
 		t.Fatal("shouldn't have permissions")
@@ -479,7 +484,17 @@ func TestChannelStorePermissionsTo(t *testing.T) {
 		t.Fatal("shouldn't have permissions")
 	}
 
+	count = (<-store.Channel().CheckPermissionsToNoTeam("junk", m1.UserId)).Data.(int64)
+	if count != 0 {
+		t.Fatal("shouldn't have permissions")
+	}
+
 	count = (<-store.Channel().CheckPermissionsTo(o1.TeamId, o1.Id, "junk")).Data.(int64)
+	if count != 0 {
+		t.Fatal("shouldn't have permissions")
+	}
+
+	count = (<-store.Channel().CheckPermissionsToNoTeam(o1.Id, "junk")).Data.(int64)
 	if count != 0 {
 		t.Fatal("shouldn't have permissions")
 	}
@@ -786,12 +801,12 @@ func TestGetMemberCount(t *testing.T) {
 
 	t.Logf("c1.Id = %v", c1.Id)
 
-	u1 := model.User{
-		TeamId:   teamId,
+	u1 := &model.User{
 		Email:    model.NewId(),
 		DeleteAt: 0,
 	}
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	m1 := model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -807,11 +822,11 @@ func TestGetMemberCount(t *testing.T) {
 	}
 
 	u2 := model.User{
-		TeamId:   teamId,
 		Email:    model.NewId(),
 		DeleteAt: 0,
 	}
 	Must(store.User().Save(&u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 
 	m2 := model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -828,11 +843,11 @@ func TestGetMemberCount(t *testing.T) {
 
 	// make sure members of other channels aren't counted
 	u3 := model.User{
-		TeamId:   teamId,
 		Email:    model.NewId(),
 		DeleteAt: 0,
 	}
 	Must(store.User().Save(&u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}))
 
 	m3 := model.ChannelMember{
 		ChannelId:   c2.Id,
@@ -848,12 +863,12 @@ func TestGetMemberCount(t *testing.T) {
 	}
 
 	// make sure inactive users aren't counted
-	u4 := model.User{
-		TeamId:   teamId,
+	u4 := &model.User{
 		Email:    model.NewId(),
 		DeleteAt: 10000,
 	}
-	Must(store.User().Save(&u4))
+	Must(store.User().Save(u4))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}))
 
 	m4 := model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -892,12 +907,12 @@ func TestUpdateExtrasByUser(t *testing.T) {
 
 	t.Logf("c1.Id = %v", c1.Id)
 
-	u1 := model.User{
-		TeamId:   teamId,
+	u1 := &model.User{
 		Email:    model.NewId(),
 		DeleteAt: 0,
 	}
-	Must(store.User().Save(&u1))
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	m1 := model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -907,7 +922,7 @@ func TestUpdateExtrasByUser(t *testing.T) {
 	Must(store.Channel().SaveMember(&m1))
 
 	u1.DeleteAt = model.GetMillis()
-	Must(store.User().Update(&u1, true))
+	Must(store.User().Update(u1, true))
 
 	if result := <-store.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
 		t.Fatal("failed to update extras by user: %v", result.Err)
@@ -920,7 +935,7 @@ func TestUpdateExtrasByUser(t *testing.T) {
 	}
 
 	u1.DeleteAt = 0
-	Must(store.User().Update(&u1, true))
+	Must(store.User().Update(u1, true))
 
 	if result := <-store.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
 		t.Fatal("failed to update extras by user: %v", result.Err)

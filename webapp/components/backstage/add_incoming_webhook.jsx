@@ -5,6 +5,7 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router';
+import * as Utils from 'utils/utils.jsx';
 
 import BackstageHeader from './backstage_header.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
@@ -69,7 +70,7 @@ export default class AddIncomingWebhook extends React.Component {
         AsyncClient.addIncomingHook(
             hook,
             () => {
-                browserHistory.push('/settings/integrations/incoming_webhooks');
+                browserHistory.push('/' + Utils.getTeamNameFromUrl() + '/settings/integrations/incoming_webhooks');
             },
             (err) => {
                 this.setState({
@@ -102,7 +103,7 @@ export default class AddIncomingWebhook extends React.Component {
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
-                    <Link to={'/settings/integrations/incoming_webhooks'}>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/incoming_webhooks'}>
                         <FormattedMessage
                             id='installed_incoming_webhooks.header'
                             defaultMessage='Incoming Webhooks'

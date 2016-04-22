@@ -3,7 +3,7 @@
 
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ConfirmModal from './confirm_modal.jsx';
@@ -38,11 +38,9 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, '');
         } else {
-            const data = {
-                user_id: this.props.user.id,
-                new_roles: ''
-            };
-            Client.updateRoles(data,
+            Client.updateRoles(
+                this.props.user.id,
+                '',
                 () => {
                     AsyncClient.getProfiles();
                 },
@@ -79,12 +77,9 @@ export default class TeamMembersDropdown extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, 'admin');
         } else {
-            const data = {
-                user_id: this.props.user.id,
-                new_roles: 'admin'
-            };
-
-            Client.updateRoles(data,
+            Client.updateRoles(
+                this.props.user.id,
+                'admin',
                 () => {
                     AsyncClient.getProfiles();
                 },
@@ -94,12 +89,13 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
     }
-    handleDemote(user, role) {
+    handleDemote(user, role, newRole) {
         this.setState({
             serverError: this.state.serverError,
             showDemoteModal: true,
             user,
-            role
+            role,
+            newRole
         });
     }
     handleDemoteCancel() {
@@ -107,16 +103,14 @@ export default class TeamMembersDropdown extends React.Component {
             serverError: null,
             showDemoteModal: false,
             user: null,
-            role: null
+            role: null,
+            newRole: null
         });
     }
     handleDemoteSubmit() {
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: this.state.role
-        };
-
-        Client.updateRoles(data,
+        Client.updateRoles(
+            this.props.user.id,
+            this.state.newRole,
             () => {
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {
@@ -140,6 +134,7 @@ export default class TeamMembersDropdown extends React.Component {
             );
         }
 
+        const teamMember = this.props.teamMember;
         const user = this.props.user;
         let currentRoles = (
             <FormattedMessage
@@ -168,8 +163,10 @@ export default class TeamMembersDropdown extends React.Component {
             }
         }
 
-        let showMakeMember = user.roles === 'admin' || user.roles === 'system_admin';
-        let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
+        let showMakeMember = teamMember.roles === 'admin' || user.roles === 'system_admin';
+
+        //let showMakeAdmin = teamMember.roles === '' && user.roles !== 'system_admin';
+        let showMakeAdmin = false;
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';
 
@@ -331,5 +328,6 @@ export default class TeamMembersDropdown extends React.Component {
 }
 
 TeamMembersDropdown.propTypes = {
-    user: React.PropTypes.object.isRequired
+    user: React.PropTypes.object.isRequired,
+    teamMember: React.PropTypes.object.isRequired
 };

@@ -182,10 +182,19 @@ func (me *LoadTestProvider) SetupCommand(c *Context, channelId string, message s
 			}
 		}
 	} else {
+
+		var team *model.Team
+		if tr := <-Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
+			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		} else {
+			team = tr.Data.(*model.Team)
+		}
+
 		client.MockSession(c.Session.Token)
+		client.SetTeamId(c.TeamId)
 		CreateTestEnvironmentInTeam(
 			client,
-			c.Session.TeamId,
+			team,
 			utils.Range{numChannels, numChannels},
 			utils.Range{numUsers, numUsers},
 			utils.Range{numPosts, numPosts},
@@ -209,8 +218,16 @@ func (me *LoadTestProvider) UsersCommand(c *Context, channelId string, message s
 		usersr = utils.Range{2, 5}
 	}
 
+	var team *model.Team
+	if tr := <-Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
+		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	} else {
+		team = tr.Data.(*model.Team)
+	}
+
 	client := model.NewClient(c.GetSiteURL())
-	userCreator := NewAutoUserCreator(client, c.Session.TeamId)
+	client.SetTeamId(team.Id)
+	userCreator := NewAutoUserCreator(client, team)
 	userCreator.Fuzzy = doFuzz
 	userCreator.CreateTestUsers(usersr)
 
@@ -230,9 +247,18 @@ func (me *LoadTestProvider) ChannelsCommand(c *Context, channelId string, messag
 	if err == false {
 		channelsr = utils.Range{2, 5}
 	}
+
+	var team *model.Team
+	if tr := <-Srv.Store.Team().Get(c.TeamId); tr.Err != nil {
+		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	} else {
+		team = tr.Data.(*model.Team)
+	}
+
 	client := model.NewClient(c.GetSiteURL())
+	client.SetTeamId(team.Id)
 	client.MockSession(c.Session.Token)
-	channelCreator := NewAutoChannelCreator(client, c.Session.TeamId)
+	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = doFuzz
 	channelCreator.CreateTestChannels(channelsr)
 
@@ -262,7 +288,7 @@ func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message s
 	}
 
 	var usernames []string
-	if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err == nil {
+	if result := <-Srv.Store.User().GetProfiles(c.TeamId); result.Err == nil {
 		profileUsers := result.Data.(map[string]*model.User)
 		usernames = make([]string, len(profileUsers))
 		i := 0
@@ -273,6 +299,7 @@ func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message s
 	}
 
 	client := model.NewClient(c.GetSiteURL())
+	client.SetTeamId(c.TeamId)
 	client.MockSession(c.Session.Token)
 	testPoster := NewAutoPostCreator(client, channelId)
 	testPoster.Fuzzy = doFuzz

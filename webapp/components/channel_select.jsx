@@ -54,7 +54,7 @@ export default class ChannelSelect extends React.Component {
         ];
 
         this.state.channels.forEach((channel) => {
-            if (channel.type !== Constants.DM_CHANNEL) {
+            if (channel.type === Constants.OPEN_CHANNEL) {
                 options.push(
                     <option
                         key={channel.id}

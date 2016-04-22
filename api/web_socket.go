@@ -5,16 +5,15 @@ package api
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"net/http"
 )
 
-func InitWebSocket(r *mux.Router) {
+func InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
-	r.Handle("/websocket", ApiUserRequiredTrustRequester(connect)).Methods("GET")
+	BaseRoutes.Users.Handle("/websocket", ApiUserRequiredTrustRequester(connect)).Methods("GET")
 	hub.Start()
 }
 
@@ -34,7 +33,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wc := NewWebConn(ws, c.Session.TeamId, c.Session.UserId, c.Session.Id)
+	wc := NewWebConn(ws, c.Session.UserId, c.Session.Id)
 	hub.Register(wc)
 	go wc.writePump()
 	wc.readPump()

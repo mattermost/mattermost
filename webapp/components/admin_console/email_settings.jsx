@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import crypto from 'crypto';
 import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';

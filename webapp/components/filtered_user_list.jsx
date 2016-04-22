@@ -113,6 +113,7 @@ class FilteredUserList extends React.Component {
                 >
                     <UserList
                         users={users}
+                        teamMembers={this.props.teamMembers}
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
                     />
@@ -124,6 +125,7 @@ class FilteredUserList extends React.Component {
 
 FilteredUserList.defaultProps = {
     users: [],
+    teamMembers: [],
     actions: [],
     actionProps: {}
 };
@@ -131,6 +133,7 @@ FilteredUserList.defaultProps = {
 FilteredUserList.propTypes = {
     intl: intlShape.isRequired,
     users: React.PropTypes.arrayOf(React.PropTypes.object),
+    teamMembers: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
     style: React.PropTypes.object

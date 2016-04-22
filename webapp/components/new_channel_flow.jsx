@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import NewChannelModal from './new_channel_modal.jsx';
@@ -106,11 +106,7 @@ class NewChannelFlow extends React.Component {
             (data) => {
                 Client.getChannel(
                     data.id,
-                    (data2, textStatus, xhr) => {
-                        if (xhr.status === 304 || !data2) {
-                            return;
-                        }
-
+                    (data2) => {
                         AppDispatcher.handleServerAction({
                             type: ActionTypes.RECEIVED_CHANNEL,
                             channel: data2.channel,

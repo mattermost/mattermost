@@ -9,7 +9,8 @@ import (
 )
 
 func TestGetLicenceConfig(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic()
+	Client := th.BasicClient
 
 	if result, err := Client.GetClientLicenceConfig(""); err != nil {
 		t.Fatal(err)

@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
@@ -61,6 +61,7 @@ class LdapSettings extends React.Component {
         config.LdapSettings.BindPassword = this.refs.BindPassword.value.trim();
         config.LdapSettings.FirstNameAttribute = this.refs.FirstNameAttribute.value.trim();
         config.LdapSettings.LastNameAttribute = this.refs.LastNameAttribute.value.trim();
+        config.LdapSettings.NicknameAttribute = this.refs.NicknameAttribute.value.trim();
         config.LdapSettings.EmailAttribute = this.refs.EmailAttribute.value.trim();
         config.LdapSettings.UsernameAttribute = this.refs.UsernameAttribute.value.trim();
         config.LdapSettings.IdAttribute = this.refs.IdAttribute.value.trim();
@@ -434,6 +435,35 @@ class LdapSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.ldap.lastnameAttrDesc'
                                     defaultMessage='The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.'
+                                />
+                            </p>
+                        </div>
+                    </div>
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='NicknameAttribute'
+                        >
+                            <FormattedMessage
+                                id='admin.ldap.nicknameAttrTitle'
+                                defaultMessage='Nickname Attribute:'
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='NicknameAttribute'
+                                ref='NicknameAttribute'
+                                placeholder={Utils.localizeMessage('admin.ldap.nicknameAttrEx', 'Ex "nickname"')}
+                                defaultValue={this.props.config.LdapSettings.NicknameAttribute}
+                                onChange={this.handleChange}
+                                disabled={!this.state.enable}
+                            />
+                            <p className='help-text'>
+                                <FormattedMessage
+                                    id='admin.ldap.nicknameAttrDesc'
+                                    defaultMessage='(Optional) The attribute in the LDAP server that will be used to populate the nickname of users in Mattermost.'
                                 />
                             </p>
                         </div>

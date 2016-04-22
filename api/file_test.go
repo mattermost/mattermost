@@ -22,19 +22,11 @@ import (
 )
 
 func TestUploadFile(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
-
-	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+	user := th.BasicUser
+	channel := th.BasicChannel
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -45,6 +37,9 @@ func TestUploadFile(t *testing.T) {
 
 	path := utils.FindDir("tests")
 	file, err := os.Open(path + "/test.png")
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer file.Close()
 
 	_, err = io.Copy(part, file)
@@ -57,7 +52,7 @@ func TestUploadFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = field.Write([]byte(channel1.Id))
+	_, err = field.Write([]byte(channel.Id))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +62,7 @@ func TestUploadFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, appErr := Client.UploadFile("/files/upload", body.Bytes(), writer.FormDataContentType())
+	resp, appErr := Client.UploadPostAttachment(body.Bytes(), writer.FormDataContentType())
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		if appErr != nil {
 			t.Fatal(appErr)
@@ -90,17 +85,17 @@ func TestUploadFile(t *testing.T) {
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename)
+		err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg")
+		err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg")
+		err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -115,17 +110,17 @@ func TestUploadFile(t *testing.T) {
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
 
-		path := utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+		path := utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
 
-		path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+		path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
 
-		path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+		path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
@@ -137,24 +132,17 @@ func TestUploadFile(t *testing.T) {
 }
 
 func TestGetFile(t *testing.T) {
-	Setup()
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+	user := th.BasicUser
+	channel := th.BasicChannel
+
 	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
 	defer func() {
 		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
 	}()
 	utils.Cfg.FileSettings.EnablePublicLink = true
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
-
-	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
 	if utils.Cfg.FileSettings.DriverName != "" {
 		body := &bytes.Buffer{}
@@ -181,7 +169,7 @@ func TestGetFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		_, err = field.Write([]byte(channel1.Id))
+		_, err = field.Write([]byte(channel.Id))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -191,7 +179,7 @@ func TestGetFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		resp, upErr := Client.UploadFile("/files/upload", body.Bytes(), writer.FormDataContentType())
+		resp, upErr := Client.UploadPostAttachment(body.Bytes(), writer.FormDataContentType())
 		if upErr != nil {
 			t.Fatal(upErr)
 		}
@@ -217,8 +205,9 @@ func TestGetFile(t *testing.T) {
 		team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 		team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
-		user2 := &model.User{TeamId: team2.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+		user2 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
 		user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+		LinkUserToTeam(user2, team2)
 		store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
 		newProps := make(map[string]string)
@@ -229,6 +218,7 @@ func TestGetFile(t *testing.T) {
 		hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt))
 
 		Client.LoginByEmail(team2.Name, user2.Email, "pwd")
+		Client.SetTeamId(team2.Id)
 
 		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t="+team.Id, false); downErr != nil {
 			t.Fatal(downErr)
@@ -278,17 +268,17 @@ func TestGetFile(t *testing.T) {
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename)
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg")
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg")
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg")
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -297,17 +287,17 @@ func TestGetFile(t *testing.T) {
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]
 
-			path := utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+			path := utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
@@ -320,25 +310,18 @@ func TestGetFile(t *testing.T) {
 }
 
 func TestGetPublicLink(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-
-	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
-
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
-
-	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+	user := th.BasicUser
+	channel := th.BasicChannel
 
 	if utils.Cfg.FileSettings.DriverName != "" {
+		enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+		defer func() {
+			utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		}()
+		utils.Cfg.FileSettings.EnablePublicLink = true
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -364,7 +347,7 @@ func TestGetPublicLink(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		_, err = field.Write([]byte(channel1.Id))
+		_, err = field.Write([]byte(channel.Id))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -374,14 +357,14 @@ func TestGetPublicLink(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		resp, upErr := Client.UploadFile("/files/upload", body.Bytes(), writer.FormDataContentType())
+		resp, upErr := Client.UploadPostAttachment(body.Bytes(), writer.FormDataContentType())
 		if upErr != nil {
 			t.Fatal(upErr)
 		}
 
 		filenames := resp.Data.(*model.FileUploadResponse).Filenames
 
-		post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", Filenames: filenames}
+		post1 := &model.Post{ChannelId: channel.Id, Message: "a" + model.NewId() + "a", Filenames: filenames}
 
 		rpost1, postErr := Client.CreatePost(post1)
 		if postErr != nil {
@@ -408,7 +391,8 @@ func TestGetPublicLink(t *testing.T) {
 			t.Fatal("Should have errored - bad file path")
 		}
 
-		Client.LoginByEmail(team.Name, user2.Email, "pwd")
+		th.LoginBasic2()
+
 		data["filename"] = filenames[0]
 		if _, err := Client.GetPublicLink(data); err == nil {
 			t.Fatal("should have errored, user not member of channel")
@@ -427,17 +411,17 @@ func TestGetPublicLink(t *testing.T) {
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename)
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg")
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg")
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg")
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -446,17 +430,17 @@ func TestGetPublicLink(t *testing.T) {
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]
 
-			path := utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+			path := utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}

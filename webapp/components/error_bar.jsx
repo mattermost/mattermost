@@ -29,8 +29,8 @@ export default class ErrorBar extends React.Component {
     }
 
     componentWillMount() {
-        if (global.window.mm_config.SendEmailNotifications === 'false') {
-            ErrorStore.storeLastError({message: Utils.localizeMessage('error_bar.preview_mode', 'Preview Mode: Email notifications have not been configured')});
+        if (!ErrorStore.getIgnoreEmailPreview() && global.window.mm_config.SendEmailNotifications === 'false') {
+            ErrorStore.storeLastError({email_preview: true, message: Utils.localizeMessage('error_bar.preview_mode', 'Preview Mode: Email notifications have not been configured')});
             this.onErrorChange();
         }
     }

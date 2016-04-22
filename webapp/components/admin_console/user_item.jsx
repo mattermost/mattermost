@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ConfirmModal from '../confirm_modal.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
 import {browserHistory} from 'react-router';
@@ -22,6 +22,7 @@ export default class UserItem extends React.Component {
         this.handleMakeAdmin = this.handleMakeAdmin.bind(this);
         this.handleMakeSystemAdmin = this.handleMakeSystemAdmin.bind(this);
         this.handleResetPassword = this.handleResetPassword.bind(this);
+        this.handleResetMfa = this.handleResetMfa.bind(this);
         this.handleDemote = this.handleDemote.bind(this);
         this.handleDemoteSubmit = this.handleDemoteSubmit.bind(this);
         this.handleDemoteCancel = this.handleDemoteCancel.bind(this);
@@ -40,12 +41,9 @@ export default class UserItem extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, '');
         } else {
-            const data = {
-                user_id: this.props.user.id,
-                new_roles: ''
-            };
-
-            Client.updateRoles(data,
+            Client.updateRoles(
+                this.props.user.id,
+                '',
                 () => {
                     this.props.refreshProfiles();
                 },
@@ -86,12 +84,9 @@ export default class UserItem extends React.Component {
         if (this.props.user.id === me.id) {
             this.handleDemote(this.props.user, 'admin');
         } else {
-            const data = {
-                user_id: this.props.user.id,
-                new_roles: 'admin'
-            };
-
-            Client.updateRoles(data,
+            Client.updateRoles(
+                this.props.user.id,
+                'admin',
                 () => {
                     this.props.refreshProfiles();
                 },
@@ -104,12 +99,10 @@ export default class UserItem extends React.Component {
 
     handleMakeSystemAdmin(e) {
         e.preventDefault();
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: 'system_admin'
-        };
 
-        Client.updateRoles(data,
+        Client.updateRoles(
+            this.props.user.id,
+            'system_admin',
             () => {
                 this.props.refreshProfiles();
             },
@@ -122,6 +115,19 @@ export default class UserItem extends React.Component {
     handleResetPassword(e) {
         e.preventDefault();
         this.props.doPasswordReset(this.props.user);
+    }
+
+    handleResetMfa(e) {
+        e.preventDefault();
+
+        Client.adminResetMfa(this.props.user.id,
+            () => {
+                this.props.refreshProfiles();
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
     }
 
     handleDemote(user, role) {
@@ -143,12 +149,9 @@ export default class UserItem extends React.Component {
     }
 
     handleDemoteSubmit() {
-        const data = {
-            user_id: this.props.user.id,
-            new_roles: this.state.role
-        };
-
-        Client.updateRoles(data,
+        Client.updateRoles(
+            this.props.user.id,
+            this.state.role,
             () => {
                 this.setState({
                     serverError: null,
@@ -211,10 +214,15 @@ export default class UserItem extends React.Component {
 
         const email = user.email;
         let showMakeMember = user.roles === 'admin' || user.roles === 'system_admin';
-        let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
+
+        //let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
+        let showMakeAdmin = false;
+
         let showMakeSystemAdmin = user.roles === '' || user.roles === 'admin';
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';
+        let mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
+        let showMfaReset = mfaEnabled && user.mfa_active;
 
         if (user.delete_at > 0) {
             currentRoles = (
@@ -319,6 +327,64 @@ export default class UserItem extends React.Component {
                 </li>
             );
         }
+
+        let mfaReset = null;
+        if (showMfaReset) {
+            mfaReset = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleResetMfa}
+                    >
+                        <FormattedMessage
+                            id='admin.user_item.resetMfa'
+                            defaultMessage='Remove MFA'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
+        let mfaActiveText;
+        if (mfaEnabled) {
+            if (user.mfa_active) {
+                mfaActiveText = (
+                    <FormattedHTMLMessage
+                        id='admin.user_item.mfaYes'
+                        defaultMessage=', <strong>MFA</strong>: Yes'
+                    />
+                );
+            } else {
+                mfaActiveText = (
+                    <FormattedHTMLMessage
+                        id='admin.user_item.mfaNo'
+                        defaultMessage=', <strong>MFA</strong>: No'
+                    />
+                );
+            }
+        }
+
+        let authServiceText;
+        if (user.auth_service) {
+            authServiceText = (
+                <FormattedHTMLMessage
+                    id='admin.user_item.authServiceNotEmail'
+                    defaultMessage=', <strong>Sign-in Method:</strong> {service}'
+                    values={{
+                        service: Utils.toTitleCase(user.auth_service)
+                    }}
+                />
+            );
+        } else {
+            authServiceText = (
+                <FormattedHTMLMessage
+                    id='admin.user_item.authServiceEmail'
+                    defaultMessage=', <strong>Sign-in Method:</strong> Email'
+                />
+            );
+        }
+
         const me = UserStore.getCurrentUser();
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
@@ -368,13 +434,23 @@ export default class UserItem extends React.Component {
             <div className='more-modal__row'>
                 <img
                     className='more-modal__image pull-left'
-                    src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
+                    src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
                     height='36'
                     width='36'
                 />
                 <div className='more-modal__details'>
                     <div className='more-modal__name'>{Utils.getDisplayName(user)}</div>
-                    <div className='more-modal__description'>{email}</div>
+                    <div className='more-modal__description'>
+                        <FormattedHTMLMessage
+                            id='admin.user_item.emailTitle'
+                            defaultMessage='<strong>Email:</strong> {email}'
+                            values={{
+                                email
+                            }}
+                        />
+                        {authServiceText}
+                        {mfaActiveText}
+                    </div>
                 </div>
                 <div className='more-modal__actions'>
                     <div className='dropdown member-drop'>
@@ -397,6 +473,7 @@ export default class UserItem extends React.Component {
                             {makeActive}
                             {makeNotActive}
                             {makeSystemAdmin}
+                            {mfaReset}
                             <li role='presentation'>
                                 <a
                                     role='menuitem'

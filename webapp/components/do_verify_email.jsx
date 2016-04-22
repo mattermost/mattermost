@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import {FormattedMessage} from 'react-intl';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
 import {browserHistory, Link} from 'react-router';
@@ -25,14 +25,14 @@ export default class DoVerifyEmail extends React.Component {
         const email = this.props.location.query.email;
 
         Client.verifyEmail(
+            uid,
+            hid,
             () => {
                 browserHistory.push('/' + teamName + '/login?extra=verified&email=' + email);
             },
             (err) => {
                 this.setState({verifyStatus: 'failure', serverError: err.message});
-            },
-            uid,
-            hid
+            }
         );
     }
     render() {

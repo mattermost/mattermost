@@ -88,7 +88,8 @@ var config = {
     ],
     resolve: {
         alias: {
-            jquery: 'jquery/dist/jquery'
+            jquery: 'jquery/dist/jquery',
+            superagent: 'node_modules/superagent/lib/client'
         },
         modules: [
             'node_modules',

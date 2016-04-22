@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
-import * as Client from 'utils/client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -40,16 +40,12 @@ class PasswordResetForm extends React.Component {
             error: null
         });
 
-        const data = {};
-        data.new_password = password;
-        data.hash = this.props.location.query.h;
-        data.data = this.props.location.query.d;
-        data.name = this.props.params.team;
-
-        Client.resetPassword(data,
+        Client.resetPassword(
+            this.props.location.query.code,
+            password,
             () => {
                 this.setState({error: null});
-                browserHistory.push('/' + this.props.params.team + '/login');
+                browserHistory.push('/login?extra=' + Constants.PASSWORD_CHANGE);
             },
             (err) => {
                 this.setState({error: err.message});
