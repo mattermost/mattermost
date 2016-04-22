@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import * as TextFormatting from './text_formatting.jsx';
-import * as Utils from './utils.jsx';
 import * as syntaxHightlighting from './syntax_hightlighting.jsx';
 
 import marked from 'marked';
@@ -137,18 +136,20 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             outHref = `http://${outHref}`;
         }
 
-        let output = '<a class="theme markdown__link" href="' + outHref + '"';
+        let output = '<a class="theme markdown__link" ';
+
+        // special case for links that are inside the app
+        if (outHref.startsWith(global.location.origin)) {
+            output += 'data-link="' + outHref.substring(global.location.origin.length) + '"';
+        } else {
+            output += 'href="' + outHref + '"';
+        }
+
         if (title) {
             output += ' title="' + title + '"';
         }
 
-        if (outHref.lastIndexOf(Utils.getTeamURLFromAddressBar(), 0) === 0) {
-            output += '>';
-        } else {
-            output += ' target="_blank">';
-        }
-
-        output += outText + '</a>';
+        output += '>' + outText + '</a>';
 
         return prefix + output + suffix;
     }

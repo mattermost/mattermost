@@ -379,13 +379,11 @@ export default class PostsView extends React.Component {
         }
         window.addEventListener('resize', this.handleResize);
         PreferenceStore.addChangeListener(this.updateState);
-        $('body').addClass('app__body');
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
         this.scrollStopAction.cancel();
         PreferenceStore.removeChangeListener(this.updateState);
-        $('body').removeClass('app__body');
     }
     componentDidUpdate() {
         if (this.props.postList != null) {
