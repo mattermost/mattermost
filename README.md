@@ -12,12 +12,12 @@ Get Started:
 
 - **Preview Mattermost** - If you use Docker, try [a single-line install](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install).
 - **Developer Machine Set Up** - See [http://docs.mattermost.com/developer/developer-setup.html](http://docs.mattermost.com/developer/developer-setup.html)
-- **Ask Questions** - Join us on [our nightly builds server running Mattermost off master](https://pre-release.mattermost.com/core/channels/ux-design). 
 - **View All Install Guides** - See [http://www.mattermost.org/installation/](http://www.mattermost.org/installation/)
  
 Get Involved:
 
 - **Contribute Code** - View our [Code Contribution Guidelines](http://docs.mattermost.com/developer/contribution-guide.html) and find [open tickets accepting pull requests](https://mattermost.atlassian.net/issues/?filter=10101)
+- **Discuss Contributions** - Join our [Developer Discussion](https://pre-release.mattermost.com) for contributors on the nightly builds server
 - **File Bugs** - Search for existing bugs and [file a GitHub issue if your bug is new](http://www.mattermost.org/filing-issues/) 
 - **Share Feature Ideas** - Add a [feature idea to be discussed or upvoted](http://www.mattermost.org/feature-requests/)
 - **Get Troubleshooting Help** - Search articles and [add a topic if the issue is new](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)  
