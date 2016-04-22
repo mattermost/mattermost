@@ -706,7 +706,7 @@
   "channel_modal.group": "Group",
   "channel_modal.modalTitle": "New ",
   "channel_modal.name": "Name",
-  "channel_modal.nameEx": "E.g.: \"Bugs\", \"Marketing\", \"办公室恋情\"",
+  "channel_modal.nameEx": "E.g.: \"Bugs\", \"Marketing\", \"客户支持\"",
   "channel_modal.optional": "(optional)",
   "channel_modal.privateGroup1": "Create a new private group with restricted membership. ",
   "channel_modal.privateGroup2": "Create a private group",
