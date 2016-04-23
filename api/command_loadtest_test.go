@@ -47,7 +47,7 @@ func TestLoadTestSetupCommands(t *testing.T) {
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
 	rs := Client.Must(Client.Command(channel.Id, "/loadtest setup fuzz 1 1 1", false)).Data.(*model.CommandResponse)
-	if rs.Text != "Creating enviroment..." {
+	if rs.Text != "Created enviroment" {
 		t.Fatal(rs.Text)
 	}
 
@@ -68,7 +68,7 @@ func TestLoadTestUsersCommands(t *testing.T) {
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
 	rs := Client.Must(Client.Command(channel.Id, "/loadtest users fuzz 1 2", false)).Data.(*model.CommandResponse)
-	if rs.Text != "Adding users..." {
+	if rs.Text != "Added users" {
 		t.Fatal(rs.Text)
 	}
 
@@ -89,7 +89,7 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
 	rs := Client.Must(Client.Command(channel.Id, "/loadtest channels fuzz 1 2", false)).Data.(*model.CommandResponse)
-	if rs.Text != "Adding channels..." {
+	if rs.Text != "Added channels" {
 		t.Fatal(rs.Text)
 	}
 
@@ -110,7 +110,7 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
 	rs := Client.Must(Client.Command(channel.Id, "/loadtest posts fuzz 2 3 2", false)).Data.(*model.CommandResponse)
-	if rs.Text != "Adding posts..." {
+	if rs.Text != "Added posts" {
 		t.Fatal(rs.Text)
 	}
 
@@ -142,7 +142,7 @@ func TestLoadTestUrlCommands(t *testing.T) {
 	}
 
 	command = "/loadtest url https://raw.githubusercontent.com/mattermost/platform/master/README.md"
-	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
+	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loaded data" {
 		t.Fatal("/loadtest url for README.md should've executed")
 	}
 
@@ -192,7 +192,7 @@ func TestLoadTestJsonCommands(t *testing.T) {
 	}
 
 	command = "/loadtest json test-slack-attachments"
-	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loading data..." {
+	if r := Client.Must(Client.Command(channel.Id, command, false)).Data.(*model.CommandResponse); r.Text != "Loaded data" {
 		t.Fatal("/loadtest json should've executed")
 	}
 
