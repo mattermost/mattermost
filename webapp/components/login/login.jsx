@@ -35,6 +35,8 @@ export default class Login extends React.Component {
         this.state = state;
     }
     componentDidMount() {
+        document.title = global.window.mm_config.SiteName;
+
         if (UserStore.getCurrentUser()) {
             browserHistory.push('/select_team');
         }
