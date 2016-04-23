@@ -229,9 +229,9 @@ class UserSettingsGeneralTab extends React.Component {
 
         Client.uploadProfileImage(picture,
             () => {
+                this.updateSection('');
                 this.submitActive = false;
                 AsyncClient.getMe();
-                window.location.reload();
             },
             (err) => {
                 var state = this.setupInitialState(this.props);
