@@ -761,7 +761,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionHighlightLink) {
-        changeCss('.app__body .mention--highlight .mention-link', 'color:' + theme.mentionHighlightLink, 1);
+        changeCss('.app__body .mention--highlight .mention-link, .app__body .mention--highlight, .app__body .search-highlight', 'color:' + theme.mentionHighlightLink, 1);
     }
 
     if (!theme.codeTheme) {

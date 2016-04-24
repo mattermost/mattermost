@@ -12,13 +12,18 @@
             }
         }
     }
+
     .sidebar--right {
         @include single-transition(all, .5s, ease);
         @include translateX(100%);
         z-index: 5;
 
         &.move--left {
-            @include translateX(0);
+            -webkit-transform: translateX(0) !important;
+            -moz-transform: translateX(0) !important;
+            -ms-transform: translateX(0) !important;
+            -o-transform: translateX(0) !important;
+            transform: translateX(0) !important;
 
             .search-bar__container {
                 padding-right: 8px;
@@ -44,8 +49,12 @@
     }
 
     .inner-wrap {
+        &:not(.move--left) {
+            margin-right: 0 !important;
+        }
+
         &.move--left {
-            margin-right: 0;
+            margin-right: 0 !important;
 
             .channel-header__links {
                 position: relative;
@@ -59,5 +68,21 @@
 @media screen and (min-width: 768px) {
     .second-bar {
         display: none;
+    }
+
+    .post {
+        &.same--root {
+            &.same--user {
+                .post__time {
+                    @include opacity(0);
+                    font-size: 11px;
+                    left: 8px;
+                    line-height: 37px;
+                    position: absolute;
+                    text-rendering: auto;
+                    top: -2px;
+                }
+            }
+        }
     }
 }

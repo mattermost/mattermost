@@ -16,12 +16,22 @@
     }
 
     .post {
+        .post__content {
+            padding: 0;
+        }
+
         .post__header {
             .col__name {
                 .user-popover {
                     max-width: 130px;
                 }
             }
+        }
+    }
+
+    .post-create__container {
+        form {
+            padding: .5em 15px 0;
         }
     }
 

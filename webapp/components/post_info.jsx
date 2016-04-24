@@ -212,7 +212,7 @@ export default class PostInfo extends React.Component {
         var dropdown = this.createDropdown();
 
         return (
-            <ul className='post__header post__header--info'>
+            <ul className='post__header--info'>
                 <li className='col'>
                     <TimeSince
                         eventTime={post.create_at}
