@@ -67,8 +67,14 @@ export default class ErrorBar extends React.Component {
             return <div/>;
         }
 
+        var errClass = 'error-bar';
+
+        if (this.state.type && this.state.type === 'developer') {
+            errClass = 'error-bar-developer';
+        }
+
         return (
-            <div className='error-bar'>
+            <div className={errClass}>
                 <span>{this.state.message}</span>
                 <a
                     href='#'

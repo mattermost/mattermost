@@ -29,3 +29,33 @@
         }
     }
 }
+
+.error-bar-developer {
+    background-color: #B0171F;
+    color: white;
+    padding: 5px 30px;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    z-index: 9999;
+
+    a {
+        &.error-bar__close {
+            color: $white;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            padding: 0 10px;
+            position: absolute;
+            right: 0;
+            text-decoration: none;
+            top: 0;
+
+            &:hover {
+                color: $white;
+                text-decoration: none;
+            }
+        }
+    }
+}
