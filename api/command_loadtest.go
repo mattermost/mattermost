@@ -201,7 +201,7 @@ func (me *LoadTestProvider) SetupCommand(c *Context, channelId string, message s
 			doFuzz)
 	}
 
-	return &model.CommandResponse{Text: "Creating enviroment...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{Text: "Created enviroment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) UsersCommand(c *Context, channelId string, message string) *model.CommandResponse {
@@ -231,7 +231,7 @@ func (me *LoadTestProvider) UsersCommand(c *Context, channelId string, message s
 	userCreator.Fuzzy = doFuzz
 	userCreator.CreateTestUsers(usersr)
 
-	return &model.CommandResponse{Text: "Adding users...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{Text: "Added users", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) ChannelsCommand(c *Context, channelId string, message string) *model.CommandResponse {
@@ -262,7 +262,7 @@ func (me *LoadTestProvider) ChannelsCommand(c *Context, channelId string, messag
 	channelCreator.Fuzzy = doFuzz
 	channelCreator.CreateTestChannels(channelsr)
 
-	return &model.CommandResponse{Text: "Adding channels...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{Text: "Added channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message string) *model.CommandResponse {
@@ -312,7 +312,7 @@ func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message s
 		testPoster.CreateRandomPost()
 	}
 
-	return &model.CommandResponse{Text: "Adding posts...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{Text: "Added posts", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) UrlCommand(c *Context, channelId string, message string) *model.CommandResponse {
@@ -361,7 +361,7 @@ func (me *LoadTestProvider) UrlCommand(c *Context, channelId string, message str
 		}
 	}
 
-	return &model.CommandResponse{Text: "Loading data...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) JsonCommand(c *Context, channelId string, message string) *model.CommandResponse {
@@ -397,7 +397,7 @@ func (me *LoadTestProvider) JsonCommand(c *Context, channelId string, message st
 	if _, err := CreatePost(c, post, false); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
-	return &model.CommandResponse{Text: "Loading data...", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func parseRange(command string, cmd string) (utils.Range, bool) {
