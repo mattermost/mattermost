@@ -7,7 +7,7 @@ end_of_line = lf
 insert_final_newline = false
 charset = utf-8
 
-[*.{go,scss}]
+[*.go]
 indent_style = tab
 
 [*.{js,jsx,json,html}]
@@ -25,3 +25,7 @@ indent_size = 2
 
 [Makefile]
 indent_style = tab
+
+[*.scss]
+indent_style = space
+indent_size = 4
