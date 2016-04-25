@@ -64,7 +64,7 @@ export default class NeedsTeam extends React.Component {
         // Go to tutorial if we are first arrivign
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         if (tutorialStep <= TutorialSteps.INTRO_SCREENS) {
-            browserHistory.push(Utils.getTeamURLFromAddressBar() + '/tutorial');
+            browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/tutorial');
         }
 
         // Set up tracking for whether the window is active
@@ -82,7 +82,7 @@ export default class NeedsTeam extends React.Component {
 
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChanged);
-        TeamStore.addChangeListener(this.onChanged);
+        TeamStore.removeChangeListener(this.onChanged);
         $(window).off('focus');
         $(window).off('blur');
     }
