@@ -15,11 +15,20 @@
         font-size: 1em;
     }
 
+    .sidebar--left .team__header .user__picture,
+    .sidebar--menu .team__header .user__picture {
+        display: none;
+    }
+
     .date-separator.hovered--before:after,
     .date-separator.hovered--after:before,
     .new-separator.hovered--after:before,
     .new-separator.hovered--before:after {
         background: none !important;
+    }
+
+    .channel-intro {
+        margin: 0 15px 35px;
     }
 
     .post {
@@ -35,6 +44,27 @@
                 content: '...';
                 font-size: 20px;
                 top: -3px;
+            }
+        }
+
+        .post__content {
+            padding: 0 10px 0 0;
+        }
+
+        .post__header {
+            margin-bottom: 0;
+
+            .col__reply {
+                top: 0;
+                width: 65px;
+            }
+
+            .col__name {
+                pointer-events: none;
+
+                .user-popover {
+                    max-width: 130px;
+                }
             }
         }
 
@@ -63,7 +93,7 @@
         }
 
         .post__body {
-            width: calc(100% - 75px);
+            width: 100%;
         }
 
         .post__reply {
@@ -75,22 +105,18 @@
             }
         }
 
-        &.other--root .post__reply {
-            &.post__reply--hide {
-                visibility: hidden;
-            }
-        }
-
-        .post__header {
-            .col__reply {
-                width: 65px;
+        &.other--root {
+            &.post--comment {
+                .post__header {
+                    .col__reply {
+                        top: 0;
+                    }
+                }
             }
 
-            .col__name {
-                pointer-events: none;
-
-                .user-popover {
-                    max-width: 130px;
+            .post__reply {
+                &.post__reply--hide {
+                    visibility: hidden;
                 }
             }
         }
@@ -99,6 +125,15 @@
             &.same--user {
                 .post__time {
                     display: none;
+                }
+
+                .post__header {
+                    height: auto;
+                    margin-top: 5px;
+
+                    .col__name {
+                        display: inline-block;
+                    }
                 }
             }
         }
@@ -713,10 +748,6 @@
         right: 0;
         width: 100%;
         z-index: 5;
-
-        &.move--left {
-            @include translate3d(0, 0, 0);
-        }
 
         .sidebar__collapse,
         .sidebar__search-icon {
