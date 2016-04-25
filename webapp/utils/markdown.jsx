@@ -142,7 +142,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         if (outHref.startsWith(global.location.origin)) {
             output += 'data-link="' + outHref.substring(global.location.origin.length) + '"';
         } else {
-            output += 'href="' + outHref + '"';
+            output += 'href="' + outHref + '" target="_blank"';
         }
 
         if (title) {
