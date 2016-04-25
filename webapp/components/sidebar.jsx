@@ -168,6 +168,10 @@ export default class Sidebar extends React.Component {
         if (!Utils.isMobile()) {
             $('.sidebar--left .nav-pills__container').perfectScrollbar();
         }
+
+        // close the LHS on mobile when you change channels
+        $('.app__body .inner-wrap').removeClass('move--right');
+        $('.app__body .sidebar--left').removeClass('move--right');
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
