@@ -1,12 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
+
 import PostsView from './posts_view.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
@@ -25,7 +26,6 @@ export default class PostsViewContainer extends React.Component {
         this.onChannelChange = this.onChannelChange.bind(this);
         this.onChannelLeave = this.onChannelLeave.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
-        this.onUserChange = this.onUserChange.bind(this);
         this.handlePostsViewScroll = this.handlePostsViewScroll.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.handlePostsViewJumpRequest = this.handlePostsViewJumpRequest.bind(this);
@@ -33,8 +33,7 @@ export default class PostsViewContainer extends React.Component {
         const currentChannelId = ChannelStore.getCurrentId();
         const state = {
             scrollType: PostsView.SCROLL_TYPE_BOTTOM,
-            scrollPost: null,
-            currentUser: UserStore.getCurrentUser()
+            scrollPost: null
         };
         if (currentChannelId) {
             Object.assign(state, {
@@ -60,17 +59,14 @@ export default class PostsViewContainer extends React.Component {
         ChannelStore.addLeaveListener(this.onChannelLeave);
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.handlePostsViewJumpRequest);
-        UserStore.addChangeListener(this.onUserChange);
+        $('body').addClass('app__body');
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChannelChange);
         ChannelStore.removeLeaveListener(this.onChannelLeave);
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.handlePostsViewJumpRequest);
-        UserStore.removeChangeListener(this.onUserChange);
-    }
-    onUserChange() {
-        this.setState({currentUser: UserStore.getCurrentUser()});
+        $('body').removeClass('app__body');
     }
     handlePostsViewJumpRequest(type, post) {
         switch (type) {
@@ -171,7 +167,7 @@ export default class PostsViewContainer extends React.Component {
         const currentChannelId = channels[this.state.currentChannelIndex];
         const channel = ChannelStore.get(currentChannelId);
 
-        if (!this.state.currentUser || !channel) {
+        if (!channel) {
             return null;
         }
 
@@ -194,8 +190,6 @@ export default class PostsViewContainer extends React.Component {
                     showMoreMessagesBottom={false}
                     introText={channel ? createChannelIntroMessage(channel) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
-                    profiles={this.props.profiles}
-                    currentUser={this.state.currentUser}
                 />
             );
             if (!postLists[i] && isActive) {
@@ -215,7 +209,3 @@ export default class PostsViewContainer extends React.Component {
         );
     }
 }
-
-PostsViewContainer.propTypes = {
-    profiles: React.PropTypes.object
-};

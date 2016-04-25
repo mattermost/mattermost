@@ -20,6 +20,7 @@ import {Link} from 'react-router';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
 
 import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 export default class SidebarRightMenu extends React.Component {
     constructor(props) {
@@ -29,6 +30,8 @@ export default class SidebarRightMenu extends React.Component {
 
         const state = this.getStateFromStores();
         state.showUserSettingsModal = false;
+
+        this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
 
         this.state = state;
     }

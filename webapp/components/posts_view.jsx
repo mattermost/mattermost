@@ -2,19 +2,25 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import PreferenceStore from 'stores/preference_store.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
-import * as Utils from 'utils/utils.jsx';
+
 import Post from './post.jsx';
-import Constants from 'utils/constants.jsx';
+import FloatingTimestamp from './floating_timestamp.jsx';
+
+import * as GlobalActions from 'action_creators/global_actions.jsx';
+
+import PreferenceStore from 'stores/preference_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+
+import * as Utils from 'utils/utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
+
+import Constants from 'utils/constants.jsx';
+const Preferences = Constants.Preferences;
 
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
-const Preferences = Constants.Preferences;
-
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 export default class PostsView extends React.Component {
     constructor(props) {
@@ -31,6 +37,7 @@ export default class PostsView extends React.Component {
         this.handleResize = this.handleResize.bind(this);
         this.scrollToBottom = this.scrollToBottom.bind(this);
         this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
@@ -43,7 +50,9 @@ export default class PostsView extends React.Component {
             centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isScrolling: false,
             topPostId: null,
-            showUnreadMessageAlert: false
+            showUnreadMessageAlert: false,
+            currentUser: UserStore.getCurrentUser(),
+            profiles: UserStore.getProfiles()
         };
     }
     static get SCROLL_TYPE_FREE() {
@@ -66,6 +75,9 @@ export default class PostsView extends React.Component {
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED
         });
+    }
+    onUserChange() {
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: UserStore.getProfiles()});
     }
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom
@@ -152,8 +164,8 @@ export default class PostsView extends React.Component {
     createPosts(posts, order) {
         const postCtls = [];
         let previousPostDay = new Date(0);
-        const userId = this.props.currentUser.id;
-        const profiles = this.props.profiles || {};
+        const userId = this.state.currentUser.id;
+        const profiles = this.state.profiles || {};
 
         let renderedLastViewed = false;
 
@@ -229,8 +241,8 @@ export default class PostsView extends React.Component {
             const shouldHighlight = this.props.postsToHighlight && this.props.postsToHighlight.hasOwnProperty(post.id);
 
             let profile;
-            if (this.props.currentUser.id === post.user_id) {
-                profile = this.props.currentUser;
+            if (userId === post.user_id) {
+                profile = this.state.currentUser;
             } else {
                 profile = profiles[post.user_id];
             }
@@ -250,7 +262,7 @@ export default class PostsView extends React.Component {
                     onClick={() => GlobalActions.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
                     displayNameType={this.state.displayNameType}
                     user={profile}
-                    currentUser={this.props.currentUser}
+                    currentUser={this.state.currentUser}
                     center={this.state.centerPosts}
                 />
             );
@@ -377,13 +389,19 @@ export default class PostsView extends React.Component {
         if (this.props.postList != null) {
             this.updateScrolling();
         }
+
+        if (this.props.isActive) {
+            PreferenceStore.addChangeListener(this.updateState);
+            UserStore.addChangeListener(this.onUserChange);
+        }
+
         window.addEventListener('resize', this.handleResize);
-        PreferenceStore.addChangeListener(this.updateState);
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
         this.scrollStopAction.cancel();
         PreferenceStore.removeChangeListener(this.updateState);
+        UserStore.removeChangeListener(this.onUserChange);
     }
     componentDidUpdate() {
         if (this.props.postList != null) {
@@ -401,8 +419,10 @@ export default class PostsView extends React.Component {
         if (!this.props.isActive && nextProps.isActive) {
             this.updateState();
             PreferenceStore.addChangeListener(this.updateState);
+            UserStore.addChangeListener(this.onUserChange);
         } else if (this.props.isActive && !nextProps.isActive) {
             PreferenceStore.removeChangeListener(this.updateState);
+            UserStore.removeChangeListener(this.onUserChange);
         }
     }
     shouldComponentUpdate(nextProps, nextState) {
@@ -436,7 +456,7 @@ export default class PostsView extends React.Component {
         if (this.state.centerPosts !== nextState.centerPosts) {
             return true;
         }
-        if (!Utils.areObjectsEqual(this.props.profiles, nextProps.profiles)) {
+        if (!Utils.areObjectsEqual(this.state.profiles, nextState.profiles)) {
             return true;
         }
 
@@ -497,16 +517,17 @@ export default class PostsView extends React.Component {
             }
         }
 
-        let topPost = null;
+        let topPostCreateAt = 0;
         if (this.state.topPostId) {
-            topPost = this.props.postList.posts[this.state.topPostId];
+            topPostCreateAt = this.props.postList.posts[this.state.topPostId].create_at;
         }
 
         return (
             <div className={activeClass}>
                 <FloatingTimestamp
                     isScrolling={this.state.isScrolling}
-                    post={topPost}
+                    isMobile={$(window).width() > 768}
+                    createAt={topPostCreateAt}
                 />
                 <ScrollToBottomArrows
                     isScrolling={this.state.isScrolling}
@@ -551,7 +572,6 @@ PostsView.defaultProps = {
 PostsView.propTypes = {
     isActive: React.PropTypes.bool,
     postList: React.PropTypes.object,
-    profiles: React.PropTypes.object.isRequired,
     scrollPostId: React.PropTypes.string,
     scrollType: React.PropTypes.number,
     postViewScrolled: React.PropTypes.func.isRequired,
@@ -561,47 +581,7 @@ PostsView.propTypes = {
     showMoreMessagesBottom: React.PropTypes.bool,
     introText: React.PropTypes.element,
     messageSeparatorTime: React.PropTypes.number,
-    postsToHighlight: React.PropTypes.object,
-    currentUser: React.PropTypes.object.isRequired
-};
-
-function FloatingTimestamp({isScrolling, post}) {
-    // only show on mobile
-    if ($(window).width() > 768) {
-        return <noscript/>;
-    }
-
-    if (!post) {
-        return <noscript/>;
-    }
-
-    const dateString = (
-        <FormattedDate
-            value={post.create_at}
-            weekday='short'
-            day='2-digit'
-            month='short'
-            year='numeric'
-        />
-    );
-
-    let className = 'post-list__timestamp';
-    if (isScrolling) {
-        className += ' scrolling';
-    }
-
-    return (
-        <div className={className}>
-            <div>
-                <span>{dateString}</span>
-            </div>
-        </div>
-    );
-}
-
-FloatingTimestamp.propTypes = {
-    isScrolling: React.PropTypes.bool.isRequired,
-    post: React.PropTypes.object
+    postsToHighlight: React.PropTypes.object
 };
 
 function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {

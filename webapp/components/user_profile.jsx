@@ -22,6 +22,25 @@ export default class UserProfile extends React.Component {
         super(props);
         this.uniqueId = nextId();
     }
+    shouldComponentUpdate(nextProps) {
+        if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
+            return true;
+        }
+
+        if (nextProps.overwriteName !== this.props.overwriteName) {
+            return true;
+        }
+
+        if (nextProps.overwriteImage !== this.props.overwriteImage) {
+            return true;
+        }
+
+        if (nextProps.disablePopover !== this.props.disablePopover) {
+            return true;
+        }
+
+        return false;
+    }
     render() {
         let name = '...';
         let email = '';
