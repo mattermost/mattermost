@@ -1058,6 +1058,11 @@ COMMANDS:
         Example:
             platform -upload_license -license="/path/to/license/example.mattermost-license"
 
+    -upgrade_db_30                   Upgrades the database from a version 2.x schema to version 3
+
+        Example:
+            platform -upgrade_db_30
+
     -version                          Display the current of the Mattermost platform 
 
     -help                             Displays this help page`
