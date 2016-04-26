@@ -1026,8 +1026,8 @@ COMMANDS:
             platform -reset_mfa -username="someuser"
 
     -reset_database                   Completely erases the database causing the loss of all data. This 
-									  will reset Mattermost to it's initial state. (note this will not 
-									  erase your configuration.)
+                                      will reset Mattermost to it's initial state. (note this will not 
+                                      erase your configuration.)
 
         Example:
             platform -reset_database
