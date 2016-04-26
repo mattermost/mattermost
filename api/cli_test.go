@@ -10,8 +10,14 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
+var disableCliTests bool = false
+
 func TestCliVersion(t *testing.T) {
-	cmd := exec.Command("bash", "-c", `godep go run ../mattermost.go -version`)
+	if disableCliTests {
+		return
+	}
+
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -version`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -20,13 +26,17 @@ func TestCliVersion(t *testing.T) {
 }
 
 func TestCliCreateTeam(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
 	th := Setup().InitSystemAdmin()
 
 	id := model.NewId()
 	email := "success+" + id + "@simulator.amazonses.com"
 	name := "name" + id
 
-	cmd := exec.Command("bash", "-c", `godep go run ../mattermost.go -create_team -team_name="`+name+`" -email="`+email+`"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_team -team_name="`+name+`" -email="`+email+`"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -41,13 +51,17 @@ func TestCliCreateTeam(t *testing.T) {
 }
 
 func TestCliCreateUserWithTeam(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
 	th := Setup().InitSystemAdmin()
 
 	id := model.NewId()
 	email := "success+" + id + "@simulator.amazonses.com"
 	username := "name" + id
 
-	cmd := exec.Command("bash", "-c", `godep go run ../mattermost.go -create_user -team_name="`+th.SystemAdminTeam.Name+`" -email="`+email+`" -password="mypassword" -username="`+username+`"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -team_name="`+th.SystemAdminTeam.Name+`" -email="`+email+`" -password="mypassword" -username="`+username+`"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -71,12 +85,16 @@ func TestCliCreateUserWithTeam(t *testing.T) {
 }
 
 func TestCliCreateUserWithoutTeam(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
 	Setup()
 	id := model.NewId()
 	email := "success+" + id + "@simulator.amazonses.com"
 	username := "name" + id
 
-	cmd := exec.Command("bash", "-c", `godep go run ../mattermost.go -create_user -email="`+email+`" -password="mypassword" -username="`+username+`"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -create_user -email="`+email+`" -password="mypassword" -username="`+username+`"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -94,9 +112,13 @@ func TestCliCreateUserWithoutTeam(t *testing.T) {
 }
 
 func TestCliAssignRole(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
 	th := Setup().InitBasic()
 
-	cmd := exec.Command("bash", "-c", `godep go run ../mattermost.go -assign_role -email="`+th.BasicUser.Email+`" -role="system_admin"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -assign_role -email="`+th.BasicUser.Email+`" -role="system_admin"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -114,9 +136,13 @@ func TestCliAssignRole(t *testing.T) {
 }
 
 func TestCliJoinTeam(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
 	th := Setup().InitSystemAdmin().InitBasic()
 
-	cmd := exec.Command("bash", "-c", `godep go run ../mattermost.go -join_team -team_name="`+th.SystemAdminTeam.Name+`" -email="`+th.BasicUser.Email+`"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -join_team -team_name="`+th.SystemAdminTeam.Name+`" -email="`+th.BasicUser.Email+`"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
@@ -140,9 +166,13 @@ func TestCliJoinTeam(t *testing.T) {
 }
 
 func TestCliResetPassword(t *testing.T) {
+	if disableCliTests {
+		return
+	}
+
 	th := Setup().InitBasic()
 
-	cmd := exec.Command("bash", "-c", `godep go run ../mattermost.go -reset_password -email="`+th.BasicUser.Email+`" -password="password2"`)
+	cmd := exec.Command("bash", "-c", `go run ../mattermost.go -reset_password -email="`+th.BasicUser.Email+`" -password="password2"`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Log(string(output))
