@@ -490,7 +490,7 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 		)
 
 		if err != nil {
-			l4g.Error("Failed move profile img for %v", user.Email, err)
+			l4g.Error("Failed moving profile img for %v detail=%v", user.Email, err)
 		}
 
 		if uniqueEmails[user.Email] {
@@ -502,12 +502,18 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 				user.Email = user.Email + "." + team.Name
 			}
 
-			user.Email = user.Email[:128]
+			if len(user.Email) > 127 {
+				user.Email = user.Email[:127]
+			}
 		}
 
 		if uniqueUsernames[user.Username] {
 			shouldUpdateUser = true
-			user.Username = (team.Name + "." + user.Username)[:63]
+			user.Username = team.Name + "." + user.Username
+
+			if len(user.Username) > 63 {
+				user.Username = user.Username[:63]
+			}
 		}
 
 		if shouldUpdateUser {
@@ -557,34 +563,34 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 				utils.SendMail(
 					previousEmail,
 					"[MATTERMOST] Changes to your account for Mattermost 3.0 Upgrade",
-					`
-YOUR DUPLICATE ACCOUNTS HAVE BEEN UPDATED
-
-Your Mattermost server is being upgraded to Version 3.0, which lets you use a single account across multiple teams.
-
-You are receiving this email because the upgrade process has detected your account had the same email or username as other accounts on the server.
-
-The following updates have been made: 
-
-`+emailNotice+`
- 
-`+usernameNotice+`
-
-As a result of these updates, your account on the team site '/`+primaryTeamName+`' now has a unique email address and username and is considered your "primary" account. 
- 
-RECOMMENDED ACTION: 
-
-It is recommended that you login to your teams used by your duplicate accounts and add your primary account to the team and any public channels and private groups which you wish to continue using. 
-
-This gives your primary account access to all public channel and private group history. You can continue to access the direct message history of your duplicate accounts by logging in with their credentials. 
-
-OPTIONAL: IMPORT THEME FROM DUPLICATE ACCOUNT
-
-To import your theme from a duplicate account, follow these instructions: http://www.mattermost.org/upgrading-to-mattermost-3-0/#theme
-
-FOR MORE INFORMATION: 
-
-For more information on the upgrade to Mattermost 3.0 please see: http://www.mattermost.org/upgrading-to-mattermost-3-0/`,
+					`\n
+YOUR DUPLICATE ACCOUNTS HAVE BEEN UPDATED\n
+\n
+Your Mattermost server is being upgraded to Version 3.0, which lets you use a single account across multiple teams.\n
+\n
+You are receiving this email because the upgrade process has detected your account had the same email or username as other accounts on the server.\n
+\n
+The following updates have been made: \n
+\n
+`+emailNotice+`\n
+ \n
+`+usernameNotice+`\n
+\n
+As a result of these updates, your account on the team site '/`+primaryTeamName+`' now has a unique email address and username and is considered your "primary" account. \n
+ \n
+RECOMMENDED ACTION: \n
+\n
+It is recommended that you login to your teams used by your duplicate accounts and add your primary account to the team and any public channels and private groups which you wish to continue using. \n
+\n
+This gives your primary account access to all public channel and private group history. You can continue to access the direct message history of your duplicate accounts by logging in with their credentials. \n
+\n
+OPTIONAL: IMPORT THEME FROM DUPLICATE ACCOUNT\n
+\n
+To import your theme from a duplicate account, follow these instructions: http://www.mattermost.org/upgrading-to-mattermost-3-0/#theme\n
+\n
+FOR MORE INFORMATION: \n
+\n
+For more information on the upgrade to Mattermost 3.0 please see: http://www.mattermost.org/upgrading-to-mattermost-3-0/\n\n`,
 				)
 			}
 		}
