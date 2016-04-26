@@ -55,17 +55,19 @@ export default class NeedsTeam extends React.Component {
     }
 
     componentWillMount() {
-        UserStore.addChangeListener(this.onChanged);
-        TeamStore.addChangeListener(this.onChanged);
-
-        // Emit view action
-        GlobalActions.viewLoggedIn();
-
         // Go to tutorial if we are first arrivign
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         if (tutorialStep <= TutorialSteps.INTRO_SCREENS) {
             browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/tutorial');
         }
+    }
+
+    componentDidMount() {
+        UserStore.addChangeListener(this.onChanged);
+        TeamStore.addChangeListener(this.onChanged);
+
+        // Emit view action
+        GlobalActions.viewLoggedIn();
 
         // Set up tracking for whether the window is active
         window.isActive = true;
@@ -75,6 +77,7 @@ export default class NeedsTeam extends React.Component {
             ChannelStore.emitChange();
             window.isActive = true;
         });
+
         $(window).on('blur', () => {
             window.isActive = false;
         });
