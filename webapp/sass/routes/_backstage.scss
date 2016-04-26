@@ -114,6 +114,11 @@ body {
     border-top-width: 0;
 }
 
+.backstage-header__divider {
+    margin: 0 10px;
+    color: $gray;
+}
+
 .backstage-header {
     @include clearfix;
     margin-bottom: 20px;
@@ -180,6 +185,7 @@ body {
     background-color: $white;
     border: 1px solid $light-gray;
     padding: 5px 15px;
+    min-height: 50px;
 }
 
 .backstage-list__item {
@@ -296,11 +302,15 @@ body {
     border: 1px solid $light-gray;
     display: inline-block;
     height: 210px;
-    margin: 0 30px 20px 0;
+    margin: 0 0 20px 30px;
     padding: 20px;
     text-align: center;
     vertical-align: top;
     width: 250px;
+
+    &:first-child {
+        margin-left: 0;
+    }
 
     &:hover {
         color: default;

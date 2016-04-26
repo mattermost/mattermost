@@ -797,10 +797,11 @@
 
         &.move--left-small {
             @include translate3d(-290px, 0, 0);
+
             &:before {
-                z-index: 9999;
-                transition: background-color 0.5s ease;
                 background-color: rgba(0, 0, 0, 0.4);
+                transition: background-color 0.5s ease;
+                z-index: 9999;
             }
         }
 
@@ -808,6 +809,12 @@
             margin: 0;
             @include translate3d(-100%, 0, 0);
         }
+    }
+
+    .integration-option {
+        height: auto;
+        margin-left: 0;
+        width: 100%;
     }
 
     .app__content {
@@ -915,10 +922,6 @@
         .add-integrations-link {
             float: none;
         }
-    }
-
-    .add-integration {
-        width: 100%;
     }
 
     .backstage-list__item {
