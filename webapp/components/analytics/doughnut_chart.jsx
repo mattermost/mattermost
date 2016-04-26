@@ -1,11 +1,13 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
-import Chart from 'chart.js';
+
+import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
+import ReactDOM from 'react-dom';
+import Chart from 'chart.js';
 
 export default class DoughnutChart extends React.Component {
     constructor(props) {
@@ -16,13 +18,15 @@ export default class DoughnutChart extends React.Component {
     }
 
     componentDidMount() {
-        this.initChart(this.props);
+        this.initChart();
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.chart) {
-            this.chart.destroy();
-            this.initChart(nextProps);
+    componentDidUpdate(prevProps) {
+        if (!Utils.areObjectsEqual(prevProps.data, this.props.data) || !Utils.areObjectsEqual(prevProps.options, this.props.options)) {
+            if (this.chart) {
+                this.chart.destroy();
+            }
+            this.initChart();
         }
     }
 
@@ -32,10 +36,13 @@ export default class DoughnutChart extends React.Component {
         }
     }
 
-    initChart(props) {
+    initChart() {
+        if (!this.refs.canvas) {
+            return;
+        }
         var el = ReactDOM.findDOMNode(this.refs.canvas);
         var ctx = el.getContext('2d');
-        this.chart = new Chart(ctx).Doughnut(props.data, props.options || {}); //eslint-disable-line new-cap
+        this.chart = new Chart(ctx).Doughnut(this.props.data, this.props.options || {}); //eslint-disable-line new-cap
     }
 
     render() {
