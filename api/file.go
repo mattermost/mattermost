@@ -579,7 +579,7 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		}
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 
-		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+newPath), FileMode.ModeDir); err != nil {
+		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+newPath), 0774); err != nil {
 			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
 		}
 

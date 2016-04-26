@@ -490,7 +490,7 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 		)
 
 		if err != nil {
-			l4g.Error("Failed moving profile img for %v detail=%v", user.Email, err)
+			l4g.Warn("No profile image to move for %v", user.Email)
 		}
 
 		if uniqueEmails[user.Email] {
