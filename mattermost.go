@@ -41,6 +41,7 @@ var flagCmdUpdateDb30 bool
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdAssignRole bool
+var flagCmdJoinTeam bool
 var flagCmdVersion bool
 var flagCmdResetPassword bool
 var flagCmdResetMfa bool
@@ -244,6 +245,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
 	flag.BoolVar(&flagCmdCreateUser, "create_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
+	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
 	flag.BoolVar(&flagCmdResetMfa, "reset_mfa", false, "")
@@ -258,6 +260,7 @@ func parseCmds() {
 	flagRunCmds = (flagCmdCreateTeam ||
 		flagCmdCreateUser ||
 		flagCmdAssignRole ||
+		flagCmdJoinTeam ||
 		flagCmdResetPassword ||
 		flagCmdResetMfa ||
 		flagCmdVersion ||
@@ -273,6 +276,7 @@ func runCmds() {
 	cmdCreateTeam()
 	cmdCreateUser()
 	cmdAssignRole()
+	cmdJoinTeam()
 	cmdResetPassword()
 	cmdResetMfa()
 	cmdPermDeleteUser()
@@ -562,12 +566,6 @@ func cmdCreateTeam() {
 
 func cmdCreateUser() {
 	if flagCmdCreateUser {
-		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
-			os.Exit(1)
-		}
-
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
 			flag.Usage()
@@ -584,14 +582,21 @@ func cmdCreateUser() {
 		user := &model.User{}
 		user.Email = flagEmail
 		user.Password = flagPassword
-		splits := strings.Split(strings.Replace(flagEmail, "@", " ", -1), " ")
-		user.Username = splits[0]
 
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
-			l4g.Error("%v", result.Err)
-			flushLogAndExit(1)
+		if len(flagUsername) == 0 {
+			splits := strings.Split(strings.Replace(flagEmail, "@", " ", -1), " ")
+			user.Username = splits[0]
 		} else {
-			team = result.Data.(*model.Team)
+			user.Username = flagUsername
+		}
+
+		if len(flagTeamName) > 0 {
+			if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+				l4g.Error("%v", result.Err)
+				flushLogAndExit(1)
+			} else {
+				team = result.Data.(*model.Team)
+			}
 		}
 
 		ruser, err := api.CreateUser(user)
@@ -602,10 +607,12 @@ func cmdCreateUser() {
 			}
 		}
 
-		err = api.JoinUserToTeam(team, ruser)
-		if err != nil {
-			l4g.Error("%v", err)
-			flushLogAndExit(1)
+		if team != nil {
+			err = api.JoinUserToTeam(team, ruser)
+			if err != nil {
+				l4g.Error("%v", err)
+				flushLogAndExit(1)
+			}
 		}
 
 		os.Exit(0)
@@ -626,12 +633,6 @@ func cmdVersion() {
 
 func cmdAssignRole() {
 	if flagCmdAssignRole {
-		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
-			flag.Usage()
-			os.Exit(1)
-		}
-
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
 			flag.Usage()
@@ -662,14 +663,48 @@ func cmdAssignRole() {
 	}
 }
 
-func cmdResetPassword() {
-	if flagCmdResetPassword {
+func cmdJoinTeam() {
+	if flagCmdJoinTeam {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
 			flag.Usage()
 			os.Exit(1)
 		}
 
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		err := api.JoinUserToTeam(team, user)
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		os.Exit(0)
+	}
+}
+
+func cmdResetPassword() {
+	if flagCmdResetPassword {
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
 			flag.Usage()
@@ -949,12 +984,10 @@ FLAGS:
 
     -team_name="name"                 The team name used in other commands
 
-    -role="admin"                     The role used in other commands
+    -role="syste_admin"               The role used in other commands
                                       valid values are
                                         "" - The empty role is basic user
                                            permissions
-                                        "admin" - Represents a team admin and
-                                           is used to help administer one team.
                                         "system_admin" - Represents a system
                                            admin who has access to all teams
                                            and configuration settings.
@@ -964,22 +997,28 @@ COMMANDS:
         Example:
             platform -create_team -team_name="name" -email="user@example.com"
 
-    -create_user                      Creates a user.  It requires the -team_name,
-                                      -email and -password flag to create a user.
+    -create_user                      Creates a user.  It requires the -email and -password flag
+                                       and -team_name and -username are optional to create a user.
         Example:
-            platform -create_user -team_name="name" -email="user@example.com" -password="mypassword"
+            platform -create_user -team_name="name" -email="user@example.com" -password="mypassword" -username="user"
 
-    -assign_role                      Assigns role to a user.  It requires the -role,
-                                      -email and -team_name flag.  You may need to log out
+    -join_team                        Joins a user to the team.  It required the -email and
+                                       -team_name.  You may need to logout of your current session
+                                       for the new team to be applied.
+        Example:
+            platform -join_team -email="user@example.com" -team_name="name"
+
+    -assign_role                      Assigns role to a user.  It requires the -role and
+                                      -email flag.  You may need to log out
                                       of your current sessions for the new role to be
                                       applied.
         Example:
-            platform -assign_role -team_name="name" -email="user@example.com" -role="admin"
+            platform -assign_role -email="user@example.com" -role="system_admin"
 
     -reset_password                   Resets the password for a user.  It requires the
-                                      -team_name, -email and -password flag.
+                                      -email and -password flag.
         Example:
-            platform -reset_password -team_name="name" -email="user@example.com" -password="newpassword"
+            platform -reset_password -email="user@example.com" -password="newpassword"
 
     -reset_mfa                        Turns off multi-factor authentication for a user.  It requires the
                                       -email or -username flag.
@@ -991,7 +1030,7 @@ COMMANDS:
 									  erase your configuration.)
 
         Example:
-            platform -reset_mfa -username="someuser"
+            platform -reset_database
 
     -permanent_delete_user            Permanently deletes a user and all related information
                                       including posts from the database.  It requires the 
