@@ -359,14 +359,14 @@ func cmdUpdateDb30() {
 
 		uniqueEmails := make(map[string]bool)
 		uniqueUsernames := make(map[string]bool)
-		primaryUsers := convertTeamTo30(team, uniqueEmails, uniqueUsernames)
+		primaryUsers := convertTeamTo30(team.Name, team, uniqueEmails, uniqueUsernames)
 
 		l4g.Info("Upgraded %v users", len(primaryUsers))
 
 		for _, otherTeam := range teams {
 			if otherTeam.Id != team.Id {
 				l4g.Info("Upgrading team %v", otherTeam.Name)
-				users := convertTeamTo30(otherTeam, uniqueEmails, uniqueUsernames)
+				users := convertTeamTo30(team.Name, otherTeam, uniqueEmails, uniqueUsernames)
 				l4g.Info("Upgraded %v users", len(users))
 
 			}
@@ -436,7 +436,7 @@ type UserForUpgrade struct {
 	TeamId   string
 }
 
-func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) []*UserForUpgrade {
+func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) []*UserForUpgrade {
 	store := api.Srv.Store.(*store.SqlStore)
 	var users []*UserForUpgrade
 	if _, err := store.GetMaster().Select(&users, "SELECT Users.Id, Users.Username, Users.Email, Users.Roles, Users.TeamId FROM Users WHERE Users.TeamId = :TeamId", map[string]interface{}{"TeamId": team.Id}); err != nil {
@@ -484,6 +484,15 @@ func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueU
 			}
 		}
 
+		err := api.MoveFile(
+			"teams/"+team.Id+"/users/"+user.Id+"/profile.png",
+			"users/"+user.Id+"/profile.png",
+		)
+
+		if err != nil {
+			l4g.Error("Failed move profile img for %v", user.Email, err)
+		}
+
 		if uniqueEmails[user.Email] {
 			shouldUpdateUser = true
 			emailParts := strings.Split(user.Email, "@")
@@ -492,11 +501,13 @@ func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueU
 			} else {
 				user.Email = user.Email + "." + team.Name
 			}
+
+			user.Email = user.Email[:128]
 		}
 
 		if uniqueUsernames[user.Username] {
 			shouldUpdateUser = true
-			user.Username = user.Username + "." + team.Name
+			user.Username = (team.Name + "." + user.Username)[:63]
 		}
 
 		if shouldUpdateUser {
@@ -521,6 +532,61 @@ func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueU
 			}
 
 			l4g.Info("modified user_id=%v, changed email from=%v to=%v, changed username from=%v to %v changed roles from=%v to=%v", user.Id, previousEmail, user.Email, previousUsername, user.Username, previousRole, user.Roles)
+
+			emailChanged := previousEmail != user.Email
+			usernameChanged := previousUsername != user.Username
+			//roleChanged := previousRole != user.Roles
+
+			emailNotice := ""
+			usernameNotice := ""
+			//roleNotice := ""
+
+			if emailChanged {
+				emailNotice = `- The duplicate email of an account on the '/` + team.Name + `' team was changed to '` + user.Email + `'. If you use email and password to login, you can use this new email address for login.`
+			}
+
+			if usernameChanged {
+				usernameNotice = `- The duplicate username of an account on the team site '/` + team.Name + `' has been changed to '` + user.Username + `' to avoid confusion with other accounts.`
+			}
+
+			// if roleChanged {
+			// 	roleNotice = `- The team admin role account on the team site '/` + team.Name + `' has been demoted to a member.`
+			// }
+
+			if emailChanged || usernameChanged {
+				utils.SendMail(
+					previousEmail,
+					"[MATTERMOST] Changes to your account for Mattermost 3.0 Upgrade",
+					`
+YOUR DUPLICATE ACCOUNTS HAVE BEEN UPDATED
+
+Your Mattermost server is being upgraded to Version 3.0, which lets you use a single account across multiple teams.
+
+You are receiving this email because the upgrade process has detected your account had the same email or username as other accounts on the server.
+
+The following updates have been made: 
+
+`+emailNotice+`
+ 
+`+usernameNotice+`
+
+As a result of these updates, your account on the team site '/`+primaryTeamName+`' now has a unique email address and username and is considered your "primary" account. 
+ 
+RECOMMENDED ACTION: 
+
+It is recommended that you login to your teams used by your duplicate accounts and add your primary account to the team and any public channels and private groups which you wish to continue using. 
+
+This gives your primary account access to all public channel and private group history. You can continue to access the direct message history of your duplicate accounts by logging in with their credentials. 
+
+OPTIONAL: IMPORT THEME FROM DUPLICATE ACCOUNT
+
+To import your theme from a duplicate account, follow these instructions: http://www.mattermost.org/upgrading-to-mattermost-3-0/#theme
+
+FOR MORE INFORMATION: 
+
+For more information on the upgrade to Mattermost 3.0 please see: http://www.mattermost.org/upgrading-to-mattermost-3-0/`,
+				)
+			}
 		}
 
 		uniqueEmails[user.Email] = true

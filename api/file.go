@@ -553,7 +553,7 @@ func WriteFile(f []byte, path string) *model.AppError {
 	return nil
 }
 
-func moveFile(oldPath, newPath string) *model.AppError {
+func MoveFile(oldPath, newPath string) *model.AppError {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		fileData := make(chan []byte)
 		getFileAndForget(oldPath, fileData)
