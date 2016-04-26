@@ -70,7 +70,7 @@ export default class PermalinkView extends React.Component {
                 <ChannelHeader
                     channelId={this.state.channelId}
                 />
-                <PostFocusView profiles={this.props.profiles}/>
+                <PostFocusView/>
                 <div
                     id='archive-link-home'
                 >
@@ -89,10 +89,6 @@ export default class PermalinkView extends React.Component {
     }
 }
 
-PermalinkView.defaultProps = {
-};
-
 PermalinkView.propTypes = {
-    params: React.PropTypes.object.isRequired,
-    profiles: React.PropTypes.object
+    params: React.PropTypes.object.isRequired
 };
