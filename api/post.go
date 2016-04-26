@@ -378,7 +378,13 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 			return
 		}
 
-		firstWord := strings.Split(post.Message, " ")[0]
+		splitWords := strings.Fields(post.Message)
+
+		if len(splitWords) == 0 {
+			return
+		}
+
+		firstWord := splitWords[0]
 
 		relevantHooks := []*model.OutgoingWebhook{}
 
