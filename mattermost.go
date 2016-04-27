@@ -6,6 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -541,56 +542,35 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 
 			emailChanged := previousEmail != user.Email
 			usernameChanged := previousUsername != user.Username
-			//roleChanged := previousRole != user.Roles
-
-			emailNotice := ""
-			usernameNotice := ""
-			//roleNotice := ""
-
-			if emailChanged {
-				emailNotice = `- The duplicate email of an account on the '/` + team.Name + `' team was changed to '` + user.Email + `'. If you use email and password to login, you can use this new email address for login.`
-			}
-
-			if usernameChanged {
-				usernameNotice = `- The duplicate username of an account on the team site '/` + team.Name + `' has been changed to '` + user.Username + `' to avoid confusion with other accounts.`
-			}
-
-			// if roleChanged {
-			// 	roleNotice = `- The team admin role account on the team site '/` + team.Name + `' has been demoted to a member.`
-			// }
 
 			if emailChanged || usernameChanged {
+				bodyPage := utils.NewHTMLTemplate("upgrade_30_body", "")
+
+				EmailChanged := ""
+				UsernameChanged := ""
+
+				if emailChanged {
+					EmailChanged = "true"
+				}
+
+				if usernameChanged {
+					UsernameChanged = "true"
+				}
+
+				bodyPage.Html["Info"] = template.HTML(utils.T("api.templates.upgrade_30_body.info",
+					map[string]interface{}{
+						"SiteName":        utils.ClientCfg["SiteName"],
+						"TeamName":        team.Name,
+						"Email":           user.Email,
+						"Username":        user.Username,
+						"EmailChanged":    EmailChanged,
+						"UsernameChanged": UsernameChanged,
+					}))
+
 				utils.SendMail(
 					previousEmail,
-					"[MATTERMOST] Changes to your account for Mattermost 3.0 Upgrade",
-					`\n
-YOUR DUPLICATE ACCOUNTS HAVE BEEN UPDATED\n
-\n
-Your Mattermost server is being upgraded to Version 3.0, which lets you use a single account across multiple teams.\n
-\n
-You are receiving this email because the upgrade process has detected your account had the same email or username as other accounts on the server.\n
-\n
-The following updates have been made: \n
-\n
-`+emailNotice+`\n
- \n
-`+usernameNotice+`\n
-\n
-As a result of these updates, your account on the team site '/`+primaryTeamName+`' now has a unique email address and username and is considered your "primary" account. \n
- \n
-RECOMMENDED ACTION: \n
-\n
-It is recommended that you login to your teams used by your duplicate accounts and add your primary account to the team and any public channels and private groups which you wish to continue using. \n
-\n
-This gives your primary account access to all public channel and private group history. You can continue to access the direct message history of your duplicate accounts by logging in with their credentials. \n
-\n
-OPTIONAL: IMPORT THEME FROM DUPLICATE ACCOUNT\n
-\n
-To import your theme from a duplicate account, follow these instructions: http://www.mattermost.org/upgrading-to-mattermost-3-0/#theme\n
-\n
-FOR MORE INFORMATION: \n
-\n
-For more information on the upgrade to Mattermost 3.0 please see: http://www.mattermost.org/upgrading-to-mattermost-3-0/\n\n`,
+					utils.T("api.templates.upgrade_30_subject.info"),
+					bodyPage.Render(),
 				)
 			}
 		}
