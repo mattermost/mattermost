@@ -66,7 +66,33 @@ describe('Client.User', function() {
             function() {
                 client.login(
                     user.email,
+                    user.password,
                     null,
+                    function(data) {
+                        assert.equal(data.id.length > 0, true);
+                        assert.equal(data.email, user.email);
+                        done();
+                    },
+                    function(err) {
+                        done(new Error(err.message));
+                    }
+                );
+            },
+            function(err) {
+                done(new Error(err.message));
+            }
+        );
+    });
+
+    it('loginById', function(done) {
+        var client = TestHelper.createClient();
+        var user = TestHelper.fakeUser();
+        client.createUser(
+            user,
+            function(newUser) {
+                assert.equal(user.email, newUser.email);
+                client.loginById(
+                    newUser.id,
                     user.password,
                     null,
                     function(data) {
@@ -86,13 +112,15 @@ describe('Client.User', function() {
     });
 
     it('loginByUsername', function(done) {
-        var client = TestHelper.createClient();
+        // this test can't be run without modifying the config file to enable EnableSignInWithUsername
+        done();
+
+        /*var client = TestHelper.createClient();
         var user = TestHelper.fakeUser();
         client.createUser(
             user,
             function() {
                 client.login(
-                    null,
                     user.username,
                     user.password,
                     null,
@@ -109,7 +137,7 @@ describe('Client.User', function() {
             function(err) {
                 done(new Error(err.message));
             }
-        );
+        );*/
     });
 
     it('loginByLdap', function(done) {
@@ -372,7 +400,6 @@ describe('Client.User', function() {
     it('checkMfa', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().checkMfa(
-                'email',
                 TestHelper.generateId(),
                 function(data) {
                     assert.equal(data.mfa_required, 'false');

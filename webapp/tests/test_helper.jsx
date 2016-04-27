@@ -128,7 +128,6 @@ class TestHelperClass {
                         outer.basicClient().setTeamId(outer.basict.id);
                         outer.basicClient().login(
                             rteamSignup.user.email,
-                            null,
                             password,
                             null,
                             function() {

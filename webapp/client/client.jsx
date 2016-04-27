@@ -746,7 +746,19 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getMe', success, error));
     }
 
-    login = (email, username, password, mfaToken, success, error) => {
+    login = (loginId, password, mfaToken, success, error) => {
+        this.doLogin({login_id: loginId, password, token: mfaToken}, success, error);
+
+        this.track('api', 'api_users_login', '', 'login_id', loginId);
+    }
+
+    loginById = (id, password, mfaToken, success, error) => {
+        this.doLogin({id, password, token: mfaToken}, success, error);
+
+        this.track('api', 'api_users_login', '', 'id', id);
+    }
+
+    doLogin = (outgoingData, success, error) => {
         var outer = this;  // eslint-disable-line consistent-this
 
         request.
@@ -754,7 +766,7 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({email, password, username, token: mfaToken}).
+            send(outgoingData).
             end(this.handleResponse.bind(
                 this,
                 'login',
@@ -773,8 +785,6 @@ export default class Client {
                 },
                 error
             ));
-
-        this.track('api', 'api_users_login', '', 'email', email);
     }
 
     loginByLdap = (ldapId, password, mfaToken, success, error) => {
@@ -819,10 +829,10 @@ export default class Client {
         this.track('api', 'api_users_logout');
     }
 
-    checkMfa = (method, loginId, success, error) => {
-        var data = {};
-        data.method = method;
-        data.login_id = loginId;
+    checkMfa = (loginId, success, error) => {
+        const data = {
+            login_id: loginId
+        };
 
         request.
             post(`${this.getUsersRoute()}/mfa`).

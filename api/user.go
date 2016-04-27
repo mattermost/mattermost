@@ -431,114 +431,145 @@ func SendVerifyEmailAndForget(c *Context, userId, userEmail, siteURL string) {
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	if len(props["password"]) == 0 {
+	loginId := props["login_id"]
+	password := props["password"]
+	mfaToken := props["token"]
+	deviceId := props["device_id"]
+
+	if len(password) == 0 {
 		c.Err = model.NewLocAppError("login", "api.user.login.blank_pwd.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
-	var user *model.User
+	var result store.StoreResult
 	if len(props["id"]) != 0 {
-		user = LoginById(c, w, r, props["id"], props["password"], props["token"], props["device_id"])
-	} else if len(props["email"]) != 0 {
-		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["token"], props["device_id"])
-	} else if len(props["username"]) != 0 {
-		user = LoginByUsername(c, w, r, props["username"], props["name"], props["password"], props["token"], props["device_id"])
-	} else {
-		c.Err = model.NewLocAppError("login", "api.user.login.not_provided.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		loginById(c, w, r, props)
 		return
+	} else {
+		result = <-Srv.Store.User().GetForLogin(
+			loginId,
+			*utils.Cfg.EmailSettings.EnableSignInWithUsername,
+			*utils.Cfg.EmailSettings.EnableSignInWithEmail,
+			*utils.Cfg.LdapSettings.Enable,
+		)
+	}
+
+	var user *model.User
+	if result.Err != nil {
+		if *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil {
+			// we don't have a local user, so see if there's an LDAP one
+			user = doLdapAuthentication(c, loginId, password, mfaToken)
+		} else {
+			c.Err = result.Err
+			c.Err.StatusCode = http.StatusBadRequest
+		}
+	} else if result.Data != nil {
+		user = result.Data.(*model.User)
+
+		if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
+			if *utils.Cfg.LdapSettings.Enable {
+				// slightly redundant to get the user again, but we need to authenticate it on the LDAP server
+				user = doLdapAuthentication(c, loginId, password, mfaToken)
+			} else {
+				c.Err = model.NewLocAppError("login", "api.user.login_ldap.not_available.app_error", nil, "")
+				c.Err.StatusCode = http.StatusNotImplemented
+			}
+		} else {
+			doPasswordAuthentication(c, user, password, mfaToken)
+		}
 	}
 
 	if c.Err != nil {
 		return
 	}
 
-	if user != nil {
-		user.Sanitize(map[string]bool{})
-	} else {
-		user = &model.User{}
-	}
+	Login(c, w, r, user, deviceId)
+
+	user.Sanitize(map[string]bool{})
+
 	w.Write([]byte(user.ToJson()))
 }
 
-func doUserPasswordAuthenticationAndLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, password string, mfaToken string, deviceId string) bool {
+func loginById(c *Context, w http.ResponseWriter, r *http.Request, props map[string]string) {
+	id := props["id"]
+	password := props["password"]
+	mfaToken := props["token"]
+	deviceId := props["device_id"]
+
+	var user *model.User
+	if result := <-Srv.Store.User().Get(id); result.Err != nil {
+		c.Err = result.Err
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	doPasswordAuthentication(c, user, password, mfaToken)
+
+	if c.Err != nil {
+		return
+	}
+
+	Login(c, w, r, user, deviceId)
+
+	user.Sanitize(map[string]bool{})
+
+	w.Write([]byte(user.ToJson()))
+}
+
+func doPasswordAuthentication(c *Context, user *model.User, password, mfaToken string) {
+	if len(user.AuthData) != 0 {
+		c.Err = model.NewLocAppError("doPasswordAuthentication", "api.user.login.use_auth_service.app_error",
+			map[string]interface{}{"AuthService": user.AuthService}, "")
+		return
+	}
+
 	c.LogAuditWithUserId(user.Id, "attempt")
 	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail")
 		c.Err = err
 		c.Err.StatusCode = http.StatusUnauthorized
-		return false
 	} else {
-		Login(c, w, r, user, deviceId)
 		c.LogAuditWithUserId(user.Id, "success")
-		return true
 	}
 }
 
-func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, password, mfaToken, deviceId string) *model.User {
-	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
+func doLdapAuthentication(c *Context, id, password, mfaToken string) *model.User {
+	ldapInterface := einterfaces.GetLdapInterface()
+	if ldapInterface == nil {
+		c.Err = model.NewLocAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
 		return nil
-	} else {
-		user := result.Data.(*model.User)
-
-		if len(user.AuthData) != 0 {
-			c.Err = model.NewLocAppError("LoginById", "api.user.login_by_email.sign_in.app_error",
-				map[string]interface{}{"AuthService": user.AuthService}, "")
-			return nil
-		}
-
-		if doUserPasswordAuthenticationAndLogin(c, w, r, user, password, mfaToken, deviceId) {
-			return user
-		}
 	}
 
-	return nil
-}
-
-func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, mfaToken, deviceId string) *model.User {
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
-		c.Err = result.Err
+	user, err := ldapInterface.DoLogin(id, password)
+	if err != nil {
+		if user != nil {
+			c.LogAuditWithUserId(user.Id, "attempt")
+			c.LogAuditWithUserId(user.Id, "fail")
+		} else {
+			c.LogAudit("attempt")
+			c.LogAudit("fail")
+		}
+		c.Err = err
 		c.Err.StatusCode = http.StatusUnauthorized
 		return nil
-	} else {
-		user := result.Data.(*model.User)
-
-		if len(user.AuthData) != 0 {
-			c.Err = model.NewLocAppError("LoginByEmail", "api.user.login_by_email.sign_in.app_error",
-				map[string]interface{}{"AuthService": user.AuthService}, "")
-			return nil
-		}
-
-		if doUserPasswordAuthenticationAndLogin(c, w, r, user, password, mfaToken, deviceId) {
-			return user
-		}
 	}
+	c.LogAuditWithUserId(user.Id, "attempt")
 
-	return nil
-}
-
-func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, username, name, password, mfaToken, deviceId string) *model.User {
-	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
-		c.Err = result.Err
+	if err = checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+		c.LogAuditWithUserId(user.Id, "fail")
+		c.Err = err
 		c.Err.StatusCode = http.StatusUnauthorized
 		return nil
-	} else {
-		user := result.Data.(*model.User)
-
-		if len(user.AuthData) != 0 {
-			c.Err = model.NewLocAppError("LoginByUsername", "api.user.login_by_email.sign_in.app_error",
-				map[string]interface{}{"AuthService": user.AuthService}, "")
-			return nil
-		}
-
-		if doUserPasswordAuthenticationAndLogin(c, w, r, user, password, mfaToken, deviceId) {
-			return user
-		}
 	}
 
-	return nil
+	// User is authenticated at this point
+	c.LogAuditWithUserId(user.Id, "success")
+
+	return user
 }
 
 func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader) *model.User {
@@ -600,39 +631,13 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ldapInterface := einterfaces.GetLdapInterface()
-	if ldapInterface == nil {
-		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
+	user := doLdapAuthentication(c, id, password, mfaToken)
+
+	if c.Err != nil {
 		return
 	}
-
-	user, err := ldapInterface.DoLogin(id, password)
-	if err != nil {
-		if user != nil {
-			c.LogAuditWithUserId(user.Id, "attempt")
-			c.LogAuditWithUserId(user.Id, "fail")
-		} else {
-			c.LogAudit("attempt")
-			c.LogAudit("fail")
-		}
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return
-	}
-	c.LogAuditWithUserId(user.Id, "attempt")
-
-	if err = checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return
-	}
-
-	// User is authenticated at this point
 
 	Login(c, w, r, user, props["device_id"])
-	c.LogAuditWithUserId(user.Id, "success")
 
 	if user != nil {
 		user.Sanitize(map[string]bool{})
@@ -2371,28 +2376,20 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.MapFromJson(r.Body)
 
-	method := props["method"]
-	if method != model.USER_AUTH_SERVICE_EMAIL &&
-		method != model.USER_AUTH_SERVICE_USERNAME &&
-		method != model.USER_AUTH_SERVICE_LDAP {
-		c.SetInvalidParam("checkMfa", "method")
-		return
-	}
-
 	loginId := props["login_id"]
 	if len(loginId) == 0 {
 		c.SetInvalidParam("checkMfa", "login_id")
 		return
 	}
 
-	var uchan store.StoreChannel
-	if method == model.USER_AUTH_SERVICE_EMAIL {
-		uchan = Srv.Store.User().GetByEmail(loginId)
-	} else if method == model.USER_AUTH_SERVICE_USERNAME {
-		uchan = Srv.Store.User().GetByUsername(loginId)
-	} else if method == model.USER_AUTH_SERVICE_LDAP {
-		uchan = Srv.Store.User().GetByAuth(loginId, model.USER_AUTH_SERVICE_LDAP)
-	}
+	// we don't need to worry about contacting the ldap server to get this user because
+	// only users already in the system could have MFA enabled
+	uchan := Srv.Store.User().GetForLogin(
+		loginId,
+		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
+		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
+		*utils.Cfg.LdapSettings.Enable,
+	)
 
 	rdata := map[string]string{}
 	if result := <-uchan; result.Err != nil {

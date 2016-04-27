@@ -355,26 +355,16 @@ func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	return c.login(m)
 }
 
-func (c *Client) LoginByEmail(name string, email string, password string) (*Result, *AppError) {
+func (c *Client) Login(loginId string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["name"] = name
-	m["email"] = email
+	m["login_id"] = loginId
 	m["password"] = password
 	return c.login(m)
 }
 
-func (c *Client) LoginByUsername(name string, username string, password string) (*Result, *AppError) {
+func (c *Client) LoginWithDevice(loginId string, password string, deviceId string) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["name"] = name
-	m["username"] = username
-	m["password"] = password
-	return c.login(m)
-}
-
-func (c *Client) LoginByEmailWithDevice(name string, email string, password string, deviceId string) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["name"] = name
-	m["email"] = email
+	m["login_id"] = loginId
 	m["password"] = password
 	m["device_id"] = deviceId
 	return c.login(m)
@@ -430,9 +420,8 @@ func (c *Client) Logout() (*Result, *AppError) {
 	}
 }
 
-func (c *Client) CheckMfa(method, loginId string) (*Result, *AppError) {
+func (c *Client) CheckMfa(loginId string) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["method"] = method
 	m["login_id"] = loginId
 
 	if r, err := c.DoApiPost("/users/mfa", MapToJson(m)); err != nil {

@@ -268,15 +268,13 @@ class SignupUserComplete extends React.Component {
             this.state.data,
             this.state.hash,
             this.state.inviteId,
-            () => {
+            (data) => {
                 Client.track('signup', 'signup_user_02_complete');
-                Client.login(
-                    user.email,
-                    null,
+                Client.loginById(
+                    data.id,
                     user.password,
                     '',
                     () => {
-                        UserStore.setLastEmail(user.email);
                         if (this.state.hash > 0) {
                             BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
                         }

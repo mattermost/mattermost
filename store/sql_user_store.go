@@ -716,6 +716,47 @@ func (us SqlUserStore) GetByUsername(username string) StoreChannel {
 	return storeChannel
 }
 
+func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		params := map[string]interface{}{
+			"LoginId":                 loginId,
+			"AllowSignInWithUsername": allowSignInWithUsername,
+			"AllowSignInWithEmail":    allowSignInWithEmail,
+			"LdapEnabled":             ldapEnabled,
+		}
+
+		users := []*model.User{}
+		if _, err := us.GetReplica().Select(
+			&users,
+			`SELECT
+				*
+			FROM
+				Users
+			WHERE
+				(:AllowSignInWithUsername AND Username = :LoginId)
+				OR (:AllowSignInWithEmail AND Email = :LoginId)
+				OR (:LdapEnabled AND AuthService = '`+model.USER_AUTH_SERVICE_LDAP+`' AND AuthData = :LoginId)`,
+			params); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error())
+		} else if len(users) == 1 {
+			result.Data = users[0]
+		} else if len(users) > 1 {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.multiple_users", nil, "")
+		} else {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "")
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
