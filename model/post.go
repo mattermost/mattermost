@@ -16,6 +16,7 @@ const (
 	POST_SYSTEM_GENERIC        = "system_generic"
 	POST_JOIN_LEAVE            = "system_join_leave"
 	POST_HEADER_CHANGE         = "system_header_change"
+	POST_CHANNEL_DELETED       = "system_channel_deleted"
 	POST_EPHEMERAL             = "system_ephemeral"
 )
 
