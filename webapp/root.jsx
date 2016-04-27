@@ -187,17 +187,11 @@ function onPermalinkEnter(nextState) {
     GlobalActions.emitPostFocusEvent(postId);
 }
 
-function onChannelEnter(nextState, replace) {
-    doChannelChange(nextState, replace);
+function onChannelEnter(nextState, replace, callback) {
+    doChannelChange(nextState, replace, callback);
 }
 
-function onChannelChange(prevState, nextState, replace) {
-    if (prevState.params.channel !== nextState.params.channel) {
-        doChannelChange(nextState, replace);
-    }
-}
-
-function doChannelChange(state, replace) {
+function doChannelChange(state, replace, callback) {
     let channel;
     if (state.location.query.fakechannel) {
         channel = JSON.parse(state.location.query.fakechannel);
@@ -207,11 +201,22 @@ function doChannelChange(state, replace) {
             channel = ChannelStore.getMoreByName(state.params.channel);
         }
         if (!channel) {
-            replace('/');
+            Client.joinChannelByName(
+                state.params.channel,
+                (data) => {
+                    GlobalActions.emitChannelClickEvent(data);
+                    callback();
+                },
+                () => {
+                    replace('/');
+                    callback();
+                }
+            );
             return;
         }
     }
     GlobalActions.emitChannelClickEvent(channel);
+    callback();
 }
 
 function renderRootComponent() {
@@ -311,7 +316,6 @@ function renderRootComponent() {
                         <Route
                             path='channels/:channel'
                             onEnter={onChannelEnter}
-                            onChange={onChannelChange}
                             components={{
                                 sidebar: Sidebar,
                                 center: ChannelView

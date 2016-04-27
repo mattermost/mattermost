@@ -71,6 +71,10 @@ export default class Client {
         return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/channels`;
     }
 
+    getChannelNameRoute(channelName) {
+        return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/channels/name/${channelName}`;
+    }
+
     getChannelNeededRoute(channelId) {
         return `${this.url}${this.urlVersion}/teams/${this.getTeamId()}/channels/${channelId}`;
     }
@@ -1042,6 +1046,17 @@ export default class Client {
         this.track('api', 'api_channels_join');
     }
 
+    joinChannelByName = (name, success, error) => {
+        request.
+            post(`${this.getChannelNameRoute(name)}/join`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'joinChannelByName', success, error));
+
+        this.track('api', 'api_channels_join_name');
+    }
+
     deleteChannel = (channelId, success, error) => {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/delete`).
@@ -1210,6 +1225,17 @@ export default class Client {
             end(this.handleResponse.bind(this, 'createPost', success, error));
 
         this.track('api', 'api_posts_create', post.channel_id, 'length', post.message.length);
+    }
+
+    // This is a temporary route to get around a problem with the permissions system that
+    // will be fixed in 3.1 or 3.2
+    getPermalinkTmp = (postId, success, error) => {
+        request.
+            get(`${this.getTeamNeededRoute()}/pltmp/${postId}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPermalinkTmp', success, error));
     }
 
     getPostById = (postId, success, error) => {

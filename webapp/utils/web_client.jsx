@@ -32,7 +32,7 @@ class WebClientClass extends Client {
     }
 
     handleError = (err, res) => { // eslint-disable-line no-unused-vars
-        if (err.status === HTTP_UNAUTHORIZED) {
+        if (err.status === HTTP_UNAUTHORIZED && res.req.url !== '/api/v3/users/login') {
             GlobalActions.emitUserLoggedOutEvent('/login');
         }
     }

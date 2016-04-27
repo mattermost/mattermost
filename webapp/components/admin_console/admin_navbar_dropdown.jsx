@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
+import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
@@ -17,6 +18,12 @@ export default class AdminNavbarDropdown extends React.Component {
     constructor(props) {
         super(props);
         this.blockToggle = false;
+        this.onTeamChange = this.onTeamChange.bind(this);
+
+        this.state = {
+            teams: TeamStore.getAll(),
+            teamMembers: TeamStore.getTeamMembers()
+        };
     }
 
     componentDidMount() {
@@ -26,13 +33,50 @@ export default class AdminNavbarDropdown extends React.Component {
                 this.blockToggle = false;
             }, 100);
         });
+
+        TeamStore.addChangeListener(this.onTeamChange);
     }
 
     componentWillUnmount() {
         $(ReactDOM.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
+        TeamStore.removeChangeListener(this.onTeamChange);
+    }
+
+    onTeamChange() {
+        this.setState({
+            teams: TeamStore.getAll(),
+            teamMembers: TeamStore.getTeamMembers()
+        });
     }
 
     render() {
+        var teams = [];
+
+        if (this.state.teamMembers && this.state.teamMembers.length > 0) {
+            teams.push(
+                <li
+                    key='teamDiv'
+                    className='divider'
+                ></li>
+            );
+
+            for (var index in this.state.teamMembers) {
+                if (this.state.teamMembers.hasOwnProperty(index)) {
+                    var teamMember = this.state.teamMembers[index];
+                    var team = this.state.teams[teamMember.team_id];
+                    teams.push(
+                        <li key={'team_' + team.name}>
+                            <Link
+                                to={'/' + team.name + '/channels/town-square'}
+                            >
+                                {team.display_name}
+                            </Link>
+                        </li>
+                    );
+                }
+            }
+        }
+
         return (
             <ul className='nav navbar-nav navbar-right'>
                 <li
@@ -68,6 +112,11 @@ export default class AdminNavbarDropdown extends React.Component {
                                 />
                             </Link>
                         </li>
+                        {teams}
+                        <li
+                            key='teamDiv'
+                            className='divider'
+                        ></li>
                         <li>
                             <a
                                 href='#'

@@ -4,8 +4,8 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import LoadingScreen from './loading_screen.jsx';
 import NewChannelFlow from './new_channel_flow.jsx';
@@ -62,7 +62,8 @@ export default class MoreChannels extends React.Component {
     }
     handleJoin(channel, channelIndex) {
         this.setState({joiningChannel: channelIndex});
-        client.joinChannel(channel.id,
+        GlobalActions.emitJoinChannelEvent(
+            channel,
             () => {
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
                 browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);

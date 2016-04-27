@@ -18,6 +18,8 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
 
+import {browserHistory} from 'react-router';
+
 const MAX_WEBSOCKET_FAILS = 7;
 const WEBSOCKET_RETRY_TIME = 3000;
 
@@ -66,6 +68,10 @@ export function initialize() {
                 console.log('websocket closed'); //eslint-disable-line no-console
             }
 
+            if (manuallyClosed) {
+                return;
+            }
+
             connectFailCount = connectFailCount + 1;
 
             if (connectFailCount > MAX_WEBSOCKET_FAILS) {
@@ -75,14 +81,12 @@ export function initialize() {
             ErrorStore.setConnectionErrorCount(connectFailCount);
             ErrorStore.emitChange();
 
-            if (!manuallyClosed) {
-                setTimeout(
-                    () => {
-                        initialize();
-                    },
-                    WEBSOCKET_RETRY_TIME
-                );
-            }
+            setTimeout(
+                () => {
+                    initialize();
+                },
+                WEBSOCKET_RETRY_TIME
+            );
         };
 
         conn.onerror = (evt) => {
@@ -133,6 +137,10 @@ function handleMessage(msg) {
         handleChannelViewedEvent(msg);
         break;
 
+    case SocketEvents.CHANNEL_DELETED:
+        handleChannelDeletedEvent(msg);
+        break;
+
     case SocketEvents.PREFERENCE_CHANGED:
         handlePreferenceChangedEvent(msg);
         break;
@@ -161,6 +169,7 @@ export function sendMessage(msg) {
 
 export function close() {
     manuallyClosed = true;
+    connectFailCount = 0;
     if (conn && conn.readyState === WebSocket.OPEN) {
         conn.close();
     }
@@ -228,6 +237,15 @@ function handleChannelViewedEvent(msg) {
     // Useful for when multiple devices have the app open to different channels
     if (TeamStore.getCurrentId() === msg.team_id && ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
+    }
+}
+
+function handleChannelDeletedEvent(msg) {
+    if (ChannelStore.getCurrentId() === msg.channel_id) {
+        const teamUrl = TeamStore.getCurrentTeamRelativeUrl();
+        browserHistory.push(teamUrl + '/channels/' + Constants.DEFAULT_CHANNEL);
+    } else {
+        AsyncClient.getChannels();
     }
 }
 

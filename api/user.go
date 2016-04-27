@@ -2277,6 +2277,9 @@ func generateMfaQrCode(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 	w.Write(img)
 }
 

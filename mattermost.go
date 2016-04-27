@@ -1037,7 +1037,7 @@ FLAGS:
 
     -team_name="name"                 The team name used in other commands
 
-    -role="syste_admin"               The role used in other commands
+    -role="system_admin"              The role used in other commands
                                       valid values are
                                         "" - The empty role is basic user
                                            permissions

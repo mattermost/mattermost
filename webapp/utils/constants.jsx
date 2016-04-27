@@ -147,6 +147,7 @@ export default {
         POSTED: 'posted',
         POST_EDITED: 'post_edited',
         POST_DELETED: 'post_deleted',
+        CHANNEL_DELETED: 'channel_deleted',
         CHANNEL_VIEWED: 'channel_viewed',
         NEW_USER: 'new_user',
         USER_ADDED: 'user_added',

@@ -118,6 +118,10 @@ func (c *WebConn) InvalidateCache() {
 	c.hasPermissionsToTeam = make(map[string]bool)
 }
 
+func (c *WebConn) InvalidateCacheForChannel(channelId string) {
+	delete(c.hasPermissionsToChannel, channelId)
+}
+
 func (c *WebConn) HasPermissionsToTeam(teamId string) bool {
 	perm, ok := c.hasPermissionsToTeam[teamId]
 	if !ok {

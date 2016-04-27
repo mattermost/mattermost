@@ -90,6 +90,10 @@ func (c *Client) GetChannelRoute(channelId string) string {
 	return fmt.Sprintf("/teams/%v/channels/%v", c.GetTeamId(), channelId)
 }
 
+func (c *Client) GetChannelNameRoute(channelName string) string {
+	return fmt.Sprintf("/teams/%v/channels/name/%v", c.GetTeamId(), channelName)
+}
+
 func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppError) {
 	rq, _ := http.NewRequest("POST", c.Url+url, strings.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
@@ -799,6 +803,15 @@ func (c *Client) GetChannelCounts(etag string) (*Result, *AppError) {
 
 func (c *Client) JoinChannel(id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(id)+"/join", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
+	}
+}
+
+func (c *Client) JoinChannelByName(name string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelNameRoute(name)+"/join", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

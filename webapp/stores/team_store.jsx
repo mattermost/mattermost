@@ -20,19 +20,6 @@ function getWindowLocationOrigin() {
 class TeamStoreClass extends EventEmitter {
     constructor() {
         super();
-
-        this.emitChange = this.emitChange.bind(this);
-        this.addChangeListener = this.addChangeListener.bind(this);
-        this.removeChangeListener = this.removeChangeListener.bind(this);
-        this.get = this.get.bind(this);
-        this.getByName = this.getByName.bind(this);
-        this.getAll = this.getAll.bind(this);
-        this.getCurrentId = this.getCurrentId.bind(this);
-        this.getCurrent = this.getCurrent.bind(this);
-        this.getCurrentTeamUrl = this.getCurrentTeamUrl.bind(this);
-        this.getCurrentInviteLink = this.getCurrentInviteLink.bind(this);
-        this.saveTeam = this.saveTeam.bind(this);
-
         this.clear();
     }
 
@@ -100,6 +87,13 @@ class TeamStoreClass extends EventEmitter {
     getCurrentTeamUrl() {
         if (this.getCurrent()) {
             return getWindowLocationOrigin() + '/' + this.getCurrent().name;
+        }
+        return null;
+    }
+
+    getCurrentTeamRelativeUrl() {
+        if (this.getCurrent()) {
+            return '/' + this.getCurrent().name;
         }
         return null;
     }
