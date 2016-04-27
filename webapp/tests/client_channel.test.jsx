@@ -162,8 +162,30 @@ describe('Client.Channels', function() {
                 function() {
                     TestHelper.basicClient().joinChannel(
                         channel.id,
-                        function(data) {
-                            assert.equal(data.id, channel.id);
+                        function() {
+                            done();
+                        },
+                        function(err) {
+                            done(new Error(err.message));
+                        }
+                    );
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('joinChannelByName', function(done) {
+        TestHelper.initBasic(() => {
+            var channel = TestHelper.basicChannel();
+            TestHelper.basicClient().leaveChannel(
+                channel.id,
+                function() {
+                    TestHelper.basicClient().joinChannelByName(
+                        channel.name,
+                        function() {
                             done();
                         },
                         function(err) {

@@ -27,6 +27,7 @@ func InitPost() {
 
 	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", ApiUserRequired(getPermalinkTmp)).Methods("GET")
 
 	BaseRoutes.Posts.Handle("/create", ApiUserRequired(createPost)).Methods("POST")
 	BaseRoutes.Posts.Handle("/update", ApiUserRequired(updatePost)).Methods("POST")
@@ -1078,6 +1079,53 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, post.ChannelId, c.Session.UserId)
 		if !c.HasPermissionsToChannel(cchan, "getPostById") {
 			return
+		}
+
+		if HandleEtag(list.Etag(), w, r) {
+			return
+		}
+
+		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
+		w.Write([]byte(list.ToJson()))
+	}
+}
+
+func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	postId := params["post_id"]
+	if len(postId) != 26 {
+		c.SetInvalidParam("getPermalinkTmp", "postId")
+		return
+	}
+
+	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		list := result.Data.(*model.PostList)
+
+		if len(list.Order) != 1 {
+			c.Err = model.NewLocAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "")
+			return
+		}
+		post := list.Posts[list.Order[0]]
+
+		if !c.HasPermissionsToTeam(c.TeamId, "permalink") {
+			return
+		}
+
+		cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, post.ChannelId, c.Session.UserId)
+		if !c.HasPermissionsToChannel(cchan, "getPermalinkTmp") {
+			// If we don't have permissions attempt to join the channel to fix the problem
+			if err, _ := JoinChannelById(c, c.Session.UserId, post.ChannelId); err != nil {
+				// On error just return with permissions error
+				c.Err = err
+				return
+			} else {
+				// If we sucessfully joined the channel then clear the permissions error and continue
+				c.Err = nil
+			}
 		}
 
 		if HandleEtag(list.Etag(), w, r) {
