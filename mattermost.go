@@ -298,6 +298,7 @@ func cmdUpdateDb30() {
 		api.Srv = &api.Server{}
 		api.Srv.Store = store.NewSqlStoreForUpgrade30()
 		store := api.Srv.Store.(*store.SqlStore)
+		utils.InitHTML()
 
 		l4g.Info("Attempting to run speical upgrade of the database schema to version 3.0 for user model changes")
 		time.Sleep(time.Second)
