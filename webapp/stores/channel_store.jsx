@@ -288,6 +288,14 @@ class ChannelStoreClass extends EventEmitter {
     getUnreadCounts() {
         return this.unreadCounts;
     }
+
+    leaveChannel(id) {
+        delete this.channelMembers[id];
+        const element = this.channels.indexOf(id);
+        if (element > -1) {
+            this.channels.splice(element, 1);
+        }
+    }
 }
 
 var ChannelStore = new ChannelStoreClass();
@@ -349,6 +357,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.LEAVE_CHANNEL:
+        ChannelStore.leaveChannel(action.id);
         ChannelStore.emitLeave(action.id);
         break;
 

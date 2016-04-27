@@ -8,6 +8,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
 	"strconv"
@@ -30,6 +31,8 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
+
+	BaseRoutes.NeedChannelName.Handle("/join", ApiUserRequired(join)).Methods("POST")
 
 	BaseRoutes.NeedChannel.Handle("/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
@@ -423,48 +426,68 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	channelId := params["channel_id"]
+	channelName := params["channel_name"]
 
-	JoinChannel(c, channelId, "")
-
-	if c.Err != nil {
+	var outChannel *model.Channel = nil
+	if channelId != "" {
+		if err, channel := JoinChannelById(c, c.Session.UserId, channelId); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		} else {
+			outChannel = channel
+		}
+	} else if channelName != "" {
+		if err, channel := JoinChannelByName(c, c.Session.UserId, c.TeamId, channelName); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		} else {
+			outChannel = channel
+		}
+	} else {
+		c.SetInvalidParam("join", "channel_id, channel_name")
 		return
 	}
-
-	result := make(map[string]string)
-	result["id"] = channelId
-	w.Write([]byte(model.MapToJson(result)))
+	w.Write([]byte(outChannel.ToJson()))
 }
 
-func JoinChannel(c *Context, channelId string, role string) {
+func JoinChannelByName(c *Context, userId string, teamId string, channelName string) (*model.AppError, *model.Channel) {
+	channelChannel := Srv.Store.Channel().GetByName(teamId, channelName)
+	userChannel := Srv.Store.User().Get(userId)
 
-	sc := Srv.Store.Channel().Get(channelId)
-	uc := Srv.Store.User().Get(c.Session.UserId)
+	return joinChannel(c, channelChannel, userChannel)
+}
 
-	if cresult := <-sc; cresult.Err != nil {
-		c.Err = cresult.Err
-		return
-	} else if uresult := <-uc; uresult.Err != nil {
-		c.Err = uresult.Err
-		return
+func JoinChannelById(c *Context, userId string, channelId string) (*model.AppError, *model.Channel) {
+	channelChannel := Srv.Store.Channel().Get(channelId)
+	userChannel := Srv.Store.User().Get(userId)
+
+	return joinChannel(c, channelChannel, userChannel)
+}
+
+func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel store.StoreChannel) (*model.AppError, *model.Channel) {
+	if cresult := <-channelChannel; cresult.Err != nil {
+		return cresult.Err, nil
+	} else if uresult := <-userChannel; uresult.Err != nil {
+		return uresult.Err, nil
 	} else {
 		channel := cresult.Data.(*model.Channel)
 		user := uresult.Data.(*model.User)
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "join") {
-			return
+			return c.Err, nil
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
 			if _, err := AddUserToChannel(user, channel); err != nil {
-				c.Err = err
-				return
+				return err, nil
 			}
 			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username))
 		} else {
-			c.Err = model.NewLocAppError("join", "api.channel.join_channel.permissions.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
+			return model.NewLocAppError("join", "api.channel.join_channel.permissions.app_error", nil, ""), nil
 		}
+		return nil, channel
 	}
 }
 

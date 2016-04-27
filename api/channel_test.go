@@ -395,7 +395,7 @@ func TestGetChannelCounts(t *testing.T) {
 
 }
 
-func TestJoinChannel(t *testing.T) {
+func TestJoinChannelById(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	team := th.BasicTeam
@@ -421,6 +421,36 @@ func TestJoinChannel(t *testing.T) {
 	Client.LoginByEmail(team.Name, user3.Email, "pwd")
 
 	if _, err := Client.JoinChannel(rchannel.Id); err == nil {
+		t.Fatal("shoudn't be able to join direct channel")
+	}
+}
+
+func TestJoinChannelByName(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	team := th.BasicTeam
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	channel3 := &model.Channel{DisplayName: "B Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
+
+	th.LoginBasic2()
+
+	Client.Must(Client.JoinChannelByName(channel1.Name))
+
+	if _, err := Client.JoinChannelByName(channel3.Name); err == nil {
+		t.Fatal("shouldn't be able to join secret group")
+	}
+
+	rchannel := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id)).Data.(*model.Channel)
+
+	user3 := th.CreateUser(th.BasicClient)
+	LinkUserToTeam(user3, team)
+	Client.LoginByEmail(team.Name, user3.Email, "pwd")
+
+	if _, err := Client.JoinChannelByName(rchannel.Name); err == nil {
 		t.Fatal("shoudn't be able to join direct channel")
 	}
 }

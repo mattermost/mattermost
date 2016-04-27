@@ -128,21 +128,31 @@ export function emitInitialLoad(callback) {
         );
 }
 
+export function doFocusPost(channelId, postId, data) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_FOCUSED_POST,
+        postId,
+        post_list: data
+    });
+    AsyncClient.getChannels(true);
+    AsyncClient.getChannelExtraInfo(channelId);
+    AsyncClient.getPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
+    AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
+}
+
 export function emitPostFocusEvent(postId) {
     AsyncClient.getChannels(true);
-    Client.getPostById(
+    Client.getPermalinkTmp(
         postId,
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_FOCUSED_POST,
-                postId,
-                post_list: data
-            });
-
-            AsyncClient.getChannelExtraInfo(data.channel_id);
-
-            AsyncClient.getPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
-            AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
+            if (!data) {
+                return;
+            }
+            const channelId = data.posts[data.order[0]].channel_id;
+            doFocusPost(channelId, postId, data);
+        },
+        () => {
+            browserHistory.push('/error?message=' + encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a channel you do not have access to')));
         }
     );
 }
@@ -429,5 +439,13 @@ export function emitUserLoggedOutEvent(redirectTo) {
         () => {
             browserHistory.push(rURL);
         }
+    );
+}
+
+export function emitJoinChannelEvent(channel, success, failure) {
+    Client.joinChannel(
+        channel.id,
+        success,
+        failure,
     );
 }

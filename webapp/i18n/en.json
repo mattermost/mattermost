@@ -1416,5 +1416,6 @@
   "web.footer.privacy": "Privacy",
   "web.footer.terms": "Terms",
   "web.header.back": "Back",
-  "web.root.singup_info": "All team communication in one place, searchable and accessible anywhere"
+  "web.root.singup_info": "All team communication in one place, searchable and accessible anywhere",
+  "permalink.error.access": "Permalink belongs to a channel you do not have access to"
 }
