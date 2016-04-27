@@ -10,21 +10,23 @@ import (
 )
 
 type Hub struct {
-	connections    map[*WebConn]bool
-	register       chan *WebConn
-	unregister     chan *WebConn
-	broadcast      chan *model.Message
-	stop           chan string
-	invalidateUser chan string
+	connections       map[*WebConn]bool
+	register          chan *WebConn
+	unregister        chan *WebConn
+	broadcast         chan *model.Message
+	stop              chan string
+	invalidateUser    chan string
+	invalidateChannel chan string
 }
 
 var hub = &Hub{
-	register:       make(chan *WebConn),
-	unregister:     make(chan *WebConn),
-	connections:    make(map[*WebConn]bool),
-	broadcast:      make(chan *model.Message),
-	stop:           make(chan string),
-	invalidateUser: make(chan string),
+	register:          make(chan *WebConn),
+	unregister:        make(chan *WebConn),
+	connections:       make(map[*WebConn]bool),
+	broadcast:         make(chan *model.Message),
+	stop:              make(chan string),
+	invalidateUser:    make(chan string),
+	invalidateChannel: make(chan string),
 }
 
 func PublishAndForget(message *model.Message) {
@@ -35,6 +37,10 @@ func PublishAndForget(message *model.Message) {
 
 func InvalidateCacheForUser(userId string) {
 	hub.invalidateUser <- userId
+}
+
+func InvalidateCacheForChannel(channelId string) {
+	hub.invalidateChannel <- channelId
 }
 
 func (h *Hub) Register(webConn *WebConn) {
@@ -72,6 +78,11 @@ func (h *Hub) Start() {
 					if webCon.UserId == userId {
 						webCon.InvalidateCache()
 					}
+				}
+
+			case channelId := <-h.invalidateChannel:
+				for webCon := range h.connections {
+					webCon.InvalidateCacheForChannel(channelId)
 				}
 
 			case msg := <-h.broadcast:
@@ -136,8 +147,8 @@ func shouldSendEvent(webCon *WebConn, msg *model.Message) bool {
 			}
 		}
 
-		// Only report events to users who are in the channel for the event
-		if len(msg.ChannelId) > 0 {
+		// Only report events to users who are in the channel for the event execept deleted events
+		if len(msg.ChannelId) > 0 && msg.Action != model.ACTION_CHANNEL_DELETED {
 			allowed := webCon.HasPermissionsToChannel(msg.ChannelId)
 
 			if !allowed {

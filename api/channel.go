@@ -687,14 +687,20 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		c.LogAudit("name=" + channel.Name)
 
-		post := &model.Post{ChannelId: channel.Id, Message: fmt.Sprintf(
-			c.T("api.channel.delete_channel.archived"),
-			user.Username)}
-		if _, err := CreatePost(c, post, false); err != nil {
-			l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
-			c.Err = model.NewLocAppError("deleteChannel", "api.channel.delete_channel.failed_send.app_error", nil, "")
-			return
-		}
+		go func() {
+			InvalidateCacheForChannel(channel.Id)
+			message := model.NewMessage(c.TeamId, channel.Id, c.Session.UserId, model.ACTION_CHANNEL_DELETED)
+			PublishAndForget(message)
+
+			post := &model.Post{
+				ChannelId: channel.Id,
+				Message:   fmt.Sprintf(c.T("api.channel.delete_channel.archived"), user.Username),
+				Type:      model.POST_CHANNEL_DELETED,
+			}
+			if _, err := CreatePost(c, post, false); err != nil {
+				l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
+			}
+		}()
 
 		result := make(map[string]string)
 		result["id"] = channel.Id

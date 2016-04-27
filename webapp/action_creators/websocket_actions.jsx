@@ -18,6 +18,8 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
 
+import {browserHistory} from 'react-router';
+
 const MAX_WEBSOCKET_FAILS = 7;
 const WEBSOCKET_RETRY_TIME = 3000;
 
@@ -135,6 +137,10 @@ function handleMessage(msg) {
         handleChannelViewedEvent(msg);
         break;
 
+    case SocketEvents.CHANNEL_DELETED:
+        handleChannelDeletedEvent(msg);
+        break;
+
     case SocketEvents.PREFERENCE_CHANGED:
         handlePreferenceChangedEvent(msg);
         break;
@@ -231,6 +237,15 @@ function handleChannelViewedEvent(msg) {
     // Useful for when multiple devices have the app open to different channels
     if (TeamStore.getCurrentId() === msg.team_id && ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
+    }
+}
+
+function handleChannelDeletedEvent(msg) {
+    if (ChannelStore.getCurrentId() === msg.channel_id) {
+        const teamUrl = TeamStore.getCurrentTeamRelativeUrl();
+        browserHistory.push(teamUrl + '/channels/' + Constants.DEFAULT_CHANNEL);
+    } else {
+        AsyncClient.getChannels();
     }
 }
 
