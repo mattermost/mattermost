@@ -21,14 +21,13 @@ export default class DoVerifyEmail extends React.Component {
     componentWillMount() {
         const uid = this.props.location.query.uid;
         const hid = this.props.location.query.hid;
-        const teamName = this.props.location.query.teamname;
         const email = this.props.location.query.email;
 
         Client.verifyEmail(
             uid,
             hid,
             () => {
-                browserHistory.push('/' + teamName + '/login?extra=verified&email=' + email);
+                browserHistory.push('/login?extra=verified&email=' + email);
             },
             (err) => {
                 this.setState({verifyStatus: 'failure', serverError: err.message});
