@@ -45,7 +45,6 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/reset_password", ApiAppHandler(resetPassword)).Methods("POST")
 	BaseRoutes.Users.Handle("/login", ApiAppHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiAppHandler(logout)).Methods("POST")
-	BaseRoutes.Users.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	BaseRoutes.Users.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
 	BaseRoutes.Users.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
 	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
@@ -612,53 +611,6 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 		Login(c, w, r, user, "")
 		return user
 	}
-}
-
-func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.LdapSettings.Enable {
-		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	props := model.MapFromJson(r.Body)
-
-	password := props["password"]
-	id := props["id"]
-	mfaToken := props["token"]
-
-	if len(password) == 0 {
-		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.blank_pwd.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	if len(id) == 0 {
-		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.need_id.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	c.LogAudit("attempt")
-
-	var user *model.User
-	if ldapUser, err := doLdapAuthentication(id, password, mfaToken); err != nil {
-		c.LogAudit("failure")
-		c.Err = err
-		return
-	} else {
-		user = ldapUser
-	}
-
-	c.LogAuditWithUserId(user.Id, "success")
-	Login(c, w, r, user, props["device_id"])
-
-	if user != nil {
-		user.Sanitize(map[string]bool{})
-	} else {
-		user = &model.User{}
-	}
-	w.Write([]byte(user.ToJson()))
 }
 
 // User MUST be authenticated completely before calling Login

@@ -189,7 +189,7 @@ export default class Login extends React.Component {
             if (global.window.mm_config.LdapLoginFieldName) {
                 loginPlaceholders.push(global.window.mm_config.LdapLoginFieldName);
             } else {
-                loginPlaceholders.push(Utils.localizeMessage('login_ldap.username', 'LDAP Username'));
+                loginPlaceholders.push(Utils.localizeMessage('login.ldap_username', 'LDAP Username'));
             }
         }
 

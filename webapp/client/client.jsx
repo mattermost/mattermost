@@ -787,37 +787,6 @@ export default class Client {
             ));
     }
 
-    loginByLdap = (ldapId, password, mfaToken, success, error) => {
-        var outer = this;  // eslint-disable-line consistent-this
-
-        request.
-            post(`${this.getUsersRoute()}/login_ldap`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            send({id: ldapId, password, token: mfaToken}).
-            end(this.handleResponse.bind(
-                this,
-                'loginByLdap',
-                (data, res) => {
-                    if (res && res.header) {
-                        outer.token = res.header[HEADER_TOKEN];
-
-                        if (outer.useToken) {
-                            outer.defaultHeaders[HEADER_AUTH] = `${HEADER_BEARER} ${outer.token}`;
-                        }
-                    }
-
-                    if (success) {
-                        success(data, res);
-                    }
-                },
-                error
-            ));
-
-        this.track('api', 'api_users_loginLdap', '', 'email', ldapId);
-    }
-
     logout = (success, error) => {
         request.
             post(`${this.getUsersRoute()}/logout`).
