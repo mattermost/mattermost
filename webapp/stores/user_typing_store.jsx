@@ -33,16 +33,16 @@ class UserTypingStoreClass extends EventEmitter {
         this.removeListener(CHANGE_EVENT, callback);
     }
 
-    usernameFromId(userId) {
-        let username = Utils.localizeMessage('msg_typing.someone', 'Someone');
+    nameFromId(userId) {
+        let name = Utils.localizeMessage('msg_typing.someone', 'Someone');
         if (UserStore.hasProfile(userId)) {
-            username = UserStore.getProfile(userId).username;
+            name = Utils.displayUsername(userId);
         }
-        return username;
+        return name;
     }
 
     userTyping(channelId, userId, postParentId) {
-        const username = this.usernameFromId(userId);
+        const name = this.nameFromId(userId);
 
         // Key representing a location where users can type
         const loc = channelId + postParentId;
@@ -53,15 +53,15 @@ class UserTypingStoreClass extends EventEmitter {
         }
 
         // If we already have this user, clear it's timeout to be deleted
-        if (this.typingUsers[loc][username]) {
-            clearTimeout(this.typingUsers[loc][username].timeout);
+        if (this.typingUsers[loc][name]) {
+            clearTimeout(this.typingUsers[loc][name].timeout);
         }
 
         // Set the user and a timeout to remove it
-        this.typingUsers[loc][username] = setTimeout(() => {
-            delete this.typingUsers[loc][username];
+        this.typingUsers[loc][name] = setTimeout(() => {
+            Reflect.deleteProperty(this.typingUsers[loc], name);
             if (this.typingUsers[loc] === {}) {
-                delete this.typingUsers[loc];
+                Reflect.deleteProperty(this.typingUsers, loc);
             }
             this.emitChange();
         }, Constants.UPDATE_TYPING_MS);
@@ -76,14 +76,14 @@ class UserTypingStoreClass extends EventEmitter {
     }
 
     userPosted(userId, channelId, postParentId) {
-        const username = this.usernameFromId(userId);
+        const name = this.nameFromId(userId);
         const loc = channelId + postParentId;
 
         if (this.typingUsers[loc]) {
-            clearTimeout(this.typingUsers[loc][username]);
-            delete this.typingUsers[loc][username];
+            clearTimeout(this.typingUsers[loc][name]);
+            Reflect.deleteProperty(this.typingUsers[loc], name);
             if (this.typingUsers[loc] === {}) {
-                delete this.typingUsers[loc];
+                Reflect.deleteProperty(this.typingUsers, loc);
             }
             this.emitChange();
         }
