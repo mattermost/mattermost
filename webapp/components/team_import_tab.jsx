@@ -33,8 +33,8 @@ class TeamImportTab extends React.Component {
         this.setState({status: 'fail', link: ''});
     }
 
-    onImportSuccess(data) {
-        this.setState({status: 'done', link: 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(data)});
+    onImportSuccess(data, res) {
+        this.setState({status: 'done', link: 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(res.text)});
     }
 
     doImportSlack(file) {

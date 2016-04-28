@@ -22,7 +22,7 @@ func ImportPost(post *model.Post) {
 	}
 }
 
-func ImportUser(teamId string, user *model.User) *model.User {
+func ImportUser(team *model.Team, user *model.User) *model.User {
 	user.MakeNonNil()
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
@@ -31,12 +31,12 @@ func ImportUser(teamId string, user *model.User) *model.User {
 	} else {
 		ruser := result.Data.(*model.User)
 
-		if err := JoinDefaultChannels(teamId, ruser, ""); err != nil {
-			l4g.Error(utils.T("api.import.import_user.joining_default.error"), ruser.Id, teamId, err)
-		}
-
 		if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
 			l4g.Error(utils.T("api.import.import_user.set_email.error"), cresult.Err)
+		}
+
+		if err := JoinUserToTeam(team, user); err != nil {
+			l4g.Error(utils.T("api.import.import_user.join_team.error"), err)
 		}
 
 		return ruser

@@ -99,6 +99,16 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 	log.WriteString("===============\r\n\r\n")
 
 	addedUsers := make(map[string]*model.User)
+
+	// Need the team
+	var team *model.Team
+	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
+		return addedUsers
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
 	for _, sUser := range slackusers {
 		firstName := ""
 		lastName := ""
@@ -119,7 +129,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 			Password:  password,
 		}
 
-		if mUser := ImportUser(teamId, &newUser); mUser != nil {
+		if mUser := ImportUser(team, &newUser); mUser != nil {
 			addedUsers[sUser.Id] = mUser
 			log.WriteString(utils.T("api.slackimport.slack_add_users.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
 		} else {
@@ -173,6 +183,18 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 	}
 }
 
+func addSlackUsersToChannel(members []string, users map[string]*model.User, channel *model.Channel, log *bytes.Buffer) {
+	for _, member := range members {
+		if user, ok := users[member]; !ok {
+			log.WriteString(utils.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": "?"}))
+		} else {
+			if _, err := AddUserToChannel(user, channel); err != nil {
+				log.WriteString(utils.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": user.Username}))
+			}
+		}
+	}
+}
+
 func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, log *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
 	log.WriteString(utils.T("api.slackimport.slack_add_channels.added"))
@@ -199,6 +221,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 				log.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
 			}
 		}
+		addSlackUsersToChannel(sChannel.Members, users, mChannel, log)
 		log.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
 		SlackAddPosts(mChannel, posts[sChannel.Name], users)
