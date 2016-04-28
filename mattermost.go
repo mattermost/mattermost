@@ -6,6 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -297,6 +298,7 @@ func cmdUpdateDb30() {
 		api.Srv = &api.Server{}
 		api.Srv.Store = store.NewSqlStoreForUpgrade30()
 		store := api.Srv.Store.(*store.SqlStore)
+		utils.InitHTML()
 
 		l4g.Info("Attempting to run speical upgrade of the database schema to version 3.0 for user model changes")
 		time.Sleep(time.Second)
@@ -359,14 +361,14 @@ func cmdUpdateDb30() {
 
 		uniqueEmails := make(map[string]bool)
 		uniqueUsernames := make(map[string]bool)
-		primaryUsers := convertTeamTo30(team, uniqueEmails, uniqueUsernames)
+		primaryUsers := convertTeamTo30(team.Name, team, uniqueEmails, uniqueUsernames)
 
 		l4g.Info("Upgraded %v users", len(primaryUsers))
 
 		for _, otherTeam := range teams {
 			if otherTeam.Id != team.Id {
 				l4g.Info("Upgrading team %v", otherTeam.Name)
-				users := convertTeamTo30(otherTeam, uniqueEmails, uniqueUsernames)
+				users := convertTeamTo30(team.Name, otherTeam, uniqueEmails, uniqueUsernames)
 				l4g.Info("Upgraded %v users", len(users))
 
 			}
@@ -436,7 +438,7 @@ type UserForUpgrade struct {
 	TeamId   string
 }
 
-func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) []*UserForUpgrade {
+func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) []*UserForUpgrade {
 	store := api.Srv.Store.(*store.SqlStore)
 	var users []*UserForUpgrade
 	if _, err := store.GetMaster().Select(&users, "SELECT Users.Id, Users.Username, Users.Email, Users.Roles, Users.TeamId FROM Users WHERE Users.TeamId = :TeamId", map[string]interface{}{"TeamId": team.Id}); err != nil {
@@ -484,6 +486,15 @@ func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueU
 			}
 		}
 
+		err := api.MoveFile(
+			"teams/"+team.Id+"/users/"+user.Id+"/profile.png",
+			"users/"+user.Id+"/profile.png",
+		)
+
+		if err != nil {
+			l4g.Warn("No profile image to move for %v", user.Email)
+		}
+
 		if uniqueEmails[user.Email] {
 			shouldUpdateUser = true
 			emailParts := strings.Split(user.Email, "@")
@@ -492,11 +503,19 @@ func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueU
 			} else {
 				user.Email = user.Email + "." + team.Name
 			}
+
+			if len(user.Email) > 127 {
+				user.Email = user.Email[:127]
+			}
 		}
 
 		if uniqueUsernames[user.Username] {
 			shouldUpdateUser = true
-			user.Username = user.Username + "." + team.Name
+			user.Username = team.Name + "." + user.Username
+
+			if len(user.Username) > 63 {
+				user.Username = user.Username[:63]
+			}
 		}
 
 		if shouldUpdateUser {
@@ -521,6 +540,40 @@ func convertTeamTo30(team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueU
 			}
 
 			l4g.Info("modified user_id=%v, changed email from=%v to=%v, changed username from=%v to %v changed roles from=%v to=%v", user.Id, previousEmail, user.Email, previousUsername, user.Username, previousRole, user.Roles)
+
+			emailChanged := previousEmail != user.Email
+			usernameChanged := previousUsername != user.Username
+
+			if emailChanged || usernameChanged {
+				bodyPage := utils.NewHTMLTemplate("upgrade_30_body", "")
+
+				EmailChanged := ""
+				UsernameChanged := ""
+
+				if emailChanged {
+					EmailChanged = "true"
+				}
+
+				if usernameChanged {
+					UsernameChanged = "true"
+				}
+
+				bodyPage.Html["Info"] = template.HTML(utils.T("api.templates.upgrade_30_body.info",
+					map[string]interface{}{
+						"SiteName":        utils.ClientCfg["SiteName"],
+						"TeamName":        team.Name,
+						"Email":           user.Email,
+						"Username":        user.Username,
+						"EmailChanged":    EmailChanged,
+						"UsernameChanged": UsernameChanged,
+					}))
+
+				utils.SendMail(
+					previousEmail,
+					utils.T("api.templates.upgrade_30_subject.info"),
+					bodyPage.Render(),
+				)
+			}
 		}
 
 		uniqueEmails[user.Email] = true
@@ -984,7 +1037,7 @@ FLAGS:
 
     -team_name="name"                 The team name used in other commands
 
-    -role="system_admin"               The role used in other commands
+    -role="system_admin"              The role used in other commands
                                       valid values are
                                         "" - The empty role is basic user
                                            permissions
