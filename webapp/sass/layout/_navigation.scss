@@ -70,8 +70,12 @@
 
             .heading {
                 color: $white;
+                display: inline-block;
                 font-weight: 600;
                 margin-right: 3px;
+                overflow: hidden;
+                vertical-align: top;
+                width: calc(100% - 200px);
             }
 
             .header-dropdown__icon {
