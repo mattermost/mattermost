@@ -442,53 +442,103 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result store.StoreResult
+	// bypass all the extra code for handling different login methods when ID is specified
 	if len(props["id"]) != 0 {
 		loginById(c, w, r, props)
 		return
-	} else {
-		result = <-Srv.Store.User().GetForLogin(
-			loginId,
-			*utils.Cfg.EmailSettings.EnableSignInWithUsername,
-			*utils.Cfg.EmailSettings.EnableSignInWithEmail,
-			*utils.Cfg.LdapSettings.Enable,
-		)
 	}
 
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil
+
+	c.LogAudit("attempt")
+
+	// get the user
 	var user *model.User
-	if result.Err != nil {
-		if *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil {
-			// we don't have a local user, so see if there's an LDAP one
-			user = doLdapAuthentication(c, loginId, password, mfaToken)
-		} else {
+	if result := <-Srv.Store.User().GetForLogin(
+		loginId,
+		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
+		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
+		ldapAvailable,
+	); result.Err != nil {
+
+		if !ldapAvailable {
+			// failed to find user and no LDAP server to fall back on
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusBadRequest
+			return
 		}
-	} else if result.Data != nil {
-		user = result.Data.(*model.User)
 
-		if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
-			if *utils.Cfg.LdapSettings.Enable {
-				// slightly redundant to get the user again, but we need to authenticate it on the LDAP server
-				user = doLdapAuthentication(c, loginId, password, mfaToken)
-			} else {
-				c.Err = model.NewLocAppError("login", "api.user.login_ldap.not_available.app_error", nil, "")
-				c.Err.StatusCode = http.StatusNotImplemented
-			}
+		// fall back to LDAP server to see if we can find a user
+		if ldapUser, ldapErr := einterfaces.GetLdapInterface().GetUser(loginId); ldapErr != nil {
+			c.Err = ldapErr
+			c.Err.StatusCode = http.StatusBadRequest
+			return
 		} else {
-			doPasswordAuthentication(c, user, password, mfaToken)
+			user = ldapUser
+		}
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	c.LogAuditWithUserId(user.Id, "attempt")
+
+	// and then authenticate them
+	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
+		if ldapUser, err := doLdapAuthentication(user.AuthData, password, mfaToken); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusUnauthorized
+		} else {
+			// slightly redundant to get the user again, but we need to get it from the LDAP server
+			user = ldapUser
+		}
+	} else if user.AuthService == model.USER_AUTH_SERVICE_GITLAB {
+		c.Err = model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": user.AuthService}, "")
+		c.Err.StatusCode = http.StatusBadRequest
+	} else {
+		if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusUnauthorized
 		}
 	}
 
 	if c.Err != nil {
+		c.LogAuditWithUserId(user.Id, "failure")
 		return
 	}
+
+	c.LogAuditWithUserId(user.Id, "success")
 
 	Login(c, w, r, user, deviceId)
 
 	user.Sanitize(map[string]bool{})
 
 	w.Write([]byte(user.ToJson()))
+}
+
+func doLdapAuthentication(ldapId, password, mfaToken string) (*model.User, *model.AppError) {
+	ldapInterface := einterfaces.GetLdapInterface()
+
+	if ldapInterface == nil {
+		err := model.NewLocAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "")
+		err.StatusCode = http.StatusNotImplemented
+		return nil, err
+	}
+
+	var user *model.User
+	if ldapUser, err := ldapInterface.DoLogin(ldapId, password); err != nil {
+		err.StatusCode = http.StatusUnauthorized
+		return nil, err
+	} else {
+		user = ldapUser
+	}
+
+	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+		err.StatusCode = http.StatusUnauthorized
+		return user, err
+	}
+
+	// user successfully authenticated
+	return user, nil
 }
 
 func loginById(c *Context, w http.ResponseWriter, r *http.Request, props map[string]string) {
@@ -506,70 +556,28 @@ func loginById(c *Context, w http.ResponseWriter, r *http.Request, props map[str
 		user = result.Data.(*model.User)
 	}
 
-	doPasswordAuthentication(c, user, password, mfaToken)
-
-	if c.Err != nil {
+	if len(user.AuthData) != 0 {
+		c.Err = model.NewLocAppError("loginById", "api.user.login.use_auth_service.app_error",
+			map[string]interface{}{"AuthService": user.AuthService}, "")
 		return
 	}
+
+	c.LogAuditWithUserId(user.Id, "attempt")
+
+	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+		c.LogAuditWithUserId(user.Id, "fail")
+		c.Err = err
+		c.Err.StatusCode = http.StatusUnauthorized
+		return
+	}
+
+	c.LogAuditWithUserId(user.Id, "success")
 
 	Login(c, w, r, user, deviceId)
 
 	user.Sanitize(map[string]bool{})
 
 	w.Write([]byte(user.ToJson()))
-}
-
-func doPasswordAuthentication(c *Context, user *model.User, password, mfaToken string) {
-	if len(user.AuthData) != 0 {
-		c.Err = model.NewLocAppError("doPasswordAuthentication", "api.user.login.use_auth_service.app_error",
-			map[string]interface{}{"AuthService": user.AuthService}, "")
-		return
-	}
-
-	c.LogAuditWithUserId(user.Id, "attempt")
-	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-	} else {
-		c.LogAuditWithUserId(user.Id, "success")
-	}
-}
-
-func doLdapAuthentication(c *Context, id, password, mfaToken string) *model.User {
-	ldapInterface := einterfaces.GetLdapInterface()
-	if ldapInterface == nil {
-		c.Err = model.NewLocAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return nil
-	}
-
-	user, err := ldapInterface.DoLogin(id, password)
-	if err != nil {
-		if user != nil {
-			c.LogAuditWithUserId(user.Id, "attempt")
-			c.LogAuditWithUserId(user.Id, "fail")
-		} else {
-			c.LogAudit("attempt")
-			c.LogAudit("fail")
-		}
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return nil
-	}
-	c.LogAuditWithUserId(user.Id, "attempt")
-
-	if err = checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return nil
-	}
-
-	// User is authenticated at this point
-	c.LogAuditWithUserId(user.Id, "success")
-
-	return user
 }
 
 func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader) *model.User {
@@ -631,12 +639,18 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := doLdapAuthentication(c, id, password, mfaToken)
+	c.LogAudit("attempt")
 
-	if c.Err != nil {
+	var user *model.User
+	if ldapUser, err := doLdapAuthentication(id, password, mfaToken); err != nil {
+		c.LogAudit("failure")
+		c.Err = err
 		return
+	} else {
+		user = ldapUser
 	}
 
+	c.LogAuditWithUserId(user.Id, "success")
 	Login(c, w, r, user, props["device_id"])
 
 	if user != nil {
