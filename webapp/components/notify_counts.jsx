@@ -9,8 +9,12 @@ function getCountsStateFromStores() {
     var channels = ChannelStore.getAll();
     var members = ChannelStore.getAllMembers();
 
-    channels.forEach(function setChannelInfo(channel) {
+    channels.forEach((channel) => {
         var channelMember = members[channel.id];
+        if (channelMember == null) {
+            return;
+        }
+
         if (channel.type === 'D') {
             count += channel.total_msg_count - channelMember.msg_count;
         } else if (channelMember.mention_count > 0) {
@@ -20,7 +24,7 @@ function getCountsStateFromStores() {
         }
     });
 
-    return {count: count};
+    return {count};
 }
 
 import React from 'react';

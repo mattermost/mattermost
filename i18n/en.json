@@ -2852,6 +2852,10 @@
     "translation": "We couldn't get all the channels"
   },
   {
+    "id": "store.sql_channel.get_member.missing.app_error",
+    "translation": "No channel member found for that user id and channel id"
+  },
+  {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "We couldn't get the channel member"
   },
