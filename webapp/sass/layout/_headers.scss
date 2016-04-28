@@ -82,6 +82,12 @@
     .channel-intro-profile {
         margin-left: 63px;
         margin-top: 5px;
+
+        .user-popover {
+            max-width: calc(100% - 100px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     .channel-intro-img {
@@ -106,6 +112,7 @@
 
     .channel-intro-text {
         margin-top: 35px;
+        word-break: break-all;
     }
 }
 
@@ -308,7 +315,7 @@
         font-size: 1.3em;
         font-weight: 600;
         margin: 0 4px 0 0;
-        max-width: 100%;
+        max-width: calc(100% - 50px);
         overflow: hidden;
         text-overflow: ellipsis;
         vertical-align: middle;
