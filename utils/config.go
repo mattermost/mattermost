@@ -259,6 +259,7 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
 			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
 			props["LdapPasswordFieldName"] = *c.LdapSettings.PasswordFieldName
+			props["NicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 		}
 
 		if *License.Features.MFA {
