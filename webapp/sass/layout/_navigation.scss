@@ -72,10 +72,10 @@
                 color: $white;
                 display: inline-block;
                 font-weight: 600;
-                margin-right: 3px;
+                margin-right: 5px;
+                max-width: calc(100% - 200px);
                 overflow: hidden;
                 vertical-align: top;
-                width: calc(100% - 200px);
             }
 
             .header-dropdown__icon {
