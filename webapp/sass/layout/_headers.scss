@@ -67,7 +67,7 @@
 
 .channel-intro {
     border-bottom: 1px solid $light-gray;
-    margin: 0 30px 35px;
+    margin: 0 18px 35px;
     padding: 0 0 5px;
 
     .intro-links {
@@ -289,7 +289,8 @@
 
         &:first-child {
             border-left: none;
-            padding-left: 1em;
+            padding-left: 15px;
+            padding-right: 1em;
             text-align: left !important;
             width: 100%;
         }
@@ -315,7 +316,7 @@
         font-size: 1.3em;
         font-weight: 600;
         margin: 0 4px 0 0;
-        max-width: calc(100% - 50px);
+        max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         vertical-align: middle;
