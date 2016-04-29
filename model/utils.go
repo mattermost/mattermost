@@ -386,3 +386,17 @@ func IsValidHttpsUrl(rawUrl string) bool {
 
 	return true
 }
+
+func IsSafeLink(link *string) bool {
+	if link != nil {
+		if IsValidHttpUrl(*link) {
+			return true
+		} else if strings.HasPrefix(*link, "/") {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	return true
+}
