@@ -1193,7 +1193,7 @@
   "tutorial_intro.screenTwo": "<h3>Cómo funciona Mattermost:</h3> <p>Las comunicaciones ocurren en los canales de discusión los cuales son públicos, o en grupos privados e incluso con mensajes privados.</p> <p>Todo lo que ocurre es archivado y se puede buscar en cualquier momento desde cualquier dispositivo con acceso a Mattermost.</p>",
   "tutorial_intro.skip": "Saltar el tutorial",
   "tutorial_intro.support": "Necesitas algo, escribemos a ",
-  "tutorial_intro.teamInvite": "Invitar a tu Equipo",
+  "tutorial_intro.teamInvite": "Invitar compañeros",
   "tutorial_intro.whenReady": " cuando estés listo(a).",
   "tutorial_tip.next": "Siguiente",
   "tutorial_tip.ok": "Aceptar",
