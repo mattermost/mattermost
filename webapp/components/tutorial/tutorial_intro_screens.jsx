@@ -132,7 +132,7 @@ export default class TutorialIntroScreens extends React.Component {
                 >
                     <FormattedMessage
                         id='tutorial_intro.teamInvite'
-                        defaultMessage='Team Invite'
+                        defaultMessage='Invite teammates'
                     />
                 </a>
             );
