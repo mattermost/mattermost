@@ -1346,7 +1346,7 @@
   "user.settings.mfa.enterToken": "Token",
   "user.settings.mfa.qrCode": "Bar Code",
   "user.settings.mfa.remove": "Remove MFA from your account",
-  "user.settings.mfa.removeHelp": "Removing multi-factor authentication will make your account more vulnerable to attacks.",
+  "user.settings.mfa.removeHelp": "Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account.",
   "user.settings.modal.advanced": "Advanced",
   "user.settings.modal.confirmBtns": "Yes, Discard",
   "user.settings.modal.confirmMsg": "You have unsaved changes, are you sure you want to discard them?",
