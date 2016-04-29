@@ -937,7 +937,7 @@ export function isValidUsername(name) {
 }
 
 export function isMobile() {
-    return screen.width <= 768;
+    return window.innerWidth <= 768;
 }
 
 export function isComment(post) {
