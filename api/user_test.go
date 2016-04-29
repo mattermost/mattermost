@@ -86,13 +86,16 @@ func TestLogin(t *testing.T) {
 
 	enableSignInWithEmail := *utils.Cfg.EmailSettings.EnableSignInWithEmail
 	enableSignInWithUsername := *utils.Cfg.EmailSettings.EnableSignInWithUsername
+	enableLdap := *utils.Cfg.LdapSettings.Enable
 	defer func() {
 		*utils.Cfg.EmailSettings.EnableSignInWithEmail = enableSignInWithEmail
 		*utils.Cfg.EmailSettings.EnableSignInWithUsername = enableSignInWithUsername
+		*utils.Cfg.LdapSettings.Enable = enableLdap
 	}()
 
 	*utils.Cfg.EmailSettings.EnableSignInWithEmail = false
 	*utils.Cfg.EmailSettings.EnableSignInWithUsername = false
+	*utils.Cfg.LdapSettings.Enable = false
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
@@ -185,6 +188,20 @@ func TestLogin(t *testing.T) {
 	}
 
 	Client.AuthToken = authToken
+
+	user3 := &model.User{
+		Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com",
+		Nickname: "Corey Hulen",
+		Username: "corey" + model.NewId(),
+		Password: "pwd",
+		AuthService: model.USER_AUTH_SERVICE_LDAP,
+	}
+	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
+
+	if _, err := Client.Login(user3.Id, user3.Password); err == nil {
+		t.Fatal("LDAP user should not be able to log in with LDAP disabled")
+	}
 }
 
 func TestLoginWithDeviceId(t *testing.T) {

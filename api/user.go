@@ -483,7 +483,10 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// and then authenticate them
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
-		if ldapUser, err := doLdapAuthentication(user.AuthData, password, mfaToken); err != nil {
+		if !ldapAvailable {
+			c.Err = model.NewLocAppError("login", "api.user.login_ldap.not_available.app_error", nil, "")
+			c.Err.StatusCode = http.StatusNotImplemented
+		} else if ldapUser, err := doLdapAuthentication(user.AuthData, password, mfaToken); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else {
