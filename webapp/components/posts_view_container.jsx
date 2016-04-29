@@ -16,6 +16,8 @@ import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
 
 import React from 'react';
 
+const MAXIMUM_CACHED_VIEWS = 3;
+
 export default class PostsViewContainer extends React.Component {
     constructor() {
         super();
@@ -105,6 +107,12 @@ export default class PostsViewContainer extends React.Component {
 
         let newIndex = channels.indexOf(channelId);
         if (newIndex === -1) {
+            if (channels.length >= MAXIMUM_CACHED_VIEWS) {
+                channels.shift();
+                atTop.shift();
+                postLists.shift();
+            }
+
             newIndex = channels.length;
             channels.push(channelId);
             atTop[newIndex] = PostStore.getVisibilityAtTop(channelId);
@@ -172,7 +180,7 @@ export default class PostsViewContainer extends React.Component {
             const isActive = (channels[i] === currentChannelId);
             postListCtls.push(
                 <PostsView
-                    key={'postsviewkey' + i}
+                    key={'postsviewkey' + channels[i]}
                     isActive={isActive}
                     postList={postLists[i]}
                     scrollType={this.state.scrollType}

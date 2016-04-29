@@ -348,10 +348,9 @@ export default class Client {
 
     importSlack = (fileData, success, error) => {
         request.
-            post(`${this.getTeamsRoute()}/import_team`).
+            post(`${this.getTeamNeededRoute()}/import_team`).
             set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
+            accept('application/octet-stream').
             send(fileData).
             end(this.handleResponse.bind(this, 'importSlack', success, error));
     }

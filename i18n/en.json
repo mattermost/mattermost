@@ -668,6 +668,10 @@
     "translation": "Failed to set email verified err=%v"
   },
   {
+    "id": "api.import.import_user.join_team.error",
+    "translation": "Failed to join team when importing err=%v"
+  },
+  {
     "id": "api.license.add_license.array.app_error",
     "translation": "Empty array under 'license' in request"
   },
@@ -996,6 +1000,10 @@
     "translation": "Merged with existing channel: {{.DisplayName}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "Failed to add user to channel: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.bot.warn",
     "translation": "Slack bot posts are not imported yet"
   },
@@ -1034,6 +1042,10 @@
   {
     "id": "api.slackimport.slack_import.log",
     "translation": "Mattermost Slack Import Log\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "Failed to get team to import into.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note1",
@@ -2850,6 +2862,10 @@
   {
     "id": "store.sql_channel.get_for_export.app_error",
     "translation": "We couldn't get all the channels"
+  },
+  {
+    "id": "store.sql_channel.get_member.missing.app_error",
+    "translation": "No channel member found for that user id and channel id"
   },
   {
     "id": "store.sql_channel.get_member.app_error",

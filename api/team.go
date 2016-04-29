@@ -40,8 +40,8 @@ func InitTeam() {
 	BaseRoutes.NeedTeam.Handle("/add_user_to_team", ApiUserRequired(addUserToTeam)).Methods("POST")
 
 	// These should be moved to the global admain console
-	BaseRoutes.Teams.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
+	BaseRoutes.NeedTeam.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
 	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequired(addUserToTeamFromInvite)).Methods("POST")
 }
 

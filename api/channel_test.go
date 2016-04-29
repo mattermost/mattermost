@@ -691,8 +691,8 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("Should have errored, bad user id")
 	}
 
-	if _, err := Client.AddChannelMember(channel1.Id, user2.Id); err == nil {
-		t.Fatal("Should have errored, user already a member")
+	if _, err := Client.AddChannelMember(channel1.Id, user2.Id); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err := Client.AddChannelMember("sgdsgsdg", user2.Id); err == nil {
