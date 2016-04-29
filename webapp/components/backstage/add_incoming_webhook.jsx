@@ -180,7 +180,7 @@ export default class AddIncomingWebhook extends React.Component {
                             <FormError errors={[this.state.serverError, this.state.clientError]}/>
                             <Link
                                 className='btn btn-sm'
-                                to={'/settings/integrations/incoming_webhooks'}
+                                to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/incoming_webhooks'}
                             >
                                 <FormattedMessage
                                     id='add_incoming_webhook.cancel'
