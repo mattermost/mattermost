@@ -276,7 +276,7 @@ class FileUpload extends React.Component {
     }
 
     cancelUpload(clientId) {
-        const requests = JSON.parse(JSON.stringify(this.state.requests));
+        const requests = Object.assign({}, this.state.requests);
         const request = requests[clientId];
 
         if (request) {
