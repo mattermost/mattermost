@@ -242,7 +242,7 @@ class FileUpload extends React.Component {
                             min = String(d.getMinutes());
                         }
 
-                        const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
+                        const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
 
                         const request = Client.uploadFile(file,
                             name,
