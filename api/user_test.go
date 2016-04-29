@@ -190,10 +190,10 @@ func TestLogin(t *testing.T) {
 	Client.AuthToken = authToken
 
 	user3 := &model.User{
-		Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com",
-		Nickname: "Corey Hulen",
-		Username: "corey" + model.NewId(),
-		Password: "pwd",
+		Email:       strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com",
+		Nickname:    "Corey Hulen",
+		Username:    "corey" + model.NewId(),
+		Password:    "pwd",
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 	}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)

@@ -370,26 +370,6 @@ func (c *Client) LoginWithDevice(loginId string, password string, deviceId strin
 	return c.login(m)
 }
 
-func (c *Client) LoginByLdap(userid string, password string, mfatoken string) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["id"] = userid
-	m["password"] = password
-	m["token"] = mfatoken
-	if r, err := c.DoApiPost("/users/login_ldap", MapToJson(m)); err != nil {
-		return nil, err
-	} else {
-		c.AuthToken = r.Header.Get(HEADER_TOKEN)
-		c.AuthType = HEADER_BEARER
-		sessionToken := getCookie(SESSION_COOKIE_TOKEN, r)
-
-		if c.AuthToken != sessionToken.Value {
-			NewLocAppError("/users/login_ldap", "model.client.login.app_error", nil, "")
-		}
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
 func (c *Client) login(m map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/login", MapToJson(m)); err != nil {
 		return nil, err
