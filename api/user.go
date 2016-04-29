@@ -493,7 +493,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			// slightly redundant to get the user again, but we need to get it from the LDAP server
 			user = ldapUser
 		}
-	} else if user.AuthService == model.USER_AUTH_SERVICE_GITLAB {
+	} else if user.AuthService != "" {
 		c.Err = model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": user.AuthService}, "")
 		c.Err.StatusCode = http.StatusBadRequest
 	} else {
