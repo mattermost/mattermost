@@ -711,6 +711,11 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
+	secure := false
+	if GetProtocol(r) == "https" {
+		secure := true
+	}
+
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
@@ -719,6 +724,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: true,
+		Secure:   secure,
 	}
 
 	http.SetCookie(w, sessionCookie)
