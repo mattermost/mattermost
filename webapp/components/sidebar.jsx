@@ -698,8 +698,3 @@ export default class Sidebar extends React.Component {
         );
     }
 }
-
-Sidebar.defaultProps = {
-};
-Sidebar.propTypes = {
-};

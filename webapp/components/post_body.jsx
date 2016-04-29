@@ -10,24 +10,13 @@ import * as TextFormatting from 'utils/text_formatting.jsx';
 import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import loadingGif from 'images/load.gif';
 
-const holders = defineMessages({
-    plusOne: {
-        id: 'post_body.plusOne',
-        defaultMessage: ' plus 1 other file'
-    },
-    plusMore: {
-        id: 'post_body.plusMore',
-        defaultMessage: ' plus {count} other files'
-    }
-});
-
 import React from 'react';
 
-class PostBody extends React.Component {
+export default class PostBody extends React.Component {
     constructor(props) {
         super(props);
 
@@ -61,8 +50,27 @@ class PostBody extends React.Component {
         this.parseEmojis();
     }
 
+    shouldComponentUpdate(nextProps) {
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextProps.parentPost, this.props.parentPost)) {
+            return true;
+        }
+
+        if (nextProps.retryPost.toString() !== this.props.retryPost.toString()) {
+            return true;
+        }
+
+        if (nextProps.handleCommentClick.toString() !== this.props.handleCommentClick.toString()) {
+            return true;
+        }
+
+        return false;
+    }
+
     render() {
-        const {formatMessage} = this.props.intl;
         const post = this.props.post;
         const filenames = this.props.post.filenames;
         const parentPost = this.props.parentPost;
@@ -106,9 +114,9 @@ class PostBody extends React.Component {
                 message = parentPost.filenames[0].split('/').pop();
 
                 if (parentPost.filenames.length === 2) {
-                    message += formatMessage(holders.plusOne);
+                    message += Utils.localizeMessage('post_body.plusOne', ' plus 1 other file');
                 } else if (parentPost.filenames.length > 2) {
-                    message += formatMessage(holders.plusMore, {count: (parentPost.filenames.length - 1)});
+                    message += Utils.localizeMessage('post_body.plusMore', ' plus {count} other files').replace('{count}', (parentPost.filenames.length - 1).toString());
                 }
             }
 
@@ -119,8 +127,8 @@ class PostBody extends React.Component {
                             id='post_body.commentedOn'
                             defaultMessage='Commented on {name}{apostrophe} message: '
                             values={{
-                                name: (name),
-                                apostrophe: apostrophe
+                                name,
+                                apostrophe
                             }}
                         />
                         <a
@@ -213,11 +221,8 @@ class PostBody extends React.Component {
 }
 
 PostBody.propTypes = {
-    intl: intlShape.isRequired,
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(PostBody);

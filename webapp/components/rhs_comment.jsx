@@ -1,35 +1,32 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
+import UserProfile from './user_profile.jsx';
+import FileAttachmentList from './file_attachment_list.jsx';
+
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import UserProfile from './user_profile.jsx';
+
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+
+import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Constants from 'utils/constants.jsx';
-import FileAttachmentList from './file_attachment_list.jsx';
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-var ActionTypes = Constants.ActionTypes;
-import * as TextFormatting from 'utils/text_formatting.jsx';
-import twemoji from 'twemoji';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedDate} from 'react-intl';
+import Constants from 'utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
+
+import {FormattedMessage, FormattedDate} from 'react-intl';
 
 import loadingGif from 'images/load.gif';
 
-const holders = defineMessages({
-    comment: {
-        id: 'rhs_comment.comment',
-        defaultMessage: 'Comment'
-    }
-});
-
 import React from 'react';
+import ReactDOM from 'react-dom';
+import twemoji from 'twemoji';
 
-class RhsComment extends React.Component {
+export default class RhsComment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -136,7 +133,7 @@ class RhsComment extends React.Component {
                         data-toggle='modal'
                         data-target='#edit_post'
                         data-refocusid='#reply_textbox'
-                        data-title={this.props.intl.formatMessage(holders.comment)}
+                        data-title={Utils.localizeMessage('rhs_comment.comment', 'Comment')}
                         data-message={post.message}
                         data-postid={post.id}
                         data-channelid={post.channel_id}
@@ -302,14 +299,8 @@ class RhsComment extends React.Component {
     }
 }
 
-RhsComment.defaultProps = {
-    post: null
-};
 RhsComment.propTypes = {
-    intl: intlShape.isRequired,
     post: React.PropTypes.object,
     user: React.PropTypes.object.isRequired,
     currentUser: React.PropTypes.object.isRequired
 };
-
-export default injectIntl(RhsComment);

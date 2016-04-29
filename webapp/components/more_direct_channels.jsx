@@ -19,7 +19,6 @@ export default class MoreDirectChannels extends React.Component {
         this.handleHide = this.handleHide.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.handleUserChange = this.handleUserChange.bind(this);
-
         this.createJoinDirectChannelButton = this.createJoinDirectChannelButton.bind(this);
 
         this.state = {
@@ -50,6 +49,26 @@ export default class MoreDirectChannels extends React.Component {
 
     componentWillUnmount() {
         UserStore.removeChangeListener(this.handleUserChange);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (nextProps.show !== this.props.show) {
+            return true;
+        }
+
+        if (nextProps.onModalDismissed.toString() !== this.props.onModalDismissed.toString()) {
+            return true;
+        }
+
+        if (nextState.loadingDMChannel !== this.state.loadingDMChannel) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextState.users, this.state.users)) {
+            return true;
+        }
+
+        return false;
     }
 
     handleHide() {

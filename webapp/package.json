@@ -21,15 +21,16 @@
     "object-assign": "4.0.1",
     "perfect-scrollbar": "0.6.10",
     "react": "0.14.7",
+    "react-addons-pure-render-mixin": "0.14.7",
     "react-bootstrap": "0.28.3",
     "react-custom-scrollbars": "^4.0.0-beta.1",
     "react-dom": "0.14.7",
     "react-intl": "2.0.0-rc-1",
     "react-router": "2.0.1",
     "react-textarea-autosize": "3.3.0",
+    "superagent": "1.8.3",
     "twemoji": "1.4.1",
-    "velocity-animate": "1.2.3",
-    "superagent": "1.8.3"
+    "velocity-animate": "1.2.3"
   },
   "devDependencies": {
     "babel-eslint": "5.0.0",
@@ -55,7 +56,6 @@
     "style-loader": "0.13.0",
     "url-loader": "0.5.7",
     "webpack": "2.1.0-beta.5",
-
     "mocha": "*",
     "mocha-webpack": "*",
     "webpack-node-externals": "*",

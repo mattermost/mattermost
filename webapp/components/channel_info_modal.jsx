@@ -9,6 +9,17 @@ import {Modal} from 'react-bootstrap';
 import React from 'react';
 
 export default class ChannelInfoModal extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.show !== this.props.show) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextProps.channel, this.props.channel)) {
+            return true;
+        }
+
+        return false;
+    }
     render() {
         let channel = this.props.channel;
         if (!channel) {

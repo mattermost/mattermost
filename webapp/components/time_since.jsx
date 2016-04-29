@@ -9,8 +9,14 @@ import {FormattedRelative, FormattedDate} from 'react-intl';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 export default class TimeSince extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
+    }
     componentDidMount() {
         this.intervalId = setInterval(() => {
             this.forceUpdate();

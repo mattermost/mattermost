@@ -5,7 +5,6 @@ import PostsView from './posts_view.jsx';
 
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -18,7 +17,6 @@ export default class PostFocusView extends React.Component {
 
         this.onChannelChange = this.onChannelChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
-        this.onUserChange = this.onUserChange.bind(this);
         this.handlePostsViewScroll = this.handlePostsViewScroll.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.loadMorePostsBottom = this.loadMorePostsBottom.bind(this);
@@ -31,21 +29,18 @@ export default class PostFocusView extends React.Component {
             scrollPostId: focusedPostId,
             postList: PostStore.getVisiblePosts(focusedPostId),
             atTop: PostStore.getVisibilityAtTop(focusedPostId),
-            atBottom: PostStore.getVisibilityAtBottom(focusedPostId),
-            currentUser: UserStore.getCurrentUser()
+            atBottom: PostStore.getVisibilityAtBottom(focusedPostId)
         };
     }
 
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChannelChange);
         PostStore.addChangeListener(this.onPostsChange);
-        UserStore.addChangeListener(this.onUserChange);
     }
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChannelChange);
         PostStore.removeChangeListener(this.onPostsChange);
-        UserStore.removeChangeListener(this.onUserChange);
     }
 
     onChannelChange() {
@@ -56,10 +51,6 @@ export default class PostFocusView extends React.Component {
                 scrollType: PostsView.SCROLL_TYPE_POST
             });
         }
-    }
-
-    onUserChange() {
-        this.setState({currentUser: UserStore.getCurrentUser()});
     }
 
     onPostsChange() {
@@ -105,7 +96,7 @@ export default class PostFocusView extends React.Component {
         const postsToHighlight = {};
         postsToHighlight[this.state.scrollPostId] = true;
 
-        if (!this.state.currentUser || !this.state.postList) {
+        if (!this.state.postList) {
             return null;
         }
 
@@ -125,16 +116,8 @@ export default class PostFocusView extends React.Component {
                     introText={this.getIntroMessage()}
                     messageSeparatorTime={0}
                     postsToHighlight={postsToHighlight}
-                    profiles={this.props.profiles}
-                    currentUser={this.state.currentUser}
                 />
             </div>
         );
     }
 }
-PostFocusView.defaultProps = {
-};
-
-PostFocusView.propTypes = {
-    profiles: React.PropTypes.object
-};
