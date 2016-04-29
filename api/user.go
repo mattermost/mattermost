@@ -713,7 +713,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 
 	secure := false
 	if GetProtocol(r) == "https" {
-		secure := true
+		secure = true
 	}
 
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
