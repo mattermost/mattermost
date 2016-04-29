@@ -513,9 +513,18 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "")
 	}
 
+	if result := <-Srv.Store.Channel().GetMember(channel.Id, user.Id); result.Err != nil {
+		if result.Err.Id != store.MISSING_MEMBER_ERROR {
+			return nil, result.Err
+		}
+	} else {
+		channelMember := result.Data.(model.ChannelMember)
+		return &channelMember, nil
+	}
+
 	newMember := &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
-	if cmresult := <-Srv.Store.Channel().SaveMember(newMember); cmresult.Err != nil {
-		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, cmresult.Err)
+	if result := <-Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
+		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "")
 	}
 

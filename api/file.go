@@ -553,7 +553,7 @@ func WriteFile(f []byte, path string) *model.AppError {
 	return nil
 }
 
-func moveFile(oldPath, newPath string) *model.AppError {
+func MoveFile(oldPath, newPath string) *model.AppError {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		fileData := make(chan []byte)
 		getFileAndForget(oldPath, fileData)
@@ -578,6 +578,11 @@ func moveFile(oldPath, newPath string) *model.AppError {
 			return err
 		}
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+
+		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+newPath), 0774); err != nil {
+			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
+		}
+
 		if err := os.Rename(utils.Cfg.FileSettings.Directory+oldPath, utils.Cfg.FileSettings.Directory+newPath); err != nil {
 			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
 		}

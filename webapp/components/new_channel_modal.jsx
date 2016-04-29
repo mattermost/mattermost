@@ -12,7 +12,7 @@ import {Modal} from 'react-bootstrap';
 const holders = defineMessages({
     nameEx: {
         id: 'channel_modal.nameEx',
-        defaultMessage: 'E.g.: "Bugs", "Marketing", "办公室恋情"'
+        defaultMessage: 'E.g.: "Bugs", "Marketing", "客户支持"'
     }
 });
 

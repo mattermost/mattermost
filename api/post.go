@@ -1211,7 +1211,7 @@ func DeletePostFilesAndForget(teamId string, post *model.Post) {
 			splitUrl := strings.Split(filename, "/")
 			oldPath := prefix + splitUrl[len(splitUrl)-2] + "/" + splitUrl[len(splitUrl)-1]
 			newPath := prefix + splitUrl[len(splitUrl)-2] + "/deleted_" + splitUrl[len(splitUrl)-1]
-			moveFile(oldPath, newPath)
+			MoveFile(oldPath, newPath)
 		}
 
 	}()

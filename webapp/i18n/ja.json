@@ -695,7 +695,7 @@
   "channel_modal.group": "グループ",
   "channel_modal.modalTitle": "新規 ",
   "channel_modal.name": "名前",
-  "channel_modal.nameEx": "例: \"Bugs\", \"Marketing\", \"办公室恋情\"",
+  "channel_modal.nameEx": "例: \"Bugs\", \"Marketing\", \"客户支持\"",
   "channel_modal.optional": "(オプション)",
   "channel_modal.privateGroup1": "ユーザーを制限した非公開グループを作成します。 ",
   "channel_modal.privateGroup2": "非公開グループを作成する",

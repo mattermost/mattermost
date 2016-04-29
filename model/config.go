@@ -343,9 +343,17 @@ func (o *Config) SetDefaults() {
 		*o.EmailSettings.PushNotificationContents = GENERIC_NOTIFICATION
 	}
 
+	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
+		o.SupportSettings.TermsOfServiceLink = nil
+	}
+
 	if o.SupportSettings.TermsOfServiceLink == nil {
 		o.SupportSettings.TermsOfServiceLink = new(string)
 		*o.SupportSettings.TermsOfServiceLink = "/static/help/terms.html"
+	}
+
+	if !IsSafeLink(o.SupportSettings.PrivacyPolicyLink) {
+		o.SupportSettings.PrivacyPolicyLink = nil
 	}
 
 	if o.SupportSettings.PrivacyPolicyLink == nil {
@@ -353,14 +361,26 @@ func (o *Config) SetDefaults() {
 		*o.SupportSettings.PrivacyPolicyLink = "/static/help/privacy.html"
 	}
 
+	if !IsSafeLink(o.SupportSettings.AboutLink) {
+		o.SupportSettings.AboutLink = nil
+	}
+
 	if o.SupportSettings.AboutLink == nil {
 		o.SupportSettings.AboutLink = new(string)
 		*o.SupportSettings.AboutLink = "/static/help/about.html"
 	}
 
+	if !IsSafeLink(o.SupportSettings.HelpLink) {
+		o.SupportSettings.HelpLink = nil
+	}
+
 	if o.SupportSettings.HelpLink == nil {
 		o.SupportSettings.HelpLink = new(string)
 		*o.SupportSettings.HelpLink = "/static/help/help.html"
+	}
+
+	if !IsSafeLink(o.SupportSettings.ReportAProblemLink) {
+		o.SupportSettings.ReportAProblemLink = nil
 	}
 
 	if o.SupportSettings.ReportAProblemLink == nil {

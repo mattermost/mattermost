@@ -18,7 +18,10 @@
 
     .popover-title {
         background: alpha-color($black, .05);
+        max-width: 100%;
+        overflow: hidden;
         padding: 8px 10px;
+        text-overflow: ellipsis;
     }
 
     .popover-content {

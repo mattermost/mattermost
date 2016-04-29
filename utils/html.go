@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/nicksnyder/go-i18n/i18n"
 	"gopkg.in/fsnotify.v1"
 )
 
@@ -77,9 +78,15 @@ func NewHTMLTemplate(templateName string, locale string) *HTMLTemplate {
 }
 
 func (t *HTMLTemplate) addDefaultProps() {
-	T := GetUserTranslations(t.Locale)
-	t.Props["Footer"] = T("api.templates.email_footer")
-	t.Html["EmailInfo"] = template.HTML(T("api.templates.email_info",
+	var localT i18n.TranslateFunc
+	if len(t.Locale) > 0 {
+		localT = GetUserTranslations(t.Locale)
+	} else {
+		localT = T
+	}
+
+	t.Props["Footer"] = localT("api.templates.email_footer")
+	t.Html["EmailInfo"] = template.HTML(localT("api.templates.email_info",
 		map[string]interface{}{"SupportEmail": Cfg.SupportSettings.SupportEmail, "SiteName": Cfg.TeamSettings.SiteName}))
 }
 
