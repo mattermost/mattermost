@@ -4,6 +4,9 @@
 package api
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -356,14 +359,27 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	var parsedRequest *model.IncomingWebhookRequest
+	var payload io.Reader
 	contentType := r.Header.Get("Content-Type")
 	if strings.Split(contentType, "; ")[0] == "application/json" {
-		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
+		payload = r.Body
 	} else {
-		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
+		payload = strings.NewReader(r.FormValue("payload"))
 	}
 
+	l4g.Debug(func() string {
+		body, err := ioutil.ReadAll(payload)
+		if err != nil {
+			return utils.T("api.webhook.incoming.debug.error") + err.Error()
+		}
+
+		// Create a new payload io.Reader, as the old one was read into body
+		payload = bytes.NewReader(body)
+
+		return utils.T("api.webhook.incoming.debug") + string(body)
+	})
+
+	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
 	if parsedRequest == nil {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.parse.app_error", nil, "")
 		return
