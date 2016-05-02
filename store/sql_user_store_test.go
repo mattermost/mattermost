@@ -77,6 +77,12 @@ func TestUserStoreUpdate(t *testing.T) {
 	Must(store.User().Save(u1))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
 
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.AuthService = "ldap"
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}))
+
 	time.Sleep(100 * time.Millisecond)
 
 	if err := (<-store.User().Update(u1, false)).Err; err != nil {
@@ -91,6 +97,11 @@ func TestUserStoreUpdate(t *testing.T) {
 	u1.Id = model.NewId()
 	if err := (<-store.User().Update(u1, false)).Err; err == nil {
 		t.Fatal("Update should have faile because id change")
+	}
+
+	u2.Email = model.NewId()
+	if err := (<-store.User().Update(u2, false)).Err; err == nil {
+		t.Fatal("Update should have failed because you can't modify LDAP fields")
 	}
 }
 

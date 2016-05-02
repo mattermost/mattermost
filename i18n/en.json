@@ -3496,6 +3496,10 @@
     "translation": "We couldn't update the account"
   },
   {
+    "id": "store.sql_user.update.can_not_change_ldap.app_error",
+    "translation": "Can not change fields set by LDAP"
+  },
+  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "This email is already taken. Please choose another."
   },

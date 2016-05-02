@@ -136,7 +136,17 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 
 			if user.IsOAuthUser() {
 				user.Email = oldUser.Email
-			} else if !user.IsLDAPUser() && user.Email != oldUser.Email {
+			} else if user.IsLDAPUser() {
+				if user.Username != oldUser.Username ||
+					user.FirstName != oldUser.FirstName ||
+					user.LastName != oldUser.LastName ||
+					user.Email != oldUser.Email {
+					result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.can_not_change_ldap.app_error", nil, "user_id="+user.Id)
+					storeChannel <- result
+					close(storeChannel)
+					return
+				}
+			} else if user.Email != oldUser.Email {
 				user.EmailVerified = false
 			}
 
