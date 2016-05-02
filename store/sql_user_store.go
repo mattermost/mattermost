@@ -265,7 +265,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = '', AuthService = '', EmailVerified = 1, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = '', AuthService = '', EmailVerified = true, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdatePassword", "store.sql_user.update_password.app_error", nil, "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId
@@ -722,7 +722,7 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = '1' WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = true WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.VerifyEmail", "store.sql_user.verify_email.app_error", nil, "userId="+userId+", "+err.Error())
 		}
 
