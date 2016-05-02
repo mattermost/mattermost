@@ -242,7 +242,6 @@ class FileUpload extends React.Component {
                     if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
                         continue;
                     }
-
                     var channelId = self.props.channelId || ChannelStore.getCurrentId();
 
                     // generate a unique id that can be used by other components to refer back to this file upload
