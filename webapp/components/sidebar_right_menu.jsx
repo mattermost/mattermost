@@ -4,6 +4,7 @@
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
+import AboutBuildModal from './about_build_modal.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
@@ -27,13 +28,24 @@ export default class SidebarRightMenu extends React.Component {
         super(props);
 
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
+        this.handleAboutModal = this.handleAboutModal.bind(this);
+        this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
 
         const state = this.getStateFromStores();
         state.showUserSettingsModal = false;
+        state.showAboutModal = false;
 
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
 
         this.state = state;
+    }
+
+    handleAboutModal() {
+        this.setState({showAboutModal: true});
+    }
+
+    aboutModalDismissed() {
+        this.setState({showAboutModal: false});
     }
 
     componentDidMount() {
@@ -245,11 +257,27 @@ export default class SidebarRightMenu extends React.Component {
                         <li className='divider'></li>
                         {helpLink}
                         {reportLink}
+                        <li>
+                            <a
+                                href='#'
+                                onClick={this.handleAboutModal}
+                            >
+                                <i className='fa fa-info'></i>
+                                <FormattedMessage
+                                    id='navbar_dropdown.about'
+                                    defaultMessage='About Mattermost'
+                                />
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <UserSettingsModal
                     show={this.state.showUserSettingsModal}
                     onModalDismissed={() => this.setState({showUserSettingsModal: false})}
+                />
+                <AboutBuildModal
+                    show={this.state.showAboutModal}
+                    onModalDismissed={this.aboutModalDismissed}
                 />
             </div>
         );
