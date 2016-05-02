@@ -221,20 +221,20 @@ class AuditTable extends React.Component {
             if (this.props.showUserId) {
                 var profile = UserStore.getProfile(auditInfo.userId);
                 if (profile) {
-                    uContent = <td>{profile.email}</td>;
+                    uContent = <td className='word-break--all'>{profile.email}</td>;
                 } else {
-                    uContent = <td>{auditInfo.userId}</td>;
+                    uContent = <td className='word-break--all'>{auditInfo.userId}</td>;
                 }
             }
 
             let iContent;
             if (this.props.showIp) {
-                iContent = <td>{auditInfo.ip}</td>;
+                iContent = <td className='word-break--all'>{auditInfo.ip}</td>;
             }
 
             let sContent;
             if (this.props.showSession) {
-                sContent = <td>{auditInfo.sessionId}</td>;
+                sContent = <td className='word-break--all'>{auditInfo.sessionId}</td>;
             }
 
             let descStyle = {};
@@ -244,9 +244,14 @@ class AuditTable extends React.Component {
 
             accessList[i] = (
                 <tr key={audit.id}>
-                    <td>{auditInfo.timestamp}</td>
+                    <td className='word-break--all'>{auditInfo.timestamp}</td>
                     {uContent}
-                    <td style={descStyle}>{auditInfo.desc}</td>
+                    <td
+                        className='word-break--all'
+                        style={descStyle}
+                    >
+                        {auditInfo.desc}
+                    </td>
                     {iContent}
                     {sContent}
                 </tr>
