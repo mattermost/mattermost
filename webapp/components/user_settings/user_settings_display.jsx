@@ -369,7 +369,7 @@ export default class UserSettingsDisplay extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.display.fixedWidthCentered'
-                                defaultMessage='Fixed with, centered'
+                                defaultMessage='Fixed width, centered'
                             />
                         </label>
                         <br/>
@@ -383,7 +383,7 @@ export default class UserSettingsDisplay extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.display.fullScreen'
-                                defaultMessage='Full screen'
+                                defaultMessage='Full width'
                             />
                         </label>
                         <br/>
@@ -392,7 +392,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='user.settings.display.channeldisplaymode'
-                            defaultMessage='How to display channels.'
+                            defaultMessage='Select how text in a channel is displayed.'
                         />
                     </div>
                 </div>
@@ -421,14 +421,14 @@ export default class UserSettingsDisplay extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.fixedWidthCentered'
-                        defaultMessage='Fixed with, centered'
+                        defaultMessage='Fixed width, centered'
                     />
                 );
             } else {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.fullScreen'
-                        defaultMessage='Full screen'
+                        defaultMessage='Full width'
                     />
                 );
             }
