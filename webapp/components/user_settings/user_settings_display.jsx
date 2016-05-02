@@ -421,14 +421,14 @@ export default class UserSettingsDisplay extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.fixedWidthCentered'
-                        defaultMessage='Fixed with, centered'
+                        defaultMessage='Fixed width, centered'
                     />
                 );
             } else {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.fullScreen'
-                        defaultMessage='Full screen'
+                        defaultMessage='Full width'
                     />
                 );
             }
