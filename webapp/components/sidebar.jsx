@@ -162,7 +162,7 @@ export default class Sidebar extends React.Component {
         }
         return false;
     }
-    componentDidUpdate() {
+    componentDidUpdate(prevProps, prevState) {
         this.updateTitle();
         this.updateUnreadIndicators();
         if (!Utils.isMobile()) {
@@ -170,8 +170,10 @@ export default class Sidebar extends React.Component {
         }
 
         // close the LHS on mobile when you change channels
-        $('.app__body .inner-wrap').removeClass('move--right');
-        $('.app__body .sidebar--left').removeClass('move--right');
+        if (this.state.activeId !== prevState.activeId) {
+            $('.app__body .inner-wrap').removeClass('move--right');
+            $('.app__body .sidebar--left').removeClass('move--right');
+        }
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
