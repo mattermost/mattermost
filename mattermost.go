@@ -60,12 +60,25 @@ var flagTeamName string
 var flagRole string
 var flagRunCmds bool
 
+func doLoadConfig(filename string) (err string) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = r.(string)
+		}
+	}()
+	utils.LoadConfig(filename)
+	return ""
+}
+
 func main() {
 
 	parseCmds()
 
 	utils.InitTranslations()
-	utils.LoadConfig(flagConfigFile)
+	if errstr := doLoadConfig(flagConfigFile); errstr != "" {
+		l4g.Exit(utils.T("mattermost.unable_to_load_config"), errstr)
+		return
+	}
 
 	if flagRunCmds {
 		utils.ConfigureCmdLineLog()
@@ -91,8 +104,7 @@ func main() {
 
 	if !utils.IsLicensed && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Critical(utils.T("store.sql.read_replicas_not_licensed.critical"))
-		time.Sleep(time.Second)
-		panic(fmt.Sprintf(utils.T("store.sql.read_replicas_not_licensed.critical")))
+		return
 	}
 
 	if flagRunCmds {
