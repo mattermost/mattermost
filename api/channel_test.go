@@ -215,6 +215,20 @@ func TestUpdateChannelHeader(t *testing.T) {
 		t.Fatal("should have errored on bad channel header")
 	}
 
+	rchannel := Client.Must(Client.CreateDirectChannel(th.BasicUser2.Id)).Data.(*model.Channel)
+	data["channel_id"] = rchannel.Id
+	data["channel_header"] = "new header"
+	var upChanneld *model.Channel
+	if result, err := Client.UpdateChannelHeader(data); err != nil {
+		t.Fatal(err)
+	} else {
+		upChanneld = result.Data.(*model.Channel)
+	}
+
+	if upChanneld.Header != data["channel_header"] {
+		t.Fatal("Failed to update header")
+	}
+
 	th.LoginBasic2()
 
 	data["channel_id"] = channel1.Id

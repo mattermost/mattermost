@@ -77,7 +77,7 @@ export default class PostsView extends React.Component {
         });
     }
     onUserChange() {
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: UserStore.getProfiles()});
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom
