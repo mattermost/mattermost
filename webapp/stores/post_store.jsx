@@ -568,7 +568,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_POST_SELECTED:
         PostStore.storeSelectedPostId(action.postId);
-        PostStore.emitSelectedPostChange(action.from_search);
+        PostStore.emitSelectedPostChange(action.fromSearch);
         break;
     default:
     }
