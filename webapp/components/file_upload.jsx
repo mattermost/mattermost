@@ -261,6 +261,13 @@ class FileUpload extends React.Component {
                 }
             }
         });
+
+        document.addEventListener('keydown', (e) => {
+            //CTRL+U or CMD+U for file uploads
+            if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.U) {
+                $(this.refs.input).focus().trigger('click');
+            }
+        });
     }
 
     componentWillUnmount() {
