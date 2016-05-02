@@ -410,7 +410,7 @@ export default class PostsView extends React.Component {
     }
     componentWillReceiveProps(nextProps) {
         if (this.props.postList && this.props.postList.order.length) {
-            if (this.props.postList.order[0] !== nextProps.postList.order[0] && nextProps.scrollType !== PostsView.SCROLL_TYPE_BOTTOM && nextProps.scrollType !== PostsView.SCROLL_TYPE_NEW_MESSAGE) {
+            if (this.props.postList.order[0] !== nextProps.postList.order[0] && nextProps.scrollType !== PostsView.SCROLL_TYPE_BOTTOM && nextProps.scrollType !== PostsView.SCROLL_TYPE_NEW_MESSAGE && nextProps.postList.posts[nextProps.postList.order[0]].user_id !== nextProps.currentUser.id && this.props.postList.order[1] !== nextProps.postList.order[0]) { // new message from another user and not deleted
                 this.setState({showUnreadMessageAlert: true});
             } else if (nextProps.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
                 this.setState({showUnreadMessageAlert: false});
