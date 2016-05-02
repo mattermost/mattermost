@@ -12,11 +12,11 @@ import logoImage from 'images/logo.png';
 
 const holders = defineMessages({
     required: {
-        id: 'create_team_display_name.required',
+        id: 'create_team.display_name.required',
         defaultMessage: 'This field is required'
     },
     charLength: {
-        id: 'create_team_display_name.charLength',
+        id: 'create_team.display_name.charLength',
         defaultMessage: 'Name must be 4 or more characters up to a maximum of 15'
     }
 });
@@ -75,7 +75,7 @@ class TeamSignupDisplayNamePage extends React.Component {
                     />
                     <h2>
                         <FormattedMessage
-                            id='create_team_display_name.teamName'
+                            id='create_team.display_name.teamName'
                             defaultMessage='Team Name'
                         />
                     </h2>
@@ -99,7 +99,7 @@ class TeamSignupDisplayNamePage extends React.Component {
                     </div>
                     <div>
                         <FormattedMessage
-                            id='create_team_display_name.nameHelp'
+                            id='create_team.display_name.nameHelp'
                             defaultMessage='Name your team in any language. Your team name shows in menus and headings.'
                         />
                     </div>
@@ -109,14 +109,14 @@ class TeamSignupDisplayNamePage extends React.Component {
                         onClick={this.submitNext}
                     >
                         <FormattedMessage
-                            id='create_team_display_name.next'
+                            id='create_team.display_name.next'
                             defaultMessage='Next'
                         /><i className='glyphicon glyphicon-chevron-right'></i>
                     </button>
                     <div className='margin--extra'>
                         <Link to='/select_team'>
                             <FormattedMessage
-                                id='create_team_display_name.back'
+                                id='create_team.display_name.back'
                                 defaultMessage='Back to previous step'
                             />
                         </Link>

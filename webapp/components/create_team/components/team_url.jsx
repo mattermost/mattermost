@@ -16,23 +16,23 @@ import logoImage from 'images/logo.png';
 
 const holders = defineMessages({
     required: {
-        id: 'create_team_url.required',
+        id: 'create_team.team_url.required',
         defaultMessage: 'This field is required'
     },
     regex: {
-        id: 'create_team_url.regex',
+        id: 'create_team.team_url.regex',
         defaultMessage: "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
     },
     charLength: {
-        id: 'create_team_url.charLength',
+        id: 'create_team.team_url.charLength',
         defaultMessage: 'Name must be 4 or more characters up to a maximum of 15'
     },
     taken: {
-        id: 'create_team_url.taken',
+        id: 'create_team.team_url.taken',
         defaultMessage: 'URL is taken or contains a reserved word'
     },
     unavailable: {
-        id: 'create_team_url.unavailable',
+        id: 'create_team.team_url.unavailable',
         defaultMessage: 'This URL is unavailable. Please try another.'
     }
 });
@@ -147,7 +147,7 @@ class TeamUrl extends React.Component {
                     />
                     <h2>
                         <FormattedMessage
-                            id='create_team_url.teamUrl'
+                            id='create_team.team_url.teamUrl'
                             defaultMessage='Team URL'
                         />
                     </h2>
@@ -180,13 +180,13 @@ class TeamUrl extends React.Component {
                     </div>
                     <p>
                         <FormattedMessage
-                            id='create_team_url.webAddress'
+                            id='create_team.team_url.webAddress'
                             defaultMessage='Choose the web address of your new team:'
                         />
                     </p>
                     <ul className='color--light'>
                         <FormattedHTMLMessage
-                            id='create_team_url.hint'
+                            id='create_team.team_url.hint'
                             defaultMessage="<li>Short and memorable is best</li>
                             <li>Use lowercase letters, numbers and dashes</li>
                             <li>Must start with a letter and can't end in a dash</li>"
@@ -199,7 +199,7 @@ class TeamUrl extends React.Component {
                         onClick={this.submitNext}
                     >
                         <FormattedMessage
-                            id='create_team_password.finish'
+                            id='create_team.team_url.finish'
                             defaultMessage='Finish'
                         />
                     </button>
@@ -209,7 +209,7 @@ class TeamUrl extends React.Component {
                             onClick={this.submitBack}
                         >
                             <FormattedMessage
-                                id='create_team_url.back'
+                                id='create_team.team_url.back'
                                 defaultMessage='Back to previous step'
                             />
                         </a>
