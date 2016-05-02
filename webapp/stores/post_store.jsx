@@ -445,23 +445,30 @@ class PostStoreClass extends EventEmitter {
 
     getCurrentUsersLatestPost(channelId, rootId) {
         const userId = UserStore.getCurrentId();
-        var postList = makePostListNonNull(this.getAllPosts(channelId));
-        var i = 0;
-        var len = postList.order.length;
-        var lastPost = null;
 
-        for (i; i < len; i++) {
+        const postList = makePostListNonNull(this.getAllPosts(channelId));
+        const len = postList.order.length;
+
+        let lastPost = null;
+
+        for (let i = 0; i < len; i++) {
             const post = postList.posts[postList.order[i]];
-            if (post.user_id === userId && (post.props && !post.props.from_webhook || !post.props)) {
-                if (rootId) {
-                    if (post.root_id === rootId || post.id === rootId) {
-                        lastPost = post;
-                        break;
-                    }
-                } else {
+
+            // don't edit webhook posts or deleted posts
+            if (post.user_id !== userId ||
+                (post.props && post.props.from_webhook) ||
+                post.state === Constants.POST_DELETED) {
+                continue;
+            }
+
+            if (rootId) {
+                if (post.root_id === rootId || post.id === rootId) {
                     lastPost = post;
                     break;
                 }
+            } else {
+                lastPost = post;
+                break;
             }
         }
 
@@ -471,26 +478,33 @@ class PostStoreClass extends EventEmitter {
     getEmptyDraft() {
         return {message: '', uploadsInProgress: [], previews: []};
     }
+
     storeCurrentDraft(draft) {
         var channelId = ChannelStore.getCurrentId();
         BrowserStore.setGlobalItem('draft_' + channelId, draft);
     }
+
     getCurrentDraft() {
         var channelId = ChannelStore.getCurrentId();
         return this.getDraft(channelId);
     }
+
     storeDraft(channelId, draft) {
         BrowserStore.setGlobalItem('draft_' + channelId, draft);
     }
+
     getDraft(channelId) {
         return BrowserStore.getGlobalItem('draft_' + channelId, this.getEmptyDraft());
     }
+
     storeCommentDraft(parentPostId, draft) {
         BrowserStore.setGlobalItem('comment_draft_' + parentPostId, draft);
     }
+
     getCommentDraft(parentPostId) {
         return BrowserStore.getGlobalItem('comment_draft_' + parentPostId, this.getEmptyDraft());
     }
+
     clearDraftUploads() {
         BrowserStore.actionOnGlobalItemsWithPrefix('draft_', (key, value) => {
             if (value) {
@@ -499,6 +513,7 @@ class PostStoreClass extends EventEmitter {
             }
         });
     }
+
     clearCommentDraftUploads() {
         BrowserStore.actionOnGlobalItemsWithPrefix('comment_draft_', (key, value) => {
             if (value) {
@@ -507,6 +522,7 @@ class PostStoreClass extends EventEmitter {
             }
         });
     }
+
     getCommentCount(post) {
         const posts = this.getAllPosts(post.channel_id).posts;
 
