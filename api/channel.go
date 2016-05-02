@@ -113,7 +113,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sc, err := CreateDirectChannel(c, userId); err != nil {
+	if sc, err := CreateDirectChannel(c.Session.UserId, userId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -121,19 +121,14 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model.AppError) {
-	if len(otherUserId) != 26 {
-		return nil, model.NewLocAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId)
-	}
-
+func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
 	uc := Srv.Store.User().Get(otherUserId)
 
 	channel := new(model.Channel)
 
 	channel.DisplayName = ""
-	channel.Name = model.GetDMNameFromIds(otherUserId, c.Session.UserId)
+	channel.Name = model.GetDMNameFromIds(otherUserId, userId)
 
-	channel.TeamId = c.TeamId
 	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
 
@@ -142,13 +137,11 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 	}
 
 	cm1 := &model.ChannelMember{
-		UserId:      c.Session.UserId,
-		Roles:       model.CHANNEL_ROLE_ADMIN,
+		UserId:      userId,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 	cm2 := &model.ChannelMember{
 		UserId:      otherUserId,
-		Roles:       "",
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 
@@ -274,7 +267,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel := cresult.Data.(*model.Channel)
 		// Don't need to do anything channel member, just wanted to confirm it exists
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "updateChannelHeader") {
+		if channel.TeamId != "" && !c.HasPermissionsToTeam(channel.TeamId, "updateChannelHeader") {
 			return
 		}
 		oldChannelHeader := channel.Header
