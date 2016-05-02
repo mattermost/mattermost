@@ -100,7 +100,7 @@ export default class SearchResultsItem extends React.Component {
                                     <time className='search-item-time'>
                                         <FormattedDate
                                             value={post.create_at}
-                                            hour12={true}
+                                            hour12={!Utils.isMilitaryTime()}
                                             hour='2-digit'
                                             minute='2-digit'
                                         />

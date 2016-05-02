@@ -41,7 +41,7 @@ export default class TimeSince extends React.Component {
                     month='long'
                     day='numeric'
                     year='numeric'
-                    hour12={true}
+                    hour12={!Utils.isMilitaryTime()}
                     hour='numeric'
                     minute='2-digit'
                 />
