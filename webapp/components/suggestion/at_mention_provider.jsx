@@ -101,13 +101,8 @@ export default class AtMentionProvider {
                 }
             }
 
-            //Don't imply that @all and @channel can be direct messaged
             if (!pretext.startsWith('/msg')) {
-                // add dummy users to represent the @all and @channel special mentions
-                if ('all'.startsWith(usernamePrefix)) {
-                    filtered.push({username: 'all'});
-                }
-
+                // add dummy users to represent the @channel special mention when not using the /msg command
                 if ('channel'.startsWith(usernamePrefix)) {
                     filtered.push({username: 'channel'});
                 }
