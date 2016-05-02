@@ -64,10 +64,7 @@ class FilteredUserList extends React.Component {
             count = (
                 <FormattedMessage
                     id='filtered_user_list.count'
-                    defaultMessage='{count} {count, plural,
-                        one {member}
-                        other {members}
-                    }'
+                    defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}}'
                     values={{
                         count: users.length
                     }}
@@ -77,10 +74,7 @@ class FilteredUserList extends React.Component {
             count = (
                 <FormattedMessage
                     id='filtered_user_list.countTotal'
-                    defaultMessage='{count} {count, plural,
-                        one {member}
-                        other {members}
-                    } of {total} Total'
+                    defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} Total'
                     values={{
                         count: users.length,
                         total: this.props.users.length
