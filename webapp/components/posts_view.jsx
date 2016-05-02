@@ -50,7 +50,6 @@ export default class PostsView extends React.Component {
             centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isScrolling: false,
             topPostId: null,
-            showUnreadMessageAlert: false,
             currentUser: UserStore.getCurrentUser(),
             profiles: UserStore.getProfiles()
         };
@@ -409,13 +408,6 @@ export default class PostsView extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        if (this.props.postList && this.props.postList.order.length) {
-            if (this.props.postList.order[0] !== nextProps.postList.order[0] && nextProps.scrollType !== PostsView.SCROLL_TYPE_BOTTOM && nextProps.scrollType !== PostsView.SCROLL_TYPE_NEW_MESSAGE && nextProps.postList.posts[nextProps.postList.order[0]].user_id !== nextProps.currentUser.id && this.props.postList.order[1] !== nextProps.postList.order[0]) { // new message from another user and not deleted
-                this.setState({showUnreadMessageAlert: true});
-            } else if (nextProps.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
-                this.setState({showUnreadMessageAlert: false});
-            }
-        }
         if (!this.props.isActive && nextProps.isActive) {
             this.updateState();
             PreferenceStore.addChangeListener(this.updateState);
@@ -549,18 +541,6 @@ export default class PostsView extends React.Component {
                             {moreMessagesBottom}
                         </div>
                     </div>
-                </div>
-                <div
-                    className='post-list__new-messages-below'
-                    onClick={this.scrollToBottomAnimated}
-                    hidden={!this.state.showUnreadMessageAlert}
-                >
-                    <i className='fa fa-angle-down'></i>
-                    &nbsp;
-                    <FormattedMessage
-                        id='posts_view.newMsg'
-                        defaultMessage='New Messages'
-                    />
                 </div>
             </div>
         );
