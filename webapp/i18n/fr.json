@@ -1094,7 +1094,7 @@
   "tutorial_intro.screenTwo": "<h3>Comment fonctionne Mattermost :</h3><p>Vous pouvez échanger dans des canaux publics, des groupes privés ou des messages privés.</p><p>Tout est archivé et peut être recherché depuis n'importe quel navigateur web de bureau, tablette ou mobile.</p>",
   "tutorial_intro.skip": "Passer le tutoriel",
   "tutorial_intro.support": "Besoin de quoi que ce soit, envoyez-nous un courriel à :",
-  "tutorial_intro.teamInvite": "Invitation à l'équipe",
+  "tutorial_intro.teamInvite": "Inviter des membres",
   "tutorial_intro.whenReady": "quand vous serez prêt.",
   "tutorial_tip.next": "Suivant",
   "tutorial_tip.ok": "D'accord",

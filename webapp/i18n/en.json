@@ -1232,7 +1232,7 @@
   "tutorial_intro.screenTwo": "<h3>How Mattermost works:</h3><p>Communication happens in public discussion channels, private groups and direct messages.</p><p>Everything is archived and searchable from any web-enabled desktop, laptop or phone.</p>",
   "tutorial_intro.skip": "Skip tutorial",
   "tutorial_intro.support": "Need anything, just email us at ",
-  "tutorial_intro.teamInvite": "Team Invite",
+  "tutorial_intro.teamInvite": "Invite teammates",
   "tutorial_intro.whenReady": " when you’re ready.",
   "tutorial_tip.next": "Next",
   "tutorial_tip.ok": "Okay",
