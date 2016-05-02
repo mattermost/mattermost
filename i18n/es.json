@@ -656,6 +656,10 @@
     "translation": "Error guardando el mensaje. user=%v, message=%v"
   },
   {
+    "id": "api.import.import_user.join_team.error",
+    "translation": "Falla al unirse al equipo cuando se importa err=%v"
+  },
+  {
     "id": "api.import.import_user.joining_default.error",
     "translation": "Se encontró un problema al unirse a los canales predeterminados user_id=%s, team_id=%s, err=%v"
   },
@@ -984,6 +988,10 @@
     "translation": "\r\n Canales agregados \r\n"
   },
   {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "Falla al agregar el usuario al canal: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.import_failed",
     "translation": "Falla al importar: {{.DisplayName}}\r\n"
   },
@@ -1050,6 +1058,10 @@
   {
     "id": "api.slackimport.slack_import.open.app_error",
     "translation": "No se pudo abrir: {{.Filename}}"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "Falla al obtener el equipo al cual se debe importar.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
@@ -1312,6 +1324,22 @@
     "translation": "Configuración del equipo en {{ .SiteName }}"
   },
   {
+    "id": "api.templates.singin_change_email.body.info",
+    "translation": "Haz actualizado tu método de inicio de sesión en {{ .SiteName }} a {{.Method}}.<br>Sí este cambio no fue realizado por ti, por favor contacta a un adminsitrador del sistema."
+  },
+  {
+    "id": "api.templates.singin_change_email.subject",
+    "translation": "Haz actualizado el método de inicio de sesión en {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.upgrade_30_body.info",
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>TUS CUENTAS DUPLICADAS HAN SIDO ACTUALIZADAS</h3>Tu servidor de Mattermost ha sido actualizado a la Versión 3.0, la cual permite que utilices una sólo cuenta de usuario en múltiples equipos.<br/><br/>Estás recibiendo este correo electrónico debido a que el proceso de actualización ha detectado que tu cuenta tiene la misma dirección de correo electrónico o nombre de usuario que otras cuentas en el servidor.<br/><br/>Los siguiente cambios han sido realizados: <br/><br/>{{if .EmailChanged }}- La dirección de correo electrónico duplicada para la cuenta en el equipo `/{{.TeamName}}` fue cambiada a `{{.Email}}`. En el caso de que utilices el correo electrónico y la contraseña para iniciar sesión, puedes utilizar esta nueva dirección de correo para iniciar tu sesión.<br/><br/>{{end}}{{if .UsernameChanged }}- El nombre de usuario duplicado para la cuenta en el equipo `/{{.TeamName}}` ha sido cambiado por `{{.Username}}` para evitar confusión con otras cuentas.<br/><br/>{{end}} ACCIÓN RECOMENDADA: <br/><br/>Se recomienda que inicies sesión en tus equipos donde se encontraron duplicados y agregues tu cuenta principal al equipo y a cualquier canal público y grupo privado que quieras continuar utilizando. <br/><br/>Esto hará que tu cuenta principal tenga acceso al historial de todos tus canales públicos y grupos privados. Podrás continuar teniendo acceso al historial de todos los mensajes directos de cada cuenta duplicada al iniciar sesión con las credenciales de de cada una de las cuentas. <br/><br/>PARA MÁS INFORMACIÓN: <br/><br/>Para obtener más información referente a la actualización a Mattermost 3.0 por favor revisa: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+  },
+  {
+    "id": "api.templates.upgrade_30_subject.info",
+    "translation": "[MATTERMOST] Cambios a tu cuenta para la Actualización a Mattermost 3.0"
+  },
+  {
     "id": "api.templates.verify_body.button",
     "translation": "Confirmar Correo"
   },
@@ -1416,6 +1444,14 @@
     "translation": "OAuth para {{.Service}} no está disponible en este servidor"
   },
   {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "Ya existe un usuario vinculado con tu cuenta de {{.Service}}"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_used.app_error",
+    "translation": "Esta cuenta de {{.Service}} ya fue utilizada para registrarse"
+  },
+  {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "No se pudo crear el usuario basandose en el objeto de {{.Service}}"
   },
@@ -1442,6 +1478,10 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "Se encontró un problema al unirse a los canales predeterminados user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "Este servidor no permite registros sin invitación.  Por favor comunícate con un administrador para recibir una invitación."
   },
   {
     "id": "api.user.create_user.save.error",
@@ -1746,6 +1786,14 @@
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "Los webhooks de Salida solo pueden ser creados para canales públicos."
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "Permisos inapropiados para crear un webhook de salida."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -2528,6 +2576,18 @@
     "translation": "Identificador del URL es inválido"
   },
   {
+    "id": "model.team_member.is_valid.role.app_error",
+    "translation": "Rol inválido"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "Id del equipo inválido"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "Id de usuario inválido"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Data de auth es inválida"
   },
@@ -2806,6 +2866,10 @@
   {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "No pudimos obtener el miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.get_member.missing.app_error",
+    "translation": "No se encontró un miembro con el id de usuario y el id del canal"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
@@ -3220,6 +3284,10 @@
     "translation": "No pudimos remover la sesión"
   },
   {
+    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
+    "translation": "No pudimos remover todas las sesiones"
+  },
+  {
     "id": "store.sql_session.save.app_error",
     "translation": "No pudimos guardar la sesión"
   },
@@ -3292,12 +3360,20 @@
     "translation": "No encontramos el equipo al que perteneces"
   },
   {
+    "id": "store.sql_team.get_members.app_error",
+    "translation": "No pudimos obtener los miembros del equipo"
+  },
+  {
     "id": "store.sql_team.get_teams_for_email.app_error",
     "translation": "Encontramos un problema cuando buscabamos los equipos"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "No pudimos eliminar el equipo"
+  },
+  {
+    "id": "store.sql_team.remove_member.app_error",
+    "translation": "No pudimos remover el miembro del equipo"
   },
   {
     "id": "store.sql_team.save.app_error",
@@ -3310,6 +3386,14 @@
   {
     "id": "store.sql_team.save.existing.app_error",
     "translation": "Debe ejecturase actualizar para un equipo existente"
+  },
+  {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "Ya existe un miembro del equipo con el mismo id"
+  },
+  {
+    "id": "store.sql_team.save_member.save.app_error",
+    "translation": "No pudimos guardar el miembro del equipo"
   },
   {
     "id": "store.sql_team.update.app_error",
