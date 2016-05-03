@@ -442,13 +442,14 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("attempt")
-
 	var user *model.User
 	var err *model.AppError
 
 	if len(id) != 0 {
+		c.LogAuditWithUserId(id, "attempt")
+
 		if result := <-Srv.Store.User().Get(id); result.Err != nil {
+			c.LogAuditWithUserId(user.Id, "failure")
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusBadRequest
 			return
@@ -456,13 +457,16 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			user = result.Data.(*model.User)
 		}
 	} else {
+		c.LogAudit("attempt")
+
 		if user, err = getUserForLogin(loginId); err != nil {
+			c.LogAudit("failure")
 			c.Err = err
 			return
 		}
-	}
 
-	c.LogAuditWithUserId(user.Id, "attempt")
+		c.LogAuditWithUserId(user.Id, "attempt")
+	}
 
 	// and then authenticate them
 	if user, err = authenticateUser(user, password, mfaToken); err != nil {

@@ -133,10 +133,10 @@ func authenticateUser(user *model.User, password, mfaToken string) (*model.User,
 		if !ldapAvailable {
 			err := model.NewLocAppError("login", "api.user.login_ldap.not_available.app_error", nil, "")
 			err.StatusCode = http.StatusNotImplemented
-			return nil, err
+			return user, err
 		} else if ldapUser, err := checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken); err != nil {
 			err.StatusCode = http.StatusUnauthorized
-			return nil, err
+			return user, err
 		} else {
 			// slightly redundant to get the user again, but we need to get it from the LDAP server
 			return ldapUser, nil
@@ -144,11 +144,11 @@ func authenticateUser(user *model.User, password, mfaToken string) (*model.User,
 	} else if user.AuthService != "" {
 		err := model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": user.AuthService}, "")
 		err.StatusCode = http.StatusBadRequest
-		return nil, err
+		return user, err
 	} else {
 		if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 			err.StatusCode = http.StatusUnauthorized
-			return nil, err
+			return user, err
 		} else {
 			return user, nil
 		}
