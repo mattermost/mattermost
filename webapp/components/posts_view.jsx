@@ -510,7 +510,7 @@ export default class PostsView extends React.Component {
         }
 
         let topPostCreateAt = 0;
-        if (this.state.topPostId) {
+        if (this.state.topPostId && this.props.postList.posts[this.state.topPostId]) {
             topPostCreateAt = this.props.postList.posts[this.state.topPostId].create_at;
         }
 
