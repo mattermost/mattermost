@@ -697,55 +697,60 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 					sessions := result.Data.([]*model.Session)
 					alreadySeen := make(map[string]string)
 
-					for _, session := range sessions {
-						if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" &&
-							(strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")) {
-							alreadySeen[session.DeviceId] = session.DeviceId
+					pushServer := *utils.Cfg.EmailSettings.PushNotificationServer
+					if pushServer == model.MHPNS && (!utils.IsLicensed || !*utils.License.Features.MHPNS) {
+						l4g.Warn(utils.T("api.post.send_notifications_and_forget.push_notification.mhpnsWarn"))
+					} else {
+						for _, session := range sessions {
+							if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" &&
+								(strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")) {
+								alreadySeen[session.DeviceId] = session.DeviceId
 
-							msg := model.PushNotification{}
-							if badge := <-Srv.Store.User().GetUnreadCount(id); badge.Err != nil {
-								msg.Badge = 1
-								l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), id, badge.Err)
-							} else {
-								msg.Badge = int(badge.Data.(int64))
-							}
-							msg.ServerId = utils.CfgDiagnosticId
-							msg.ChannelId = channel.Id
-							msg.ChannelName = channel.Name
-
-							if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") {
-								msg.Platform = model.PUSH_NOTIFY_APPLE
-								msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":")
-							} else if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":") {
-								msg.Platform = model.PUSH_NOTIFY_ANDROID
-								msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")
-							}
-
-							if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
-								if channel.Type == model.CHANNEL_DIRECT {
-									msg.Category = model.CATEGORY_DM
-									msg.Message = "@" + senderName + ": " + model.ClearMentionTags(post.Message)
+								msg := model.PushNotification{}
+								if badge := <-Srv.Store.User().GetUnreadCount(id); badge.Err != nil {
+									msg.Badge = 1
+									l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), id, badge.Err)
 								} else {
-									msg.Message = "@" + senderName + " @ " + channelName + ": " + model.ClearMentionTags(post.Message)
+									msg.Badge = int(badge.Data.(int64))
 								}
-							} else {
-								if channel.Type == model.CHANNEL_DIRECT {
-									msg.Category = model.CATEGORY_DM
-									msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+								msg.ServerId = utils.CfgDiagnosticId
+								msg.ChannelId = channel.Id
+								msg.ChannelName = channel.Name
+
+								if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") {
+									msg.Platform = model.PUSH_NOTIFY_APPLE
+									msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":")
+								} else if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":") {
+									msg.Platform = model.PUSH_NOTIFY_ANDROID
+									msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")
+								}
+
+								if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+									if channel.Type == model.CHANNEL_DIRECT {
+										msg.Category = model.CATEGORY_DM
+										msg.Message = "@" + senderName + ": " + model.ClearMentionTags(post.Message)
+									} else {
+										msg.Message = "@" + senderName + " @ " + channelName + ": " + model.ClearMentionTags(post.Message)
+									}
 								} else {
-									msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+									if channel.Type == model.CHANNEL_DIRECT {
+										msg.Category = model.CATEGORY_DM
+										msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+									} else {
+										msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+									}
 								}
-							}
 
-							tr := &http.Transport{
-								TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-							}
-							httpClient := &http.Client{Transport: tr}
-							request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+								tr := &http.Transport{
+									TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+								}
+								httpClient := &http.Client{Transport: tr}
+								request, _ := http.NewRequest("POST", pushServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
-							l4g.Debug(utils.T("api.post.send_notifications_and_forget.push_notification.debug"), msg.DeviceId, msg.Message)
-							if _, err := httpClient.Do(request); err != nil {
-								l4g.Error(utils.T("api.post.send_notifications_and_forget.push_notification.error"), id, err)
+								l4g.Debug(utils.T("api.post.send_notifications_and_forget.push_notification.debug"), msg.DeviceId, msg.Message)
+								if _, err := httpClient.Do(request); err != nil {
+									l4g.Error(utils.T("api.post.send_notifications_and_forget.push_notification.error"), id, err)
+								}
 							}
 						}
 					}
