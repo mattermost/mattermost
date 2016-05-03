@@ -77,9 +77,9 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 		}
 
 		if err := us.GetMaster().Insert(user); err != nil {
-			if IsUniqueConstraintError(err.Error(), "Email", "users_email_teamid_key") {
+			if IsUniqueConstraintError(err.Error(), "Email", "users_email_key") {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.email_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
-			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_teamid_key") {
+			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_key") {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.username_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.app_error", nil, "user_id="+user.Id+", "+err.Error())
