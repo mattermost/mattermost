@@ -95,7 +95,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreChannel {
+func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -129,14 +129,14 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.MfaSecret = oldUser.MfaSecret
 			user.MfaActive = oldUser.MfaActive
 
-			if !allowActiveUpdate {
+			if !trustedUpdateData {
 				user.Roles = oldUser.Roles
 				user.DeleteAt = oldUser.DeleteAt
 			}
 
 			if user.IsOAuthUser() {
 				user.Email = oldUser.Email
-			} else if user.IsLDAPUser() {
+			} else if user.IsLDAPUser() && !trustedUpdateData {
 				if user.Username != oldUser.Username ||
 					user.FirstName != oldUser.FirstName ||
 					user.LastName != oldUser.LastName ||
