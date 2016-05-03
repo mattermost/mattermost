@@ -224,6 +224,28 @@ export function getTeamMembers(teamId) {
     );
 }
 
+export function getProfilesForDirectMessageList() {
+    if (isCallInProgress('getProfilesForDirectMessageList')) {
+        return;
+    }
+
+    callTracker.getProfilesForDirectMessageList = utils.getTimestamp();
+    Client.getProfilesForDirectMessageList(
+        (data) => {
+            callTracker.getProfilesForDirectMessageList = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES_FOR_DM_LIST,
+                profiles: data
+            });
+        },
+        (err) => {
+            callTracker.getProfilesForDirectMessageList = 0;
+            dispatchError(err, 'getProfilesForDirectMessageList');
+        }
+    );
+}
+
 export function getProfiles() {
     if (isCallInProgress('getProfiles')) {
         return;

@@ -2304,6 +2304,10 @@
     "translation": "Invalid connection security for LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
   },
   {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Invalid direct message restriction.  Must be 'any', or 'team'"
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
   },

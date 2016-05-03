@@ -157,6 +157,11 @@ export function emitPostFocusEvent(postId) {
     );
 }
 
+export function emitProfilesForDmList() {
+    AsyncClient.getProfilesForDirectMessageList();
+    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
+}
+
 export function emitCloseRightHandSide() {
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_SEARCH,
@@ -335,6 +340,10 @@ export function emitClearSuggestions(suggestionId) {
 }
 
 export function emitPreferenceChangedEvent(preference) {
+    if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
+        AsyncClient.getDirectProfiles();
+    }
+
     AppDispatcher.handleServerAction({
         type: Constants.ActionTypes.RECEIVED_PREFERENCE,
         preference

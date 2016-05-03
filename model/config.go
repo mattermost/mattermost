@@ -28,6 +28,9 @@ const (
 
 	GENERIC_NOTIFICATION = "generic"
 	FULL_NOTIFICATION    = "full"
+
+	DIRECT_MESSAGE_ANY  = "any"
+	DIRECT_MESSAGE_TEAM = "team"
 )
 
 type ServiceSettings struct {
@@ -160,6 +163,7 @@ type TeamSettings struct {
 	RestrictTeamNames         *bool
 	EnableCustomBrand         *bool
 	CustomBrandText           *string
+	RestrictDirectMessage     *string
 }
 
 type LdapSettings struct {
@@ -311,6 +315,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.EnableOpenServer == nil {
 		o.TeamSettings.EnableOpenServer = new(bool)
 		*o.TeamSettings.EnableOpenServer = false
+	}
+
+	if o.TeamSettings.RestrictDirectMessage == nil {
+		o.TeamSettings.RestrictDirectMessage = new(string)
+		*o.TeamSettings.RestrictDirectMessage = DIRECT_MESSAGE_ANY
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -516,6 +525,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
+	}
+
+	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "")
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {

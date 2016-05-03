@@ -24,6 +24,14 @@ const holders = defineMessages({
     saving: {
         id: 'admin.team.saving',
         defaultMessage: 'Saving Config...'
+    },
+    restrictDirectMessageAny: {
+        id: 'admin.team.restrict_direct_message_any',
+        defaultMessage: 'Any user on the Mattermost server'
+    },
+    restrictDirectMessageTeam: {
+        id: 'admin.team.restrict_direct_message_team',
+        defaultMessage: 'Any member of the team'
     }
 });
 
@@ -48,6 +56,7 @@ class TeamSettings extends React.Component {
             saveNeeded: false,
             brandImageExists: false,
             enableCustomBrand: this.props.config.TeamSettings.EnableCustomBrand,
+            restrictDirectMessage: this.props.config.TeamSettings.RestrictDirectMessage,
             serverError: null
         };
     }
@@ -104,6 +113,7 @@ class TeamSettings extends React.Component {
         config.TeamSettings.EnableUserCreation = this.refs.EnableUserCreation.checked;
         config.TeamSettings.EnableOpenServer = this.refs.EnableOpenServer.checked;
         config.TeamSettings.RestrictTeamNames = this.refs.RestrictTeamNames.checked;
+        config.TeamSettings.RestrictDirectMessage = this.refs.RestrictDirectMessage.value.trim();
 
         if (this.refs.EnableCustomBrand) {
             config.TeamSettings.EnableCustomBrand = this.refs.EnableCustomBrand.checked;
@@ -655,6 +665,36 @@ class TeamSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.team.restrictNameDesc'
                                     defaultMessage='When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'
+                                />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='restrictDirectMessage'
+                        >
+                            <FormattedMessage
+                                id='admin.team.restrictDirectMessage'
+                                defaultMessage='Enable users to open Direct Message channels with:'
+                            />
+                        </label>
+                        <div className='col-sm-8'>
+                            <select
+                                className='form-control'
+                                id='restrictDirectMessage'
+                                ref='RestrictDirectMessage'
+                                defaultValue={this.props.config.TeamSettings.RestrictDirectMessage}
+                                onChange={this.handleChange.bind(this, 'restrictDirectMessage')}
+                            >
+                                <option value='any'>{formatMessage(holders.restrictDirectMessageAny)}</option>
+                                <option value='team'>{formatMessage(holders.restrictDirectMessageTeam)}</option>
+                            </select>
+                            <p className='help-text'>
+                                <FormattedHTMLMessage
+                                    id='admin.team.restrictDirectMessageDesc'
+                                    defaultMessage='"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability to open Direct Message channels to only users who are in the same team.'
                                 />
                             </p>
                         </div>

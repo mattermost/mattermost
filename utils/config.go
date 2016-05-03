@@ -209,6 +209,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
+	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey

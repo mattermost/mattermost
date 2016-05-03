@@ -34,7 +34,8 @@
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
-        "CustomBrandText": ""
+        "CustomBrandText": "",
+        "RestrictDirectMessage": "any"
     },
     "SqlSettings": {
         "DriverName": "mysql",

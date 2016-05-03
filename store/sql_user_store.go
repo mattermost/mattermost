@@ -454,11 +454,69 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			                    Channels.Type = 'D'
 			                        AND Channels.Id = ChannelMembers.ChannelId
 			                        AND ChannelMembers.UserId = :UserId))
-			`, map[string]interface{}{"UserId": userId})
+			        OR Id IN (SELECT 
+			            Name
+			        FROM
+			            Preferences
+			        WHERE
+			            UserId = :UserId
+			                AND Category = 'direct_channel_show')
+        `, map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
+		if err != nil {
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+		} else {
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetAllProfiles() StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users"); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
 		}
 
 		storeChannel <- result
@@ -548,7 +606,15 @@ func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
 			                WHERE
 			                    Channels.Type = 'D'
 			                        AND Channels.Id = ChannelMembers.ChannelId
-			                        AND ChannelMembers.UserId = :UserId))`, map[string]interface{}{"UserId": userId}); err != nil {
+			                        AND ChannelMembers.UserId = :UserId))
+			        OR Id IN (SELECT 
+			            Name
+			        FROM
+			            Preferences
+			        WHERE
+			            UserId = :UserId
+			                AND Category = 'direct_channel_show')
+            `, map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetDirectProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 

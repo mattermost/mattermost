@@ -5,6 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import Constants from 'utils/constants.jsx';
@@ -99,6 +100,7 @@ class TeamUrl extends React.Component {
                         (team) => {
                             Client.track('signup', 'signup_team_08_complete');
                             $('#sign-up-button').button('reset');
+                            AsyncClient.getDirectProfiles();
                             TeamStore.saveTeam(team);
                             TeamStore.appendTeamMember({team_id: team.id, user_id: UserStore.getCurrentId(), roles: 'admin'});
                             TeamStore.emitChange();

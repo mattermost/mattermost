@@ -56,6 +56,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
@@ -998,6 +999,49 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	var pchan store.StoreChannel
+
+	if *utils.Cfg.TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM {
+		if c.Session.GetTeamByTeamId(id) == nil {
+			if !c.HasSystemAdminPermissions("getProfiles") {
+				return
+			}
+		}
+
+		pchan = Srv.Store.User().GetProfiles(id)
+	} else {
+		pchan = Srv.Store.User().GetAllProfiles()
+	}
+
+	if result := <-pchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for k, p := range profiles {
+			options := utils.Cfg.GetSanitizeOptions()
+			options["passwordupdate"] = false
+
+			if c.IsSystemAdmin() {
+				options["fullname"] = true
+				options["email"] = true
+			} else {
+				p.ClearNonProfileFields()
+			}
+
+			p.Sanitize(options)
+			profiles[k] = p
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
 func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -1036,7 +1080,6 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
-		return
 	}
 }
 
@@ -1069,7 +1112,6 @@ func getDirectProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
-		return
 	}
 }
 
