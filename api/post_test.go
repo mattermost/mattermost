@@ -360,19 +360,19 @@ func TestSearchPosts(t *testing.T) {
 	r1 := Client.Must(Client.SearchPosts("search")).Data.(*model.PostList)
 
 	if len(r1.Order) != 3 {
-		t.Fatal("wrong serach")
+		t.Fatal("wrong search")
 	}
 
 	r2 := Client.Must(Client.SearchPosts("post2")).Data.(*model.PostList)
 
 	if len(r2.Order) != 1 && r2.Order[0] == post2.Id {
-		t.Fatal("wrong serach")
+		t.Fatal("wrong search")
 	}
 
 	r3 := Client.Must(Client.SearchPosts("#hashtag")).Data.(*model.PostList)
 
 	if len(r3.Order) != 1 && r3.Order[0] == post3.Id {
-		t.Fatal("wrong serach")
+		t.Fatal("wrong search")
 	}
 
 	if r4 := Client.Must(Client.SearchPosts("*")).Data.(*model.PostList); len(r4.Order) != 0 {
