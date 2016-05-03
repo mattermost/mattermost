@@ -13,8 +13,6 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
-
 import React from 'react';
 
 const MAXIMUM_CACHED_VIEWS = 3;
@@ -188,7 +186,7 @@ export default class PostsViewContainer extends React.Component {
                     }}
                     showMoreMessagesTop={!this.state.atTop[this.state.currentChannelIndex]}
                     showMoreMessagesBottom={false}
-                    introText={channel ? createChannelIntroMessage(channel) : null}
+                    channel={channel}
                     messageSeparatorTime={this.state.currentLastViewed}
                 />
             );

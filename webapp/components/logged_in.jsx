@@ -63,11 +63,12 @@ export default class LoggedIn extends React.Component {
     onUserChanged() {
         // Grab the current user
         const user = UserStore.getCurrentUser();
-        this.setupUser(user);
-
-        this.setState({
-            user
-        });
+        if (!Utils.areObjectsEqual(this.state.user, user)) {
+            this.setupUser(user);
+            this.setState({
+                user
+            });
+        }
     }
 
     componentWillMount() {

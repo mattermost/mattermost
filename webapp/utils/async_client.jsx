@@ -131,7 +131,6 @@ export function updateLastViewedAt(id) {
         () => {
             callTracker.updateLastViewed = 0;
             ErrorStore.clearLastError();
-            ErrorStore.emitChange();
         },
         (err) => {
             callTracker.updateLastViewed = 0;
