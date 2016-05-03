@@ -1118,7 +1118,7 @@
   "sidebar.createChannel": "Crear un nuevo canal",
   "sidebar.createGroup": "Crear un nuevo grupo",
   "sidebar.direct": "Mensajes Directos",
-  "sidebar.more": "Más ({count})",
+  "sidebar.more": "Más",
   "sidebar.moreElips": "Más...",
   "sidebar.pg": "Grupos Privados",
   "sidebar.removeList": "Remover de la lista",
