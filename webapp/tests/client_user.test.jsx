@@ -66,7 +66,33 @@ describe('Client.User', function() {
             function() {
                 client.login(
                     user.email,
+                    user.password,
                     null,
+                    function(data) {
+                        assert.equal(data.id.length > 0, true);
+                        assert.equal(data.email, user.email);
+                        done();
+                    },
+                    function(err) {
+                        done(new Error(err.message));
+                    }
+                );
+            },
+            function(err) {
+                done(new Error(err.message));
+            }
+        );
+    });
+
+    it('loginById', function(done) {
+        var client = TestHelper.createClient();
+        var user = TestHelper.fakeUser();
+        client.createUser(
+            user,
+            function(newUser) {
+                assert.equal(user.email, newUser.email);
+                client.loginById(
+                    newUser.id,
                     user.password,
                     null,
                     function(data) {
@@ -87,39 +113,12 @@ describe('Client.User', function() {
 
     it('loginByUsername', function(done) {
         var client = TestHelper.createClient();
-        var user = TestHelper.fakeUser();
-        client.createUser(
-            user,
-            function() {
-                client.login(
-                    null,
-                    user.username,
-                    user.password,
-                    null,
-                    function(data) {
-                        assert.equal(data.id.length > 0, true);
-                        assert.equal(data.email, user.email);
-                        done();
-                    },
-                    function(err) {
-                        done(new Error(err.message));
-                    }
-                );
-            },
-            function(err) {
-                done(new Error(err.message));
-            }
-        );
-    });
-
-    it('loginByLdap', function(done) {
-        var client = TestHelper.createClient();
         client.enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
         var user = TestHelper.fakeUser();
         client.createUser(
             user,
             function() {
-                client.loginByLdap(
+                client.login(
                     user.username,
                     user.password,
                     null,
@@ -127,7 +126,8 @@ describe('Client.User', function() {
                         done(new Error());
                     },
                     function(err) {
-                        assert.equal(err.id, 'api.user.login_ldap.disabled.app_error');
+                        // should error out because logging in by username is disabled by default
+                        assert.equal(err.id, 'store.sql_user.get_for_login.app_error');
                         done();
                     }
                 );
@@ -372,7 +372,6 @@ describe('Client.User', function() {
     it('checkMfa', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().checkMfa(
-                'email',
                 TestHelper.generateId(),
                 function(data) {
                     assert.equal(data.mfa_required, 'false');

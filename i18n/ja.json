@@ -1564,7 +1564,7 @@
     "translation": "userId=%vのsessionId=%vを無効化しました。同じデバイスIDでログインし直してください"
   },
   {
-    "id": "api.user.login_by_email.sign_in.app_error",
+    "id": "api.user.login.use_auth_service.app_error",
     "translation": "{{.AuthService}}を使ってサインインしてください"
   },
   {

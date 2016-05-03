@@ -10,6 +10,9 @@ import ConnectionSecurityDropdownSetting from './connection_security_dropdown_se
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
+import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
+
 var holders = defineMessages({
     notificationDisplayExample: {
         id: 'admin.email.notificationDisplayExample',
@@ -43,18 +46,6 @@ var holders = defineMessages({
         id: 'admin.email.passwordSaltExample',
         defaultMessage: 'Ex "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
     },
-    pushServerEx: {
-        id: 'admin.email.pushServerEx',
-        defaultMessage: 'E.g.: "http://push-test.mattermost.com"'
-    },
-    genericPush: {
-        id: 'admin.email.genericPushNotification',
-        defaultMessage: 'Send generic description with user and channel names'
-    },
-    fullPush: {
-        id: 'admin.email.fullPushNotification',
-        defaultMessage: 'Send full message snippet'
-    },
     testing: {
         id: 'admin.email.testing',
         defaultMessage: 'Testing...'
@@ -77,6 +68,29 @@ class EmailSettings extends React.Component {
         this.buildConfig = this.buildConfig.bind(this);
         this.handleGenerateInvite = this.handleGenerateInvite.bind(this);
         this.handleGenerateReset = this.handleGenerateReset.bind(this);
+        this.handleSendPushNotificationsChange = this.handleSendPushNotificationsChange.bind(this);
+        this.handlePushServerChange = this.handlePushServerChange.bind(this);
+        this.handleAgreeChange = this.handleAgreeChange.bind(this);
+
+        let sendNotificationValue;
+        let agree = false;
+        if (!props.config.EmailSettings.SendPushNotifications) {
+            sendNotificationValue = 'off';
+        } else if (props.config.EmailSettings.PushNotificationServer === Constants.MHPNS && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MHPNS === 'true') {
+            sendNotificationValue = 'mhpns';
+            agree = true;
+        } else if (props.config.EmailSettings.PushNotificationServer === Constants.MTPNS) {
+            sendNotificationValue = 'mtpns';
+        } else {
+            sendNotificationValue = 'self';
+        }
+
+        let pushNotificationServer = this.props.config.EmailSettings.PushNotificationServer;
+        if (sendNotificationValue === 'mtpns') {
+            pushNotificationServer = Constants.MTPNS;
+        } else if (sendNotificationValue === 'mhpns') {
+            pushNotificationServer = Constants.MHPNS;
+        }
 
         this.state = {
             sendEmailNotifications: this.props.config.EmailSettings.SendEmailNotifications,
@@ -86,12 +100,15 @@ class EmailSettings extends React.Component {
             emailSuccess: null,
             emailFail: null,
             pushNotificationContents: this.props.config.EmailSettings.PushNotificationContents,
-            connectionSecurity: this.props.config.EmailSettings.ConnectionSecurity
+            connectionSecurity: this.props.config.EmailSettings.ConnectionSecurity,
+            sendNotificationValue,
+            pushNotificationServer,
+            agree
         };
     }
 
     handleChange(action) {
-        var s = {saveNeeded: true, serverError: this.state.serverError};
+        const s = {saveNeeded: true};
 
         if (action === 'sendEmailNotifications_true') {
             s.sendEmailNotifications = true;
@@ -113,18 +130,15 @@ class EmailSettings extends React.Component {
     }
 
     buildConfig() {
-        var config = this.props.config;
+        const config = this.props.config;
         config.EmailSettings.EnableSignUpWithEmail = ReactDOM.findDOMNode(this.refs.allowSignUpWithEmail).checked;
         config.EmailSettings.EnableSignInWithEmail = ReactDOM.findDOMNode(this.refs.allowSignInWithEmail).checked;
         config.EmailSettings.EnableSignInWithUsername = ReactDOM.findDOMNode(this.refs.allowSignInWithUsername).checked;
         config.EmailSettings.SendEmailNotifications = ReactDOM.findDOMNode(this.refs.sendEmailNotifications).checked;
-        config.EmailSettings.SendPushNotifications = ReactDOM.findDOMNode(this.refs.sendPushNotifications).checked;
         config.EmailSettings.RequireEmailVerification = ReactDOM.findDOMNode(this.refs.requireEmailVerification).checked;
         config.EmailSettings.FeedbackName = ReactDOM.findDOMNode(this.refs.feedbackName).value.trim();
         config.EmailSettings.FeedbackEmail = ReactDOM.findDOMNode(this.refs.feedbackEmail).value.trim();
         config.EmailSettings.SMTPServer = ReactDOM.findDOMNode(this.refs.SMTPServer).value.trim();
-        config.EmailSettings.PushNotificationServer = ReactDOM.findDOMNode(this.refs.PushNotificationServer).value.trim();
-        config.EmailSettings.PushNotificationContents = ReactDOM.findDOMNode(this.refs.PushNotificationContents).value;
         config.EmailSettings.SMTPPort = ReactDOM.findDOMNode(this.refs.SMTPPort).value.trim();
         config.EmailSettings.SMTPUsername = ReactDOM.findDOMNode(this.refs.SMTPUsername).value.trim();
         config.EmailSettings.SMTPPassword = ReactDOM.findDOMNode(this.refs.SMTPPassword).value.trim();
@@ -142,7 +156,41 @@ class EmailSettings extends React.Component {
             ReactDOM.findDOMNode(this.refs.PasswordResetSalt).value = config.EmailSettings.PasswordResetSalt;
         }
 
+        const sendPushNotifications = this.refs.sendPushNotifications.value;
+        if (sendPushNotifications === 'off') {
+            config.EmailSettings.SendPushNotifications = false;
+        } else {
+            config.EmailSettings.SendPushNotifications = true;
+        }
+
+        if (this.refs.PushNotificationServer) {
+            config.EmailSettings.PushNotificationServer = this.refs.PushNotificationServer.value.trim();
+        }
+
+        if (this.refs.PushNotificationContents) {
+            config.EmailSettings.PushNotificationContents = this.refs.PushNotificationContents.value;
+        }
+
         return config;
+    }
+
+    handleSendPushNotificationsChange(e) {
+        const sendNotificationValue = e.target.value;
+        let pushNotificationServer = this.state.pushNotificationServer;
+        if (sendNotificationValue === 'mtpns') {
+            pushNotificationServer = Constants.MTPNS;
+        } else if (sendNotificationValue === 'mhpns') {
+            pushNotificationServer = Constants.MHPNS;
+        }
+        this.setState({saveNeeded: true, sendNotificationValue, pushNotificationServer, agree: false});
+    }
+
+    handlePushServerChange(e) {
+        this.setState({saveNeeded: true, pushNotificationServer: e.target.value});
+    }
+
+    handleAgreeChange(e) {
+        this.setState({agree: e.target.checked});
     }
 
     handleGenerateInvite(e) {
@@ -259,6 +307,169 @@ class EmailSettings extends React.Component {
                              error: this.state.emailFail
                          }}
                      />
+                </div>
+            );
+        }
+
+        let mhpnsOption;
+        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MHPNS === 'true') {
+            mhpnsOption = <option value='mhpns'>{Utils.localizeMessage('admin.email.mhpns', 'Use encrypted, production-quality HPNS connection to iOS and Android apps')}</option>;
+        }
+
+        let disableSave = !this.state.saveNeeded;
+
+        let tosCheckbox;
+        if (this.state.sendNotificationValue === 'mhpns') {
+            tosCheckbox = (
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                    >
+                        {''}
+                    </label>
+                    <div className='col-sm-8'>
+                        <input
+                            type='checkbox'
+                            ref='agree'
+                            checked={this.state.agree}
+                            onChange={this.handleAgreeChange}
+                        />
+                        <FormattedHTMLMessage
+                            id='admin.email.agreeHPNS'
+                            defaultMessage=' I understand and accept the Mattermost Hosted Push Notification Service <a href="https://about.mattermost.com/hpns-terms/" target="_blank">Terms of Service</a> and <a href="https://about.mattermost.com/hpns-privacy/" target="_blank">Privacy Policy</a>.'
+                        />
+                    </div>
+                </div>
+            );
+
+            disableSave = disableSave || !this.state.agree;
+        }
+
+        let sendHelpText;
+        let pushServerHelpText;
+        if (this.state.sendNotificationValue === 'off') {
+            sendHelpText = (
+                <FormattedHTMLMessage
+                    id='admin.email.pushOffHelp'
+                    defaultMessage='Please see <a href="http://docs.mattermost.com/deployment/push.html#push-notifications-and-mobile-devices" target="_blank">documentation on push notifications</a> to learn more about setup options.'
+                />
+            );
+        } else if (this.state.sendNotificationValue === 'mhpns') {
+            pushServerHelpText = (
+                <FormattedHTMLMessage
+                    id='admin.email.mhpnsHelp'
+                    defaultMessage='Download <a href="https://itunes.apple.com/us/app/mattermost/id984966508?mt=8" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://play.google.com/store/apps/details?id=com.mattermost.mattermost&hl=en" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="http://docs.mattermost.com/deployment/push.html#hosted-push-notifications-service-hpns" target="_blank">Mattermost Hosted Push Notification Service</a>.'
+                />
+            );
+        } else if (this.state.sendNotificationValue === 'mtpns') {
+            pushServerHelpText = (
+                <FormattedHTMLMessage
+                    id='admin.email.mtpnsHelp'
+                    defaultMessage='Download <a href="https://itunes.apple.com/us/app/mattermost/id984966508?mt=8" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://play.google.com/store/apps/details?id=com.mattermost.mattermost&hl=en" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="http://docs.mattermost.com/deployment/push.html#test-push-notifications-service-tpns" target="_blank">Mattermost Test Push Notification Service</a>.'
+                />
+            );
+        } else {
+            pushServerHelpText = (
+                <FormattedHTMLMessage
+                    id='admin.email.easHelp'
+                    defaultMessage='Learn more about compiling and deploying your own mobile apps from an <a href="http://docs.mattermost.com/deployment/push.html#enterprise-app-store-eas" target="_blank">Enterprise App Store</a>.'
+                />
+            );
+        }
+
+        const sendPushNotifications = (
+            <div className='form-group'>
+                <label
+                    className='control-label col-sm-4'
+                    htmlFor='sendPushNotifications'
+                >
+                    <FormattedMessage
+                        id='admin.email.pushTitle'
+                        defaultMessage='Send Push Notifications: '
+                    />
+                </label>
+                <div className='col-sm-8'>
+                    <select
+                        className='form-control'
+                        id='sendPushNotifications'
+                        ref='sendPushNotifications'
+                        value={this.state.sendNotificationValue}
+                        onChange={this.handleSendPushNotificationsChange}
+                    >
+                        <option value='off'>{Utils.localizeMessage('admin.email.pushOff', 'Do not send push notifications')}</option>
+                        {mhpnsOption}
+                        <option value='mtpns'>{Utils.localizeMessage('admin.email.mtpns', 'Use iOS and Android apps on iTunes and Google Play with TPNS')}</option>
+                        <option value='self'>{Utils.localizeMessage('admin.email.selfPush', 'Manually enter Push Notification Service location')}</option>
+                    </select>
+                    <p className='help-text'>
+                        {sendHelpText}
+                    </p>
+                </div>
+            </div>
+        );
+
+        let pushNotificationServer;
+        let pushNotificationContent;
+        if (this.state.sendNotificationValue !== 'off') {
+            pushNotificationServer = (
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                        htmlFor='PushNotificationServer'
+                    >
+                        <FormattedMessage
+                            id='admin.email.pushServerTitle'
+                            defaultMessage='Push Notification Server:'
+                        />
+                    </label>
+                    <div className='col-sm-8'>
+                        <input
+                            type='text'
+                            className='form-control'
+                            id='PushNotificationServer'
+                            ref='PushNotificationServer'
+                            placeholder={Utils.localizeMessage('admin.email.pushServerEx', 'E.g.: "http://push-test.mattermost.com"')}
+                            value={this.state.pushNotificationServer}
+                            onChange={this.handlePushServerChange}
+                            disabled={this.state.sendNotificationValue !== 'self'}
+                        />
+                        <p className='help-text'>
+                            {pushServerHelpText}
+                        </p>
+                    </div>
+                </div>
+            );
+
+            pushNotificationContent = (
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                        htmlFor='pushNotificationContents'
+                    >
+                        <FormattedMessage
+                            id='admin.email.pushContentTitle'
+                            defaultMessage='Push Notification Contents:'
+                        />
+                    </label>
+                    <div className='col-sm-8'>
+                        <select
+                            className='form-control'
+                            id='pushNotificationContents'
+                            ref='PushNotificationContents'
+                            defaultValue={this.props.config.EmailSettings.PushNotificationContents}
+                            onChange={this.handleChange.bind(this, 'pushNotificationContents')}
+                        >
+                            <option value='generic'>{Utils.localizeMessage('admin.email.genericPushNotification', 'Send generic description with user and channel names')}</option>
+                            <option value='full'>{Utils.localizeMessage('admin.email.fullPushNotification', 'Send full message snippet')}</option>
+                        </select>
+                        <p className='help-text'>
+                            <FormattedHTMLMessage
+                                id='admin.email.pushContentDesc'
+                                defaultMessage='Selecting "Send generic description with user and channel names" provides push notifications with generic messages, including names of users and channels but no specific details from the message text.<br /><br />
+                                Selecting "Send full message snippet" sends excerpts from messages triggering notifications with specifics and may include confidential information sent in messages. If your Push Notification Service is outside your firewall, it is HIGHLY RECOMMENDED this option only be used with an "https" protocol to encrypt the connection.'
+                            />
+                        </p>
+                    </div>
                 </div>
             );
         }
@@ -803,120 +1014,16 @@ class EmailSettings extends React.Component {
                         </div>
                     </div>
 
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='sendPushNotifications'
-                        >
-                            <FormattedMessage
-                                id='admin.email.pushTitle'
-                                defaultMessage='Send Push Notifications: '
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='sendPushNotifications'
-                                    value='true'
-                                    ref='sendPushNotifications'
-                                    defaultChecked={this.props.config.EmailSettings.SendPushNotifications}
-                                    onChange={this.handleChange.bind(this, 'sendPushNotifications_true')}
-                                />
-                                    <FormattedMessage
-                                        id='admin.email.true'
-                                        defaultMessage='true'
-                                    />
-                            </label>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='sendPushNotifications'
-                                    value='false'
-                                    defaultChecked={!this.props.config.EmailSettings.SendPushNotifications}
-                                    onChange={this.handleChange.bind(this, 'sendPushNotifications_false')}
-                                />
-                                    <FormattedMessage
-                                        id='admin.email.false'
-                                        defaultMessage='false'
-                                    />
-                            </label>
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.email.pushDesc'
-                                    defaultMessage='Typically set to true in production. When true, Mattermost attempts to send iOS and Android push notifications through the push notification server.'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='PushNotificationServer'
-                        >
-                            <FormattedMessage
-                                id='admin.email.pushServerTitle'
-                                defaultMessage='Push Notification Server:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='PushNotificationServer'
-                                ref='PushNotificationServer'
-                                placeholder={formatMessage(holders.pushServerEx)}
-                                defaultValue={this.props.config.EmailSettings.PushNotificationServer}
-                                onChange={this.handleChange}
-                                disabled={!this.state.sendPushNotifications}
-                            />
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.email.pushServerDesc'
-                                    defaultMessage='Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use http://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='pushNotificationContents'
-                        >
-                            <FormattedMessage
-                                id='admin.email.pushContentTitle'
-                                defaultMessage='Push Notification Contents:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <select
-                                className='form-control'
-                                id='pushNotificationContents'
-                                ref='PushNotificationContents'
-                                defaultValue={this.props.config.EmailSettings.PushNotificationContents}
-                                onChange={this.handleChange.bind(this, 'pushNotificationContents')}
-                                disabled={!this.state.sendPushNotifications}
-                            >
-                                <option value='generic'>{formatMessage(holders.genericPush)}</option>
-                                <option value='full'>{formatMessage(holders.fullPush)}</option>
-                            </select>
-                            <p className='help-text'>
-                                <FormattedHTMLMessage
-                                    id='admin.email.pushContentDesc'
-                                    defaultMessage='Selecting "Send generic description with user and channel names" provides push notifications with generic messages, including names of users and channels but no specific details from the message text.<br /><br />
-                                    Selecting "Send full message snippet" sends excerpts from messages triggering notifications with specifics and may include confidential information sent in messages. If your Push Notification Service is outside your firewall, it is HIGHLY RECOMMENDED this option only be used with an "https" protocol to encrypt the connection.'
-                                />
-                            </p>
-                        </div>
-                    </div>
+                    {sendPushNotifications}
+                    {tosCheckbox}
+                    {pushNotificationServer}
+                    {pushNotificationContent}
 
                     <div className='form-group'>
                         <div className='col-sm-12'>
                             {serverError}
                             <button
-                                disabled={!this.state.saveNeeded}
+                                disabled={disableSave}
                                 type='submit'
                                 className={saveClass}
                                 onClick={this.handleSubmit}

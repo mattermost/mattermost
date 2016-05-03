@@ -77,9 +77,9 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 		}
 
 		if err := us.GetMaster().Insert(user); err != nil {
-			if IsUniqueConstraintError(err.Error(), "Email", "users_email_teamid_key") {
+			if IsUniqueConstraintError(err.Error(), "Email", "users_email_key") {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.email_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
-			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_teamid_key") {
+			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_key") {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.username_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.app_error", nil, "user_id="+user.Id+", "+err.Error())
@@ -95,7 +95,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreChannel {
+func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -129,14 +129,14 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.MfaSecret = oldUser.MfaSecret
 			user.MfaActive = oldUser.MfaActive
 
-			if !allowActiveUpdate {
+			if !trustedUpdateData {
 				user.Roles = oldUser.Roles
 				user.DeleteAt = oldUser.DeleteAt
 			}
 
 			if user.IsOAuthUser() {
 				user.Email = oldUser.Email
-			} else if user.IsLDAPUser() {
+			} else if user.IsLDAPUser() && !trustedUpdateData {
 				if user.Username != oldUser.Username ||
 					user.FirstName != oldUser.FirstName ||
 					user.LastName != oldUser.LastName ||
@@ -774,6 +774,47 @@ func (us SqlUserStore) GetByUsername(username string) StoreChannel {
 		}
 
 		result.Data = &user
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		params := map[string]interface{}{
+			"LoginId":                 loginId,
+			"AllowSignInWithUsername": allowSignInWithUsername,
+			"AllowSignInWithEmail":    allowSignInWithEmail,
+			"LdapEnabled":             ldapEnabled,
+		}
+
+		users := []*model.User{}
+		if _, err := us.GetReplica().Select(
+			&users,
+			`SELECT
+				*
+			FROM
+				Users
+			WHERE
+				(:AllowSignInWithUsername AND Username = :LoginId)
+				OR (:AllowSignInWithEmail AND Email = :LoginId)
+				OR (:LdapEnabled AND AuthService = '`+model.USER_AUTH_SERVICE_LDAP+`' AND AuthData = :LoginId)`,
+			params); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error())
+		} else if len(users) == 1 {
+			result.Data = users[0]
+		} else if len(users) > 1 {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.multiple_users", nil, "")
+		} else {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "")
+		}
 
 		storeChannel <- result
 		close(storeChannel)

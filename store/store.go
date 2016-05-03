@@ -138,6 +138,7 @@ type UserStore interface {
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData string, authService string) StoreChannel
 	GetByUsername(username string) StoreChannel
+	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel

@@ -275,7 +275,7 @@ export default class RhsComment extends React.Component {
                                         day='numeric'
                                         month='long'
                                         year='numeric'
-                                        hour12={true}
+                                        hour12={!Utils.isMilitaryTime()}
                                         hour='2-digit'
                                         minute='2-digit'
                                     />

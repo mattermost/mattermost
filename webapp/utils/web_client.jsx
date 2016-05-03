@@ -39,14 +39,13 @@ class WebClientClass extends Client {
 
     // not sure why but super.login doesn't work if using an () => arrow functions.
     // I think this might be a webpack issue.
-    webLogin(email, username, password, token, success, error) {
+    webLogin(loginId, password, token, success, error) {
         this.login(
-            email,
-            username,
+            loginId,
             password,
             token,
             (data) => {
-                this.track('api', 'api_users_login_success', '', 'email', data.email);
+                this.track('api', 'api_users_login_success', '', 'login_id', loginId);
                 BrowserStore.signalLogin();
 
                 if (success) {
@@ -54,7 +53,7 @@ class WebClientClass extends Client {
                 }
             },
             (err) => {
-                this.track('api', 'api_users_login_fail', name, 'email', email);
+                this.track('api', 'api_users_login_fail', name, 'login_id', loginId);
                 if (error) {
                     error(err);
                 }

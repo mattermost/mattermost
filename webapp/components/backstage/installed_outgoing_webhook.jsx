@@ -112,6 +112,23 @@ export default class InstalledOutgoingWebhook extends React.Component {
             );
         }
 
+        const urls = [];
+        for (const url of outgoingWebhook.callback_urls) {
+            urls.push(
+                <div
+                    key={url}
+                    className='item-details__url'
+                >
+                    {url}
+                </div>
+            );
+            urls.push(
+                <br
+                    key={'BR' + url}
+                />
+            );
+        }
+
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
@@ -143,6 +160,11 @@ export default class InstalledOutgoingWebhook extends React.Component {
                                     createAt: outgoingWebhook.create_at
                                 }}
                             />
+                        </span>
+                    </div>
+                    <div className='item-details__row'>
+                        <span className='item-details__urls'>
+                            {urls}
                         </span>
                     </div>
                 </div>

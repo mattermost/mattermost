@@ -90,7 +90,7 @@ func TestCreateTeam(t *testing.T) {
 	LinkUserToTeam(user, rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.Login(user.Email, "pwd")
 	Client.SetTeamId(rteam.Data.(*model.Team).Id)
 
 	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
@@ -209,7 +209,7 @@ func TestAddUserToTeamFromInvite(t *testing.T) {
 
 	user2 := th.CreateUser(th.BasicClient)
 	Client.Must(Client.Logout())
-	Client.Must(Client.LoginByEmail("", user2.Email, user2.Password))
+	Client.Must(Client.Login(user2.Email, user2.Password))
 
 	if result, err := th.BasicClient.AddUserToTeamFromInvite("", "", rteam.InviteId); err != nil {
 		t.Fatal(err)
@@ -234,7 +234,7 @@ func TestGetAllTeams(t *testing.T) {
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.Login(user.Email, "pwd")
 	Client.SetTeamId(team.Id)
 
 	if r1, err := Client.GetAllTeams(); err != nil {
@@ -254,7 +254,7 @@ func TestGetAllTeams(t *testing.T) {
 	c.IpAddress = "cmd_line"
 	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.Login(user.Email, "pwd")
 	Client.SetTeamId(team.Id)
 
 	if r1, err := Client.GetAllTeams(); err != nil {
@@ -283,7 +283,7 @@ func TestGetAllTeamListings(t *testing.T) {
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.Login(user.Email, "pwd")
 	Client.SetTeamId(team.Id)
 
 	if r1, err := Client.GetAllTeamListings(); err != nil {
@@ -303,7 +303,7 @@ func TestGetAllTeamListings(t *testing.T) {
 	c.IpAddress = "cmd_line"
 	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.Login(user.Email, "pwd")
 	Client.SetTeamId(team.Id)
 
 	if r1, err := Client.GetAllTeams(); err != nil {
@@ -332,7 +332,7 @@ func TestTeamPermDelete(t *testing.T) {
 	LinkUserToTeam(user1, team)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+	Client.Login(user1.Email, "pwd")
 	Client.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -375,7 +375,7 @@ func TestInviteMembers(t *testing.T) {
 	LinkUserToTeam(user, team)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.Login(user.Email, "pwd")
 	Client.SetTeamId(team.Id)
 
 	invite := make(map[string]string)
@@ -413,7 +413,7 @@ func TestUpdateTeamDisplayName(t *testing.T) {
 	LinkUserToTeam(user2, team)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+	Client.Login(user2.Email, "pwd")
 	Client.SetTeamId(team.Id)
 
 	vteam := &model.Team{DisplayName: team.DisplayName, Name: team.Name, Email: team.Email, Type: team.Type}
@@ -422,7 +422,7 @@ func TestUpdateTeamDisplayName(t *testing.T) {
 		t.Fatal("Should have errored, not admin")
 	}
 
-	Client.LoginByEmail(team.Name, user.Email, "pwd")
+	Client.Login(user.Email, "pwd")
 
 	vteam.DisplayName = ""
 	if _, err := Client.UpdateTeam(vteam); err == nil {
@@ -474,7 +474,7 @@ func TestGetMyTeam(t *testing.T) {
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
-	Client.LoginByEmail(team.Name, user.Email, user.Password)
+	Client.Login(user.Email, user.Password)
 	Client.SetTeamId(team.Id)
 
 	if result, err := Client.GetMyTeam(""); err != nil {

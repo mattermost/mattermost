@@ -49,15 +49,15 @@ class FileUpload extends React.Component {
     fileUploadSuccess(channelId, data) {
         this.props.onFileUpload(data.filenames, data.client_ids, channelId);
 
-        const requests = JSON.parse(JSON.stringify(this.state.requests));
+        const requests = Object.assign({}, this.state.requests);
         for (var j = 0; j < data.client_ids.length; j++) {
             Reflect.deleteProperty(requests, data.client_ids[j]);
         }
         this.setState({requests});
     }
 
-    fileUploadFail(clientId, err) {
-        this.props.onUploadError(err, clientId);
+    fileUploadFail(clientId, channelId, err) {
+        this.props.onUploadError(err, clientId, channelId);
     }
 
     uploadFiles(files) {
@@ -86,7 +86,7 @@ class FileUpload extends React.Component {
                 channelId,
                 clientId,
                 this.fileUploadSuccess.bind(this, channelId),
-                this.fileUploadFail.bind(this, clientId)
+                this.fileUploadFail.bind(this, clientId, channelId)
             );
 
             const requests = this.state.requests;
@@ -259,6 +259,13 @@ class FileUpload extends React.Component {
                         self.props.onUploadStart([clientId], channelId);
                     }
                 }
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            //CTRL+U or CMD+U for file uploads
+            if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.U) {
+                $(this.refs.input).focus().trigger('click');
             }
         });
     }

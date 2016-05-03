@@ -164,7 +164,7 @@ func (me *LoadTestProvider) SetupCommand(c *Context, channelId string, message s
 		if err := CreateBasicUser(client); err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
-		client.LoginByEmail(BTEST_TEAM_NAME, BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
+		client.Login(BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
 		environment, err := CreateTestEnvironmentWithTeams(
 			client,
 			utils.Range{numTeams, numTeams},
