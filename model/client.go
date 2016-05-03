@@ -611,7 +611,7 @@ func (c *Client) SaveConfig(config *Config) (*Result, *AppError) {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), ConfigFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 
