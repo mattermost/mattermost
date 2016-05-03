@@ -204,7 +204,7 @@ func TestIncomingWebhook(t *testing.T) {
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
 	api.UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-	ApiClient.LoginByEmail(team.Name, user.Email, "pwd")
+	ApiClient.Login(user.Email, "pwd")
 	ApiClient.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}

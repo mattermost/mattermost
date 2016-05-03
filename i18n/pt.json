@@ -1520,7 +1520,7 @@
     "translation": "Revogada sessionid=%v para userid=%v logue novamente com o mesmo id de dispositivo"
   },
   {
-    "id": "api.user.login_by_email.sign_in.app_error",
+    "id": "api.user.login.use_auth_service.app_error",
     "translation": "Por favor logue usando {{.AuthService}}"
   },
   {

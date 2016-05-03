@@ -31,7 +31,7 @@ export default class LoginMfa extends React.Component {
         state.serverError = '';
         this.setState(state);
 
-        this.props.submit(this.props.method, this.props.loginId, this.props.password, token);
+        this.props.submit(this.props.loginId, this.props.password, token);
     }
     render() {
         let serverError;
@@ -85,7 +85,6 @@ LoginMfa.defaultProps = {
 };
 
 LoginMfa.propTypes = {
-    method: React.PropTypes.string.isRequired,
     loginId: React.PropTypes.string.isRequired,
     password: React.PropTypes.string.isRequired,
     submit: React.PropTypes.func.isRequired
