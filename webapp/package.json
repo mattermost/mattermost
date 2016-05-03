@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "autolinker": "0.24.1",
+    "autolinker": "mattermost/Autolinker.js#9689831109e104d7b545318e54199e6de8fd9b87",
     "bootstrap": "3.3.6",
     "bootstrap-colorpicker": "2.3.0",
     "chart.js": "1.0.2",
