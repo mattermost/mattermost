@@ -24,6 +24,7 @@ import Navbar from 'components/navbar.jsx';
 
 // Modals
 import GetPostLinkModal from 'components/get_post_link_modal.jsx';
+import GetPublicLinkModal from 'components/get_public_link_modal.jsx';
 import GetTeamInviteLinkModal from 'components/get_team_invite_link_modal.jsx';
 import EditPostModal from 'components/edit_post_modal.jsx';
 import DeletePostModal from 'components/delete_post_modal.jsx';
@@ -125,6 +126,7 @@ export default class NeedsTeam extends React.Component {
                     {content}
 
                     <GetPostLinkModal/>
+                    <GetPublicLinkModal/>
                     <GetTeamInviteLinkModal/>
                     <InviteMemberModal/>
                     <ImportThemeModal/>

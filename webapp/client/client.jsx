@@ -1325,7 +1325,13 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getFileInfo', success, error));
     }
 
-    getPublicLink = (data, success, error) => {
+    getPublicLink = (channelId, userId, filename, success, error) => {
+        const data = {
+            channel_id: channelId,
+            user_id: userId,
+            filename
+        };
+
         request.
             post(`${this.getFilesRoute()}/get_public_link`).
             set(this.defaultHeaders).
