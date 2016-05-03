@@ -637,5 +637,7 @@ export default {
     TIME_SINCE_UPDATE_INTERVAL: 30000,
     MIN_HASHTAG_LINK_LENGTH: 3,
     EMOJI_PATH: '/static/emoji',
-    DEFAULT_WEBHOOK_LOGO: logoWebhook
+    DEFAULT_WEBHOOK_LOGO: logoWebhook,
+    MHPNS: 'https://push.mattermost.com',
+    MTPNS: 'http://push-test.mattermost.com'
 };

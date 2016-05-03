@@ -13,6 +13,8 @@ const (
 	PUSH_NOTIFY_ANDROID = "android"
 
 	CATEGORY_DM = "DIRECT_MESSAGE"
+
+	MHPNS = "https://push.mattermost.com"
 )
 
 type PushNotification struct {

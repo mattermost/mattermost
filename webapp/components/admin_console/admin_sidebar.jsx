@@ -184,35 +184,39 @@ export default class AdminSidebar extends React.Component {
         let licenseSettings;
         if (global.window.mm_config.BuildEnterpriseReady === 'true') {
             if (global.window.mm_license.IsLicensed === 'true') {
-                ldapSettings = (
-                    <li>
-                        <a
-                            href='#'
-                            className={this.isSelected('ldap_settings')}
-                            onClick={this.handleClick.bind(this, 'ldap_settings', null)}
-                        >
-                            <FormattedMessage
-                                id='admin.sidebar.ldap'
-                                defaultMessage='LDAP Settings'
-                            />
-                        </a>
-                    </li>
-                );
+                if (global.window.mm_license.LDAP === 'true') {
+                    ldapSettings = (
+                        <li>
+                            <a
+                                href='#'
+                                className={this.isSelected('ldap_settings')}
+                                onClick={this.handleClick.bind(this, 'ldap_settings', null)}
+                            >
+                                <FormattedMessage
+                                    id='admin.sidebar.ldap'
+                                    defaultMessage='LDAP Settings'
+                                />
+                            </a>
+                        </li>
+                    );
+                }
 
-                complianceSettings = (
-                    <li>
-                        <a
-                            href='#'
-                            className={this.isSelected('compliance_settings')}
-                            onClick={this.handleClick.bind(this, 'compliance_settings', null)}
-                        >
-                            <FormattedMessage
-                                id='admin.sidebar.compliance'
-                                defaultMessage='Compliance Settings'
-                            />
-                        </a>
-                    </li>
-                );
+                if (global.window.mm_license.Compliance === 'true') {
+                    complianceSettings = (
+                        <li>
+                            <a
+                                href='#'
+                                className={this.isSelected('compliance_settings')}
+                                onClick={this.handleClick.bind(this, 'compliance_settings', null)}
+                            >
+                                <FormattedMessage
+                                    id='admin.sidebar.compliance'
+                                    defaultMessage='Compliance Settings'
+                                />
+                            </a>
+                        </li>
+                    );
+                }
             }
 
             licenseSettings = (
