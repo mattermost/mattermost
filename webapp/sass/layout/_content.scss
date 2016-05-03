@@ -39,7 +39,6 @@
     @include flex(0 0 auto);
     cursor: pointer;
     font-size: 13px;
-    padding: 10px 20px;
 
     .fa {
         @include opacity(.7);
@@ -48,6 +47,9 @@
 
     a {
         color: inherit;
+        display: block;
+        padding: 10px 20px;
+        width: 100%;
     }
 }
 

@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import velocity from 'velocity-animate';
 
 import SearchResults from './search_results.jsx';
 import RhsThread from './rhs_thread.jsx';
@@ -63,29 +62,13 @@ export default class SidebarRight extends React.Component {
     doStrangeThings() {
         // We should have a better way to do this stuff
         // Hence the function name.
-        var windowWidth = $(window).outerWidth();
-        var sidebarRightWidth = $('.sidebar--right').outerWidth();
-
         $('.app__body .inner-wrap').removeClass('.move--right');
         $('.app__body .inner-wrap').addClass('move--left');
         $('.app__body .sidebar--left').removeClass('move--right');
         $('.app__body .sidebar--right').addClass('move--left');
 
         //$('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');
-        if (this.state.searchVisible || this.state.postRightVisible) {
-            if (windowWidth > 960) {
-                velocity($('.app__body .inner-wrap'), {marginRight: sidebarRightWidth}, {duration: 500, easing: 'easeOutSine'});
-                velocity($('.app__body .sidebar--right'), {translateX: 0}, {duration: 500, easing: 'easeOutSine'});
-            } else {
-                $('.app__body .inner-wrap, .sidebar--right').attr('style', '');
-            }
-        } else {
-            if (windowWidth > 960) {
-                velocity($('.app__body .inner-wrap'), {marginRight: 0}, {duration: 500, easing: 'easeOutSine'});
-                velocity($('.app__body .sidebar--right'), {translateX: sidebarRightWidth}, {duration: 500, easing: 'easeOutSine'});
-            } else {
-                $('.app__body .inner-wrap, .sidebar--right').attr('style', '');
-            }
+        if (!this.state.searchVisible && !this.state.postRightVisible) {
             $('.app__body .inner-wrap').removeClass('move--left').removeClass('move--right');
             $('.app__body .sidebar--right').removeClass('move--left');
             return (

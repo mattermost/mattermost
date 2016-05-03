@@ -70,6 +70,18 @@
         display: none;
     }
 
+    .sidebar--right {
+        &.move--left {
+            @include translateX(0);
+        }
+    }
+
+    .inner-wrap {
+        &.move--left {
+            margin-right: 400px;
+        }
+    }
+
     .post {
         &.same--root {
             &.same--user {
