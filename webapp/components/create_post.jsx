@@ -253,9 +253,11 @@ class CreatePost extends React.Component {
         draft.previews = draft.previews.concat(filenames);
         PostStore.storeDraft(channelId, draft);
 
-        this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
+        if (channelId === this.state.channelId) {
+            this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
+        }
     }
-    handleUploadError(err, clientId) {
+    handleUploadError(err, clientId, channelId) {
         let message = err;
         if (message && typeof message !== 'string') {
             // err is an AppError from the server
@@ -263,16 +265,18 @@ class CreatePost extends React.Component {
         }
 
         if (clientId !== -1) {
-            const draft = PostStore.getDraft(this.state.channelId);
+            const draft = PostStore.getDraft(channelId);
 
             const index = draft.uploadsInProgress.indexOf(clientId);
             if (index !== -1) {
                 draft.uploadsInProgress.splice(index, 1);
             }
 
-            PostStore.storeDraft(this.state.channelId, draft);
+            PostStore.storeDraft(channelId, draft);
 
-            this.setState({uploadsInProgress: draft.uploadsInProgress});
+            if (channelId === this.state.channelId) {
+                this.setState({uploadsInProgress: draft.uploadsInProgress});
+            }
         }
 
         this.setState({serverError: message});

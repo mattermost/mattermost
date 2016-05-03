@@ -127,10 +127,11 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	json := utils.Cfg.ToJson()
 	cfg := model.ConfigFromJson(strings.NewReader(json))
-	json = cfg.ToJson()
+
+	cfg.Sanitize()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(json))
+	w.Write([]byte(cfg.ToJson()))
 }
 
 func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -145,6 +146,7 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cfg.SetDefaults()
+	utils.Desanitize(cfg)
 
 	if err := cfg.IsValid(); err != nil {
 		c.Err = err
@@ -160,8 +162,10 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	utils.SaveConfig(utils.CfgFileName, cfg)
 	utils.LoadConfig(utils.CfgFileName)
-	json := utils.Cfg.ToJson()
-	w.Write([]byte(json))
+
+	rdata := map[string]string{}
+	rdata["status"] = "OK"
+	w.Write([]byte(model.MapToJson(rdata)))
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {

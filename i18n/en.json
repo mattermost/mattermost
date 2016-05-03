@@ -1560,7 +1560,7 @@
     "translation": "Revoking sessionId=%v for userId=%v re-login with same device Id"
   },
   {
-    "id": "api.user.login_by_email.sign_in.app_error",
+    "id": "api.user.login.use_auth_service.app_error",
     "translation": "Please sign in using {{.AuthService}}"
   },
   {
@@ -3442,6 +3442,14 @@
   {
     "id": "store.sql_user.get_for_export.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "We couldn't find an existing account matching your credentials. This team may require an invite from the team owner to join."
+  },
+  {
+    "id": "store.sql_user.get_for_login.multiple_users",
+    "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
   },
   {
     "id": "store.sql_user.get_profiles.app_error",

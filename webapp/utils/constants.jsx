@@ -544,7 +544,8 @@ export default {
         ENTER: 13,
         ESCAPE: 27,
         SPACE: 32,
-        TAB: 9
+        TAB: 9,
+        U: 85
     },
     CODE_PREVIEW_MAX_FILE_SIZE: 500000, // 500 KB
     HighlightedLanguages: {
@@ -636,5 +637,7 @@ export default {
     TIME_SINCE_UPDATE_INTERVAL: 30000,
     MIN_HASHTAG_LINK_LENGTH: 3,
     EMOJI_PATH: '/static/emoji',
-    DEFAULT_WEBHOOK_LOGO: logoWebhook
+    DEFAULT_WEBHOOK_LOGO: logoWebhook,
+    MHPNS: 'https://push.mattermost.com',
+    MTPNS: 'http://push-test.mattermost.com'
 };

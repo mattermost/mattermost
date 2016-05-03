@@ -217,7 +217,7 @@ func TestGetFile(t *testing.T) {
 		data := model.MapToJson(newProps)
 		hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt))
 
-		Client.LoginByEmail(team2.Name, user2.Email, "pwd")
+		Client.Login(user2.Email, "pwd")
 		Client.SetTeamId(team2.Id)
 
 		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t="+team.Id, false); downErr != nil {

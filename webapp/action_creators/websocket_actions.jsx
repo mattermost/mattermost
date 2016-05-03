@@ -244,9 +244,8 @@ function handleChannelDeletedEvent(msg) {
     if (ChannelStore.getCurrentId() === msg.channel_id) {
         const teamUrl = TeamStore.getCurrentTeamRelativeUrl();
         browserHistory.push(teamUrl + '/channels/' + Constants.DEFAULT_CHANNEL);
-    } else {
-        AsyncClient.getChannels();
     }
+    AsyncClient.getChannels();
 }
 
 function handlePreferenceChangedEvent(msg) {

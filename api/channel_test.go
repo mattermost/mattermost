@@ -169,7 +169,7 @@ func TestUpdateChannel(t *testing.T) {
 		}
 	}
 
-	Client.LoginByEmail(team.Name, user2.Email, user2.Password)
+	Client.Login(user2.Email, user2.Password)
 
 	if _, err := Client.UpdateChannel(upChannel1); err == nil {
 		t.Fatal("Standard User should have failed to update")
@@ -432,7 +432,7 @@ func TestJoinChannelById(t *testing.T) {
 
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team)
-	Client.LoginByEmail(team.Name, user3.Email, "pwd")
+	Client.Login(user3.Email, "pwd")
 
 	if _, err := Client.JoinChannel(rchannel.Id); err == nil {
 		t.Fatal("shoudn't be able to join direct channel")
@@ -462,7 +462,7 @@ func TestJoinChannelByName(t *testing.T) {
 
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team)
-	Client.LoginByEmail(team.Name, user3.Email, "pwd")
+	Client.Login(user3.Email, "pwd")
 
 	if _, err := Client.JoinChannelByName(rchannel.Name); err == nil {
 		t.Fatal("shoudn't be able to join direct channel")
@@ -518,7 +518,7 @@ func TestDeleteChannel(t *testing.T) {
 
 	Client.AddChannelMember(channelMadeByCA.Id, userTeamAdmin.Id)
 
-	Client.LoginByEmail(team.Name, userTeamAdmin.Email, "pwd")
+	Client.Login(userTeamAdmin.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -541,7 +541,7 @@ func TestDeleteChannel(t *testing.T) {
 
 	userStd := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(userStd, team)
-	Client.LoginByEmail(team.Name, userStd.Email, userStd.Password)
+	Client.Login(userStd.Email, userStd.Password)
 
 	if _, err := Client.JoinChannel(channel1.Id); err == nil {
 		t.Fatal("should have failed to join deleted channel")
@@ -606,7 +606,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 	Client2.SetTeamId(team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client2.LoginByEmail(team.Name, user2.Email, "pwd")
+	Client2.Login(user2.Email, "pwd")
 	Client2.Must(Client2.JoinChannel(channel1.Id))
 
 	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
@@ -775,7 +775,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	Client.LoginByEmail(team.Name, userStd.Email, userStd.Password)
+	Client.Login(userStd.Email, userStd.Password)
 
 	if _, err := Client.RemoveChannelMember(channel2.Id, userStd.Id); err == nil {
 		t.Fatal("Should have errored, user not channel admin")

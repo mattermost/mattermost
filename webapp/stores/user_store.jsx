@@ -6,7 +6,6 @@ import EventEmitter from 'events';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-import BrowserStore from './browser_store.jsx';
 
 const CHANGE_EVENT = 'change';
 const CHANGE_EVENT_SESSIONS = 'change_sessions';
@@ -95,22 +94,6 @@ class UserStoreClass extends EventEmitter {
         }
 
         return null;
-    }
-
-    getLastEmail() {
-        return BrowserStore.getGlobalItem('last_email', '');
-    }
-
-    setLastEmail(email) {
-        BrowserStore.setGlobalItem('last_email', email);
-    }
-
-    getLastUsername() {
-        return BrowserStore.getGlobalItem('last_username', '');
-    }
-
-    setLastUsername(username) {
-        BrowserStore.setGlobalItem('last_username', username);
     }
 
     hasProfile(userId) {

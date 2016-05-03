@@ -131,7 +131,7 @@ func BenchmarkJoinChannel(b *testing.B) {
 	user = th.BasicClient.Must(th.BasicClient.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, th.BasicTeam)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-	th.BasicClient.LoginByEmail(th.BasicTeam.Name, user.Email, "pwd")
+	th.BasicClient.Login(user.Email, "pwd")
 
 	// Benchmark Start
 	b.ResetTimer()

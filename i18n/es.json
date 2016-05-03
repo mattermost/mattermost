@@ -1560,7 +1560,7 @@
     "translation": "Revocando sessionId=%v para el userId=%v vuelve a iniciar la sesión el el mismo dispositivo"
   },
   {
-    "id": "api.user.login_by_email.sign_in.app_error",
+    "id": "api.user.login.use_auth_service.app_error",
     "translation": "Por favor inicia sesión usando {{.AuthService}}"
   },
   {

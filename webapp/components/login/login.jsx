@@ -1,13 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import LoginEmail from './components/login_email.jsx';
-import LoginUsername from './components/login_username.jsx';
-import LoginLdap from './components/login_ldap.jsx';
 import LoginMfa from './components/login_mfa.jsx';
 import ErrorBar from 'components/error_bar.jsx';
+import FormError from 'components/form_error.jsx';
 
-import * as GlobalActions from '../../action_creators/global_actions.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import Client from 'utils/web_client.jsx';
@@ -30,10 +28,16 @@ export default class Login extends React.Component {
         this.submit = this.submit.bind(this);
         this.finishSignin = this.finishSignin.bind(this);
 
-        const state = {};
-        state.showMfa = false;
-        this.state = state;
+        this.handleLoginIdChange = this.handleLoginIdChange.bind(this);
+        this.handlePasswordChange = this.handlePasswordChange.bind(this);
+
+        this.state = {
+            loginId: '', // the browser will set a default for this
+            password: '',
+            showMfa: false
+        };
     }
+
     componentDidMount() {
         document.title = global.window.mm_config.SiteName;
 
@@ -41,31 +45,97 @@ export default class Login extends React.Component {
             browserHistory.push('/select_team');
         }
     }
-    preSubmit(method, loginId, password) {
-        if (global.window.mm_config.EnableMultifactorAuthentication !== 'true') {
-            this.submit(method, loginId, password, '');
+
+    preSubmit(e) {
+        e.preventDefault();
+
+        const loginId = this.state.loginId.trim();
+        if (!loginId) {
+            const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
+            const usernameSigninEnabled = global.window.mm_config.EnableSignInWithUsername === 'true';
+            const emailSigninEnabled = global.window.mm_config.EnableSignInWithEmail === 'true';
+
+            this.setState({
+                serverError: (
+                    <FormattedMessage
+                        id='login.loginIdRequired'
+                        defaultMessage='A {type} is required'
+                        values={{
+                            type: this.createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled)
+                        }}
+                    />
+                )
+            });
+
             return;
         }
 
-        Client.checkMfa(method, loginId,
+        const password = this.state.password.trim();
+        if (!password) {
+            this.setState({
+                serverError: (
+                    <FormattedMessage
+                        id='login.passwordRequired'
+                        defaultMessage='A password is required'
+                    />
+                )
+            });
+
+            return;
+        }
+
+        if (global.window.mm_config.EnableMultifactorAuthentication !== 'true') {
+            this.submit(loginId, password, '');
+            return;
+        }
+
+        Client.checkMfa(
+            loginId,
             (data) => {
                 if (data.mfa_required === 'true') {
-                    this.setState({showMfa: true, method, loginId, password});
+                    this.setState({showMfa: true});
                 } else {
-                    this.submit(method, loginId, password, '');
+                    this.submit(loginId, password, '');
                 }
             },
             (err) => {
-                if (method === Constants.EMAIL_SERVICE) {
-                    this.setState({serverEmailError: err.message});
-                } else if (method === Constants.USERNAME_SERVICE) {
-                    this.setState({serverUsernameError: err.message});
-                } else if (method === Constants.LDAP_SERVICE) {
-                    this.setState({serverLdapError: err.message});
+                this.setState({serverError: err.message});
+            }
+        );
+    }
+
+    submit(loginId, password, token) {
+        this.setState({showMfa: false, serverError: null});
+
+        Client.webLogin(
+            loginId,
+            password,
+            token,
+            () => {
+                this.finishSignin();
+            },
+            (err) => {
+                if (err.id === 'api.user.login.not_verified.app_error') {
+                    browserHistory.push('/should_verify_email?&email=' + encodeURIComponent(loginId));
+                    return;
+                } else if (err.id === 'store.sql_user.get_for_login.app_error' ||
+                    err.id === 'ent.ldap.do_login.user_not_registered.app_error' ||
+                    err.id === 'ent.ldap.do_login.user_filtered.app_error') {
+                    this.setState({
+                        serverError: (
+                            <FormattedMessage
+                                id='login.userNotFound'
+                                defaultMessage="We couldn't find an existing account matching your login credentials."
+                            />
+                        )
+                    });
+                } else {
+                    this.setState({serverError: err.message});
                 }
             }
         );
     }
+
     finishSignin() {
         GlobalActions.emitInitialLoad(
             () => {
@@ -74,72 +144,18 @@ export default class Login extends React.Component {
         );
     }
 
-    submit(method, loginId, password, token) {
-        this.setState({showMfa: false, serverEmailError: null, serverUsernameError: null, serverLdapError: null});
-
-        if (method === Constants.EMAIL_SERVICE) {
-            Client.webLogin(
-                loginId,
-                null,
-                password,
-                token,
-                () => {
-                    UserStore.setLastEmail(loginId);
-                    this.finishSignin();
-                },
-                (err) => {
-                    if (err.id === 'api.user.login.not_verified.app_error') {
-                        browserHistory.push('/should_verify_email?&email=' + encodeURIComponent(loginId));
-                        return;
-                    }
-                    this.setState({serverEmailError: err.message});
-                }
-            );
-        } else if (method === Constants.USERNAME_SERVICE) {
-            Client.webLogin(
-                null,
-                loginId,
-                password,
-                token,
-                () => {
-                    UserStore.setLastUsername(loginId);
-
-                    const redirect = Utils.getUrlParameter('redirect');
-                    if (redirect) {
-                        browserHistory.push(decodeURIComponent(redirect));
-                    } else {
-                        this.finishSignin();
-                    }
-                },
-                (err) => {
-                    if (err.id === 'api.user.login.not_verified.app_error') {
-                        this.setState({serverUsernameError: Utils.localizeMessage('login_username.verifyEmailError', 'Please verify your email address. Check your inbox for an email.')});
-                    } else if (err.id === 'store.sql_user.get_by_username.app_error') {
-                        this.setState({serverUsernameError: Utils.localizeMessage('login_username.userNotFoundError', 'We couldn\'t find an existing account matching your username for this team.')});
-                    } else {
-                        this.setState({serverUsernameError: err.message});
-                    }
-                }
-            );
-        } else if (method === Constants.LDAP_SERVICE) {
-            Client.loginByLdap(
-                loginId,
-                password,
-                token,
-                () => {
-                    const redirect = Utils.getUrlParameter('redirect');
-                    if (redirect) {
-                        browserHistory.push(decodeURIComponent(redirect));
-                    } else {
-                        this.finishSignin();
-                    }
-                },
-                (err) => {
-                    this.setState({serverLdapError: err.message});
-                }
-            );
-        }
+    handleLoginIdChange(e) {
+        this.setState({
+            loginId: e.target.value
+        });
     }
+
+    handlePasswordChange(e) {
+        this.setState({
+            password: e.target.value
+        });
+    }
+
     createCustomLogin() {
         if (global.window.mm_license.IsLicensed === 'true' &&
                 global.window.mm_license.CustomBrand === 'true' &&
@@ -158,6 +174,36 @@ export default class Login extends React.Component {
 
         return null;
     }
+
+    createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled) {
+        const loginPlaceholders = [];
+        if (emailSigninEnabled) {
+            loginPlaceholders.push(Utils.localizeMessage('login.email', 'Email'));
+        }
+
+        if (usernameSigninEnabled) {
+            loginPlaceholders.push(Utils.localizeMessage('login.username', 'Username'));
+        }
+
+        if (ldapEnabled) {
+            if (global.window.mm_config.LdapLoginFieldName) {
+                loginPlaceholders.push(global.window.mm_config.LdapLoginFieldName);
+            } else {
+                loginPlaceholders.push(Utils.localizeMessage('login.ldap_username', 'LDAP Username'));
+            }
+        }
+
+        if (loginPlaceholders.length >= 2) {
+            return loginPlaceholders.slice(0, loginPlaceholders.length - 1).join(', ') +
+                Utils.localizeMessage('login.placeholderOr', ' or ') +
+                loginPlaceholders[loginPlaceholders.length - 1];
+        } else if (loginPlaceholders.length === 1) {
+            return loginPlaceholders[0];
+        }
+
+        return '';
+    }
+
     createLoginOptions() {
         const extraParam = Utils.getUrlParameter('extra');
         let extraBox = '';
@@ -248,76 +294,52 @@ export default class Login extends React.Component {
             );
         }
 
-        let emailLogin;
-        if (emailSigninEnabled) {
-            emailLogin = (
-                <LoginEmail
-                    serverError={this.state.serverEmailError}
-                    submit={this.preSubmit}
-                />
-            );
+        let login = null;
+        if (emailSigninEnabled || usernameSigninEnabled || ldapEnabled) {
+            let errorClass = '';
+            if (this.state.serverError) {
+                errorClass = ' has-error';
+            }
 
-            if (oauthLogins.length > 0) {
-                emailLogin = (
-                    <div>
-                        <div className='or__container'>
-                            <FormattedMessage
-                                id='login.or'
-                                defaultMessage='or'
+            login = (
+                <form onSubmit={this.preSubmit}>
+                    <div className='signup__email-container'>
+                        <FormError error={this.state.serverError}/>
+                        <div className={'form-group' + errorClass}>
+                            <input
+                                className='form-control'
+                                name='loginId'
+                                value={this.state.loginId}
+                                onChange={this.handleLoginIdChange}
+                                placeholder={this.createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled)}
+                                spellCheck='false'
                             />
                         </div>
-                        {emailLogin}
-                    </div>
-                );
-            }
-        }
-
-        let usernameLogin;
-        if (usernameSigninEnabled) {
-            usernameLogin = (
-                <LoginUsername
-                    serverError={this.state.serverUsernameError}
-                    submit={this.preSubmit}
-                />
-            );
-
-            if (emailSigninEnabled || oauthLogins.length > 0) {
-                usernameLogin = (
-                    <div>
-                        <div className='or__container'>
-                            <FormattedMessage
-                                id='login.or'
-                                defaultMessage='or'
+                        <div className={'form-group' + errorClass}>
+                            <input
+                                type='password'
+                                className='form-control'
+                                name='password'
+                                value={this.state.password}
+                                onChange={this.handlePasswordChange}
+                                placeholder={Utils.localizeMessage('login.password', 'Password')}
+                                spellCheck='false'
                             />
                         </div>
-                        {usernameLogin}
-                    </div>
-                );
-            }
-        }
-
-        let ldapLogin;
-        if (ldapEnabled) {
-            ldapLogin = (
-                <LoginLdap
-                    serverError={this.state.serverLdapError}
-                    submit={this.preSubmit}
-                />
-            );
-
-            if (emailSigninEnabled || usernameSigninEnabled || oauthLogins.length > 0) {
-                ldapLogin = (
-                    <div>
-                        <div className='or__container'>
-                            <FormattedMessage
-                                id='login.or'
-                                defaultMessage='or'
-                            />
+                        <div className='form-group'>
+                            <button
+                                type='submit'
+                                className='btn btn-primary'
+                            >
+                                <FormattedMessage
+                                    id='login.signIn'
+                                    defaultMessage='Sign in'
+                                />
+                            </button>
                         </div>
-                        {ldapLogin}
                     </div>
-                );
-            }
+                </form>
+            );
         }
 
         const userSignUp = (
@@ -358,14 +380,13 @@ export default class Login extends React.Component {
             <div>
                 {extraBox}
                 {oauthLogins}
-                {emailLogin}
-                {usernameLogin}
-                {ldapLogin}
+                {login}
                 {userSignUp}
                 {forgotPassword}
             </div>
         );
     }
+
     render() {
         let content;
         let customContent;
@@ -373,7 +394,6 @@ export default class Login extends React.Component {
         if (this.state.showMfa) {
             content = (
                 <LoginMfa
-                    method={this.state.method}
                     loginId={this.state.loginId}
                     password={this.state.password}
                     submit={this.submit}

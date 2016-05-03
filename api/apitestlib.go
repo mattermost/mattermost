@@ -200,19 +200,19 @@ func (me *TestHelper) CreatePost(client *model.Client, channel *model.Channel) *
 
 func (me *TestHelper) LoginBasic() {
 	utils.DisableDebugLogForTest()
-	me.BasicClient.Must(me.BasicClient.LoginByEmail(me.BasicTeam.Name, me.BasicUser.Email, me.BasicUser.Password))
+	me.BasicClient.Must(me.BasicClient.Login(me.BasicUser.Email, me.BasicUser.Password))
 	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) LoginBasic2() {
 	utils.DisableDebugLogForTest()
-	me.BasicClient.Must(me.BasicClient.LoginByEmail(me.BasicTeam.Name, me.BasicUser2.Email, me.BasicUser2.Password))
+	me.BasicClient.Must(me.BasicClient.Login(me.BasicUser2.Email, me.BasicUser2.Password))
 	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) LoginSystemAdmin() {
 	utils.DisableDebugLogForTest()
-	me.SystemAdminClient.Must(me.SystemAdminClient.LoginByEmail(me.SystemAdminTeam.Name, me.SystemAdminUser.Email, me.SystemAdminUser.Password))
+	me.SystemAdminClient.Must(me.SystemAdminClient.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password))
 	utils.EnableDebugLogForTest()
 }
 

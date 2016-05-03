@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import UserProfile from './user_profile.jsx';
 
 import UserStore from 'stores/user_store.jsx';
@@ -21,6 +22,10 @@ export default class SearchResultsItem extends React.Component {
         super(props);
 
         this.handleFocusRHSClick = this.handleFocusRHSClick.bind(this);
+    }
+
+    hideSidebar() {
+        $('.inner-wrap, .sidebar--right').removeClass('move--left');
     }
 
     handleFocusRHSClick(e) {
@@ -100,7 +105,7 @@ export default class SearchResultsItem extends React.Component {
                                     <time className='search-item-time'>
                                         <FormattedDate
                                             value={post.create_at}
-                                            hour12={true}
+                                            hour12={!Utils.isMilitaryTime()}
                                             hour='2-digit'
                                             minute='2-digit'
                                         />
@@ -127,6 +132,8 @@ export default class SearchResultsItem extends React.Component {
                                                         type: ActionTypes.RECEIVED_POST_SELECTED,
                                                         postId: null
                                                     });
+
+                                                    this.hideSidebar();
                                                 }
                                                 browserHistory.push('/' + window.location.pathname.split('/')[1] + '/pl/' + post.id);
                                             }

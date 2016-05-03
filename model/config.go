@@ -28,6 +28,8 @@ const (
 
 	GENERIC_NOTIFICATION = "generic"
 	FULL_NOTIFICATION    = "full"
+
+	FAKE_SETTING = "********************************"
 )
 
 type ServiceSettings struct {
@@ -597,10 +599,38 @@ func (o *Config) IsValid() *AppError {
 	return nil
 }
 
-func (me *Config) GetSanitizeOptions() map[string]bool {
+func (o *Config) GetSanitizeOptions() map[string]bool {
 	options := map[string]bool{}
-	options["fullname"] = me.PrivacySettings.ShowFullName
-	options["email"] = me.PrivacySettings.ShowEmailAddress
+	options["fullname"] = o.PrivacySettings.ShowFullName
+	options["email"] = o.PrivacySettings.ShowEmailAddress
 
 	return options
+}
+
+func (o *Config) Sanitize() {
+	if len(*o.LdapSettings.BindPassword) > 0 {
+		*o.LdapSettings.BindPassword = FAKE_SETTING
+	}
+
+	o.FileSettings.PublicLinkSalt = FAKE_SETTING
+	if len(o.FileSettings.AmazonS3SecretAccessKey) > 0 {
+		o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
+	}
+
+	o.EmailSettings.InviteSalt = FAKE_SETTING
+	o.EmailSettings.PasswordResetSalt = FAKE_SETTING
+	if len(o.EmailSettings.SMTPPassword) > 0 {
+		o.EmailSettings.SMTPPassword = FAKE_SETTING
+	}
+
+	if len(o.GitLabSettings.Secret) > 0 {
+		o.GitLabSettings.Secret = FAKE_SETTING
+	}
+
+	o.SqlSettings.DataSource = FAKE_SETTING
+	o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
+
+	for i := range o.SqlSettings.DataSourceReplicas {
+		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
+	}
 }

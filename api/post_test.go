@@ -91,7 +91,7 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("Should have been forbidden")
 	}
 
-	Client.LoginByEmail(team2.Name, user3.Email, user3.Password)
+	Client.Login(user3.Email, user3.Password)
 	Client.SetTeamId(team2.Id)
 	channel3 := th.CreateChannel(Client, team2)
 
@@ -360,19 +360,19 @@ func TestSearchPosts(t *testing.T) {
 	r1 := Client.Must(Client.SearchPosts("search")).Data.(*model.PostList)
 
 	if len(r1.Order) != 3 {
-		t.Fatal("wrong serach")
+		t.Fatal("wrong search")
 	}
 
 	r2 := Client.Must(Client.SearchPosts("post2")).Data.(*model.PostList)
 
 	if len(r2.Order) != 1 && r2.Order[0] == post2.Id {
-		t.Fatal("wrong serach")
+		t.Fatal("wrong search")
 	}
 
 	r3 := Client.Must(Client.SearchPosts("#hashtag")).Data.(*model.PostList)
 
 	if len(r3.Order) != 1 && r3.Order[0] == post3.Id {
-		t.Fatal("wrong serach")
+		t.Fatal("wrong search")
 	}
 
 	if r4 := Client.Must(Client.SearchPosts("*")).Data.(*model.PostList); len(r4.Order) != 0 {
@@ -512,7 +512,7 @@ func TestSearchPostsFromUser(t *testing.T) {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 
-	Client.LoginByEmail(team.Name, user3.Email, user3.Password)
+	Client.Login(user3.Email, user3.Password)
 
 	// wait for the join/leave messages to be created for user3 since they're done asynchronously
 	time.Sleep(100 * time.Millisecond)
@@ -741,7 +741,7 @@ func TestGetOutOfChannelMentions(t *testing.T) {
 	user4 := th.CreateUser(Client)
 	LinkUserToTeam(user4, team2)
 
-	Client.Must(Client.LoginByEmail(team2.Name, user4.Email, user4.Password))
+	Client.Must(Client.Login(user4.Email, user4.Password))
 	Client.SetTeamId(team2.Id)
 
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team2.Id}

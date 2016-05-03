@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import LoadingScreen from 'components/loading_screen.jsx';
-import LoginLdap from 'components/login/components/login_ldap.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
@@ -25,7 +24,6 @@ class SignupUserComplete extends React.Component {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleLdapSignup = this.handleLdapSignup.bind(this);
 
         this.state = {
             data: '',
@@ -150,26 +148,6 @@ class SignupUserComplete extends React.Component {
         });
     }
 
-    handleLdapSignup(method, loginId, password, token) {
-        Client.loginByLdap(loginId, password, token,
-            () => {
-                const redirect = Utils.getUrlParameter('redirect');
-                if (redirect) {
-                    browserHistory.push(decodeURIComponent(redirect));
-                } else {
-                    GlobalActions.emitInitialLoad(
-                        () => {
-                            browserHistory.push('/select_team');
-                        }
-                    );
-                }
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
-    }
-
     handleSubmit(e) {
         e.preventDefault();
 
@@ -268,15 +246,13 @@ class SignupUserComplete extends React.Component {
             this.state.data,
             this.state.hash,
             this.state.inviteId,
-            () => {
+            (data) => {
                 Client.track('signup', 'signup_user_02_complete');
-                Client.login(
-                    user.email,
-                    null,
+                Client.loginById(
+                    data.id,
                     user.password,
                     '',
                     () => {
-                        UserStore.setLastEmail(user.email);
                         if (this.state.hash > 0) {
                             BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
                         }
@@ -455,21 +431,6 @@ class SignupUserComplete extends React.Component {
            );
         }
 
-        let ldapSignup;
-        if (global.window.mm_config.EnableLdap === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP) {
-            ldapSignup = (
-                <div className='inner__content'>
-                    <h5><strong>
-                        <FormattedMessage
-                            id='signup_user_completed.withLdap'
-                            defaultMessage='With your LDAP credentials'
-                        />
-                    </strong></h5>
-                    <LoginLdap submit={this.handleLdapSignup}/>
-                </div>
-            );
-        }
-
         let emailSignup;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
@@ -533,7 +494,7 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        if (signupMessage.length > 0 && (emailSignup || ldapSignup)) {
+        if (signupMessage.length > 0 && emailSignup) {
             signupMessage = (
                 <div>
                     {signupMessage}
@@ -547,21 +508,7 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        if (ldapSignup && emailSignup) {
-            ldapSignup = (
-                <div>
-                    {ldapSignup}
-                    <div className='or__container'>
-                        <FormattedMessage
-                            id='signup_user_completed.or'
-                            defaultMessage='or'
-                        />
-                    </div>
-                </div>
-            );
-        }
-
-        if (signupMessage.length === 0 && !emailSignup && !ldapSignup) {
+        if (signupMessage.length === 0 && !emailSignup) {
             emailSignup = (
                 <div>
                     <FormattedMessage
@@ -586,7 +533,6 @@ class SignupUserComplete extends React.Component {
 
         if (this.state.noOpenServerError) {
             signupMessage = null;
-            ldapSignup = null;
             emailSignup = null;
             terms = null;
         }
@@ -620,7 +566,6 @@ class SignupUserComplete extends React.Component {
                             />
                         </h4>
                         {signupMessage}
-                        {ldapSignup}
                         {emailSignup}
                         {serverError}
                         {terms}
