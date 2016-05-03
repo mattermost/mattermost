@@ -6,22 +6,17 @@ import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ErrorBar from 'components/error_bar.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
-import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-
-import * as TextFormatting from 'utils/text_formatting.jsx';
 
 import {Link} from 'react-router';
 
 import {FormattedMessage} from 'react-intl';
 
-//import {browserHistory, Link} from 'react-router';
-
 import React from 'react';
 import logoImage from 'images/logo.png';
 
-export default class Login extends React.Component {
+export default class SelectTeam extends React.Component {
 
     constructor(props) {
         super(props);
@@ -53,33 +48,8 @@ export default class Login extends React.Component {
         };
     }
 
-    createCustomLogin() {
-        if (global.window.mm_license.IsLicensed === 'true' &&
-                global.window.mm_license.CustomBrand === 'true' &&
-                global.window.mm_config.EnableCustomBrand === 'true') {
-            const text = global.window.mm_config.CustomBrandText || '';
-
-            return (
-                <div>
-                    <img
-                        src={Client.getAdminRoute() + '/get_brand_image'}
-                    />
-                    <p dangerouslySetInnerHTML={{__html: TextFormatting.formatText(text)}}/>
-                </div>
-            );
-        }
-
-        return null;
-    }
-
     render() {
         var content;
-
-        let customClass;
-        const customContent = this.createCustomLogin();
-        if (customContent) {
-            customClass = 'branded';
-        }
 
         var teamContents = [];
         var isAlreadyMember = new Map();
@@ -231,10 +201,7 @@ export default class Login extends React.Component {
                     </a>
                 </div>
                 <div className='col-sm-12'>
-                    <div className={'signup-team__container ' + customClass}>
-                        <div className='signup__markdown'>
-                            {customContent}
-                        </div>
+                    <div className={'signup-team__container'}>
                         <img
                             className='signup-team-logo'
                             src={logoImage}
