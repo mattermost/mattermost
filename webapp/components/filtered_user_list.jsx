@@ -15,6 +15,14 @@ const holders = defineMessages({
     search: {
         id: 'filtered_user_list.search',
         defaultMessage: 'Search members'
+    },
+    anyTeam: {
+        id: 'filtered_user_list.any_team',
+        defaultMessage: 'All Users'
+    },
+    teamOnly: {
+        id: 'filtered_user_list.team_only',
+        defaultMessage: 'Members of this Team'
     }
 });
 
@@ -133,14 +141,14 @@ class FilteredUserList extends React.Component {
                         defaultValue='team'
                         onChange={this.handleListChange}
                     >
-                        <option value='any'>All Users</option>
-                        <option value='team'>Members of this Team</option>
+                        <option value='any'>{formatMessage(holders.anyTeam)}</option>
+                        <option value='team'>{formatMessage(holders.teamOnly)}</option>
                     </select>
                     <span
                         className='member-show'
                     >
                         <FormattedMessage
-                            id='admin.team.restrictDirectMessage'
+                            id='filtered_user_list.show'
                             defaultMessage='Show'
                         />
                     </span>
