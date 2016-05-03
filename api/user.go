@@ -512,45 +512,6 @@ func getUserForLogin(loginId string) (*model.User, *model.AppError) {
 	}
 }
 
-func loginById(c *Context, w http.ResponseWriter, r *http.Request, props map[string]string) {
-	id := props["id"]
-	password := props["password"]
-	mfaToken := props["token"]
-	deviceId := props["device_id"]
-
-	var user *model.User
-	if result := <-Srv.Store.User().Get(id); result.Err != nil {
-		c.Err = result.Err
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	} else {
-		user = result.Data.(*model.User)
-	}
-
-	if len(user.AuthData) != 0 {
-		c.Err = model.NewLocAppError("loginById", "api.user.login.use_auth_service.app_error",
-			map[string]interface{}{"AuthService": user.AuthService}, "")
-		return
-	}
-
-	c.LogAuditWithUserId(user.Id, "attempt")
-
-	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return
-	}
-
-	c.LogAuditWithUserId(user.Id, "success")
-
-	doLogin(c, w, r, user, deviceId)
-
-	user.Sanitize(map[string]bool{})
-
-	w.Write([]byte(user.ToJson()))
-}
-
 func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader) *model.User {
 	buf := bytes.Buffer{}
 	buf.ReadFrom(userData)
