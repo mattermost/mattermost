@@ -4,6 +4,10 @@ Mattermost Platform
 NOTICES: 
 --------
 
+This document includes a list of open source components used in Mattermost, including those that have been modified. 
+
+--------
+
 This product contains a modified portion of 'react', a declarative, efficient, and 
 flexible JavaScript library for building user interfaces by Facebook, Inc. 
 
