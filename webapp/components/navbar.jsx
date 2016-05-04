@@ -218,20 +218,23 @@ export default class Navbar extends React.Component {
                     </li>
                 );
 
-                leaveChannelOption = (
-                    <li role='presentation'>
-                        <a
-                            role='menuitem'
-                            href='#'
-                            onClick={this.handleLeave}
-                        >
-                            <FormattedMessage
-                                id='navbar.leave'
-                                defaultMessage='Leave Channel'
-                            />
-                        </a>
-                    </li>
-                );
+                const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
+                if (canLeave) {
+                    leaveChannelOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.handleLeave}
+                            >
+                                <FormattedMessage
+                                    id='navbar.leave'
+                                    defaultMessage='Leave Channel'
+                                />
+                            </a>
+                        </li>
+                    );
+                }
             }
 
             var manageMembersOption;

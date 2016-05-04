@@ -224,6 +224,10 @@
     "translation": "No puedes dejar un mensaje directo a un canal"
   },
   {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "Eres el último miembro que queda, intenta remover el Grupo Privado en vez de salirte."
+  },
+  {
     "id": "api.channel.leave.left",
     "translation": "%v ha abandonado el canal."
   },
