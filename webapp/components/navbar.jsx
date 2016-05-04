@@ -172,7 +172,29 @@ export default class Navbar extends React.Component {
             nextChannel = allChannels[nextIndex];
             GlobalActions.emitChannelClickEvent(nextChannel);
         }
+
+        if (e.altKey && e.shiftKey) {
+            const allChannels = ChannelStore.getAll();
+            const curChannel = ChannelStore.getCurrent();
+            const curIndex = allChannels.indexOf(curChannel);
+            let nextChannel = curChannel;
+            let nextIndex = curIndex;
+            if (e.keyCode === Constants.KeyCodes.UP) {
+                while (nextIndex > 0 && ChannelStore.getUnreadCount(allChannels[nextIndex - 1].id) === 0) {
+                    nextIndex--;
+                }
+            } else if (e.keyCode === Constants.KeyCodes.DOWN) {
+                while (nextIndex < allChannels.length - 1 && ChannelStore.getUnreadCount(allChannels[nextIndex + 1].id) === 0) {
+                    nextIndex++;
+                }
+            }
+            if (ChannelStore.getUnreadCount(allChannels[nextIndex].id) !== 0) {
+                nextChannel = allChannels[nextIndex];
+                GlobalActions.emitChannelClickEvent(nextChannel);
+            }
+        }
     }
+    
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
         if (channel) {
             var viewInfoOption = (
