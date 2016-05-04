@@ -34,6 +34,8 @@ import {Link, browserHistory} from 'react-router';
 
 import React from 'react';
 
+import * as GlobalActions from 'action_creators/global_actions.jsx';
+
 export default class Navbar extends React.Component {
     constructor(props) {
         super(props);
@@ -74,12 +76,19 @@ export default class Navbar extends React.Component {
         $('.inner-wrap').click(this.hideSidebars);
 
         document.addEventListener('keydown', (e) => {
-            if ((e.altKey && e.keyCode === Constants.KeyCodes.LEFT) || (e.metaKey && e.keyCode === Constants.KeyCodes.OPEN_SQUARE)) {
-                window.history.back();
-            }
-
-            if ((e.altKey && e.keyCode === Constants.KeyCodes.RIGHT) || (e.metaKey && e.keyCode === Constants.KeyCodes.CLOSE_SQUARE)) {
-                window.history.forward();
+            if (e.altKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+                const allChannels = ChannelStore.getAll();
+                const curChannel = this.state.channel;
+                const curIndex = allChannels.find(curChannel);
+                let nextChannel = curChannel;
+                let nextIndex = curIndex;
+                if (e.keyCode === Constants.KeyCodes.DOWN) {
+                    nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
+                } else if (e.keyCode === Constants.KeyCodes.UP) {
+                    nextIndex = Math.max(curIndex - 1, 0);
+                }
+                nextChannel = allChannels[nextIndex];
+                GlobalActions.emitChannelClickEvent(nextChannel);
             }
         });
     }
