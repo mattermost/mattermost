@@ -76,7 +76,7 @@ export default class Navbar extends React.Component {
         $('.inner-wrap').click(this.hideSidebars);
 
         document.addEventListener('keydown', (e) => {
-            if ((e.altKey || e.metaKey) && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            if (e.altKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
                 const allChannels = ChannelStore.getAll();
                 const curChannel = ChannelStore.getCurrent();
                 const curIndex = allChannels.indexOf(curChannel);
