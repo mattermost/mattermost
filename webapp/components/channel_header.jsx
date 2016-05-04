@@ -61,7 +61,6 @@ export default class ChannelHeader extends React.Component {
             memberChannel: ChannelStore.getMember(this.props.channelId),
             users: extraInfo.members,
             userCount: extraInfo.member_count,
-            searchVisible: SearchStore.getSearchResults() !== null,
             currentUser: UserStore.getCurrentUser()
         };
     }

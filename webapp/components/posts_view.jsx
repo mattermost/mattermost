@@ -11,6 +11,8 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 
@@ -394,6 +396,8 @@ export default class PostsView extends React.Component {
             UserStore.addChangeListener(this.onUserChange);
         }
 
+        this.introText = createChannelIntroMessage(this.props.channel);
+
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
@@ -481,7 +485,7 @@ export default class PostsView extends React.Component {
                     </a>
                 );
             } else {
-                moreMessagesTop = this.props.introText;
+                moreMessagesTop = this.introText;
             }
 
             // Give option to load more posts at bottom if nessisary
@@ -559,7 +563,7 @@ PostsView.propTypes = {
     loadMorePostsBottomClicked: React.PropTypes.func.isRequired,
     showMoreMessagesTop: React.PropTypes.bool,
     showMoreMessagesBottom: React.PropTypes.bool,
-    introText: React.PropTypes.element,
+    channel: React.PropTypes.object,
     messageSeparatorTime: React.PropTypes.number,
     postsToHighlight: React.PropTypes.object
 };
