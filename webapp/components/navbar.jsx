@@ -173,7 +173,7 @@ export default class Navbar extends React.Component {
             GlobalActions.emitChannelClickEvent(nextChannel);
         }
 
-        if (e.metaKey && e.shiftKey) {
+        if (e.altKey && e.shiftKey) {
             const allChannels = ChannelStore.getAll();
             const curChannel = ChannelStore.getCurrent();
             const curIndex = allChannels.indexOf(curChannel);
