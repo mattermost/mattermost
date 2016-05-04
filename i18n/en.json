@@ -1457,7 +1457,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} oauth not avlailable on this server"
+    "translation": "{{.Service}} oauth not available on this server"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
