@@ -2020,10 +2020,6 @@
     "translation": "Loaded config file from %v"
   },
   {
-    "id": "mattermost.unable_to_load_config",
-    "translation": "Unable to load mattermost configuration file:"
-  },
-  {
     "id": "mattermost.current_version",
     "translation": "Current version is %v (%v/%v/%v)"
   },
@@ -2058,6 +2054,10 @@
   {
     "id": "mattermost.system_admins.error",
     "translation": "Failed to get system admins for security update information from Mattermost."
+  },
+  {
+    "id": "mattermost.unable_to_load_config",
+    "translation": "Unable to load mattermost configuration file:"
   },
   {
     "id": "mattermost.working_dir",
