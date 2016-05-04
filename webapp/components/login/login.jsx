@@ -342,25 +342,28 @@ export default class Login extends React.Component {
             );
         }
 
-        const userSignUp = (
-            <div>
-                <span>
-                    <FormattedMessage
-                        id='login.noAccount'
-                        defaultMessage="Don't have an account? "
-                    />
-                    <Link
-                        to={'/signup_user_complete'}
-                        className='signup-team-login'
-                    >
+        var userSignUp;
+        if (global.window.mm_config.EnableOpenServer === 'true') {
+            userSignUp = (
+                <div>
+                    <span>
                         <FormattedMessage
-                            id='login.create'
-                            defaultMessage='Create one now'
+                            id='login.noAccount'
+                            defaultMessage="Don't have an account? "
                         />
-                    </Link>
-                </span>
-            </div>
-        );
+                        <Link
+                            to={'/signup_user_complete'}
+                            className='signup-team-login'
+                        >
+                            <FormattedMessage
+                                id='login.create'
+                                defaultMessage='Create one now'
+                            />
+                        </Link>
+                    </span>
+                </div>
+            );
+        }
 
         let forgotPassword;
         if (usernameSigninEnabled || emailSigninEnabled) {
@@ -419,13 +422,13 @@ export default class Login extends React.Component {
                             className='signup-team-logo'
                             src={logoImage}
                         />
-                        <h1>{global.window.mm_config.SiteName}</h1>
-                        <h4 className='color--light'>
-                            <FormattedMessage
-                                id='web.root.singup_info'
-                            />
-                        </h4>
                         <div className='signup__content'>
+                            <h1>{global.window.mm_config.SiteName}</h1>
+                            <h4 className='color--light'>
+                                <FormattedMessage
+                                    id='web.root.singup_info'
+                                />
+                            </h4>
                             {content}
                         </div>
                     </div>

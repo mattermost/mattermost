@@ -862,11 +862,20 @@ export default class Client {
 
     getProfilesForTeam = (teamId, success, error) => {
         request.
-            get(`${this.getUsersRoute()}/profiles/${teamId}?skip_direct=true`).
+            get(`${this.getUsersRoute()}/profiles/${teamId}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesForTeam', success, error));
+    }
+
+    getProfilesForDirectMessageList = (success, error) => {
+        request.
+            get(`${this.getUsersRoute()}/profiles_for_dm_list/${this.getTeamId()}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesForDirectMessageList', success, error));
     }
 
     getStatuses = (ids, success, error) => {

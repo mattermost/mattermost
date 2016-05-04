@@ -15,6 +15,14 @@ const holders = defineMessages({
     search: {
         id: 'filtered_user_list.search',
         defaultMessage: 'Search members'
+    },
+    anyTeam: {
+        id: 'filtered_user_list.any_team',
+        defaultMessage: 'All Users'
+    },
+    teamOnly: {
+        id: 'filtered_user_list.team_only',
+        defaultMessage: 'Members of this Team'
     }
 });
 
@@ -25,9 +33,13 @@ class FilteredUserList extends React.Component {
         super(props);
 
         this.handleFilterChange = this.handleFilterChange.bind(this);
+        this.handleListChange = this.handleListChange.bind(this);
+        this.filterUsers = this.filterUsers.bind(this);
 
         this.state = {
-            filter: ''
+            filter: '',
+            users: this.filterUsers(props.teamMembers, props.users),
+            selected: 'team'
         };
     }
 
@@ -37,18 +49,49 @@ class FilteredUserList extends React.Component {
         }
     }
 
+    filterUsers(teamMembers, users) {
+        if (!teamMembers || teamMembers.length === 0) {
+            return users;
+        }
+
+        var filteredUsers = users.filter((user) => {
+            for (const index in teamMembers) {
+                if (teamMembers.hasOwnProperty(index) && teamMembers[index].user_id === user.id) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return filteredUsers;
+    }
+
     handleFilterChange(e) {
         this.setState({
             filter: e.target.value
         });
     }
 
+    handleListChange(e) {
+        var users = this.props.users;
+
+        if (e.target.value === 'team') {
+            users = this.filterUsers(this.props.teamMembers, this.props.users);
+        }
+
+        this.setState({
+            selected: e.target.value,
+            users
+        });
+    }
+
     render() {
         const {formatMessage} = this.props.intl;
 
-        let users = this.props.users;
+        let users = this.state.users;
 
-        if (this.state.filter) {
+        if (this.state.filter && this.state.filter.length > 0) {
             const filter = this.state.filter.toLowerCase();
 
             users = users.filter((user) => {
@@ -60,7 +103,7 @@ class FilteredUserList extends React.Component {
         }
 
         let count;
-        if (users.length === this.props.users.length) {
+        if (users.length === this.state.users.length) {
             count = (
                 <FormattedMessage
                     id='filtered_user_list.count'
@@ -77,9 +120,39 @@ class FilteredUserList extends React.Component {
                     defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} Total'
                     values={{
                         count: users.length,
-                        total: this.props.users.length
+                        total: this.state.users.length
                     }}
                 />
+            );
+        }
+
+        let teamToggle;
+
+        let teamMembers = this.props.teamMembers;
+        if (this.props.showTeamToggle) {
+            teamMembers = [];
+
+            teamToggle = (
+                <div className='col-sm-6'>
+                    <select
+                        className='form-control member-select'
+                        id='restrictList'
+                        ref='restrictList'
+                        defaultValue='team'
+                        onChange={this.handleListChange}
+                    >
+                        <option value='any'>{formatMessage(holders.anyTeam)}</option>
+                        <option value='team'>{formatMessage(holders.teamOnly)}</option>
+                    </select>
+                    <span
+                        className='member-show'
+                    >
+                        <FormattedMessage
+                            id='filtered_user_list.show'
+                            defaultMessage='Show'
+                        />
+                    </span>
+                </div>
             );
         }
 
@@ -100,6 +173,7 @@ class FilteredUserList extends React.Component {
                     <div className='col-sm-6'>
                         <span className='member-count'>{count}</span>
                     </div>
+                    {teamToggle}
                 </div>
                 <div
                     ref='userList'
@@ -107,7 +181,7 @@ class FilteredUserList extends React.Component {
                 >
                     <UserList
                         users={users}
-                        teamMembers={this.props.teamMembers}
+                        teamMembers={teamMembers}
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
                     />
@@ -121,7 +195,8 @@ FilteredUserList.defaultProps = {
     users: [],
     teamMembers: [],
     actions: [],
-    actionProps: {}
+    actionProps: {},
+    showTeamToggle: false
 };
 
 FilteredUserList.propTypes = {
@@ -130,6 +205,7 @@ FilteredUserList.propTypes = {
     teamMembers: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
+    showTeamToggle: React.PropTypes.bool,
     style: React.PropTypes.object
 };
 

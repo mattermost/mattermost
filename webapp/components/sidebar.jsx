@@ -47,7 +47,6 @@ export default class Sidebar extends React.Component {
         this.onScroll = this.onScroll.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
         this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
-        this.handleResize = this.handleResize.bind(this);
 
         this.showMoreChannelsModal = this.showMoreChannelsModal.bind(this);
         this.showNewChannelModal = this.showNewChannelModal.bind(this);
@@ -64,7 +63,6 @@ export default class Sidebar extends React.Component {
         state.newChannelModalType = '';
         state.showDirectChannelsModal = false;
         state.loadingDMChannel = -1;
-        state.windowWidth = Utils.windowWidth();
         this.state = state;
     }
     getTotalUnreadCount() {
@@ -124,8 +122,6 @@ export default class Sidebar extends React.Component {
 
         directChannels.sort(this.sortChannelsByDisplayName);
 
-        const hiddenDirectChannelCount = UserStore.getActiveOnlyProfileList(true).length - directChannels.length;
-
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
         return {
@@ -134,7 +130,6 @@ export default class Sidebar extends React.Component {
             publicChannels,
             privateChannels,
             directChannels,
-            hiddenDirectChannelCount,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
             currentTeam: TeamStore.getCurrent(),
@@ -153,8 +148,6 @@ export default class Sidebar extends React.Component {
 
         this.updateTitle();
         this.updateUnreadIndicators();
-
-        window.addEventListener('resize', this.handleResize);
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextState, this.state)) {
@@ -176,19 +169,11 @@ export default class Sidebar extends React.Component {
         }
     }
     componentWillUnmount() {
-        window.removeEventListener('resize', this.handleResize);
-
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
-    }
-    handleResize() {
-        this.setState({
-            windowWidth: Utils.windowWidth(),
-            windowHeight: Utils.windowHeight()
-        });
     }
     onChange() {
         this.setState(this.getStateFromStores());
@@ -495,6 +480,7 @@ export default class Sidebar extends React.Component {
             return (<div/>);
         }
 
+        this.lastBadgesActive = this.badgesActive;
         this.badgesActive = false;
 
         // keep track of the first and last unread channels so we can use them to set the unread indicators
@@ -511,41 +497,37 @@ export default class Sidebar extends React.Component {
         });
 
         // update the favicon to show if there are any notifications
-        var link = document.createElement('link');
-        link.type = 'image/x-icon';
-        link.rel = 'shortcut icon';
-        link.id = 'favicon';
-        if (this.badgesActive) {
-            link.href = redFavicon;
-        } else {
-            link.href = favicon;
+        if (this.lastBadgesActive !== this.badgesActive) {
+            var link = document.createElement('link');
+            link.type = 'image/x-icon';
+            link.rel = 'shortcut icon';
+            link.id = 'favicon';
+            if (this.badgesActive) {
+                link.href = redFavicon;
+            } else {
+                link.href = favicon;
+            }
+            var head = document.getElementsByTagName('head')[0];
+            var oldLink = document.getElementById('favicon');
+            if (oldLink) {
+                head.removeChild(oldLink);
+            }
+            head.appendChild(link);
         }
-        var head = document.getElementsByTagName('head')[0];
-        var oldLink = document.getElementById('favicon');
-        if (oldLink) {
-            head.removeChild(oldLink);
-        }
-        head.appendChild(link);
 
-        var directMessageMore = null;
-        if (this.state.hiddenDirectChannelCount > 0) {
-            directMessageMore = (
-                <li key='more'>
-                    <a
-                        href='#'
-                        onClick={this.showMoreDirectChannelsModal}
-                    >
-                        <FormattedMessage
-                            id='sidebar.more'
-                            defaultMessage='More ({count})'
-                            values={{
-                                count: this.state.hiddenDirectChannelCount
-                            }}
-                        />
-                    </a>
-                </li>
-            );
-        }
+        var directMessageMore = (
+            <li key='more'>
+                <a
+                    href='#'
+                    onClick={this.showMoreDirectChannelsModal}
+                >
+                    <FormattedMessage
+                        id='sidebar.more'
+                        defaultMessage='More'
+                    />
+                </a>
+            </li>
+        );
 
         let showChannelModal = false;
         if (this.state.newChannelModalType !== '') {

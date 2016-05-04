@@ -321,8 +321,8 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
+func (c *Client) GetProfilesForDirectMessageList(teamId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/profiles_for_dm_list/"+teamId, "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -330,8 +330,8 @@ func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetProfilesForTeam(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles/"+teamId+"?skip_direct=true", "", etag); err != nil {
+func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

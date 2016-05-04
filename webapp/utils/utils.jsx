@@ -1247,6 +1247,13 @@ export function openDirectChannelToUser(user, successCb, errorCb) {
         'true'
     );
 
+    // if the user in another team and isn't already in the direct message
+    // list then we should add him so his name shows up correctly.
+    var profileUser = UserStore.getProfile(user.id);
+    if (!profileUser) {
+        UserStore.getDirectProfiles()[user.id] = user;
+    }
+
     const channelName = this.getDirectChannelName(UserStore.getCurrentId(), user.id);
     let channel = ChannelStore.getByName(channelName);
 

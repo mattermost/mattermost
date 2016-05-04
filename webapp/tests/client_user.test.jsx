@@ -480,6 +480,20 @@ describe('Client.User', function() {
         });
     });
 
+    it('getProfilesForDirectMessageList', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getProfilesForDirectMessageList(
+                function(data) {
+                    assert.equal(Object.keys(data).length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getStatuses', function(done) {
         TestHelper.initBasic(() => {
             var ids = [];

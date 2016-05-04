@@ -976,7 +976,7 @@
   "sidebar.createChannel": "Créer un nouveau canal",
   "sidebar.createGroup": "Créer un nouveau groupe",
   "sidebar.direct": "Messages privés",
-  "sidebar.more": "Plus ({count})",
+  "sidebar.more": "Plus",
   "sidebar.moreElips": "Plus...",
   "sidebar.pg": "Groupes privés",
   "sidebar.removeList": "Retirer de la liste",

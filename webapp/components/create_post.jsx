@@ -12,7 +12,6 @@ import TutorialTip from './tutorial/tutorial_tip.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -167,21 +166,12 @@ class CreatePost extends React.Component {
         post.create_at = time;
         post.parent_id = this.state.parentId;
 
-        const channel = ChannelStore.get(this.state.channelId);
-
         GlobalActions.emitUserPostedEvent(post);
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
         Client.createPost(post,
-            (data) => {
-                AsyncClient.getPosts();
-
-                const member = ChannelStore.getMember(channel.id);
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = Date.now();
-                ChannelStore.setChannelMember(member);
-
-                GlobalActions.emitPostRecievedEvent(data);
+            () => {
+                // DO nothing. Websockets will handle this.
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {

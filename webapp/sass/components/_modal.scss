@@ -436,6 +436,21 @@
             margin-top: 5px;
         }
 
+        .member-show {
+            @include opacity(.8);
+            float: right;
+            margin-top: 12px;
+            margin-right: 3px;
+        }
+
+        .member-select {
+            @include opacity(.8);
+            float: right;
+            width: auto;
+            margin-top: 5px;
+            margin-right: 5px;
+        }
+
         .more-purpose {
             @include opacity(.7);
         }

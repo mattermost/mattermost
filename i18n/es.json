@@ -2056,6 +2056,10 @@
     "translation": "Falla al obtener los administradores de sistema que reciben información referente a las actualizaciones de seguridade de Mattermost."
   },
   {
+    "id": "mattermost.unable_to_load_config",
+    "translation": "No se pudo cargar el archivo de configuración de Mattermost:"
+  },
+  {
     "id": "mattermost.working_dir",
     "translation": "El directorio de trabajo actual es %v"
   },
@@ -3440,6 +3444,14 @@
     "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
   },
   {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "No pudimos encontrar una cuenta existente con tus credenciales. Es posible que requieras una invitación por parte del dueño del equipo para poder unirte."
+  },
+  {
+    "id": "store.sql_user.get_for_login.multiple_users",
+    "translation": "Encontramos múltiples usuarios que tienen tus credenciales y no pudimos iniciar tu sesión. Por favor contacta a un administrador."
+  },
+  {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
   },
@@ -3494,6 +3506,10 @@
   {
     "id": "store.sql_user.update.app_error",
     "translation": "No pudimos realizar la actualización de los datos de la cuenta"
+  },
+  {
+    "id": "store.sql_user.update.can_not_change_ldap.app_error",
+    "translation": "No se puede cambiar el campo asignado por LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",

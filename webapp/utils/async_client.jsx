@@ -131,7 +131,6 @@ export function updateLastViewedAt(id) {
         () => {
             callTracker.updateLastViewed = 0;
             ErrorStore.clearLastError();
-            ErrorStore.emitChange();
         },
         (err) => {
             callTracker.updateLastViewed = 0;
@@ -220,6 +219,28 @@ export function getTeamMembers(teamId) {
         (err) => {
             callTracker.getTeamMembers = 0;
             dispatchError(err, 'getTeamMembers');
+        }
+    );
+}
+
+export function getProfilesForDirectMessageList() {
+    if (isCallInProgress('getProfilesForDirectMessageList')) {
+        return;
+    }
+
+    callTracker.getProfilesForDirectMessageList = utils.getTimestamp();
+    Client.getProfilesForDirectMessageList(
+        (data) => {
+            callTracker.getProfilesForDirectMessageList = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES_FOR_DM_LIST,
+                profiles: data
+            });
+        },
+        (err) => {
+            callTracker.getProfilesForDirectMessageList = 0;
+            dispatchError(err, 'getProfilesForDirectMessageList');
         }
     );
 }

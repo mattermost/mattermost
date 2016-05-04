@@ -60,6 +60,7 @@ export default {
         RECEIVED_MENTION_DATA: null,
         RECEIVED_ADD_MENTION: null,
 
+        RECEIVED_PROFILES_FOR_DM_LIST: null,
         RECEIVED_PROFILES: null,
         RECEIVED_DIRECT_PROFILES: null,
         RECEIVED_ME: null,
