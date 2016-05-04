@@ -19,7 +19,7 @@ export default class MemberListTeam extends React.Component {
 
         this.state = {
             users: this.getUsers(),
-            teamMembers: TeamStore.getMembersForTeam()
+            teamMembers: TeamStore.getCurrentTeammateMembers()
         };
     }
 
@@ -55,7 +55,7 @@ export default class MemberListTeam extends React.Component {
 
     onTeamChange() {
         this.setState({
-            teamMembers: TeamStore.getMembersForTeam()
+            teamMembers: TeamStore.getCurrentTeammateMembers()
         });
     }
 

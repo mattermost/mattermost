@@ -136,7 +136,7 @@ func (c *WebConn) HasPermissionsToTeam(teamId string) bool {
 				perm = true
 				c.hasPermissionsToTeam[teamId] = perm
 			} else {
-				perm = true
+				perm = false
 				c.hasPermissionsToTeam[teamId] = perm
 			}
 

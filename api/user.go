@@ -810,6 +810,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
 		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
 		dpchan := Srv.Store.User().GetDirectProfiles(c.Session.UserId)
+		dmchan := Srv.Store.Team().GetDirectMembers(c.Session.UserId)
 
 		il.TeamMembers = c.Session.TeamMembers
 
@@ -861,6 +862,13 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			il.DirectProfiles = profiles
+		}
+
+		if dm := <-dmchan; dm.Err != nil {
+			c.Err = dm.Err
+			return
+		} else {
+			il.DirectTeamMembers = dm.Data.(map[string]*model.TeamMember)
 		}
 	}
 

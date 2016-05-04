@@ -39,6 +39,14 @@ func TeamMemberFromJson(data io.Reader) *TeamMember {
 	}
 }
 
+func TeamMembersMapToJson(o map[string]*TeamMember) string {
+	if b, err := json.Marshal(o); err != nil {
+		return "{}"
+	} else {
+		return string(b)
+	}
+}
+
 func TeamMembersToJson(o []*TeamMember) string {
 	if b, err := json.Marshal(o); err != nil {
 		return "[]"

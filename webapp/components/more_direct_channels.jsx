@@ -28,7 +28,7 @@ export default class MoreDirectChannels extends React.Component {
 
         this.state = {
             users: null,
-            teamMembers: null,
+            teamMembers: TeamStore.getCurrentTeammateMembers(),
             loadingDMChannel: -1
         };
     }
@@ -57,6 +57,10 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         if (!Utils.areObjectsEqual(nextState.users, this.state.users)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextState.teamMembers, this.state.teamMembers)) {
             return true;
         }
 
@@ -109,7 +113,7 @@ export default class MoreDirectChannels extends React.Component {
 
     onTeamChange() {
         this.setState({
-            teamMembers: TeamStore.getMembersForTeam()
+            teamMembers: TeamStore.getCurrentTeammateMembers()
         });
     }
 

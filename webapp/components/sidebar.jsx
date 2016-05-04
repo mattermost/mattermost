@@ -24,7 +24,7 @@ import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import {Tooltip, OverlayTrigger, Overlay} from 'react-bootstrap';
 import loadingGif from 'images/load.gif';
 
 import React from 'react';
@@ -40,6 +40,7 @@ export default class Sidebar extends React.Component {
         this.badgesActive = false;
         this.firstUnreadChannel = null;
         this.lastUnreadChannel = null;
+        this.showingDirectTip = false;
 
         this.getStateFromStores = this.getStateFromStores.bind(this);
 
@@ -91,6 +92,7 @@ export default class Sidebar extends React.Component {
         const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
         const directChannels = [];
+        const teammateMembers = TeamStore.getCurrentTeammateMembers();
         for (const [name, value] of preferences) {
             if (value !== 'true') {
                 continue;
@@ -117,6 +119,12 @@ export default class Sidebar extends React.Component {
             directChannel.teammate_id = teammateId;
             directChannel.status = UserStore.getStatus(teammateId);
 
+            if (teammateId in teammateMembers) {
+                directChannel.different_team = false;
+            } else {
+                directChannel.different_team = true;
+            }
+
             directChannels.push(directChannel);
         }
 
@@ -135,7 +143,8 @@ export default class Sidebar extends React.Component {
             currentTeam: TeamStore.getCurrent(),
             currentUser: UserStore.getCurrentUser(),
             townSquare: ChannelStore.getByName(Constants.DEFAULT_CHANNEL),
-            offTopic: ChannelStore.getByName(Constants.OFFTOPIC_CHANNEL)
+            offTopic: ChannelStore.getByName(Constants.OFFTOPIC_CHANNEL),
+            hasSeenOtherTeamDirect: PreferenceStore.getBool(Preferences.CATEGORY_SEEN_OTHER_TEAM_DIRECT, UserStore.getCurrentId(), false)
         };
     }
 
@@ -343,11 +352,13 @@ export default class Sidebar extends React.Component {
         const activeId = this.state.activeId;
         const channelMember = members[channel.id];
         const unreadCount = this.state.unreadCounts[channel.id] || {msgs: 0, mentions: 0};
+        let isActive = false;
         let msgCount;
 
         let linkClass = '';
         if (channel.id === activeId) {
             linkClass = 'active';
+            isActive = true;
         }
 
         let rowClass = 'sidebar-channel';
@@ -393,11 +404,11 @@ export default class Sidebar extends React.Component {
         if (channel.type === 'D') {
             var statusIcon = '';
             if (channel.status === 'online') {
-                statusIcon = Constants.ONLINE_ICON_SVG;
+                statusIcon = channel.different_team ? Constants.OTHER_TEAM_ONLINE_ICON_SVG : Constants.ONLINE_ICON_SVG;
             } else if (channel.status === 'away') {
-                statusIcon = Constants.AWAY_ICON_SVG;
+                statusIcon = channel.different_team ? Constants.OTHER_TEAM_AWAY_ICON_SVG : Constants.AWAY_ICON_SVG;
             } else {
-                statusIcon = Constants.OFFLINE_ICON_SVG;
+                statusIcon = channel.different_team ? Constants.OTHER_TEAM_OFFLINE_ICON_SVG : Constants.OFFLINE_ICON_SVG;
             }
             status = (
                 <span
@@ -454,6 +465,41 @@ export default class Sidebar extends React.Component {
             link = '/' + this.state.currentTeam.name + '/channels/' + channel.name;
         }
 
+        if (channel.different_team && isActive) {
+            this.showingDirectTip = true;
+        }
+
+        let channelDisplayName = channel.display_name;
+        if (channel.different_team) {
+            channelDisplayName = <i>{channel.display_name}</i>;
+        }
+
+        let diffTeamTip;
+        if (channel.different_team &&
+                !this.state.hasSeenOtherTeamDirect &&
+                !this.showingDirectTip &&
+                !isActive) {
+            this.showingDirectTip = true;
+
+            diffTeamTip = (
+                <Overlay
+                    show={true}
+                    placement='top'
+                    target={() => this.refs[channel.name]}
+                >
+                    <Tooltip id='sidebar-not-team-member-tip'>
+                        <FormattedMessage
+                            id='sidebar.notTeamMember'
+                            defaultMessage='This person is not a member of the {team} team'
+                            values={{
+                                team: this.state.currentTeam.display_name
+                            }}
+                        />
+                    </Tooltip>
+                </Overlay>
+            );
+        }
+
         return (
             <li
                 key={channel.name}
@@ -466,11 +512,12 @@ export default class Sidebar extends React.Component {
                 >
                     {icon}
                     {status}
-                    {channel.display_name}
+                    {channelDisplayName}
                     {badge}
                     {closeButton}
                 </Link>
                 {tutorialTip}
+                {diffTeamTip}
             </li>
         );
     }
@@ -486,6 +533,7 @@ export default class Sidebar extends React.Component {
         // keep track of the first and last unread channels so we can use them to set the unread indicators
         this.firstUnreadChannel = null;
         this.lastUnreadChannel = null;
+        this.showingDirectTip = false;
 
         // create elements for all 3 types of channels
         const publicChannelItems = this.state.publicChannels.map(this.createChannelElement);

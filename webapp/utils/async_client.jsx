@@ -212,7 +212,8 @@ export function getTeamMembers(teamId) {
             callTracker.getTeamMembers = 0;
 
             AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MEMBERS_FOR_TEAM,
+                type: ActionTypes.RECEIVED_TEAMMATE_MEMBERS,
+                team_id: teamId,
                 team_members: data
             });
         },

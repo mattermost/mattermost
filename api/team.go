@@ -805,8 +805,8 @@ func getMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		members := result.Data.([]*model.TeamMember)
-		w.Write([]byte(model.TeamMembersToJson(members)))
+		members := result.Data.(map[string]*model.TeamMember)
+		w.Write([]byte(model.TeamMembersMapToJson(members)))
 		return
 	}
 }
