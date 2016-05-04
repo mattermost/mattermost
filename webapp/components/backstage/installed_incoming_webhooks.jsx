@@ -78,6 +78,12 @@ export default class InstalledIncomingWebhooks extends React.Component {
                     />
                 }
                 addLink={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/incoming_webhooks/add'}
+                emptyText={
+                    <FormattedMessage
+                        id='installed_incoming_webhooks.empty'
+                        defaultMessage='No incoming webhooks found'
+                    />
+                }
             >
                 {incomingWebhooks}
             </InstalledIntegrations>

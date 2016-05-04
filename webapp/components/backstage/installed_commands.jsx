@@ -86,6 +86,12 @@ export default class InstalledCommands extends React.Component {
                     />
                 }
                 addLink={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands/add'}
+                emptyText={
+                    <FormattedMessage
+                        id='installed_commands.empty'
+                        defaultMessage='No slash commands found'
+                    />
+                }
             >
                 {commands}
             </InstalledIntegrations>

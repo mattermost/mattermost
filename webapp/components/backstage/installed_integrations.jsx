@@ -13,7 +13,8 @@ export default class InstalledIntegrations extends React.Component {
             children: React.PropTypes.node,
             header: React.PropTypes.node.isRequired,
             addLink: React.PropTypes.string.isRequired,
-            addText: React.PropTypes.node.isRequired
+            addText: React.PropTypes.node.isRequired,
+            emptyText: React.PropTypes.node.isRequired
         };
     }
 
@@ -36,9 +37,17 @@ export default class InstalledIntegrations extends React.Component {
     render() {
         const filter = this.state.filter.toLowerCase();
 
-        const children = React.Children.map(this.props.children, (child) => {
+        let children = React.Children.map(this.props.children, (child) => {
             return React.cloneElement(child, {filter});
         });
+
+        if (children.length === 0) {
+            children = (
+                <span className='backstage-list__item backstage-list_empty'>
+                    {this.props.emptyText}
+                </span>
+            );
+        }
 
         return (
             <div className='backstage-content'>
