@@ -5,7 +5,6 @@ import $ from 'jquery';
 import React from 'react';
 
 import ChannelHeader from 'components/channel_header.jsx';
-import Constants from 'utils/constants.jsx';
 import FileUploadOverlay from 'components/file_upload_overlay.jsx';
 import CreatePost from 'components/create_post.jsx';
 import PostsViewContainer from 'components/posts_view_container.jsx';
