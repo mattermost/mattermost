@@ -74,11 +74,11 @@ export default class Navbar extends React.Component {
         $('.inner-wrap').click(this.hideSidebars);
 
         document.addEventListener('keydown', (e) => {
-            if ((e.altKey || e.metaKey) && e.keyCode == Constants.KeyCodes.LEFT) {
+            if ((e.altKey || e.metaKey) && e.keyCode === Constants.KeyCodes.LEFT) {
                 window.history.back();
             }
 
-            if ((e.altKey || e.metaKey) && e.keyCode == Constants.KeyCodes.RIGHT) {
+            if ((e.altKey || e.metaKey) && e.keyCode === Constants.KeyCodes.RIGHT) {
                 window.history.forward();
             }
         });
