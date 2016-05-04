@@ -48,68 +48,16 @@
     "translation": "9月"
   },
   {
-    "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "画像ファイルをアップロードできません。画像ストレージが設定されていません。"
-  },
-  {
-    "id": "api.admin.upload_brand_image.too_large.app_error",
-    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
-  },
-  {
-    "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "マルチパートフォームを解析できません"
-  },
-  {
-    "id": "api.admin.upload_brand_image.no_file.app_error",
-    "translation": "リクエストの'image'以下にファイルがありません"
-  },
-  {
-    "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "リクエストの'image'以下の配列が空です"
-  },
-  {
-    "id": "api.admin.upload_brand_image.not_available.app_error",
-    "translation": "独自ブランディングは設定されていないか、このサーバーではサポートされていません"
-  },
-  {
-    "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "画像ストレージは設定されていません。"
+    "id": "api.admin.file_read_error",
+    "translation": "ログファイルの読み込み中にエラーになりました"
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
     "translation": "独自ブランディングは設定されていないか、このサーバーではサポートされていません"
   },
   {
-    "id": "store.sql_system.get_by_name.app_error",
-    "translation": "システム変数が見付かりません。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.open.app_error",
-    "translation": "画像を開くことができません。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.decode_config.app_error",
-    "translation": "画像設定をデコードできません。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.too_large.app_error",
-    "translation": "画像を開けません。画像が大き過ぎます。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.decode.app_error",
-    "translation": "画像をデコードできません。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.encode.app_error",
-    "translation": "画像をPNGとしてデコードできません。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.save_image.app_error",
-    "translation": "画像を保存できません"
-  },
-  {
-    "id": "api.admin.file_read_error",
-    "translation": "ログファイルの読み込み中にエラーになりました"
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "画像ストレージは設定されていません。"
   },
   {
     "id": "api.admin.init.debug",
@@ -122,6 +70,30 @@
   {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - 電子メール設定のテスト"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "リクエストの'image'以下の配列が空です"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "リクエストの'image'以下にファイルがありません"
+  },
+  {
+    "id": "api.admin.upload_brand_image.not_available.app_error",
+    "translation": "独自ブランディングは設定されていないか、このサーバーではサポートされていません"
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "マルチパートフォームを解析できません"
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "画像ファイルをアップロードできません。画像ストレージが設定されていません。"
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
   },
   {
     "id": "api.api.init.parsing_templates.debug",
@@ -1832,6 +1804,30 @@
     "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
   },
   {
+    "id": "ent.brand.save_brand_image.decode.app_error",
+    "translation": "画像をデコードできません。"
+  },
+  {
+    "id": "ent.brand.save_brand_image.decode_config.app_error",
+    "translation": "画像設定をデコードできません。"
+  },
+  {
+    "id": "ent.brand.save_brand_image.encode.app_error",
+    "translation": "画像をPNGとしてデコードできません。"
+  },
+  {
+    "id": "ent.brand.save_brand_image.open.app_error",
+    "translation": "画像を開くことができません。"
+  },
+  {
+    "id": "ent.brand.save_brand_image.save_image.app_error",
+    "translation": "画像を保存できません"
+  },
+  {
+    "id": "ent.brand.save_brand_image.too_large.app_error",
+    "translation": "画像を開けません。画像が大き過ぎます。"
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "コンプライアンス機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
   },
@@ -3270,6 +3266,10 @@
   {
     "id": "store.sql_system.get.app_error",
     "translation": "システム設定値を探す際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_system.get_by_name.app_error",
+    "translation": "システム変数が見付かりません。"
   },
   {
     "id": "store.sql_system.save.app_error",

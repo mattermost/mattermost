@@ -2020,10 +2020,6 @@
     "translation": "Carregado o arquivo de configuração de %v"
   },
   {
-    "id": "mattermost.unable_to_load_config",
-    "translation": "Não foi possível carregar o arquivo de configuração do mattermost:"
-  },
-  {
     "id": "mattermost.current_version",
     "translation": "Versão atual é %v (%v/%v/%v)"
   },
@@ -2058,6 +2054,10 @@
   {
     "id": "mattermost.system_admins.error",
     "translation": "Falha ao obter administradores do sistema para a informação de atualização de segurança do Mattermost."
+  },
+  {
+    "id": "mattermost.unable_to_load_config",
+    "translation": "Não foi possível carregar o arquivo de configuração do mattermost:"
   },
   {
     "id": "mattermost.working_dir",
