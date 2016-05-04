@@ -75,26 +75,13 @@ export default class Navbar extends React.Component {
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
 
-        document.addEventListener('keydown', (e) => {
-            if (e.altKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
-                const allChannels = ChannelStore.getAll();
-                const curChannel = ChannelStore.getCurrent();
-                const curIndex = allChannels.indexOf(curChannel);
-                let nextChannel = curChannel;
-                let nextIndex = curIndex;
-                if (e.keyCode === Constants.KeyCodes.DOWN) {
-                    nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
-                } else if (e.keyCode === Constants.KeyCodes.UP) {
-                    nextIndex = Math.max(curIndex - 1, 0);
-                }
-                nextChannel = allChannels[nextIndex];
-                GlobalActions.emitChannelClickEvent(nextChannel);
-            }
-        });
+        document.addEventListener('keydown', this.navigateChannelShortcut);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeExtraInfoChangeListener(this.onChange);
+
+        document.removeEventListener('keydown', this.navigateChannelShortcut);
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -168,6 +155,23 @@ export default class Navbar extends React.Component {
         this.setState({
             showRenameChannelModal: false
         });
+    }
+
+    navigateChannelShortcut(e) {
+        if (e.altKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            const allChannels = ChannelStore.getAll();
+            const curChannel = ChannelStore.getCurrent();
+            const curIndex = allChannels.indexOf(curChannel);
+            let nextChannel = curChannel;
+            let nextIndex = curIndex;
+            if (e.keyCode === Constants.KeyCodes.DOWN) {
+                nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
+            } else if (e.keyCode === Constants.KeyCodes.UP) {
+                nextIndex = Math.max(curIndex - 1, 0);
+            }
+            nextChannel = allChannels[nextIndex];
+            GlobalActions.emitChannelClickEvent(nextChannel);
+        }
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
         if (channel) {
