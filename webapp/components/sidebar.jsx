@@ -124,8 +124,6 @@ export default class Sidebar extends React.Component {
 
         directChannels.sort(this.sortChannelsByDisplayName);
 
-        const hiddenDirectChannelCount = UserStore.getActiveOnlyProfileList(true).length - directChannels.length;
-
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
         return {
@@ -134,7 +132,6 @@ export default class Sidebar extends React.Component {
             publicChannels,
             privateChannels,
             directChannels,
-            hiddenDirectChannelCount,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
             currentTeam: TeamStore.getCurrent(),
@@ -527,25 +524,19 @@ export default class Sidebar extends React.Component {
         }
         head.appendChild(link);
 
-        var directMessageMore = null;
-        if (this.state.hiddenDirectChannelCount > 0) {
-            directMessageMore = (
-                <li key='more'>
-                    <a
-                        href='#'
-                        onClick={this.showMoreDirectChannelsModal}
-                    >
-                        <FormattedMessage
-                            id='sidebar.more'
-                            defaultMessage='More ({count})'
-                            values={{
-                                count: this.state.hiddenDirectChannelCount
-                            }}
-                        />
-                    </a>
-                </li>
-            );
-        }
+        var directMessageMore = (
+            <li key='more'>
+                <a
+                    href='#'
+                    onClick={this.showMoreDirectChannelsModal}
+                >
+                    <FormattedMessage
+                        id='sidebar.more'
+                        defaultMessage='More'
+                    />
+                </a>
+            </li>
+        );
 
         let showChannelModal = false;
         if (this.state.newChannelModalType !== '') {

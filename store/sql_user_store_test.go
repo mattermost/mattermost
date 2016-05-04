@@ -263,6 +263,31 @@ func TestActiveUserCount(t *testing.T) {
 	}
 }
 
+func TestUserStoreGetAllProfiles(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
+
+	if r1 := <-store.User().GetAllProfiles(); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(map[string]*model.User)
+		if len(users) < 2 {
+			t.Fatal("invalid returned users")
+		}
+	}
+}
+
 func TestUserStoreGetProfiles(t *testing.T) {
 	Setup()
 

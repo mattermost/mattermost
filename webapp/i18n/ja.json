@@ -1078,7 +1078,7 @@
   "sidebar.createChannel": "新しいチャンネルを作成する",
   "sidebar.createGroup": "新しいグループを作成する",
   "sidebar.direct": "ダイレクトメッセージ",
-  "sidebar.more": "もっと表示する({count})",
+  "sidebar.more": "もっと表示する",
   "sidebar.moreElips": "もっと…",
   "sidebar.pg": "非公開グループ",
   "sidebar.removeList": "一覧から削除する",

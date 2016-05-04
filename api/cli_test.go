@@ -68,7 +68,7 @@ func TestCliCreateUserWithTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfilesForTeam(th.SystemAdminTeam.Id, "")).Data.(map[string]*model.User)
+	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfiles(th.SystemAdminTeam.Id, "")).Data.(map[string]*model.User)
 
 	found := false
 
@@ -149,7 +149,7 @@ func TestCliJoinTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfilesForTeam(th.SystemAdminTeam.Id, "")).Data.(map[string]*model.User)
+	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfiles(th.SystemAdminTeam.Id, "")).Data.(map[string]*model.User)
 
 	found := false
 

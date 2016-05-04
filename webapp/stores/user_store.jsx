@@ -7,6 +7,7 @@ import EventEmitter from 'events';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
+const CHANGE_EVENT_DM_LIST = 'change_dm_list';
 const CHANGE_EVENT = 'change';
 const CHANGE_EVENT_SESSIONS = 'change_sessions';
 const CHANGE_EVENT_AUDITS = 'change_audits';
@@ -19,6 +20,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     clear() {
+        this.profiles_for_dm_list = {};
         this.profiles = {};
         this.direct_profiles = {};
         this.statuses = {};
@@ -38,6 +40,18 @@ class UserStoreClass extends EventEmitter {
 
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
+    }
+
+    emitDmListChange() {
+        this.emit(CHANGE_EVENT_DM_LIST);
+    }
+
+    addDmListChangeListener(callback) {
+        this.on(CHANGE_EVENT_DM_LIST, callback);
+    }
+
+    removeDmListChangeListener(callback) {
+        this.removeListener(CHANGE_EVENT_DM_LIST, callback);
     }
 
     emitSessionsChange() {
@@ -190,6 +204,29 @@ class UserStoreClass extends EventEmitter {
         }
     }
 
+    getProfilesForDmList() {
+        const currentId = this.getCurrentId();
+        const profiles = [];
+
+        for (const id in this.profiles_for_dm_list) {
+            if (this.profiles_for_dm_list.hasOwnProperty(id) && id !== currentId) {
+                var profile = this.profiles_for_dm_list[id];
+
+                if (profile.delete_at === 0) {
+                    profiles.push(profile);
+                }
+            }
+        }
+
+        profiles.sort((a, b) => a.username.localeCompare(b.username));
+
+        return profiles;
+    }
+
+    saveProfilesForDmList(profiles) {
+        this.profiles_for_dm_list = profiles;
+    }
+
     setSessions(sessions) {
         this.sessions = sessions;
     }
@@ -278,6 +315,10 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
+    case ActionTypes.RECEIVED_PROFILES_FOR_DM_LIST:
+        UserStore.saveProfilesForDmList(action.profiles);
+        UserStore.emitDmListChange();
+        break;
     case ActionTypes.RECEIVED_PROFILES:
         UserStore.saveProfiles(action.profiles);
         UserStore.emitChange();

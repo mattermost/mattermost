@@ -395,6 +395,22 @@ func TestGetDirectProfiles(t *testing.T) {
 	}
 }
 
+func TestGetProfilesForDirectMessageList(t *testing.T) {
+	th := Setup().InitBasic()
+
+	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
+
+	if result, err := th.BasicClient.GetProfilesForDirectMessageList(th.BasicTeam.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.(map[string]*model.User)
+
+		if len(users) < 1 {
+			t.Fatal("map was wrong length")
+		}
+	}
+}
+
 func TestGetAudits(t *testing.T) {
 	th := Setup()
 	Client := th.CreateClient()
