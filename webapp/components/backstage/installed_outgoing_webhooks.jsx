@@ -21,21 +21,16 @@ export default class InstalledOutgoingWebhooks extends React.Component {
         this.deleteOutgoingWebhook = this.deleteOutgoingWebhook.bind(this);
 
         this.state = {
-            outgoingWebhooks: []
+            outgoingWebhooks: IntegrationStore.getOutgoingWebhooks(),
+            loading: !IntegrationStore.hasReceivedOutgoingWebhooks()
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
 
-        if (window.mm_config.EnableOutgoingWebhooks === 'true') {
-            if (IntegrationStore.hasReceivedOutgoingWebhooks()) {
-                this.setState({
-                    outgoingWebhooks: IntegrationStore.getOutgoingWebhooks()
-                });
-            } else {
-                AsyncClient.listOutgoingHooks();
-            }
+        if (window.mm_config.EnableOutgoingWebhooks === 'true' && this.state.loading) {
+            AsyncClient.listOutgoingHooks();
         }
     }
 
@@ -45,7 +40,8 @@ export default class InstalledOutgoingWebhooks extends React.Component {
 
     handleIntegrationChange() {
         this.setState({
-            outgoingWebhooks: IntegrationStore.getOutgoingWebhooks()
+            outgoingWebhooks: IntegrationStore.getOutgoingWebhooks(),
+            loading: !IntegrationStore.hasReceivedOutgoingWebhooks()
         });
     }
 
@@ -90,6 +86,7 @@ export default class InstalledOutgoingWebhooks extends React.Component {
                         defaultMessage='No outgoing webhooks found'
                     />
                 }
+                loading={this.state.loading}
             >
                 {outgoingWebhooks}
             </InstalledIntegrations>
