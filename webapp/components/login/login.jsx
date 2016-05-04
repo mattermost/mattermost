@@ -422,13 +422,13 @@ export default class Login extends React.Component {
                             className='signup-team-logo'
                             src={logoImage}
                         />
-                        <h1>{global.window.mm_config.SiteName}</h1>
-                        <h4 className='color--light'>
-                            <FormattedMessage
-                                id='web.root.singup_info'
-                            />
-                        </h4>
                         <div className='signup__content'>
+                            <h1>{global.window.mm_config.SiteName}</h1>
+                            <h4 className='color--light'>
+                                <FormattedMessage
+                                    id='web.root.singup_info'
+                                />
+                            </h4>
                             {content}
                         </div>
                     </div>
