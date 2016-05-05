@@ -1,13 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
 import FileAttachmentList from './file_attachment_list.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -17,39 +15,6 @@ import loadingGif from 'images/load.gif';
 import React from 'react';
 
 export default class PostBody extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.parseEmojis = this.parseEmojis.bind(this);
-    }
-
-    getAllChildNodes(nodeIn) {
-        var textNodes = [];
-
-        function getTextNodes(node) {
-            textNodes.push(node);
-
-            for (var i = 0, len = node.childNodes.length; i < len; ++i) {
-                getTextNodes(node.childNodes[i]);
-            }
-        }
-
-        getTextNodes(nodeIn);
-        return textNodes;
-    }
-
-    parseEmojis() {
-        twemoji.parse(ReactDOM.findDOMNode(this), {
-            className: 'emoticon',
-            base: '',
-            folder: Constants.EMOJI_PATH
-        });
-    }
-
-    componentDidMount() {
-        this.parseEmojis();
-    }
-
     shouldComponentUpdate(nextProps) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;

@@ -1,14 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserProfile from './user_profile.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
-import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
@@ -22,24 +20,13 @@ export default class RhsRootPost extends React.Component {
     constructor(props) {
         super(props);
 
-        this.parseEmojis = this.parseEmojis.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
 
         this.state = {};
     }
-    parseEmojis() {
-        twemoji.parse(ReactDOM.findDOMNode(this), {
-            className: 'emoticon',
-            base: '',
-            folder: Constants.EMOJI_PATH
-        });
-    }
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
-    }
-    componentDidMount() {
-        this.parseEmojis();
     }
     shouldComponentUpdate(nextProps) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
@@ -47,9 +34,6 @@ export default class RhsRootPost extends React.Component {
         }
 
         return false;
-    }
-    componentDidUpdate() {
-        this.parseEmojis();
     }
     render() {
         const post = this.props.post;
