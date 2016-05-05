@@ -15,7 +15,7 @@ export default class ViewImagePopoverBar extends React.Component {
                         href='#'
                         className='public-link text'
                         data-title='Public Image'
-                        onClick={this.props.getPublicLink}
+                        onClick={this.props.onGetPublicLink}
                     >
                         <FormattedMessage
                             id='view_image_popover.publicLink'
@@ -79,5 +79,5 @@ ViewImagePopoverBar.propTypes = {
     totalFiles: React.PropTypes.number.isRequired,
     filename: React.PropTypes.string.isRequired,
     fileURL: React.PropTypes.string.isRequired,
-    getPublicLink: React.PropTypes.func.isRequired
+    onGetPublicLink: React.PropTypes.func.isRequired
 };

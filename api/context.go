@@ -80,6 +80,10 @@ func ApiUserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.R
 	return &handler{h, true, false, true, true, false, true}
 }
 
+func ApiAppHandlerTrustRequesterIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{h, false, false, true, false, true, true}
+}
+
 type handler struct {
 	handleFunc         func(*Context, http.ResponseWriter, *http.Request)
 	requireUser        bool
@@ -187,7 +191,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SystemAdminRequired()
 	}
 
-	if c.Err == nil && len(c.TeamId) > 0 {
+	if c.Err == nil && len(c.TeamId) > 0 && !h.isTeamIndependent {
 		c.HasPermissionsToTeam(c.TeamId, "TeamRoute")
 	}
 
@@ -389,8 +393,13 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) SetInvalidParam(where string, name string) {
-	c.Err = model.NewLocAppError(where, "api.context.invalid_param.app_error", map[string]interface{}{"Name": name}, "")
-	c.Err.StatusCode = http.StatusBadRequest
+	c.Err = NewInvalidParamError(where, name)
+}
+
+func NewInvalidParamError(where string, name string) *model.AppError {
+	err := model.NewLocAppError(where, "api.context.invalid_param.app_error", map[string]interface{}{"Name": name}, "")
+	err.StatusCode = http.StatusBadRequest
+	return err
 }
 
 func (c *Context) SetUnknownError(where string, details string) {

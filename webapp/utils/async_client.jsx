@@ -1343,3 +1343,33 @@ export function regenCommandToken(id) {
         }
     );
 }
+
+export function getPublicLink(channelId, userId, filename, success, error) {
+    const callName = 'getPublicLink' + channelId + userId + filename;
+
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+
+    Client.getPublicLink(
+        channelId,
+        userId,
+        filename,
+        (link) => {
+            callTracker[callName] = 0;
+
+            success(link);
+        },
+        (err) => {
+            callTracker[callName] = 0;
+
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'getPublicLink');
+            }
+        }
+    );
+}

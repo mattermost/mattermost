@@ -61,10 +61,12 @@ func InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
 	BaseRoutes.Files.Handle("/upload", ApiUserRequired(uploadFile)).Methods("POST")
-	BaseRoutes.Files.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandlerTrustRequester(getFile)).Methods("GET")
-	BaseRoutes.Files.Handle("/get_info/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFileInfo)).Methods("GET")
+	BaseRoutes.Files.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiUserRequiredTrustRequester(getFile)).Methods("GET")
+	BaseRoutes.Files.Handle("/get_info/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiUserRequired(getFileInfo)).Methods("GET")
 	BaseRoutes.Files.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("POST")
 	BaseRoutes.Files.Handle("/get_export", ApiUserRequired(getExport)).Methods("GET")
+
+	BaseRoutes.Public.Handle("/files/get/{team_id:[A-Za-z0-9]+}/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandlerTrustRequesterIndependent(getPublicFile)).Methods("GET")
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -349,72 +351,104 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "")
+	params := mux.Vars(r)
+
+	teamId := c.TeamId
+	channelId := params["channel_id"]
+	userId := params["user_id"]
+	filename := params["filename"]
+
+	if !c.HasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(teamId, channelId, userId), "getFile") {
+		return
+	}
+
+	if err, bytes := getFileData(teamId, channelId, userId, filename); err != nil {
+		c.Err = err
+		return
+	} else if err := writeFileResponse(filename, bytes, w, r); err != nil {
+		c.Err = err
+		return
+	}
+}
+
+func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	teamId := params["team_id"]
+	channelId := params["channel_id"]
+	userId := params["user_id"]
+	filename := params["filename"]
+
+	hash := r.URL.Query().Get("h")
+	data := r.URL.Query().Get("d")
+
+	if !utils.Cfg.FileSettings.EnablePublicLink {
+		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_disabled.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	params := mux.Vars(r)
-
-	channelId := params["channel_id"]
-	if len(channelId) != 26 {
-		c.SetInvalidParam("getFile", "channel_id")
-		return
-	}
-
-	userId := params["user_id"]
-	if len(userId) != 26 {
-		c.SetInvalidParam("getFile", "user_id")
-		return
-	}
-
-	filename := params["filename"]
-	if len(filename) == 0 {
-		c.SetInvalidParam("getFile", "filename")
-		return
-	}
-
-	hash := r.URL.Query().Get("h")
-	data := r.URL.Query().Get("d")
-	teamId := r.URL.Query().Get("t")
-
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
-
-	path := ""
-	if len(teamId) == 26 {
-		path = "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
-	} else {
-		path = "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
-	}
-
-	fileData := make(chan []byte)
-	getFileAndForget(path, fileData)
-
-	if len(hash) > 0 && len(data) > 0 && len(teamId) == 26 {
-		if !utils.Cfg.FileSettings.EnablePublicLink {
-			c.Err = model.NewLocAppError("getFile", "api.file.get_file.public_disabled.app_error", nil, "")
-			return
-		}
-
+	if len(hash) > 0 && len(data) > 0 {
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt)) {
-			c.Err = model.NewLocAppError("getFile", "api.file.get_file.public_invalid.app_error", nil, "")
+			c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "")
+			c.Err.StatusCode = http.StatusBadRequest
 			return
 		}
-	} else if !c.HasPermissionsToChannel(cchan, "getFile") {
+	} else {
+		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
-	f := <-fileData
-
-	if f == nil {
-		c.Err = model.NewLocAppError("getFile", "api.file.get_file.not_found.app_error", nil, "path="+path)
-		c.Err.StatusCode = http.StatusNotFound
+	if err, bytes := getFileData(teamId, channelId, userId, filename); err != nil {
+		c.Err = err
+		return
+	} else if err := writeFileResponse(filename, bytes, w, r); err != nil {
+		c.Err = err
 		return
 	}
+}
 
+func getFileData(teamId string, channelId string, userId string, filename string) (*model.AppError, []byte) {
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		err := model.NewLocAppError("getFileData", "api.file.upload_file.storage.app_error", nil, "")
+		err.StatusCode = http.StatusNotImplemented
+		return err, nil
+	}
+
+	if len(teamId) != 26 {
+		return NewInvalidParamError("getFileData", "team_id"), nil
+	}
+
+	if len(channelId) != 26 {
+		return NewInvalidParamError("getFileData", "channel_id"), nil
+	}
+
+	if len(userId) != 26 {
+		return NewInvalidParamError("getFileData", "user_id"), nil
+	}
+
+	if len(filename) == 0 {
+		return NewInvalidParamError("getFileData", "filename"), nil
+	}
+
+	path := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
+
+	fileChan := make(chan []byte)
+	getFileAndForget(path, fileChan)
+
+	if bytes := <-fileChan; bytes == nil {
+		err := model.NewLocAppError("writeFileResponse", "api.file.get_file.not_found.app_error", nil, "path="+path)
+		err.StatusCode = http.StatusNotFound
+		return err, nil
+	} else {
+		return nil, bytes
+	}
+}
+
+func writeFileResponse(filename string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
-	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
+	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 
 	// attach extra headers to trigger a download on IE, Edge, and Safari
@@ -426,7 +460,6 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment;filename=\""+filePart+"\"")
 
 	if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
-		// trim off anything before the final / so we just get the file's name
 		w.Header().Set("Content-Type", "application/octet-stream")
 	}
 
@@ -434,7 +467,9 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Frame-Options", "DENY")
 	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
 
-	w.Write(f)
+	w.Write(bytes)
+
+	return nil
 }
 
 func getFileAndForget(path string, fileData chan []byte) {
@@ -458,7 +493,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !utils.Cfg.FileSettings.EnablePublicLink {
 		c.Err = model.NewLocAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
@@ -488,16 +523,13 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapToJson(newProps)
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt))
 
-	url := fmt.Sprintf("%s/files/get/%s/%s/%s?d=%s&h=%s&t=%s", c.GetSiteURL()+model.API_URL_SUFFIX, channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.TeamId)
+	url := fmt.Sprintf("%s/public/files/get/%s/%s/%s/%s?d=%s&h=%s", c.GetSiteURL()+model.API_URL_SUFFIX, c.TeamId, channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash))
 
 	if !c.HasPermissionsToChannel(cchan, "getPublicLink") {
 		return
 	}
 
-	rData := make(map[string]string)
-	rData["public_link"] = url
-
-	w.Write([]byte(model.MapToJson(rData)))
+	w.Write([]byte(url))
 }
 
 func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
