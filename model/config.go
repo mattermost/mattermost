@@ -194,8 +194,7 @@ type LdapSettings struct {
 	QueryTimeout                *int
 
 	// Customization
-	LoginFieldName    *string
-	PasswordFieldName *string
+	LoginFieldName *string
 }
 
 type ComplianceSettings struct {
@@ -427,11 +426,6 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.LoginFieldName == nil {
 		o.LdapSettings.LoginFieldName = new(string)
 		*o.LdapSettings.LoginFieldName = ""
-	}
-
-	if o.LdapSettings.PasswordFieldName == nil {
-		o.LdapSettings.PasswordFieldName = new(string)
-		*o.LdapSettings.PasswordFieldName = ""
 	}
 
 	if o.ServiceSettings.SessionLengthWebInDays == nil {
