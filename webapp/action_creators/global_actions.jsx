@@ -11,6 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import Constants from 'utils/constants.jsx';
+const Preferences = Constants.Preferences;
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'utils/web_client.jsx';
@@ -63,6 +64,22 @@ export function emitChannelClickEvent(channel) {
     } else {
         switchToChannel(channel);
     }
+
+    if (channel.type === 'D') {
+        const teammateId = Utils.getDirectTeammate(channel.id).id;
+        const teammateMembers = TeamStore.getCurrentTeammateMembers();
+
+        if (!(teammateId in teammateMembers)) {
+            const hasSeenOtherTeamDirect = PreferenceStore.getBool(Preferences.CATEGORY_SEEN_OTHER_TEAM_DIRECT, UserStore.getCurrentId(), false);
+            if (!hasSeenOtherTeamDirect) {
+                AsyncClient.savePreference(
+                    Preferences.CATEGORY_SEEN_OTHER_TEAM_DIRECT,
+                    UserStore.getCurrentId(),
+                    'true'
+                );
+            }
+        }
+    }
 }
 
 export function emitInitialLoad(callback) {
@@ -111,6 +128,13 @@ export function emitInitialLoad(callback) {
                     AppDispatcher.handleServerAction({
                         type: ActionTypes.RECEIVED_DIRECT_PROFILES,
                         profiles: data.direct_profiles
+                    });
+                }
+
+                if (data.direct_team_members) {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_TEAMMATE_MEMBERS,
+                        team_members: data.direct_team_members
                     });
                 }
 
@@ -234,7 +258,7 @@ export function emitPostRecievedEvent(post, msg) {
         } else {
             AsyncClient.getChannel(post.channel_id);
         }
-    } else if (msg && TeamStore.getCurrentId() === msg.team_id) {
+    } else {
         AsyncClient.getChannel(post.channel_id);
     }
 

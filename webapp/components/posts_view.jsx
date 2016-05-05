@@ -53,7 +53,7 @@ export default class PostsView extends React.Component {
             isScrolling: false,
             topPostId: null,
             currentUser: UserStore.getCurrentUser(),
-            profiles: UserStore.getProfiles()
+            profiles: UserStore.getAllProfiles()
         };
     }
     static get SCROLL_TYPE_FREE() {
@@ -78,7 +78,7 @@ export default class PostsView extends React.Component {
         });
     }
     onUserChange() {
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getAllProfiles()))});
     }
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom

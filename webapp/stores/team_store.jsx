@@ -25,8 +25,8 @@ class TeamStoreClass extends EventEmitter {
 
     clear() {
         this.teams = {};
-        this.team_members = [];
-        this.members_for_team = [];
+        this.teamMembers = [];
+        this.teammateMembers = {};
         this.teamListings = {};
         this.currentTeamId = '';
     }
@@ -122,23 +122,40 @@ class TeamStoreClass extends EventEmitter {
     }
 
     saveTeamMembers(members) {
-        this.team_members = members;
+        this.teamMembers = members;
     }
 
     appendTeamMember(member) {
-        this.team_members.push(member);
+        this.teamMembers.push(member);
     }
 
     getTeamMembers() {
-        return this.team_members;
+        return this.teamMembers;
     }
 
-    saveMembersForTeam(members) {
-        this.members_for_team = members;
+    saveTeammateMembers(members, teamId) {
+        if (teamId) {
+            if (!(teamId in this.teammateMembers)) {
+                this.teammateMembers[teamId] = {};
+            }
+            Object.assign(this.teammateMembers[teamId], members);
+            return;
+        }
+
+        for (const key in members) {
+            if (!members.hasOwnProperty(key)) {
+                continue;
+            }
+            const tm = members[key];
+            if (!(tm.team_id in this.teammateMembers)) {
+                this.teammateMembers[tm.team_id] = {};
+            }
+            this.teammateMembers[tm.team_id][tm.user_id] = tm;
+        }
     }
 
-    getMembersForTeam() {
-        return this.members_for_team;
+    getCurrentTeammateMembers() {
+        return this.teammateMembers[this.getCurrentId()] || {};
     }
 
     saveTeamListings(teams) {
@@ -172,8 +189,8 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         TeamStore.saveTeamListings(action.teams);
         TeamStore.emitChange();
         break;
-    case ActionTypes.RECEIVED_MEMBERS_FOR_TEAM:
-        TeamStore.saveMembersForTeam(action.team_members);
+    case ActionTypes.RECEIVED_TEAMMATE_MEMBERS:
+        TeamStore.saveTeammateMembers(action.team_members, action.team_id);
         TeamStore.emitChange();
         break;
     default:

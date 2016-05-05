@@ -157,6 +157,10 @@ class UserStoreClass extends EventEmitter {
         return this.profiles;
     }
 
+    getAllProfiles() {
+        return Object.assign({}, this.profiles, this.direct_profiles);
+    }
+
     getActiveOnlyProfiles(skipCurrent) {
         const active = {};
         const profiles = this.getProfiles();

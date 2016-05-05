@@ -301,7 +301,7 @@ func TestTeamMembers(t *testing.T) {
 	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
+		ms := r1.Data.(map[string]*model.TeamMember)
 
 		if len(ms) != 2 {
 			t.Fatal()
@@ -311,15 +311,14 @@ func TestTeamMembers(t *testing.T) {
 	if r1 := <-store.Team().GetMembers(teamId2); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
+		ms := r1.Data.(map[string]*model.TeamMember)
 
 		if len(ms) != 1 {
 			t.Fatal()
 		}
 
-		if ms[0].UserId != m3.UserId {
+		if _, ok := ms[m3.UserId]; !ok {
 			t.Fatal()
-
 		}
 	}
 
@@ -345,15 +344,14 @@ func TestTeamMembers(t *testing.T) {
 	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
+		ms := r1.Data.(map[string]*model.TeamMember)
 
 		if len(ms) != 1 {
 			t.Fatal()
 		}
 
-		if ms[0].UserId != m2.UserId {
+		if _, ok := ms[m2.UserId]; !ok {
 			t.Fatal()
-
 		}
 	}
 
@@ -366,7 +364,7 @@ func TestTeamMembers(t *testing.T) {
 	if r1 := <-store.Team().GetMembers(teamId1); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
+		ms := r1.Data.(map[string]*model.TeamMember)
 
 		if len(ms) != 0 {
 			t.Fatal()
@@ -400,6 +398,97 @@ func TestTeamMembers(t *testing.T) {
 
 		if len(ms) != 0 {
 			t.Fatal()
+		}
+	}
+}
+
+func TestTeamStoreGetDirectMembers(t *testing.T) {
+	Setup()
+
+	teamId1 := model.NewId()
+	teamId2 := model.NewId()
+
+	o1 := model.Channel{}
+	o1.DisplayName = "Name"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_DIRECT
+
+	o2 := model.Channel{}
+	o2.DisplayName = "Name"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_DIRECT
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u2.Id}))
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	u3.Nickname = model.NewId()
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u3.Id}))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = o2.Id
+	m3.UserId = u3.Id
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m4 := model.ChannelMember{}
+	m4.ChannelId = o2.Id
+	m4.UserId = u1.Id
+	m4.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	Must(store.Channel().SaveDirectChannel(&o1, &m1, &m2))
+	Must(store.Channel().SaveDirectChannel(&o2, &m3, &m4))
+
+	if r1 := <-store.Team().GetDirectMembers(u1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.(map[string]*model.TeamMember)
+
+		if len(ms) != 0 {
+			t.Fatal("should have been 0")
+		}
+	}
+
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u1.Id}))
+
+	if r1 := <-store.Team().GetDirectMembers(u1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.(map[string]*model.TeamMember)
+
+		if len(ms) != 1 {
+			t.Fatal("should have been 1")
+		}
+	}
+
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u1.Id}))
+
+	if r1 := <-store.Team().GetDirectMembers(u1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.(map[string]*model.TeamMember)
+
+		if len(ms) != 2 {
+			t.Fatal("should have been 2")
 		}
 	}
 }

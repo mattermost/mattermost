@@ -759,7 +759,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 	}
 
-	message := model.NewMessage(c.TeamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
+	message := model.NewMessage("", post.ChannelId, post.UserId, model.ACTION_POSTED)
 	message.Add("post", post.ToJson())
 	message.Add("channel_type", channel.Type)
 
@@ -929,7 +929,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rpost := result.Data.(*model.Post)
 
-		message := model.NewMessage(c.TeamId, rpost.ChannelId, c.Session.UserId, model.ACTION_POST_EDITED)
+		message := model.NewMessage("", rpost.ChannelId, c.Session.UserId, model.ACTION_POST_EDITED)
 		message.Add("post", rpost.ToJson())
 
 		PublishAndForget(message)
@@ -1193,7 +1193,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		message := model.NewMessage(c.TeamId, post.ChannelId, c.Session.UserId, model.ACTION_POST_DELETED)
+		message := model.NewMessage("", post.ChannelId, c.Session.UserId, model.ACTION_POST_DELETED)
 		message.Add("post", post.ToJson())
 
 		PublishAndForget(message)

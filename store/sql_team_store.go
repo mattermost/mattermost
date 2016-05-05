@@ -422,7 +422,67 @@ func (s SqlTeamStore) GetMembers(teamId string) StoreChannel {
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "teamId="+teamId+" "+err.Error())
 		} else {
-			result.Data = members
+			memberMap := make(map[string]*model.TeamMember)
+
+			for _, tm := range members {
+				memberMap[tm.UserId] = tm
+			}
+
+			result.Data = memberMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetDirectMembers(userId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var members []*model.TeamMember
+
+		if _, err := s.GetReplica().Select(&members, `
+			SELECT
+			    TeamMembers.*
+			FROM
+			    TeamMembers
+			WHERE
+			    TeamId IN (SELECT
+			            TeamId
+			        FROM
+			            TeamMembers
+			        WHERE
+			            UserId = :UserId)
+			    AND UserId IN (SELECT DISTINCT
+			            UserId
+			        FROM
+			            ChannelMembers
+			        WHERE
+			            ChannelMembers.UserId != :UserId
+			                AND ChannelMembers.ChannelId IN (SELECT
+			                    Channels.Id
+			                FROM
+			                    Channels,
+			                    ChannelMembers
+			                WHERE
+			                    Channels.Type = 'D'
+			                        AND Channels.Id = ChannelMembers.ChannelId
+			                        AND ChannelMembers.UserId = :UserId))`, map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetDirectMembers", "store.sql_user.get_direct_members.app_error", nil, err.Error())
+		} else {
+			memberMap := make(map[string]*model.TeamMember)
+
+			for _, tm := range members {
+				memberMap[tm.UserId] = tm
+			}
+
+			result.Data = memberMap
 		}
 
 		storeChannel <- result

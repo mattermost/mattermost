@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW = "direct_channel_show"
-	PREFERENCE_CATEGORY_TUTORIAL_STEPS      = "tutorial_step"
-	PREFERENCE_CATEGORY_ADVANCED_SETTINGS   = "advanced_settings"
+	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW    = "direct_channel_show"
+	PREFERENCE_CATEGORY_TUTORIAL_STEPS         = "tutorial_step"
+	PREFERENCE_CATEGORY_ADVANCED_SETTINGS      = "advanced_settings"
+	PREFERENCE_CATEGORY_SEEN_OTHER_TEAM_DIRECT = "seen_other_team_direct"
 
 	PREFERENCE_CATEGORY_LAST     = "last"
 	PREFERENCE_NAME_LAST_CHANNEL = "channel"
