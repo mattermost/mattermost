@@ -50,58 +50,25 @@ export default class Login extends React.Component {
         e.preventDefault();
 
         const loginId = this.state.loginId.trim();
-        if (!loginId) {
-            const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
-            const usernameSigninEnabled = global.window.mm_config.EnableSignInWithUsername === 'true';
-            const emailSigninEnabled = global.window.mm_config.EnableSignInWithEmail === 'true';
-
-            this.setState({
-                serverError: (
-                    <FormattedMessage
-                        id='login.loginIdRequired'
-                        defaultMessage='A {type} is required'
-                        values={{
-                            type: this.createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled)
-                        }}
-                    />
-                )
-            });
-
-            return;
-        }
-
         const password = this.state.password.trim();
-        if (!password) {
-            this.setState({
-                serverError: (
-                    <FormattedMessage
-                        id='login.passwordRequired'
-                        defaultMessage='A password is required'
-                    />
-                )
-            });
 
-            return;
-        }
-
-        if (global.window.mm_config.EnableMultifactorAuthentication !== 'true') {
-            this.submit(loginId, password, '');
-            return;
-        }
-
-        Client.checkMfa(
-            loginId,
-            (data) => {
-                if (data.mfa_required === 'true') {
-                    this.setState({showMfa: true});
-                } else {
-                    this.submit(loginId, password, '');
+        if (global.window.mm_config.EnableMultifactorAuthentication === 'true') {
+            Client.checkMfa(
+                loginId,
+                (data) => {
+                    if (data.mfa_required === 'true') {
+                        this.setState({showMfa: true});
+                    } else {
+                        this.submit(loginId, password, '');
+                    }
+                },
+                (err) => {
+                    this.setState({serverError: err.message});
                 }
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
+            );
+        } else {
+            this.submit(loginId, password, '');
+        }
     }
 
     submit(loginId, password, token) {
@@ -297,6 +264,7 @@ export default class Login extends React.Component {
                             <button
                                 type='submit'
                                 className='btn btn-primary'
+                                disabled={!this.state.loginId || !this.state.password}
                             >
                                 <FormattedMessage
                                     id='login.signIn'

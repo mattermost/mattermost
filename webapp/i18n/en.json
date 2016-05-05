@@ -963,6 +963,7 @@
   "login.email": "Email",
   "login.find": "Find your other teams",
   "login.forgot": "I forgot my password",
+  "login.invalidPassword": "Your password is incorrect.",
   "login.gitlab": "GitLab",
   "login.google": "Google Apps",
   "login.ldapUsername": "LDAP Username",
