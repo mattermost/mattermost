@@ -43,8 +43,10 @@ https://<your-mattermost-url>/signup/gitlab
 
 #### Only the links within these sentences should auto-link:
 
-(http://example.com)  
-(test@example.com)  
+(http://example.com)
+(see http://example.com)
+(http://example.com watch this)
+(test@example.com)
 This is a sentence with a http://example.com in it.  
 This is a sentence with a [link](http://example.com) in it.  
 This is a sentence with a http://example.com/_/underscore in it.  

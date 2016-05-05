@@ -120,6 +120,14 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             suffix = ')';
             outText = text.substring(1, text.length - 1);
             outHref = outHref.substring(1, outHref.length - 1);
+        } else if (!outHref.startsWith('(') && outHref.endsWith(')') && text === outHref) {
+            suffix = ')';
+            outText = text.substring(0, text.length - 1);
+            outHref = outHref.substring(0, outHref.length - 1);
+        } else if (outHref.startsWith('(') && !outHref.endsWith(')') && text === outHref) {
+            prefix = '(';
+            outText = text.substring(1, text.length);
+            outHref = outHref.substring(1, outHref.length);
         }
 
         try {
