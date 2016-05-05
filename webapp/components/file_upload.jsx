@@ -129,9 +129,7 @@ class FileUpload extends React.Component {
     }
 
     componentDidMount() {
-        var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         var self = this;
-        const {formatMessage} = this.props.intl;
 
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
@@ -177,97 +175,8 @@ class FileUpload extends React.Component {
             });
         }
 
-        document.addEventListener('paste', (e) => {
-            if (!e.clipboardData) {
-                return;
-            }
-
-            var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
-
-            if (textarea !== e.target && !$.contains(textarea, e.target)) {
-                return;
-            }
-
-            self.props.onUploadError(null);
-
-            // This looks redundant, but must be done this way due to
-            // setState being an asynchronous call
-            var items = e.clipboardData.items;
-            var numItems = 0;
-            if (items) {
-                for (let i = 0; i < items.length; i++) {
-                    if (items[i].type.indexOf('image') !== -1) {
-                        var testExt = items[i].type.split('/')[1].toLowerCase();
-
-                        if (Constants.IMAGE_TYPES.indexOf(testExt) < 0) {
-                            continue;
-                        }
-
-                        numItems++;
-                    }
-                }
-
-                var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - self.props.getFileCount(ChannelStore.getCurrentId()), numItems);
-
-                if (numItems > numToUpload) {
-                    self.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
-                }
-
-                for (var i = 0; i < items.length && i < numToUpload; i++) {
-                    if (items[i].type.indexOf('image') !== -1) {
-                        var file = items[i].getAsFile();
-
-                        var ext = items[i].type.split('/')[1].toLowerCase();
-
-                        if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
-                            continue;
-                        }
-
-                        var channelId = self.props.channelId || ChannelStore.getCurrentId();
-
-                        // generate a unique id that can be used by other components to refer back to this file upload
-                        var clientId = Utils.generateId();
-
-                        var d = new Date();
-                        var hour;
-                        if (d.getHours() < 10) {
-                            hour = '0' + d.getHours();
-                        } else {
-                            hour = String(d.getHours());
-                        }
-                        var min;
-                        if (d.getMinutes() < 10) {
-                            min = '0' + d.getMinutes();
-                        } else {
-                            min = String(d.getMinutes());
-                        }
-
-                        const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
-
-                        const request = Client.uploadFile(file,
-                            name,
-                            channelId,
-                            clientId,
-                            self.fileUploadSuccess.bind(self, channelId),
-                            self.fileUploadFail.bind(self, clientId)
-                        );
-
-                        const requests = self.state.requests;
-                        requests[clientId] = request;
-                        self.setState({requests});
-
-                        self.props.onUploadStart([clientId], channelId);
-                    }
-                }
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            //CTRL+U or CMD+U for file uploads
-            if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.U) {
-                $(this.refs.input).focus().trigger('click');
-            }
-        });
+        document.addEventListener('paste', this.pasteUpload);
+        document.addEventListener('keydown', this.keyUpload);
     }
 
     componentWillUnmount() {
@@ -278,8 +187,104 @@ class FileUpload extends React.Component {
             target = $('.post-right__container');
         }
 
+        document.removeEventListener('paste', this.pasteUpload);
+        document.removeEventListener('keydown', this.keyUpload);
+
         // jquery-dragster doesn't provide a function to unregister itself so do it manually
         target.off('dragenter dragleave dragover drop dragster:enter dragster:leave dragster:over dragster:drop');
+    }
+
+    pasteUpload(e) {
+        var inputDiv = ReactDOM.findDOMNode(this.refs.input);
+        const {formatMessage} = this.props.intl;
+
+        if (!e.clipboardData) {
+            return;
+        }
+
+        var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
+
+        if (textarea !== e.target && !$.contains(textarea, e.target)) {
+            return;
+        }
+
+        self.props.onUploadError(null);
+
+        // This looks redundant, but must be done this way due to
+        // setState being an asynchronous call
+        var items = e.clipboardData.items;
+        var numItems = 0;
+        if (items) {
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    var testExt = items[i].type.split('/')[1].toLowerCase();
+
+                    if (Constants.IMAGE_TYPES.indexOf(testExt) < 0) {
+                        continue;
+                    }
+
+                    numItems++;
+                }
+            }
+
+            var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - self.props.getFileCount(ChannelStore.getCurrentId()), numItems);
+
+            if (numItems > numToUpload) {
+                self.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
+            }
+
+            for (var i = 0; i < items.length && i < numToUpload; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    var file = items[i].getAsFile();
+
+                    var ext = items[i].type.split('/')[1].toLowerCase();
+
+                    if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
+                        continue;
+                    }
+                    var channelId = self.props.channelId || ChannelStore.getCurrentId();
+
+                    // generate a unique id that can be used by other components to refer back to this file upload
+                    var clientId = Utils.generateId();
+
+                    var d = new Date();
+                    var hour;
+                    if (d.getHours() < 10) {
+                        hour = '0' + d.getHours();
+                    } else {
+                        hour = String(d.getHours());
+                    }
+                    var min;
+                    if (d.getMinutes() < 10) {
+                        min = '0' + d.getMinutes();
+                    } else {
+                        min = String(d.getMinutes());
+                    }
+
+                    const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
+
+                    const request = Client.uploadFile(file,
+                        name,
+                        channelId,
+                        clientId,
+                        self.fileUploadSuccess.bind(self, channelId),
+                        self.fileUploadFail.bind(self, clientId)
+                    );
+
+                    const requests = self.state.requests;
+                    requests[clientId] = request;
+                    self.setState({requests});
+
+                    self.props.onUploadStart([clientId], channelId);
+                }
+            }
+        }
+    }
+
+    keyUpload(e) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.U) {
+            $(this.refs.input).focus().trigger('click');
+        }
     }
 
     cancelUpload(clientId) {
