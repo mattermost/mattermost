@@ -172,7 +172,6 @@ export default class UserList extends React.Component {
         }
 
         var memberList = this.state.users.map((user) => {
-
             var teamMember = this.getTeamMemberForUser(user.id);
 
             return (
