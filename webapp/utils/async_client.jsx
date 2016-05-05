@@ -1357,10 +1357,10 @@ export function getPublicLink(channelId, userId, filename, success, error) {
         channelId,
         userId,
         filename,
-        (data) => {
+        (link) => {
             callTracker[callName] = 0;
 
-            success(data.public_link);
+            success(link);
         },
         (err) => {
             callTracker[callName] = 0;
