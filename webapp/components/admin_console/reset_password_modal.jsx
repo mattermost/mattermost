@@ -58,7 +58,8 @@ class ResetPasswordModal extends React.Component {
     }
 
     render() {
-        if (this.props.user == null) {
+        const user = this.props.user;
+        if (user == null) {
             return <div/>;
         }
 
@@ -70,6 +71,23 @@ class ResetPasswordModal extends React.Component {
             serverError = <div className='form-group has-error'><p className='input__help error'>{this.state.serverError}</p></div>;
         }
 
+        let title;
+        if (user.auth_service) {
+            title = (
+                <FormattedMessage
+                    id='admin.reset_password.titleSwitch'
+                    defaultMessage='Switch Account to Email/Password'
+                />
+            );
+        } else {
+            title = (
+                <FormattedMessage
+                    id='admin.reset_password.titleReset'
+                    defaultMessage='Reset Password'
+                />
+            );
+        }
+
         return (
             <Modal
                 show={this.props.show}
@@ -77,10 +95,7 @@ class ResetPasswordModal extends React.Component {
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
-                        <FormattedMessage
-                            id='admin.reset_password.title'
-                            defaultMessage='Reset Password'
-                        />
+                        {title}
                     </Modal.Title>
                 </Modal.Header>
                 <form

@@ -1702,7 +1702,7 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 		user = result.Data.(*model.User)
 	}
 
-	if len(user.AuthData) != 0 {
+	if len(user.AuthData) != 0 && !c.IsSystemAdmin() {
 		return model.NewLocAppError("ResetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
 
 	}
