@@ -2324,6 +2324,10 @@
     "translation": "Por segundo es inválido en la configuración de límites de velocidad.  Debe ser un número positivo."
   },
   {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Restricción de mensaje directo inválidao.  Debe ser 'any' o 'team'"
+  },
+  {
     "id": "model.config.is_valid.sql_data_src.app_error",
     "translation": "Fuente de datos no válido para la configuración de SQL.  Debe ser asignado."
   },
