@@ -251,58 +251,25 @@ export default class Login extends React.Component {
             }
         }
 
+        const loginControls = [];
+
         const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
         const gitlabSigninEnabled = global.window.mm_config.EnableSignUpWithGitLab === 'true';
         const googleSigninEnabled = global.window.mm_config.EnableSignUpWithGoogle === 'true';
         const usernameSigninEnabled = global.window.mm_config.EnableSignInWithUsername === 'true';
         const emailSigninEnabled = global.window.mm_config.EnableSignInWithEmail === 'true';
 
-        const oauthLogins = [];
-        if (gitlabSigninEnabled) {
-            oauthLogins.push(
-                <a
-                    className='btn btn-custom-login gitlab'
-                    key='gitlab'
-                    href={Client.getOAuthRoute() + '/gitlab/login'}
-                >
-                    <span className='icon'/>
-                    <span>
-                        <FormattedMessage
-                            id='login.gitlab'
-                            defaultMessage='with GitLab'
-                        />
-                    </span>
-                </a>
-            );
-        }
-
-        if (googleSigninEnabled) {
-            oauthLogins.push(
-                <Link
-                    className='btn btn-custom-login google'
-                    key='google'
-                    to={Client.getOAuthRoute() + '/google/login'}
-                >
-                    <span className='icon'/>
-                    <span>
-                        <FormattedMessage
-                            id='login.google'
-                            defaultMessage='with Google Apps'
-                        />
-                    </span>
-                </Link>
-            );
-        }
-
-        let login = null;
         if (emailSigninEnabled || usernameSigninEnabled || ldapEnabled) {
             let errorClass = '';
             if (this.state.serverError) {
                 errorClass = ' has-error';
             }
 
-            login = (
-                <form onSubmit={this.preSubmit}>
+            loginControls.push(
+                <form
+                    key='loginBoxes'
+                    onSubmit={this.preSubmit}
+                >
                     <div className='signup__email-container'>
                         <FormError error={this.state.serverError}/>
                         <div className={'form-group' + errorClass}>
@@ -342,10 +309,9 @@ export default class Login extends React.Component {
             );
         }
 
-        var userSignUp;
         if (global.window.mm_config.EnableOpenServer === 'true') {
-            userSignUp = (
-                <div>
+            loginControls.push(
+                <div key='signup'>
                     <span>
                         <FormattedMessage
                             id='login.noAccount'
@@ -365,10 +331,12 @@ export default class Login extends React.Component {
             );
         }
 
-        let forgotPassword;
         if (usernameSigninEnabled || emailSigninEnabled) {
-            forgotPassword = (
-                <div className='form-group'>
+            loginControls.push(
+                <div
+                    key='forgotPassword'
+                    className='form-group'
+                >
                     <Link to={'/reset_password'}>
                         <FormattedMessage
                             id='login.forgot'
@@ -379,13 +347,69 @@ export default class Login extends React.Component {
             );
         }
 
+        if ((emailSigninEnabled || usernameSigninEnabled || ldapEnabled) && (gitlabSigninEnabled || googleSigninEnabled)) {
+            loginControls.push(
+                <div
+                    key='divider'
+                    className='or__container'
+                >
+                    <FormattedMessage
+                        id='login.or'
+                        defaultMessage='or'
+                    />
+                </div>
+            );
+
+            loginControls.push(
+                <h5 key='oauthHeader'>
+                    <FormattedMessage
+                        id='login.signInWith'
+                        defaultMessage='Sign in with:'
+                    />
+                </h5>
+            );
+        }
+
+        if (gitlabSigninEnabled) {
+            loginControls.push(
+                <a
+                    className='btn btn-custom-login gitlab'
+                    key='gitlab'
+                    href={Client.getOAuthRoute() + '/gitlab/login'}
+                >
+                    <span className='icon'/>
+                    <span>
+                        <FormattedMessage
+                            id='login.gitlab'
+                            defaultMessage='GitLab'
+                        />
+                    </span>
+                </a>
+            );
+        }
+
+        if (googleSigninEnabled) {
+            loginControls.push(
+                <Link
+                    className='btn btn-custom-login google'
+                    key='google'
+                    to={Client.getOAuthRoute() + '/google/login'}
+                >
+                    <span className='icon'/>
+                    <span>
+                        <FormattedMessage
+                            id='login.google'
+                            defaultMessage='Google Apps'
+                        />
+                    </span>
+                </Link>
+            );
+        }
+
         return (
             <div>
                 {extraBox}
-                {oauthLogins}
-                {login}
-                {userSignUp}
-                {forgotPassword}
+                {loginControls}
             </div>
         );
     }
