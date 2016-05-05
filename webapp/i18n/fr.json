@@ -828,7 +828,6 @@
   "login.on": "sur {siteName}",
   "login.or": "ou",
   "login.password": "Mot de passe",
-  "login.passwordRequired": "Le mot de passe est obligatoire",
   "login.session_expired": "Votre session a expiré. Merci de vous reconnecter.",
   "login.signIn": "Connexion",
   "login.username": "Nom d'utilisateur",

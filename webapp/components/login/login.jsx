@@ -92,7 +92,16 @@ export default class Login extends React.Component {
                         serverError: (
                             <FormattedMessage
                                 id='login.userNotFound'
-                                defaultMessage="We couldn't find an existing account matching your login credentials."
+                                defaultMessage="We couldn't find an account matching your login credentials."
+                            />
+                        )
+                    });
+                } else if (err.id === 'api.user.check_user_password.invalid.app_error' || err.id === 'ent.ldap.do_login.invalid_password.app_error') {
+                    this.setState({
+                        serverError: (
+                            <FormattedMessage
+                                id='login.invalidPassword'
+                                defaultMessage='Your password is incorrect.'
                             />
                         )
                     });

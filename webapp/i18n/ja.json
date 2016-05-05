@@ -922,7 +922,6 @@
   "login.on": "{siteName}にて",
   "login.or": "または",
   "login.password": "パスワード",
-  "login.passwordRequired": "パスワードは必須です",
   "login.session_expired": " あなたのセッションは有効期限が切れました。再度ログインしてください。",
   "login.signIn": "利用登録",
   "login.username": "LDAPユーザー名",

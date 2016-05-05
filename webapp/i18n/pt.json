@@ -962,7 +962,6 @@
   "login.or": "ou",
   "login.password": "Senha",
   "login.passwordChanged": " Senha atualizada com sucesso",
-  "login.passwordRequired": "É necessário uma senha",
   "login.session_expired": " Sua sessão expirou. Por favor faça login novamente.",
   "login.signIn": "Login",
   "login.userNotFound": "Não foi possível encontrar uma conta existente que corresponda com as suas credenciais.",
