@@ -7,6 +7,7 @@ import Constants from './constants.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
 import UserStore from 'stores/user_store.jsx';
+import twemoji from 'twemoji';
 import * as Utils from './utils.jsx';
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
@@ -61,6 +62,14 @@ export function doFormatText(text, options) {
 
     // reinsert tokens with formatted versions of the important words and phrases
     output = replaceTokens(output, tokens);
+
+    if (!('emoticons' in options) || options.emoticon) {
+        output = twemoji.parse(output, {
+            className: 'emoticon',
+            base: '',
+            folder: Constants.EMOJI_PATH
+        });
+    }
 
     return output;
 }

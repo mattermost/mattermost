@@ -23,15 +23,12 @@ import {FormattedMessage, FormattedDate} from 'react-intl';
 import loadingGif from 'images/load.gif';
 
 import React from 'react';
-import ReactDOM from 'react-dom';
-import twemoji from 'twemoji';
 
 export default class RhsComment extends React.Component {
     constructor(props) {
         super(props);
 
         this.retryComment = this.retryComment.bind(this);
-        this.parseEmojis = this.parseEmojis.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
 
         this.state = {};
@@ -66,19 +63,9 @@ export default class RhsComment extends React.Component {
         PostStore.updatePendingPost(post);
         this.forceUpdate();
     }
-    parseEmojis() {
-        twemoji.parse(ReactDOM.findDOMNode(this), {
-            className: 'emoticon',
-            base: '',
-            folder: Constants.EMOJI_PATH
-        });
-    }
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
-    }
-    componentDidMount() {
-        this.parseEmojis();
     }
     shouldComponentUpdate(nextProps) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
@@ -86,9 +73,6 @@ export default class RhsComment extends React.Component {
         }
 
         return false;
-    }
-    componentDidUpdate() {
-        this.parseEmojis();
     }
     createDropdown() {
         var post = this.props.post;
