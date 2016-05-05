@@ -174,6 +174,7 @@ export default class SidebarRightMenu extends React.Component {
                     <Link
                         target='_blank'
                         to={global.window.mm_config.HelpLink}
+                        rel='noreferrer'
                     >
                         <i className='fa fa-question'></i>
                         <FormattedMessage
@@ -192,6 +193,7 @@ export default class SidebarRightMenu extends React.Component {
                     <Link
                         target='_blank'
                         to={global.window.mm_config.ReportAProblemLink}
+                        rel='noreferrer'
                     >
                         <i className='fa fa-phone'></i>
                         <FormattedMessage

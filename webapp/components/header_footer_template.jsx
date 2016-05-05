@@ -34,6 +34,7 @@ export default class NotLoggedIn extends React.Component {
                                 className='pull-right footer-link'
                                 target='_blank'
                                 href={global.window.mm_config.HelpLink}
+                                rel='noreferrer'
                             >
                                 <FormattedMessage id='web.footer.help'/>
                             </a>
@@ -42,6 +43,7 @@ export default class NotLoggedIn extends React.Component {
                                 className='pull-right footer-link'
                                 target='_blank'
                                 href={global.window.mm_config.TermsOfServiceLink}
+                                rel='noreferrer'
                             >
                                 <FormattedMessage id='web.footer.terms'/>
                             </a>
@@ -50,6 +52,7 @@ export default class NotLoggedIn extends React.Component {
                                 className='pull-right footer-link'
                                 target='_blank'
                                 href={global.window.mm_config.PrivacyPolicyLink}
+                                rel='noreferrer'
                             >
                                 <FormattedMessage id='web.footer.privacy'/>
                             </a>
@@ -58,6 +61,7 @@ export default class NotLoggedIn extends React.Component {
                                 className='pull-right footer-link'
                                 target='_blank'
                                 href={global.window.mm_config.AboutLink}
+                                rel='noreferrer'
                             >
                                 <FormattedMessage id='web.footer.about'/>
                             </a>
