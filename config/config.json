@@ -78,7 +78,7 @@
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
         "EnableSignInWithEmail": true,
-        "EnableSignInWithUsername": false,
+        "EnableSignInWithUsername": true,
         "SendEmailNotifications": false,
         "RequireEmailVerification": false,
         "FeedbackName": "",
