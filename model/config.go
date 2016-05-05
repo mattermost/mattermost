@@ -615,7 +615,7 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 }
 
 func (o *Config) Sanitize() {
-	if len(*o.LdapSettings.BindPassword) > 0 {
+	if &o.LdapSettings != nil && len(*o.LdapSettings.BindPassword) > 0 {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 
