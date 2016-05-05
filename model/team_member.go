@@ -58,6 +58,48 @@ func TeamMembersFromJson(data io.Reader) []*TeamMember {
 	}
 }
 
+func IsValidTeamRoles(teamRoles string) bool {
+
+	roles := strings.Split(teamRoles, " ")
+
+	for _, r := range roles {
+		if !isValidTeamRole(r) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isValidTeamRole(role string) bool {
+	if role == "" {
+		return true
+	}
+
+	if role == ROLE_TEAM_ADMIN {
+		return true
+	}
+
+	return false
+}
+
+func IsInTeamRole(teamRoles string, inRole string) bool {
+	roles := strings.Split(teamRoles, " ")
+
+	for _, r := range roles {
+		if r == inRole {
+			return true
+		}
+
+	}
+
+	return false
+}
+
+func (o *TeamMember) IsTeamAdmin() bool {
+	return IsInTeamRole(o.Roles, ROLE_TEAM_ADMIN)
+}
+
 func (o *TeamMember) IsValid() *AppError {
 
 	if len(o.TeamId) != 26 {

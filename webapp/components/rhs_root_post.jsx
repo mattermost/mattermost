@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserProfile from './user_profile.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/user_store.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
@@ -55,7 +56,7 @@ export default class RhsRootPost extends React.Component {
         const post = this.props.post;
         const user = this.props.user;
         var isOwner = this.props.currentUser.id === post.user_id;
-        var isAdmin = Utils.isAdmin(this.props.currentUser.roles);
+        var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
 

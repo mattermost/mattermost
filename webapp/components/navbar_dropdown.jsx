@@ -7,6 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
@@ -79,8 +80,8 @@ export default class NavbarDropdown extends React.Component {
         let integrationsLink = null;
 
         if (currentUser != null) {
-            isAdmin = Utils.isAdmin(currentUser.roles);
-            isSystemAdmin = Utils.isSystemAdmin(currentUser.roles);
+            isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+            isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
             inviteLink = (
                 <li>

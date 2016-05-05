@@ -148,6 +148,21 @@ class TeamStoreClass extends EventEmitter {
     getTeamListings() {
         return this.teamListings;
     }
+
+    isTeamAdminForCurrentTeam() {
+        if (!Utils) {
+            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+        }
+
+        var teamMembers = this.getTeamMembers();
+
+        for (const index in teamMembers) {
+            if (teamMembers.hasOwnProperty(index)) {
+                var teamMember = teamMembers[index];
+                Utils.isAdmin(teamMember.roles);
+            }
+        }
+    }
 }
 
 var TeamStore = new TeamStoreClass();
