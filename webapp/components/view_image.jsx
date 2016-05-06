@@ -197,7 +197,7 @@ class ViewImageModal extends React.Component {
     handleGetPublicLink() {
         this.props.onModalDismissed();
 
-        GlobalActions.showGetPublicLinkModal(this.props.channelId, this.props.userId, this.props.filenames[this.state.imgId]);
+        GlobalActions.showGetPublicLinkModal(this.props.filenames[this.state.imgId]);
     }
 
     onMouseEnterImage() {

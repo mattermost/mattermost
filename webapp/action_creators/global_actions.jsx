@@ -281,12 +281,10 @@ export function showGetPostLinkModal(post) {
     });
 }
 
-export function showGetPublicLinkModal(channelId, userId, filename) {
+export function showGetPublicLinkModal(filename) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_GET_PUBLIC_LINK_MODAL,
         value: true,
-        channelId,
-        userId,
         filename
     });
 }
