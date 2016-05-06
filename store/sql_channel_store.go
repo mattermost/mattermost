@@ -13,6 +13,7 @@ import (
 const (
 	MISSING_CHANNEL_ERROR = "store.sql_channel.get_by_name.missing.app_error"
 	MISSING_MEMBER_ERROR  = "store.sql_channel.get_member.missing.app_error"
+	CHANNEL_EXISTS_ERROR  = "store.sql_channel.save_channel.exists.app_error"
 )
 
 type SqlChannelStore struct {
@@ -102,6 +103,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 				if channelResult.Err != nil {
 					transaction.Rollback()
 					result.Err = channelResult.Err
+					result.Data = channelResult.Data
 				} else {
 					newChannel := channelResult.Data.(*model.Channel)
 					// Members need new channel ID
@@ -167,9 +169,10 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 			dupChannel := model.Channel{}
 			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
-				result.Err = model.NewLocAppError("SqlChannelStore.Update", "store.sql_channel.save_channel.previously.app_error", nil, "id="+channel.Id+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.previously.app_error", nil, "id="+channel.Id+", "+err.Error())
 			} else {
-				result.Err = model.NewLocAppError("SqlChannelStore.Update", "store.sql_channel.save_channel.exists.app_error", nil, "id="+channel.Id+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlChannelStore.Save", CHANNEL_EXISTS_ERROR, nil, "id="+channel.Id+", "+err.Error())
+				result.Data = &dupChannel
 			}
 		} else {
 			result.Err = model.NewLocAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.save.app_error", nil, "id="+channel.Id+", "+err.Error())

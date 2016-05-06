@@ -47,13 +47,18 @@ export default class PostsView extends React.Component {
 
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
+        let profiles = UserStore.getProfiles();
+        if (props.channel.type === Constants.DM_CHANNEL) {
+            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
+        }
+
         this.state = {
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isScrolling: false,
             topPostId: null,
             currentUser: UserStore.getCurrentUser(),
-            profiles: UserStore.getProfiles()
+            profiles
         };
     }
     static get SCROLL_TYPE_FREE() {
@@ -78,7 +83,11 @@ export default class PostsView extends React.Component {
         });
     }
     onUserChange() {
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
+        let profiles = UserStore.getProfiles();
+        if (this.props.channel.type === Constants.DM_CHANNEL) {
+            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
+        }
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
     }
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom

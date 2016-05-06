@@ -43,7 +43,7 @@ class NotificationStoreClass extends EventEmitter {
 
             if (notifyLevel === 'none') {
                 return;
-            } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channel.type !== Constants.DM_CHANNEL) {
+            } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
                 return;
             }
 

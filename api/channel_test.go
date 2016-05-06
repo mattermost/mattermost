@@ -113,8 +113,9 @@ func TestCreateDirectChannel(t *testing.T) {
 		t.Fatal("channel type was not direct")
 	}
 
-	if _, err := Client.CreateDirectChannel(th.BasicUser2.Id); err == nil {
-		t.Fatal("channel already exists and should have failed")
+	// don't fail on direct channels already existing
+	if _, err := Client.CreateDirectChannel(th.BasicUser2.Id); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err := Client.CreateDirectChannel("junk"); err == nil {

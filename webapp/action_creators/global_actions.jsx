@@ -234,7 +234,7 @@ export function emitPostRecievedEvent(post, msg) {
         } else {
             AsyncClient.getChannel(post.channel_id);
         }
-    } else if (msg && TeamStore.getCurrentId() === msg.team_id) {
+    } else if (msg && (TeamStore.getCurrentId() === msg.team_id || msg.props.channel_type === Constants.DM_CHANNEL)) {
         AsyncClient.getChannel(post.channel_id);
     }
 
