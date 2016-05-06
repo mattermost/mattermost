@@ -380,6 +380,10 @@
     "translation": "Salir de Mattermost"
   },
   {
+    "id": "api.command_logout.fail_message",
+    "translation": "Falla al cerrar la sesión"
+  },
+  {
     "id": "api.command_logout.name",
     "translation": "salir"
   },
