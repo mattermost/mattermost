@@ -4,7 +4,7 @@
 import ChannelStore from 'stores/channel_store.jsx';
 import UserProfile from './user_profile.jsx';
 import UserStore from 'stores/user_store.jsx';
-import TeamStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
