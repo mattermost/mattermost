@@ -388,6 +388,10 @@
     "translation": "Logging out..."
   },
   {
+    "id": "api.command_logout.fail_message",
+    "translation": "Failed to log out"
+  },
+  {
     "id": "api.command_me.desc",
     "translation": "Do an action"
   },
