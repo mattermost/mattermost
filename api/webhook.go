@@ -4,9 +4,7 @@
 package api
 
 import (
-	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -384,17 +382,19 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		payload = r.Body
 	}
 
-	l4g.Debug(func() string {
-		body, err := ioutil.ReadAll(payload)
-		if err != nil {
-			return utils.T("api.webhook.incoming.debug.error") + err.Error()
-		}
-
-		// Create a new payload io.Reader, as the old one was read into body
-		payload = bytes.NewReader(body)
-
-		return utils.T("api.webhook.incoming.debug") + string(body)
-	})
+	payload, err := utils.DebugReader(
+		payload,
+		utils.T("api.webhook.incoming.debug"),
+	)
+	if err != nil {
+		c.Err = model.NewLocAppError(
+			"incomingWebhook",
+			"api.webhook.incoming.debug.error",
+			nil,
+			err.Error(),
+		)
+		return
+	}
 
 	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
 	if parsedRequest == nil {
