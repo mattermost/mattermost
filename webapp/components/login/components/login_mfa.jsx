@@ -21,7 +21,7 @@ export default class LoginMfa extends React.Component {
         e.preventDefault();
         const state = {};
 
-        const token = this.refs.token.value.trim();
+        const token = this.refs.token.value.trim().replace(/\s/g, '');
         if (!token) {
             state.serverError = Utils.localizeMessage('login_mfa.tokenReq', 'Please enter an MFA token');
             this.setState(state);
