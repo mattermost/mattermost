@@ -5,7 +5,6 @@ package utils
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"io/ioutil"
 
