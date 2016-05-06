@@ -1676,10 +1676,6 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
-    "id": "api.user.update_roles.system_admin_mod.app_error",
-    "translation": "システム管理者の役割は、他のシステム管理者だけが設定変更できます"
-  },
-  {
     "id": "api.user.update_roles.system_admin_set.app_error",
     "translation": "システム管理者の役割は、他のシステム管理者だけが設定できます"
   },

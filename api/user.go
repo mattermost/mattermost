@@ -1389,14 +1389,14 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If you are not the system admin then you can only demote yourself
 	if !c.IsSystemAdmin() && user_id != c.Session.UserId {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "If you are not the system admin then you can only demote yourself")
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	// Only another system admin can add the system admin role
 	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "Only another system admin can add the system admin role")
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1437,14 +1437,14 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			// Only the system admin can modify other team
 			if currentUserTeamMember == nil {
-				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "Only the system admin can make team admins on other teams")
+				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
 				c.Err.StatusCode = http.StatusForbidden
 				return
 			}
 
 			// Only another team admin can make a team admin
 			if !currentUserTeamMember.IsTeamAdmin() && model.IsInRole(new_roles, model.ROLE_TEAM_ADMIN) {
-				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "Only another team admin can make a team admin")
+				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.team_admin_needed.app_error", nil, "")
 				c.Err.StatusCode = http.StatusForbidden
 				return
 			}
