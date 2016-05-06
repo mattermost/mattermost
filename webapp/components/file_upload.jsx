@@ -40,6 +40,8 @@ class FileUpload extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.handleDrop = this.handleDrop.bind(this);
         this.cancelUpload = this.cancelUpload.bind(this);
+        this.pasteUpload = this.pasteUpload.bind(this);
+        this.keyUpload = this.keyUpload.bind(this);
 
         this.state = {
             requests: {}
