@@ -141,6 +141,10 @@ function handleMessage(msg) {
         handleChannelDeletedEvent(msg);
         break;
 
+    case SocketEvents.DIRECT_ADDED:
+        handleDirectAddedEvent(msg);
+        break;
+
     case SocketEvents.PREFERENCE_CHANGED:
         handlePreferenceChangedEvent(msg);
         break;
@@ -201,7 +205,13 @@ function handlePostDeleteEvent(msg) {
 
 function handleNewUserEvent() {
     AsyncClient.getProfiles();
+    AsyncClient.getDirectProfiles();
     AsyncClient.getChannelExtraInfo();
+}
+
+function handleDirectAddedEvent(msg) {
+    AsyncClient.getChannel(msg.channel_id);
+    AsyncClient.getDirectProfiles();
 }
 
 function handleUserAddedEvent(msg) {

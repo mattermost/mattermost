@@ -151,6 +151,7 @@ export default {
         POST_DELETED: 'post_deleted',
         CHANNEL_DELETED: 'channel_deleted',
         CHANNEL_VIEWED: 'channel_viewed',
+        DIRECT_ADDED: 'direct_added',
         NEW_USER: 'new_user',
         USER_ADDED: 'user_added',
         USER_REMOVED: 'user_removed',

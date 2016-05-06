@@ -91,6 +91,7 @@ export default class Sidebar extends React.Component {
         const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
         const directChannels = [];
+        const directNonTeamChannels = [];
         for (const [name, value] of preferences) {
             if (value !== 'true') {
                 continue;
@@ -117,10 +118,15 @@ export default class Sidebar extends React.Component {
             directChannel.teammate_id = teammateId;
             directChannel.status = UserStore.getStatus(teammateId);
 
-            directChannels.push(directChannel);
+            if (UserStore.hasTeamProfile(teammateId)) {
+                directChannels.push(directChannel);
+            } else {
+                directNonTeamChannels.push(directChannel);
+            }
         }
 
         directChannels.sort(this.sortChannelsByDisplayName);
+        directNonTeamChannels.sort(this.sortChannelsByDisplayName);
 
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
@@ -130,6 +136,7 @@ export default class Sidebar extends React.Component {
             publicChannels,
             privateChannels,
             directChannels,
+            directNonTeamChannels,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
             currentTeam: TeamStore.getCurrent(),
@@ -496,6 +503,15 @@ export default class Sidebar extends React.Component {
             return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
         });
 
+        const directMessageNonTeamItems = this.state.directNonTeamChannels.map((channel, index, arr) => {
+            return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
+        });
+
+        let directDivider;
+        if (directMessageNonTeamItems.length !== 0) {
+            directDivider = <hr/>;
+        }
+
         // update the favicon to show if there are any notifications
         if (this.lastBadgesActive !== this.badgesActive) {
             var link = document.createElement('link');
@@ -675,6 +691,8 @@ export default class Sidebar extends React.Component {
                             </h4>
                         </li>
                         {directMessageItems}
+                        {directDivider}
+                        {directMessageNonTeamItems}
                         {directMessageMore}
                     </ul>
                 </div>

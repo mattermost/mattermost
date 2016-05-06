@@ -114,6 +114,14 @@ class UserStoreClass extends EventEmitter {
         return this.getProfile(userId) != null;
     }
 
+    hasTeamProfile(userId) {
+        return this.getProfiles()[userId];
+    }
+
+    hasDirectProfile(userId) {
+        return this.getDirectProfiles()[userId];
+    }
+
     getProfile(userId) {
         if (userId === this.getCurrentId()) {
             return this.getCurrentUser();
@@ -194,7 +202,7 @@ class UserStoreClass extends EventEmitter {
         const currentUser = this.profiles[currentId];
         if (currentUser) {
             if (currentId in this.profiles) {
-                delete this.profiles[currentId];
+                Reflect.deleteProperty(this.profiles, currentId);
             }
 
             this.profiles = profiles;
