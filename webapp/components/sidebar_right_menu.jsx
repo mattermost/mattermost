@@ -86,7 +86,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         onClick={GlobalActions.showInviteMemberModal}
                     >
-                        <i className='fa fa-user'></i>
+                        <i className='fa fa-user-plus'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.inviteNew'
                             defaultMessage='Invite New Member'
@@ -244,6 +244,16 @@ export default class SidebarRightMenu extends React.Component {
                         {teamLink}
                         {manageLink}
                         {consoleLink}
+                        <li>
+                            <Link to='/select_team'>
+                                <i className='fa fa-exchange'></i>
+                                <FormattedMessage
+                                    id='sidebar_right_menu.switch_team'
+                                    defaultMessage='Switch Team'
+                                />
+                            </Link>
+                        </li>
+                        <li className='divider'></li>
                         <li>
                             <a
                                 href='#'
