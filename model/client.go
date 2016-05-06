@@ -997,15 +997,8 @@ func (c *Client) GetPublicLink(filename string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/files/get_public_link", MapToJson(map[string]string{"filename": filename})); err != nil {
 		return nil, err
 	} else {
-		var link string
-		if body, err := ioutil.ReadAll(r.Body); err == nil {
-			link = string(body)
-		} else {
-			// all the other Client methods return an empty string on invalid json, so we can too
-		}
-
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), link}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), StringFromJson(r.Body)}, nil
 	}
 }
 
