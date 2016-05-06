@@ -956,7 +956,6 @@
   "login.gitlab": "GitLab",
   "login.google": "Google Apps",
   "login.ldapUsername": "Usuário LDAP",
-  "login.loginIdRequired": "Um {type} é necessário",
   "login.noAccount": "Não tem uma conta? ",
   "login.on": "no {siteName}",
   "login.or": "ou",
