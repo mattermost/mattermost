@@ -146,7 +146,11 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 	}
 
 	if result := <-Srv.Store.Channel().SaveDirectChannel(channel, cm1, cm2); result.Err != nil {
-		return nil, result.Err
+		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
+			return result.Data.(*model.Channel), nil
+		} else {
+			return nil, result.Err
+		}
 	} else {
 		return result.Data.(*model.Channel), nil
 	}
