@@ -155,13 +155,13 @@ class TeamStoreClass extends EventEmitter {
         }
 
         var teamMembers = this.getTeamMembers();
+        const teamMember = teamMembers.find((m) => m.team_id === this.getCurrentId());
 
-        for (const index in teamMembers) {
-            if (teamMembers.hasOwnProperty(index)) {
-                var teamMember = teamMembers[index];
-                Utils.isAdmin(teamMember.roles);
-            }
+        if (teamMember) {
+            return Utils.isAdmin(teamMember.roles);
         }
+
+        return false;
     }
 }
 
