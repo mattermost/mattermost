@@ -773,7 +773,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <span>
                         <FormattedMessage
                             id='user.settings.general.usernameInfo'
-                            defaultMessage='Pick something easy for teammates to recognize and recall. Username must begin with a letter, and contain between {Constants.MIN_USERNAME_LENGTH to {Constants.MAX_USERNAME_LENGTH} lowercase characters made up of numbers, letters, and the symbols ., -, and _'
+                            defaultMessage="Pick something easy for teammates to recognize and recall. Username must begin with a letter, and contain between {Constants.MIN_USERNAME_LENGTH to {Constants.MAX_USERNAME_LENGTH} lowercase characters made up of numbers, letters, and the symbols '.', '-', and '_'"
                         />
                     </span>
                 );
