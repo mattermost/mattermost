@@ -591,7 +591,7 @@ export function toTitleCase(str) {
 
 export function applyTheme(theme) {
     if (theme.sidebarBg) {
-        changeCss('.app__body .sidebar--left, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .sidebar--menu', 'background:' + theme.sidebarBg, 1);
+        changeCss('.app__body .sidebar--left, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .sidebar--menu, .app__body .sidebar--left .badge-container', 'background:' + theme.sidebarBg, 1);
         changeCss('body.app__body', 'scrollbar-face-color:' + theme.sidebarBg, 3);
     }
 
@@ -609,7 +609,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarTextHoverBg) {
-        changeCss('.app__body .sidebar--left .nav-pills__container li>a:hover, .app__body .sidebar--left .nav-pills__container li>a:focus, .app__body .modal .settings-modal .nav-pills>li:hover a, .app__body .modal .settings-modal .nav-pills>li:focus a', 'background:' + theme.sidebarTextHoverBg, 1);
+        changeCss('.app__body .sidebar--left .nav-pills__container li>a:hover, .app__body .sidebar--left .nav-pills__container li>a:focus, .app__body .sidebar--left .nav-pills__container li>a:hover .badge-container, .app__body .sidebar--left .nav-pills__container li>a:focus .badge-container, .app__body .modal .settings-modal .nav-pills>li:hover a, .app__body .modal .settings-modal .nav-pills>li:focus a', 'background:' + theme.sidebarTextHoverBg, 1);
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li:hover a', 'background:' + theme.sidebarTextHoverBg, 1);
     }
 
