@@ -1372,16 +1372,23 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	team_id := props["team_id"]
+	if !(len(user_id) == 26 || len(user_id) == 0) {
+		c.SetInvalidParam("updateRoles", "team_id")
+		return
+	}
+
 	new_roles := props["new_roles"]
-	if !model.IsValidUserRoles(new_roles) {
+	if !(model.IsValidUserRoles(new_roles) || model.IsValidTeamRoles(new_roles)) {
 		c.SetInvalidParam("updateRoles", "new_roles")
 		return
 	}
 
 	// If you are not the system admin then you can only demote yourself
 	if !c.IsSystemAdmin() && user_id != c.Session.UserId {
-		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_set.app_error", nil, "")
+		c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
+		return
 	}
 
 	// Only another system admin can add the system admin role
@@ -1399,36 +1406,78 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	ruser := UpdateRoles(c, user, new_roles)
-	if c.Err != nil {
-		return
-	}
+	// if the team role has changed then lets update team members
+	if model.IsValidTeamRoles(new_roles) && len(team_id) > 0 {
 
-	uchan := Srv.Store.Session().UpdateRoles(user.Id, new_roles)
-	gchan := Srv.Store.Session().GetSessions(user.Id)
+		var members []*model.TeamMember
+		if result := <-Srv.Store.Team().GetTeamsForUser(user_id); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			members = result.Data.([]*model.TeamMember)
+		}
 
-	if result := <-uchan; result.Err != nil {
-		// soft error since the user roles were still updated
-		l4g.Error(result.Err)
-	}
+		var member *model.TeamMember
+		for _, m := range members {
+			if m.TeamId == team_id {
+				member = m
+			}
+		}
 
-	if result := <-gchan; result.Err != nil {
-		// soft error since the user roles were still updated
-		l4g.Error(result.Err)
-	} else {
-		sessions := result.Data.([]*model.Session)
-		for _, s := range sessions {
-			sessionCache.Remove(s.Token)
+		if member == nil {
+			c.SetInvalidParam("updateRoles", "team_id")
+			return
+		}
+
+		if !c.IsSystemAdmin() {
+			currentUserTeamMember := c.Session.GetTeamByTeamId(team_id)
+
+			// Only the system admin can modify other team
+			if currentUserTeamMember == nil {
+				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.system_admin_needed.app_error", nil, "")
+				c.Err.StatusCode = http.StatusForbidden
+				return
+			}
+
+			// Only another team admin can make a team admin
+			if !currentUserTeamMember.IsTeamAdmin() && model.IsInRole(new_roles, model.ROLE_TEAM_ADMIN) {
+				c.Err = model.NewLocAppError("updateRoles", "api.user.update_roles.team_admin_needed.app_error", nil, "")
+				c.Err.StatusCode = http.StatusForbidden
+				return
+			}
+		}
+
+		member.Roles = new_roles
+
+		if result := <-Srv.Store.Team().UpdateMember(member); result.Err != nil {
+			c.Err = result.Err
+			return
 		}
 	}
 
-	options := utils.Cfg.GetSanitizeOptions()
-	options["passwordupdate"] = false
-	ruser.Sanitize(options)
-	w.Write([]byte(ruser.ToJson()))
+	// If the users role has changed then lets update the user
+	if model.IsValidUserRoles(new_roles) {
+		UpdateUserRoles(c, user, new_roles)
+		if c.Err != nil {
+			return
+		}
+
+		uchan := Srv.Store.Session().UpdateRoles(user.Id, new_roles)
+
+		if result := <-uchan; result.Err != nil {
+			// soft error since the user roles were still updated
+			l4g.Error(result.Err)
+		}
+	}
+
+	RemoveAllSessionsForUserId(user_id)
+
+	data := make(map[string]string)
+	data["user_id"] = user_id
+	w.Write([]byte(model.MapToJson(data)))
 }
 
-func UpdateRoles(c *Context, user *model.User, roles string) *model.User {
+func UpdateUserRoles(c *Context, user *model.User, roles string) *model.User {
 
 	user.Roles = roles
 

@@ -1023,7 +1023,7 @@ func (c *Client) UpdateUserRoles(data map[string]string) (*Result, *AppError) {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 
@@ -1069,7 +1069,7 @@ func (c *Client) UpdateUserPassword(userId, currentPassword, newPassword string)
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 

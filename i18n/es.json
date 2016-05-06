@@ -1704,10 +1704,6 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
-    "id": "api.user.update_roles.system_admin_mod.app_error",
-    "translation": "El rol de administrador de sistema sólo puede ser modificado por otro administrador de sistema"
-  },
-  {
     "id": "api.user.update_roles.system_admin_set.app_error",
     "translation": "El rol de adminsitrador de sistema sólo puede ser asignado por otro administrador de sistema"
   },

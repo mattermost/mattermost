@@ -18,6 +18,7 @@ import ToggleModalButton from './toggle_modal_button.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
@@ -181,7 +182,7 @@ export default class ChannelHeader extends React.Component {
         );
         let channelTitle = channel.display_name;
         const currentId = this.state.currentUser.id;
-        const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || Utils.isAdmin(this.state.currentUser.roles);
+        const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isDirect = (this.state.channel.type === 'D');
 
         if (isDirect) {

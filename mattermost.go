@@ -721,7 +721,7 @@ func cmdAssignRole() {
 		}
 
 		if !user.IsInRole(flagRole) {
-			api.UpdateRoles(c, user, flagRole)
+			api.UpdateUserRoles(c, user, flagRole)
 		}
 
 		os.Exit(0)

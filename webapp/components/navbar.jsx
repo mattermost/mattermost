@@ -452,7 +452,8 @@ export default class Navbar extends React.Component {
                     />
                 </Popover>
             );
-            isAdmin = Utils.isAdmin(this.state.member.roles);
+
+            isAdmin = Utils.isAdmin(this.state.member.roles) || TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
 
             if (channel.type === 'O') {
                 channelTitle = channel.display_name;

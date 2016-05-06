@@ -1700,10 +1700,6 @@
     "translation": "Você não tem a permissão apropriada"
   },
   {
-    "id": "api.user.update_roles.system_admin_mod.app_error",
-    "translation": "A função de administrador do sistema só pode ser modificado por outro administrador do sistema"
-  },
-  {
     "id": "api.user.update_roles.system_admin_set.app_error",
     "translation": "A função de administrador do sistema só pode ser definida por um outro administrador do sistema"
   },

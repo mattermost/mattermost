@@ -596,8 +596,9 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateUserNotifyProps', success, error));
     }
 
-    updateRoles = (userId, newRoles, success, error) => {
+    updateRoles = (teamId, userId, newRoles, success, error) => {
         var data = {
+            team_id: teamId,
             user_id: userId,
             new_roles: newRoles
         };

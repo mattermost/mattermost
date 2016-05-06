@@ -89,7 +89,7 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	c := &Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	UpdateRoles(c, me.SystemAdminUser, model.ROLE_SYSTEM_ADMIN)
+	UpdateUserRoles(c, me.SystemAdminUser, model.ROLE_SYSTEM_ADMIN)
 	me.SystemAdminUser.Password = "Password1"
 	me.LoginSystemAdmin()
 	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)

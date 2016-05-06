@@ -19,10 +19,12 @@ export default class UserList extends React.Component {
         this.doPasswordReset = this.doPasswordReset.bind(this);
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
+        this.getTeamMemberForUser = this.getTeamMemberForUser.bind(this);
 
         this.state = {
             teamId: props.team.id,
             users: null,
+            teamMembers: null,
             serverError: null,
             showPasswordModal: false,
             user: null
@@ -38,6 +40,21 @@ export default class UserList extends React.Component {
     }
 
     getTeamProfiles(teamId) {
+        Client.getTeamMembers(
+            teamId,
+            (data) => {
+                this.setState({
+                    teamMembers: data
+                });
+            },
+            (err) => {
+                this.setState({
+                    teamMembers: null,
+                    serverError: err.message
+                });
+            }
+        );
+
         Client.getProfilesForTeam(
             teamId,
             (users) => {
@@ -110,6 +127,22 @@ export default class UserList extends React.Component {
         });
     }
 
+    getTeamMemberForUser(userId) {
+        if (this.state.teamMembers) {
+            for (const index in this.state.teamMembers) {
+                if (this.state.teamMembers.hasOwnProperty(index)) {
+                    var teamMember = this.state.teamMembers[index];
+
+                    if (teamMember.user_id === userId) {
+                        return teamMember;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     componentWillReceiveProps(newProps) {
         this.getTeamProfiles(newProps.team.id);
     }
@@ -120,7 +153,7 @@ export default class UserList extends React.Component {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
-        if (this.state.users == null) {
+        if (this.state.users == null || this.state.teamMembers == null) {
             return (
                 <div className='wrapper--fixed'>
                     <h3>
@@ -139,10 +172,14 @@ export default class UserList extends React.Component {
         }
 
         var memberList = this.state.users.map((user) => {
+            var teamMember = this.getTeamMemberForUser(user.id);
+
             return (
                 <UserItem
+                    team={this.props.team}
                     key={'user_' + user.id}
                     user={user}
+                    teamMember={teamMember}
                     refreshProfiles={this.getCurrentTeamProfiles}
                     doPasswordReset={this.doPasswordReset}
                 />);

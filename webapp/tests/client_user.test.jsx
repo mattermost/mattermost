@@ -206,12 +206,14 @@ describe('Client.User', function() {
     it('updateRoles', function(done) {
         TestHelper.initBasic(() => {
             var user = TestHelper.basicUser();
+            var team = TestHelper.basicTeam();
 
             TestHelper.basicClient().updateRoles(
+                team.id,
                 user.id,
                 '',
                 function(data) {
-                    assert.equal(data.roles, '');
+                    assert.equal(data.user_id, user.id);
                     done();
                 },
                 function(err) {

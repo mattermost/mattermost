@@ -6,6 +6,8 @@ import FileAttachmentList from './file_attachment_list.jsx';
 
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -82,7 +84,7 @@ export default class RhsComment extends React.Component {
         }
 
         const isOwner = this.props.currentUser.id === post.user_id;
-        const isAdmin = Utils.isAdmin(this.props.currentUser.roles);
+        var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
 
         var dropdownContents = [];
 

@@ -203,7 +203,7 @@ func TestIncomingWebhook(t *testing.T) {
 	c := &api.Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	api.UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	api.UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	ApiClient.Login(user.Email, "pwd")
 	ApiClient.SetTeamId(team.Id)
 

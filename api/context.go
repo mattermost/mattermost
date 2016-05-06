@@ -372,12 +372,12 @@ func (c *Context) IsTeamAdmin() bool {
 		return true
 	}
 
-	team := c.Session.GetTeamByTeamId(c.TeamId)
-	if team == nil {
+	teamMember := c.Session.GetTeamByTeamId(c.TeamId)
+	if teamMember == nil {
 		return false
 	}
 
-	return model.IsInRole(team.Roles, model.ROLE_TEAM_ADMIN)
+	return teamMember.IsTeamAdmin()
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
