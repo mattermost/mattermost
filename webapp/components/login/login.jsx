@@ -105,13 +105,12 @@ export default class Login extends React.Component {
     }
 
     submit(loginId, password, token) {
-        this.setState({showMfa: false, serverError: null});
-
         Client.webLogin(
             loginId,
             password,
             token,
             () => {
+                this.setState({serverError: null});
                 this.finishSignin();
             },
             (err) => {
@@ -122,6 +121,7 @@ export default class Login extends React.Component {
                     err.id === 'ent.ldap.do_login.user_not_registered.app_error' ||
                     err.id === 'ent.ldap.do_login.user_filtered.app_error') {
                     this.setState({
+                        showMfa: false,
                         serverError: (
                             <FormattedMessage
                                 id='login.userNotFound'
@@ -130,7 +130,7 @@ export default class Login extends React.Component {
                         )
                     });
                 } else {
-                    this.setState({serverError: err.message});
+                    this.setState({showMfa: false, serverError: err.message});
                 }
             }
         );
