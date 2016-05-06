@@ -1326,10 +1326,8 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getFileInfo', success, error));
     }
 
-    getPublicLink = (channelId, userId, filename, success, error) => {
+    getPublicLink = (filename, success, error) => {
         const data = {
-            channel_id: channelId,
-            user_id: userId,
             filename
         };
 

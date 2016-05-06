@@ -1344,8 +1344,8 @@ export function regenCommandToken(id) {
     );
 }
 
-export function getPublicLink(channelId, userId, filename, success, error) {
-    const callName = 'getPublicLink' + channelId + userId + filename;
+export function getPublicLink(filename, success, error) {
+    const callName = 'getPublicLink' + filename;
 
     if (isCallInProgress(callName)) {
         return;
@@ -1354,8 +1354,6 @@ export function getPublicLink(channelId, userId, filename, success, error) {
     callTracker[callName] = utils.getTimestamp();
 
     Client.getPublicLink(
-        channelId,
-        userId,
         filename,
         (link) => {
             callTracker[callName] = 0;
