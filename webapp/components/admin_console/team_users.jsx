@@ -61,20 +61,13 @@ export default class UserList extends React.Component {
                 });
 
                 this.setState({
-                    teamId: this.state.teamId,
-                    users: memberList,
-                    serverError: this.state.serverError,
-                    showPasswordModal: this.state.showPasswordModal,
-                    user: this.state.user
+                    users: memberList
                 });
             },
             (err) => {
                 this.setState({
-                    teamId: this.state.teamId,
                     users: null,
-                    serverError: err.message,
-                    showPasswordModal: this.state.showPasswordModal,
-                    user: this.state.user
+                    serverError: err.message
                 });
             }
         );
@@ -82,9 +75,6 @@ export default class UserList extends React.Component {
 
     doPasswordReset(user) {
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: true,
             user
         });
@@ -92,19 +82,14 @@ export default class UserList extends React.Component {
 
     doPasswordResetDismiss() {
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: false,
             user: null
         });
     }
 
     doPasswordResetSubmit() {
+        this.getCurrentTeamProfiles();
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: false,
             user: null
         });
