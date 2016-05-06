@@ -509,6 +509,13 @@ body.ios {
         }
     }
 
+    &.post--comment {
+        .post__body {
+            padding-left: 7px;
+            border-left: 4px solid $gray;
+        }
+    }
+
     &.same--root {
         &.same--user {
             padding: 0 .5em 0 1em;
@@ -543,10 +550,6 @@ body.ios {
                     display: none;
                 }
             }
-
-            .post__body {
-                border-left: 4px solid #dddddd;
-            }
         }
     }
 
@@ -558,6 +561,7 @@ body.ios {
         }
 
         &.post--comment {
+
             .popover {
                 margin-top: 84px;
 
@@ -800,6 +804,10 @@ body.ios {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+
+        a {
+            font-weight: bold;
+        }
     }
 
     .post__embed-visibility {
