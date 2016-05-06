@@ -108,7 +108,7 @@ class UserSettingsGeneralTab extends React.Component {
             this.setState({clientError: formatMessage(holders.usernameReserved)});
             return;
         } else if (usernameError) {
-            this.setState({clientError: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH}, max: Constants.MAX_USERNAME_LENGTH})});
+            this.setState({clientError: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH}, {max: Constants.MAX_USERNAME_LENGTH})});
             return;
         }
 
