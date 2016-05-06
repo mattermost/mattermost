@@ -20,21 +20,16 @@ export default class InstalledIncomingWebhooks extends React.Component {
         this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
 
         this.state = {
-            incomingWebhooks: []
+            incomingWebhooks: IntegrationStore.getIncomingWebhooks(),
+            loading: !IntegrationStore.hasReceivedIncomingWebhooks()
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
 
-        if (window.mm_config.EnableIncomingWebhooks === 'true') {
-            if (IntegrationStore.hasReceivedIncomingWebhooks()) {
-                this.setState({
-                    incomingWebhooks: IntegrationStore.getIncomingWebhooks()
-                });
-            } else {
-                AsyncClient.listIncomingHooks();
-            }
+        if (window.mm_config.EnableIncomingWebhooks === 'true' && this.state.loading) {
+            AsyncClient.listIncomingHooks();
         }
     }
 
@@ -44,7 +39,8 @@ export default class InstalledIncomingWebhooks extends React.Component {
 
     handleIntegrationChange() {
         this.setState({
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks()
+            incomingWebhooks: IntegrationStore.getIncomingWebhooks(),
+            loading: !IntegrationStore.hasReceivedIncomingWebhooks()
         });
     }
 
@@ -78,6 +74,13 @@ export default class InstalledIncomingWebhooks extends React.Component {
                     />
                 }
                 addLink={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/incoming_webhooks/add'}
+                emptyText={
+                    <FormattedMessage
+                        id='installed_incoming_webhooks.empty'
+                        defaultMessage='No incoming webhooks found'
+                    />
+                }
+                loading={this.state.loading}
             >
                 {incomingWebhooks}
             </InstalledIntegrations>

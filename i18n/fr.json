@@ -1428,7 +1428,7 @@
     "translation": "Session sessionId=%v de l'utilisateur userId=%v révoquée re-connexion avec le même identifiant"
   },
   {
-    "id": "api.user.login_by_email.sign_in.app_error",
+    "id": "api.user.login.use_auth_service.app_error",
     "translation": "Veuillez vous connecter en utilisant  {{.AuthService}}"
   },
   {

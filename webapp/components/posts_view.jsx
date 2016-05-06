@@ -11,6 +11,8 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 
@@ -50,7 +52,6 @@ export default class PostsView extends React.Component {
             centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isScrolling: false,
             topPostId: null,
-            showUnreadMessageAlert: false,
             currentUser: UserStore.getCurrentUser(),
             profiles: UserStore.getProfiles()
         };
@@ -77,7 +78,7 @@ export default class PostsView extends React.Component {
         });
     }
     onUserChange() {
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: UserStore.getProfiles()});
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom
@@ -395,6 +396,8 @@ export default class PostsView extends React.Component {
             UserStore.addChangeListener(this.onUserChange);
         }
 
+        this.introText = createChannelIntroMessage(this.props.channel);
+
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
@@ -409,13 +412,6 @@ export default class PostsView extends React.Component {
         }
     }
     componentWillReceiveProps(nextProps) {
-        if (this.props.postList && this.props.postList.order.length) {
-            if (this.props.postList.order[0] !== nextProps.postList.order[0] && nextProps.scrollType !== PostsView.SCROLL_TYPE_BOTTOM && nextProps.scrollType !== PostsView.SCROLL_TYPE_NEW_MESSAGE) {
-                this.setState({showUnreadMessageAlert: true});
-            } else if (nextProps.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
-                this.setState({showUnreadMessageAlert: false});
-            }
-        }
         if (!this.props.isActive && nextProps.isActive) {
             this.updateState();
             PreferenceStore.addChangeListener(this.updateState);
@@ -489,7 +485,7 @@ export default class PostsView extends React.Component {
                     </a>
                 );
             } else {
-                moreMessagesTop = this.props.introText;
+                moreMessagesTop = this.introText;
             }
 
             // Give option to load more posts at bottom if nessisary
@@ -518,7 +514,7 @@ export default class PostsView extends React.Component {
         }
 
         let topPostCreateAt = 0;
-        if (this.state.topPostId) {
+        if (this.state.topPostId && this.props.postList.posts[this.state.topPostId]) {
             topPostCreateAt = this.props.postList.posts[this.state.topPostId].create_at;
         }
 
@@ -550,18 +546,6 @@ export default class PostsView extends React.Component {
                         </div>
                     </div>
                 </div>
-                <div
-                    className='post-list__new-messages-below'
-                    onClick={this.scrollToBottomAnimated}
-                    hidden={!this.state.showUnreadMessageAlert}
-                >
-                    <i className='fa fa-angle-down'></i>
-                    &nbsp;
-                    <FormattedMessage
-                        id='posts_view.newMsg'
-                        defaultMessage='New Messages'
-                    />
-                </div>
             </div>
         );
     }
@@ -579,7 +563,7 @@ PostsView.propTypes = {
     loadMorePostsBottomClicked: React.PropTypes.func.isRequired,
     showMoreMessagesTop: React.PropTypes.bool,
     showMoreMessagesBottom: React.PropTypes.bool,
-    introText: React.PropTypes.element,
+    channel: React.PropTypes.object,
     messageSeparatorTime: React.PropTypes.number,
     postsToHighlight: React.PropTypes.object
 };

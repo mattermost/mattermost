@@ -143,19 +143,21 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
-        if (window.mm_config.EnableIncomingWebhooks === 'true' || window.mm_config.EnableOutgoingWebhooks === 'true') {
-            if (isAdmin || window.EnableAdminOnlyIntegrations !== 'true') {
-                integrationsLink = (
-                    <li>
-                        <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations'}>
-                            <FormattedMessage
-                                id='navbar_dropdown.integrations'
-                                defaultMessage='Integrations'
-                            />
-                        </Link>
-                    </li>
-                );
-            }
+        const integrationsEnabled =
+            window.mm_config.EnableIncomingWebhooks === 'true' ||
+            window.mm_config.EnableOutgoingWebhooks === 'true' ||
+            window.mm_config.EnableCommands === 'true';
+        if (integrationsEnabled && (isAdmin || window.EnableOnlyAdminIntegrations !== 'true')) {
+            integrationsLink = (
+                <li>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations'}>
+                        <FormattedMessage
+                            id='navbar_dropdown.integrations'
+                            defaultMessage='Integrations'
+                        />
+                    </Link>
+                </li>
+            );
         }
 
         if (isSystemAdmin) {
@@ -226,6 +228,7 @@ export default class NavbarDropdown extends React.Component {
                     <Link
                         target='_blank'
                         to={global.window.mm_config.HelpLink}
+                        rel='noreferrer'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.help'
@@ -243,6 +246,7 @@ export default class NavbarDropdown extends React.Component {
                     <Link
                         target='_blank'
                         to={global.window.mm_config.ReportAProblemLink}
+                        rel='noreferrer'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.report'

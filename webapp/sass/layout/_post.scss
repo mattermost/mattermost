@@ -170,33 +170,6 @@ body.ios {
     }
 }
 
-.post-list__new-messages-below {
-    @include single-transition(bottom .5s cubic-bezier(86, 0, 07, 1));
-    @include opacity(.9);
-    background-color: $black;
-    border-radius: 1em;
-    bottom: 10px;
-    color: $white;
-    cursor: pointer;
-    display: inline-block;
-    left: 50%;
-    padding: .3em .75em;
-    position: absolute;
-    transform: translateX(-50%);
-
-    &[hidden] {
-        bottom: -30px;
-    }
-
-    .fa {
-        font-size: 17px;
-        font-weight: bold;
-        margin-right: 1px;
-        position: relative;
-        top: 1px;
-    }
-}
-
 .file-overlay {
     color: $white;
     font-size: em(20px);
@@ -536,6 +509,13 @@ body.ios {
         }
     }
 
+    &.post--comment {
+        .post__body {
+            padding-left: 7px;
+            border-left: 4px solid $gray;
+        }
+    }
+
     &.same--root {
         &.same--user {
             padding: 0 .5em 0 1em;
@@ -570,10 +550,6 @@ body.ios {
                     display: none;
                 }
             }
-
-            .post__body {
-                border-left: 4px solid #dddddd;
-            }
         }
     }
 
@@ -585,6 +561,7 @@ body.ios {
         }
 
         &.post--comment {
+
             .popover {
                 margin-top: 84px;
 
@@ -827,6 +804,10 @@ body.ios {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+
+        a {
+            font-weight: bold;
+        }
     }
 
     .post__embed-visibility {

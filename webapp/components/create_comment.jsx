@@ -62,7 +62,6 @@ class CreateComment extends React.Component {
         this.handleUploadError = this.handleUploadError.bind(this);
         this.removePreview = this.removePreview.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
-        this.handleResize = this.handleResize.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
@@ -76,28 +75,21 @@ class CreateComment extends React.Component {
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
-            windowWidth: Utils.windowWidth(),
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             showPostDeletedModal: false
         };
     }
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-        window.addEventListener('resize', this.handleResize);
-
         this.focusTextbox();
     }
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
-        window.removeEventListener('resize', this.handleResize);
     }
     onPreferenceChange() {
         this.setState({
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
-    }
-    handleResize() {
-        this.setState({windowWidth: Utils.windowWidth()});
     }
     componentDidUpdate(prevProps, prevState) {
         if (prevState.uploadsInProgress < this.state.uploadsInProgress) {

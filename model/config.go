@@ -28,6 +28,11 @@ const (
 
 	GENERIC_NOTIFICATION = "generic"
 	FULL_NOTIFICATION    = "full"
+
+	DIRECT_MESSAGE_ANY  = "any"
+	DIRECT_MESSAGE_TEAM = "team"
+
+	FAKE_SETTING = "********************************"
 )
 
 type ServiceSettings struct {
@@ -160,6 +165,7 @@ type TeamSettings struct {
 	RestrictTeamNames         *bool
 	EnableCustomBrand         *bool
 	CustomBrandText           *string
+	RestrictDirectMessage     *string
 }
 
 type LdapSettings struct {
@@ -188,8 +194,7 @@ type LdapSettings struct {
 	QueryTimeout                *int
 
 	// Customization
-	LoginFieldName    *string
-	PasswordFieldName *string
+	LoginFieldName *string
 }
 
 type ComplianceSettings struct {
@@ -313,6 +318,11 @@ func (o *Config) SetDefaults() {
 		*o.TeamSettings.EnableOpenServer = false
 	}
 
+	if o.TeamSettings.RestrictDirectMessage == nil {
+		o.TeamSettings.RestrictDirectMessage = new(string)
+		*o.TeamSettings.RestrictDirectMessage = DIRECT_MESSAGE_ANY
+	}
+
 	if o.EmailSettings.EnableSignInWithEmail == nil {
 		o.EmailSettings.EnableSignInWithEmail = new(bool)
 
@@ -418,11 +428,6 @@ func (o *Config) SetDefaults() {
 		*o.LdapSettings.LoginFieldName = ""
 	}
 
-	if o.LdapSettings.PasswordFieldName == nil {
-		o.LdapSettings.PasswordFieldName = new(string)
-		*o.LdapSettings.PasswordFieldName = ""
-	}
-
 	if o.ServiceSettings.SessionLengthWebInDays == nil {
 		o.ServiceSettings.SessionLengthWebInDays = new(int)
 		*o.ServiceSettings.SessionLengthWebInDays = 30
@@ -518,6 +523,10 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
 	}
 
+	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "")
+	}
+
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "")
 	}
@@ -597,10 +606,38 @@ func (o *Config) IsValid() *AppError {
 	return nil
 }
 
-func (me *Config) GetSanitizeOptions() map[string]bool {
+func (o *Config) GetSanitizeOptions() map[string]bool {
 	options := map[string]bool{}
-	options["fullname"] = me.PrivacySettings.ShowFullName
-	options["email"] = me.PrivacySettings.ShowEmailAddress
+	options["fullname"] = o.PrivacySettings.ShowFullName
+	options["email"] = o.PrivacySettings.ShowEmailAddress
 
 	return options
+}
+
+func (o *Config) Sanitize() {
+	if &o.LdapSettings != nil && len(*o.LdapSettings.BindPassword) > 0 {
+		*o.LdapSettings.BindPassword = FAKE_SETTING
+	}
+
+	o.FileSettings.PublicLinkSalt = FAKE_SETTING
+	if len(o.FileSettings.AmazonS3SecretAccessKey) > 0 {
+		o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
+	}
+
+	o.EmailSettings.InviteSalt = FAKE_SETTING
+	o.EmailSettings.PasswordResetSalt = FAKE_SETTING
+	if len(o.EmailSettings.SMTPPassword) > 0 {
+		o.EmailSettings.SMTPPassword = FAKE_SETTING
+	}
+
+	if len(o.GitLabSettings.Secret) > 0 {
+		o.GitLabSettings.Secret = FAKE_SETTING
+	}
+
+	o.SqlSettings.DataSource = FAKE_SETTING
+	o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
+
+	for i := range o.SqlSettings.DataSourceReplicas {
+		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
+	}
 }

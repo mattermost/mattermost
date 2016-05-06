@@ -366,6 +366,7 @@ export default class UserItem extends React.Component {
         }
 
         let authServiceText;
+        let passwordReset;
         if (user.auth_service) {
             authServiceText = (
                 <FormattedHTMLMessage
@@ -376,6 +377,21 @@ export default class UserItem extends React.Component {
                     }}
                 />
             );
+
+            passwordReset = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleResetPassword}
+                    >
+                        <FormattedMessage
+                            id='admin.user_item.switchToEmail'
+                            defaultMessage='Switch to Email/Password'
+                        />
+                    </a>
+                </li>
+            );
         } else {
             authServiceText = (
                 <FormattedHTMLMessage
@@ -383,6 +399,25 @@ export default class UserItem extends React.Component {
                     defaultMessage=', <strong>Sign-in Method:</strong> Email'
                 />
             );
+
+            passwordReset = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleResetPassword}
+                    >
+                        <FormattedMessage
+                            id='admin.user_item.resetPwd'
+                            defaultMessage='Reset Password'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
+        if (global.window.mm_config.EnableSignInWithEmail !== 'true') {
+            passwordReset = null;
         }
 
         const me = UserStore.getCurrentUser();
@@ -474,18 +509,7 @@ export default class UserItem extends React.Component {
                             {makeNotActive}
                             {makeSystemAdmin}
                             {mfaReset}
-                            <li role='presentation'>
-                                <a
-                                    role='menuitem'
-                                    href='#'
-                                    onClick={this.handleResetPassword}
-                                >
-                                    <FormattedMessage
-                                        id='admin.user_item.resetPwd'
-                                        defaultMessage='Reset Password'
-                                    />
-                                </a>
-                            </li>
+                            {passwordReset}
                         </ul>
                     </div>
                 </div>

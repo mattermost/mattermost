@@ -4,11 +4,14 @@
 import {Modal} from 'react-bootstrap';
 import FilteredUserList from './filtered_user_list.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router';
 import SpinnerButton from 'components/spinner_button.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import React from 'react';
 
@@ -17,38 +20,27 @@ export default class MoreDirectChannels extends React.Component {
         super(props);
 
         this.handleHide = this.handleHide.bind(this);
+        this.handleOnEnter = this.handleOnEnter.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.handleUserChange = this.handleUserChange.bind(this);
+        this.onTeamChange = this.onTeamChange.bind(this);
         this.createJoinDirectChannelButton = this.createJoinDirectChannelButton.bind(this);
 
         this.state = {
-            users: this.getUsersFromStore(),
+            users: null,
+            teamMembers: null,
             loadingDMChannel: -1
         };
     }
 
-    getUsersFromStore() {
-        const currentId = UserStore.getCurrentId();
-        const profiles = UserStore.getActiveOnlyProfiles();
-        const users = [];
-
-        for (const id in profiles) {
-            if (id !== currentId) {
-                users.push(profiles[id]);
-            }
-        }
-
-        users.sort((a, b) => a.username.localeCompare(b.username));
-
-        return users;
-    }
-
     componentDidMount() {
-        UserStore.addChangeListener(this.handleUserChange);
+        UserStore.addDmListChangeListener(this.handleUserChange);
+        TeamStore.addChangeListener(this.onTeamChange);
     }
 
     componentWillUnmount() {
-        UserStore.removeChangeListener(this.handleUserChange);
+        UserStore.removeDmListChangeListener(this.handleUserChange);
+        TeamStore.removeChangeListener(this.onTeamChange);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -68,6 +60,10 @@ export default class MoreDirectChannels extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextState.teamMembers, this.state.teamMembers)) {
+            return true;
+        }
+
         return false;
     }
 
@@ -75,6 +71,17 @@ export default class MoreDirectChannels extends React.Component {
         if (this.props.onModalDismissed) {
             this.props.onModalDismissed();
         }
+    }
+
+    handleOnEnter() {
+        this.setState({
+            users: null,
+            teamMembers: null
+        });
+    }
+
+    handleOnEntered() {
+        GlobalActions.emitProfilesForDmList();
     }
 
     handleShowDirectChannel(teammate, e) {
@@ -99,7 +106,15 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleUserChange() {
-        this.setState({users: this.getUsersFromStore()});
+        this.setState({
+            users: UserStore.getProfilesForDmList()
+        });
+    }
+
+    onTeamChange() {
+        this.setState({
+            teamMembers: TeamStore.getMembersForTeam()
+        });
     }
 
     createJoinDirectChannelButton({user}) {
@@ -123,11 +138,33 @@ export default class MoreDirectChannels extends React.Component {
             maxHeight = Utils.windowHeight() - 300;
         }
 
+        var body = null;
+        if (this.state.users == null || this.state.teamMembers == null) {
+            body = (<LoadingScreen/>);
+        } else {
+            var showTeamToggle = false;
+            if (global.window.mm_config.RestrictDirectMessage === 'any') {
+                showTeamToggle = true;
+            }
+
+            body = (
+                <FilteredUserList
+                    style={{maxHeight}}
+                    users={this.state.users}
+                    teamMembers={this.state.teamMembers}
+                    actions={[this.createJoinDirectChannelButton]}
+                    showTeamToggle={showTeamToggle}
+                />
+            );
+        }
+
         return (
             <Modal
                 dialogClassName='more-modal more-direct-channels'
                 show={this.props.show}
                 onHide={this.handleHide}
+                onEnter={this.handleOnEnter}
+                onEntered={this.handleOnEntered}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -138,11 +175,7 @@ export default class MoreDirectChannels extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <FilteredUserList
-                        style={{maxHeight}}
-                        users={this.state.users}
-                        actions={[this.createJoinDirectChannelButton]}
-                    />
+                    {body}
                 </Modal.Body>
                 <Modal.Footer>
                     <button

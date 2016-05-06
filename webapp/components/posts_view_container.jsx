@@ -13,8 +13,6 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
-
 import React from 'react';
 
 const MAXIMUM_CACHED_VIEWS = 3;
@@ -36,18 +34,26 @@ export default class PostsViewContainer extends React.Component {
             scrollPost: null
         };
         if (currentChannelId) {
+            let lastViewed = Date.now();
+            const member = ChannelStore.getMember(currentChannelId);
+            if (member) {
+                lastViewed = member.last_viewed_at;
+            }
+
             Object.assign(state, {
                 currentChannelIndex: 0,
                 channels: [currentChannelId],
                 postLists: [this.getChannelPosts(currentChannelId)],
-                atTop: [PostStore.getVisibilityAtTop(currentChannelId)]
+                atTop: [PostStore.getVisibilityAtTop(currentChannelId)],
+                currentLastViewed: lastViewed
             });
         } else {
             Object.assign(state, {
                 currentChannelIndex: null,
                 channels: [],
                 postLists: [],
-                atTop: []
+                atTop: [],
+                currentLastViewed: Date.now()
             });
         }
 
@@ -188,7 +194,7 @@ export default class PostsViewContainer extends React.Component {
                     }}
                     showMoreMessagesTop={!this.state.atTop[this.state.currentChannelIndex]}
                     showMoreMessagesBottom={false}
-                    introText={channel ? createChannelIntroMessage(channel) : null}
+                    channel={channel}
                     messageSeparatorTime={this.state.currentLastViewed}
                 />
             );

@@ -7,6 +7,8 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+
+	"net/http"
 )
 
 func checkPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
@@ -35,6 +37,32 @@ func checkUserPassword(user *model.User, password string) *model.AppError {
 
 		return nil
 	}
+}
+
+func checkLdapUserPasswordAndAllCriteria(ldapId, password, mfaToken string) (*model.User, *model.AppError) {
+	ldapInterface := einterfaces.GetLdapInterface()
+
+	if ldapInterface == nil {
+		err := model.NewLocAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "")
+		err.StatusCode = http.StatusNotImplemented
+		return nil, err
+	}
+
+	var user *model.User
+	if ldapUser, err := ldapInterface.DoLogin(ldapId, password); err != nil {
+		err.StatusCode = http.StatusUnauthorized
+		return nil, err
+	} else {
+		user = ldapUser
+	}
+
+	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+		err.StatusCode = http.StatusUnauthorized
+		return user, err
+	}
+
+	// user successfully authenticated
+	return user, nil
 }
 
 func checkUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
@@ -96,4 +124,33 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 		return model.NewLocAppError("Login", "api.user.login.inactive.app_error", nil, "user_id="+user.Id)
 	}
 	return nil
+}
+
+func authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil
+
+	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
+		if !ldapAvailable {
+			err := model.NewLocAppError("login", "api.user.login_ldap.not_available.app_error", nil, "")
+			err.StatusCode = http.StatusNotImplemented
+			return user, err
+		} else if ldapUser, err := checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken); err != nil {
+			err.StatusCode = http.StatusUnauthorized
+			return user, err
+		} else {
+			// slightly redundant to get the user again, but we need to get it from the LDAP server
+			return ldapUser, nil
+		}
+	} else if user.AuthService != "" {
+		err := model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": user.AuthService}, "")
+		err.StatusCode = http.StatusBadRequest
+		return user, err
+	} else {
+		if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+			err.StatusCode = http.StatusUnauthorized
+			return user, err
+		} else {
+			return user, nil
+		}
+	}
 }

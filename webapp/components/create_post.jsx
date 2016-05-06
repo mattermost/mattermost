@@ -12,7 +12,6 @@ import TutorialTip from './tutorial/tutorial_tip.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -167,21 +166,12 @@ class CreatePost extends React.Component {
         post.create_at = time;
         post.parent_id = this.state.parentId;
 
-        const channel = ChannelStore.get(this.state.channelId);
-
         GlobalActions.emitUserPostedEvent(post);
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
         Client.createPost(post,
-            (data) => {
-                AsyncClient.getPosts();
-
-                const member = ChannelStore.getMember(channel.id);
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = Date.now();
-                ChannelStore.setChannelMember(member);
-
-                GlobalActions.emitPostRecievedEvent(data);
+            () => {
+                // DO nothing. Websockets will handle this.
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
@@ -253,9 +243,11 @@ class CreatePost extends React.Component {
         draft.previews = draft.previews.concat(filenames);
         PostStore.storeDraft(channelId, draft);
 
-        this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
+        if (channelId === this.state.channelId) {
+            this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
+        }
     }
-    handleUploadError(err, clientId) {
+    handleUploadError(err, clientId, channelId) {
         let message = err;
         if (message && typeof message !== 'string') {
             // err is an AppError from the server
@@ -263,16 +255,18 @@ class CreatePost extends React.Component {
         }
 
         if (clientId !== -1) {
-            const draft = PostStore.getDraft(this.state.channelId);
+            const draft = PostStore.getDraft(channelId);
 
             const index = draft.uploadsInProgress.indexOf(clientId);
             if (index !== -1) {
                 draft.uploadsInProgress.splice(index, 1);
             }
 
-            PostStore.storeDraft(this.state.channelId, draft);
+            PostStore.storeDraft(channelId, draft);
 
-            this.setState({uploadsInProgress: draft.uploadsInProgress});
+            if (channelId === this.state.channelId) {
+                this.setState({uploadsInProgress: draft.uploadsInProgress});
+            }
         }
 
         this.setState({serverError: message});

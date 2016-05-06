@@ -10,6 +10,51 @@ import {FormattedMessage} from 'react-intl';
 
 export default class BackstageSidebar extends React.Component {
     render() {
+        let incomingWebhooks = null;
+        if (window.mm_config.EnableIncomingWebhooks === 'true') {
+            incomingWebhooks = (
+                <BackstageSection
+                    name='incoming_webhooks'
+                    title={(
+                        <FormattedMessage
+                            id='backstage_sidebar.integrations.incoming_webhooks'
+                            defaultMessage='Incoming Webhooks'
+                        />
+                    )}
+                />
+            );
+        }
+
+        let outgoingWebhooks = null;
+        if (window.mm_config.EnableOutgoingWebhooks === 'true') {
+            outgoingWebhooks = (
+                <BackstageSection
+                    name='outgoing_webhooks'
+                    title={(
+                        <FormattedMessage
+                            id='backstage_sidebar.integrations.outgoing_webhooks'
+                            defaultMessage='Outgoing Webhooks'
+                        />
+                    )}
+                />
+            );
+        }
+
+        let commands = null;
+        if (window.mm_config.EnableCommands === 'true') {
+            commands = (
+                <BackstageSection
+                    name='commands'
+                    title={(
+                        <FormattedMessage
+                            id='backstage_sidebar.integrations.commands'
+                            defaultMessage='Slash Commands'
+                        />
+                    )}
+                />
+            );
+        }
+
         return (
             <div className='backstage-sidebar'>
                 <ul>
@@ -24,33 +69,9 @@ export default class BackstageSidebar extends React.Component {
                             />
                         }
                     >
-                        <BackstageSection
-                            name='incoming_webhooks'
-                            title={(
-                                <FormattedMessage
-                                    id='backstage_sidebar.integrations.incoming_webhooks'
-                                    defaultMessage='Incoming Webhooks'
-                                />
-                            )}
-                        />
-                        <BackstageSection
-                            name='outgoing_webhooks'
-                            title={(
-                                <FormattedMessage
-                                    id='backstage_sidebar.integrations.outgoing_webhooks'
-                                    defaultMessage='Outgoing Webhooks'
-                                />
-                            )}
-                        />
-                        <BackstageSection
-                            name='commands'
-                            title={(
-                                <FormattedMessage
-                                    id='backstage_sidebar.integrations.commands'
-                                    defaultMessage='Slash Commands'
-                                />
-                            )}
-                        />
+                        {incomingWebhooks}
+                        {outgoingWebhooks}
+                        {commands}
                     </BackstageCategory>
                 </ul>
             </div>

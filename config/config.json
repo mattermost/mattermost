@@ -34,7 +34,8 @@
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
-        "CustomBrandText": ""
+        "CustomBrandText": "",
+        "RestrictDirectMessage": "any"
     },
     "SqlSettings": {
         "DriverName": "mysql",
@@ -105,11 +106,11 @@
         "ShowFullName": true
     },
     "SupportSettings": {
-        "TermsOfServiceLink": "/static/help/terms.html",
-        "PrivacyPolicyLink": "/static/help/privacy.html",
-        "AboutLink": "/static/help/about.html",
-        "HelpLink": "/static/help/help.html",
-        "ReportAProblemLink": "/static/help/report_problem.html",
+        "TermsOfServiceLink": "https://about.mattermost.com/default-terms/",
+        "PrivacyPolicyLink": "https://about.mattermost.com/default-privacy-policy/",
+        "AboutLink": "https://about.mattermost.com/default-about/",
+        "HelpLink": "https://about.mattermost.com/default-help/",
+        "ReportAProblemLink": "https://about.mattermost.com/default-report-problem/",
         "SupportEmail": "feedback@mattermost.com"
     },
     "GitLabSettings": {

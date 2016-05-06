@@ -157,6 +157,11 @@ export function emitPostFocusEvent(postId) {
     );
 }
 
+export function emitProfilesForDmList() {
+    AsyncClient.getProfilesForDirectMessageList();
+    AsyncClient.getTeamMembers(TeamStore.getCurrentId());
+}
+
 export function emitCloseRightHandSide() {
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_SEARCH,
@@ -276,6 +281,16 @@ export function showGetPostLinkModal(post) {
     });
 }
 
+export function showGetPublicLinkModal(channelId, userId, filename) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_GET_PUBLIC_LINK_MODAL,
+        value: true,
+        channelId,
+        userId,
+        filename
+    });
+}
+
 export function showGetTeamInviteLinkModal() {
     AppDispatcher.handleViewAction({
         type: Constants.ActionTypes.TOGGLE_GET_TEAM_INVITE_LINK_MODAL,
@@ -335,6 +350,10 @@ export function emitClearSuggestions(suggestionId) {
 }
 
 export function emitPreferenceChangedEvent(preference) {
+    if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
+        AsyncClient.getDirectProfiles();
+    }
+
     AppDispatcher.handleServerAction({
         type: Constants.ActionTypes.RECEIVED_PREFERENCE,
         preference

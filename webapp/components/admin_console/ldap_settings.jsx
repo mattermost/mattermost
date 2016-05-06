@@ -69,7 +69,6 @@ class LdapSettings extends React.Component {
         config.LdapSettings.ConnectionSecurity = this.state.connectionSecurity.trim();
         config.LdapSettings.SkipCertificateVerification = this.state.skipCertificateVerification;
         config.LdapSettings.LoginFieldName = this.refs.LoginFieldName.value.trim();
-        config.LdapSettings.PasswordFieldName = this.refs.PasswordFieldName.value.trim();
 
         let QueryTimeout = DEFAULT_QUERY_TIMEOUT;
         if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.QueryTimeout).value, 10))) {
@@ -629,36 +628,6 @@ class LdapSettings extends React.Component {
                                 <FormattedMessage
                                     id='admin.ldap.loginNameDesc'
                                     defaultMessage='The placeholder text that appears in the login field on the login page. Defaults to "LDAP Username".'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='PasswordFieldName'
-                        >
-                            <FormattedMessage
-                                id='admin.ldap.passwordFieldTitle'
-                                defaultMessage='Password Field Name:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='PasswordFieldName'
-                                ref='PasswordFieldName'
-                                placeholder={Utils.localizeMessage('admin.ldap.passwordFieldEx', 'Ex "LDAP Password"')}
-                                defaultValue={this.props.config.LdapSettings.PasswordFieldName}
-                                onChange={this.handleChange}
-                                disabled={!this.state.enable}
-                            />
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.ldap.passwordFieldDesc'
-                                    defaultMessage='The placeholder text that appears in the password field on the login page. Defaults to "LDAP Password".'
                                 />
                             </p>
                         </div>

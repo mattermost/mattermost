@@ -321,8 +321,8 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
+func (c *Client) GetProfilesForDirectMessageList(teamId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/profiles_for_dm_list/"+teamId, "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -330,8 +330,8 @@ func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetProfilesForTeam(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles/"+teamId+"?skip_direct=true", "", etag); err != nil {
+func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -355,49 +355,19 @@ func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	return c.login(m)
 }
 
-func (c *Client) LoginByEmail(name string, email string, password string) (*Result, *AppError) {
+func (c *Client) Login(loginId string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["name"] = name
-	m["email"] = email
+	m["login_id"] = loginId
 	m["password"] = password
 	return c.login(m)
 }
 
-func (c *Client) LoginByUsername(name string, username string, password string) (*Result, *AppError) {
+func (c *Client) LoginWithDevice(loginId string, password string, deviceId string) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["name"] = name
-	m["username"] = username
-	m["password"] = password
-	return c.login(m)
-}
-
-func (c *Client) LoginByEmailWithDevice(name string, email string, password string, deviceId string) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["name"] = name
-	m["email"] = email
+	m["login_id"] = loginId
 	m["password"] = password
 	m["device_id"] = deviceId
 	return c.login(m)
-}
-
-func (c *Client) LoginByLdap(userid string, password string, mfatoken string) (*Result, *AppError) {
-	m := make(map[string]string)
-	m["id"] = userid
-	m["password"] = password
-	m["token"] = mfatoken
-	if r, err := c.DoApiPost("/users/login_ldap", MapToJson(m)); err != nil {
-		return nil, err
-	} else {
-		c.AuthToken = r.Header.Get(HEADER_TOKEN)
-		c.AuthType = HEADER_BEARER
-		sessionToken := getCookie(SESSION_COOKIE_TOKEN, r)
-
-		if c.AuthToken != sessionToken.Value {
-			NewLocAppError("/users/login_ldap", "model.client.login.app_error", nil, "")
-		}
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
 }
 
 func (c *Client) login(m map[string]string) (*Result, *AppError) {
@@ -430,9 +400,8 @@ func (c *Client) Logout() (*Result, *AppError) {
 	}
 }
 
-func (c *Client) CheckMfa(method, loginId string) (*Result, *AppError) {
+func (c *Client) CheckMfa(loginId string) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["method"] = method
 	m["login_id"] = loginId
 
 	if r, err := c.DoApiPost("/users/mfa", MapToJson(m)); err != nil {
@@ -642,7 +611,7 @@ func (c *Client) SaveConfig(config *Config) (*Result, *AppError) {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), ConfigFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 
@@ -1024,12 +993,19 @@ func (c *Client) GetFileInfo(url string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetPublicLink(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost(c.GetTeamRoute()+"/files/get_public_link", MapToJson(data)); err != nil {
+func (c *Client) GetPublicLink(filename string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/files/get_public_link", MapToJson(map[string]string{"filename": filename})); err != nil {
 		return nil, err
 	} else {
+		var link string
+		if body, err := ioutil.ReadAll(r.Body); err == nil {
+			link = string(body)
+		} else {
+			// all the other Client methods return an empty string on invalid json, so we can too
+		}
+
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), link}, nil
 	}
 }
 

@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import AudioVideoPreview from './audio_video_preview.jsx';
 import Constants from 'utils/constants.jsx';
@@ -43,7 +43,7 @@ class ViewImageModal extends React.Component {
 
         this.onFileStoreChange = this.onFileStoreChange.bind(this);
 
-        this.getPublicLink = this.getPublicLink.bind(this);
+        this.handleGetPublicLink = this.handleGetPublicLink.bind(this);
         this.onMouseEnterImage = this.onMouseEnterImage.bind(this);
         this.onMouseLeaveImage = this.onMouseLeaveImage.bind(this);
 
@@ -194,24 +194,10 @@ class ViewImageModal extends React.Component {
         }
     }
 
-    getPublicLink() {
-        var data = {};
-        data.channel_id = this.props.channelId;
-        data.user_id = this.props.userId;
-        data.filename = this.props.filenames[this.state.imgId];
-        Client.getPublicLink(
-            data,
-            (serverData) => {
-                if (Utils.isMobile()) {
-                    window.location.href = serverData.public_link;
-                } else {
-                    window.open(serverData.public_link);
-                }
-            },
-            () => {
-                //Do Nothing on error
-            }
-        );
+    handleGetPublicLink() {
+        this.props.onModalDismissed();
+
+        GlobalActions.showGetPublicLinkModal(this.props.channelId, this.props.userId, this.props.filenames[this.state.imgId]);
     }
 
     onMouseEnterImage() {
@@ -349,7 +335,7 @@ class ViewImageModal extends React.Component {
                                 totalFiles={this.props.filenames.length}
                                 filename={name}
                                 fileURL={fileUrl}
-                                getPublicLink={this.getPublicLink}
+                                onGetPublicLink={this.handleGetPublicLink}
                             />
                         </div>
                     </div>

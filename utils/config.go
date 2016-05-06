@@ -209,6 +209,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
+	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
@@ -258,7 +259,7 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.LDAP {
 			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
 			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
-			props["LdapPasswordFieldName"] = *c.LdapSettings.PasswordFieldName
+			props["NicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 		}
 
 		if *License.Features.MFA {
@@ -281,4 +282,42 @@ func ValidateLdapFilter(cfg *model.Config) *model.AppError {
 		}
 	}
 	return nil
+}
+
+func Desanitize(cfg *model.Config) {
+	if *cfg.LdapSettings.BindPassword == model.FAKE_SETTING {
+		*cfg.LdapSettings.BindPassword = *Cfg.LdapSettings.BindPassword
+	}
+
+	if cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
+		cfg.FileSettings.PublicLinkSalt = Cfg.FileSettings.PublicLinkSalt
+	}
+	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+		cfg.FileSettings.AmazonS3SecretAccessKey = Cfg.FileSettings.AmazonS3SecretAccessKey
+	}
+
+	if cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
+		cfg.EmailSettings.InviteSalt = Cfg.EmailSettings.InviteSalt
+	}
+	if cfg.EmailSettings.PasswordResetSalt == model.FAKE_SETTING {
+		cfg.EmailSettings.PasswordResetSalt = Cfg.EmailSettings.PasswordResetSalt
+	}
+	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+		cfg.EmailSettings.SMTPPassword = Cfg.EmailSettings.SMTPPassword
+	}
+
+	if cfg.GitLabSettings.Secret == model.FAKE_SETTING {
+		cfg.GitLabSettings.Secret = Cfg.GitLabSettings.Secret
+	}
+
+	if cfg.SqlSettings.DataSource == model.FAKE_SETTING {
+		cfg.SqlSettings.DataSource = Cfg.SqlSettings.DataSource
+	}
+	if cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
+		cfg.SqlSettings.AtRestEncryptKey = Cfg.SqlSettings.AtRestEncryptKey
+	}
+
+	for i := range cfg.SqlSettings.DataSourceReplicas {
+		cfg.SqlSettings.DataSourceReplicas[i] = Cfg.SqlSettings.DataSourceReplicas[i]
+	}
 }

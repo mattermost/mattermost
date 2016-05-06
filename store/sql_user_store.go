@@ -77,9 +77,9 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 		}
 
 		if err := us.GetMaster().Insert(user); err != nil {
-			if IsUniqueConstraintError(err.Error(), "Email", "users_email_teamid_key") {
+			if IsUniqueConstraintError(err.Error(), "Email", "users_email_key") {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.email_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
-			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_teamid_key") {
+			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_key") {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.username_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.app_error", nil, "user_id="+user.Id+", "+err.Error())
@@ -95,7 +95,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreChannel {
+func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -129,14 +129,24 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.MfaSecret = oldUser.MfaSecret
 			user.MfaActive = oldUser.MfaActive
 
-			if !allowActiveUpdate {
+			if !trustedUpdateData {
 				user.Roles = oldUser.Roles
 				user.DeleteAt = oldUser.DeleteAt
 			}
 
 			if user.IsOAuthUser() {
 				user.Email = oldUser.Email
-			} else if !user.IsLDAPUser() && user.Email != oldUser.Email {
+			} else if user.IsLDAPUser() && !trustedUpdateData {
+				if user.Username != oldUser.Username ||
+					user.FirstName != oldUser.FirstName ||
+					user.LastName != oldUser.LastName ||
+					user.Email != oldUser.Email {
+					result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.can_not_change_ldap.app_error", nil, "user_id="+user.Id)
+					storeChannel <- result
+					close(storeChannel)
+					return
+				}
+			} else if user.Email != oldUser.Email {
 				user.EmailVerified = false
 			}
 
@@ -255,7 +265,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = '', AuthService = '', EmailVerified = 1, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = '', AuthService = '', EmailVerified = true, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdatePassword", "store.sql_user.update_password.app_error", nil, "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId
@@ -444,11 +454,69 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			                    Channels.Type = 'D'
 			                        AND Channels.Id = ChannelMembers.ChannelId
 			                        AND ChannelMembers.UserId = :UserId))
-			`, map[string]interface{}{"UserId": userId})
+			        OR Id IN (SELECT 
+			            Name
+			        FROM
+			            Preferences
+			        WHERE
+			            UserId = :UserId
+			                AND Category = 'direct_channel_show')
+        `, map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
+		if err != nil {
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+		} else {
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetAllProfiles() StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users"); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
 		}
 
 		storeChannel <- result
@@ -538,7 +606,15 @@ func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
 			                WHERE
 			                    Channels.Type = 'D'
 			                        AND Channels.Id = ChannelMembers.ChannelId
-			                        AND ChannelMembers.UserId = :UserId))`, map[string]interface{}{"UserId": userId}); err != nil {
+			                        AND ChannelMembers.UserId = :UserId))
+			        OR Id IN (SELECT 
+			            Name
+			        FROM
+			            Preferences
+			        WHERE
+			            UserId = :UserId
+			                AND Category = 'direct_channel_show')
+            `, map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetDirectProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
@@ -706,13 +782,54 @@ func (us SqlUserStore) GetByUsername(username string) StoreChannel {
 	return storeChannel
 }
 
+func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		params := map[string]interface{}{
+			"LoginId":                 loginId,
+			"AllowSignInWithUsername": allowSignInWithUsername,
+			"AllowSignInWithEmail":    allowSignInWithEmail,
+			"LdapEnabled":             ldapEnabled,
+		}
+
+		users := []*model.User{}
+		if _, err := us.GetReplica().Select(
+			&users,
+			`SELECT
+				*
+			FROM
+				Users
+			WHERE
+				(:AllowSignInWithUsername AND Username = :LoginId)
+				OR (:AllowSignInWithEmail AND Email = :LoginId)
+				OR (:LdapEnabled AND AuthService = '`+model.USER_AUTH_SERVICE_LDAP+`' AND AuthData = :LoginId)`,
+			params); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error())
+		} else if len(users) == 1 {
+			result.Data = users[0]
+		} else if len(users) > 1 {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.multiple_users", nil, "")
+		} else {
+			result.Err = model.NewLocAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "")
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = '1' WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = true WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.VerifyEmail", "store.sql_user.verify_email.app_error", nil, "userId="+userId+", "+err.Error())
 		}
 

@@ -1,24 +1,31 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import UserProfile from './user_profile.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
 import * as GlobalActions from 'action_creators/global_actions.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
 import React from 'react';
-import {Link} from 'react-router';
+import {browserHistory} from 'react-router';
 
 export default class SearchResultsItem extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleFocusRHSClick = this.handleFocusRHSClick.bind(this);
+    }
+
+    hideSidebar() {
+        $('.inner-wrap, .sidebar--right').removeClass('move--left');
     }
 
     handleFocusRHSClick(e) {
@@ -98,22 +105,46 @@ export default class SearchResultsItem extends React.Component {
                                     <time className='search-item-time'>
                                         <FormattedDate
                                             value={post.create_at}
-                                            hour12={true}
+                                            hour12={!Utils.isMilitaryTime()}
                                             hour='2-digit'
                                             minute='2-digit'
                                         />
                                     </time>
                                 </li>
                                 <li>
-                                    <Link
-                                        to={'/' + window.location.pathname.split('/')[1] + '/pl/' + post.id}
+                                    <a
+                                        onClick={
+                                            () => {
+                                                if (Utils.isMobile()) {
+                                                    AppDispatcher.handleServerAction({
+                                                        type: ActionTypes.RECEIVED_SEARCH,
+                                                        results: null
+                                                    });
+
+                                                    AppDispatcher.handleServerAction({
+                                                        type: ActionTypes.RECEIVED_SEARCH_TERM,
+                                                        term: null,
+                                                        do_search: false,
+                                                        is_mention_search: false
+                                                    });
+
+                                                    AppDispatcher.handleServerAction({
+                                                        type: ActionTypes.RECEIVED_POST_SELECTED,
+                                                        postId: null
+                                                    });
+
+                                                    this.hideSidebar();
+                                                }
+                                                browserHistory.push('/' + window.location.pathname.split('/')[1] + '/pl/' + post.id);
+                                            }
+                                        }
                                         className='search-item__jump'
                                     >
                                         <FormattedMessage
                                             id='search_item.jump'
                                             defaultMessage='Jump'
                                         />
-                                    </Link>
+                                    </a>
                                 </li>
                                 <li>
                                     <a

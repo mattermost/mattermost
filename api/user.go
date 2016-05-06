@@ -45,7 +45,6 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/reset_password", ApiAppHandler(resetPassword)).Methods("POST")
 	BaseRoutes.Users.Handle("/login", ApiAppHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiAppHandler(logout)).Methods("POST")
-	BaseRoutes.Users.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	BaseRoutes.Users.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
 	BaseRoutes.Users.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
 	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
@@ -56,6 +55,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
+	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
@@ -333,7 +333,7 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 		}
 	}
 
-	Login(c, w, r, ruser, "")
+	doLogin(c, w, r, ruser, "")
 	if c.Err != nil {
 		return nil
 	}
@@ -357,7 +357,7 @@ func sendWelcomeEmailAndForget(c *Context, userId string, email string, siteURL 
 		bodyPage.Props["TeamURL"] = siteURL
 
 		if !verified {
-			link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), email)
+			link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(email))
 			bodyPage.Props["VerifyUrl"] = link
 		}
 
@@ -409,7 +409,7 @@ func addDirectChannelsAndForget(teamId string, user *model.User) {
 func SendVerifyEmailAndForget(c *Context, userId, userEmail, siteURL string) {
 	go func() {
 
-		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), userEmail)
+		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(userEmail))
 
 		subjectPage := utils.NewHTMLTemplate("verify_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.verify_subject",
@@ -431,114 +431,86 @@ func SendVerifyEmailAndForget(c *Context, userId, userEmail, siteURL string) {
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	if len(props["password"]) == 0 {
+	id := props["id"]
+	loginId := props["login_id"]
+	password := props["password"]
+	mfaToken := props["token"]
+	deviceId := props["device_id"]
+
+	if len(password) == 0 {
 		c.Err = model.NewLocAppError("login", "api.user.login.blank_pwd.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	var user *model.User
-	if len(props["id"]) != 0 {
-		user = LoginById(c, w, r, props["id"], props["password"], props["token"], props["device_id"])
-	} else if len(props["email"]) != 0 {
-		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["token"], props["device_id"])
-	} else if len(props["username"]) != 0 {
-		user = LoginByUsername(c, w, r, props["username"], props["name"], props["password"], props["token"], props["device_id"])
+	var err *model.AppError
+
+	if len(id) != 0 {
+		c.LogAuditWithUserId(id, "attempt")
+
+		if result := <-Srv.Store.User().Get(id); result.Err != nil {
+			c.LogAuditWithUserId(user.Id, "failure")
+			c.Err = result.Err
+			c.Err.StatusCode = http.StatusBadRequest
+			return
+		} else {
+			user = result.Data.(*model.User)
+		}
 	} else {
-		c.Err = model.NewLocAppError("login", "api.user.login.not_provided.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.LogAudit("attempt")
+
+		if user, err = getUserForLogin(loginId); err != nil {
+			c.LogAudit("failure")
+			c.Err = err
+			return
+		}
+
+		c.LogAuditWithUserId(user.Id, "attempt")
+	}
+
+	// and then authenticate them
+	if user, err = authenticateUser(user, password, mfaToken); err != nil {
+		c.LogAuditWithUserId(user.Id, "failure")
+		c.Err = err
 		return
 	}
 
-	if c.Err != nil {
-		return
-	}
+	c.LogAuditWithUserId(user.Id, "success")
 
-	if user != nil {
-		user.Sanitize(map[string]bool{})
-	} else {
-		user = &model.User{}
-	}
+	doLogin(c, w, r, user, deviceId)
+
+	user.Sanitize(map[string]bool{})
+
 	w.Write([]byte(user.ToJson()))
 }
 
-func doUserPasswordAuthenticationAndLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, password string, mfaToken string, deviceId string) bool {
-	c.LogAuditWithUserId(user.Id, "attempt")
-	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return false
+func getUserForLogin(loginId string) (*model.User, *model.AppError) {
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil
+
+	if result := <-Srv.Store.User().GetForLogin(
+		loginId,
+		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
+		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
+		ldapAvailable,
+	); result.Err != nil {
+
+		if !ldapAvailable {
+			// failed to find user and no LDAP server to fall back on
+			result.Err.StatusCode = http.StatusBadRequest
+			return nil, result.Err
+		}
+
+		// fall back to LDAP server to see if we can find a user
+		if ldapUser, ldapErr := einterfaces.GetLdapInterface().GetUser(loginId); ldapErr != nil {
+			ldapErr.StatusCode = http.StatusBadRequest
+			return nil, ldapErr
+		} else {
+			return ldapUser, nil
+		}
 	} else {
-		Login(c, w, r, user, deviceId)
-		c.LogAuditWithUserId(user.Id, "success")
-		return true
+		return result.Data.(*model.User), nil
 	}
-}
-
-func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, password, mfaToken, deviceId string) *model.User {
-	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
-		return nil
-	} else {
-		user := result.Data.(*model.User)
-
-		if len(user.AuthData) != 0 {
-			c.Err = model.NewLocAppError("LoginById", "api.user.login_by_email.sign_in.app_error",
-				map[string]interface{}{"AuthService": user.AuthService}, "")
-			return nil
-		}
-
-		if doUserPasswordAuthenticationAndLogin(c, w, r, user, password, mfaToken, deviceId) {
-			return user
-		}
-	}
-
-	return nil
-}
-
-func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, mfaToken, deviceId string) *model.User {
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
-		c.Err = result.Err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return nil
-	} else {
-		user := result.Data.(*model.User)
-
-		if len(user.AuthData) != 0 {
-			c.Err = model.NewLocAppError("LoginByEmail", "api.user.login_by_email.sign_in.app_error",
-				map[string]interface{}{"AuthService": user.AuthService}, "")
-			return nil
-		}
-
-		if doUserPasswordAuthenticationAndLogin(c, w, r, user, password, mfaToken, deviceId) {
-			return user
-		}
-	}
-
-	return nil
-}
-
-func LoginByUsername(c *Context, w http.ResponseWriter, r *http.Request, username, name, password, mfaToken, deviceId string) *model.User {
-	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
-		c.Err = result.Err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return nil
-	} else {
-		user := result.Data.(*model.User)
-
-		if len(user.AuthData) != 0 {
-			c.Err = model.NewLocAppError("LoginByUsername", "api.user.login_by_email.sign_in.app_error",
-				map[string]interface{}{"AuthService": user.AuthService}, "")
-			return nil
-		}
-
-		if doUserPasswordAuthenticationAndLogin(c, w, r, user, password, mfaToken, deviceId) {
-			return user
-		}
-	}
-
-	return nil
 }
 
 func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader) *model.User {
@@ -570,80 +542,13 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 		return nil
 	} else {
 		user = result.Data.(*model.User)
-		Login(c, w, r, user, "")
+		doLogin(c, w, r, user, "")
 		return user
 	}
 }
 
-func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.LdapSettings.Enable {
-		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	props := model.MapFromJson(r.Body)
-
-	password := props["password"]
-	id := props["id"]
-	mfaToken := props["token"]
-
-	if len(password) == 0 {
-		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.blank_pwd.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	if len(id) == 0 {
-		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.need_id.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	ldapInterface := einterfaces.GetLdapInterface()
-	if ldapInterface == nil {
-		c.Err = model.NewLocAppError("loginLdap", "api.user.login_ldap.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	user, err := ldapInterface.DoLogin(id, password)
-	if err != nil {
-		if user != nil {
-			c.LogAuditWithUserId(user.Id, "attempt")
-			c.LogAuditWithUserId(user.Id, "fail")
-		} else {
-			c.LogAudit("attempt")
-			c.LogAudit("fail")
-		}
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return
-	}
-	c.LogAuditWithUserId(user.Id, "attempt")
-
-	if err = checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = err
-		c.Err.StatusCode = http.StatusUnauthorized
-		return
-	}
-
-	// User is authenticated at this point
-
-	Login(c, w, r, user, props["device_id"])
-	c.LogAuditWithUserId(user.Id, "success")
-
-	if user != nil {
-		user.Sanitize(map[string]bool{})
-	} else {
-		user = &model.User{}
-	}
-	w.Write([]byte(user.ToJson()))
-}
-
 // User MUST be authenticated completely before calling Login
-func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
+func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
 
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, DeviceId: deviceId, IsOAuth: false}
 
@@ -998,6 +903,49 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getProfilesForDirectMessageList(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	var pchan store.StoreChannel
+
+	if *utils.Cfg.TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM {
+		if c.Session.GetTeamByTeamId(id) == nil {
+			if !c.HasSystemAdminPermissions("getProfiles") {
+				return
+			}
+		}
+
+		pchan = Srv.Store.User().GetProfiles(id)
+	} else {
+		pchan = Srv.Store.User().GetAllProfiles()
+	}
+
+	if result := <-pchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		profiles := result.Data.(map[string]*model.User)
+
+		for k, p := range profiles {
+			options := utils.Cfg.GetSanitizeOptions()
+			options["passwordupdate"] = false
+
+			if c.IsSystemAdmin() {
+				options["fullname"] = true
+				options["email"] = true
+			} else {
+				p.ClearNonProfileFields()
+			}
+
+			p.Sanitize(options)
+			profiles[k] = p
+		}
+
+		w.Write([]byte(model.UserMapToJson(profiles)))
+	}
+}
+
 func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -1036,7 +984,6 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
-		return
 	}
 }
 
@@ -1069,7 +1016,6 @@ func getDirectProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
-		return
 	}
 }
 
@@ -1756,7 +1702,7 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 		user = result.Data.(*model.User)
 	}
 
-	if len(user.AuthData) != 0 {
+	if len(user.AuthData) != 0 && !c.IsSystemAdmin() {
 		return model.NewLocAppError("ResetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
 
 	}
@@ -1814,7 +1760,7 @@ func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, siteURL strin
 func SendEmailChangeVerifyEmailAndForget(c *Context, userId, newUserEmail, siteURL string) {
 	go func() {
 
-		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), newUserEmail)
+		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(newUserEmail))
 
 		subjectPage := utils.NewHTMLTemplate("email_change_verify_subject", c.Locale)
 		subjectPage.Props["Subject"] = c.T("api.templates.email_change_verify_subject",
@@ -2371,28 +2317,20 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.MapFromJson(r.Body)
 
-	method := props["method"]
-	if method != model.USER_AUTH_SERVICE_EMAIL &&
-		method != model.USER_AUTH_SERVICE_USERNAME &&
-		method != model.USER_AUTH_SERVICE_LDAP {
-		c.SetInvalidParam("checkMfa", "method")
-		return
-	}
-
 	loginId := props["login_id"]
 	if len(loginId) == 0 {
 		c.SetInvalidParam("checkMfa", "login_id")
 		return
 	}
 
-	var uchan store.StoreChannel
-	if method == model.USER_AUTH_SERVICE_EMAIL {
-		uchan = Srv.Store.User().GetByEmail(loginId)
-	} else if method == model.USER_AUTH_SERVICE_USERNAME {
-		uchan = Srv.Store.User().GetByUsername(loginId)
-	} else if method == model.USER_AUTH_SERVICE_LDAP {
-		uchan = Srv.Store.User().GetByAuth(loginId, model.USER_AUTH_SERVICE_LDAP)
-	}
+	// we don't need to worry about contacting the ldap server to get this user because
+	// only users already in the system could have MFA enabled
+	uchan := Srv.Store.User().GetForLogin(
+		loginId,
+		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
+		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
+		*utils.Cfg.LdapSettings.Enable,
+	)
 
 	rdata := map[string]string{}
 	if result := <-uchan; result.Err != nil {

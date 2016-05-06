@@ -6,6 +6,7 @@ import React from 'react';
 import * as Utils from 'utils/utils.jsx';
 
 import {Link} from 'react-router';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 export default class InstalledIntegrations extends React.Component {
     static get propTypes() {
@@ -13,7 +14,9 @@ export default class InstalledIntegrations extends React.Component {
             children: React.PropTypes.node,
             header: React.PropTypes.node.isRequired,
             addLink: React.PropTypes.string.isRequired,
-            addText: React.PropTypes.node.isRequired
+            addText: React.PropTypes.node.isRequired,
+            emptyText: React.PropTypes.node.isRequired,
+            loading: React.PropTypes.bool.isRequired
         };
     }
 
@@ -36,9 +39,23 @@ export default class InstalledIntegrations extends React.Component {
     render() {
         const filter = this.state.filter.toLowerCase();
 
-        const children = React.Children.map(this.props.children, (child) => {
-            return React.cloneElement(child, {filter});
-        });
+        let children;
+
+        if (this.props.loading) {
+            children = <LoadingScreen/>;
+        } else {
+            children = React.Children.map(this.props.children, (child) => {
+                return React.cloneElement(child, {filter});
+            });
+
+            if (children.length === 0) {
+                children = (
+                    <span className='backstage-list__item backstage-list_empty'>
+                        {this.props.emptyText}
+                    </span>
+                );
+            }
+        }
 
         return (
             <div className='backstage-content'>

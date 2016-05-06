@@ -208,7 +208,11 @@ function doChannelChange(state, replace, callback) {
                     callback();
                 },
                 () => {
-                    replace('/');
+                    if (state.params.team) {
+                        replace('/' + state.params.team + '/channels/town-square');
+                    } else {
+                        replace('/');
+                    }
                     callback();
                 }
             );

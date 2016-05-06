@@ -21,21 +21,16 @@ export default class InstalledCommands extends React.Component {
         this.deleteCommand = this.deleteCommand.bind(this);
 
         this.state = {
-            commands: []
+            commands: IntegrationStore.getCommands(),
+            loading: !IntegrationStore.hasReceivedCommands()
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
 
-        if (window.mm_config.EnableCommands === 'true') {
-            if (IntegrationStore.hasReceivedCommands()) {
-                this.setState({
-                    commands: IntegrationStore.getCommands()
-                });
-            } else {
-                AsyncClient.listTeamCommands();
-            }
+        if (window.mm_config.EnableCommands === 'true' && this.state.loading) {
+            AsyncClient.listTeamCommands();
         }
     }
 
@@ -44,10 +39,9 @@ export default class InstalledCommands extends React.Component {
     }
 
     handleIntegrationChange() {
-        const commands = IntegrationStore.getCommands();
-
         this.setState({
-            commands
+            commands: IntegrationStore.getCommands(),
+            loading: !IntegrationStore.hasReceivedCommands()
         });
     }
 
@@ -86,6 +80,13 @@ export default class InstalledCommands extends React.Component {
                     />
                 }
                 addLink={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands/add'}
+                emptyText={
+                    <FormattedMessage
+                        id='installed_commands.empty'
+                        defaultMessage='No slash commands found'
+                    />
+                }
+                loading={this.state.loading}
             >
                 {commands}
             </InstalledIntegrations>
