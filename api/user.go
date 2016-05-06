@@ -764,10 +764,7 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 	c.RemoveSessionCookie(w, r)
 	if c.Session.Id != "" {
-		if result := <-Srv.Store.Session().Remove(c.Session.Id); result.Err != nil {
-			c.Err = result.Err
-			return
-		}
+		RevokeSessionById(c, c.Session.Id)
 	}
 }
 
