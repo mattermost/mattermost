@@ -152,6 +152,10 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 			return nil, result.Err
 		}
 	} else {
+		message := model.NewMessage("", channel.Id, userId, model.ACTION_DIRECT_ADDED)
+		message.Add("teammate_id", otherUserId)
+		PublishAndForget(message)
+
 		return result.Data.(*model.Channel), nil
 	}
 }

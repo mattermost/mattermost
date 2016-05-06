@@ -434,7 +434,7 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 		result := StoreResult{}
 
 		updateAt, err := s.GetReplica().SelectInt(`
-			SELECT 
+			SELECT
 			    UpdateAt
 			FROM
 			    Users
@@ -454,13 +454,14 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			                    Channels.Type = 'D'
 			                        AND Channels.Id = ChannelMembers.ChannelId
 			                        AND ChannelMembers.UserId = :UserId))
-			        OR Id IN (SELECT 
+			        OR Id IN (SELECT
 			            Name
 			        FROM
 			            Preferences
 			        WHERE
 			            UserId = :UserId
 			                AND Category = 'direct_channel_show')
+			ORDER BY UpdateAt DESC
         `, map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
