@@ -48,7 +48,7 @@ export default class PostsView extends React.Component {
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
         let profiles = UserStore.getProfiles();
-        if (props.channel.type === Constants.DM_CHANNEL) {
+        if (props.channel && props.channel.type === Constants.DM_CHANNEL) {
             profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
         }
 
@@ -84,7 +84,7 @@ export default class PostsView extends React.Component {
     }
     onUserChange() {
         let profiles = UserStore.getProfiles();
-        if (this.props.channel.type === Constants.DM_CHANNEL) {
+        if (this.props.channel && this.props.channel.type === Constants.DM_CHANNEL) {
             profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
         }
         this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
@@ -395,6 +395,20 @@ export default class PostsView extends React.Component {
         var postList = $(this.refs.postlist);
         postList.animate({scrollTop: this.refs.postlist.scrollHeight}, '500');
     }
+
+    getArchivesIntroMessage() {
+        return (
+            <div className='channel-intro'>
+                <h4 className='channel-intro__title'>
+                    <FormattedMessage
+                        id='post_focus_view.beginning'
+                        defaultMessage='Beginning of Channel Archives'
+                    />
+                </h4>
+            </div>
+        );
+    }
+
     componentDidMount() {
         if (this.props.postList != null) {
             this.updateScrolling();
@@ -405,7 +419,11 @@ export default class PostsView extends React.Component {
             UserStore.addChangeListener(this.onUserChange);
         }
 
-        this.introText = createChannelIntroMessage(this.props.channel);
+        if (this.props.channel) {
+            this.introText = createChannelIntroMessage(this.props.channel);
+        } else {
+            this.introText = this.getArchivesIntroMessage();
+        }
 
         window.addEventListener('resize', this.handleResize);
     }
