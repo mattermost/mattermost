@@ -1704,8 +1704,16 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
+    "id": "api.user.update_roles.system_admin_needed.app_error",
+    "translation": "Se necesita el rol de administrador de sistema para ejecutar esta acción"
+  },
+  {
     "id": "api.user.update_roles.system_admin_set.app_error",
     "translation": "El rol de adminsitrador de sistema sólo puede ser asignado por otro administrador de sistema"
+  },
+  {
+    "id": "api.user.update_roles.team_admin_needed.app_error",
+    "translation": "Se necesita el rol de administrador de equipo para ejecutar esta acción"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
