@@ -131,8 +131,6 @@ class FileUpload extends React.Component {
     }
 
     componentDidMount() {
-        var self = this;
-
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
                 enter(dragsterEvent, e) {
@@ -198,6 +196,7 @@ class FileUpload extends React.Component {
 
     pasteUpload(e) {
         var inputDiv = ReactDOM.findDOMNode(this.refs.input);
+        var self = this;
         const {formatMessage} = this.props.intl;
 
         if (!e.clipboardData) {
@@ -284,7 +283,7 @@ class FileUpload extends React.Component {
     }
 
     keyUpload(e) {
-        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.U) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === 75) {
             $(this.refs.input).focus().trigger('click');
         }
     }
