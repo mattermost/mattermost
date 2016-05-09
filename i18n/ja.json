@@ -524,10 +524,6 @@
     "translation": "ファイルが最大の画像サイズを超過しました。"
   },
   {
-    "id": "api.file.file_upload.exceeds",
-    "translation": "ファイルが最大の画像サイズを超過しました。"
-  },
-  {
     "id": "api.file.get_export.retrieve.app_error",
     "translation": "エクスポートしたファイルを取得できませんでした。再度エクスポートしてください"
   },
@@ -654,6 +650,10 @@
   {
     "id": "api.import.import_post.saving.debug",
     "translation": "投稿の保存エラー user=%v, message=%v"
+  },
+  {
+    "id": "api.import.import_user.join_team.error",
+    "translation": "インポートする際にチームに参加できませんでした err=%v"
   },
   {
     "id": "api.import.import_user.joining_default.error",
@@ -984,6 +984,10 @@
     "translation": "\r\n チャネルが追加されました \r\n"
   },
   {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "チャンネルにユーザーを追加できませんでした: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.import_failed",
     "translation": "インポートできませんでした: {{.DisplayName}}\r\n"
   },
@@ -1050,6 +1054,10 @@
   {
     "id": "api.slackimport.slack_import.open.app_error",
     "translation": "開くことができません: {{.Filename}}"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "インポートするチームを取得できませんでした\r\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
@@ -1313,11 +1321,19 @@
   },
   {
     "id": "api.templates.singin_change_email.body.info",
-    "translation": "{{ .TeamURL }}の{{.TeamDisplayName}}のサインイン方法は{{.Method}}に更新されました。<br>あなたが変更したのでなければ、システム管理者へ問い合わせてください。"
+    "translation": "{{ .SiteURL }}のサインイン方法は{{.Method}}に更新されました。<br>あなたが変更したのでなければ、システム管理者へ問い合わせてください。"
   },
   {
     "id": "api.templates.singin_change_email.subject",
-    "translation": "{{ .SiteName }}の{{.TeamDisplayName}}のサインイン方法を更新しました"
+    "translation": "{{ .SiteName }}へのあなたのサインイン方法を更新しました"
+  },
+  {
+    "id": "api.templates.upgrade_30_body.info",
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>重複していたアカウントが更新されました</h3>利用しているMattermostサーバーがバージョン3.0に更新され、1つのアカウントで複数のチームを利用できるようになりました。<br/><br/>サーバー上の他のアカウントと同じメールアドレス・ユーザー名が使用されていることを検知したため、このメールでお知らせしています。<br/><br/>アカウントは次の通りに更新されました: <br/><br/>{{if .EmailChanged }}- メールアドレスが重複していた`/{{.TeamName}}`チームのアカウントのメールアドレスは`{{.Email}}`に変更されました。 メールアドレスとパスワードをログインに使用している場合は、この新しいメールアドレスを使用してください。<br/><br/>{{end}}{{if .UsernameChanged }}- ユーザー名が重複していた`/{{.TeamName}}`チームのアカウントのユーザー名は`{{.Username}}`に変更されました。<br/><br/>{{end}} 推奨される操作: <br/><br/>重複していたアカウントを利用してチームへログインし、メインのアカウントをチームと公開チャンネル、利用を続ける非公開グループに追加することを推奨します。<br/><br/>メインのアカウントで全ての公開チャンネルと非公開グループの履歴を閲覧することが出来ます。ダイレクトメッセージの履歴は、重複していたアカウントでログインすることで閲覧することが出来ます。<br/><br/>追加情報: <br/><br/>Mattermost 3.0への更新に関する情報は、次のURLよりご確認ください: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+  },
+  {
+    "id": "api.templates.upgrade_30_subject.info",
+    "translation": "[MATTERMOST] Mattermost 3.0アップデートのためのあなたのアカウントの変更"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1425,11 +1441,11 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "{{.DisplayName}}チームには、あなたの{{.Service}}アカウントに紐付く電子メールアドレスを持つユーザーが既に存在しています。"
+    "translation": "あなたの{{.Service}}に既に紐付けられたユーザーが存在しています"
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "この{{.Service}}アカウントは既に{{.DisplayName}}チームに利用登録しています。"
+    "translation": "この{{.Service}}アカウントは、既に利用登録済みです"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -1458,6 +1474,10 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "デフォルトのチャンネルへの参加に問題が発生しました user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "このサーバーは誰でも自由に利用登録できるように設定されていません。システム管理者に招待してもらってください。"
   },
   {
     "id": "api.user.create_user.save.error",
@@ -1760,6 +1780,14 @@
     "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "外向きのウェブフックは、公開チャンネルに対してのみ作成できます。"
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "外向きのウェブフックを作成するのに十分な権限が付与されていません"
+  },
+  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "trigger_wordsまたはchannel_idを設定してください"
   },
@@ -2020,6 +2048,10 @@
     "translation": "Mattermostからのセキュリティーアップデート情報に関してシステム管理者を取得できません"
   },
   {
+    "id": "mattermost.unable_to_load_config",
+    "translation": "Mattermostの設定ファイルを読み込めません:"
+  },
+  {
     "id": "mattermost.working_dir",
     "translation": "現在のワーキングディレクトリーは%vです"
   },
@@ -2262,6 +2294,10 @@
   {
     "id": "model.config.is_valid.ldap_security.app_error",
     "translation": "LDAP設定の接続セキュリティーが不正です。'TLS'か'STARTTLS'にしてください"
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "ダイレクトメッセージの制限が無効です。'any'か'team'にしてください"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2538,6 +2574,18 @@
   {
     "id": "model.team.is_valid.url.app_error",
     "translation": "不正なURL識別子です"
+  },
+  {
+    "id": "model.team_member.is_valid.role.app_error",
+    "translation": "不正な役割です"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "不正なチームIDです"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "不正なユーザーIDです"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -2818,6 +2866,10 @@
   {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "チャンネルのメンバーが取得できませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_member.missing.app_error",
+    "translation": "そのユーザーIDとチャンネルIDに合致するチャンネルのメンバーが見付かりません"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
@@ -3233,7 +3285,7 @@
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "チームの全てのセッションを削除できませんでした"
+    "translation": "全てのセッションを削除できませんでした"
   },
   {
     "id": "store.sql_session.save.app_error",
@@ -3308,12 +3360,20 @@
     "translation": "チームが保存できませんでした"
   },
   {
+    "id": "store.sql_team.get_members.app_error",
+    "translation": "チャンネルのメンバーが取得できませんでした"
+  },
+  {
     "id": "store.sql_team.get_teams_for_email.app_error",
     "translation": "チームを検索中に問題が発生しました"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "既存のチームを削除できませんでした"
+  },
+  {
+    "id": "store.sql_team.remove_member.app_error",
+    "translation": "チャンネルのメンバーを削除できませんでした"
   },
   {
     "id": "store.sql_team.save.app_error",
@@ -3326,6 +3386,14 @@
   {
     "id": "store.sql_team.save.existing.app_error",
     "translation": "既存のチームの更新をしなくてはいけません"
+  },
+  {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "そのIDを持つチャンネルのメンバーは既に存在します"
+  },
+  {
+    "id": "store.sql_team.save_member.save.app_error",
+    "translation": "チャンネルのメンバーを保存できませんでした"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -3370,6 +3438,14 @@
   {
     "id": "store.sql_user.get_for_export.app_error",
     "translation": "ユーザーのプロフィールを探す際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "あなたの認証情報に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
+  },
+  {
+    "id": "store.sql_user.get_for_login.multiple_users",
+    "translation": "あなたの認証情報に合致する複数のユーザーが見付かり、ログインできません。システム管理者に連絡してください。"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
@@ -3426,6 +3502,10 @@
   {
     "id": "store.sql_user.update.app_error",
     "translation": "アカウントを更新できませんでした"
+  },
+  {
+    "id": "store.sql_user.update.can_not_change_ldap.app_error",
+    "translation": "LDAPによって設定される項目は変更できません"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -3573,7 +3653,7 @@
   },
   {
     "id": "utils.i18n.loaded",
-    "translation": "'%v'用のシステムトランザクションを'%v'から読み込みました"
+    "translation": "'%v'用のシステム翻訳を'%v'から読み込みました"
   },
   {
     "id": "utils.iru.with_evict",
