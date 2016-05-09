@@ -132,7 +132,6 @@ class FileUpload extends React.Component {
 
     componentDidMount() {
         var self = this;
-
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
                 enter(dragsterEvent, e) {
@@ -210,7 +209,7 @@ class FileUpload extends React.Component {
             return;
         }
 
-        self.props.onUploadError(null);
+        this.props.onUploadError(null);
 
         // This looks redundant, but must be done this way due to
         // setState being an asynchronous call
@@ -229,10 +228,10 @@ class FileUpload extends React.Component {
                 }
             }
 
-            var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - self.props.getFileCount(ChannelStore.getCurrentId()), numItems);
+            var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(ChannelStore.getCurrentId()), numItems);
 
             if (numItems > numToUpload) {
-                self.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
+                this.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
             }
 
             for (var i = 0; i < items.length && i < numToUpload; i++) {
@@ -244,7 +243,7 @@ class FileUpload extends React.Component {
                     if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
                         continue;
                     }
-                    var channelId = self.props.channelId || ChannelStore.getCurrentId();
+                    var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
                     // generate a unique id that can be used by other components to refer back to this file upload
                     var clientId = Utils.generateId();
@@ -269,15 +268,15 @@ class FileUpload extends React.Component {
                         name,
                         channelId,
                         clientId,
-                        self.fileUploadSuccess.bind(self, channelId),
-                        self.fileUploadFail.bind(self, clientId)
+                        this.fileUploadSuccess.bind(this, channelId),
+                        this.fileUploadFail.bind(this, clientId)
                     );
 
-                    const requests = self.state.requests;
+                    const requests = this.state.requests;
                     requests[clientId] = request;
-                    self.setState({requests});
+                    this.setState({requests});
 
-                    self.props.onUploadStart([clientId], channelId);
+                    this.props.onUploadStart([clientId], channelId);
                 }
             }
         }
