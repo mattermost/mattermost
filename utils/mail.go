@@ -52,8 +52,6 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		l4g.Error(T("utils.mail.new_client.open.error"), err)
 		return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error())
 	}
-	// GO does not support plain auth over a non encrypted connection.
-	// so if not tls then no auth
 	auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		if err = c.Auth(auth); err != nil {
@@ -65,6 +63,11 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 			ServerName:         config.EmailSettings.SMTPServer,
 		}
 		c.StartTLS(tlsconfig)
+		if err = c.Auth(auth); err != nil {
+			return nil, model.NewLocAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error())
+		}
+	} else if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_PLAIN {
+		// note: go library only supports PLAIN auth over non-tls connections
 		if err = c.Auth(auth); err != nil {
 			return nil, model.NewLocAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error())
 		}
