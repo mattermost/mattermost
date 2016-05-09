@@ -10,7 +10,7 @@ import {FormattedMessage} from 'react-intl';
 const CONNECTION_SECURITY_HELP_TEXT = (
     <div className='help-text'>
         <table
-            className='table table-bordered'
+            className='table table-bordered table-margin--none'
             cellPadding='5'
         >
             <tbody>
@@ -80,6 +80,7 @@ export default class ConnectionSecurityDropdownSetting extends React.Component {
                 handleChange={this.props.handleChange}
                 isDisabled={this.props.isDisabled}
                 helpText={CONNECTION_SECURITY_HELP_TEXT}
+                margin='small'
             />
         );
     }

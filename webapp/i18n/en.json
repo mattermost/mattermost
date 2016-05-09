@@ -865,7 +865,7 @@
   "filtered_user_list.countTotal": "{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} Total",
   "filtered_user_list.member": "Member",
   "filtered_user_list.search": "Search members",
-  "filtered_user_list.show": "Show",
+  "filtered_user_list.show": "Filter:",
   "filtered_user_list.team_only": "Members of this Team",
   "find_team.email": "Email",
   "find_team.findDescription": "An email was sent with links to any teams to which you are a member.",
