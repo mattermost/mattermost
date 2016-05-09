@@ -60,16 +60,24 @@ export function doFormatText(text, options) {
         output = highlightCurrentMentions(output, tokens);
     }
 
-    // reinsert tokens with formatted versions of the important words and phrases
-    output = replaceTokens(output, tokens);
-
     if (!('emoticons' in options) || options.emoticon) {
         output = twemoji.parse(output, {
             className: 'emoticon',
             base: '',
-            folder: Constants.EMOJI_PATH
+            folder: Constants.EMOJI_PATH,
+            callback: (icon, twemojiOptions) => {
+                if (!Emoticons.getEmoticonsByCodePoint().has(icon)) {
+                    // just leave the unicode characters and hope the browser can handle it
+                    return null;
+                }
+
+                return ''.concat(twemojiOptions.base, twemojiOptions.size, '/', icon, twemojiOptions.ext);
+            }
         });
     }
+
+    // reinsert tokens with formatted versions of the important words and phrases
+    output = replaceTokens(output, tokens);
 
     return output;
 }
