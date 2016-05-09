@@ -12,6 +12,32 @@
         padding-top: 44px;
     }
 
+    .sidebar__divider {
+        color: $white;
+        font-size: .9em;
+        height: 20px;
+        margin: 5px 0 6px;
+        line-height: 20px;
+        position: relative;
+
+        &:before {
+            background: $light-gray;
+            content: '';
+            height: 1px;
+            position: absolute;
+            top: 10px;
+            width: 100%;
+        }
+
+        .sidebar__divider__text {
+            background: $primary-color;
+            float: right;
+            padding: 0 10px;
+            position: relative;
+            z-index: 1;
+        }
+    }
+
     .dropdown-menu {
         max-height: 400px;
         max-width: 200px;

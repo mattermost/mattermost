@@ -327,7 +327,7 @@ export default {
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#4A5664',
-            sidebarTextActiveBorder: '#39769C',
+            sidebarTextActiveBorder: '#66B9A7',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1B2C3E',
             sidebarHeaderTextColor: '#FFFFFF',

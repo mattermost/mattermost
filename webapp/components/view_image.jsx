@@ -319,7 +319,6 @@ class ViewImageModal extends React.Component {
                         onClick={this.props.onModalDismissed}
                     >
                         <div
-                            className='modal-back'
                             onMouseEnter={this.onMouseEnterImage}
                             onMouseLeave={this.onMouseLeaveImage}
                             onClick={(e) => e.stopPropagation()}
@@ -328,7 +327,9 @@ class ViewImageModal extends React.Component {
                                 className={closeButtonClass}
                                 onClick={this.props.onModalDismissed}
                             />
-                            {content}
+                            <div className='modal-image__content'>
+                                {content}
+                            </div>
                             <ViewImagePopoverBar
                                 show={this.state.showFooter}
                                 fileId={this.state.imgId}
