@@ -178,6 +178,26 @@ func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
 	}
 }
 
+func StringToJson(s string) string {
+	b, err := json.Marshal(s)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func StringFromJson(data io.Reader) string {
+	decoder := json.NewDecoder(data)
+
+	var s string
+	if err := decoder.Decode(&s); err != nil {
+		return ""
+	} else {
+		return s
+	}
+}
+
 func IsLower(s string) bool {
 	if strings.ToLower(s) == s {
 		return true

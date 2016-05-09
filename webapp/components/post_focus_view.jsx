@@ -7,8 +7,6 @@ import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
-import {FormattedMessage} from 'react-intl';
-
 import React from 'react';
 
 export default class PostFocusView extends React.Component {
@@ -79,19 +77,6 @@ export default class PostFocusView extends React.Component {
         GlobalActions.emitLoadMorePostsFocusedBottomEvent();
     }
 
-    getIntroMessage() {
-        return (
-            <div className='channel-intro'>
-                <h4 className='channel-intro__title'>
-                    <FormattedMessage
-                        id='post_focus_view.beginning'
-                        defaultMessage='Beginning of Channel Archives'
-                    />
-                </h4>
-            </div>
-        );
-    }
-
     render() {
         const postsToHighlight = {};
         postsToHighlight[this.state.scrollPostId] = true;
@@ -113,7 +98,6 @@ export default class PostFocusView extends React.Component {
                     loadMorePostsBottomClicked={this.loadMorePostsBottom}
                     showMoreMessagesTop={!this.state.atTop}
                     showMoreMessagesBottom={!this.state.atBottom}
-                    introText={this.getIntroMessage()}
                     messageSeparatorTime={0}
                     postsToHighlight={postsToHighlight}
                 />

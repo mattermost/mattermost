@@ -7,6 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
@@ -79,8 +80,8 @@ export default class NavbarDropdown extends React.Component {
         let integrationsLink = null;
 
         if (currentUser != null) {
-            isAdmin = Utils.isAdmin(currentUser.roles);
-            isSystemAdmin = Utils.isSystemAdmin(currentUser.roles);
+            isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+            isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
             inviteLink = (
                 <li>
@@ -143,19 +144,21 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
-        if (window.mm_config.EnableIncomingWebhooks === 'true' || window.mm_config.EnableOutgoingWebhooks === 'true') {
-            if (isAdmin || window.EnableAdminOnlyIntegrations !== 'true') {
-                integrationsLink = (
-                    <li>
-                        <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations'}>
-                            <FormattedMessage
-                                id='navbar_dropdown.integrations'
-                                defaultMessage='Integrations'
-                            />
-                        </Link>
-                    </li>
-                );
-            }
+        const integrationsEnabled =
+            window.mm_config.EnableIncomingWebhooks === 'true' ||
+            window.mm_config.EnableOutgoingWebhooks === 'true' ||
+            window.mm_config.EnableCommands === 'true';
+        if (integrationsEnabled && (isAdmin || window.EnableOnlyAdminIntegrations !== 'true')) {
+            integrationsLink = (
+                <li>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations'}>
+                        <FormattedMessage
+                            id='navbar_dropdown.integrations'
+                            defaultMessage='Integrations'
+                        />
+                    </Link>
+                </li>
+            );
         }
 
         if (isSystemAdmin) {
@@ -226,6 +229,7 @@ export default class NavbarDropdown extends React.Component {
                     <Link
                         target='_blank'
                         to={global.window.mm_config.HelpLink}
+                        rel='noreferrer'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.help'
@@ -243,6 +247,7 @@ export default class NavbarDropdown extends React.Component {
                     <Link
                         target='_blank'
                         to={global.window.mm_config.ReportAProblemLink}
+                        rel='noreferrer'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.report'

@@ -596,8 +596,9 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateUserNotifyProps', success, error));
     }
 
-    updateRoles = (userId, newRoles, success, error) => {
+    updateRoles = (teamId, userId, newRoles, success, error) => {
         var data = {
+            team_id: teamId,
             user_id: userId,
             new_roles: newRoles
         };
@@ -1325,7 +1326,11 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getFileInfo', success, error));
     }
 
-    getPublicLink = (data, success, error) => {
+    getPublicLink = (filename, success, error) => {
+        const data = {
+            filename
+        };
+
         request.
             post(`${this.getFilesRoute()}/get_public_link`).
             set(this.defaultHeaders).

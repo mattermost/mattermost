@@ -42,6 +42,7 @@ export default class UserItem extends React.Component {
             this.handleDemote(this.props.user, '');
         } else {
             Client.updateRoles(
+                this.props.team.id,
                 this.props.user.id,
                 '',
                 () => {
@@ -85,6 +86,7 @@ export default class UserItem extends React.Component {
             this.handleDemote(this.props.user, 'admin');
         } else {
             Client.updateRoles(
+                this.props.team.id,
                 this.props.user.id,
                 'admin',
                 () => {
@@ -101,6 +103,7 @@ export default class UserItem extends React.Component {
         e.preventDefault();
 
         Client.updateRoles(
+            this.props.team.id,
             this.props.user.id,
             'system_admin',
             () => {
@@ -150,9 +153,12 @@ export default class UserItem extends React.Component {
 
     handleDemoteSubmit() {
         Client.updateRoles(
+            this.props.team.id,
             this.props.user.id,
             this.state.role,
             () => {
+                this.props.refreshProfiles();
+
                 this.setState({
                     serverError: null,
                     showDemoteModal: false,
@@ -185,6 +191,7 @@ export default class UserItem extends React.Component {
             );
         }
 
+        const teamMember = this.props.teamMember;
         const user = this.props.user;
         let currentRoles = (
             <FormattedMessage
@@ -192,32 +199,28 @@ export default class UserItem extends React.Component {
                 defaultMessage='Member'
             />
         );
-        if (user.roles.length > 0) {
-            if (Utils.isSystemAdmin(user.roles)) {
-                currentRoles = (
-                    <FormattedMessage
-                        id='admin.user_item.sysAdmin'
-                        defaultMessage='System Admin'
-                    />
-                );
-            } else if (Utils.isAdmin(user.roles)) {
-                currentRoles = (
-                    <FormattedMessage
-                        id='admin.user_item.teamAdmin'
-                        defaultMessage='Team Admin'
-                    />
-                );
-            } else {
-                currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
-            }
+
+        if (teamMember.roles.length > 0 && Utils.isAdmin(teamMember.roles)) {
+            currentRoles = (
+                <FormattedMessage
+                    id='team_members_dropdown.teamAdmin'
+                    defaultMessage='Team Admin'
+                />
+            );
+        }
+
+        if (user.roles.length > 0 && Utils.isSystemAdmin(user.roles)) {
+            currentRoles = (
+                <FormattedMessage
+                    id='team_members_dropdown.systemAdmin'
+                    defaultMessage='System Admin'
+                />
+            );
         }
 
         const email = user.email;
-        let showMakeMember = user.roles === 'admin' || user.roles === 'system_admin';
-
-        //let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
-        let showMakeAdmin = false;
-
+        let showMakeMember = teamMember.roles === 'admin' || user.roles === 'system_admin';
+        let showMakeAdmin = teamMember.roles === '' && user.roles !== 'system_admin';
         let showMakeSystemAdmin = user.roles === '' || user.roles === 'admin';
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';
@@ -366,6 +369,7 @@ export default class UserItem extends React.Component {
         }
 
         let authServiceText;
+        let passwordReset;
         if (user.auth_service) {
             authServiceText = (
                 <FormattedHTMLMessage
@@ -376,6 +380,21 @@ export default class UserItem extends React.Component {
                     }}
                 />
             );
+
+            passwordReset = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleResetPassword}
+                    >
+                        <FormattedMessage
+                            id='admin.user_item.switchToEmail'
+                            defaultMessage='Switch to Email/Password'
+                        />
+                    </a>
+                </li>
+            );
         } else {
             authServiceText = (
                 <FormattedHTMLMessage
@@ -383,6 +402,25 @@ export default class UserItem extends React.Component {
                     defaultMessage=', <strong>Sign-in Method:</strong> Email'
                 />
             );
+
+            passwordReset = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleResetPassword}
+                    >
+                        <FormattedMessage
+                            id='admin.user_item.resetPwd'
+                            defaultMessage='Reset Password'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
+        if (global.window.mm_config.EnableSignInWithEmail !== 'true') {
+            passwordReset = null;
         }
 
         const me = UserStore.getCurrentUser();
@@ -474,18 +512,7 @@ export default class UserItem extends React.Component {
                             {makeNotActive}
                             {makeSystemAdmin}
                             {mfaReset}
-                            <li role='presentation'>
-                                <a
-                                    role='menuitem'
-                                    href='#'
-                                    onClick={this.handleResetPassword}
-                                >
-                                    <FormattedMessage
-                                        id='admin.user_item.resetPwd'
-                                        defaultMessage='Reset Password'
-                                    />
-                                </a>
-                            </li>
+                            {passwordReset}
                         </ul>
                     </div>
                 </div>
@@ -497,7 +524,9 @@ export default class UserItem extends React.Component {
 }
 
 UserItem.propTypes = {
+    team: React.PropTypes.object.isRequired,
     user: React.PropTypes.object.isRequired,
+    teamMember: React.PropTypes.object.isRequired,
     refreshProfiles: React.PropTypes.func.isRequired,
     doPasswordReset: React.PropTypes.func.isRequired
 };

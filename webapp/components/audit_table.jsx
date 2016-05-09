@@ -494,7 +494,7 @@ export function formatAuditInfo(audit, formatMessage) {
                 if (actingUserInfo[0] === 'session_user') {
                     const actingUser = UserStore.getProfile(actingUserInfo[1]);
                     const user = UserStore.getCurrentUser();
-                    if (user && actingUser && (Utils.isAdmin(user.roles) || Utils.isSystemAdmin(user.roles))) {
+                    if (user && actingUser && (Utils.isSystemAdmin(user.roles))) {
                         auditDesc += formatMessage(holders.by, {username: actingUser.username});
                     } else if (user && actingUser) {
                         auditDesc += formatMessage(holders.byAdmin);

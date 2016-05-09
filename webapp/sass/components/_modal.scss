@@ -217,6 +217,13 @@
                 width: 100%;
             }
 
+            .modal-image__content {
+                max-height: 85vh;
+                max-width: 90vw;
+                overflow-x: hidden;
+                overflow-y: visible;
+            }
+
             .modal-image__wrapper {
                 @include border-radius(3px);
                 display: table-cell;
@@ -365,6 +372,7 @@
                 bottom: -40px;
                 left: 0;
                 line-height: 40px;
+                max-width: 90vw;
                 padding: 0 10px;
                 position: absolute;
                 right: 0;
@@ -439,16 +447,21 @@
         .member-show {
             @include opacity(.8);
             float: right;
-            margin-top: 12px;
             margin-right: 3px;
+            margin-top: 12px;
         }
 
-        .member-select {
-            @include opacity(.8);
-            float: right;
-            width: auto;
-            margin-top: 5px;
-            margin-right: 5px;
+        .member-select__container {
+            .member-count {
+                margin: 12px 0 0 3px;
+            }
+
+            select {
+                @include opacity(.8);
+                float: right;
+                margin: 5px 5px 0 2px;
+                width: auto;
+            }
         }
 
         .more-purpose {

@@ -146,8 +146,16 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 	}
 
 	if result := <-Srv.Store.Channel().SaveDirectChannel(channel, cm1, cm2); result.Err != nil {
-		return nil, result.Err
+		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
+			return result.Data.(*model.Channel), nil
+		} else {
+			return nil, result.Err
+		}
 	} else {
+		message := model.NewMessage("", channel.Id, userId, model.ACTION_DIRECT_ADDED)
+		message.Add("teammate_id", otherUserId)
+		PublishAndForget(message)
+
 		return result.Data.(*model.Channel), nil
 	}
 }

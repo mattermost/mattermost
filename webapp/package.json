@@ -29,7 +29,7 @@
     "react-router": "2.0.1",
     "react-textarea-autosize": "3.3.0",
     "superagent": "1.8.3",
-    "twemoji": "1.4.1",
+    "twemoji": "2.0.5",
     "velocity-animate": "1.2.3"
   },
   "devDependencies": {

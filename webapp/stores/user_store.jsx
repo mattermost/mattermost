@@ -13,6 +13,8 @@ const CHANGE_EVENT_SESSIONS = 'change_sessions';
 const CHANGE_EVENT_AUDITS = 'change_audits';
 const CHANGE_EVENT_STATUSES = 'change_statuses';
 
+var Utils;
+
 class UserStoreClass extends EventEmitter {
     constructor() {
         super();
@@ -111,7 +113,15 @@ class UserStoreClass extends EventEmitter {
     }
 
     hasProfile(userId) {
-        return this.getProfiles()[userId] != null;
+        return this.getProfile(userId) != null;
+    }
+
+    hasTeamProfile(userId) {
+        return this.getProfiles()[userId];
+    }
+
+    hasDirectProfile(userId) {
+        return this.getDirectProfiles()[userId];
     }
 
     getProfile(userId) {
@@ -194,7 +204,7 @@ class UserStoreClass extends EventEmitter {
         const currentUser = this.profiles[currentId];
         if (currentUser) {
             if (currentId in this.profiles) {
-                delete this.profiles[currentId];
+                Reflect.deleteProperty(this.profiles, currentId);
             }
 
             this.profiles = profiles;
@@ -305,6 +315,20 @@ class UserStoreClass extends EventEmitter {
 
     setNoAccounts(noAccounts) {
         this.noAccounts = noAccounts;
+    }
+
+    isSystemAdminForCurrentUser() {
+        if (!Utils) {
+            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+        }
+
+        var current = this.getCurrentUser();
+
+        if (current) {
+            return Utils.isAdmin(current.roles);
+        }
+
+        return false;
     }
 }
 

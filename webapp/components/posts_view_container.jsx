@@ -34,18 +34,26 @@ export default class PostsViewContainer extends React.Component {
             scrollPost: null
         };
         if (currentChannelId) {
+            let lastViewed = Date.now();
+            const member = ChannelStore.getMember(currentChannelId);
+            if (member) {
+                lastViewed = member.last_viewed_at;
+            }
+
             Object.assign(state, {
                 currentChannelIndex: 0,
                 channels: [currentChannelId],
                 postLists: [this.getChannelPosts(currentChannelId)],
-                atTop: [PostStore.getVisibilityAtTop(currentChannelId)]
+                atTop: [PostStore.getVisibilityAtTop(currentChannelId)],
+                currentLastViewed: lastViewed
             });
         } else {
             Object.assign(state, {
                 currentChannelIndex: null,
                 channels: [],
                 postLists: [],
-                atTop: []
+                atTop: [],
+                currentLastViewed: Date.now()
             });
         }
 

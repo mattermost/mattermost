@@ -194,8 +194,7 @@ type LdapSettings struct {
 	QueryTimeout                *int
 
 	// Customization
-	LoginFieldName    *string
-	PasswordFieldName *string
+	LoginFieldName *string
 }
 
 type ComplianceSettings struct {
@@ -429,11 +428,6 @@ func (o *Config) SetDefaults() {
 		*o.LdapSettings.LoginFieldName = ""
 	}
 
-	if o.LdapSettings.PasswordFieldName == nil {
-		o.LdapSettings.PasswordFieldName = new(string)
-		*o.LdapSettings.PasswordFieldName = ""
-	}
-
 	if o.ServiceSettings.SessionLengthWebInDays == nil {
 		o.ServiceSettings.SessionLengthWebInDays = new(int)
 		*o.ServiceSettings.SessionLengthWebInDays = 30
@@ -621,7 +615,7 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 }
 
 func (o *Config) Sanitize() {
-	if len(*o.LdapSettings.BindPassword) > 0 {
+	if &o.LdapSettings != nil && len(*o.LdapSettings.BindPassword) > 0 {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 

@@ -462,10 +462,6 @@ func TestAdminResetPassword(t *testing.T) {
 	LinkUserToTeam(user2, team)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	if _, err := Client.AdminResetPassword(user2.Id, "newpwd"); err == nil {
-		t.Fatal("should have errored - SSO user can't reset password")
-	}
-
 	if _, err := Client.AdminResetPassword(user.Id, "newpwd"); err != nil {
 		t.Fatal(err)
 	}

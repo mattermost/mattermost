@@ -380,6 +380,10 @@
     "translation": "Salir de Mattermost"
   },
   {
+    "id": "api.command_logout.fail_message",
+    "translation": "Falla al cerrar la sesión"
+  },
+  {
     "id": "api.command_logout.name",
     "translation": "salir"
   },
@@ -1700,10 +1704,6 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
-    "id": "api.user.update_roles.system_admin_mod.app_error",
-    "translation": "El rol de administrador de sistema sólo puede ser modificado por otro administrador de sistema"
-  },
-  {
     "id": "api.user.update_roles.system_admin_set.app_error",
     "translation": "El rol de adminsitrador de sistema sólo puede ser asignado por otro administrador de sistema"
   },
@@ -2322,6 +2322,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Por segundo es inválido en la configuración de límites de velocidad.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Restricción de mensaje directo inválidao.  Debe ser 'any' o 'team'"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",

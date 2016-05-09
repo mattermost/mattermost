@@ -55,7 +55,7 @@ export default class EmoticonProvider {
 
             const matched = [];
 
-            for (const [name, emoticon] of Emoticons.emoticons) {
+            for (const [name, emoticon] of Emoticons.getEmoticonsByName()) {
                 if (name.indexOf(partialName) !== -1) {
                     matched.push(emoticon);
 

@@ -19,10 +19,12 @@ export default class UserList extends React.Component {
         this.doPasswordReset = this.doPasswordReset.bind(this);
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
+        this.getTeamMemberForUser = this.getTeamMemberForUser.bind(this);
 
         this.state = {
             teamId: props.team.id,
             users: null,
+            teamMembers: null,
             serverError: null,
             showPasswordModal: false,
             user: null
@@ -38,6 +40,21 @@ export default class UserList extends React.Component {
     }
 
     getTeamProfiles(teamId) {
+        Client.getTeamMembers(
+            teamId,
+            (data) => {
+                this.setState({
+                    teamMembers: data
+                });
+            },
+            (err) => {
+                this.setState({
+                    teamMembers: null,
+                    serverError: err.message
+                });
+            }
+        );
+
         Client.getProfilesForTeam(
             teamId,
             (users) => {
@@ -61,20 +78,13 @@ export default class UserList extends React.Component {
                 });
 
                 this.setState({
-                    teamId: this.state.teamId,
-                    users: memberList,
-                    serverError: this.state.serverError,
-                    showPasswordModal: this.state.showPasswordModal,
-                    user: this.state.user
+                    users: memberList
                 });
             },
             (err) => {
                 this.setState({
-                    teamId: this.state.teamId,
                     users: null,
-                    serverError: err.message,
-                    showPasswordModal: this.state.showPasswordModal,
-                    user: this.state.user
+                    serverError: err.message
                 });
             }
         );
@@ -82,9 +92,6 @@ export default class UserList extends React.Component {
 
     doPasswordReset(user) {
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: true,
             user
         });
@@ -92,22 +99,33 @@ export default class UserList extends React.Component {
 
     doPasswordResetDismiss() {
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: false,
             user: null
         });
     }
 
     doPasswordResetSubmit() {
+        this.getCurrentTeamProfiles();
         this.setState({
-            teamId: this.state.teamId,
-            users: this.state.users,
-            serverError: this.state.serverError,
             showPasswordModal: false,
             user: null
         });
+    }
+
+    getTeamMemberForUser(userId) {
+        if (this.state.teamMembers) {
+            for (const index in this.state.teamMembers) {
+                if (this.state.teamMembers.hasOwnProperty(index)) {
+                    var teamMember = this.state.teamMembers[index];
+
+                    if (teamMember.user_id === userId) {
+                        return teamMember;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     componentWillReceiveProps(newProps) {
@@ -120,7 +138,7 @@ export default class UserList extends React.Component {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
-        if (this.state.users == null) {
+        if (this.state.users == null || this.state.teamMembers == null) {
             return (
                 <div className='wrapper--fixed'>
                     <h3>
@@ -139,10 +157,14 @@ export default class UserList extends React.Component {
         }
 
         var memberList = this.state.users.map((user) => {
+            var teamMember = this.getTeamMemberForUser(user.id);
+
             return (
                 <UserItem
+                    team={this.props.team}
                     key={'user_' + user.id}
                     user={user}
+                    teamMember={teamMember}
                     refreshProfiles={this.getCurrentTeamProfiles}
                     doPasswordReset={this.doPasswordReset}
                 />);

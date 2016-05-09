@@ -252,7 +252,7 @@ func TestGetAllTeams(t *testing.T) {
 	c := &Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 
 	Client.Login(user.Email, "pwd")
 	Client.SetTeamId(team.Id)
@@ -301,7 +301,7 @@ func TestGetAllTeamListings(t *testing.T) {
 	c := &Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 
 	Client.Login(user.Email, "pwd")
 	Client.SetTeamId(team.Id)

@@ -234,7 +234,7 @@ export function emitPostRecievedEvent(post, msg) {
         } else {
             AsyncClient.getChannel(post.channel_id);
         }
-    } else if (msg && TeamStore.getCurrentId() === msg.team_id) {
+    } else if (msg && (TeamStore.getCurrentId() === msg.team_id || msg.props.channel_type === Constants.DM_CHANNEL)) {
         AsyncClient.getChannel(post.channel_id);
     }
 
@@ -278,6 +278,14 @@ export function showGetPostLinkModal(post) {
         type: ActionTypes.TOGGLE_GET_POST_LINK_MODAL,
         value: true,
         post
+    });
+}
+
+export function showGetPublicLinkModal(filename) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_GET_PUBLIC_LINK_MODAL,
+        value: true,
+        filename
     });
 }
 

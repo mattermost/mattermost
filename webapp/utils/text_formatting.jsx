@@ -7,6 +7,7 @@ import Constants from './constants.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
 import UserStore from 'stores/user_store.jsx';
+import twemoji from 'twemoji';
 import * as Utils from './utils.jsx';
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
@@ -57,6 +58,22 @@ export function doFormatText(text, options) {
 
     if (!('mentionHighlight' in options) || options.mentionHighlight) {
         output = highlightCurrentMentions(output, tokens);
+    }
+
+    if (!('emoticons' in options) || options.emoticon) {
+        output = twemoji.parse(output, {
+            className: 'emoticon',
+            base: '',
+            folder: Constants.EMOJI_PATH,
+            callback: (icon, twemojiOptions) => {
+                if (!Emoticons.getEmoticonsByCodePoint().has(icon)) {
+                    // just leave the unicode characters and hope the browser can handle it
+                    return null;
+                }
+
+                return ''.concat(twemojiOptions.base, twemojiOptions.size, '/', icon, twemojiOptions.ext);
+            }
+        });
     }
 
     // reinsert tokens with formatted versions of the important words and phrases

@@ -366,7 +366,7 @@ func TestGetUser(t *testing.T) {
 	c := &Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
-	UpdateRoles(c, ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN)
+	UpdateUserRoles(c, ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN)
 
 	Client.Login(user.Email, "pwd")
 
@@ -791,7 +791,6 @@ func TestUserUpdateRoles(t *testing.T) {
 	Client.Login(user.Email, "pwd")
 
 	data["user_id"] = "junk"
-	data["new_roles"] = "admin"
 
 	if _, err := Client.UpdateUserRoles(data); err == nil {
 		t.Fatal("Should have errored, bad id")
@@ -804,9 +803,138 @@ func TestUserUpdateRoles(t *testing.T) {
 	}
 
 	data["user_id"] = user2.Id
+	data["new_roles"] = "junk"
 
 	if _, err := Client.UpdateUserRoles(data); err == nil {
 		t.Fatal("Should have errored, bad role")
+	}
+}
+
+func TestUserUpdateRolesMoreCases(t *testing.T) {
+	th := Setup().InitSystemAdmin().InitBasic()
+
+	data := make(map[string]string)
+
+	// invalid team Id
+	data["user_id"] = th.BasicUser2.Id
+	data["new_roles"] = ""
+	data["team_id"] = model.NewId()
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have errored")
+	}
+
+	// user 1 is trying to change user 2
+	data["user_id"] = th.BasicUser2.Id
+	data["new_roles"] = ""
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have errored, you can only demote yourself")
+	}
+
+	// user 1 is trying to promote user 2
+	data["user_id"] = th.BasicUser2.Id
+	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have errored, you can only demote yourself")
+	}
+
+	// user 1 is trying to promote user 2
+	data["user_id"] = th.BasicUser2.Id
+	data["new_roles"] = model.ROLE_SYSTEM_ADMIN
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have errored, you can only demote yourself")
+	}
+
+	// user 1 is trying to promote himself
+	data["user_id"] = th.BasicUser.Id
+	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have errored, you cannot elevate your permissions")
+	}
+
+	// user 1 is trying to promote himself
+	data["user_id"] = th.BasicUser.Id
+	data["new_roles"] = model.ROLE_SYSTEM_ADMIN
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have errored, you cannot elevate your permissions")
+	}
+
+	th.LoginSystemAdmin()
+
+	// promote user to team admin
+	data["user_id"] = th.BasicUser.Id
+	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.SystemAdminClient.UpdateUserRoles(data); err != nil {
+		t.Fatal("Should have succeeded since they are system admin")
+	}
+
+	// demote team admin to basic member
+	data["user_id"] = th.BasicUser.Id
+	data["new_roles"] = ""
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.SystemAdminClient.UpdateUserRoles(data); err != nil {
+		t.Fatal("Should have succeeded since they are system admin")
+	}
+
+	// re-promote user to team admin
+	data["user_id"] = th.BasicUser.Id
+	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.SystemAdminClient.UpdateUserRoles(data); err != nil {
+		t.Fatal("Should have succeeded since they are system admin")
+	}
+
+	// user 1 is promoting user 2 to team admin
+	data["user_id"] = th.BasicUser2.Id
+	data["new_roles"] = model.ROLE_TEAM_ADMIN
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have succeeded since they are team admin")
+	}
+
+	// user 1 is trying to promote user 2 from team admin to system admin
+	data["user_id"] = th.BasicUser2.Id
+	data["new_roles"] = model.ROLE_SYSTEM_ADMIN
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have errored, can only be system admin")
+	}
+
+	// user 1 is demoting user 2 to a regular member
+	data["user_id"] = th.BasicUser2.Id
+	data["new_roles"] = ""
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have succeeded since they are team admin")
+	}
+
+	// user 1 is trying to demote system admin
+	data["user_id"] = th.SystemAdminUser.Id
+	data["new_roles"] = ""
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err == nil {
+		t.Fatal("Should have errored, can only be system admin")
+	}
+
+	// user 1 as team admin is demoting himself
+	data["user_id"] = th.BasicUser.Id
+	data["new_roles"] = ""
+	data["team_id"] = th.BasicTeam.Id
+	if _, err := th.BasicClient.UpdateUserRoles(data); err != nil {
+		t.Fatal("Should have succeeded")
+	}
+
+	// system admin demoting himself
+	data["user_id"] = th.SystemAdminUser.Id
+	data["new_roles"] = ""
+	data["team_id"] = ""
+	if _, err := th.SystemAdminClient.UpdateUserRoles(data); err != nil {
+		t.Fatal("Should have succeeded since they are system admin")
 	}
 }
 

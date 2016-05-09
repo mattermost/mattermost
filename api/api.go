@@ -43,6 +43,8 @@ type Routes struct {
 	Preferences *mux.Router // 'api/v3/preferences'
 
 	License *mux.Router // 'api/v3/license'
+
+	Public *mux.Router // 'api/v3/public'
 }
 
 var BaseRoutes *Routes
@@ -67,6 +69,7 @@ func InitApi() {
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
 	BaseRoutes.Preferences = BaseRoutes.ApiRoot.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
+	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
 
 	InitUser()
 	InitTeam()

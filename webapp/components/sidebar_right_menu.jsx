@@ -7,6 +7,7 @@ import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
 
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as GlobalActions from 'action_creators/global_actions.jsx';
@@ -77,8 +78,8 @@ export default class SidebarRightMenu extends React.Component {
         var isSystemAdmin = false;
 
         if (currentUser != null) {
-            isAdmin = Utils.isAdmin(currentUser.roles);
-            isSystemAdmin = Utils.isSystemAdmin(currentUser.roles);
+            isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+            isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
             inviteLink = (
                 <li>
@@ -86,7 +87,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         onClick={GlobalActions.showInviteMemberModal}
                     >
-                        <i className='fa fa-user'></i>
+                        <i className='fa fa-user-plus'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.inviteNew'
                             defaultMessage='Invite New Member'
@@ -174,6 +175,7 @@ export default class SidebarRightMenu extends React.Component {
                     <Link
                         target='_blank'
                         to={global.window.mm_config.HelpLink}
+                        rel='noreferrer'
                     >
                         <i className='fa fa-question'></i>
                         <FormattedMessage
@@ -192,6 +194,7 @@ export default class SidebarRightMenu extends React.Component {
                     <Link
                         target='_blank'
                         to={global.window.mm_config.ReportAProblemLink}
+                        rel='noreferrer'
                     >
                         <i className='fa fa-phone'></i>
                         <FormattedMessage
@@ -242,6 +245,16 @@ export default class SidebarRightMenu extends React.Component {
                         {teamLink}
                         {manageLink}
                         {consoleLink}
+                        <li>
+                            <Link to='/select_team'>
+                                <i className='fa fa-exchange'></i>
+                                <FormattedMessage
+                                    id='sidebar_right_menu.switch_team'
+                                    defaultMessage='Switch Team'
+                                />
+                            </Link>
+                        </li>
+                        <li className='divider'></li>
                         <li>
                             <a
                                 href='#'

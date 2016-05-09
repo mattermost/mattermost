@@ -60,6 +60,10 @@ export default class MoreDirectChannels extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextState.teamMembers, this.state.teamMembers)) {
+            return true;
+        }
+
         return false;
     }
 

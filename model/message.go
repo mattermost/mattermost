@@ -15,6 +15,7 @@ const (
 	ACTION_POST_DELETED       = "post_deleted"
 	ACTION_CHANNEL_DELETED    = "channel_deleted"
 	ACTION_CHANNEL_VIEWED     = "channel_viewed"
+	ACTION_DIRECT_ADDED       = "direct_added"
 	ACTION_NEW_USER           = "new_user"
 	ACTION_USER_ADDED         = "user_added"
 	ACTION_USER_REMOVED       = "user_removed"

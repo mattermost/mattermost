@@ -3,6 +3,7 @@
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
+import UserStore from 'stores/user_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -147,6 +148,22 @@ class TeamStoreClass extends EventEmitter {
 
     getTeamListings() {
         return this.teamListings;
+    }
+
+    isTeamAdminForCurrentTeam() {
+        if (!Utils) {
+            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+        }
+
+        const userId = UserStore.getCurrentId();
+        var teamMembers = this.getTeamMembers();
+        const teamMember = teamMembers.find((m) => m.user_id === userId && m.team_id === this.getCurrentId());
+
+        if (teamMember) {
+            return Utils.isAdmin(teamMember.roles);
+        }
+
+        return false;
     }
 }
 
