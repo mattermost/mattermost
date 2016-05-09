@@ -509,7 +509,15 @@ export default class Sidebar extends React.Component {
 
         let directDivider;
         if (directMessageNonTeamItems.length !== 0) {
-            directDivider = <hr/>;
+            directDivider =
+            (<div className='sidebar__divider'>
+                <div className='sidebar__divider__text'>
+                    <FormattedMessage
+                        id='sidebar.otherMembers'
+                        defaultMessage='Other teams'
+                    />
+                </div>
+            </div>);
         }
 
         // update the favicon to show if there are any notifications

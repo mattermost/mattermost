@@ -104,26 +104,9 @@ class FilteredUserList extends React.Component {
 
         let count;
         if (users.length === this.state.users.length) {
-            count = (
-                <FormattedMessage
-                    id='filtered_user_list.count'
-                    defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}}'
-                    values={{
-                        count: users.length
-                    }}
-                />
-            );
+            count = '(' + users.length + ')';
         } else {
-            count = (
-                <FormattedMessage
-                    id='filtered_user_list.countTotal'
-                    defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} Total'
-                    values={{
-                        count: users.length,
-                        total: this.state.users.length
-                    }}
-                />
-            );
+            count = '(' + this.state.users.length + ')';
         }
 
         let teamToggle;
@@ -133,9 +116,10 @@ class FilteredUserList extends React.Component {
             teamMembers = [];
 
             teamToggle = (
-                <div className='col-sm-6'>
+                <div className='member-select__container'>
+                    <span className='member-count'>{count}</span>
                     <select
-                        className='form-control member-select'
+                        className='form-control'
                         id='restrictList'
                         ref='restrictList'
                         defaultValue='team'
@@ -171,9 +155,8 @@ class FilteredUserList extends React.Component {
                         />
                     </div>
                     <div className='col-sm-6'>
-                        <span className='member-count'>{count}</span>
+                        {teamToggle}
                     </div>
-                    {teamToggle}
                 </div>
                 <div
                     ref='userList'
