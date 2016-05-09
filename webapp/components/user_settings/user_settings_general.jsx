@@ -23,7 +23,7 @@ const holders = defineMessages({
     },
     usernameRestrictions: {
         id: 'user.settings.general.usernameRestrictions',
-        defaultMessage: "Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'."
+        defaultMessage: "Pick something easy for teammates to recognize and recall. Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols '.', '-', and '_'"
     },
     validEmail: {
         id: 'user.settings.general.validEmail',
@@ -108,7 +108,7 @@ class UserSettingsGeneralTab extends React.Component {
             this.setState({clientError: formatMessage(holders.usernameReserved)});
             return;
         } else if (usernameError) {
-            this.setState({clientError: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH})});
+            this.setState({clientError: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH}, {max: Constants.MAX_USERNAME_LENGTH})});
             return;
         }
 
@@ -773,7 +773,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <span>
                         <FormattedMessage
                             id='user.settings.general.usernameInfo'
-                            defaultMessage='Pick something easy for teammates to recognize and recall.'
+                            defaultMessage="Pick something easy for teammates to recognize and recall. Username must begin with a letter, and contain between {Constants.MIN_USERNAME_LENGTH to {Constants.MAX_USERNAME_LENGTH} lowercase characters made up of numbers, letters, and the symbols '.', '-', and '_'"
                         />
                     </span>
                 );
