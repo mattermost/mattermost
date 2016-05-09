@@ -30,7 +30,7 @@ func TestMsgCommands(t *testing.T) {
 	if !strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+user1.Id+"__"+user3.Id) && !strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+user3.Id+"__"+user1.Id) {
 		t.Fatal("failed to create second direct channel")
 	}
-	if result := Client.Must(Client.SearchPosts("foobar")).Data.(*model.PostList); len(result.Order) == 0 {
+	if result := Client.Must(Client.SearchPosts("foobar", false)).Data.(*model.PostList); len(result.Order) == 0 {
 		t.Fatalf("post did not get sent to direct message")
 	}
 

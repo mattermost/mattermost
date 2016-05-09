@@ -1267,13 +1267,17 @@ export default class Client {
         this.track('api', 'api_posts_delete');
     }
 
-    search = (terms, success, error) => {
+    search = (terms, isOrSearch, success, error) => {
+        const data = {};
+        data.terms = terms;
+        data.is_or_search = isOrSearch;
+
         request.
-            get(`${this.getTeamNeededRoute()}/posts/search`).
+            post(`${this.getTeamNeededRoute()}/posts/search`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            query({terms}).
+            send(data).
             end(this.handleResponse.bind(this, 'search', success, error));
 
         this.track('api', 'api_posts_search');

@@ -102,6 +102,7 @@ describe('Client.Posts', function() {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().search(
                 'unit test',
+                false,
                 function(data) {
                     assert.equal(data.order[0], TestHelper.basicPost().id);
                     done();

@@ -725,7 +725,11 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 			}
 
-			terms = strings.Join(strings.Fields(terms), " & ")
+			if params.OrTerms {
+				terms = strings.Join(strings.Fields(terms), " | ")
+			} else {
+				terms = strings.Join(strings.Fields(terms), " & ")
+			}
 
 			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(:Terms)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
@@ -733,12 +737,14 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 
-			splitTerms := strings.Fields(terms)
-			for i, t := range strings.Fields(terms) {
-				splitTerms[i] = "+" + t
-			}
+			if !params.OrTerms {
+				splitTerms := strings.Fields(terms)
+				for i, t := range strings.Fields(terms) {
+					splitTerms[i] = "+" + t
+				}
 
-			terms = strings.Join(splitTerms, " ")
+				terms = strings.Join(splitTerms, " ")
+			}
 		}
 
 		queryParams["Terms"] = terms

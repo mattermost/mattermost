@@ -114,6 +114,7 @@ class SearchBar extends React.Component {
 
             client.search(
                 terms,
+                isMentionSearch,
                 (data) => {
                     this.setState({isSearching: false});
                     if (utils.isMobile()) {

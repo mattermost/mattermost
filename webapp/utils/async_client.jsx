@@ -467,7 +467,7 @@ export function getAllTeamListings() {
     );
 }
 
-export function search(terms) {
+export function search(terms, isOrSearch) {
     if (isCallInProgress('search_' + String(terms))) {
         return;
     }
@@ -475,6 +475,7 @@ export function search(terms) {
     callTracker['search_' + String(terms)] = utils.getTimestamp();
     Client.search(
         terms,
+        isOrSearch,
         (data) => {
             callTracker['search_' + String(terms)] = 0;
 
