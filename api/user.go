@@ -436,6 +436,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	password := props["password"]
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
+	ldapOnly := props["ldap_only"] == "true"
 
 	if len(password) == 0 {
 		c.Err = model.NewLocAppError("login", "api.user.login.blank_pwd.app_error", nil, "")
@@ -460,7 +461,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		c.LogAudit("attempt")
 
-		if user, err = getUserForLogin(loginId); err != nil {
+		if user, err = getUserForLogin(loginId, ldapOnly); err != nil {
 			c.LogAudit("failure")
 			c.Err = err
 			return
@@ -485,13 +486,13 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(user.ToJson()))
 }
 
-func getUserForLogin(loginId string) (*model.User, *model.AppError) {
+func getUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
 	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil
 
 	if result := <-Srv.Store.User().GetForLogin(
 		loginId,
-		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
-		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
+		*utils.Cfg.EmailSettings.EnableSignInWithUsername && !onlyLdap,
+		*utils.Cfg.EmailSettings.EnableSignInWithEmail && !onlyLdap,
 		ldapAvailable,
 	); result.Err != nil {
 
