@@ -60,6 +60,28 @@ class WebClientClass extends Client {
             }
         );
     }
+
+    webLoginByLdap(loginId, password, token, success, error) {
+        this.loginByLdap(
+            loginId,
+            password,
+            token,
+            (data) => {
+                this.track('api', 'api_users_login_success', '', 'login_id', loginId);
+                BrowserStore.signalLogin();
+
+                if (success) {
+                    success(data);
+                }
+            },
+            (err) => {
+                this.track('api', 'api_users_login_fail', name, 'login_id', loginId);
+                if (error) {
+                    error(err);
+                }
+            }
+        );
+    }
 }
 
 var WebClient = new WebClientClass();

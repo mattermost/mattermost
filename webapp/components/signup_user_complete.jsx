@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import FormError from 'components/form_error.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 
@@ -19,11 +20,15 @@ import ReactDOM from 'react-dom';
 
 import logoImage from 'images/logo.png';
 
-class SignupUserComplete extends React.Component {
+export default class SignupUserComplete extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleLdapSignup = this.handleLdapSignup.bind(this);
+
+        this.handleLdapIdChange = this.handleLdapIdChange.bind(this);
+        this.handleLdapPasswordChange = this.handleLdapPasswordChange.bind(this);
 
         this.state = {
             data: '',
@@ -35,9 +40,12 @@ class SignupUserComplete extends React.Component {
             teamId: '',
             openServer: false,
             loading: true,
-            inviteId: ''
+            inviteId: '',
+            ldapId: '',
+            ldapPassword: ''
         };
     }
+
     componentWillMount() {
         let data = this.props.location.query.d;
         let hash = this.props.location.query.h;
@@ -146,6 +154,48 @@ class SignupUserComplete extends React.Component {
             inviteId,
             loading
         });
+    }
+
+    handleLdapSignup(e) {
+        e.preventDefault();
+
+        this.setState({ldapError: ''});
+
+        Client.webLoginByLdap(
+            this.state.ldapId,
+            this.state.ldapPassword,
+            null,
+            () => {
+                GlobalActions.emitInitialLoad(
+                    () => {
+                        browserHistory.push('/select_team');
+                    }
+                );
+            },
+            (err) => {
+                if (err.id === 'ent.ldap.do_login.user_not_registered.app_error' || err.id === 'ent.ldap.do_login.user_filtered.app_error') {
+                    this.setState({
+                        ldapError: (
+                            <FormattedMessage
+                                id='login.userNotFound'
+                                defaultMessage="We couldn't find an account matching your login credentials."
+                            />
+                        )
+                    });
+                } else if (err.id === 'ent.ldap.do_login.invalid_password.app_error') {
+                    this.setState({
+                        ldapError: (
+                            <FormattedMessage
+                                id='login.invalidPassword'
+                                defaultMessage='Your password is incorrect.'
+                            />
+                        )
+                    });
+                } else {
+                    this.setState({ldapError: err.message});
+                }
+            }
+        );
     }
 
     handleSubmit(e) {
@@ -277,6 +327,80 @@ class SignupUserComplete extends React.Component {
             }
         );
     }
+
+    handleLdapIdChange(e) {
+        e.preventDefault();
+
+        this.setState({
+            ldapId: e.target.value
+        });
+    }
+
+    handleLdapPasswordChange(e) {
+        e.preventDefault();
+
+        this.setState({
+            ldapPassword: e.target.value
+        });
+    }
+
+    renderLdapLogin() {
+        let ldapIdPlaceholder;
+        if (global.window.mm_config.LdapLoginFieldName) {
+            ldapIdPlaceholder = global.window.mm_config.LdapLoginFieldName;
+        } else {
+            ldapIdPlaceholder = Utils.localizeMessage('login.ldap_username', 'LDAP Username');
+        }
+
+        let errorClass = '';
+        if (this.state.ldapError) {
+            errorClass += ' has-error';
+        }
+
+        return (
+            <form
+                onSubmit={this.handleLdapSignup}
+            >
+                <div className='signup__email-container'>
+                    <FormError error={this.state.ldapError}/>
+                    <div className={'form-group' + errorClass}>
+                        <input
+                            className='form-control'
+                            name='ldapId'
+                            value={this.state.ldapId}
+                            onChange={this.handleLdapIdChange}
+                            placeholder={ldapIdPlaceholder}
+                            spellCheck='false'
+                        />
+                    </div>
+                    <div className={'form-group' + errorClass}>
+                        <input
+                            type='password'
+                            className='form-control'
+                            name='password'
+                            value={this.state.ldapPassword}
+                            onChange={this.handleLdapPasswordChange}
+                            placeholder={Utils.localizeMessage('login.password', 'Password')}
+                            spellCheck='false'
+                        />
+                    </div>
+                    <div className='form-group'>
+                        <button
+                            type='submit'
+                            className='btn btn-primary'
+                            disabled={!this.state.ldapId || !this.state.ldapPassword}
+                        >
+                            <FormattedMessage
+                                id='login.signIn'
+                                defaultMessage='Sign in'
+                            />
+                        </button>
+                    </div>
+                </div>
+            </form>
+        );
+    }
+
     render() {
         Client.track('signup', 'signup_user_01_welcome');
 
@@ -431,6 +555,23 @@ class SignupUserComplete extends React.Component {
            );
         }
 
+        let ldapSignup;
+        if (global.window.mm_config.EnableLdap === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP) {
+            ldapSignup = (
+                <div className='inner__content'>
+                    <h5>
+                        <strong>
+                            <FormattedMessage
+                                id='signup_user_completed.withLdap'
+                                defaultMessage='With your LDAP credentials'
+                            />
+                        </strong>
+                    </h5>
+                    {this.renderLdapLogin()}
+                </div>
+            );
+        }
+
         let emailSignup;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
@@ -494,7 +635,7 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        if (signupMessage.length > 0 && emailSignup) {
+        if (signupMessage.length > 0 && (emailSignup || ldapSignup)) {
             signupMessage = (
                 <div>
                     {signupMessage}
@@ -508,7 +649,36 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        if (signupMessage.length === 0 && !emailSignup) {
+        if (ldapSignup && emailSignup) {
+            ldapSignup = (
+                <div>
+                    {ldapSignup}
+                    <div className='or__container'>
+                        <FormattedMessage
+                            id='signup_user_completed.or'
+                            defaultMessage='or'
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        let terms = null;
+        if (!this.state.noOpenServerError && (emailSignup || ldapSignup)) {
+            terms = (
+                <p>
+                    <FormattedHTMLMessage
+                        id='create_team.agreement'
+                        defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
+                        values={{
+                            siteName: global.window.mm_config.SiteName
+                        }}
+                    />
+                </p>
+            );
+        }
+
+        if (signupMessage.length === 0 && !emailSignup && !ldapSignup) {
             emailSignup = (
                 <div>
                     <FormattedMessage
@@ -519,22 +689,10 @@ class SignupUserComplete extends React.Component {
             );
         }
 
-        let terms = (
-            <p>
-                <FormattedHTMLMessage
-                    id='create_team.agreement'
-                    defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
-                    values={{
-                        siteName: global.window.mm_config.SiteName
-                    }}
-                />
-            </p>
-        );
-
         if (this.state.noOpenServerError) {
             signupMessage = null;
             emailSignup = null;
-            terms = null;
+            ldapSignup = null;
         }
 
         return (
@@ -566,6 +724,7 @@ class SignupUserComplete extends React.Component {
                             />
                         </h4>
                         {signupMessage}
+                        {ldapSignup}
                         {emailSignup}
                         {serverError}
                         {terms}
@@ -581,5 +740,3 @@ SignupUserComplete.defaultProps = {
 SignupUserComplete.propTypes = {
     location: React.PropTypes.object
 };
-
-export default SignupUserComplete;
