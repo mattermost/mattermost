@@ -190,7 +190,7 @@ class FileUpload extends React.Component {
         document.removeEventListener('paste', this.pasteUpload);
         document.removeEventListener('keydown', this.keyUpload);
 
-        // jquery-dragster doesn't provide a function to unregister itthis so do it manually
+        // jquery-dragster doesn't provide a function to unregister itself so do it manually
         target.off('dragenter dragleave dragover drop dragster:enter dragster:leave dragster:over dragster:drop');
     }
 
