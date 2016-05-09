@@ -6,6 +6,7 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as GlobalActions from 'action_creators/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -106,13 +107,13 @@ export default class TutorialIntroScreens extends React.Component {
     createScreenThree() {
         const team = TeamStore.getCurrent();
         let inviteModalLink;
+
         if (team.type === Constants.INVITE_TEAM) {
             inviteModalLink = (
                 <a
                     className='intro-links'
                     href='#'
-                    data-toggle='modal'
-                    data-target='#invite_member'
+                    onClick={GlobalActions.showInviteMemberModal}
                 >
                     <FormattedMessage
                         id='tutorial_intro.invite'
@@ -125,10 +126,7 @@ export default class TutorialIntroScreens extends React.Component {
                 <a
                     className='intro-links'
                     href='#'
-                    data-toggle='modal'
-                    data-target='#get_link'
-                    data-title='Team Invite'
-                    data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + team.id}
+                    onClick={GlobalActions.showGetTeamInviteLinkModal}
                 >
                     <FormattedMessage
                         id='tutorial_intro.teamInvite'
