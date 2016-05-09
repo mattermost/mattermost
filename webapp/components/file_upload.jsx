@@ -131,6 +131,7 @@ class FileUpload extends React.Component {
     }
 
     componentDidMount() {
+        var self = this;
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
                 enter(dragsterEvent, e) {
@@ -149,7 +150,7 @@ class FileUpload extends React.Component {
                 },
                 drop(dragsterEvent, e) {
                     $('.center-file-overlay').addClass('hidden');
-                    this.handleDrop(e);
+                    self.handleDrop(e);
                 }
             });
         } else if (this.props.postType === 'comment') {
@@ -170,7 +171,7 @@ class FileUpload extends React.Component {
                 },
                 drop(dragsterEvent, e) {
                     $('.right-file-overlay').addClass('hidden');
-                    this.handleDrop(e);
+                    self.handleDrop(e);
                 }
             });
         }
