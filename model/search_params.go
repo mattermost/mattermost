@@ -12,6 +12,7 @@ type SearchParams struct {
 	IsHashtag  bool
 	InChannels []string
 	FromUsers  []string
+	OrTerms    bool
 }
 
 var searchFlags = [...]string{"from", "channel", "in"}

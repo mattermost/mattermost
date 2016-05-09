@@ -95,9 +95,9 @@ func BenchmarkSearchPosts(b *testing.B) {
 	// Benchmark Start
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Client.Must(Client.SearchPosts("nothere"))
-		Client.Must(Client.SearchPosts("n"))
-		Client.Must(Client.SearchPosts("#tag"))
+		Client.Must(Client.SearchPosts("nothere", false))
+		Client.Must(Client.SearchPosts("n", false))
+		Client.Must(Client.SearchPosts("#tag", false))
 	}
 }
 

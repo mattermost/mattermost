@@ -25,7 +25,7 @@ import (
 func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
-	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("GET")
+	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("POST")
 	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 	BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", ApiUserRequired(getPermalinkTmp)).Methods("GET")
 
@@ -1289,17 +1289,24 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
-	terms := r.FormValue("terms")
+	props := model.StringInterfaceFromJson(r.Body)
 
+	terms := props["terms"].(string)
 	if len(terms) == 0 {
 		c.SetInvalidParam("search", "terms")
 		return
+	}
+
+	isOrSearch := false
+	if val, ok := props["is_or_search"]; ok && val != nil {
+		isOrSearch = val.(bool)
 	}
 
 	paramsList := model.ParseSearchParams(terms)
 	channels := []store.StoreChannel{}
 
 	for _, params := range paramsList {
+		params.OrTerms = isOrSearch
 		// don't allow users to search for everything
 		if params.Terms != "*" {
 			channels = append(channels, Srv.Store.Post().Search(c.TeamId, c.Session.UserId, params))

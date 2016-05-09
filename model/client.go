@@ -918,8 +918,11 @@ func (c *Client) DeletePost(channelId string, postId string) (*Result, *AppError
 	}
 }
 
-func (c *Client) SearchPosts(terms string) (*Result, *AppError) {
-	if r, err := c.DoApiGet(c.GetTeamRoute()+"/posts/search?terms="+url.QueryEscape(terms), "", ""); err != nil {
+func (c *Client) SearchPosts(terms string, isOrSearch bool) (*Result, *AppError) {
+	data := map[string]interface{}{}
+	data["terms"] = terms
+	data["is_or_search"] = isOrSearch
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/posts/search", StringInterfaceToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
