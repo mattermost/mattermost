@@ -28,9 +28,19 @@
 
     .badge {
         background-color: $primary-color;
-        position: absolute;
-        right: 10px;
-        top: 5px;
+	  	margin-left: 4px;
+
+	  	&-container {
+			display: inline-block;
+			position: absolute;
+			right: 10px;
+			top: 5px;
+		}
+
+        &.light {
+		  	@include opacity(0.5);
+            right: initial;
+        }
     }
 
     .status {
