@@ -910,7 +910,7 @@ class EmailSettings extends React.Component {
                         isDisabled={!this.state.sendEmailNotifications}
                     />
                     <div className='form-group'>
-                        <div className='col-sm-8'>
+                        <div className='col-sm-offset-4 col-sm-8'>
                             <div className='help-text'>
                                 <button
                                     className='btn btn-default'

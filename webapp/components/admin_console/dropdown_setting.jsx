@@ -20,7 +20,10 @@ export default class DropdownSetting extends React.Component {
         }
 
         return (
-            <Setting label={this.props.label}>
+            <Setting
+                label={this.props.label}
+                margin={this.props.margin}
+            >
                 <select
                     className='form-control'
                     value={this.props.currentValue}
@@ -43,5 +46,6 @@ DropdownSetting.propTypes = {
     currentValue: React.PropTypes.string.isRequired,
     handleChange: React.PropTypes.func.isRequired,
     isDisabled: React.PropTypes.bool.isRequired,
-    helpText: React.PropTypes.node.isRequired
+    helpText: React.PropTypes.node.isRequired,
+    margin: React.PropTypes.oneOf(['', 'small'])
 };

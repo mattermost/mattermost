@@ -104,9 +104,26 @@ class FilteredUserList extends React.Component {
 
         let count;
         if (users.length === this.state.users.length) {
-            count = '(' + users.length + ')';
+            count = (
+                <FormattedMessage
+                    id='filtered_user_list.count'
+                    defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}}'
+                    values={{
+                        count: users.length
+                    }}
+                />
+            );
         } else {
-            count = '(' + this.state.users.length + ')';
+            count = (
+                <FormattedMessage
+                    id='filtered_user_list.countTotal'
+                    defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} Total'
+                    values={{
+                        count: users.length,
+                        total: this.state.users.length
+                    }}
+                />
+            );
         }
 
         let teamToggle;
@@ -117,7 +134,6 @@ class FilteredUserList extends React.Component {
 
             teamToggle = (
                 <div className='member-select__container'>
-                    <span className='member-count'>{count}</span>
                     <select
                         className='form-control'
                         id='restrictList'
@@ -133,7 +149,7 @@ class FilteredUserList extends React.Component {
                     >
                         <FormattedMessage
                             id='filtered_user_list.show'
-                            defaultMessage='Show'
+                            defaultMessage='Filter:'
                         />
                     </span>
                 </div>
@@ -156,6 +172,9 @@ class FilteredUserList extends React.Component {
                     </div>
                     <div className='col-sm-6'>
                         {teamToggle}
+                    </div>
+                    <div className='col-sm-12'>
+                        <span className='member-count pull-left'>{count}</span>
                     </div>
                 </div>
                 <div
