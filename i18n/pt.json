@@ -380,6 +380,10 @@
     "translation": "Faça Logout do Mattermost"
   },
   {
+    "id": "api.command_logout.fail_message",
+    "translation": "Falha ao fazer logout"
+  },
+  {
     "id": "api.command_logout.name",
     "translation": "logout"
   },
@@ -1704,6 +1708,14 @@
     "translation": "A função de administrador do sistema só pode ser definida por um outro administrador do sistema"
   },
   {
+    "id": "api.user.update_roles.system_admin_needed.app_error",
+    "translation": "A permissão admin do sistema é necessária para essa ação"
+  },
+  {
+    "id": "api.user.update_roles.team_admin_needed.app_error",
+    "translation": "A permissão admin é necessária para essa ação"
+  },
+  {
     "id": "api.user.upload_profile_user.array.app_error",
     "translation": "Matriz vazia em 'image' na requisição"
   },
@@ -2318,6 +2330,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Inválido por seg para configuração do limite de taxa.  Deve ser um número positivo"
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Restrição de mensagem direta inválida.  Deve ser 'qualquer', ou 'equipe'"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
