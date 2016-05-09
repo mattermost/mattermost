@@ -204,6 +204,23 @@ func TestLogin(t *testing.T) {
 	}
 }
 
+func TestLoginByLdap(t *testing.T) {
+	th := Setup()
+	Client := th.CreateClient()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Username: "corey" + model.NewId(), Password: "pwd"}
+	ruser, _ := Client.CreateUser(&user, "")
+	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
+
+	if _, err := Client.LoginByLdap(ruser.Data.(*model.User).Id, user.Password); err == nil {
+		t.Fatal("should've failed to log in with non-ldap user")
+	}
+}
+
 func TestLoginWithDeviceId(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient

@@ -759,6 +759,12 @@ export default class Client {
         this.track('api', 'api_users_login', '', 'id', id);
     }
 
+    loginByLdap = (loginId, password, mfaToken, success, error) => {
+        this.doLogin({login_id: loginId, password, token: mfaToken, ldap_only: 'true'}, success, error);
+
+        this.track('api', 'api_users_login', '', 'login_id', loginId);
+    }
+
     doLogin = (outgoingData, success, error) => {
         var outer = this;  // eslint-disable-line consistent-this
 

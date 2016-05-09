@@ -362,6 +362,14 @@ func (c *Client) Login(loginId string, password string) (*Result, *AppError) {
 	return c.login(m)
 }
 
+func (c *Client) LoginByLdap(loginId string, password string) (*Result, *AppError) {
+	m := make(map[string]string)
+	m["login_id"] = loginId
+	m["password"] = password
+	m["ldap_only"] = "true"
+	return c.login(m)
+}
+
 func (c *Client) LoginWithDevice(loginId string, password string, deviceId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["login_id"] = loginId
