@@ -1,0 +1,19 @@
+language: go
+
+sudo: false
+
+go:
+  - 1.2
+  - 1.3
+  - 1.4
+  - 1.5
+  - 1.6
+  - tip
+
+before_install:
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/mattn/goveralls
+
+script:
+  - go test -v -covermode=count -coverprofile=coverage.out
+  - $HOME/gopath/bin/goveralls -service=travis-ci -coverprofile=coverage.out 
