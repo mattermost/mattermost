@@ -457,7 +457,8 @@ func TestAdminResetPassword(t *testing.T) {
 		t.Fatal("Should have errored - password too short")
 	}
 
-	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: "1", AuthService: "random"}
+	authData := model.NewId()
+	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: &authData, AuthService: "random"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))

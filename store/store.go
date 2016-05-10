@@ -126,7 +126,7 @@ type UserStore interface {
 	UpdateLastActivityAt(userId string, time int64) StoreChannel
 	UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel
 	UpdatePassword(userId, newPassword string) StoreChannel
-	UpdateAuthData(userId, service, authData, email string) StoreChannel
+	UpdateAuthData(userId string, service string, authData *string, email string) StoreChannel
 	UpdateMfaSecret(userId, secret string) StoreChannel
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
@@ -136,7 +136,7 @@ type UserStore interface {
 	GetDirectProfiles(userId string) StoreChannel
 	GetProfileByIds(userId []string) StoreChannel
 	GetByEmail(email string) StoreChannel
-	GetByAuth(authData string, authService string) StoreChannel
+	GetByAuth(authData *string, authService string) StoreChannel
 	GetByUsername(username string) StoreChannel
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel
 	VerifyEmail(userId string) StoreChannel

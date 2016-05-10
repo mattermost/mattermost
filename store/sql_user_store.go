@@ -29,7 +29,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Username").SetMaxSize(64).SetUnique(true)
 		table.ColMap("Password").SetMaxSize(128)
-		table.ColMap("AuthData").SetMaxSize(128)
+		table.ColMap("AuthData").SetMaxSize(128).SetUnique(true)
 		table.ColMap("AuthService").SetMaxSize(32)
 		table.ColMap("Email").SetMaxSize(128).SetUnique(true)
 		table.ColMap("Nickname").SetMaxSize(64)
@@ -265,7 +265,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = '', AuthService = '', EmailVerified = true, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = NULL, AuthService = '', EmailVerified = true, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdatePassword", "store.sql_user.update_password.app_error", nil, "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId
@@ -297,7 +297,7 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateAuthData(userId, service, authData, email string) StoreChannel {
+func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -513,7 +513,8 @@ func (us SqlUserStore) GetAllProfiles() StoreChannel {
 
 			for _, u := range users {
 				u.Password = ""
-				u.AuthData = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
 				userMap[u.Id] = u
 			}
 
@@ -564,7 +565,8 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
 			for _, u := range users {
 				u.Password = ""
-				u.AuthData = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
 				userMap[u.Id] = u
 			}
 
@@ -623,7 +625,8 @@ func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
 
 			for _, u := range users {
 				u.Password = ""
-				u.AuthData = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
 				userMap[u.Id] = u
 			}
 
@@ -665,7 +668,8 @@ func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
 
 			for _, u := range users {
 				u.Password = ""
-				u.AuthData = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
 				userMap[u.Id] = u
 			}
 
@@ -696,7 +700,8 @@ func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
 
 			for _, u := range users {
 				u.Password = ""
-				u.AuthData = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
 				userMap[u.Id] = u
 			}
 
@@ -734,20 +739,27 @@ func (us SqlUserStore) GetByEmail(email string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetByAuth(authData string, authService string) StoreChannel {
+func (us SqlUserStore) GetByAuth(authData *string, authService string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
+		if authData == nil || *authData == "" {
+			result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "authData='', authService="+authService)
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
 		user := model.User{}
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"AuthData": authData, "AuthService": authService}); err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "authData="+authData+", authService="+authService+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "authData="+*authData+", authService="+authService+", "+err.Error())
 			} else {
-				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "authData="+authData+", authService="+authService+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "authData="+*authData+", authService="+authService+", "+err.Error())
 			}
 		}
 
@@ -857,7 +869,8 @@ func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
 		} else {
 			for _, u := range users {
 				u.Password = ""
-				u.AuthData = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
 			}
 
 			result.Data = users
