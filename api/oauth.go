@@ -600,8 +600,11 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	} else {
 		ssoUser := provider.GetUserFromJson(userData)
-		authData = ssoUser.AuthData
 		ssoEmail = ssoUser.Email
+
+		if ssoUser.AuthData != nil {
+			authData = *ssoUser.AuthData
+		}
 	}
 
 	if len(authData) == 0 {
@@ -628,7 +631,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if result := <-Srv.Store.User().UpdateAuthData(user.Id, service, authData, ssoEmail); result.Err != nil {
+	if result := <-Srv.Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail); result.Err != nil {
 		c.Err = result.Err
 		return
 	}

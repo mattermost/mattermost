@@ -37,7 +37,7 @@ type User struct {
 	DeleteAt           int64     `json:"delete_at"`
 	Username           string    `json:"username"`
 	Password           string    `json:"password,omitempty"`
-	AuthData           string    `json:"auth_data,omitempty"`
+	AuthData           *string   `json:"auth_data,omitempty"`
 	AuthService        string    `json:"auth_service"`
 	Email              string    `json:"email"`
 	EmailVerified      bool      `json:"email_verified,omitempty"`
@@ -99,15 +99,15 @@ func (u *User) IsValid() *AppError {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.pwd.app_error", nil, "user_id="+u.Id)
 	}
 
-	if len(u.AuthData) > 128 {
+	if u.AuthData != nil && len(*u.AuthData) > 128 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id)
 	}
 
-	if len(u.AuthData) > 0 && len(u.AuthService) == 0 {
+	if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id)
 	}
 
-	if len(u.Password) > 0 && len(u.AuthData) > 0 {
+	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id)
 	}
 
@@ -128,6 +128,10 @@ func (u *User) PreSave() {
 
 	if u.Username == "" {
 		u.Username = NewId()
+	}
+
+	if u.AuthData != nil && *u.AuthData == "" {
+		u.AuthData = nil
 	}
 
 	u.Username = strings.ToLower(u.Username)
@@ -164,6 +168,10 @@ func (u *User) PreUpdate() {
 	u.Email = strings.ToLower(u.Email)
 	u.Locale = strings.ToLower(u.Locale)
 	u.UpdateAt = GetMillis()
+
+	if u.AuthData != nil && *u.AuthData == "" {
+		u.AuthData = nil
+	}
 
 	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
@@ -237,7 +245,8 @@ func (u *User) IsAway() bool {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = ""
+	u.AuthData = new(string)
+	*u.AuthData = ""
 	u.MfaSecret = ""
 
 	if len(options) != 0 && !options["email"] {
@@ -255,7 +264,8 @@ func (u *User) Sanitize(options map[string]bool) {
 func (u *User) ClearNonProfileFields() {
 	u.UpdateAt = 0
 	u.Password = ""
-	u.AuthData = ""
+	u.AuthData = new(string)
+	*u.AuthData = ""
 	u.AuthService = ""
 	u.MfaActive = false
 	u.MfaSecret = ""
@@ -376,7 +386,8 @@ func (u *User) IsLDAPUser() bool {
 
 func (u *User) PreExport() {
 	u.Password = ""
-	u.AuthData = ""
+	u.AuthData = new(string)
+	*u.AuthData = ""
 	u.LastActivityAt = 0
 	u.LastPingAt = 0
 	u.LastPasswordUpdate = 0
@@ -429,7 +440,7 @@ func HashPassword(password string) string {
 // ComparePassword compares the hash
 func ComparePassword(hash string, password string) bool {
 
-	if len(password) == 0 {
+	if len(password) == 0 || len(hash) == 0 {
 		return false
 	}
 

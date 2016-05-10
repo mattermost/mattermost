@@ -400,6 +400,18 @@ func cmdUpdateDb30() {
 			flushLogAndExit(1)
 		}
 
+		if _, err := store.GetMaster().Exec(`
+				UPDATE Users 
+				SET 
+				    AuthData = NULL
+				WHERE
+				    AuthData = ''
+				`,
+		); err != nil {
+			l4g.Error("Failed to update AuthData types details=%v", err)
+			flushLogAndExit(1)
+		}
+
 		extraLength := store.GetMaxLengthOfColumnIfExists("Audits", "ExtraInfo")
 		if len(extraLength) > 0 && extraLength != "1024" {
 			store.AlterColumnTypeIfExists("Audits", "ExtraInfo", "VARCHAR(1024)", "VARCHAR(1024)")
@@ -424,6 +436,7 @@ func cmdUpdateDb30() {
 			store.RemoveIndexIfExists("idx_users_team_id", "Users")
 			store.CreateUniqueIndexIfNotExists("idx_users_email_unique", "Users", "Email")
 			store.CreateUniqueIndexIfNotExists("idx_users_username_unique", "Users", "Username")
+			store.CreateUniqueIndexIfNotExists("idx_users_authdata_unique", "Users", "AuthData")
 			store.RemoveColumnIfExists("Teams", "AllowTeamListing")
 			store.RemoveColumnIfExists("Users", "TeamId")
 		}
@@ -536,7 +549,9 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 				SET 
 				    Email = :Email,
 				    Username = :Username,
-				    Roles = :Roles
+				    Roles = :Roles,
+				    AuthService = '',
+				    AuthData = NULL
 				WHERE
 				    Id = :Id
 				`,
