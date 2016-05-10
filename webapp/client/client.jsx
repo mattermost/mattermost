@@ -542,8 +542,14 @@ export default class Client {
     createUserWithInvite = (user, data, emailHash, inviteId, success, error) => {
         var url = `${this.getUsersRoute()}/create`;
 
-        if (data || emailHash || inviteId) {
-            url += '?d=' + encodeURIComponent(data) + '&h=' + encodeURIComponent(emailHash) + '&iid=' + encodeURIComponent(inviteId);
+        url += '?d=' + encodeURIComponent(data);
+
+        if (emailHash) {
+            url += '&h=' + encodeURIComponent(emailHash);
+        }
+
+        if (inviteId) {
+            url += '&iid=' + encodeURIComponent(inviteId);
         }
 
         request.
