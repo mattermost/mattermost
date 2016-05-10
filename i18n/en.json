@@ -224,6 +224,10 @@
     "translation": "Cannot leave a direct message channel"
   },
   {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "You're the only member left, try removing the Private Group instead of leaving."
+  },
+  {
     "id": "api.channel.leave.left",
     "translation": "%v has left the channel."
   },
