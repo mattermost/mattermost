@@ -373,14 +373,15 @@ func cmdUpdateDb30() {
 
 		uniqueEmails := make(map[string]bool)
 		uniqueUsernames := make(map[string]bool)
-		primaryUsers := convertTeamTo30(team.Name, team, uniqueEmails, uniqueUsernames)
+		uniqueAuths := make(map[string]bool)
+		primaryUsers := convertTeamTo30(team.Name, team, uniqueEmails, uniqueUsernames, uniqueAuths)
 
 		l4g.Info("Upgraded %v users", len(primaryUsers))
 
 		for _, otherTeam := range teams {
 			if otherTeam.Id != team.Id {
 				l4g.Info("Upgrading team %v", otherTeam.Name)
-				users := convertTeamTo30(team.Name, otherTeam, uniqueEmails, uniqueUsernames)
+				users := convertTeamTo30(team.Name, otherTeam, uniqueEmails, uniqueUsernames, uniqueAuths)
 				l4g.Info("Upgraded %v users", len(users))
 
 			}
@@ -461,12 +462,13 @@ type UserForUpgrade struct {
 	Email    string
 	Roles    string
 	TeamId   string
+	AuthData *string
 }
 
-func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool) []*UserForUpgrade {
+func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails map[string]bool, uniqueUsernames map[string]bool, uniqueAuths map[string]bool) []*UserForUpgrade {
 	store := api.Srv.Store.(*store.SqlStore)
 	var users []*UserForUpgrade
-	if _, err := store.GetMaster().Select(&users, "SELECT Users.Id, Users.Username, Users.Email, Users.Roles, Users.TeamId FROM Users WHERE Users.TeamId = :TeamId", map[string]interface{}{"TeamId": team.Id}); err != nil {
+	if _, err := store.GetMaster().Select(&users, "SELECT Users.Id, Users.Username, Users.Email, Users.Roles, Users.TeamId, Users.AuthData FROM Users WHERE Users.TeamId = :TeamId", map[string]interface{}{"TeamId": team.Id}); err != nil {
 		l4g.Error("Failed to load profiles for team details=%v", err)
 		flushLogAndExit(1)
 	}
@@ -543,6 +545,10 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 			}
 		}
 
+		if user.AuthData != nil && *user.AuthData != "" && uniqueAuths[*user.AuthData] {
+			shouldUpdateUser = true
+		}
+
 		if shouldUpdateUser {
 			if _, err := store.GetMaster().Exec(`
 				UPDATE Users 
@@ -605,6 +611,10 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 
 		uniqueEmails[user.Email] = true
 		uniqueUsernames[user.Username] = true
+
+		if user.AuthData != nil && *user.AuthData != "" {
+			uniqueAuths[*user.AuthData] = true
+		}
 	}
 
 	return users
