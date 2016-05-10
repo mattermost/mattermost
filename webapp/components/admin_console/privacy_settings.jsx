@@ -108,10 +108,10 @@ class PrivacySettings extends React.Component {
                                     defaultChecked={this.props.config.PrivacySettings.ShowEmailAddress}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.privacy.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.privacy.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -121,10 +121,10 @@ class PrivacySettings extends React.Component {
                                     defaultChecked={!this.props.config.PrivacySettings.ShowEmailAddress}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.privacy.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.privacy.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -155,10 +155,10 @@ class PrivacySettings extends React.Component {
                                     defaultChecked={this.props.config.PrivacySettings.ShowFullName}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.privacy.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.privacy.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -168,10 +168,10 @@ class PrivacySettings extends React.Component {
                                     defaultChecked={!this.props.config.PrivacySettings.ShowFullName}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.privacy.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.privacy.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

@@ -23,7 +23,7 @@ export default class SettingsSidebar extends React.Component {
         }
     }
     render() {
-        let tabList = this.props.tabs.map(function makeTab(tab) {
+        let tabList = this.props.tabs.map((tab) => {
             let key = `${tab.name}_li`;
             let className = '';
             if (this.props.activeTab === tab.name) {
@@ -44,7 +44,7 @@ export default class SettingsSidebar extends React.Component {
                     </a>
                 </li>
             );
-        }.bind(this));
+        });
 
         return (
             <div>

@@ -7,7 +7,7 @@ import React from 'react';
 
 export default class StatisticCount extends React.Component {
     render() {
-        let loading = (
+        const loading = (
             <FormattedMessage
                 id='analytics.chart.loading'
                 defaultMessage='Loading...'

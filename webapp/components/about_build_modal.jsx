@@ -45,6 +45,7 @@ export default class AboutBuildModal extends React.Component {
                 />
                 <a
                     target='_blank'
+                    rel='noopener noreferrer'
                     href='http://www.mattermost.org/'
                 >
                     {'mattermost.org'}
@@ -76,6 +77,7 @@ export default class AboutBuildModal extends React.Component {
                     />
                     <a
                         target='_blank'
+                        rel='noopener noreferrer'
                         href='http://about.mattermost.com/'
                     >
                         {'about.mattermost.com'}
@@ -133,7 +135,7 @@ export default class AboutBuildModal extends React.Component {
                                         id='about.version'
                                         defaultMessage='Version:'
                                     />
-                                    &nbsp;{config.Version}&nbsp;({config.BuildNumber})
+                                    {'\u00a0' + config.Version + '\u00a0' + config.BuildNumber}
                                 </div>
                             </div>
                             {licensee}

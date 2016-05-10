@@ -285,12 +285,12 @@ class EmailSettings extends React.Component {
         var emailSuccess = '';
         if (this.state.emailSuccess) {
             emailSuccess = (
-                 <div className='alert alert-success'>
+                <div className='alert alert-success'>
                     <i className='fa fa-check'></i>
-                     <FormattedMessage
-                         id='admin.email.emailSuccess'
-                         defaultMessage='No errors were reported while sending an email.  Please check your inbox to make sure.'
-                     />
+                    <FormattedMessage
+                        id='admin.email.emailSuccess'
+                        defaultMessage='No errors were reported while sending an email.  Please check your inbox to make sure.'
+                    />
                 </div>
             );
         }
@@ -298,15 +298,15 @@ class EmailSettings extends React.Component {
         var emailFail = '';
         if (this.state.emailFail) {
             emailSuccess = (
-                 <div className='alert alert-warning'>
+                <div className='alert alert-warning'>
                     <i className='fa fa-warning'></i>
-                     <FormattedMessage
-                         id='admin.email.emailFail'
-                         defaultMessage='Connection unsuccessful: {error}'
-                         values={{
-                             error: this.state.emailFail
-                         }}
-                     />
+                    <FormattedMessage
+                        id='admin.email.emailFail'
+                        defaultMessage='Connection unsuccessful: {error}'
+                        values={{
+                            error: this.state.emailFail
+                        }}
+                    />
                 </div>
             );
         }
@@ -507,10 +507,10 @@ class EmailSettings extends React.Component {
                                     defaultChecked={this.props.config.EmailSettings.EnableSignUpWithEmail}
                                     onChange={this.handleChange.bind(this, 'allowSignUpWithEmail_true')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.email.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.email.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -520,10 +520,10 @@ class EmailSettings extends React.Component {
                                     defaultChecked={!this.props.config.EmailSettings.EnableSignUpWithEmail}
                                     onChange={this.handleChange.bind(this, 'allowSignUpWithEmail_false')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.email.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.email.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -648,10 +648,10 @@ class EmailSettings extends React.Component {
                                     defaultChecked={this.props.config.EmailSettings.SendEmailNotifications}
                                     onChange={this.handleChange.bind(this, 'sendEmailNotifications_true')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.email.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.email.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -661,10 +661,10 @@ class EmailSettings extends React.Component {
                                     defaultChecked={!this.props.config.EmailSettings.SendEmailNotifications}
                                     onChange={this.handleChange.bind(this, 'sendEmailNotifications_false')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.email.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.email.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedHTMLMessage
@@ -696,10 +696,10 @@ class EmailSettings extends React.Component {
                                     onChange={this.handleChange.bind(this, 'requireEmailVerification_true')}
                                     disabled={!this.state.sendEmailNotifications}
                                 />
-                                    <FormattedMessage
-                                        id='admin.email.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.email.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -710,10 +710,10 @@ class EmailSettings extends React.Component {
                                     onChange={this.handleChange.bind(this, 'requireEmailVerification_false')}
                                     disabled={!this.state.sendEmailNotifications}
                                 />
-                                    <FormattedMessage
-                                        id='admin.email.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.email.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

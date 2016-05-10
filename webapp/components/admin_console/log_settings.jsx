@@ -143,10 +143,10 @@ class LogSettings extends React.Component {
                                     defaultChecked={this.props.config.LogSettings.EnableConsole}
                                     onChange={this.handleChange.bind(this, 'console_true')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.log.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.log.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -156,10 +156,10 @@ class LogSettings extends React.Component {
                                     defaultChecked={!this.props.config.LogSettings.EnableConsole}
                                     onChange={this.handleChange.bind(this, 'console_false')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.log.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.log.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -221,10 +221,10 @@ class LogSettings extends React.Component {
                                     defaultChecked={this.props.config.LogSettings.EnableFile}
                                     onChange={this.handleChange.bind(this, 'file_true')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.log.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.log.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -234,10 +234,10 @@ class LogSettings extends React.Component {
                                     defaultChecked={!this.props.config.LogSettings.EnableFile}
                                     onChange={this.handleChange.bind(this, 'file_false')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.log.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.log.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

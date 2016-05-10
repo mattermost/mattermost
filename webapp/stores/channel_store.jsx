@@ -290,7 +290,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     leaveChannel(id) {
-        delete this.channelMembers[id];
+        Reflect.deleteProperty(this.channelMembers, id);
         const element = this.channels.indexOf(id);
         if (element > -1) {
             this.channels.splice(element, 1);

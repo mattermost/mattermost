@@ -150,13 +150,13 @@ class NotificationsTab extends React.Component {
         data.channel = this.state.channelKey.toString();
 
         Client.updateUserNotifyProps(data,
-            function success() {
+            () => {
                 this.props.updateSection('');
                 AsyncClient.getMe();
-            }.bind(this),
-            function failure(err) {
+            },
+            (err) => {
                 this.setState({serverError: err.message});
-            }.bind(this)
+            }
         );
     }
     handleCancel(e) {
@@ -254,7 +254,8 @@ class NotificationsTab extends React.Component {
                 <div key='userNotificationLevelOption'>
                     <div className='radio'>
                         <label>
-                            <input type='radio'
+                            <input
+                                type='radio'
                                 checked={notifyActive[0]}
                                 onChange={this.handleNotifyRadio.bind(this, 'all')}
                             />
@@ -393,8 +394,8 @@ class NotificationsTab extends React.Component {
                             />
                         </label>
                         <br/>
-                     </div>
-                 </div>
+                    </div>
+                </div>
             );
 
             const extraInfo = (

@@ -330,10 +330,10 @@ class SqlSettings extends React.Component {
                                     defaultChecked={this.props.config.SqlSettings.Trace}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.sql.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.sql.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -343,10 +343,10 @@ class SqlSettings extends React.Component {
                                     defaultChecked={!this.props.config.SqlSettings.Trace}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.sql.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.sql.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

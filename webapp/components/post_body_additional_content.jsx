@@ -120,7 +120,8 @@ export default class PostBodyAdditionalContent extends React.Component {
             let toggle;
             if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMBED_TOGGLE)) {
                 toggle = (
-                    <a className='post__embed-visibility'
+                    <a
+                        className='post__embed-visibility'
                         data-expanded={this.state.embedVisible}
                         aria-label='Toggle Embed Visibility'
                         onClick={this.toggleEmbedVisibility}
@@ -131,7 +132,8 @@ export default class PostBodyAdditionalContent extends React.Component {
             return (
                 <div>
                     {toggle}
-                    <div className='post__embed-container'
+                    <div
+                        className='post__embed-container'
                         hidden={!this.state.embedVisible}
                     >
                     {generateEmbed}

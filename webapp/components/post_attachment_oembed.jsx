@@ -72,30 +72,31 @@ export default class PostAttachmentOEmbed extends React.Component {
                 className='attachment attachment--oembed'
                 ref='attachment'
             >
-                    <div className='attachment__content'>
-                        <div
-                            className={'clearfix attachment__container'}
+                <div className='attachment__content'>
+                    <div
+                        className={'clearfix attachment__container'}
+                    >
+                        <h1
+                            className='attachment__title'
                         >
-                            <h1
-                                className='attachment__title'
+                            <a
+                                className='attachment__title-link'
+                                href={data.url}
+                                target='_blank'
+                                rel='noopener noreferrer'
                             >
-                                <a
-                                    className='attachment__title-link'
-                                    href={data.url}
-                                    target='_blank'
-                                >
-                                    {data.title}
-                                </a>
-                            </h1>
-                            <div >
-                                <div
-                                    className={'attachment__body attachment__body--no_thumb'}
-                                >
-                                    {content}
-                                </div>
+                                {data.title}
+                            </a>
+                        </h1>
+                        <div >
+                            <div
+                                className={'attachment__body attachment__body--no_thumb'}
+                            >
+                                {content}
                             </div>
                         </div>
                     </div>
+                </div>
             </div>
         );
     }

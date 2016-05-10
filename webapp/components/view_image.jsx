@@ -404,6 +404,7 @@ function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
         <a
             href={fileUrl}
             target='_blank'
+            rel='noopener noreferrer'
             download={true}
         >
             <img

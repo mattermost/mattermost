@@ -379,10 +379,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableIncomingWebhooks}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -392,10 +392,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableIncomingWebhooks}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -426,10 +426,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableOutgoingWebhooks}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -439,10 +439,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableOutgoingWebhooks}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -473,10 +473,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableCommands}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -486,10 +486,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableCommands}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -520,10 +520,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableOnlyAdminIntegrations}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -533,10 +533,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableOnlyAdminIntegrations}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -567,10 +567,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnablePostUsernameOverride}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -580,10 +580,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnablePostUsernameOverride}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -594,7 +594,7 @@ class ServiceSettings extends React.Component {
                         </div>
                     </div>
 
-                     <div className='form-group'>
+                    <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
                             htmlFor='EnablePostIconOverride'
@@ -614,10 +614,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnablePostIconOverride}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -627,10 +627,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnablePostIconOverride}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -661,10 +661,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableTesting}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -674,10 +674,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableTesting}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -708,10 +708,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableDeveloper}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -721,10 +721,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableDeveloper}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -755,10 +755,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableSecurityFixAlert}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -768,10 +768,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableSecurityFixAlert}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -802,10 +802,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableInsecureOutgoingConnections}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -815,10 +815,10 @@ class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableInsecureOutgoingConnections}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.service.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.service.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

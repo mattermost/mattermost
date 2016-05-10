@@ -277,7 +277,8 @@ export default class ComplianceReports extends React.Component {
                 <table>
                     <tbody>
                         <tr>
-                            <td colSpan='5'
+                            <td
+                                colSpan='5'
                                 style={{paddingBottom: '6px'}}
                             >
                                 <FormattedMessage

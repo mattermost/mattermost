@@ -152,6 +152,7 @@ class LicenseSettings extends React.Component {
                     {'Mattermost Enterprise Edition. Unlock enterprise features in this software through the purchase of a subscription from '}
                     <a
                         target='_blank'
+                        rel='noopener noreferrer'
                         href='https://mattermost.com/'
                     >
                         {'https://mattermost.com/'}

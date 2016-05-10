@@ -198,6 +198,33 @@ export default class SignupUserComplete extends React.Component {
         );
     }
 
+    handleUserCreated(user, data) {
+        Client.track('signup', 'signup_user_02_complete');
+        Client.loginById(
+            data.id,
+            user.password,
+            '',
+            () => {
+                if (this.state.hash > 0) {
+                    BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
+                }
+
+                GlobalActions.emitInitialLoad(
+                    () => {
+                        browserHistory.push('/select_team');
+                    }
+                );
+            },
+            (err) => {
+                if (err.id === 'api.user.login.not_verified.app_error') {
+                    browserHistory.push('/should_verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.state.teamName));
+                } else {
+                    this.setState({serverError: err.message});
+                }
+            }
+        );
+    }
+
     handleSubmit(e) {
         e.preventDefault();
 
@@ -296,32 +323,7 @@ export default class SignupUserComplete extends React.Component {
             this.state.data,
             this.state.hash,
             this.state.inviteId,
-            (data) => {
-                Client.track('signup', 'signup_user_02_complete');
-                Client.loginById(
-                    data.id,
-                    user.password,
-                    '',
-                    () => {
-                        if (this.state.hash > 0) {
-                            BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
-                        }
-
-                        GlobalActions.emitInitialLoad(
-                            () => {
-                                browserHistory.push('/select_team');
-                            }
-                        );
-                    },
-                    (err) => {
-                        if (err.id === 'api.user.login.not_verified.app_error') {
-                            browserHistory.push('/should_verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.state.teamName));
-                        } else {
-                            this.setState({serverError: err.message});
-                        }
-                    }
-                );
-            },
+            this.handleUserCreated.bind(this, user),
             (err) => {
                 this.setState({serverError: err.message});
             }

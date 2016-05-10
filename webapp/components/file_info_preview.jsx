@@ -38,6 +38,7 @@ export default function FileInfoPreview({filename, fileUrl, fileInfo, formatMess
                 className={'file-details__preview'}
                 to={fileUrl}
                 target='_blank'
+                rel='noopener noreferrer'
             >
                 <span className='file-details__preview-helper'/>
                 <img src={Utils.getPreviewImagePath(filename)}/>

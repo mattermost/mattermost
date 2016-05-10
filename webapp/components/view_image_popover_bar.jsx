@@ -54,6 +54,7 @@ export default class ViewImagePopoverBar extends React.Component {
                         download={this.props.filename}
                         className='text'
                         target='_blank'
+                        rel='noopener noreferrer'
                     >
                         <FormattedMessage
                             id='view_image_popover.download'

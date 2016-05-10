@@ -228,8 +228,8 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <Link
                         target='_blank'
+                        rel='noopener noreferrer'
                         to={global.window.mm_config.HelpLink}
-                        rel='noreferrer'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.help'
@@ -246,8 +246,8 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <Link
                         target='_blank'
+                        rel='noopener noreferrer'
                         to={global.window.mm_config.ReportAProblemLink}
-                        rel='noreferrer'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.report'

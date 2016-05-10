@@ -258,15 +258,17 @@ class InviteMemberModal extends React.Component {
 
                 var removeButton = null;
                 if (index) {
-                    removeButton = (<div>
-                                        <button
-                                            type='button'
-                                            className='btn btn-link remove__member'
-                                            onClick={this.removeInviteFields.bind(this, index)}
-                                        >
-                                            <span className='fa fa-trash'></span>
-                                        </button>
-                                    </div>);
+                    removeButton = (
+                        <div>
+                            <button
+                                type='button'
+                                className='btn btn-link remove__member'
+                                onClick={this.removeInviteFields.bind(this, index)}
+                            >
+                                <span className='fa fa-trash'></span>
+                            </button>
+                        </div>
+                    );
                 }
                 var emailClass = 'form-group invite';
                 if (emailError) {
@@ -283,54 +285,56 @@ class InviteMemberModal extends React.Component {
                 if (lastNameError) {
                     lastNameClass += ' has-error';
                 }
-                nameFields = (<div className='row--invite'>
-                                <div className='col-sm-6'>
-                                    <div className={firstNameClass}>
-                                        <input
-                                            type='text'
-                                            className='form-control'
-                                            ref={'first_name' + index}
-                                            placeholder={formatMessage(holders.firstname)}
-                                            maxLength='64'
-                                            disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
-                                            spellCheck='false'
-                                        />
-                                        {firstNameError}
-                                    </div>
-                                </div>
-                                <div className='col-sm-6'>
-                                    <div className={lastNameClass}>
-                                        <input
-                                            type='text'
-                                            className='form-control'
-                                            ref={'last_name' + index}
-                                            placeholder={formatMessage(holders.lastname)}
-                                            maxLength='64'
-                                            disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
-                                            spellCheck='false'
-                                        />
-                                        {lastNameError}
-                                    </div>
-                                </div>
-                            </div>);
+                nameFields = (
+                    <div className='row--invite'>
+                        <div className='col-sm-6'>
+                            <div className={firstNameClass}>
+                                <input
+                                    type='text'
+                                    className='form-control'
+                                    ref={'first_name' + index}
+                                    placeholder={formatMessage(holders.firstname)}
+                                    maxLength='64'
+                                    disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
+                                    spellCheck='false'
+                                />
+                                {firstNameError}
+                            </div>
+                        </div>
+                        <div className='col-sm-6'>
+                            <div className={lastNameClass}>
+                                <input
+                                    type='text'
+                                    className='form-control'
+                                    ref={'last_name' + index}
+                                    placeholder={formatMessage(holders.lastname)}
+                                    maxLength='64'
+                                    disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
+                                    spellCheck='false'
+                                />
+                                {lastNameError}
+                            </div>
+                        </div>
+                    </div>
+                );
 
                 inviteSections[index] = (
                     <div key={'key' + index}>
-                    {removeButton}
-                    <div className={emailClass}>
-                        <input
-                            onKeyUp={this.displayNameKeyUp}
-                            type='text'
-                            ref={'email' + index}
-                            className='form-control'
-                            placeholder='email@domain.com'
-                            maxLength='64'
-                            disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
-                            spellCheck='false'
-                        />
-                        {emailError}
-                    </div>
-                    {nameFields}
+                        {removeButton}
+                        <div className={emailClass}>
+                            <input
+                                onKeyUp={this.displayNameKeyUp}
+                                type='text'
+                                ref={'email' + index}
+                                className='form-control'
+                                placeholder='email@domain.com'
+                                maxLength='64'
+                                disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
+                                spellCheck='false'
+                            />
+                            {emailError}
+                        </div>
+                        {nameFields}
                     </div>
                 );
             }

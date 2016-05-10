@@ -59,7 +59,7 @@ class PostAttachment extends React.Component {
     toggleCollapseState(e) {
         e.preventDefault();
 
-        let state = this.state;
+        const state = this.state;
         state.text = state.collapsed ? state.uncollapsedText : state.collapsedText;
         state.collapsed = !state.collapsed;
         this.setState(state);
@@ -142,22 +142,22 @@ class PostAttachment extends React.Component {
         });
         if (headerCols.length > 0) { // Flush last fields
             fieldTables.push(
-                    <table
-                        className='attachment___fields'
-                        key={'attachment__table__' + nrTables}
-                    >
-                        <thead>
-                            <tr>
+                <table
+                    className='attachment___fields'
+                    key={'attachment__table__' + nrTables}
+                >
+                    <thead>
+                        <tr>
                             {headerCols}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                {bodyCols}
-                            </tr>
-                        </tbody>
-                    </table>
-                );
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            {bodyCols}
+                        </tr>
+                    </tbody>
+                </table>
+            );
         }
         return (
             <div>
@@ -209,6 +209,7 @@ class PostAttachment extends React.Component {
                 <a
                     href={data.author_link}
                     target='_blank'
+                    rel='noopener noreferrer'
                 >
                     {author}
                 </a>
@@ -226,6 +227,7 @@ class PostAttachment extends React.Component {
                             className='attachment__title-link'
                             href={data.title_link}
                             target='_blank'
+                            rel='noopener noreferrer'
                         >
                             {data.title}
                         </a>
