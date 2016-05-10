@@ -16,9 +16,10 @@
         color: $white;
         font-size: .9em;
         height: 20px;
-        margin: 5px 0 6px;
         line-height: 20px;
+        margin: 5px 0 6px;
         position: relative;
+        z-index: 0;
 
         &:before {
             background: $light-gray;
