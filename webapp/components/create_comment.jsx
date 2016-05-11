@@ -173,7 +173,7 @@ class CreateComment extends React.Component {
 
         this.setState({
             messageText: '',
-            lastMessage: this.state.messageText;
+            lastMessage: this.state.messageText,
             submitting: false,
             postError: null,
             previews: [],
