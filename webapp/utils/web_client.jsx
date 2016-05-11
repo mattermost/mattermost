@@ -53,7 +53,7 @@ class WebClientClass extends Client {
                 }
             },
             (err) => {
-                this.track('api', 'api_users_login_fail', name, 'login_id', loginId);
+                this.track('api', 'api_users_login_fail', '', 'login_id', loginId);
                 if (error) {
                     error(err);
                 }
@@ -75,7 +75,7 @@ class WebClientClass extends Client {
                 }
             },
             (err) => {
-                this.track('api', 'api_users_login_fail', name, 'login_id', loginId);
+                this.track('api', 'api_users_login_fail', '', 'login_id', loginId);
                 if (error) {
                     error(err);
                 }
