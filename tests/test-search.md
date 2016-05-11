@@ -6,7 +6,7 @@ This post is used by the core team to test search. It should be returned for the
 
 **Basic word search:** Hello world!  
 **Emoji search:** :strawberry:  
-**Accent search:** Crème friache  
+**Accent search:** Crème fraîche  
 **Non-latin search:**  
 您好吗  
 您好  

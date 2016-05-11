@@ -249,7 +249,8 @@ export default {
     RESERVED_USERNAMES: [
         'valet',
         'all',
-        'channel'
+        'channel',
+        'here'
     ],
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     MAX_DMS: 20,
