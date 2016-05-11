@@ -17,15 +17,6 @@ It is important to spell
 +new line
 ```
 
-### Apache
-
-``` apache
-<VirtualHost *:80>
-DocumentRoot /www/example1
-ServerName www.example.com
-</VirtualHost>
-```
-
 ### Makefile
 
 ``` makefile
@@ -34,17 +25,6 @@ CFLAGS=-I.
 
 hellomake: hellomake.o hellofunc.o
      $(CC) -o hellomake hellomake.o hellofunc.o -I.
-```
-
-### HTTP
-
-``` http
-HTTP/1.1 200 OK
-Date: Sun, 28 Dec 2014 08:56:53 GMT
-Content-Length: 44
-Content-Type: text/html
-  
-<html><body><h1>It works!</h1></body></html>
 ```
 
 ### JSON
@@ -75,15 +55,6 @@ document.write('Hello, world!');
 body {
     background-color: red;
 }
-```
-
-### NGINX
-
-``` nginx
-server { # simple reverse-proxy
-    listen       80;
-    server_name  domain2.com www.domain2.com;
-    access_log   logs/domain2.access.log  main;
 ```
 
 ### Objective C
@@ -202,30 +173,8 @@ public class HelloWorld {
 }
 ```
 
-### INI
-
-``` ini
-; last modified 1 April 2011 by John Doe
-[owner]
-name=John Doe
-organization=Mattermost
-```
-
 ### Latex Equation
 
 ``` latex
 \frac{d}{dx}\left( \int_{0}^{x} f(u)\,du\right)=f(x).
 ```
-
-### Latex Document
-
-``` latex
-\documentclass{article} 
-\begin{document} 
-\noindent
-Are $a, b \in \mathbb{R}, then applies (a+b)^{2} = a^{2} + ab + b^{2} $ \\ 
-better \\ 
-are $a, b \in \mathbb{R}, \textrm{then applies} \, (a+b)^{2 } = a^{2 } + ab + b^{2}$\\ 
-\end{document} 
-```
-
