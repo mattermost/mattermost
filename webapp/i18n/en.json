@@ -1130,7 +1130,7 @@
   "sidebar.direct": "Direct Messages",
   "sidebar.more": "More",
   "sidebar.moreElips": "More...",
-  "sidebar.otherMembers": "Other teams",
+  "sidebar.otherMembers": "Outside this team",
   "sidebar.pg": "Private Groups",
   "sidebar.removeList": "Remove from list",
   "sidebar.tutorialScreen1": "<h4>Channels</h4><p><strong>Channels</strong> organize conversations across different topics. They’re open to everyone on your team. To send private communications use <strong>Direct Messages</strong> for a single person or <strong>Private Groups</strong> for multiple people.</p>",

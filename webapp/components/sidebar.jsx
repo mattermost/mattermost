@@ -514,7 +514,7 @@ export default class Sidebar extends React.Component {
                 <div className='sidebar__divider__text'>
                     <FormattedMessage
                         id='sidebar.otherMembers'
-                        defaultMessage='Other teams'
+                        defaultMessage='Outside this team:'
                     />
                 </div>
             </div>);
