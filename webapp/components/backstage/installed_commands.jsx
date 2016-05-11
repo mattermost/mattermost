@@ -5,6 +5,7 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -21,16 +22,18 @@ export default class InstalledCommands extends React.Component {
         this.deleteCommand = this.deleteCommand.bind(this);
 
         this.state = {
-            commands: IntegrationStore.getCommands(),
-            loading: !IntegrationStore.hasReceivedCommands()
+            commands: IntegrationStore.getCommands(TeamStore.getCurrentId()),
+            loading: true
         };
     }
 
     componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
 
-        if (window.mm_config.EnableCommands === 'true' && this.state.loading) {
-            AsyncClient.listTeamCommands();
+        if (window.mm_config.EnableCommands === 'true') {
+            AsyncClient.listTeamCommands(() => {
+                this.setState({loading: false});
+            });
         }
     }
 
@@ -40,8 +43,7 @@ export default class InstalledCommands extends React.Component {
 
     handleIntegrationChange() {
         this.setState({
-            commands: IntegrationStore.getCommands(),
-            loading: !IntegrationStore.hasReceivedCommands()
+            commands: IntegrationStore.getCommands(TeamStore.getCurrentId())
         });
     }
 

@@ -1132,7 +1132,7 @@ export function getRecentAndNewUsersAnalytics(teamId) {
     );
 }
 
-export function listIncomingHooks() {
+export function listIncomingHooks(success) {
     if (isCallInProgress('listIncomingHooks')) {
         return;
     }
@@ -1145,8 +1145,13 @@ export function listIncomingHooks() {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_INCOMING_WEBHOOKS,
+                teamId: Client.teamId,
                 incomingWebhooks: data
             });
+
+            if (success) {
+                success();
+            }
         },
         (err) => {
             callTracker.listIncomingHooks = 0;
@@ -1155,7 +1160,7 @@ export function listIncomingHooks() {
     );
 }
 
-export function listOutgoingHooks() {
+export function listOutgoingHooks(success) {
     if (isCallInProgress('listOutgoingHooks')) {
         return;
     }
@@ -1168,8 +1173,13 @@ export function listOutgoingHooks() {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_OUTGOING_WEBHOOKS,
+                teamId: Client.teamId,
                 outgoingWebhooks: data
             });
+
+            if (success) {
+                success();
+            }
         },
         (err) => {
             callTracker.listOutgoingHooks = 0;
@@ -1230,6 +1240,7 @@ export function deleteIncomingHook(id) {
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.REMOVED_INCOMING_WEBHOOK,
+                teamId: Client.teamId,
                 id
             });
         },
@@ -1245,6 +1256,7 @@ export function deleteOutgoingHook(id) {
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.REMOVED_OUTGOING_WEBHOOK,
+                teamId: Client.teamId,
                 id
             });
         },
@@ -1269,7 +1281,7 @@ export function regenOutgoingHookToken(id) {
     );
 }
 
-export function listTeamCommands() {
+export function listTeamCommands(success) {
     if (isCallInProgress('listTeamCommands')) {
         return;
     }
@@ -1282,8 +1294,13 @@ export function listTeamCommands() {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_COMMANDS,
+                teamId: Client.teamId,
                 commands: data
             });
+
+            if (success) {
+                success();
+            }
         },
         (err) => {
             callTracker.listTeamCommands = 0;
@@ -1321,6 +1338,7 @@ export function deleteCommand(id) {
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.REMOVED_COMMAND,
+                teamId: Client.teamId,
                 id
             });
         },
