@@ -4,6 +4,7 @@
 package api
 
 import (
+	"io"
 	"net/http"
 	"strings"
 
@@ -356,14 +357,29 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	var parsedRequest *model.IncomingWebhookRequest
+	var payload io.Reader
 	contentType := r.Header.Get("Content-Type")
 	if strings.Split(contentType, "; ")[0] == "application/json" {
-		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
+		payload = r.Body
 	} else {
-		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
+		payload = strings.NewReader(r.FormValue("payload"))
 	}
 
+	payload, err := utils.DebugReader(
+		payload,
+		utils.T("api.webhook.incoming.debug"),
+	)
+	if err != nil {
+		c.Err = model.NewLocAppError(
+			"incomingWebhook",
+			"api.webhook.incoming.debug.error",
+			nil,
+			err.Error(),
+		)
+		return
+	}
+
+	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
 	if parsedRequest == nil {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.parse.app_error", nil, "")
 		return
