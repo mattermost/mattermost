@@ -458,9 +458,11 @@ func TestUserStoreGetByAuthData(t *testing.T) {
 
 	teamId := model.NewId()
 
+	auth := "123" + model.NewId()
+
 	u1 := &model.User{}
 	u1.Email = model.NewId()
-	u1.AuthData = "123" + model.NewId()
+	u1.AuthData = &auth
 	u1.AuthService = "service"
 	Must(store.User().Save(u1))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
@@ -469,7 +471,8 @@ func TestUserStoreGetByAuthData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.User().GetByAuth("", "")).Err; err == nil {
+	rauth := ""
+	if err := (<-store.User().GetByAuth(&rauth, "")).Err; err == nil {
 		t.Fatal("Should have failed because of missing auth data")
 	}
 }
@@ -497,19 +500,23 @@ func TestUserStoreGetByUsername(t *testing.T) {
 func TestUserStoreGetForLogin(t *testing.T) {
 	Setup()
 
+	auth := model.NewId()
+
 	u1 := &model.User{
 		Email:       model.NewId(),
 		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_GITLAB,
-		AuthData:    model.NewId(),
+		AuthData:    &auth,
 	}
 	Must(store.User().Save(u1))
+
+	auth2 := model.NewId()
 
 	u2 := &model.User{
 		Email:       model.NewId(),
 		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
-		AuthData:    model.NewId(),
+		AuthData:    &auth2,
 	}
 	Must(store.User().Save(u2))
 
@@ -525,14 +532,14 @@ func TestUserStoreGetForLogin(t *testing.T) {
 		t.Fatal("Should have gotten user1 by email")
 	}
 
-	if result := <-store.User().GetForLogin(u2.AuthData, true, true, true); result.Err != nil {
+	if result := <-store.User().GetForLogin(*u2.AuthData, true, true, true); result.Err != nil {
 		t.Fatal("Should have gotten user by LDAP AuthData", result.Err)
 	} else if result.Data.(*model.User).Id != u2.Id {
 		t.Fatal("Should have gotten user2 by LDAP AuthData")
 	}
 
 	// prevent getting user by AuthData when they're not an LDAP user
-	if result := <-store.User().GetForLogin(u1.AuthData, true, true, true); result.Err == nil {
+	if result := <-store.User().GetForLogin(*u1.AuthData, true, true, true); result.Err == nil {
 		t.Fatal("Should not have gotten user by non-LDAP AuthData")
 	}
 
@@ -545,23 +552,26 @@ func TestUserStoreGetForLogin(t *testing.T) {
 		t.Fatal("Should have failed to get user1 by email")
 	}
 
-	if result := <-store.User().GetForLogin(u2.AuthData, true, true, false); result.Err == nil {
+	if result := <-store.User().GetForLogin(*u2.AuthData, true, true, false); result.Err == nil {
 		t.Fatal("Should have failed to get user3 by LDAP AuthData")
 	}
+
+	auth3 := model.NewId()
 
 	// test a special case where two users will have conflicting login information so we throw a special error
 	u3 := &model.User{
 		Email:       model.NewId(),
 		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
-		AuthData:    model.NewId(),
+		AuthData:    &auth3,
 	}
 	Must(store.User().Save(u3))
+
 	u4 := &model.User{
 		Email:       model.NewId(),
 		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
-		AuthData:    u3.Username,
+		AuthData:    &u3.Username,
 	}
 	Must(store.User().Save(u4))
 
@@ -620,9 +630,9 @@ func TestUserStoreUpdateAuthData(t *testing.T) {
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	service := "someservice"
-	authData := "1"
+	authData := model.NewId()
 
-	if err := (<-store.User().UpdateAuthData(u1.Id, service, authData, "")).Err; err != nil {
+	if err := (<-store.User().UpdateAuthData(u1.Id, service, &authData, "")).Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -633,7 +643,7 @@ func TestUserStoreUpdateAuthData(t *testing.T) {
 		if user.AuthService != service {
 			t.Fatal("AuthService was not updated correctly")
 		}
-		if user.AuthData != authData {
+		if *user.AuthData != authData {
 			t.Fatal("AuthData was not updated correctly")
 		}
 		if user.Password != "" {

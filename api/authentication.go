@@ -39,17 +39,17 @@ func checkUserPassword(user *model.User, password string) *model.AppError {
 	}
 }
 
-func checkLdapUserPasswordAndAllCriteria(ldapId, password, mfaToken string) (*model.User, *model.AppError) {
+func checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
 	ldapInterface := einterfaces.GetLdapInterface()
 
-	if ldapInterface == nil {
+	if ldapInterface == nil || ldapId == nil {
 		err := model.NewLocAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "")
 		err.StatusCode = http.StatusNotImplemented
 		return nil, err
 	}
 
 	var user *model.User
-	if ldapUser, err := ldapInterface.DoLogin(ldapId, password); err != nil {
+	if ldapUser, err := ldapInterface.DoLogin(*ldapId, password); err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
 	} else {
