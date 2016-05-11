@@ -113,7 +113,6 @@ describe('Client.User', function() {
 
     it('loginByUsername', function(done) {
         var client = TestHelper.createClient();
-        client.enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
         var user = TestHelper.fakeUser();
         client.createUser(
             user,
@@ -122,13 +121,13 @@ describe('Client.User', function() {
                     user.username,
                     user.password,
                     null,
-                    function() {
-                        done(new Error());
+                    function(data) {
+                        assert.equal(data.id.length > 0, true);
+                        assert.equal(data.email, user.email);
+                        done();
                     },
                     function(err) {
-                        // should error out because logging in by username is disabled by default
-                        assert.equal(err.id, 'store.sql_user.get_for_login.app_error');
-                        done();
+                        done(new Error(err.message));
                     }
                 );
             },
