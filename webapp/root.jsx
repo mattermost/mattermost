@@ -132,6 +132,7 @@ function preNeedsTeam(nextState, replace, callback) {
     // for the current url.
     var teamName = Utils.getTeamNameFromUrl();
     var team = TeamStore.getByName(teamName);
+    const oldTeamId = TeamStore.getCurrentId();
 
     if (!team) {
         browserHistory.push('/');
@@ -142,6 +143,12 @@ function preNeedsTeam(nextState, replace, callback) {
 
     TeamStore.saveMyTeam(team);
     TeamStore.emitChange();
+
+    // If the old team id is null then we will already have the direct
+    // profiles from initial load
+    if (oldTeamId != null) {
+        AsyncClient.getDirectProfiles();
+    }
 
     var d1 = $.Deferred(); //eslint-disable-line new-cap
     var d2 = $.Deferred(); //eslint-disable-line new-cap

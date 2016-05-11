@@ -148,8 +148,7 @@
         "IdAttribute": "",
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
-        "LoginFieldName": "",
-        "PasswordFieldName": ""
+        "LoginFieldName": ""
     },
     "ComplianceSettings": {
         "Enable": false,

@@ -5,7 +5,7 @@ import React from 'react';
 
 export default class Setting extends React.Component {
     render() {
-        let marginClass;
+        let marginClass = '';
         if (this.props.margin === 'small') {
             marginClass = ' form-group--small';
         }

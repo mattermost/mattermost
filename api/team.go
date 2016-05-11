@@ -41,7 +41,6 @@ func InitTeam() {
 
 	// These should be moved to the global admain console
 	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
 	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequired(addUserToTeamFromInvite)).Methods("POST")
 }
 
@@ -274,6 +273,9 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
 	RemoveAllSessionsForUserId(user.Id)
 	InvalidateCacheForUser(user.Id)
+
+	// This message goes to every channel, so the channelId is irrelevant
+	PublishAndForget(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
 
 	return nil
 }
@@ -748,25 +750,6 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename=MattermostImportLog.txt")
 	w.Header().Set("Content-Type", "application/octet-stream")
 	http.ServeContent(w, r, "MattermostImportLog.txt", time.Now(), bytes.NewReader(log.Bytes()))
-}
-
-func exportTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.TeamId, "export") || !c.IsTeamAdmin() {
-		c.Err = model.NewLocAppError("exportTeam", "api.team.export_team.admin.app_error", nil, "userId="+c.Session.UserId)
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	options := ExportOptionsFromJson(r.Body)
-
-	if link, err := ExportToFile(options); err != nil {
-		c.Err = err
-		return
-	} else {
-		result := map[string]string{}
-		result["link"] = link
-		w.Write([]byte(model.MapToJson(result)))
-	}
 }
 
 func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {

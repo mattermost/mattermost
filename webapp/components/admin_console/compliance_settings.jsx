@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import * as Client from '../../utils/web_client.jsx';
+import Client from 'utils/web_client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
@@ -40,6 +40,7 @@ export default class ComplianceSettings extends React.Component {
         $('#save-button').button('loading');
 
         const config = this.props.config;
+        const oldEnable = config.ComplianceSettings.Enable;
         config.ComplianceSettings.Enable = this.refs.Enable.checked;
         config.ComplianceSettings.Directory = ReactDOM.findDOMNode(this.refs.Directory).value;
         config.ComplianceSettings.EnableDaily = this.refs.EnableDaily.checked;
@@ -47,12 +48,15 @@ export default class ComplianceSettings extends React.Component {
         Client.saveConfig(
             config,
             () => {
+                $('#save-button').button('reset');
                 AsyncClient.getConfig();
                 this.setState({
                     serverError: null,
                     saveNeeded: false
                 });
-                $('#save-button').button('reset');
+                if (oldEnable !== config.ComplianceSettings.Enable) {
+                    window.location.reload();
+                }
             },
             (err) => {
                 this.setState({
