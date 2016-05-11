@@ -285,7 +285,9 @@ class FileUpload extends React.Component {
     keyUpload(e) {
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.U) {
             e.preventDefault();
-            $(this.refs.fileInput).focus().trigger('click');
+            if (this.props.postType === 'post' && document.activeElement.id === 'post_textbox' || this.props.postType === 'comment' && document.activeElement.id === 'reply_textbox') {
+                $(this.refs.fileInput).focus().trigger('click');
+            }
         }
     }
 
@@ -344,7 +346,7 @@ FileUpload.propTypes = {
     onUploadStart: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
-    postType: React.PropTypes.string
+    postType: React.PropTypes.string,
 };
 
 export default injectIntl(FileUpload, {withRef: true});
