@@ -283,7 +283,8 @@ class FileUpload extends React.Component {
     }
 
     keyUpload(e) {
-        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.K) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.U) {
+            e.preventDefault();
             $(this.refs.fileInput).focus().trigger('click');
         }
     }

@@ -549,8 +549,7 @@ export default {
         ESCAPE: 27,
         SPACE: 32,
         TAB: 9,
-        U: 85,
-        K: 75
+        U: 85
     },
     CODE_PREVIEW_MAX_FILE_SIZE: 500000, // 500 KB
     HighlightedLanguages: {
