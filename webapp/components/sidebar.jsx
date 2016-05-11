@@ -91,7 +91,7 @@ export default class Sidebar extends React.Component {
         const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
         const directChannels = [];
-        const directNonTeamChannels = [];
+        let directNonTeamChannels = [];
         for (const [name, value] of preferences) {
             if (value !== 'true') {
                 continue;
@@ -123,6 +123,10 @@ export default class Sidebar extends React.Component {
             } else {
                 directNonTeamChannels.push(directChannel);
             }
+        }
+
+        if (global.window.mm_config.RestrictDirectMessage === Constants.RESTRICT_DM_TO_TEAM) {
+            directNonTeamChannels = [];
         }
 
         directChannels.sort(this.sortChannelsByDisplayName);

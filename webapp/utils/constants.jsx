@@ -642,5 +642,6 @@ export default {
     EMOJI_PATH: '/static/emoji',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
-    MTPNS: 'http://push-test.mattermost.com'
+    MTPNS: 'http://push-test.mattermost.com',
+    RESTRICT_DM_TO_TEAM: 'team'
 };
