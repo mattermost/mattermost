@@ -350,7 +350,7 @@ class CreatePost extends React.Component {
             return;
         }
 
-        if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+        if (!e.ctrlKey && e.keyCode === KeyCodes.UP && this.state.messageText === '') {
             e.preventDefault();
 
             const channelId = ChannelStore.getCurrentId();
@@ -370,6 +370,15 @@ class CreatePost extends React.Component {
                 channelId: lastPost.channel_id,
                 comments: PostStore.getCommentCount(lastPost)
             });
+        }
+
+        if (e.ctrlKey && e.keyCode === KeyCodes.UP) {
+            const channelId = ChannelStore.getCurrentId();
+            const lastPost = PostStore.getCurrentUsersLatestPost(channelId);
+            if (!lastPost) {
+                return;
+            }
+            this.setState({messageText: lastPost.message});
         }
     }
     showPostDeletedModal() {
