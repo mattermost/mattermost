@@ -576,6 +576,7 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sc := Srv.Store.Channel().Get(id)
 	uc := Srv.Store.User().Get(c.Session.UserId)
+	ccm := Srv.Store.Channel().GetMemberCount(id)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -583,9 +584,13 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if uresult := <-uc; uresult.Err != nil {
 		c.Err = cresult.Err
 		return
+	} else if ccmresult := <-ccm; ccmresult.Err != nil {
+		c.Err = ccmresult.Err
+		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
 		user := uresult.Data.(*model.User)
+		membersCount := ccmresult.Data.(int64)
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "leave") {
 			return
@@ -593,6 +598,12 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if channel.Type == model.CHANNEL_DIRECT {
 			c.Err = model.NewLocAppError("leave", "api.channel.leave.direct.app_error", nil, "")
+			c.Err.StatusCode = http.StatusBadRequest
+			return
+		}
+
+		if channel.Type == model.CHANNEL_PRIVATE && membersCount == 1 {
+			c.Err = model.NewLocAppError("leave", "api.channel.leave.last_member.app_error", nil, "userId="+user.Id)
 			c.Err.StatusCode = http.StatusBadRequest
 			return
 		}

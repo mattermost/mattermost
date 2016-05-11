@@ -409,7 +409,8 @@ export default class ChannelHeader extends React.Component {
                 }
             }
 
-            if (!ChannelStore.isDefault(channel)) {
+            const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
+            if (!ChannelStore.isDefault(channel) && canLeave) {
                 dropdownContents.push(
                     <li
                         key='leave_channel'

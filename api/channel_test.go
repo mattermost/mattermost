@@ -485,8 +485,10 @@ func TestLeaveChannel(t *testing.T) {
 
 	Client.Must(Client.JoinChannel(channel1.Id))
 
-	// No error if you leave a channel you cannot see
-	Client.Must(Client.LeaveChannel(channel3.Id))
+	// Cannot leave a the private group if you are the only member
+	if _, err := Client.LeaveChannel(channel3.Id); err == nil {
+		t.Fatal("should have errored, cannot leave private group if only one member")
+	}
 
 	rchannel := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id)).Data.(*model.Channel)
 
