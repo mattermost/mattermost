@@ -266,7 +266,7 @@ export default class ComplianceReports extends React.Component {
         }
 
         return (
-            <div className='panel'>
+            <div className='panel compliance-panel'>
                 <h3>
                     <FormattedMessage
                         id='admin.compliance_reports.title'
@@ -274,112 +274,113 @@ export default class ComplianceReports extends React.Component {
                     />
                 </h3>
 
-                <table>
-                    <tbody>
-                        <tr>
-                            <td colSpan='5'
-                                style={{paddingBottom: '6px'}}
-                            >
-                                <FormattedMessage
-                                    id='admin.compliance_reports.desc'
-                                    defaultMessage='Job Name:'
-                                />
-                                <input
-                                    style={{width: '425px'}}
-                                    type='text'
-                                    className='form-control'
-                                    id='desc'
-                                    ref='desc'
-                                    placeholder={Utils.localizeMessage('admin.compliance_reports.desc_placeholder', 'Ex "Audit 445 for HR"')}
-                                />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <FormattedMessage
-                                    id='admin.compliance_reports.from'
-                                    defaultMessage='From:'
-                                />
-                                <input
-                                    type='text'
-                                    className='form-control'
-                                    id='from'
-                                    ref='from'
-                                    placeholder={Utils.localizeMessage('admin.compliance_reports.from_placeholder', 'Ex "2016-03-11"')}
-                                />
-                            </td>
-                            <td style={{paddingLeft: '4px'}}>
-                                <FormattedMessage
-                                    id='admin.compliance_reports.to'
-                                    defaultMessage='To:'
-                                />
-                                <input
-                                    type='text'
-                                    className='form-control'
-                                    id='to'
-                                    ref='to'
-                                    placeholder={Utils.localizeMessage('admin.compliance_reports.to_placeholder', 'Ex "2016-03-15"')}
-                                />
-                            </td>
-                            <td style={{paddingLeft: '4px'}}>
-                                <FormattedMessage
-                                    id='admin.compliance_reports.emails'
-                                    defaultMessage='Emails:'
-                                />
-                                <input
-                                    style={{width: '325px'}}
-                                    type='text'
-                                    className='form-control'
-                                    id='emails'
-                                    ref='emails'
-                                    placeholder={Utils.localizeMessage('admin.compliance_reports.emails_placeholder', 'Ex "bill@example.com, bob@example.com"')}
-                                />
-                            </td>
-                            <td style={{paddingLeft: '4px'}}>
-                                <FormattedMessage
-                                    id='admin.compliance_reports.keywords'
-                                    defaultMessage='Keywords:'
-                                />
-                                <input
-                                    style={{width: '250px'}}
-                                    type='text'
-                                    className='form-control'
-                                    id='keywords'
-                                    ref='keywords'
-                                    placeholder={Utils.localizeMessage('admin.compliance_reports.keywords_placeholder', 'Ex "shorting stock"')}
-                                />
-                            </td>
-                            <td>
-                                <button
-                                    id='run-button'
-                                    type='submit'
-                                    className='btn btn-primary'
-                                    onClick={this.runReport}
-                                    style={{marginTop: '20px', marginLeft: '20px'}}
-                                >
-                                    <FormattedMessage
-                                        id='admin.compliance_reports.run'
-                                        defaultMessage='Run'
-                                    />
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                {serverError}
-                <div style={{marginTop: '20px'}}>
+                <div className='row'>
+                    <div className='col-sm-6 col-md-4 form-group'>
+                        <label>
+                            <FormattedMessage
+                                id='admin.compliance_reports.desc'
+                                defaultMessage='Job Name:'
+                            />
+                        </label>
+                        <input
+                            type='text'
+                            className='form-control'
+                            id='desc'
+                            ref='desc'
+                            placeholder={Utils.localizeMessage('admin.compliance_reports.desc_placeholder', 'E.g. "Audit 445 for HR"')}
+                        />
+                    </div>
+                    <div className='col-sm-3 col-md-2 form-group'>
+                        <label>
+                            <FormattedMessage
+                                id='admin.compliance_reports.from'
+                                defaultMessage='From:'
+                            />
+                        </label>
+                        <input
+                            type='text'
+                            className='form-control'
+                            id='from'
+                            ref='from'
+                            placeholder={Utils.localizeMessage('admin.compliance_reports.from_placeholder', 'E.g. "2016-03-11"')}
+                        />
+                    </div>
+                    <div className='col-sm-3 col-md-2 form-group'>
+                        <label>
+                            <FormattedMessage
+                                id='admin.compliance_reports.to'
+                                defaultMessage='To:'
+                            />
+                        </label>
+                        <input
+                            type='text'
+                            className='form-control'
+                            id='to'
+                            ref='to'
+                            placeholder={Utils.localizeMessage('admin.compliance_reports.to_placeholder', 'E.g. "2016-03-15"')}
+                        />
+                    </div>
+                </div>
+                <div className='row'>
+                    <div className='col-sm-6 col-md-4 form-group'>
+                        <label>
+                            <FormattedMessage
+                                id='admin.compliance_reports.emails'
+                                defaultMessage='Emails:'
+                            />
+                        </label>
+                        <input
+                            type='text'
+                            className='form-control'
+                            id='emails'
+                            ref='emails'
+                            placeholder={Utils.localizeMessage('admin.compliance_reports.emails_placeholder', 'E.g. "bill@example.com, bob@example.com"')}
+                        />
+                    </div>
+                    <div className='col-sm-6 col-md-4 form-group'>
+                        <label>
+                            <FormattedMessage
+                                id='admin.compliance_reports.keywords'
+                                defaultMessage='Keywords:'
+                            />
+                        </label>
+                        <input
+                            type='text'
+                            className='form-control'
+                            id='keywords'
+                            ref='keywords'
+                            placeholder={Utils.localizeMessage('admin.compliance_reports.keywords_placeholder', 'E.g. "shorting stock"')}
+                        />
+                    </div>
+                </div>
+                <div className='clearfix'>
                     <button
+                        id='run-button'
                         type='submit'
                         className='btn btn-primary'
-                        onClick={this.reload}
+                        onClick={this.runReport}
                     >
                         <FormattedMessage
-                            id='admin.compliance_reports.reload'
-                            defaultMessage='Reload'
+                            id='admin.compliance_reports.run'
+                            defaultMessage='Run Compliance Report'
                         />
                     </button>
                 </div>
-                <div className='compliance__panel'>
+                {serverError}
+                <div className='text-right'>
+                    <button
+                        type='submit'
+                        className='btn btn-link'
+                        onClick={this.reload}
+                    >
+                        <i className='fa fa-refresh'></i>
+                        <FormattedMessage
+                            id='admin.compliance_reports.reload'
+                            defaultMessage='Reload Completed Compliance Reports'
+                        />
+                    </button>
+                </div>
+                <div className='compliance-panel__table'>
                     {content}
                 </div>
             </div>
