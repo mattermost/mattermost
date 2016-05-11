@@ -346,7 +346,7 @@ FileUpload.propTypes = {
     onUploadStart: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
-    postType: React.PropTypes.string,
+    postType: React.PropTypes.string
 };
 
 export default injectIntl(FileUpload, {withRef: true});
