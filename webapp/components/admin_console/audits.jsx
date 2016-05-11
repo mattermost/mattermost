@@ -75,24 +75,25 @@ export default class Audits extends React.Component {
             <div>
                 <ComplianceReports/>
 
-                <div className='panel'>
+                <div className='panel audit-panel'>
                     <h3>
                         <FormattedMessage
                             id='admin.audits.title'
-                            defaultMessage='User Activity'
+                            defaultMessage='User Activity Logs'
                         />
+                        <button
+                            type='submit'
+                            className='btn btn-link pull-right'
+                            onClick={this.reload}
+                        >
+                            <i className='fa fa-refresh'></i>
+                            <FormattedMessage
+                                id='admin.audits.reload'
+                                defaultMessage='Reload User Activity Logs'
+                            />
+                        </button>
                     </h3>
-                    <button
-                        type='submit'
-                        className='btn btn-primary'
-                        onClick={this.reload}
-                    >
-                        <FormattedMessage
-                            id='admin.audits.reload'
-                            defaultMessage='Reload'
-                        />
-                    </button>
-                    <div className='audit__panel'>
+                    <div className='audit-panel__table'>
                         {content}
                     </div>
                 </div>

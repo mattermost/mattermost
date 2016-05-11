@@ -11,6 +11,15 @@
         }
     }
 
+    .compliance-panel,
+    .audit-panel {
+        .row {
+            > .form-group {
+                padding-left: 15px;
+            }
+        }
+    }
+
     .user-popover {
         pointer-events: none;
     }
