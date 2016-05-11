@@ -227,7 +227,7 @@ class CreateComment extends React.Component {
             if (!lastPost) {
                 return;
             }
-            this.setState({messageText: lastPost.message})''
+            this.setState({messageText: lastPost.message});
         }
     }
     handleUploadClick() {
