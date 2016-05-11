@@ -72,6 +72,7 @@ class CreateComment extends React.Component {
         const draft = PostStore.getCommentDraft(this.props.rootId);
         this.state = {
             messageText: draft.message,
+            lastMessage: '',
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
@@ -172,6 +173,7 @@ class CreateComment extends React.Component {
 
         this.setState({
             messageText: '',
+            lastMessage: this.state.messageText;
             submitting: false,
             postError: null,
             previews: [],
@@ -227,7 +229,11 @@ class CreateComment extends React.Component {
             if (!lastPost) {
                 return;
             }
-            this.setState({messageText: lastPost.message});
+            let message = lastPost.message;
+            if (this.state.lastMessage !== '') {
+                message = this.state.lastMessage;
+            }
+            this.setState({messageText: message});
         }
     }
     handleUploadClick() {
