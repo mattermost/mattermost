@@ -358,10 +358,10 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var parsedRequest *model.IncomingWebhookRequest
 	contentType := r.Header.Get("Content-Type")
-	if strings.Split(contentType, "; ")[0] == "application/json" {
-		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
-	} else {
+	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
 		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
+	} else {
+		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
 	}
 
 	if parsedRequest == nil {
