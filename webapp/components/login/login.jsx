@@ -98,6 +98,7 @@ export default class Login extends React.Component {
                     });
                 } else if (err.id === 'api.user.check_user_password.invalid.app_error' || err.id === 'ent.ldap.do_login.invalid_password.app_error') {
                     this.setState({
+                        showMfa: false,
                         serverError: (
                             <FormattedMessage
                                 id='login.invalidPassword'
