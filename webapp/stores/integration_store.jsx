@@ -15,14 +15,11 @@ class IntegrationStore extends EventEmitter {
 
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload.bind(this));
 
-        this.incomingWebhooks = [];
-        this.receivedIncomingWebhooks = false;
+        this.incomingWebhooks = new Map();
 
-        this.outgoingWebhooks = [];
-        this.receivedOutgoingWebhooks = false;
+        this.outgoingWebhooks = new Map();
 
-        this.commands = [];
-        this.receivedCommands = false;
+        this.commands = new Map();
     }
 
     addChangeListener(callback) {
@@ -37,100 +34,119 @@ class IntegrationStore extends EventEmitter {
         this.emit(CHANGE_EVENT);
     }
 
-    hasReceivedIncomingWebhooks() {
-        return this.receivedIncomingWebhooks;
+    hasReceivedIncomingWebhooks(teamId) {
+        return this.incomingWebhooks.has(teamId);
     }
 
-    getIncomingWebhooks() {
-        return this.incomingWebhooks;
+    getIncomingWebhooks(teamId) {
+        return this.incomingWebhooks.get(teamId) || [];
     }
 
-    setIncomingWebhooks(incomingWebhooks) {
-        this.incomingWebhooks = incomingWebhooks;
-        this.receivedIncomingWebhooks = true;
+    setIncomingWebhooks(teamId, incomingWebhooks) {
+        this.incomingWebhooks.set(teamId, incomingWebhooks);
     }
 
     addIncomingWebhook(incomingWebhook) {
-        this.incomingWebhooks.push(incomingWebhook);
+        const teamId = incomingWebhook.team_id;
+        const incomingWebhooks = this.getIncomingWebhooks(teamId);
+
+        incomingWebhooks.push(incomingWebhook);
+
+        this.setIncomingWebhooks(teamId, incomingWebhooks);
     }
 
-    removeIncomingWebhook(id) {
-        for (let i = 0; i < this.incomingWebhooks.length; i++) {
-            if (this.incomingWebhooks[i].id === id) {
-                this.incomingWebhooks.splice(i, 1);
-                break;
-            }
-        }
+    removeIncomingWebhook(teamId, id) {
+        let incomingWebhooks = this.getIncomingWebhooks(teamId);
+
+        incomingWebhooks = incomingWebhooks.filter((incomingWebhook) => incomingWebhook.id !== id);
+
+        this.setIncomingWebhooks(teamId, incomingWebhooks);
     }
 
-    hasReceivedOutgoingWebhooks() {
-        return this.receivedOutgoingWebhooks;
+    hasReceivedOutgoingWebhooks(teamId) {
+        return this.outgoingWebhooks.has(teamId);
     }
 
-    getOutgoingWebhooks() {
-        return this.outgoingWebhooks;
+    getOutgoingWebhooks(teamId) {
+        return this.outgoingWebhooks.get(teamId) || [];
     }
 
-    setOutgoingWebhooks(outgoingWebhooks) {
-        this.outgoingWebhooks = outgoingWebhooks;
-        this.receivedOutgoingWebhooks = true;
+    setOutgoingWebhooks(teamId, outgoingWebhooks) {
+        this.outgoingWebhooks.set(teamId, outgoingWebhooks);
     }
 
     addOutgoingWebhook(outgoingWebhook) {
-        this.outgoingWebhooks.push(outgoingWebhook);
+        const teamId = outgoingWebhook.team_id;
+        const outgoingWebhooks = this.getOutgoingWebhooks(teamId);
+
+        outgoingWebhooks.push(outgoingWebhook);
+
+        this.setOutgoingWebhooks(teamId, outgoingWebhooks);
     }
 
     updateOutgoingWebhook(outgoingWebhook) {
-        for (let i = 0; i < this.outgoingWebhooks.length; i++) {
-            if (this.outgoingWebhooks[i].id === outgoingWebhook.id) {
-                this.outgoingWebhooks[i] = outgoingWebhook;
+        const teamId = outgoingWebhook.team_id;
+        const outgoingWebhooks = this.getOutgoingWebhooks(teamId);
+
+        for (let i = 0; i < outgoingWebhooks.length; i++) {
+            if (outgoingWebhooks[i].id === outgoingWebhook.id) {
+                outgoingWebhooks[i] = outgoingWebhook;
                 break;
             }
         }
+
+        this.setOutgoingWebhooks(teamId, outgoingWebhooks);
     }
 
-    removeOutgoingWebhook(id) {
-        for (let i = 0; i < this.outgoingWebhooks.length; i++) {
-            if (this.outgoingWebhooks[i].id === id) {
-                this.outgoingWebhooks.splice(i, 1);
-                break;
-            }
-        }
+    removeOutgoingWebhook(teamId, id) {
+        let outgoingWebhooks = this.getOutgoingWebhooks(teamId);
+
+        outgoingWebhooks = outgoingWebhooks.filter((outgoingWebhook) => outgoingWebhook.id !== id);
+
+        this.setOutgoingWebhooks(teamId, outgoingWebhooks);
     }
 
-    hasReceivedCommands() {
-        return this.receivedCommands;
+    hasReceivedCommands(teamId) {
+        return this.commands.has(teamId);
     }
 
-    getCommands() {
-        return this.commands;
+    getCommands(teamId) {
+        return this.commands.get(teamId) || [];
     }
 
-    setCommands(commands) {
-        this.commands = commands;
-        this.receivedCommands = true;
+    setCommands(teamId, commands) {
+        this.commands.set(teamId, commands);
     }
 
     addCommand(command) {
-        this.commands.push(command);
+        const teamId = command.team_id;
+        const commands = this.getCommands(teamId);
+
+        commands.push(command);
+
+        this.setCommands(teamId, commands);
     }
 
     updateCommand(command) {
-        for (let i = 0; i < this.commands.length; i++) {
-            if (this.commands[i].id === command.id) {
-                this.commands[i] = command;
+        const teamId = command.team_id;
+        const commands = this.getCommands(teamId);
+
+        for (let i = 0; i < commands.length; i++) {
+            if (commands[i].id === command.id) {
+                commands[i] = command;
                 break;
             }
         }
+
+        this.setCommands(teamId, commands);
     }
 
-    removeCommand(id) {
-        for (let i = 0; i < this.commands.length; i++) {
-            if (this.commands[i].id === id) {
-                this.commands.splice(i, 1);
-                break;
-            }
-        }
+    removeCommand(teamId, id) {
+        let commands = this.getCommands(teamId);
+
+        commands = commands.filter((command) => command.id !== id);
+
+        this.setCommands(teamId, commands);
     }
 
     handleEventPayload(payload) {
@@ -138,7 +154,7 @@ class IntegrationStore extends EventEmitter {
 
         switch (action.type) {
         case ActionTypes.RECEIVED_INCOMING_WEBHOOKS:
-            this.setIncomingWebhooks(action.incomingWebhooks);
+            this.setIncomingWebhooks(action.teamId, action.incomingWebhooks);
             this.emitChange();
             break;
         case ActionTypes.RECEIVED_INCOMING_WEBHOOK:
@@ -146,11 +162,11 @@ class IntegrationStore extends EventEmitter {
             this.emitChange();
             break;
         case ActionTypes.REMOVED_INCOMING_WEBHOOK:
-            this.removeIncomingWebhook(action.id);
+            this.removeIncomingWebhook(action.teamId, action.id);
             this.emitChange();
             break;
         case ActionTypes.RECEIVED_OUTGOING_WEBHOOKS:
-            this.setOutgoingWebhooks(action.outgoingWebhooks);
+            this.setOutgoingWebhooks(action.teamId, action.outgoingWebhooks);
             this.emitChange();
             break;
         case ActionTypes.RECEIVED_OUTGOING_WEBHOOK:
@@ -162,11 +178,11 @@ class IntegrationStore extends EventEmitter {
             this.emitChange();
             break;
         case ActionTypes.REMOVED_OUTGOING_WEBHOOK:
-            this.removeOutgoingWebhook(action.id);
+            this.removeOutgoingWebhook(action.teamId, action.id);
             this.emitChange();
             break;
         case ActionTypes.RECEIVED_COMMANDS:
-            this.setCommands(action.commands);
+            this.setCommands(action.teamId, action.commands);
             this.emitChange();
             break;
         case ActionTypes.RECEIVED_COMMAND:
@@ -178,7 +194,7 @@ class IntegrationStore extends EventEmitter {
             this.emitChange();
             break;
         case ActionTypes.REMOVED_COMMAND:
-            this.removeCommand(action.id);
+            this.removeCommand(action.teamId, action.id);
             this.emitChange();
             break;
         }

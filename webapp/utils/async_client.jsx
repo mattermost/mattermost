@@ -1145,6 +1145,7 @@ export function listIncomingHooks() {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_INCOMING_WEBHOOKS,
+                teamId: Client.teamId,
                 incomingWebhooks: data
             });
         },
@@ -1168,6 +1169,7 @@ export function listOutgoingHooks() {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_OUTGOING_WEBHOOKS,
+                teamId: Client.teamId,
                 outgoingWebhooks: data
             });
         },
@@ -1230,6 +1232,7 @@ export function deleteIncomingHook(id) {
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.REMOVED_INCOMING_WEBHOOK,
+                teamId: Client.teamId,
                 id
             });
         },
@@ -1245,6 +1248,7 @@ export function deleteOutgoingHook(id) {
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.REMOVED_OUTGOING_WEBHOOK,
+                teamId: Client.teamId,
                 id
             });
         },
@@ -1282,6 +1286,7 @@ export function listTeamCommands() {
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_COMMANDS,
+                teamId: Client.teamId,
                 commands: data
             });
         },
@@ -1321,6 +1326,7 @@ export function deleteCommand(id) {
         () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.REMOVED_COMMAND,
+                teamId: Client.teamId,
                 id
             });
         },

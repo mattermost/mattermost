@@ -5,6 +5,7 @@ import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -19,16 +20,18 @@ export default class InstalledIncomingWebhooks extends React.Component {
 
         this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
 
+        const teamId = TeamStore.getCurrentId();
+
         this.state = {
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks(),
-            loading: !IntegrationStore.hasReceivedIncomingWebhooks()
+            incomingWebhooks: IntegrationStore.getIncomingWebhooks(teamId),
+            loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId)
         };
     }
 
     componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
 
-        if (window.mm_config.EnableIncomingWebhooks === 'true' && this.state.loading) {
+        if (window.mm_config.EnableIncomingWebhooks === 'true') {
             AsyncClient.listIncomingHooks();
         }
     }
@@ -38,9 +41,11 @@ export default class InstalledIncomingWebhooks extends React.Component {
     }
 
     handleIntegrationChange() {
+        const teamId = TeamStore.getCurrentId();
+
         this.setState({
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks(),
-            loading: !IntegrationStore.hasReceivedIncomingWebhooks()
+            incomingWebhooks: IntegrationStore.getIncomingWebhooks(teamId),
+            loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId)
         });
     }
 
