@@ -1203,7 +1203,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'listTeamCommands', success, error));
     }
 
-    regenCommandToken = (commandId, suggest, success, error) => {
+    regenCommandToken = (commandId, success, error) => {
         request.
             post(`${this.getCommandsRoute()}/regen_token`).
             set(this.defaultHeaders).

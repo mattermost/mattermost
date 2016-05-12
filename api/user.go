@@ -494,8 +494,11 @@ func getUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppErro
 		*utils.Cfg.EmailSettings.EnableSignInWithUsername && !onlyLdap,
 		*utils.Cfg.EmailSettings.EnableSignInWithEmail && !onlyLdap,
 		ldapAvailable,
-	); result.Err != nil {
-
+	); result.Err != nil && result.Err.Id == "store.sql_user.get_for_login.multiple_users" {
+		// don't fall back to LDAP in this case since we already know there's an LDAP user, but that it shouldn't work
+		result.Err.StatusCode = http.StatusBadRequest
+		return nil, result.Err
+	} else if result.Err != nil {
 		if !ldapAvailable {
 			// failed to find user and no LDAP server to fall back on
 			result.Err.StatusCode = http.StatusBadRequest
@@ -535,7 +538,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByAuth(authData, service); result.Err != nil {
+	if result := <-Srv.Store.User().GetByAuth(&authData, service); result.Err != nil {
 		if result.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
 			return CreateOAuthUser(c, w, r, service, bytes.NewReader(buf.Bytes()), "")
 		}
@@ -1289,7 +1292,8 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		rusers[0].Password = ""
-		rusers[0].AuthData = ""
+		rusers[0].AuthData = new(string)
+		*rusers[0].AuthData = ""
 		w.Write([]byte(rusers[0].ToJson()))
 	}
 }
@@ -1337,7 +1341,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user := result.Data.(*model.User)
 
-	if user.AuthData != "" {
+	if user.AuthData != nil && *user.AuthData != "" {
 		c.LogAudit("failed - tried to update user password who was logged in through oauth")
 		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService)
 		c.Err.StatusCode = http.StatusBadRequest
@@ -1653,7 +1657,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	if len(user.AuthData) != 0 {
+	if user.AuthData != nil && len(*user.AuthData) != 0 {
 		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id)
 		return
 	}
@@ -1749,7 +1753,7 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 		user = result.Data.(*model.User)
 	}
 
-	if len(user.AuthData) != 0 && !c.IsSystemAdmin() {
+	if user.AuthData != nil && len(*user.AuthData) != 0 && !c.IsSystemAdmin() {
 		return model.NewLocAppError("ResetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
 
 	}
@@ -2148,13 +2152,13 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ldapInterface := einterfaces.GetLdapInterface()
-	if ldapInterface == nil {
+	if ldapInterface == nil || user.AuthData == nil {
 		c.Err = model.NewLocAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	if err := ldapInterface.CheckPassword(user.AuthData, ldapPassword); err != nil {
+	if err := ldapInterface.CheckPassword(*user.AuthData, ldapPassword); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail - ldap authentication failed")
 		c.Err = err
 		return
