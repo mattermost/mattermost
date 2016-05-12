@@ -53,6 +53,10 @@ export default class Navbar extends React.Component {
         this.createDropdown = this.createDropdown.bind(this);
 
         this.navigateChannelShortcut = this.navigateChannelShortcut.bind(this);
+        this.navigateUnreadChannelShortcut = this.navigateUnreadChannelShortcut.bind(this);
+        this.getDisplayedChannels = this.getDisplayedChannels.bind(this);
+        this.compareByName = this.compareByName.bind(this);
+        this.compareByDmName = this.compareByDmName.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -77,11 +81,13 @@ export default class Navbar extends React.Component {
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.navigateChannelShortcut);
+        document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeExtraInfoChangeListener(this.onChange);
         document.removeEventListener('keydown', this.navigateChannelShortcut);
+        document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -159,31 +165,24 @@ export default class Navbar extends React.Component {
     navigateChannelShortcut(e) {
         if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
-            const allChannels = ChannelStore.getAll();
+            const allChannels = this.getDisplayedChannels();
             const curChannel = ChannelStore.getCurrent();
             const curIndex = allChannels.indexOf(curChannel);
             let nextChannel = curChannel;
             let nextIndex = curIndex;
             if (e.keyCode === Constants.KeyCodes.DOWN) {
                 nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
-                while (allChannels[nextIndex].type !== allChannels[curIndex].type && nextIndex < allChannels.length) {
-                    nextIndex = nextIndex + 1;
-                }
             } else if (e.keyCode === Constants.KeyCodes.UP) {
                 nextIndex = Math.max(curIndex - 1, 0);
-                while (allChannels[nextIndex].type !== allChannels[curIndex].type && nextIndex > 0) {
-                    nextIndex = nextIndex - 1;
-                }
             }
-            if (nextIndex !== curIndex) {
-                nextChannel = allChannels[nextIndex];
-                GlobalActions.emitChannelClickEvent(nextChannel);
-            }
+            nextChannel = allChannels[nextIndex];
+            GlobalActions.emitChannelClickEvent(nextChannel);
         }
-
+    }
+    navigateUnreadChannelShortcut(e) {
         if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
-            const allChannels = ChannelStore.getAll();
+            const allChannels = this.getDisplayedChannels();
             const curChannel = ChannelStore.getCurrent();
             const curIndex = allChannels.indexOf(curChannel);
             let nextChannel = curChannel;
@@ -197,11 +196,38 @@ export default class Navbar extends React.Component {
                     nextIndex++;
                 }
             }
-            if (ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 || ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
+            if (nextIndex !== curIndex && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 || ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
                 nextChannel = allChannels[nextIndex];
                 GlobalActions.emitChannelClickEvent(nextChannel);
             }
         }
+    }
+    getDisplayedChannels() {
+        const allChannels = ChannelStore.getAll();
+        const open = [];
+        const priv = [];
+        const dm = [];
+
+        for (let i = 0; i < allChannels.length; i++) {
+            if (allChannels[i].type === 'O') {
+                open.push(allChannels[i]);
+            } else if (allChannels[i].type === 'P') {
+                priv.push(allChannels[i]);
+            } else {
+                dm.push(allChannels[i]);
+            }
+        }
+        open.sort(this.compareByName);
+        priv.sort(this.compareByName);
+        dm.sort(this.compareByDmName);
+
+        return open.concat(priv).concat(dm);
+    }
+    compareByName(a, b) {
+        return a.name.toLowerCase() - b.name.toLowerCase();
+    }
+    compareByDmName(a, b) {
+        return UserStore.getProfile(a.name).username.toLowerCase() - UserStore.getProfile(b.name).username.toLowerCase();
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
         if (channel) {
