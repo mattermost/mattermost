@@ -157,7 +157,8 @@ export default class Navbar extends React.Component {
         });
     }
     navigateChannelShortcut(e) {
-        if (e.altKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+        if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
             const allChannels = ChannelStore.getAll();
             const curChannel = ChannelStore.getCurrent();
             const curIndex = allChannels.indexOf(curChannel);
@@ -172,7 +173,8 @@ export default class Navbar extends React.Component {
             GlobalActions.emitChannelClickEvent(nextChannel);
         }
 
-        if (e.altKey && e.shiftKey) {
+        if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
             const allChannels = ChannelStore.getAll();
             const curChannel = ChannelStore.getCurrent();
             const curIndex = allChannels.indexOf(curChannel);
@@ -187,7 +189,7 @@ export default class Navbar extends React.Component {
                     nextIndex++;
                 }
             }
-            if (ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
+            if (ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 || ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
                 nextChannel = allChannels[nextIndex];
                 GlobalActions.emitChannelClickEvent(nextChannel);
             }
