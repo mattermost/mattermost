@@ -72,6 +72,7 @@ class CreateComment extends React.Component {
         const draft = PostStore.getCommentDraft(this.props.rootId);
         this.state = {
             messageText: draft.message,
+            lastMessage: '',
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
@@ -172,6 +173,7 @@ class CreateComment extends React.Component {
 
         this.setState({
             messageText: '',
+            lastMessage: this.state.messageText,
             submitting: false,
             postError: null,
             previews: [],
@@ -203,7 +205,7 @@ class CreateComment extends React.Component {
             return;
         }
 
-        if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+        if (!e.ctrlKey && e.keyCode === KeyCodes.UP && this.state.messageText === '') {
             e.preventDefault();
 
             const lastPost = PostStore.getCurrentUsersLatestPost(this.props.channelId, this.props.rootId);
@@ -220,6 +222,18 @@ class CreateComment extends React.Component {
                 channelId: lastPost.channel_id,
                 comments: PostStore.getCommentCount(lastPost)
             });
+        }
+
+        if (e.ctrlKey && e.keyCode === KeyCodes.UP) {
+            const lastPost = PostStore.getCurrentUsersLatestPost(this.props.channelId, this.props.rootId);
+            if (!lastPost) {
+                return;
+            }
+            let message = lastPost.message;
+            if (this.state.lastMessage !== '') {
+                message = this.state.lastMessage;
+            }
+            this.setState({messageText: message});
         }
     }
     handleUploadClick() {

@@ -77,6 +77,7 @@ class CreatePost extends React.Component {
         this.state = {
             channelId: ChannelStore.getCurrentId(),
             messageText: draft.messageText,
+            lastMessage: '',
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
@@ -126,7 +127,7 @@ class CreatePost extends React.Component {
         }
 
         this.setState({submitting: true, serverError: null});
-
+        this.setState({lastMessage: this.state.messageText});
         if (post.message.indexOf('/') === 0) {
             Client.executeCommand(
                 this.state.channelId,
@@ -350,7 +351,7 @@ class CreatePost extends React.Component {
             return;
         }
 
-        if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+        if (!e.ctrlKey && e.keyCode === KeyCodes.UP && this.state.messageText === '') {
             e.preventDefault();
 
             const channelId = ChannelStore.getCurrentId();
@@ -370,6 +371,19 @@ class CreatePost extends React.Component {
                 channelId: lastPost.channel_id,
                 comments: PostStore.getCommentCount(lastPost)
             });
+        }
+
+        if (e.ctrlKey && e.keyCode === KeyCodes.UP) {
+            const channelId = ChannelStore.getCurrentId();
+            const lastPost = PostStore.getCurrentUsersLatestPost(channelId);
+            if (!lastPost) {
+                return;
+            }
+            let message = lastPost.message;
+            if (this.state.lastMessage !== '') {
+                message = this.state.lastMessage;
+            }
+            this.setState({messageText: message});
         }
     }
     showPostDeletedModal() {
