@@ -351,7 +351,7 @@ class CreatePost extends React.Component {
             return;
         }
 
-        if (!e.ctrlKey && e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+        if (!e.ctrlKey && !e.metaKey && e.keyCode === KeyCodes.UP && this.state.messageText === '') {
             e.preventDefault();
 
             const channelId = ChannelStore.getCurrentId();
@@ -373,7 +373,7 @@ class CreatePost extends React.Component {
             });
         }
 
-        if (e.ctrlKey && e.keyCode === KeyCodes.UP) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === KeyCodes.UP) {
             const channelId = ChannelStore.getCurrentId();
             const lastPost = PostStore.getCurrentUsersLatestPost(channelId);
             if (!lastPost) {
