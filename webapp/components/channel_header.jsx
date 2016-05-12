@@ -47,6 +47,7 @@ export default class ChannelHeader extends React.Component {
         this.searchMentions = this.searchMentions.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
+        this.openRecentMentions = this.openRecentMentions.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -82,6 +83,7 @@ export default class ChannelHeader extends React.Component {
         PreferenceStore.addChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
+        document.addEventListener('keydown', this.openRecentMentions);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
@@ -89,6 +91,7 @@ export default class ChannelHeader extends React.Component {
         SearchStore.removeSearchChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
         UserStore.removeChangeListener(this.onListenerChange);
+        document.removeEventListener('keydown', this.openRecentMentions);
     }
     onListenerChange() {
         const newState = this.getStateFromStores();
@@ -138,6 +141,11 @@ export default class ChannelHeader extends React.Component {
             do_search: true,
             is_mention_search: true
         });
+    }
+    openRecentMentions(e) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.keyCode === Constants.KeyCodes.M) {
+            this.searchMentions(e);
+        }
     }
     showRenameChannelModal(e) {
         e.preventDefault();

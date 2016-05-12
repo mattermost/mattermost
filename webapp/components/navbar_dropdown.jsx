@@ -28,6 +28,7 @@ export default class NavbarDropdown extends React.Component {
         this.handleAboutModal = this.handleAboutModal.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
         this.onTeamChange = this.onTeamChange.bind(this);
+        this.openAccountSettings = this.openAccountSettings.bind(this);
 
         this.state = {
             showUserSettingsModal: false,
@@ -53,6 +54,7 @@ export default class NavbarDropdown extends React.Component {
         });
 
         TeamStore.addChangeListener(this.onTeamChange);
+        document.addEventListener('keydown', this.openAccountSettings);
     }
 
     onTeamChange() {
@@ -65,8 +67,13 @@ export default class NavbarDropdown extends React.Component {
     componentWillUnmount() {
         $(ReactDOM.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
         TeamStore.removeChangeListener(this.onTeamChange);
+        document.removeEventListener('keydown', this.openAccountSettings);
     }
-
+    openAccountSettings(e) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
+            this.setState({showUserSettingsModal: true});
+        }
+    }
     render() {
         var teamLink = '';
         var inviteLink = '';
