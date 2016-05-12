@@ -127,7 +127,7 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 }
 
 func authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed && *utils.License.Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {
