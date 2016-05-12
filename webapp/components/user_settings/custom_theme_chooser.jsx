@@ -230,11 +230,11 @@ class CustomThemeChooser extends React.Component {
                                 overlay={popoverContent}
                                 ref='headerOverlay'
                             >
-                            <span className='input-group-addon'>
-                                <img
-                                    src={codeThemeURL}
-                                />
-                            </span>
+                                <span className='input-group-addon'>
+                                    <img
+                                        src={codeThemeURL}
+                                    />
+                                </span>
                             </OverlayTrigger>
                         </div>
                     </div>

@@ -1,0 +1,12 @@
+{
+    "rules": {
+        "no-console": 0,
+        "global-require": 0,
+        "func-names": 0,
+        "prefer-arrow-callback": 0,
+        "no-magic-numbers": 0,
+        "no-unreachable": 0,
+        "new-cap": 0,
+        "max-nested-callbacks": 0
+    }
+}

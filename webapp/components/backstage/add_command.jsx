@@ -4,13 +4,12 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import {browserHistory} from 'react-router';
 import * as Utils from 'utils/utils.jsx';
 
 import BackstageHeader from './backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
-import {Link} from 'react-router';
+import {browserHistory, Link} from 'react-router';
 import SpinnerButton from 'components/spinner_button.jsx';
 
 const REQUEST_POST = 'P';

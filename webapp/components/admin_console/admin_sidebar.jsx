@@ -134,13 +134,13 @@ export default class AdminSidebar extends React.Component {
                                             placement='top'
                                             overlay={removeTooltip}
                                         >
-                                        <span
-                                            className='menu-icon--right menu__close'
-                                            onClick={this.removeTeam.bind(this, team.id)}
-                                            style={{cursor: 'pointer'}}
-                                        >
-                                            {'×'}
-                                        </span>
+                                            <span
+                                                className='menu-icon--right menu__close'
+                                                onClick={this.removeTeam.bind(this, team.id)}
+                                                style={{cursor: 'pointer'}}
+                                            >
+                                                {'×'}
+                                            </span>
                                         </OverlayTrigger>
                                     </a>
                                 </li>
@@ -424,7 +424,7 @@ export default class AdminSidebar extends React.Component {
                                 </li>
                             </ul>
                             <ul className='nav nav__sub-menu'>
-                                 <li>
+                                <li>
                                     <h4>
                                         <span className='icon fa fa-gear'></span>
                                         <span>
@@ -442,14 +442,14 @@ export default class AdminSidebar extends React.Component {
                                                 placement='top'
                                                 overlay={addTeamTooltip}
                                             >
-                                            <a
-                                                href='#'
-                                                onClick={this.showTeamSelect}
-                                            >
-                                                <i
-                                                    className='fa fa-plus'
-                                                ></i>
-                                            </a>
+                                                <a
+                                                    href='#'
+                                                    onClick={this.showTeamSelect}
+                                                >
+                                                    <i
+                                                        className='fa fa-plus'
+                                                    ></i>
+                                                </a>
                                             </OverlayTrigger>
                                         </span>
                                     </h4>

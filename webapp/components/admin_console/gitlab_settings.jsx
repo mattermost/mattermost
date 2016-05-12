@@ -122,7 +122,6 @@ class GitLabSettings extends React.Component {
                     className='form-horizontal'
                     role='form'
                 >
-
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
@@ -143,10 +142,10 @@ class GitLabSettings extends React.Component {
                                     defaultChecked={this.props.config.GitLabSettings.Enable}
                                     onChange={this.handleChange.bind(this, 'EnableTrue')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.gitlab.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.gitlab.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -156,10 +155,10 @@ class GitLabSettings extends React.Component {
                                     defaultChecked={!this.props.config.GitLabSettings.Enable}
                                     onChange={this.handleChange.bind(this, 'EnableFalse')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.gitlab.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.gitlab.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

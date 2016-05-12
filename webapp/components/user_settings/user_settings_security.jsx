@@ -608,11 +608,11 @@ class SecurityTab extends React.Component {
             const inputs = [];
             inputs.push(
                 <div key='userSignInOption'>
-                   {emailOption}
-                   {gitlabOption}
-                   <br/>
-                   {ldapOption}
-                   {googleOption}
+                    {emailOption}
+                    {gitlabOption}
+                    <br/>
+                    {ldapOption}
+                    {googleOption}
                 </div>
             );
 

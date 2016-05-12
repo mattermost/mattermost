@@ -172,10 +172,10 @@ class RateSettings extends React.Component {
                                     defaultChecked={this.props.config.RateLimitSettings.EnableRateLimiter}
                                     onChange={this.handleChange.bind(this, 'EnableRateLimiterTrue')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.rate.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.rate.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -185,10 +185,10 @@ class RateSettings extends React.Component {
                                     defaultChecked={!this.props.config.RateLimitSettings.EnableRateLimiter}
                                     onChange={this.handleChange.bind(this, 'EnableRateLimiterFalse')}
                                 />
-                                    <FormattedMessage
-                                        id='admin.rate.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.rate.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -280,10 +280,10 @@ class RateSettings extends React.Component {
                                     onChange={this.handleChange.bind(this, 'VaryByRemoteAddrTrue')}
                                     disabled={!this.state.EnableRateLimiter}
                                 />
-                                    <FormattedMessage
-                                        id='admin.rate.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.rate.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -294,10 +294,10 @@ class RateSettings extends React.Component {
                                     onChange={this.handleChange.bind(this, 'VaryByRemoteAddrFalse')}
                                     disabled={!this.state.EnableRateLimiter}
                                 />
-                                    <FormattedMessage
-                                        id='admin.rate.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.rate.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

@@ -478,11 +478,11 @@ export default class ChannelHeader extends React.Component {
                                         overlay={popoverContent}
                                         ref='headerOverlay'
                                     >
-                                    <div
-                                        onClick={TextFormatting.handleClick}
-                                        className='description'
-                                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false})}}
-                                    />
+                                        <div
+                                            onClick={TextFormatting.handleClick}
+                                            className='description'
+                                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false})}}
+                                        />
                                     </OverlayTrigger>
                                 </div>
                             </th>

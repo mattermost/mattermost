@@ -592,10 +592,10 @@ class FileSettings extends React.Component {
                                     defaultChecked={this.props.config.FileSettings.EnablePublicLink}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.image.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.image.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -605,10 +605,10 @@ class FileSettings extends React.Component {
                                     defaultChecked={!this.props.config.FileSettings.EnablePublicLink}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.image.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.image.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

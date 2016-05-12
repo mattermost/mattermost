@@ -149,6 +149,7 @@ export default class TutorialIntroScreens extends React.Component {
                     <a
                         href={'mailto:' + global.window.mm_config.SupportEmail}
                         target='_blank'
+                        rel='noopener noreferrer'
                     >
                         {global.window.mm_config.SupportEmail}
                     </a>

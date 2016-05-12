@@ -59,6 +59,7 @@ export default class PremadeThemeChooser extends React.Component {
                         <a
                             href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
                             target='_blank'
+                            rel='noopener noreferrer'
                         >
                             <FormattedMessage
                                 id='user.settings.display.theme.otherThemes'

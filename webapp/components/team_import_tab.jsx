@@ -123,7 +123,8 @@ class TeamImportTab extends React.Component {
         return (
             <div>
                 <div className='modal-header'>
-                    <button type='button'
+                    <button
+                        type='button'
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'

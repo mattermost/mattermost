@@ -289,10 +289,10 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={this.state.unreadLevel === 'all'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'all')}
                             />
-                                <FormattedMessage
-                                    id='channel_notifications.allUnread'
-                                    defaultMessage='For all unread messages'
-                                />
+                            <FormattedMessage
+                                id='channel_notifications.allUnread'
+                                defaultMessage='For all unread messages'
+                            />
                         </label>
                         <br/>
                     </div>

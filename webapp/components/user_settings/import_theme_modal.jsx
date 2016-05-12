@@ -81,7 +81,7 @@ class ImportThemeModal extends React.Component {
         theme.mentionHighlightLink = '#2f81b7';
         theme.codeTheme = 'github';
 
-        let user = UserStore.getCurrentUser();
+        const user = UserStore.getCurrentUser();
         user.theme_props = theme;
 
         Client.updateUser(user,

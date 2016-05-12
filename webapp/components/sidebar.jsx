@@ -640,13 +640,13 @@ export default class Sidebar extends React.Component {
                                     placement='top'
                                     overlay={createChannelTootlip}
                                 >
-                                <a
-                                    className='add-channel-btn'
-                                    href='#'
-                                    onClick={this.showNewChannelModal.bind(this, 'O')}
-                                >
-                                    {'+'}
-                                </a>
+                                    <a
+                                        className='add-channel-btn'
+                                        href='#'
+                                        onClick={this.showNewChannelModal.bind(this, 'O')}
+                                    >
+                                        {'+'}
+                                    </a>
                                 </OverlayTrigger>
                             </h4>
                         </li>
@@ -677,13 +677,13 @@ export default class Sidebar extends React.Component {
                                     placement='top'
                                     overlay={createGroupTootlip}
                                 >
-                                <a
-                                    className='add-channel-btn'
-                                    href='#'
-                                    onClick={this.showNewChannelModal.bind(this, 'P')}
-                                >
-                                    {'+'}
-                                </a>
+                                    <a
+                                        className='add-channel-btn'
+                                        href='#'
+                                        onClick={this.showNewChannelModal.bind(this, 'P')}
+                                    >
+                                        {'+'}
+                                    </a>
                                 </OverlayTrigger>
                             </h4>
                         </li>

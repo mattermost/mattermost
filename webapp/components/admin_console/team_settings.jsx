@@ -473,10 +473,10 @@ class TeamSettings extends React.Component {
                                     defaultChecked={this.props.config.TeamSettings.EnableTeamCreation}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.team.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.team.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -486,10 +486,10 @@ class TeamSettings extends React.Component {
                                     defaultChecked={!this.props.config.TeamSettings.EnableTeamCreation}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.team.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.team.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -520,10 +520,10 @@ class TeamSettings extends React.Component {
                                     defaultChecked={this.props.config.TeamSettings.EnableUserCreation}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.team.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.team.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -533,10 +533,10 @@ class TeamSettings extends React.Component {
                                     defaultChecked={!this.props.config.TeamSettings.EnableUserCreation}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.team.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.team.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -567,10 +567,10 @@ class TeamSettings extends React.Component {
                                     defaultChecked={this.props.config.TeamSettings.EnableOpenServer}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.team.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.team.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -580,10 +580,10 @@ class TeamSettings extends React.Component {
                                     defaultChecked={!this.props.config.TeamSettings.EnableOpenServer}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.team.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.team.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage
@@ -643,10 +643,10 @@ class TeamSettings extends React.Component {
                                     defaultChecked={this.props.config.TeamSettings.RestrictTeamNames}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.team.true'
-                                        defaultMessage='true'
-                                    />
+                                <FormattedMessage
+                                    id='admin.team.true'
+                                    defaultMessage='true'
+                                />
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -656,10 +656,10 @@ class TeamSettings extends React.Component {
                                     defaultChecked={!this.props.config.TeamSettings.RestrictTeamNames}
                                     onChange={this.handleChange}
                                 />
-                                    <FormattedMessage
-                                        id='admin.team.false'
-                                        defaultMessage='false'
-                                    />
+                                <FormattedMessage
+                                    id='admin.team.false'
+                                    defaultMessage='false'
+                                />
                             </label>
                             <p className='help-text'>
                                 <FormattedMessage

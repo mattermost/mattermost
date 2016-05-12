@@ -112,7 +112,7 @@ class CreateComment extends React.Component {
             return;
         }
 
-        let post = {};
+        const post = {};
         post.filenames = [];
         post.message = this.state.messageText;
 
@@ -145,7 +145,7 @@ class CreateComment extends React.Component {
                 AsyncClient.getPosts(this.props.channelId);
 
                 const channel = ChannelStore.get(this.props.channelId);
-                let member = ChannelStore.getMember(this.props.channelId);
+                const member = ChannelStore.getMember(this.props.channelId);
                 member.msg_count = channel.total_msg_count;
                 member.last_viewed_at = Date.now();
                 ChannelStore.setChannelMember(member);
@@ -192,7 +192,7 @@ class CreateComment extends React.Component {
         GlobalActions.emitLocalUserTypingEvent(this.props.channelId, this.props.rootId);
     }
     handleUserInput(messageText) {
-        let draft = PostStore.getCommentDraft(this.props.rootId);
+        const draft = PostStore.getCommentDraft(this.props.rootId);
         draft.message = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
@@ -240,7 +240,7 @@ class CreateComment extends React.Component {
         this.focusTextbox();
     }
     handleUploadStart(clientIds) {
-        let draft = PostStore.getCommentDraft(this.props.rootId);
+        const draft = PostStore.getCommentDraft(this.props.rootId);
 
         draft.uploadsInProgress = draft.uploadsInProgress.concat(clientIds);
         PostStore.storeCommentDraft(this.props.rootId, draft);
@@ -252,7 +252,7 @@ class CreateComment extends React.Component {
         this.focusTextbox();
     }
     handleFileUploadComplete(filenames, clientIds) {
-        let draft = PostStore.getCommentDraft(this.props.rootId);
+        const draft = PostStore.getCommentDraft(this.props.rootId);
 
         // remove each finished file from uploads
         for (let i = 0; i < clientIds.length; i++) {
@@ -272,7 +272,7 @@ class CreateComment extends React.Component {
         if (clientId === -1) {
             this.setState({serverError: err});
         } else {
-            let draft = PostStore.getCommentDraft(this.props.rootId);
+            const draft = PostStore.getCommentDraft(this.props.rootId);
 
             const index = draft.uploadsInProgress.indexOf(clientId);
             if (index !== -1) {
@@ -285,8 +285,8 @@ class CreateComment extends React.Component {
         }
     }
     removePreview(id) {
-        let previews = this.state.previews;
-        let uploadsInProgress = this.state.uploadsInProgress;
+        const previews = this.state.previews;
+        const uploadsInProgress = this.state.uploadsInProgress;
 
         // id can either be the path of an uploaded file or the client id of an in progress upload
         let index = previews.indexOf(id);
@@ -301,7 +301,7 @@ class CreateComment extends React.Component {
             previews.splice(index, 1);
         }
 
-        let draft = PostStore.getCommentDraft(this.props.rootId);
+        const draft = PostStore.getCommentDraft(this.props.rootId);
         draft.previews = previews;
         draft.uploadsInProgress = uploadsInProgress;
         PostStore.storeCommentDraft(this.props.rootId, draft);

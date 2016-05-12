@@ -149,12 +149,12 @@ class FileAttachment extends React.Component {
         if (this.state.fileSize < 0) {
             Client.getFileInfo(
                 filename,
-                function success(data) {
+                (data) => {
                     if (this.canSetState) {
                         this.setState({fileSize: parseInt(data.size, 10)});
                     }
-                }.bind(this),
-                function error() {
+                },
+                () => {
                     // Do nothing
                 }
             );
@@ -175,7 +175,8 @@ class FileAttachment extends React.Component {
                 className='post-image__column'
                 key={filename}
             >
-                <a className='post-image__thumbnail'
+                <a
+                    className='post-image__thumbnail'
                     href='#'
                     onClick={() => this.props.handleImageClick(this.props.index)}
                 >
@@ -186,9 +187,10 @@ class FileAttachment extends React.Component {
                         href={fileUrl}
                         download={filenameString}
                         data-toggle='tooltip'
-                        title={this.props.intl.formatMessage(holders.download) + ' \"' + filenameString + '\"'}
+                        title={this.props.intl.formatMessage(holders.download) + ' "' + filenameString + '"'}
                         className='post-image__name'
                         target='_blank'
+                        rel='noopener noreferrer'
                     >
                         {trimmedFilename}
                     </a>
@@ -198,6 +200,7 @@ class FileAttachment extends React.Component {
                             download={filenameString}
                             className='post-image__download'
                             target='_blank'
+                            rel='noopener noreferrer'
                         >
                             <span
                                 className='fa fa-download'

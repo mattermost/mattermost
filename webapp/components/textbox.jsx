@@ -211,6 +211,7 @@ export default class Textbox extends React.Component {
                     {previewLink}
                     <a
                         target='_blank'
+                        rel='noopener noreferrer'
                         href='http://docs.mattermost.com/help/getting-started/messaging-basics.html'
                         className='textbox-help-link'
                     >

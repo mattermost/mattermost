@@ -33,8 +33,8 @@ export default class NotLoggedIn extends React.Component {
                                 id='help_link'
                                 className='pull-right footer-link'
                                 target='_blank'
+                                rel='noopener noreferrer'
                                 href={global.window.mm_config.HelpLink}
-                                rel='noreferrer'
                             >
                                 <FormattedMessage id='web.footer.help'/>
                             </a>
@@ -42,8 +42,8 @@ export default class NotLoggedIn extends React.Component {
                                 id='terms_link'
                                 className='pull-right footer-link'
                                 target='_blank'
+                                rel='noopener noreferrer'
                                 href={global.window.mm_config.TermsOfServiceLink}
-                                rel='noreferrer'
                             >
                                 <FormattedMessage id='web.footer.terms'/>
                             </a>
@@ -51,8 +51,8 @@ export default class NotLoggedIn extends React.Component {
                                 id='privacy_link'
                                 className='pull-right footer-link'
                                 target='_blank'
+                                rel='noopener noreferrer'
                                 href={global.window.mm_config.PrivacyPolicyLink}
-                                rel='noreferrer'
                             >
                                 <FormattedMessage id='web.footer.privacy'/>
                             </a>
@@ -60,8 +60,8 @@ export default class NotLoggedIn extends React.Component {
                                 id='about_link'
                                 className='pull-right footer-link'
                                 target='_blank'
+                                rel='noopener noreferrer'
                                 href={global.window.mm_config.AboutLink}
-                                rel='noreferrer'
                             >
                                 <FormattedMessage id='web.footer.about'/>
                             </a>

@@ -318,7 +318,7 @@ function parseSearchTerms(searchTerm) {
             termString = termString.substring(captured[0].length);
 
             // break the text up into words based on how the server splits them in SqlPostStore.SearchPosts and then discard empty terms
-            terms.push(...captured[0].split(/[ <>+\-\(\)\~\@]/).filter((term) => !!term));
+            terms.push(...captured[0].split(/[ <>+\-\(\)~@]/).filter((term) => !!term));
             continue;
         }
 

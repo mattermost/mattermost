@@ -224,8 +224,8 @@ export default class UserItem extends React.Component {
         let showMakeSystemAdmin = user.roles === '' || user.roles === 'admin';
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';
-        let mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
-        let showMfaReset = mfaEnabled && user.mfa_active;
+        const mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
+        const showMfaReset = mfaEnabled && user.mfa_active;
 
         if (user.delete_at > 0) {
             currentRoles = (
