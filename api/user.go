@@ -494,8 +494,11 @@ func getUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppErro
 		*utils.Cfg.EmailSettings.EnableSignInWithUsername && !onlyLdap,
 		*utils.Cfg.EmailSettings.EnableSignInWithEmail && !onlyLdap,
 		ldapAvailable,
-	); result.Err != nil {
-
+	); result.Err != nil && result.Err.Id == "store.sql_user.get_for_login.multiple_users" {
+		// don't fall back to LDAP in this case since we already know there's an LDAP user, but that it shouldn't work
+		result.Err.StatusCode = http.StatusBadRequest
+		return nil, result.Err
+	} else if result.Err != nil {
 		if !ldapAvailable {
 			// failed to find user and no LDAP server to fall back on
 			result.Err.StatusCode = http.StatusBadRequest
