@@ -1132,7 +1132,7 @@ export function getRecentAndNewUsersAnalytics(teamId) {
     );
 }
 
-export function listIncomingHooks(success) {
+export function listIncomingHooks() {
     if (isCallInProgress('listIncomingHooks')) {
         return;
     }
@@ -1148,10 +1148,6 @@ export function listIncomingHooks(success) {
                 teamId: Client.teamId,
                 incomingWebhooks: data
             });
-
-            if (success) {
-                success();
-            }
         },
         (err) => {
             callTracker.listIncomingHooks = 0;
@@ -1160,7 +1156,7 @@ export function listIncomingHooks(success) {
     );
 }
 
-export function listOutgoingHooks(success) {
+export function listOutgoingHooks() {
     if (isCallInProgress('listOutgoingHooks')) {
         return;
     }
@@ -1176,10 +1172,6 @@ export function listOutgoingHooks(success) {
                 teamId: Client.teamId,
                 outgoingWebhooks: data
             });
-
-            if (success) {
-                success();
-            }
         },
         (err) => {
             callTracker.listOutgoingHooks = 0;
@@ -1281,7 +1273,7 @@ export function regenOutgoingHookToken(id) {
     );
 }
 
-export function listTeamCommands(success) {
+export function listTeamCommands() {
     if (isCallInProgress('listTeamCommands')) {
         return;
     }
@@ -1297,10 +1289,6 @@ export function listTeamCommands(success) {
                 teamId: Client.teamId,
                 commands: data
             });
-
-            if (success) {
-                success();
-            }
         },
         (err) => {
             callTracker.listTeamCommands = 0;

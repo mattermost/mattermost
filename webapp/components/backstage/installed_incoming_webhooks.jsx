@@ -20,9 +20,11 @@ export default class InstalledIncomingWebhooks extends React.Component {
 
         this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
 
+        const teamId = TeamStore.getCurrentId();
+
         this.state = {
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks(TeamStore.getCurrentId()),
-            loading: true
+            incomingWebhooks: IntegrationStore.getIncomingWebhooks(teamId),
+            loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId)
         };
     }
 
@@ -30,9 +32,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
 
         if (window.mm_config.EnableIncomingWebhooks === 'true') {
-            AsyncClient.listIncomingHooks(() => {
-                this.setState({loading: false});
-            });
+            AsyncClient.listIncomingHooks();
         }
     }
 
@@ -41,8 +41,11 @@ export default class InstalledIncomingWebhooks extends React.Component {
     }
 
     handleIntegrationChange() {
+        const teamId = TeamStore.getCurrentId();
+
         this.setState({
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks(TeamStore.getCurrentId())
+            incomingWebhooks: IntegrationStore.getIncomingWebhooks(teamId),
+            loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId)
         });
     }
 

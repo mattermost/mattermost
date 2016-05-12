@@ -34,6 +34,10 @@ class IntegrationStore extends EventEmitter {
         this.emit(CHANGE_EVENT);
     }
 
+    hasReceivedIncomingWebhooks(teamId) {
+        return this.incomingWebhooks.has(teamId);
+    }
+
     getIncomingWebhooks(teamId) {
         return this.incomingWebhooks.get(teamId) || [];
     }
@@ -57,6 +61,10 @@ class IntegrationStore extends EventEmitter {
         incomingWebhooks = incomingWebhooks.filter((incomingWebhook) => incomingWebhook.id !== id);
 
         this.setIncomingWebhooks(teamId, incomingWebhooks);
+    }
+
+    hasReceivedOutgoingWebhooks(teamId) {
+        return this.outgoingWebhooks.has(teamId);
     }
 
     getOutgoingWebhooks(teamId) {
@@ -96,6 +104,10 @@ class IntegrationStore extends EventEmitter {
         outgoingWebhooks = outgoingWebhooks.filter((outgoingWebhook) => outgoingWebhook.id !== id);
 
         this.setOutgoingWebhooks(teamId, outgoingWebhooks);
+    }
+
+    hasReceivedCommands(teamId) {
+        return this.commands.has(teamId);
     }
 
     getCommands(teamId) {

@@ -21,9 +21,11 @@ export default class InstalledCommands extends React.Component {
         this.regenCommandToken = this.regenCommandToken.bind(this);
         this.deleteCommand = this.deleteCommand.bind(this);
 
+        const teamId = TeamStore.getCurrentId();
+
         this.state = {
-            commands: IntegrationStore.getCommands(TeamStore.getCurrentId()),
-            loading: true
+            commands: IntegrationStore.getCommands(teamId),
+            loading: !IntegrationStore.hasReceivedCommands(teamId)
         };
     }
 
@@ -31,9 +33,7 @@ export default class InstalledCommands extends React.Component {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
 
         if (window.mm_config.EnableCommands === 'true') {
-            AsyncClient.listTeamCommands(() => {
-                this.setState({loading: false});
-            });
+            AsyncClient.listTeamCommands();
         }
     }
 
@@ -42,8 +42,11 @@ export default class InstalledCommands extends React.Component {
     }
 
     handleIntegrationChange() {
+        const teamId = TeamStore.getCurrentId();
+
         this.setState({
-            commands: IntegrationStore.getCommands(TeamStore.getCurrentId())
+            commands: IntegrationStore.getCommands(teamId),
+            loading: !IntegrationStore.hasReceivedCommands(teamId)
         });
     }
 
