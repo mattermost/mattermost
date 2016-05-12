@@ -321,8 +321,7 @@ describe('Client.User', function() {
                 function() {
                     throw Error('shouldnt work');
                 },
-                function(err) {
-                    assert.equal(err.id, 'ent.ldap.do_login.licence_disable.app_error');
+                function() {
                     done();
                 }
             );
@@ -547,8 +546,7 @@ describe('Client.User', function() {
                 function() {
                     done(new Error('not enabled'));
                 },
-                function(err) {
-                    assert.equal(err.id, 'ent.mfa.license_disable.app_error');
+                function() {
                     done();
                 }
             );

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"html/template"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"os/signal"
 	"runtime"
 	"strconv"
@@ -44,6 +46,7 @@ var flagCmdCreateUser bool
 var flagCmdAssignRole bool
 var flagCmdJoinTeam bool
 var flagCmdVersion bool
+var flagCmdRunClientTests bool
 var flagCmdResetPassword bool
 var flagCmdResetMfa bool
 var flagCmdPermanentDeleteUser bool
@@ -260,6 +263,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
+	flag.BoolVar(&flagCmdRunClientTests, "run_client_tests", false, "")
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
 	flag.BoolVar(&flagCmdResetMfa, "reset_mfa", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteUser, "permanent_delete_user", false, "")
@@ -277,6 +281,7 @@ func parseCmds() {
 		flagCmdResetPassword ||
 		flagCmdResetMfa ||
 		flagCmdVersion ||
+		flagCmdRunClientTests ||
 		flagCmdPermanentDeleteUser ||
 		flagCmdPermanentDeleteTeam ||
 		flagCmdPermanentDeleteAllUsers ||
@@ -286,6 +291,7 @@ func parseCmds() {
 
 func runCmds() {
 	cmdVersion()
+	cmdRunClientTests()
 	cmdCreateTeam()
 	cmdCreateUser()
 	cmdAssignRole()
@@ -302,6 +308,41 @@ func runCmds() {
 type TeamForUpgrade struct {
 	Id   string
 	Name string
+}
+
+func setupClientTests() {
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
+}
+
+func runClientTests() {
+	os.Chdir("webapp")
+	cmd := exec.Command("npm", "test")
+	cmdOutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		l4g.Error("Failed to run tests")
+		os.Exit(1)
+	}
+
+	cmdOutReader := bufio.NewScanner(cmdOutPipe)
+	go func() {
+		for cmdOutReader.Scan() {
+			fmt.Println(cmdOutReader.Text())
+		}
+	}()
+
+	if err := cmd.Run(); err != nil {
+		l4g.Error("Client Tests failed")
+		os.Exit(1)
+	}
+}
+
+func cmdRunClientTests() {
+	if flagCmdRunClientTests {
+		setupClientTests()
+		api.StartServer()
+		runClientTests()
+		api.StopServer()
+	}
 }
 
 // ADDED for 3.0 REMOVE for 3.4

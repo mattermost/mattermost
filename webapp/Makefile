@@ -1,9 +1,14 @@
-.PHONY: build test run clean stop
+.PHONY: build test run clean stop check-style run-unit
 
-test: .npminstall
+BUILD_SERVER_DIR = ..
+
+check-style: .npminstall
 	@echo Checking for style guide compliance
 
 	npm run check
+
+test: .npminstall
+	cd $(BUILD_SERVER_DIR) && $(MAKE) internal-test-client
 
 .npminstall: package.json
 	@echo Getting dependencies using npm
@@ -12,7 +17,7 @@ test: .npminstall
 
 	touch $@
 
-build: | .npminstall test
+build: .npminstall
 	@echo Building mattermost Webapp
 
 	npm run build
