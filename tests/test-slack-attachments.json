@@ -39,6 +39,11 @@
                         "short": true,
                         "title": "Short 2",
                         "value": "Another one"
+                    },
+                    {
+                        "short": true,
+                        "title": "Field with link",
+                        "value": "<http://example.com|Link>"
                     }
                 ],
                 "mrkdwn_in": [
