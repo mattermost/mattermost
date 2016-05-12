@@ -166,11 +166,19 @@ export default class Navbar extends React.Component {
             let nextIndex = curIndex;
             if (e.keyCode === Constants.KeyCodes.DOWN) {
                 nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
+                while (allChannels[nextIndex].type !== allChannels[curIndex].type && nextIndex < allChannels.length) {
+                    nextIndex = nextIndex + 1;
+                }
             } else if (e.keyCode === Constants.KeyCodes.UP) {
                 nextIndex = Math.max(curIndex - 1, 0);
+                while (allChannels[nextIndex].type !== allChannels[curIndex].type && nextIndex > 0) {
+                    nextIndex = nextIndex - 1;
+                }
             }
-            nextChannel = allChannels[nextIndex];
-            GlobalActions.emitChannelClickEvent(nextChannel);
+            if (nextIndex !== curIndex) {
+                nextChannel = allChannels[nextIndex];
+                GlobalActions.emitChannelClickEvent(nextChannel);
+            }
         }
 
         if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
