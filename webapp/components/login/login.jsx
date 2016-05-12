@@ -85,8 +85,7 @@ export default class Login extends React.Component {
                     browserHistory.push('/should_verify_email?&email=' + encodeURIComponent(loginId));
                     return;
                 } else if (err.id === 'store.sql_user.get_for_login.app_error' ||
-                    err.id === 'ent.ldap.do_login.user_not_registered.app_error' ||
-                    err.id === 'ent.ldap.do_login.user_filtered.app_error') {
+                    err.id === 'ent.ldap.do_login.user_not_registered.app_error') {
                     this.setState({
                         showMfa: false,
                         serverError: (
