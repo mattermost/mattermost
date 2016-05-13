@@ -70,6 +70,6 @@
     "build": "NODE_ENV=production webpack",
     "run": "NODE_ENV=production webpack --progress --watch",
     "run-fullmap": "webpack --progress --watch",
-    "test": "mocha-webpack --webpack-config webpack.config-test.js \"**/*.test.jsx\""
+    "test": "mocha-webpack --webpack-config webpack.config.js \"**/*.test.jsx\""
   }
 }
