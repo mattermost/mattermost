@@ -219,6 +219,7 @@ export default class PostInfo extends React.Component {
                     <TimeSince
                         eventTime={post.create_at}
                         sameUser={this.props.sameUser}
+                        compactDisplay={this.props.compactDisplay}
                     />
                 </li>
                 <li className='col col__reply'>
@@ -250,5 +251,6 @@ PostInfo.propTypes = {
     allowReply: React.PropTypes.string.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     sameUser: React.PropTypes.bool.isRequired,
-    currentUser: React.PropTypes.object.isRequired
+    currentUser: React.PropTypes.object.isRequired,
+    compactDisplay: React.PropTypes.bool
 };

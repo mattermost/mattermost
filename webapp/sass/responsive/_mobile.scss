@@ -45,6 +45,11 @@
     }
 
     .post {
+        &.post--compact {
+
+
+        }
+
         .post__dropdown {
             display: inline-block;
             height: 20px;

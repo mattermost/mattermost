@@ -448,7 +448,7 @@
             @include opacity(.8);
             float: right;
             margin-right: 3px;
-            margin-top: 12px;
+            margin-top: 8px;
         }
 
         .member-select__container {
@@ -459,7 +459,7 @@
             select {
                 @include opacity(.8);
                 float: right;
-                margin: 5px 5px 0 2px;
+                margin: 1px 5px 0 2px;
                 width: auto;
             }
         }

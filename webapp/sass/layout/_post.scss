@@ -417,7 +417,8 @@ body.ios {
     .post-create-footer {
         @include clearfix;
         font-size: 13px;
-        padding: 3px 0 0 0;
+        padding: 3px 0 0;
+
         .control-label {
             font-weight: normal;
             margin-bottom: 0;
@@ -480,6 +481,79 @@ body.ios {
 
     &.post--highlight {
         background-color: beige;
+    }
+
+    &.post--compact {
+
+        .markdown__heading {
+            font-size: 1em;
+            margin: 0 0 7px;
+        }
+
+        .post__body {
+            background: transparent !important;
+            margin-top: -1px;
+            padding: 3px 0;
+        }
+
+        .post-image__columns {
+            clear: both;
+        }
+
+        .post-image__column {
+            @include border-radius(2px);
+            font-size: .9em;
+            height: 26px;
+            line-height: 25px;
+            padding: 0 7px;
+
+            .post-image__thumbnail {
+                display: none;
+            }
+
+            .post-image__details {
+                background: transparent;
+                border: none;
+                padding: 0;
+                width: 100%;
+
+                > div {
+                    display: none;
+                }
+            }
+
+            .post-image__name {
+                @include clearfix;
+                display: block;
+                margin: 0;
+                padding-right: 10px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
+                i {
+                    font-size: .9em;
+                    margin-right: 5px;
+                    opacity: .5;
+                }
+            }
+
+            a {
+                &:hover {
+                    text-decoration: none;
+                }
+            }
+        }
+
+        .post__img {
+            padding-top: 3px;
+            width: 28px;
+
+            img,
+            svg {
+                height: 20px;
+                width: 20px;
+            }
+        }
     }
 
     p {
