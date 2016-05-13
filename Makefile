@@ -189,15 +189,15 @@ endif
 
 build-linux: .prebuild prepare-enterprise
 	@echo Build Linux amd64
-	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/)
 
 build-osx: .prebuild prepare-enterprise
 	@echo Build OSX amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=darwin GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/) 
 
 build-windows: .prebuild prepare-enterprise
 	@echo Build Windows amd64
-	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/) 
 
 build: build-linux build-windows build-osx
 
