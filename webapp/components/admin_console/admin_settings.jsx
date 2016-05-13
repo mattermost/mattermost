@@ -19,6 +19,8 @@ export default class AdminSettings extends React.Component {
     constructor(props) {
         super(props);
 
+        this.canSave = this.canSave.bind(this);
+
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
 
@@ -103,7 +105,7 @@ export default class AdminSettings extends React.Component {
                             <FormError error={this.state.serverError}/>
                             <SaveButton
                                 saving={this.state.saving}
-                                disabled={!this.state.saveNeeded}
+                                disabled={!this.state.saveNeeded || (this.canSave && !this.canSave())}
                                 onClick={this.handleSubmit}
                             />
                         </div>
