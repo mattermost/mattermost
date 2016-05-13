@@ -27,16 +27,16 @@ type TestHelper struct {
 	SystemAdminChannel *model.Channel
 }
 
-func SetupEnterprise(platformDir string) *TestHelper {
+func SetupEnterprise() *TestHelper {
 	if Srv == nil {
-		utils.LoadConfig(platformDir + "/config/config.json")
-		utils.InitTranslationsWithDir(platformDir + "/i18n")
+		utils.LoadConfig("config.json")
+		utils.InitTranslations()
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		utils.DisableDebugLogForTest()
 		utils.License.Features.SetDefaults()
 		NewServer()
 		StartServer()
-		utils.InitHTMLWithDir(platformDir + "/templates")
+		utils.InitHTML()
 		InitApi()
 		utils.EnableDebugLogForTest()
 		Srv.Store.MarkSystemRanUnitTests()

@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package fixed implements fixed-point integer types.
-package fixed
+package fixed // import "golang.org/x/image/math/fixed"
 
 import (
 	"fmt"

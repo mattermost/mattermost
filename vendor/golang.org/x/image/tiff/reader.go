@@ -5,7 +5,7 @@
 // Package tiff implements a TIFF image decoder and encoder.
 //
 // The TIFF specification is at http://partners.adobe.com/public/developer/en/tiff/TIFF6.pdf
-package tiff
+package tiff // import "golang.org/x/image/tiff"
 
 import (
 	"compress/zlib"

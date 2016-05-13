@@ -23,7 +23,6 @@ func binaryEncode(parameterStatus *parameterStatus, x interface{}) []byte {
 	default:
 		return encode(parameterStatus, x, oid.T_unknown)
 	}
-	panic("not reached")
 }
 
 func encode(parameterStatus *parameterStatus, x interface{}, pgtypOid oid.Oid) []byte {
@@ -76,7 +75,7 @@ func binaryDecode(parameterStatus *parameterStatus, s []byte, typ oid.Oid) inter
 		return int64(int16(binary.BigEndian.Uint16(s)))
 
 	default:
-		errorf("don't know how to decode binary parameter of type %u", uint32(typ))
+		errorf("don't know how to decode binary parameter of type %d", uint32(typ))
 	}
 
 	panic("not reached")

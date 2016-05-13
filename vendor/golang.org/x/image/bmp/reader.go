@@ -5,7 +5,7 @@
 // Package bmp implements a BMP image decoder and encoder.
 //
 // The BMP specification is at http://www.digicamsoft.com/bmp/bmp.html.
-package bmp
+package bmp // import "golang.org/x/image/bmp"
 
 import (
 	"errors"

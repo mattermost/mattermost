@@ -7,7 +7,7 @@
 //
 // Other packages provide font face implementations. For example, a truetype
 // package would provide one based on .ttf font files.
-package font
+package font // import "golang.org/x/image/font"
 
 import (
 	"image"

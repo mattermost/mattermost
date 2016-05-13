@@ -74,4 +74,4 @@
 // The BSD 3-clause license. Copyright (c) 2014 Martin Angers and Contributors.
 //    http://opensource.org/licenses/BSD-3-Clause
 //
-package throttled
+package throttled // import "gopkg.in/throttled/throttled.v1"

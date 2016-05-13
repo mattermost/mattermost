@@ -8,7 +8,7 @@
 //
 // In particular, it implements LZW as used by the TIFF file format, including
 // an "off by one" algorithmic difference when compared to standard LZW.
-package lzw
+package lzw // import "golang.org/x/image/tiff/lzw"
 
 /*
 This file was branched from src/pkg/compress/lzw/reader.go in the

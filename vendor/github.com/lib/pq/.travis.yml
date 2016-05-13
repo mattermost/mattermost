@@ -37,6 +37,7 @@ before_install:
   - sudo cat /etc/postgresql/$PGVERSION/main/postgresql.conf
   - sudo chmod 600 $PQSSLCERTTEST_PATH/postgresql.key
   - sudo /etc/init.d/postgresql restart
+  - go get golang.org/x/tools/cmd/goimports
 
 env:
   global:
@@ -59,7 +60,7 @@ env:
     - PGVERSION=9.0 PQTEST_BINARY_PARAMETERS=no
 
 script:
- - go test -v ./...
+ - result=$(goimports -d -e $(find -name \*.go)); test -z "$result" || (echo "$result" && false) && go vet ./... && go test -v ./...
 
 before_script:
  - psql -c 'create database pqgotest' -U postgres
