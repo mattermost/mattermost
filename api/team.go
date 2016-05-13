@@ -266,6 +266,10 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 		return tmr.Err
 	}
 
+	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
+		return uua.Err
+	}
+
 	// Soft error if there is an issue joining the default channels
 	if err := JoinDefaultChannels(team.Id, user, channelRole); err != nil {
 		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)

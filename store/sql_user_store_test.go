@@ -105,6 +105,30 @@ func TestUserStoreUpdate(t *testing.T) {
 	}
 }
 
+func TestUserStoreUpdateUpdateAt(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
+
+	time.Sleep(10 * time.Millisecond)
+
+	if err := (<-store.User().UpdateUpdateAt(u1.Id)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 := <-store.User().Get(u1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.User).UpdateAt <= u1.UpdateAt {
+			t.Fatal("UpdateAt not updated correctly")
+		}
+	}
+
+}
+
 func TestUserStoreUpdateLastPingAt(t *testing.T) {
 	Setup()
 
