@@ -7,9 +7,13 @@ import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
-import {FormattedMessage} from 'react-intl';
+import DropdownSetting from './dropdown_setting.jsx';
+import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
+
+const RESTRICT_DIRECT_MESSAGE_ANY = 'any';
+const RESTRICT_DIRECT_MESSAGE_TEAM = 'team';
 
 export default class UsersAndTeamsSettings extends AdminSettings {
     constructor(props) {
@@ -24,7 +28,8 @@ export default class UsersAndTeamsSettings extends AdminSettings {
             enableTeamCreation: props.config.TeamSettings.EnableTeamCreation,
             maxUsersPerTeam: props.config.TeamSettings.MaxUsersPerTeam,
             restrictCreationToDomains: props.config.TeamSettings.RestrictCreationToDomains,
-            restrictTeamNames: props.config.TeamSettings.RestrictTeamNames
+            restrictTeamNames: props.config.TeamSettings.RestrictTeamNames,
+            restrictDirectMessage: props.config.TeamSettings.RestrictDirectMessage
         });
     }
 
@@ -34,6 +39,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.MaxUsersPerTeam = this.parseIntNonZero(this.state.maxUsersPerTeam);
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
         config.TeamSettings.RestrictTeamNames = this.state.restrictTeamNames;
+        config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
 
         return config;
     }
@@ -144,6 +150,27 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                         />
                     }
                     value={this.state.restrictTeamNames}
+                    onChange={this.handleChange}
+                />
+                <DropdownSetting
+                    id='restrictDirectMessage'
+                    values={[
+                        {value: RESTRICT_DIRECT_MESSAGE_ANY, text: Utils.localizeMessage('admin.team.restrict_direct_message_any', 'Any user on the Mattermost server')},
+                        {value: RESTRICT_DIRECT_MESSAGE_TEAM, text: Utils.localizeMessage('admin.team.restrict_direct_message_team', 'Any member of the team')}
+                    ]}
+                    label={
+                        <FormattedMessage
+                            id='admin.team.restrictDirectMessage'
+                            defaultMessage='Enable users to open Direct Message channels with:'
+                        />
+                    }
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.team.restrictDirectMessageDesc'
+                            defaultMessage='"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability to open Direct Message channels to only users who are in the same team.'
+                        />
+                    }
+                    value={this.state.restrictDirectMessage}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>
