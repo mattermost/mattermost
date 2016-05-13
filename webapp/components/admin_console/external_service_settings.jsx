@@ -10,7 +10,7 @@ import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class ExternalServiceSettingsPage extends AdminSettings {
+export default class ExternalServiceSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -44,26 +44,6 @@ export class ExternalServiceSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <ExternalServiceSettings
-                segmentDeveloperKey={this.state.segmentDeveloperKey}
-                googleDeveloperKey={this.state.googleDeveloperKey}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class ExternalServiceSettings extends React.Component {
-    static get propTypes() {
-        return {
-            segmentDeveloperKey: React.PropTypes.string.isRequired,
-            googleDeveloperKey: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -87,8 +67,8 @@ export class ExternalServiceSettings extends React.Component {
                             defaultMessage='For users running a SaaS services, sign up for a key at Segment.com to track metrics.'
                         />
                     }
-                    value={this.props.segmentDeveloperKey}
-                    onChange={this.props.onChange}
+                    value={this.state.segmentDeveloperKey}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='googleDeveloperKey'
@@ -105,8 +85,8 @@ export class ExternalServiceSettings extends React.Component {
                             defaultMessage='Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at <a href="https://www.youtube.com/watch?v=Im69kzhpR3I" target="_blank">https://www.youtube.com/watch?v=Im69kzhpR3I</a>. Leaving the field blank disables the automatic generation of YouTube video previews from links.'
                         />
                     }
-                    value={this.props.googleDeveloperKey}
-                    onChange={this.props.onChange}
+                    value={this.state.googleDeveloperKey}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

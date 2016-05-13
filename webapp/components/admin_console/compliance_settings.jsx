@@ -11,7 +11,7 @@ import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class ComplianceSettingsPage extends AdminSettings {
+export default class ComplianceSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -46,28 +46,6 @@ export class ComplianceSettingsPage extends AdminSettings {
     }
 
     renderSettings() {
-        return (
-            <ComplianceSettings
-                enable={this.state.enable}
-                directory={this.state.directory}
-                enableDaily={this.state.enableDaily}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class ComplianceSettings extends React.Component {
-    static get propTypes() {
-        return {
-            enable: React.PropTypes.bool.isRequired,
-            directory: React.PropTypes.string.isRequired,
-            enableDaily: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
         const licenseEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.Compliance === 'true';
 
         let bannerContent;
@@ -101,8 +79,8 @@ export class ComplianceSettings extends React.Component {
                             defaultMessage='When true, Mattermost allows compliance reporting'
                         />
                     }
-                    value={this.props.enable}
-                    onChange={this.props.onChange}
+                    value={this.state.enable}
+                    onChange={this.handleChange}
                     disabled={!licenseEnabled}
                 />
                 <TextSetting
@@ -120,9 +98,9 @@ export class ComplianceSettings extends React.Component {
                             defaultMessage='Directory to which compliance reports are written. If blank, will be set to ./data/.'
                         />
                     }
-                    value={this.props.directory}
-                    onChange={this.props.onChange}
-                    disabled={!licenseEnabled || !this.props.enable}
+                    value={this.state.directory}
+                    onChange={this.handleChange}
+                    disabled={!licenseEnabled || !this.state.enable}
                 />
                 <BooleanSetting
                     id='enableDaily'
@@ -138,9 +116,9 @@ export class ComplianceSettings extends React.Component {
                             defaultMessage='When true, Mattermost will generate a daily compliance report.'
                         />
                     }
-                    value={this.props.enableDaily}
-                    onChange={this.props.onChange}
-                    disabled={!licenseEnabled || !this.props.enable}
+                    value={this.state.enableDaily}
+                    onChange={this.handleChange}
+                    disabled={!licenseEnabled || !this.state.enable}
                 />
             </SettingsGroup>
         );

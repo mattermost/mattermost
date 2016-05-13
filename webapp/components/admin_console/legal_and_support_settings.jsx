@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class LegalAndSupportSettingsPage extends AdminSettings {
+export default class LegalAndSupportSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -50,34 +50,6 @@ export class LegalAndSupportSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <LegalAndSupportSettings
-                termsOfServiceLink={this.state.termsOfServiceLink}
-                privacyPolicyLink={this.state.privacyPolicyLink}
-                aboutLink={this.state.aboutLink}
-                helpLink={this.state.helpLink}
-                reportAProblemLink={this.state.reportAProblemLink}
-                supportEmail={this.state.supportEmail}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class LegalAndSupportSettings extends React.Component {
-    static get propTypes() {
-        return {
-            termsOfServiceLink: React.PropTypes.string.isRequired,
-            privacyPolicyLink: React.PropTypes.string.isRequired,
-            aboutLink: React.PropTypes.string.isRequired,
-            helpLink: React.PropTypes.string.isRequired,
-            reportAProblemLink: React.PropTypes.string.isRequired,
-            supportEmail: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -100,8 +72,8 @@ export class LegalAndSupportSettings extends React.Component {
                             defaultMessage='Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
                         />
                     }
-                    value={this.props.termsOfServiceLink}
-                    onChange={this.props.onChange}
+                    value={this.state.termsOfServiceLink}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='privacyPolicyLink'
@@ -117,8 +89,8 @@ export class LegalAndSupportSettings extends React.Component {
                             defaultMessage='Link to Privacy Policy available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
                         />
                     }
-                    value={this.props.privacyPolicyLink}
-                    onChange={this.props.onChange}
+                    value={this.state.privacyPolicyLink}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='aboutLink'
@@ -134,8 +106,8 @@ export class LegalAndSupportSettings extends React.Component {
                             defaultMessage='Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'
                         />
                     }
-                    value={this.props.aboutLink}
-                    onChange={this.props.onChange}
+                    value={this.state.aboutLink}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='helpLink'
@@ -151,8 +123,8 @@ export class LegalAndSupportSettings extends React.Component {
                             defaultMessage='Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.'
                         />
                     }
-                    value={this.props.helpLink}
-                    onChange={this.props.onChange}
+                    value={this.state.helpLink}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='reportAProblemLink'
@@ -168,8 +140,8 @@ export class LegalAndSupportSettings extends React.Component {
                             defaultMessage='Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.'
                         />
                     }
-                    value={this.props.reportAProblemLink}
-                    onChange={this.props.onChange}
+                    value={this.state.reportAProblemLink}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='supportEmail'
@@ -185,8 +157,8 @@ export class LegalAndSupportSettings extends React.Component {
                             defaultMessage='Email shown during tutorial for end users to ask support questions.'
                         />
                     }
-                    value={this.props.supportEmail}
-                    onChange={this.props.onChange}
+                    value={this.state.supportEmail}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

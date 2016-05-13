@@ -12,7 +12,7 @@ import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class EmailSettingsPage extends AdminSettings {
+export default class EmailSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -42,7 +42,7 @@ export class EmailSettingsPage extends AdminSettings {
         config.EmailSettings.SMTPServer = this.state.smtpServer;
         config.EmailSettings.SMTPPort = this.state.smtpPort;
         config.EmailSettings.ConnectionSecurity = this.state.connectionSecurity;
-        config.EmailSettings.EnableSecurityFixAlert = this.state.enableSecurityFixAlert;
+        config.ServiceSettings.EnableSecurityFixAlert = this.state.enableSecurityFixAlert;
 
         return config;
     }
@@ -59,40 +59,6 @@ export class EmailSettingsPage extends AdminSettings {
     }
 
     renderSettings() {
-        return (
-            <EmailSettings
-                sendEmailNotifications={this.state.sendEmailNotifications}
-                feedbackName={this.state.feedbackName}
-                feedbackEmail={this.state.feedbackEmail}
-                smtpUsername={this.state.smtpUsername}
-                smtpPassword={this.state.smtpPassword}
-                smtpServer={this.state.smtpServer}
-                smtpPort={this.state.smtpPort}
-                connectionSecurity={this.state.connectionSecurity}
-                enableSecurityFixAlert={this.state.enableSecurityFixAlert}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class EmailSettings extends React.Component {
-    static get propTypes() {
-        return {
-            sendEmailNotifications: React.PropTypes.bool.isRequired,
-            feedbackName: React.PropTypes.string.isRequired,
-            feedbackEmail: React.PropTypes.string.isRequired,
-            smtpUsername: React.PropTypes.string.isRequired,
-            smtpPassword: React.PropTypes.string.isRequired,
-            smtpServer: React.PropTypes.string.isRequired,
-            smtpPort: React.PropTypes.string.isRequired,
-            connectionSecurity: React.PropTypes.string.isRequired,
-            enableSecurityFixAlert: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
         return (
             <SettingsGroup
                 header={
@@ -116,8 +82,8 @@ export class EmailSettings extends React.Component {
                             defaultMessage='Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.<br />Setting this to true removes the Preview Mode banner (requires logging out and logging back in after setting is changed).'
                         />
                     }
-                    value={this.props.sendEmailNotifications}
-                    onChange={this.props.onChange}
+                    value={this.state.sendEmailNotifications}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='feedbackName'
@@ -134,9 +100,9 @@ export class EmailSettings extends React.Component {
                             defaultMessage='Display name on email account used when sending notification emails from Mattermost.'
                         />
                     }
-                    value={this.props.feedbackName}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.sendEmailNotifications}
+                    value={this.state.feedbackName}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
                 />
                 <TextSetting
                     id='feedbackEmail'
@@ -153,9 +119,9 @@ export class EmailSettings extends React.Component {
                             defaultMessage='Email address displayed on email account used when sending notification emails from Mattermost.'
                         />
                     }
-                    value={this.props.feedbackEmail}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.sendEmailNotifications}
+                    value={this.state.feedbackEmail}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
                 />
                 <TextSetting
                     id='smtpUsername'
@@ -172,9 +138,9 @@ export class EmailSettings extends React.Component {
                             defaultMessage=' Obtain this credential from administrator setting up your email server.'
                         />
                     }
-                    value={this.props.smtpUsername}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.sendEmailNotifications}
+                    value={this.state.smtpUsername}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
                 />
                 <TextSetting
                     id='smtpPassword'
@@ -191,9 +157,9 @@ export class EmailSettings extends React.Component {
                             defaultMessage=' Obtain this credential from administrator setting up your email server.'
                         />
                     }
-                    value={this.props.smtpPassword}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.sendEmailNotifications}
+                    value={this.state.smtpPassword}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
                 />
                 <TextSetting
                     id='smtpServer'
@@ -210,9 +176,9 @@ export class EmailSettings extends React.Component {
                             defaultMessage='Location of SMTP email server.'
                         />
                     }
-                    value={this.props.smtpServer}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.sendEmailNotifications}
+                    value={this.state.smtpServer}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
                 />
                 <TextSetting
                     id='smtpPort'
@@ -229,14 +195,14 @@ export class EmailSettings extends React.Component {
                             defaultMessage='Port of SMTP email server.'
                         />
                     }
-                    value={this.props.smtpPort}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.sendEmailNotifications}
+                    value={this.state.smtpPort}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
                 />
                 <ConnectionSecurityDropdownSetting
-                    value={this.props.connectionSecurity}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.sendEmailNotifications}
+                    value={this.state.connectionSecurity}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
                 />
                 <BooleanSetting
                     id='enableSecurityFixAlert'
@@ -252,8 +218,8 @@ export class EmailSettings extends React.Component {
                             defaultMessage='When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'
                         />
                     }
-                    value={this.props.enableSecurityFixAlert}
-                    onChange={this.props.onChange}
+                    value={this.state.enableSecurityFixAlert}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

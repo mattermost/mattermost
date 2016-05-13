@@ -11,7 +11,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class ConnectionSettingsPage extends AdminSettings {
+export default class ConnectionSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -45,26 +45,6 @@ export class ConnectionSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <ConnectionSettings
-                allowCorsFrom={this.state.allowCorsFrom}
-                enableInsecureOutgoingConnections={this.state.enableInsecureOutgoingConnections}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class ConnectionSettings extends React.Component {
-    static get propTypes() {
-        return {
-            allowCorsFrom: React.PropTypes.string.isRequired,
-            enableInsecureOutgoingConnections: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -88,8 +68,8 @@ export class ConnectionSettings extends React.Component {
                             defaultMessage='Enable HTTP Cross origin request from a specific domain. Use "*" if you want to allow CORS from any domain or leave it blank to disable it.'
                         />
                     }
-                    value={this.props.allowCorsFrom}
-                    onChange={this.props.onChange}
+                    value={this.state.allowCorsFrom}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enableInsecureOutgoingConnections'
@@ -105,8 +85,8 @@ export class ConnectionSettings extends React.Component {
                             defaultMessage='When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.'
                         />
                     }
-                    value={this.props.enableInsecureOutgoingConnections}
-                    onChange={this.props.onChange}
+                    value={this.state.enableInsecureOutgoingConnections}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

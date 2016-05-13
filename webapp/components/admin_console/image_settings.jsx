@@ -10,7 +10,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class ImageSettingsPage extends AdminSettings {
+export default class ImageSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -52,52 +52,6 @@ export class ImageSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <ImageSettings
-                thumbnailWidth={this.state.thumbnailWidth}
-                thumbnailHeight={this.state.thumbnailHeight}
-                profileWidth={this.state.profileWidth}
-                profileHeight={this.state.profileHeight}
-                previewWidth={this.state.previewWidth}
-                previewHeight={this.state.previewHeight}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class ImageSettings extends React.Component {
-    static get propTypes() {
-        return {
-            thumbnailWidth: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            thumbnailHeight: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            profileWidth: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            profileHeight: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            previewWidth: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            previewHeight: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -121,8 +75,8 @@ export class ImageSettings extends React.Component {
                             defaultMessage='Width of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'
                         />
                     }
-                    value={this.props.thumbnailWidth}
-                    onChange={this.props.onChange}
+                    value={this.state.thumbnailWidth}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='thumbnailHeight'
@@ -139,8 +93,8 @@ export class ImageSettings extends React.Component {
                             defaultMessage='Height of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'
                         />
                     }
-                    value={this.props.thumbnailHeight}
-                    onChange={this.props.onChange}
+                    value={this.state.thumbnailHeight}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='profileWidth'
@@ -157,8 +111,8 @@ export class ImageSettings extends React.Component {
                             defaultMessage='Width of profile picture.'
                         />
                     }
-                    value={this.props.profileWidth}
-                    onChange={this.props.onChange}
+                    value={this.state.profileWidth}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='profileHeight'
@@ -175,8 +129,8 @@ export class ImageSettings extends React.Component {
                             defaultMessage='Height of profile picture.'
                         />
                     }
-                    value={this.props.profileHeight}
-                    onChange={this.props.onChange}
+                    value={this.state.profileHeight}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='previewWidth'
@@ -193,8 +147,8 @@ export class ImageSettings extends React.Component {
                             defaultMessage='Maximum width of preview image. Updating this value changes how preview images render in future, but does not change images created in the past.'
                         />
                     }
-                    value={this.props.previewWidth}
-                    onChange={this.props.onChange}
+                    value={this.state.previewWidth}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='previewHeight'
@@ -211,8 +165,8 @@ export class ImageSettings extends React.Component {
                             defaultMessage='Maximum height of preview image ("0": Sets to auto-size). Updating this value changes how preview images render in future, but does not change images created in the past.'
                         />
                     }
-                    value={this.props.previewHeight}
-                    onChange={this.props.onChange}
+                    value={this.state.previewHeight}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

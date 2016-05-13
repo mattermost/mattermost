@@ -8,7 +8,7 @@ import BooleanSetting from './boolean_setting.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 
-export class DeveloperSettingsPage extends AdminSettings {
+export default class DeveloperSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -42,26 +42,6 @@ export class DeveloperSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <DeveloperSettings
-                enableTesting={this.state.enableTesting}
-                enableDeveloper={this.state.enableDeveloper}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class DeveloperSettings extends React.Component {
-    static get propTypes() {
-        return {
-            enableTesting: React.PropTypes.bool.isRequired,
-            enableDeveloper: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup>
                 <BooleanSetting
                     id='enableTesting'
@@ -77,8 +57,8 @@ export class DeveloperSettings extends React.Component {
                             defaultMessage='(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'
                         />
                     }
-                    value={this.props.enableTesting}
-                    onChange={this.props.onChange}
+                    value={this.state.enableTesting}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enableDeveloper'
@@ -94,8 +74,8 @@ export class DeveloperSettings extends React.Component {
                             defaultMessage='(Developer Option) When true, extra information around errors will be displayed in the UI.'
                         />
                     }
-                    value={this.props.enableDeveloper}
-                    onChange={this.props.onChange}
+                    value={this.state.enableDeveloper}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

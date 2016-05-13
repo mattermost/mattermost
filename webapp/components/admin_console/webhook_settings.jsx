@@ -8,7 +8,7 @@ import BooleanSetting from './boolean_setting.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 
-export class WebhookSettingsPage extends AdminSettings {
+export default class WebhookSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -50,34 +50,6 @@ export class WebhookSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <WebhookSettings
-                enableIncomingWebhooks={this.state.enableIncomingWebhooks}
-                enableOutgoingWebhooks={this.state.enableOutgoingWebhooks}
-                enableCommands={this.state.enableCommands}
-                enableOnlyAdminIntegrations={this.state.enableOnlyAdminIntegrations}
-                enablePostUsernameOverride={this.state.enablePostUsernameOverride}
-                enablePostIconOverride={this.state.enablePostIconOverride}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class WebhookSettings extends React.Component {
-    static get propTypes() {
-        return {
-            enableIncomingWebhooks: React.PropTypes.bool.isRequired,
-            enableOutgoingWebhooks: React.PropTypes.bool.isRequired,
-            enableCommands: React.PropTypes.bool.isRequired,
-            enableOnlyAdminIntegrations: React.PropTypes.bool.isRequired,
-            enablePostUsernameOverride: React.PropTypes.bool.isRequired,
-            enablePostIconOverride: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -100,8 +72,8 @@ export class WebhookSettings extends React.Component {
                             defaultMessage='When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag.'
                         />
                     }
-                    value={this.props.enableIncomingWebhooks}
-                    onChange={this.props.onChange}
+                    value={this.state.enableIncomingWebhooks}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enableOutgoingWebhooks'
@@ -117,8 +89,8 @@ export class WebhookSettings extends React.Component {
                             defaultMessage='When true, outgoing webhooks will be allowed.'
                         />
                     }
-                    value={this.props.enableOutgoingWebhooks}
-                    onChange={this.props.onChange}
+                    value={this.state.enableOutgoingWebhooks}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enableCommands'
@@ -134,8 +106,8 @@ export class WebhookSettings extends React.Component {
                             defaultMessage='When true, user created slash commands will be allowed.'
                         />
                     }
-                    value={this.props.enableCommands}
-                    onChange={this.props.onChange}
+                    value={this.state.enableCommands}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enableOnlyAdminIntegrations'
@@ -151,8 +123,8 @@ export class WebhookSettings extends React.Component {
                             defaultMessage='When true, user created integrations can only be created by admins.'
                         />
                     }
-                    value={this.props.enableOnlyAdminIntegrations}
-                    onChange={this.props.onChange}
+                    value={this.state.enableOnlyAdminIntegrations}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enablePostUsernameOverride'
@@ -168,8 +140,8 @@ export class WebhookSettings extends React.Component {
                             defaultMessage='When true, webhooks and slash commands will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'
                         />
                     }
-                    value={this.props.enablePostUsernameOverride}
-                    onChange={this.props.onChange}
+                    value={this.state.enablePostUsernameOverride}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enablePostIconOverride'
@@ -185,8 +157,8 @@ export class WebhookSettings extends React.Component {
                             defaultMessage='When true, webhooks and slash commands will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'
                         />
                     }
-                    value={this.props.enablePostIconOverride}
-                    onChange={this.props.onChange}
+                    value={this.state.enablePostIconOverride}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

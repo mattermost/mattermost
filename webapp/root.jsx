@@ -51,37 +51,30 @@ const ActionTypes = Constants.ActionTypes;
 
 import AdminConsole from 'components/admin_console/admin_console.jsx';
 import SystemAnalytics from 'components/analytics/system_analytics.jsx';
-import GeneralSettings from 'components/admin_console/general_settings.jsx';
-import {ConfigurationSettingsPage} from 'components/admin_console/configuration_settings.jsx';
-import {UsersAndTeamsSettingsPage} from 'components/admin_console/users_and_teams_settings.jsx';
-import {PrivacySettingsPage} from 'components/admin_console/privacy_settings.jsx';
-import {LogSettingsPage} from 'components/admin_console/log_settings.jsx';
-import AuthenticationSettings from 'components/admin_console/authentication_settings.jsx';
-import {OnboardingSettingsPage} from 'components/admin_console/onboarding_settings.jsx';
-import {GitLabSettingsPage} from 'components/admin_console/gitlab_settings.jsx';
-import {LdapSettingsPage} from 'components/admin_console/ldap_settings.jsx';
-import SecuritySettings from 'components/admin_console/security_settings.jsx';
-import {SignupSettingsPage} from 'components/admin_console/signup_settings.jsx';
-import {LoginSettingsPage} from 'components/admin_console/login_settings.jsx';
-import {PublicLinkSettingsPage} from 'components/admin_console/public_link_settings.jsx';
-import {SessionSettingsPage} from 'components/admin_console/session_settings.jsx';
-import {ConnectionSettingsPage} from 'components/admin_console/connection_settings.jsx';
-import NotificationSettings from 'components/admin_console/notification_settings.jsx';
-import {EmailSettingsPage} from 'components/admin_console/email_settings.jsx';
-import {PushSettingsPage} from 'components/admin_console/push_settings.jsx';
-import IntegrationSettings from 'components/admin_console/integration_settings.jsx';
-import {WebhookSettingsPage} from 'components/admin_console/webhook_settings.jsx';
-import {ExternalServiceSettingsPage} from 'components/admin_console/external_service_settings.jsx';
-import {DatabaseSettingsPage} from 'components/admin_console/database_settings.jsx';
-import FileSettings from 'components/admin_console/file_settings.jsx';
-import {StorageSettingsPage} from 'components/admin_console/storage_settings.jsx';
-import {ImageSettingsPage} from 'components/admin_console/image_settings.jsx';
-import CustomizationSettings from 'components/admin_console/customization_settings.jsx';
-import {WhiteLabelingSettingsPage} from 'components/admin_console/white_labeling_settings.jsx';
-import {LegalAndSupportSettingsPage} from 'components/admin_console/legal_and_support_settings.jsx';
-import {ComplianceSettingsPage} from 'components/admin_console/compliance_settings.jsx';
-import {RateSettingsPage} from 'components/admin_console/rate_settings.jsx';
-import {DeveloperSettingsPage} from 'components/admin_console/developer_settings.jsx';
+import ConfigurationSettings from 'components/admin_console/configuration_settings.jsx';
+import UsersAndTeamsSettings from 'components/admin_console/users_and_teams_settings.jsx';
+import PrivacySettings from 'components/admin_console/privacy_settings.jsx';
+import LogSettings from 'components/admin_console/log_settings.jsx';
+import OnboardingSettings from 'components/admin_console/onboarding_settings.jsx';
+import GitLabSettings from 'components/admin_console/gitlab_settings.jsx';
+import LdapSettings from 'components/admin_console/ldap_settings.jsx';
+import SignupSettings from 'components/admin_console/signup_settings.jsx';
+import LoginSettings from 'components/admin_console/login_settings.jsx';
+import PublicLinkSettings from 'components/admin_console/public_link_settings.jsx';
+import SessionSettings from 'components/admin_console/session_settings.jsx';
+import ConnectionSettings from 'components/admin_console/connection_settings.jsx';
+import EmailSettings from 'components/admin_console/email_settings.jsx';
+import PushSettings from 'components/admin_console/push_settings.jsx';
+import WebhookSettings from 'components/admin_console/webhook_settings.jsx';
+import ExternalServiceSettings from 'components/admin_console/external_service_settings.jsx';
+import DatabaseSettings from 'components/admin_console/database_settings.jsx';
+import StorageSettings from 'components/admin_console/storage_settings.jsx';
+import ImageSettings from 'components/admin_console/image_settings.jsx';
+import WhiteLabelingSettings from 'components/admin_console/white_labeling_settings.jsx';
+import LegalAndSupportSettings from 'components/admin_console/legal_and_support_settings.jsx';
+import ComplianceSettings from 'components/admin_console/compliance_settings.jsx';
+import RateSettings from 'components/admin_console/rate_settings.jsx';
+import DeveloperSettings from 'components/admin_console/developer_settings.jsx';
 import TeamUsers from 'components/admin_console/team_users.jsx';
 import TeamAnalytics from 'components/analytics/team_analytics.jsx';
 import LicenseSettings from 'components/admin_console/license_settings.jsx';
@@ -362,133 +355,121 @@ function renderRootComponent() {
                             component={SystemAnalytics}
                         />
                         <Route path='general'>
-                            <IndexRoute component={GeneralSettings}/>
+                            <IndexRedirect to='configuration'/>
                             <Route
                                 path='configuration'
-                                component={ConfigurationSettingsPage}
+                                component={ConfigurationSettings}
                             />
                             <Route
                                 path='users_and_teams'
-                                component={UsersAndTeamsSettingsPage}
+                                component={UsersAndTeamsSettings}
                             />
                             <Route
                                 path='privacy'
-                                component={PrivacySettingsPage}
+                                component={PrivacySettings}
                             />
                             <Route
                                 path='logging'
-                                component={LogSettingsPage}
+                                component={LogSettings}
                             />
                         </Route>
                         <Route path='authentication'>
-                            <IndexRoute
-                                component={AuthenticationSettings}
-                            />
+                            <IndexRedirect to='onboarding'/>
                             <Route
                                 path='onboarding'
-                                component={OnboardingSettingsPage}
+                                component={OnboardingSettings}
                             />
                             <Route
                                 path='gitlab'
-                                component={GitLabSettingsPage}
+                                component={GitLabSettings}
                             />
                             <Route
                                 path='ldap'
-                                component={LdapSettingsPage}
+                                component={LdapSettings}
                             />
                         </Route>
                         <Route path='security'>
-                            <IndexRoute
-                                component={SecuritySettings}
-                            />
+                            <IndexRedirect to='sign_up'/>
                             <Route
                                 path='sign_up'
-                                component={SignupSettingsPage}
+                                component={SignupSettings}
                             />
                             <Route
                                 path='login'
-                                component={LoginSettingsPage}
+                                component={LoginSettings}
                             />
                             <Route
                                 path='public_links'
-                                component={PublicLinkSettingsPage}
+                                component={PublicLinkSettings}
                             />
                             <Route
                                 path='sessions'
-                                component={SessionSettingsPage}
+                                component={SessionSettings}
                             />
                             <Route
                                 path='connections'
-                                component={ConnectionSettingsPage}
+                                component={ConnectionSettings}
                             />
                         </Route>
                         <Route path='notifications'>
-                            <IndexRoute
-                                component={NotificationSettings}
-                            />
+                            <IndexRedirect to='email'/>
                             <Route
                                 path='email'
-                                component={EmailSettingsPage}
+                                component={EmailSettings}
                             />
                             <Route
                                 path='push'
-                                component={PushSettingsPage}
+                                component={PushSettings}
                             />
                         </Route>
                         <Route path='integrations'>
-                            <IndexRoute
-                                component={IntegrationSettings}
-                            />
+                            <IndexRedirect to='webhooks'/>
                             <Route
                                 path='webhooks'
-                                component={WebhookSettingsPage}
+                                component={WebhookSettings}
                             />
                             <Route
                                 path='external'
-                                component={ExternalServiceSettingsPage}
+                                component={ExternalServiceSettings}
                             />
                         </Route>
                         <Route
                             path='database'
-                            component={DatabaseSettingsPage}
+                            component={DatabaseSettings}
                         />
                         <Route path='files'>
-                            <IndexRoute
-                                component={FileSettings}
-                            />
+                            <IndexRedirect to='storage'/>
                             <Route
                                 path='storage'
-                                component={StorageSettingsPage}
+                                component={StorageSettings}
                             />
                             <Route
                                 path='images'
-                                component={ImageSettingsPage}
+                                component={ImageSettings}
                             />
                         </Route>
                         <Route path='customization'>
-                            <IndexRoute
-                                component={CustomizationSettings}
-                            />
+                            <IndexRedirect to='white_labeling'/>
                             <Route
                                 path='white_labeling'
-                                component={WhiteLabelingSettingsPage}
+                                component={WhiteLabelingSettings}
                             />
                             <Route
                                 path='legal_and_support'
-                                component={LegalAndSupportSettingsPage}
+                                component={LegalAndSupportSettings}
                             />
                         </Route>
                         <Route
                             path='compliance'
-                            component={ComplianceSettingsPage}
+                            component={ComplianceSettings}
                         />
                         <Route
                             path='rate'
-                            component={RateSettingsPage}
+                            component={RateSettings}
                         />
                         <Route
                             path='developer'
-                            component={DeveloperSettingsPage}
+                            component={DeveloperSettings}
                         />
                         <Route path='team'>
                             <Redirect

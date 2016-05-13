@@ -11,7 +11,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class UsersAndTeamsSettingsPage extends AdminSettings {
+export default class UsersAndTeamsSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -51,35 +51,6 @@ export class UsersAndTeamsSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <UsersAndTeamsSettings
-                enableUserCreation={this.state.enableUserCreation}
-                enableTeamCreation={this.state.enableTeamCreation}
-                maxUsersPerTeam={this.state.maxUsersPerTeam}
-                restrictCreationToDomains={this.state.restrictCreationToDomains}
-                restrictTeamNames={this.state.restrictTeamNames}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class UsersAndTeamsSettings extends React.Component {
-    static get propTypes() {
-        return {
-            enableUserCreation: React.PropTypes.bool.isRequired,
-            enableTeamCreation: React.PropTypes.bool.isRequired,
-            maxUsersPerTeam: React.PropTypes.oneOfType([
-                React.PropTypes.number,
-                React.PropTypes.string
-            ]).isRequired,
-            restrictCreationToDomains: React.PropTypes.string.isRequired,
-            restrictTeamNames: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -102,8 +73,8 @@ export class UsersAndTeamsSettings extends React.Component {
                             defaultMessage='When false, the ability to create accounts is disabled. The create account button displays error when pressed.'
                         />
                     }
-                    value={this.props.enableUserCreation}
-                    onChange={this.props.onChange}
+                    value={this.state.enableUserCreation}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enableTeamCreation'
@@ -119,8 +90,8 @@ export class UsersAndTeamsSettings extends React.Component {
                             defaultMessage='When false, the ability to create teams is disabled. The create team button displays error when pressed.'
                         />
                     }
-                    value={this.props.enableTeamCreation}
-                    onChange={this.props.onChange}
+                    value={this.state.enableTeamCreation}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='maxUsersPerTeam'
@@ -137,8 +108,8 @@ export class UsersAndTeamsSettings extends React.Component {
                             defaultMessage='Maximum total number of users per team, including both active and inactive users.'
                         />
                     }
-                    value={this.props.maxUsersPerTeam}
-                    onChange={this.props.onChange}
+                    value={this.state.maxUsersPerTeam}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='restrictCreationToDomains'
@@ -155,8 +126,8 @@ export class UsersAndTeamsSettings extends React.Component {
                             defaultMessage='Teams and user accounts can only be created from a specific domain (e.g. "mattermost.org") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").'
                         />
                     }
-                    value={this.props.restrictCreationToDomains}
-                    onChange={this.props.onChange}
+                    value={this.state.restrictCreationToDomains}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='restrictTeamNames'
@@ -172,8 +143,8 @@ export class UsersAndTeamsSettings extends React.Component {
                             defaultMessage='When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'
                         />
                     }
-                    value={this.props.restrictTeamNames}
-                    onChange={this.props.onChange}
+                    value={this.state.restrictTeamNames}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

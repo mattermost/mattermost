@@ -14,7 +14,7 @@ import TextSetting from './text_setting.jsx';
 const DRIVER_LOCAL = 'local';
 const DRIVER_S3 = 'amazons3';
 
-export class StorageSettingsPage extends AdminSettings {
+export default class StorageSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -56,34 +56,6 @@ export class StorageSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <StorageSettings
-                driverName={this.state.driverName}
-                directory={this.state.directory}
-                amazonS3AccessKeyId={this.state.amazonS3AccessKeyId}
-                amazonS3SecretAccessKey={this.state.amazonS3SecretAccessKey}
-                amazonS3Bucket={this.state.amazonS3Bucket}
-                amazonS3Region={this.state.amazonS3Region}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class StorageSettings extends React.Component {
-    static get propTypes() {
-        return {
-            driverName: React.PropTypes.string.isRequired,
-            directory: React.PropTypes.string.isRequired,
-            amazonS3AccessKeyId: React.PropTypes.string.isRequired,
-            amazonS3SecretAccessKey: React.PropTypes.string.isRequired,
-            amazonS3Bucket: React.PropTypes.string.isRequired,
-            amazonS3Region: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -104,8 +76,8 @@ export class StorageSettings extends React.Component {
                             defaultMessage='Store Files In:'
                         />
                     }
-                    value={this.props.driverName}
-                    onChange={this.props.onChange}
+                    value={this.state.driverName}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='directory'
@@ -122,9 +94,9 @@ export class StorageSettings extends React.Component {
                             defaultMessage='Directory to which image files are written. If blank, will be set to ./data/.'
                         />
                     }
-                    value={this.props.directory}
-                    onChange={this.props.onChange}
-                    disabled={this.props.driverName !== DRIVER_LOCAL}
+                    value={this.state.directory}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_LOCAL}
                 />
                 <TextSetting
                     id='amazonS3AccessKeyId'
@@ -141,9 +113,9 @@ export class StorageSettings extends React.Component {
                             defaultMessage='Obtain this credential from your Amazon EC2 administrator.'
                         />
                     }
-                    value={this.props.amazonS3AccessKeyId}
-                    onChange={this.props.onChange}
-                    disabled={this.props.driverName !== DRIVER_S3}
+                    value={this.state.amazonS3AccessKeyId}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
                 />
                 <TextSetting
                     id='amazonS3SecretAccessKey'
@@ -160,9 +132,9 @@ export class StorageSettings extends React.Component {
                             defaultMessage='Obtain this credential from your Amazon EC2 administrator.'
                         />
                     }
-                    value={this.props.amazonS3SecretAccessKey}
-                    onChange={this.props.onChange}
-                    disabled={this.props.driverName !== DRIVER_S3}
+                    value={this.state.amazonS3SecretAccessKey}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
                 />
                 <TextSetting
                     id='amazonS3Bucket'
@@ -179,9 +151,9 @@ export class StorageSettings extends React.Component {
                             defaultMessage='Name you selected for your S3 bucket in AWS.'
                         />
                     }
-                    value={this.props.amazonS3Bucket}
-                    onChange={this.props.onChange}
-                    disabled={this.props.driverName !== DRIVER_S3}
+                    value={this.state.amazonS3Bucket}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
                 />
                 <TextSetting
                     id='amazonS3Region'
@@ -198,9 +170,9 @@ export class StorageSettings extends React.Component {
                             defaultMessage='AWS region you selected for creating your S3 bucket.'
                         />
                     }
-                    value={this.props.amazonS3Region}
-                    onChange={this.props.onChange}
-                    disabled={this.props.driverName !== DRIVER_S3}
+                    value={this.state.amazonS3Region}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
                 />
             </SettingsGroup>
         );

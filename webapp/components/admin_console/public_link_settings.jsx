@@ -9,7 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 
-export class PublicLinkSettingsPage extends AdminSettings {
+export default class PublicLinkSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -43,26 +43,6 @@ export class PublicLinkSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <PublicLinkSettings
-                enablePublicLink={this.state.enablePublicLink}
-                publicLinkSalt={this.state.publicLinkSalt}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class PublicLinkSettings extends React.Component {
-    static get propTypes() {
-        return {
-            enablePublicLink: React.PropTypes.bool.isRequired,
-            publicLinkSalt: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -85,8 +65,8 @@ export class PublicLinkSettings extends React.Component {
                             defaultMessage='Allow users to share public links to files and images.'
                         />
                     }
-                    value={this.props.enablePublicLink}
-                    onChange={this.props.onChange}
+                    value={this.state.enablePublicLink}
+                    onChange={this.handleChange}
                 />
                 <GeneratedSetting
                     id='publicLinkSalt'
@@ -102,8 +82,8 @@ export class PublicLinkSettings extends React.Component {
                             defaultMessage='32-character salt added to signing of public image links. Randomly generated on install. Click "Re-Generate" to create new salt.'
                         />
                     }
-                    value={this.props.publicLinkSalt}
-                    onChange={this.props.onChange}
+                    value={this.state.publicLinkSalt}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

@@ -8,7 +8,7 @@ import BooleanSetting from './boolean_setting.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 
-export class PrivacySettingsPage extends AdminSettings {
+export default class PrivacySettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -42,26 +42,6 @@ export class PrivacySettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <PrivacySettings
-                showEmailAddress={this.state.showEmailAddress}
-                showFullName={this.state.showFullName}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class PrivacySettings extends React.Component {
-    static get propTypes() {
-        return {
-            showEmailAddress: React.PropTypes.bool.isRequired,
-            showFullName: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -84,8 +64,8 @@ export class PrivacySettings extends React.Component {
                             defaultMessage='When false, hides email address of users from other users in the user interface, including team owners and team administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'
                         />
                     }
-                    value={this.props.showEmailAddress}
-                    onChange={this.props.onChange}
+                    value={this.state.showEmailAddress}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='showFullName'
@@ -101,8 +81,8 @@ export class PrivacySettings extends React.Component {
                             defaultMessage='When false, hides full name of users from other users, including team owners and team administrators. Username is shown in place of full name.'
                         />
                     }
-                    value={this.props.showFullName}
-                    onChange={this.props.onChange}
+                    value={this.state.showFullName}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

@@ -10,7 +10,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class SessionSettingsPage extends AdminSettings {
+export default class SessionSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -48,42 +48,6 @@ export class SessionSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <SessionSettings
-                sessionLengthWebInDays={this.state.sessionLengthWebInDays}
-                sessionLengthMobileInDays={this.state.sessionLengthMobileInDays}
-                sessionLengthSSOInDays={this.state.sessionLengthSSOInDays}
-                sessionCacheInMinutes={this.state.sessionCacheInMinutes}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class SessionSettings extends React.Component {
-    static get propTypes() {
-        return {
-            sessionLengthWebInDays: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            sessionLengthMobileInDays: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            sessionLengthSSOInDays: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            sessionCacheInMinutes: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -107,8 +71,8 @@ export class SessionSettings extends React.Component {
                             defaultMessage='The web session will expire after the number of days specified and will require a user to login again.'
                         />
                     }
-                    value={this.props.sessionLengthWebInDays}
-                    onChange={this.props.onChange}
+                    value={this.state.sessionLengthWebInDays}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='sessionLengthMobileInDays'
@@ -125,8 +89,8 @@ export class SessionSettings extends React.Component {
                             defaultMessage='The native mobile session will expire after the number of days specified and will require a user to login again.'
                         />
                     }
-                    value={this.props.sessionLengthMobileInDays}
-                    onChange={this.props.onChange}
+                    value={this.state.sessionLengthMobileInDays}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='sessionLengthSSOInDays'
@@ -143,8 +107,8 @@ export class SessionSettings extends React.Component {
                             defaultMessage='The SSO session will expire after the number of days specified and will require a user to login again.'
                         />
                     }
-                    value={this.props.sessionLengthSSOInDays}
-                    onChange={this.props.onChange}
+                    value={this.state.sessionLengthSSOInDays}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='sessionCacheInMinutes'
@@ -161,8 +125,8 @@ export class SessionSettings extends React.Component {
                             defaultMessage='The number of minutes to cache a session in memory.'
                         />
                     }
-                    value={this.props.sessionCacheInMinutes}
-                    onChange={this.props.onChange}
+                    value={this.state.sessionCacheInMinutes}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

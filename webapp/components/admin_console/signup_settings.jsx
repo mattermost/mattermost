@@ -9,7 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 
-export class SignupSettingsPage extends AdminSettings {
+export default class SignupSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -43,28 +43,6 @@ export class SignupSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <SignupSettings
-                sendEmailNotifications={this.props.config.EmailSettings.SendEmailNotifications}
-                requireEmailVerification={this.state.requireEmailVerification}
-                inviteSalt={this.state.inviteSalt}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class SignupSettings extends React.Component {
-    static get propTypes() {
-        return {
-            sendEmailNotifications: React.PropTypes.bool.isRequired,
-            requireEmailVerification: React.PropTypes.bool.isRequired,
-            inviteSalt: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -87,9 +65,9 @@ export class SignupSettings extends React.Component {
                             defaultMessage='Typically set to true in production. When true, Mattermost requires email verification after account creation prior to allowing login. Developers may set this field to false so skip sending verification emails for faster development.'
                         />
                     }
-                    value={this.props.requireEmailVerification}
-                    onChange={this.props.onChange}
-                    disabled={this.props.sendEmailNotifications}
+                    value={this.state.requireEmailVerification}
+                    onChange={this.handleChange}
+                    disabled={this.state.sendEmailNotifications}
                     disabledText={
                         <FormattedMessage
                             id='admin.security.requireEmailVerification.disabled'
@@ -111,9 +89,9 @@ export class SignupSettings extends React.Component {
                             defaultMessage='32-character salt added to signing of email invites. Randomly generated on install. Click "Re-Generate" to create new salt.'
                         />
                     }
-                    value={this.props.inviteSalt}
-                    onChange={this.props.onChange}
-                    disabled={this.props.sendEmailNotifications}
+                    value={this.state.inviteSalt}
+                    onChange={this.handleChange}
+                    disabled={this.state.sendEmailNotifications}
                     disabledText={
                         <FormattedMessage
                             id='admin.security.inviteSalt.disabled'

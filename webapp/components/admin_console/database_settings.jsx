@@ -12,7 +12,7 @@ import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class DatabaseSettingsPage extends AdminSettings {
+export default class DatabaseSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -21,6 +21,9 @@ export class DatabaseSettingsPage extends AdminSettings {
         this.renderSettings = this.renderSettings.bind(this);
 
         this.state = Object.assign(this.state, {
+            driverName: this.props.config.SqlSettings.DriverName,
+            dataSource: this.props.config.SqlSettings.DataSource,
+            dataSourceReplicas: this.props.config.SqlSettings.DataSourceReplicas,
             maxIdleConns: props.config.SqlSettings.MaxIdleConns,
             maxOpenConns: props.config.SqlSettings.MaxOpenConns,
             atRestEncryptKey: props.config.SqlSettings.AtRestEncryptKey,
@@ -29,6 +32,8 @@ export class DatabaseSettingsPage extends AdminSettings {
     }
 
     getConfigFromState(config) {
+        // driverName, dataSource, and dataSourceReplicas are read-only from the UI
+
         config.SqlSettings.MaxIdleConns = this.parseIntNonZero(this.state.maxIdleConns);
         config.SqlSettings.MaxOpenConns = this.parseIntNonZero(this.state.maxOpenConns);
         config.SqlSettings.AtRestEncryptKey = this.state.atRestEncryptKey;
@@ -49,50 +54,14 @@ export class DatabaseSettingsPage extends AdminSettings {
     }
 
     renderSettings() {
-        return (
-            <DatabaseSettings
-                driverName={this.props.config.SqlSettings.DriverName}
-                dataSource={this.props.config.SqlSettings.DataSource}
-                dataSourceReplicas={this.props.config.SqlSettings.DataSourceReplicas}
-                maxIdleConns={this.state.maxIdleConns}
-                maxOpenConns={this.state.maxOpenConns}
-                atRestEncryptKey={this.state.atRestEncryptKey}
-                trace={this.state.trace}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class DatabaseSettings extends React.Component {
-    static get propTypes() {
-        return {
-            driverName: React.PropTypes.string.isRequired,
-            dataSource: React.PropTypes.string.isRequired,
-            dataSourceReplicas: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-            maxIdleConns: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            maxOpenConns: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            atRestEncryptKey: React.PropTypes.string.isRequired,
-            trace: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        const dataSource = '**********' + this.props.dataSource.substring(this.props.dataSource.indexOf('@'));
+        const dataSource = '**********' + this.state.dataSource.substring(this.state.dataSource.indexOf('@'));
 
         let dataSourceReplicas = '';
-        this.props.dataSourceReplicas.forEach((replica) => {
+        this.state.dataSourceReplicas.forEach((replica) => {
             dataSourceReplicas += '[**********' + replica.substring(replica.indexOf('@')) + '] ';
         });
 
-        if (this.props.dataSourceReplicas.length === 0) {
+        if (this.state.dataSourceReplicas.length === 0) {
             dataSourceReplicas = 'none';
         }
 
@@ -115,7 +84,7 @@ export class DatabaseSettings extends React.Component {
                         />
                     </label>
                     <div className='col-sm-8'>
-                        <p className='help-text'>{this.props.driverName}</p>
+                        <p className='help-text'>{this.state.driverName}</p>
                     </div>
                 </div>
                 <div className='form-group'>
@@ -161,8 +130,8 @@ export class DatabaseSettings extends React.Component {
                             defaultMessage='Maximum number of idle connections held open to the database.'
                         />
                     }
-                    value={this.props.maxIdleConns}
-                    onChange={this.props.onChange}
+                    value={this.state.maxIdleConns}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='maxOpenConns'
@@ -179,8 +148,8 @@ export class DatabaseSettings extends React.Component {
                             defaultMessage='Maximum number of open connections held open to the database.'
                         />
                     }
-                    value={this.props.maxOpenConns}
-                    onChange={this.props.onChange}
+                    value={this.state.maxOpenConns}
+                    onChange={this.handleChange}
                 />
                 <GeneratedSetting
                     id='atRestEncryptKey'
@@ -197,8 +166,8 @@ export class DatabaseSettings extends React.Component {
                             defaultMessage='32-character salt available to encrypt and decrypt sensitive fields in database.'
                         />
                     }
-                    value={this.props.atRestEncryptKey}
-                    onChange={this.props.onChange}
+                    value={this.state.atRestEncryptKey}
+                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='trace'
@@ -214,8 +183,8 @@ export class DatabaseSettings extends React.Component {
                             defaultMessage='(Development Mode) When true, executing SQL statements are written to the log.'
                         />
                     }
-                    value={this.props.trace}
-                    onChange={this.props.onChange}
+                    value={this.state.trace}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

@@ -11,7 +11,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class RateSettingsPage extends AdminSettings {
+export default class RateSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -51,38 +51,6 @@ export class RateSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <RateSettings
-                enableRateLimiter={this.state.enableRateLimiter}
-                perSec={this.state.perSec}
-                memoryStoreSize={this.state.memoryStoreSize}
-                varyByRemoteAddr={this.state.varyByRemoteAddr}
-                varyByHeader={this.state.varyByHeader}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class RateSettings extends React.Component {
-    static get propTypes() {
-        return {
-            enableRateLimiter: React.PropTypes.bool.isRequired,
-            perSec: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            memoryStoreSize: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]).isRequired,
-            varyByRemoteAddr: React.PropTypes.bool.isRequired,
-            varyByHeader: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        return (
             <SettingsGroup>
                 <div className='banner'>
                     <div className='banner__content'>
@@ -106,8 +74,8 @@ export class RateSettings extends React.Component {
                             defaultMessage='When true, APIs are throttled at rates specified below.'
                         />
                     }
-                    value={this.props.enableRateLimiter}
-                    onChange={this.props.onChange}
+                    value={this.state.enableRateLimiter}
+                    onChange={this.handleChange}
                 />
                 <TextSetting
                     id='perSec'
@@ -124,9 +92,9 @@ export class RateSettings extends React.Component {
                             defaultMessage='Throttles API at this number of requests per second.'
                         />
                     }
-                    value={this.props.perSec}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableRateLimiter}
+                    value={this.state.perSec}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableRateLimiter}
                 />
                 <TextSetting
                     id='memoryStoreSize'
@@ -143,9 +111,9 @@ export class RateSettings extends React.Component {
                             defaultMessage='Maximum number of users sessions connected to the system as determined by "Vary By Remote Address" and "Vary By Header" settings below.'
                         />
                     }
-                    value={this.props.memoryStoreSize}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableRateLimiter}
+                    value={this.state.memoryStoreSize}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableRateLimiter}
                 />
                 <BooleanSetting
                     id='varyByRemoteAddr'
@@ -161,9 +129,9 @@ export class RateSettings extends React.Component {
                             defaultMessage='When true, rate limit API access by IP address.'
                         />
                     }
-                    value={this.props.varyByRemoteAddr}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableRateLimiter}
+                    value={this.state.varyByRemoteAddr}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableRateLimiter}
                 />
                 <TextSetting
                     id='varyByHeader'
@@ -180,9 +148,9 @@ export class RateSettings extends React.Component {
                             defaultMessage='When filled in, vary rate limiting by HTTP header field specified (e.g. when configuring NGINX set to "X-Real-IP", when configuring AmazonELB set to "X-Forwarded-For").'
                         />
                     }
-                    value={this.props.varyByHeader}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableRateLimiter || this.props.varyByRemoteAddr}
+                    value={this.state.varyByHeader}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableRateLimiter || this.state.varyByRemoteAddr}
                 />
             </SettingsGroup>
         );

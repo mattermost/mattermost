@@ -6,11 +6,12 @@ import React from 'react';
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
-import {FormattedMessage} from 'react-intl';
+import BooleanSetting from './boolean_setting.jsx';
+import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class GitLabSettingsPage extends AdminSettings {
+export default class GitLabSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -19,20 +20,22 @@ export class GitLabSettingsPage extends AdminSettings {
         this.renderSettings = this.renderSettings.bind(this);
 
         this.state = Object.assign(this.state, {
-            gitlabId: props.config.GitLabSettings.Id,
-            gitlabSecret: props.config.GitLabSettings.Secret,
-            gitlabUserApiEndpoint: props.config.GitLabSettings.UserApiEndpoint,
-            gitlabAuthEndpoint: props.config.GitLabSettings.AuthEndpoint,
-            gitlabTokenEndpoint: props.config.GitLabSettings.TokenEndpoint
+            enable: props.config.GitLabSettings.Enable,
+            id: props.config.GitLabSettings.Id,
+            secret: props.config.GitLabSettings.Secret,
+            userApiEndpoint: props.config.GitLabSettings.UserApiEndpoint,
+            authEndpoint: props.config.GitLabSettings.AuthEndpoint,
+            tokenEndpoint: props.config.GitLabSettings.TokenEndpoint
         });
     }
 
     getConfigFromState(config) {
-        config.GitLabSettings.Id = this.state.gitlabId;
-        config.GitLabSettings.Secret = this.state.gitlabSecret;
-        config.GitLabSettings.UserApiEndpoint = this.state.gitlabUserApiEndpoint;
-        config.GitLabSettings.AuthEndpoint = this.state.gitlabAuthEndpoint;
-        config.GitLabSettings.TokenEndpoint = this.state.gitlabTokenEndpoint;
+        config.GitLabSettings.Enable = this.state.enable;
+        config.GitLabSettings.Id = this.state.id;
+        config.GitLabSettings.Secret = this.state.secret;
+        config.GitLabSettings.UserApiEndpoint = this.state.userApiEndpoint;
+        config.GitLabSettings.AuthEndpoint = this.state.authEndpoint;
+        config.GitLabSettings.TokenEndpoint = this.state.tokenEndpoint;
 
         return config;
     }
@@ -50,48 +53,6 @@ export class GitLabSettingsPage extends AdminSettings {
 
     renderSettings() {
         return (
-            <GitLabSettings
-                enableSignUpWithGitlab={this.props.config.GitLabSettings.Enable}
-                gitlabId={this.state.gitlabId}
-                gitlabSecret={this.state.gitlabSecret}
-                gitlabUserApiEndpoint={this.state.gitlabUserApiEndpoint}
-                gitlabAuthEndpoint={this.state.gitlabAuthEndpoint}
-                gitlabTokenEndpoint={this.state.gitlabTokenEndpoint}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class GitLabSettings extends React.Component {
-    static get propTypes() {
-        return {
-            enableSignUpWithGitlab: React.PropTypes.bool.isRequired,
-            gitlabId: React.PropTypes.string.isRequired,
-            gitlabSecret: React.PropTypes.string.isRequired,
-            gitlabUserApiEndpoint: React.PropTypes.string.isRequired,
-            gitlabAuthEndpoint: React.PropTypes.string.isRequired,
-            gitlabTokenEndpoint: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
-        let disabledMessage = null;
-        if (!this.props.enableSignUpWithGitlab) {
-            disabledMessage = (
-                <div className='banner'>
-                    <div className='banner__content'>
-                        <FormattedMessage
-                            id='admin.authentication.gitlab.disabled'
-                            defaultMessage='GitLab settings cannot be changed while GitLab Sign Up is disabled.'
-                        />
-                    </div>
-                </div>
-            );
-        }
-
-        return (
             <SettingsGroup
                 header={
                     <FormattedMessage
@@ -100,9 +61,32 @@ export class GitLabSettings extends React.Component {
                     />
                 }
             >
-                {disabledMessage}
+                <BooleanSetting
+                    id='enable'
+                    label={
+                        <FormattedMessage
+                            id='admin.gitlab.enableTitle'
+                            defaultMessage='Enable Sign Up With GitLab: '
+                        />
+                    }
+                    helpText={
+                        <div>
+                            <FormattedMessage
+                                id='admin.gitlab.enableDescription'
+                                defaultMessage='When true, Mattermost allows team creation and account signup using GitLab OAuth.'
+                            />
+                            <br/>
+                            <FormattedHTMLMessage
+                                id='admin.gitlab.EnableHtmlDesc'
+                                defaultMessage='<ol><li>Log in to your GitLab account and go to Profile Settings -> Applications.</li><li>Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". </li><li>Then use "Secret" and "Id" fields from GitLab to complete the options below.</li><li>Complete the Endpoint URLs below. </li></ol>'
+                            />
+                        </div>
+                    }
+                    value={this.state.enable}
+                    onChange={this.handleChange}
+                />
                 <TextSetting
-                    id='gitlabId'
+                    id='id'
                     label={
                         <FormattedMessage
                             id='admin.gitlab.clientIdTitle'
@@ -116,12 +100,12 @@ export class GitLabSettings extends React.Component {
                             defaultMessage='Obtain this value via the instructions above for logging into GitLab'
                         />
                     }
-                    value={this.props.gitlabId}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableSignUpWithGitlab}
+                    value={this.state.id}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
                 />
                 <TextSetting
-                    id='gitlabSecret'
+                    id='secret'
                     label={
                         <FormattedMessage
                             id='admin.gitlab.clientSecretTitle'
@@ -135,12 +119,12 @@ export class GitLabSettings extends React.Component {
                             defaultMessage='Obtain this value via the instructions above for logging into GitLab.'
                         />
                     }
-                    value={this.props.gitlabSecret}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableSignUpWithGitlab}
+                    value={this.state.secret}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
                 />
                 <TextSetting
-                    id='gitlabUserApiEndpoint'
+                    id='userApiEndpoint'
                     label={
                         <FormattedMessage
                             id='admin.gitlab.userTitle'
@@ -154,12 +138,12 @@ export class GitLabSettings extends React.Component {
                             defaultMessage='Enter https://<your-gitlab-url>/api/v3/user.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
                         />
                     }
-                    value={this.props.gitlabUserApiEndpoint}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableSignUpWithGitlab}
+                    value={this.state.userApiEndpoint}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
                 />
                 <TextSetting
-                    id='gitlabAuthEndpoint'
+                    id='authEndpoint'
                     label={
                         <FormattedMessage
                             id='admin.gitlab.authTitle'
@@ -173,12 +157,12 @@ export class GitLabSettings extends React.Component {
                             defaultMessage='Enter https://<your-gitlab-url>/oauth/authorize (example https://example.com:3000/oauth/authorize).   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
                         />
                     }
-                    value={this.props.gitlabAuthEndpoint}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableSignUpWithGitlab}
+                    value={this.state.authEndpoint}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
                 />
                 <TextSetting
-                    id='gitlabTokenEndpoint'
+                    id='tokenEndpoint'
                     label={
                         <FormattedMessage
                             id='admin.gitlab.tokenTitle'
@@ -192,9 +176,9 @@ export class GitLabSettings extends React.Component {
                             defaultMessage='Enter https://<your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'
                         />
                     }
-                    value={this.props.gitlabTokenEndpoint}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableSignUpWithGitlab}
+                    value={this.state.tokenEndpoint}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
                 />
             </SettingsGroup>
         );

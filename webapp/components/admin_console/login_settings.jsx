@@ -12,7 +12,7 @@ import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class LoginSettingsPage extends AdminSettings {
+export default class LoginSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -49,33 +49,6 @@ export class LoginSettingsPage extends AdminSettings {
     }
 
     renderSettings() {
-        return (
-            <LoginSettings
-                sendEmailNotifications={this.props.config.EmailSettings.SendEmailNotifications}
-                passwordResetSalt={this.state.passwordResetSalt}
-                maximumLoginAttempts={this.state.maximumLoginAttempts}
-                enableMultifactorAuthentication={this.state.enableMultifactorAuthentication}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class LoginSettings extends React.Component {
-    static get propTypes() {
-        return {
-            sendEmailNotifications: React.PropTypes.bool.isRequired,
-            passwordResetSalt: React.PropTypes.string.isRequired,
-            maximumLoginAttempts: React.PropTypes.oneOfType([
-                React.PropTypes.string,
-                React.PropTypes.number
-            ]),
-            enableMultifactorAuthentication: React.PropTypes.bool.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
         let mfaSetting = null;
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true') {
             mfaSetting = (
@@ -93,8 +66,8 @@ export class LoginSettings extends React.Component {
                             defaultMessage='When true, users will be given the option to add multi-factor authentication to their account. They will need a smartphone and an authenticator app such as Google Authenticator.'
                         />
                     }
-                    value={this.props.enableMultifactorAuthentication}
-                    onChange={this.props.onChange}
+                    value={this.state.enableMultifactorAuthentication}
+                    onChange={this.handleChange}
                 />
             );
         }
@@ -122,9 +95,9 @@ export class LoginSettings extends React.Component {
                             defaultMessage='32-character salt added to signing of password reset emails. Randomly generated on install. Click "Re-Generate" to create new salt.'
                         />
                     }
-                    value={this.props.passwordResetSalt}
-                    onChange={this.props.onChange}
-                    disabled={this.props.sendEmailNotifications}
+                    value={this.state.passwordResetSalt}
+                    onChange={this.handleChange}
+                    disabled={this.state.sendEmailNotifications}
                     disabledText={
                         <FormattedMessage
                             id='admin.security.passwordResetSalt.disabled'
@@ -147,8 +120,8 @@ export class LoginSettings extends React.Component {
                             defaultMessage='Login attempts allowed before user is locked out and required to reset password via email.'
                         />
                     }
-                    value={this.props.maximumLoginAttempts}
-                    onChange={this.props.onChange}
+                    value={this.state.maximumLoginAttempts}
+                    onChange={this.handleChange}
                 />
                 {mfaSetting}
             </SettingsGroup>

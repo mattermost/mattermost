@@ -12,7 +12,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class LogSettingsPage extends AdminSettings {
+export default class LogSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -53,34 +53,6 @@ export class LogSettingsPage extends AdminSettings {
     }
 
     renderSettings() {
-        return (
-            <LogSettings
-                enableConsole={this.state.enableConsole}
-                consoleLevel={this.state.consoleLevel}
-                enableFile={this.state.enableFile}
-                fileLevel={this.state.fileLevel}
-                fileLocation={this.state.fileLocation}
-                fileFormat={this.state.fileFormat}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class LogSettings extends React.Component {
-    static get propTypes() {
-        return {
-            enableConsole: React.PropTypes.bool.isRequired,
-            consoleLevel: React.PropTypes.string.isRequired,
-            enableFile: React.PropTypes.bool.isRequired,
-            fileLevel: React.PropTypes.string.isRequired,
-            fileLocation: React.PropTypes.string.isRequired,
-            fileFormat: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
         const logLevels = [
             {value: 'DEBUG', text: 'DEBUG'},
             {value: 'INFO', text: 'INFO'},
@@ -111,8 +83,8 @@ export class LogSettings extends React.Component {
                             defaultMessage='Typically set to false in production. Developers may set this field to true to output log messages to console based on the console level option.  If true, server writes messages to the standard output stream (stdout).'
                         />
                     }
-                    value={this.props.enableConsole}
-                    onChange={this.props.onChange}
+                    value={this.state.enableConsole}
+                    onChange={this.handleChange}
                 />
                 <DropdownSetting
                     id='consoleLevel'
@@ -123,9 +95,9 @@ export class LogSettings extends React.Component {
                             defaultMessage='Console Log Level:'
                         />
                     }
-                    value={this.props.consoleLevel}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableConsole}
+                    value={this.state.consoleLevel}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableConsole}
                     helpText={
                         <FormattedMessage
                             id='admin.log.levelDescription'
@@ -147,8 +119,8 @@ export class LogSettings extends React.Component {
                             defaultMessage='Typically set to true in production.  When true, log files are written to the log file specified in file location field below.'
                         />
                     }
-                    value={this.props.enableFile}
-                    onChange={this.props.onChange}
+                    value={this.state.enableFile}
+                    onChange={this.handleChange}
                 />
                 <DropdownSetting
                     id='fileLevel'
@@ -159,9 +131,9 @@ export class LogSettings extends React.Component {
                             defaultMessage='File Log Level:'
                         />
                     }
-                    value={this.props.fileLevel}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableFile}
+                    value={this.state.fileLevel}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableFile}
                     helpText={
                         <FormattedMessage
                             id='admin.log.fileLevelDescription'
@@ -184,9 +156,9 @@ export class LogSettings extends React.Component {
                             defaultMessage='File to which log files are written. If blank, will be set to ./logs/mattermost, which writes logs to mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.'
                         />
                     }
-                    value={this.props.fileLocation}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableFile}
+                    value={this.state.fileLocation}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableFile}
                 />
                 <TextSetting
                     id='fileFormat'
@@ -197,62 +169,78 @@ export class LogSettings extends React.Component {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.log.formatPlaceholder', 'Enter your file format')}
-                    helpText={
-                        <div>
-                            <FormattedMessage
-                                id='admin.log.formatDescription'
-                                defaultMessage='Format of log message output. If blank will be set to "[%D %T] [%L] %M", where:'
-                            />
-                            <table
-                                className='table table-bordered'
-                                cellPadding='5'
-                            >
-                                <tbody>
-                                    <tr><td className='help-text'>{'%T'}</td><td className='help-text'>
-                                        <FormattedMessage
-                                            id='admin.log.formatTime'
-                                            defaultMessage='Time (15:04:05 MST)'
-                                        />
-                                    </td></tr>
-                                    <tr><td className='help-text'>{'%D'}</td><td className='help-text'>
-                                        <FormattedMessage
-                                            id='admin.log.formatDateLong'
-                                            defaultMessage='Date (2006/01/02)'
-                                        />
-                                    </td></tr>
-                                    <tr><td className='help-text'>{'%d'}</td><td className='help-text'>
-                                        <FormattedMessage
-                                            id='admin.log.formatDateShort'
-                                            defaultMessage='Date (01/02/06)'
-                                        />
-                                    </td></tr>
-                                    <tr><td className='help-text'>{'%L'}</td><td className='help-text'>
-                                        <FormattedMessage
-                                            id='admin.log.formatLevel'
-                                            defaultMessage='Level (DEBG, INFO, EROR)'
-                                        />
-                                    </td></tr>
-                                    <tr><td className='help-text'>{'%S'}</td><td className='help-text'>
-                                        <FormattedMessage
-                                            id='admin.log.formatSource'
-                                            defaultMessage='Source'
-                                        />
-                                    </td></tr>
-                                    <tr><td className='help-text'>{'%M'}</td><td className='help-text'>
-                                        <FormattedMessage
-                                            id='admin.log.formatMessage'
-                                            defaultMessage='Message'
-                                        />
-                                    </td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    value={this.props.fileFormat}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableFile}
+                    helpText={this.renderFileFormatHelpText()}
+                    value={this.state.fileFormat}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableFile}
                 />
             </SettingsGroup>
+        );
+    }
+
+    renderFileFormatHelpText() {
+        return (
+            <div>
+                <FormattedMessage
+                    id='admin.log.formatDescription'
+                    defaultMessage='Format of log message output. If blank will be set to "[%D %T] [%L] %M", where:'
+                />
+                <table
+                    className='table table-bordered'
+                    cellPadding='5'
+                >
+                    <tbody>
+                        <tr>
+                            <td className='help-text'>{'%T'}</td><td className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.formatTime'
+                                    defaultMessage='Time (15:04:05 MST)'
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className='help-text'>{'%D'}</td><td className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.formatDateLong'
+                                    defaultMessage='Date (2006/01/02)'
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className='help-text'>{'%d'}</td><td className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.formatDateShort'
+                                    defaultMessage='Date (01/02/06)'
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className='help-text'>{'%L'}</td><td className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.formatLevel'
+                                    defaultMessage='Level (DEBG, INFO, EROR)'
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className='help-text'>{'%S'}</td><td className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.formatSource'
+                                    defaultMessage='Source'
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className='help-text'>{'%M'}</td><td className='help-text'>
+                                <FormattedMessage
+                                    id='admin.log.formatMessage'
+                                    defaultMessage='Message'
+                                />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         );
     }
 }

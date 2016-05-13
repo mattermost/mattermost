@@ -12,7 +12,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export class WhiteLabelingSettingsPage extends AdminSettings {
+export default class WhiteLabelingSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -49,28 +49,6 @@ export class WhiteLabelingSettingsPage extends AdminSettings {
     }
 
     renderSettings() {
-        return (
-            <WhiteLabelingSettings
-                siteName={this.state.siteName}
-                enableCustomBrand={this.state.enableCustomBrand}
-                customBrandText={this.state.customBrandText}
-                onChange={this.handleChange}
-            />
-        );
-    }
-}
-
-export class WhiteLabelingSettings extends React.Component {
-    static get propTypes() {
-        return {
-            siteName: React.PropTypes.string.isRequired,
-            enableCustomBrand: React.PropTypes.bool.isRequired,
-            customBrandText: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired
-        };
-    }
-
-    render() {
         const enterpriseSettings = [];
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.CustomBrand === 'true') {
             enterpriseSettings.push(
@@ -89,15 +67,15 @@ export class WhiteLabelingSettings extends React.Component {
                             defaultMessage='Enable custom branding to show an image of your choice, uploaded below, and some help text, written below, on the login page.'
                         />
                     }
-                    value={this.props.enableCustomBrand}
-                    onChange={this.props.onChange}
+                    value={this.state.enableCustomBrand}
+                    onChange={this.handleChange}
                 />
             );
 
             enterpriseSettings.push(
                 <BrandImageSetting
                     key='customBrandImage'
-                    disabled={!this.props.enableCustomBrand}
+                    disabled={!this.state.enableCustomBrand}
                 />
             );
 
@@ -118,9 +96,9 @@ export class WhiteLabelingSettings extends React.Component {
                             defaultMessage='The custom branding Markdown-formatted text you would like to appear below your custom brand image on your login sreen.'
                         />
                     }
-                    value={this.props.customBrandText}
-                    onChange={this.props.onChange}
-                    disabled={!this.props.enableCustomBrand}
+                    value={this.state.customBrandText}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableCustomBrand}
                 />
             );
         }
@@ -149,8 +127,8 @@ export class WhiteLabelingSettings extends React.Component {
                             defaultMessage='Name of service shown in login screens and UI.'
                         />
                     }
-                    value={this.props.siteName}
-                    onChange={this.props.onChange}
+                    value={this.state.siteName}
+                    onChange={this.handleChange}
                 />
                 {enterpriseSettings}
             </SettingsGroup>
