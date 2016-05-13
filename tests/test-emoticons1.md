@@ -1,5 +1,5 @@
 # Emoticon Testing  
-Verify that all emoticons render. This test should render in three separate messages since it's ~11000 characters.  
+Verify that all emoticons render. 
 
 :mm: :mattermost:
 
