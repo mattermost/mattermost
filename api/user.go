@@ -487,7 +487,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed && *utils.License.Features.LDAP
 
 	if result := <-Srv.Store.User().GetForLogin(
 		loginId,
