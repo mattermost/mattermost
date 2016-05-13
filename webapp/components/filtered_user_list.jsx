@@ -43,6 +43,15 @@ class FilteredUserList extends React.Component {
         };
     }
 
+    componentWillUpdate(nextProps) {
+        // assume the user list is immutable
+        if (this.props.users !== nextProps.users) {
+            this.setState({
+                users: this.filterUsers(nextProps.teamMembers, nextProps.users)
+            });
+        }
+    }
+
     componentDidUpdate(prevProps, prevState) {
         if (prevState.filter !== this.state.filter) {
             $(ReactDOM.findDOMNode(this.refs.userList)).scrollTop(0);
