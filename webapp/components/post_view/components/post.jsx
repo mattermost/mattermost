@@ -13,7 +13,8 @@ const ActionTypes = Constants.ActionTypes;
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import React from 'react';
 
@@ -91,7 +92,7 @@ export default class Post extends React.Component {
             return true;
         }
 
-        if (this.getCommentCount(nextProps) !== this.getCommentCount(this.props)) {
+        if (nextProps.commentCount !== this.props.commentCount) {
             return true;
         }
 
@@ -113,30 +114,9 @@ export default class Post extends React.Component {
 
         return false;
     }
-    getCommentCount(props) {
-        const post = props.post;
-        const parentPost = props.parentPost;
-        const posts = props.posts;
-
-        let commentCount = 0;
-        let commentRootId;
-        if (parentPost) {
-            commentRootId = post.root_id;
-        } else {
-            commentRootId = post.id;
-        }
-        for (const postId in posts) {
-            if (posts[postId].root_id === commentRootId) {
-                commentCount += 1;
-            }
-        }
-
-        return commentCount;
-    }
     render() {
         const post = this.props.post;
         const parentPost = this.props.parentPost;
-        const posts = this.props.posts;
         const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
 
         if (!post.props) {
@@ -148,7 +128,7 @@ export default class Post extends React.Component {
             type = 'Comment';
         }
 
-        const commentCount = this.getCommentCount(this.props);
+        const commentCount = this.props.commentCount;
 
         let rootUser;
         if (this.props.sameRoot) {
@@ -165,7 +145,7 @@ export default class Post extends React.Component {
         }
 
         let currentUserCss = '';
-        if (this.props.currentUser.id === post.user_id && !post.props.from_webhook && !Utils.isSystemMessage(post)) {
+        if (this.props.currentUser.id === post.user_id && !post.props.from_webhook && !PostUtils.isSystemMessage(post)) {
             currentUserCss = 'current--user';
         }
 
@@ -187,7 +167,7 @@ export default class Post extends React.Component {
         }
 
         let systemMessageClass = '';
-        if (Utils.isSystemMessage(post)) {
+        if (PostUtils.isSystemMessage(post)) {
             systemMessageClass = 'post--system';
         }
 
@@ -195,13 +175,13 @@ export default class Post extends React.Component {
         if (!this.props.hideProfilePic || this.props.compactDisplay) {
             profilePic = (
                 <img
-                    src={Utils.getProfilePicSrcForPost(post, timestamp)}
+                    src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                     height='36'
                     width='36'
                 />
             );
 
-            if (Utils.isSystemMessage(post)) {
+            if (PostUtils.isSystemMessage(post)) {
                 profilePic = (
                     <span
                         className='icon'
@@ -246,7 +226,6 @@ export default class Post extends React.Component {
                                 post={post}
                                 sameRoot={this.props.sameRoot}
                                 parentPost={parentPost}
-                                posts={posts}
                                 handleCommentClick={this.handleCommentClick}
                                 retryPost={this.retryPost}
                                 compactDisplay={this.props.compactDisplay}
@@ -261,7 +240,6 @@ export default class Post extends React.Component {
 
 Post.propTypes = {
     post: React.PropTypes.object.isRequired,
-    posts: React.PropTypes.object,
     parentPost: React.PropTypes.object,
     user: React.PropTypes.object,
     sameUser: React.PropTypes.bool,
@@ -273,5 +251,6 @@ Post.propTypes = {
     hasProfiles: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
     center: React.PropTypes.bool,
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+    commentCount: React.PropTypes.number
 };

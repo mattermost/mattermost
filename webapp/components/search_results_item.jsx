@@ -10,6 +10,7 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
@@ -87,7 +88,7 @@ export default class SearchResultsItem extends React.Component {
                     <div className='post__content'>
                         <div className='post__img'>
                             <img
-                                src={Utils.getProfilePicSrcForPost(post, timestamp)}
+                                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                                 height='36'
                                 width='36'
                             />
