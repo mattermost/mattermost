@@ -8,7 +8,7 @@ import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
-import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 const holders = defineMessages({
     download: {
@@ -170,7 +170,7 @@ class FileAttachment extends React.Component {
         } else {
             trimmedFilename = filenameString;
         }
-        var filenamePopover = (
+        var filenameOverlay = (
             <OverlayTrigger
                 delayShow={1000}
                 placement='top'
@@ -189,7 +189,7 @@ class FileAttachment extends React.Component {
         );
 
         if (this.props.compactDisplay) {
-            filenamePopover = (
+            filenameOverlay = (
                 <OverlayTrigger
                     delayShow={1000}
                     placement='top'
@@ -220,7 +220,7 @@ class FileAttachment extends React.Component {
                     {thumbnail}
                 </a>
                 <div className='post-image__details'>
-                    {filenamePopover}
+                    {filenameOverlay}
                     <div>
                         <a
                             href={fileUrl}
