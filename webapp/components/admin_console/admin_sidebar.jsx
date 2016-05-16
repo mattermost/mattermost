@@ -507,11 +507,11 @@ export default class AdminSidebar extends React.Component {
                                 }
                             >
                                 <AdminSidebarSection
-                                    name='white_labeling'
+                                    name='custom_brand'
                                     title={
                                         <FormattedMessage
-                                            id='admin.sidebar.whiteLabeling'
-                                            defaultMessage='White Labeling'
+                                            id='admin.sidebar.customBrand'
+                                            defaultMessage='Custom Branding'
                                         />
 
                                     }

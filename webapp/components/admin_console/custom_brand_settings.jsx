@@ -12,7 +12,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 
-export default class WhiteLabelingSettings extends AdminSettings {
+export default class CustomBrandSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -107,8 +107,8 @@ export default class WhiteLabelingSettings extends AdminSettings {
             <SettingsGroup
                 header={
                     <FormattedMessage
-                        id='admin.customization.whiteLabeling'
-                        defaultMessage='White Labeling'
+                        id='admin.customization.customBrand'
+                        defaultMessage='Custom Branding'
                     />
                 }
             >

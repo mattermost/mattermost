@@ -70,7 +70,7 @@ import ExternalServiceSettings from 'components/admin_console/external_service_s
 import DatabaseSettings from 'components/admin_console/database_settings.jsx';
 import StorageSettings from 'components/admin_console/storage_settings.jsx';
 import ImageSettings from 'components/admin_console/image_settings.jsx';
-import WhiteLabelingSettings from 'components/admin_console/white_labeling_settings.jsx';
+import CustomBrandSettings from 'components/admin_console/custom_brand_settings.jsx';
 import LegalAndSupportSettings from 'components/admin_console/legal_and_support_settings.jsx';
 import ComplianceSettings from 'components/admin_console/compliance_settings.jsx';
 import RateSettings from 'components/admin_console/rate_settings.jsx';
@@ -449,10 +449,10 @@ function renderRootComponent() {
                             />
                         </Route>
                         <Route path='customization'>
-                            <IndexRedirect to='white_labeling'/>
+                            <IndexRedirect to='custom_brand'/>
                             <Route
-                                path='white_labeling'
-                                component={WhiteLabelingSettings}
+                                path='custom_brand'
+                                component={CustomBrandSettings}
                             />
                             <Route
                                 path='legal_and_support'
