@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-
 import Constants from './constants.jsx';
 import emojis from './emoji.json';
 
@@ -134,7 +132,7 @@ export function getEmoticonsByCodePoint() {
 export function handleEmoticons(text, tokens) {
     let output = text;
 
-    function replaceEmoticonWithToken(fullMatch, prefix, matchText, name) {
+    function replaceEmoticonWithToken(fullMatch, matchText, name) {
         if (getEmoticonsByName().has(name)) {
             const index = tokens.size;
             const alias = `MM_EMOTICON${index}`;
@@ -145,19 +143,23 @@ export function handleEmoticons(text, tokens) {
                 originalText: fullMatch
             });
 
-            return prefix + alias;
+            return alias;
         }
 
         return fullMatch;
     }
 
-    output = output.replace(/(^|\s)(:([a-zA-Z0-9_-]+):)(?=$|\s)/g, (fullMatch, prefix, matchText, name) => replaceEmoticonWithToken(fullMatch, prefix, matchText, name));
+    // match named emoticons like :goat:
+    output = output.replace(/(:([a-zA-Z0-9_-]+):)/g, (fullMatch, matchText, name) => replaceEmoticonWithToken(fullMatch, matchText, name));
 
-    $.each(emoticonPatterns, (name, pattern) => {
+    // match text smilies like :D
+    for (const name of Object.keys(emoticonPatterns)) {
+        const pattern = emoticonPatterns[name];
+
         // this might look a bit funny, but since the name isn't contained in the actual match
         // like with the named emoticons, we need to add it in manually
-        output = output.replace(pattern, (fullMatch, prefix, matchText) => replaceEmoticonWithToken(fullMatch, prefix, matchText, name));
-    });
+        output = output.replace(pattern, (fullMatch, matchText) => replaceEmoticonWithToken(fullMatch, matchText, name));
+    }
 
     return output;
 }
