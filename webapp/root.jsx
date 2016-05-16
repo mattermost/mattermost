@@ -24,6 +24,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import Client from 'utils/web_client.jsx';
@@ -101,9 +102,10 @@ function preRenderSetup(callwhendone) {
         }
     );
 
-    // Make sure the websockets close
+    // Make sure the websockets close and reset version
     $(window).on('beforeunload',
          () => {
+             BrowserStore.setLastServerVersion('');
              Websockets.close();
          }
     );

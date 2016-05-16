@@ -47,7 +47,21 @@ function isCallInProgress(callName) {
     return true;
 }
 
-export function getChannels(checkVersion) {
+export function checkVersion() {
+    var serverVersion = Client.getServerVersion();
+
+    if (serverVersion !== BrowserStore.getLastServerVersion()) {
+        if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
+            BrowserStore.setLastServerVersion(serverVersion);
+        } else {
+            BrowserStore.setLastServerVersion(serverVersion);
+            window.location.reload(true);
+            console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+        }
+    }
+}
+
+export function getChannels(doVersionCheck) {
     if (isCallInProgress('getChannels')) {
         return null;
     }
@@ -58,18 +72,8 @@ export function getChannels(checkVersion) {
         (data) => {
             callTracker.getChannels = 0;
 
-            if (checkVersion) {
-                var serverVersion = Client.getServerVersion();
-
-                if (serverVersion !== BrowserStore.getLastServerVersion()) {
-                    if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
-                        BrowserStore.setLastServerVersion(serverVersion);
-                    } else {
-                        BrowserStore.setLastServerVersion(serverVersion);
-                        window.location.reload(true);
-                        console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
-                    }
-                }
+            if (doVersionCheck) {
+                checkVersion();
             }
 
             AppDispatcher.handleServerAction({
