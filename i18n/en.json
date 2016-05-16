@@ -3380,6 +3380,10 @@
     "translation": "We couldn't find the existing team"
   },
   {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "We couldn't get the team member"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "We couldn't get the team members"
   },

@@ -134,6 +134,7 @@ func TestUpdateChannel(t *testing.T) {
 	team := th.BasicTeam
 	user := th.BasicUser
 	user2 := th.CreateUser(th.BasicClient)
+	LinkUserToTeam(user2, team)
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -174,6 +175,13 @@ func TestUpdateChannel(t *testing.T) {
 
 	if _, err := Client.UpdateChannel(upChannel1); err == nil {
 		t.Fatal("Standard User should have failed to update")
+	}
+
+	Client.Must(Client.JoinChannel(channel1.Id))
+	UpdateUserToTeamAdmin(user2, team)
+
+	if _, err := Client.UpdateChannel(upChannel1); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -565,6 +573,12 @@ func TestDeleteChannel(t *testing.T) {
 			}
 			break
 		}
+	}
+
+	UpdateUserToTeamAdmin(userStd, team)
+
+	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
+		t.Fatal(err)
 	}
 }
 
