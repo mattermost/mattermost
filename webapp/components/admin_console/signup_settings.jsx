@@ -19,13 +19,15 @@ export default class SignupSettings extends AdminSettings {
 
         this.state = Object.assign(this.state, {
             requireEmailVerification: props.config.EmailSettings.RequireEmailVerification,
-            inviteSalt: props.config.EmailSettings.InviteSalt
+            inviteSalt: props.config.EmailSettings.InviteSalt,
+            enableOpenServer: props.config.TeamSettings.EnableOpenServer
         });
     }
 
     getConfigFromState(config) {
         config.EmailSettings.RequireEmailVerification = this.state.requireEmailVerification;
         config.EmailSettings.InviteSalt = this.state.inviteSalt;
+        config.TeamSettings.EnableOpenServer = this.state.enableOpenServer;
 
         return config;
     }
@@ -98,6 +100,23 @@ export default class SignupSettings extends AdminSettings {
                             defaultMessage='Invite salt cannot be changed while sending emails is disabled.'
                         />
                     }
+                />
+                <BooleanSetting
+                    id='enableOpenServer'
+                    label={
+                        <FormattedMessage
+                            id='admin.team.openServerTitle'
+                            defaultMessage='Enable Open Server: '
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.openServerDescription'
+                            defaultMessage='When true, anyone can signup for a user account on this server without the need to be invited.'
+                        />
+                    }
+                    value={this.state.enableOpenServer}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );
