@@ -34,6 +34,8 @@ import {Link, browserHistory} from 'react-router';
 
 import React from 'react';
 
+import * as GlobalActions from 'action_creators/global_actions.jsx';
+
 export default class Navbar extends React.Component {
     constructor(props) {
         super(props);
@@ -49,6 +51,12 @@ export default class Navbar extends React.Component {
 
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
         this.createDropdown = this.createDropdown.bind(this);
+
+        this.navigateChannelShortcut = this.navigateChannelShortcut.bind(this);
+        this.navigateUnreadChannelShortcut = this.navigateUnreadChannelShortcut.bind(this);
+        this.getDisplayedChannels = this.getDisplayedChannels.bind(this);
+        this.compareByName = this.compareByName.bind(this);
+        this.compareByDmName = this.compareByDmName.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -72,10 +80,14 @@ export default class Navbar extends React.Component {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
+        document.addEventListener('keydown', this.navigateChannelShortcut);
+        document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeExtraInfoChangeListener(this.onChange);
+        document.removeEventListener('keydown', this.navigateChannelShortcut);
+        document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -149,6 +161,73 @@ export default class Navbar extends React.Component {
         this.setState({
             showRenameChannelModal: false
         });
+    }
+    navigateChannelShortcut(e) {
+        if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
+            const allChannels = this.getDisplayedChannels();
+            const curChannel = ChannelStore.getCurrent();
+            const curIndex = allChannels.indexOf(curChannel);
+            let nextChannel = curChannel;
+            let nextIndex = curIndex;
+            if (e.keyCode === Constants.KeyCodes.DOWN) {
+                nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
+            } else if (e.keyCode === Constants.KeyCodes.UP) {
+                nextIndex = Math.max(curIndex - 1, 0);
+            }
+            nextChannel = allChannels[nextIndex];
+            GlobalActions.emitChannelClickEvent(nextChannel);
+        }
+    }
+    navigateUnreadChannelShortcut(e) {
+        if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
+            const allChannels = this.getDisplayedChannels();
+            const curChannel = ChannelStore.getCurrent();
+            const curIndex = allChannels.indexOf(curChannel);
+            let nextChannel = curChannel;
+            let nextIndex = curIndex;
+            if (e.keyCode === Constants.KeyCodes.UP) {
+                while (nextIndex >= 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
+                    nextIndex--;
+                }
+            } else if (e.keyCode === Constants.KeyCodes.DOWN) {
+                while (nextIndex <= allChannels.length - 1 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
+                    nextIndex++;
+                }
+            }
+            if (nextIndex !== curIndex && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 || ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
+                nextChannel = allChannels[nextIndex];
+                GlobalActions.emitChannelClickEvent(nextChannel);
+            }
+        }
+    }
+    getDisplayedChannels() {
+        const allChannels = ChannelStore.getAll();
+        const open = [];
+        const priv = [];
+        const dm = [];
+
+        for (let i = 0; i < allChannels.length; i++) {
+            if (allChannels[i].type === 'O') {
+                open.push(allChannels[i]);
+            } else if (allChannels[i].type === 'P') {
+                priv.push(allChannels[i]);
+            } else {
+                dm.push(allChannels[i]);
+            }
+        }
+        open.sort(this.compareByName);
+        priv.sort(this.compareByName);
+        dm.sort(this.compareByDmName);
+
+        return open.concat(priv).concat(dm);
+    }
+    compareByName(a, b) {
+        return a.name.toLowerCase() - b.name.toLowerCase();
+    }
+    compareByDmName(a, b) {
+        return UserStore.getProfile(a.name).username.toLowerCase() - UserStore.getProfile(b.name).username.toLowerCase();
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
         if (channel) {
