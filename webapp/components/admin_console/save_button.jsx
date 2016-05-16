@@ -42,7 +42,7 @@ export default class SaveButton extends React.Component {
             );
         }
 
-        let className = 'btn';
+        let className = 'save-button btn';
         if (!disabled) {
             className += ' btn-primary';
         }

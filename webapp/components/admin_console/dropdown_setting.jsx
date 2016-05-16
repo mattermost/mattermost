@@ -32,7 +32,6 @@ export default class DropdownSetting extends React.Component {
         return (
             <Setting
                 label={this.props.label}
-                margin={this.props.margin}
                 inputId={this.props.id}
                 helpText={this.props.helpText}
             >
@@ -61,6 +60,5 @@ DropdownSetting.propTypes = {
     value: React.PropTypes.string.isRequired,
     onChange: React.PropTypes.func.isRequired,
     disabled: React.PropTypes.bool,
-    helpText: React.PropTypes.node,
-    margin: React.PropTypes.oneOf(['', 'small'])
+    helpText: React.PropTypes.node
 };

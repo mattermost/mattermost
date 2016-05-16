@@ -79,7 +79,6 @@ export default class ConnectionSecurityDropdownSetting extends React.Component {
                 onChange={this.props.onChange}
                 disabled={this.props.disabled}
                 helpText={CONNECTION_SECURITY_HELP_TEXT}
-                margin='small'
             />
         );
     }

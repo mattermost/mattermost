@@ -72,10 +72,6 @@
 
         .form-group {
             margin-bottom: 25px;
-
-            &.form-group--small {
-                margin-bottom:10px;
-            }
         }
 
         .file__upload {
@@ -329,4 +325,8 @@
             top: 3px;
         }
     }
+}
+
+.email-connection-test {
+    margin-top: -15px;
 }

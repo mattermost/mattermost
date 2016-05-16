@@ -5,13 +5,8 @@ import React from 'react';
 
 export default class Setting extends React.Component {
     render() {
-        let marginClass = '';
-        if (this.props.margin === 'small') {
-            marginClass = ' form-group--small';
-        }
-
         return (
-            <div className={'form-group' + marginClass}>
+            <div className='form-group'>
                 <label
                     className='control-label col-sm-4'
                     htmlFor={this.props.inputId}
@@ -35,6 +30,5 @@ Setting.propTypes = {
     inputId: React.PropTypes.string,
     label: React.PropTypes.node.isRequired,
     children: React.PropTypes.node.isRequired,
-    helpText: React.PropTypes.node,
-    margin: React.PropTypes.oneOf(['', 'small'])
+    helpText: React.PropTypes.node
 };
