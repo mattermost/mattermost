@@ -26,7 +26,7 @@ export default class TimeSince extends React.Component {
         clearInterval(this.intervalId);
     }
     render() {
-        if (this.props.sameUser) {
+        if (this.props.sameUser || this.props.compactDisplay) {
             return (
                 <time className='post__time'>
                     {Utils.displayTimeFormatted(this.props.eventTime)}
@@ -69,5 +69,6 @@ TimeSince.defaultProps = {
 
 TimeSince.propTypes = {
     eventTime: React.PropTypes.number.isRequired,
-    sameUser: React.PropTypes.bool
+    sameUser: React.PropTypes.bool,
+    compactDisplay: React.PropTypes.bool
 };

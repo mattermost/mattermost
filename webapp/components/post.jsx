@@ -103,6 +103,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.compactDisplay !== this.props.compactDisplay) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
         }
@@ -188,7 +192,7 @@ export default class Post extends React.Component {
         }
 
         let profilePic = null;
-        if (!this.props.hideProfilePic) {
+        if (!this.props.hideProfilePic || this.props.compactDisplay) {
             profilePic = (
                 <img
                     src={Utils.getProfilePicSrcForPost(post, timestamp)}
@@ -212,11 +216,16 @@ export default class Post extends React.Component {
             centerClass = 'center';
         }
 
+        let compactClass = '';
+        if (this.props.compactDisplay) {
+            compactClass = 'post--compact';
+        }
+
         return (
             <div>
                 <div
                     id={'post_' + post.id}
-                    className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass}
+                    className={'post ' + sameUserClass + ' ' + compactClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass}
                 >
                     <div className={'post__content ' + centerClass}>
                         <div className='post__img'>{profilePic}</div>
@@ -231,6 +240,7 @@ export default class Post extends React.Component {
                                 sameUser={this.props.sameUser}
                                 user={this.props.user}
                                 currentUser={this.props.currentUser}
+                                compactDisplay={this.props.compactDisplay}
                             />
                             <PostBody
                                 post={post}
@@ -239,6 +249,7 @@ export default class Post extends React.Component {
                                 posts={posts}
                                 handleCommentClick={this.handleCommentClick}
                                 retryPost={this.retryPost}
+                                compactDisplay={this.props.compactDisplay}
                             />
                         </div>
                     </div>
@@ -261,5 +272,6 @@ Post.propTypes = {
     displayNameType: React.PropTypes.string,
     hasProfiles: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
-    center: React.PropTypes.bool
+    center: React.PropTypes.bool,
+    compactDisplay: React.PropTypes.bool
 };
