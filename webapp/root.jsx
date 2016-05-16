@@ -55,7 +55,7 @@ import ConfigurationSettings from 'components/admin_console/configuration_settin
 import UsersAndTeamsSettings from 'components/admin_console/users_and_teams_settings.jsx';
 import PrivacySettings from 'components/admin_console/privacy_settings.jsx';
 import LogSettings from 'components/admin_console/log_settings.jsx';
-import OnboardingSettings from 'components/admin_console/onboarding_settings.jsx';
+import EmailAuthenticationSettings from 'components/admin_console/email_authentication_settings.jsx';
 import GitLabSettings from 'components/admin_console/gitlab_settings.jsx';
 import LdapSettings from 'components/admin_console/ldap_settings.jsx';
 import SignupSettings from 'components/admin_console/signup_settings.jsx';
@@ -374,10 +374,10 @@ function renderRootComponent() {
                             />
                         </Route>
                         <Route path='authentication'>
-                            <IndexRedirect to='onboarding'/>
+                            <IndexRedirect to='email'/>
                             <Route
-                                path='onboarding'
-                                component={OnboardingSettings}
+                                path='email'
+                                component={EmailAuthenticationSettings}
                             />
                             <Route
                                 path='gitlab'

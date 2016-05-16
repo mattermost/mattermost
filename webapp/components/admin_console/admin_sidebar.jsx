@@ -330,11 +330,11 @@ export default class AdminSidebar extends React.Component {
                                 }
                             >
                                 <AdminSidebarSection
-                                    name='onboarding'
+                                    name='email'
                                     title={
                                         <FormattedMessage
-                                            id='admin.sidebar.onboarding'
-                                            defaultMessage='Onboarding'
+                                            id='admin.sidebar.email'
+                                            defaultMessage='Email'
                                         />
                                     }
                                 />

@@ -8,7 +8,7 @@ import BooleanSetting from './boolean_setting.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 
-export default class OnboardingSettings extends AdminSettings {
+export default class EmailAuthenticationSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -47,8 +47,8 @@ export default class OnboardingSettings extends AdminSettings {
             <SettingsGroup
                 header={
                     <FormattedMessage
-                        id='admin.authentication.onboarding'
-                        defaultMessage='Onboarding'
+                        id='admin.authentication.email'
+                        defaultMessage='Email'
                     />
                 }
             >
