@@ -127,19 +127,20 @@ func (o *IncomingWebhook) PreUpdate() {
 	o.UpdateAt = GetMillis()
 }
 
-// escapeControlCharsFromText escapes control chars (\n, \t) from a byte slice.
+// escapeControlCharsFromPayload escapes control chars (\n, \t) from a byte slice.
 // Context:
 // JSON strings are not supposed to contain control characters such as \n, \t,
 // ... but some incoming webhooks might still send invalid JSON and we want to
 // try to handle that. An example invalid JSON string from an incoming webhook
-// might look like this (strings for both "text" attributes are invalid JSON
-// strings because they contain unescaped newlines and tabs):
+// might look like this (strings for both "text" and "fallback" attributes are
+// invalid JSON strings because they contain unescaped newlines and tabs):
 //  `{
 //    "text": "this is a test
 //						 that contains a newline and tabs",
 //    "attachments": [
 //      {
-//        "fallback": "Required plain-text summary of the attachment.",
+//        "fallback": "Required plain-text summary of the attachment
+//										that contains a newline and tabs",
 //        "color": "#36a64f",
 //  			...
 //        "text": "Optional text that appears within the attachment
@@ -149,17 +150,20 @@ func (o *IncomingWebhook) PreUpdate() {
 //      }
 //    ]
 //  }`
-// This function will search for `"text": "..."` properties, and escape \n, \t
-// in the string.
-func escapeControlCharsFromText(by []byte) []byte {
+// This function will search for `"key": "value"` pairs, and escape \n, \t
+// from the value.
+func escapeControlCharsFromPayload(by []byte) []byte {
+	// we'll search for `"text": "..."` or `"fallback": "..."`, ...
+	keys := "text|fallback|pretext|author_name|title|value"
+
 	// the regexp reads like this:
 	// (?s): this flag let . match \n (default is false)
-	// "text": we search for the `"text"` string
+	// "(keys)": we search for the keys defined above
 	// \s*:\s*: followed by 0..n spaces/tabs, a colon then 0..n spaces/tabs
 	// ": a double-quote
 	// (\\"|[^"])*: any number of times the `\"` string or any char but a double-quote
 	// ": a double-quote
-	r := `(?s)"text"\s*:\s*"(\\"|[^"])*"`
+	r := `(?s)"(` + keys + `)"\s*:\s*"(\\"|[^"])*"`
 	re := regexp.MustCompile(r)
 
 	// the function that will escape \n and \t on the regexp matches
@@ -197,7 +201,7 @@ func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 	// characters from the strings contained in the JSON data.
 	o, err := decodeIncomingWebhookRequest(by)
 	if err != nil {
-		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromText(by))
+		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
 		if err != nil {
 			return nil
 		}

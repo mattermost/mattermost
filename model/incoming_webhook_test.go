@@ -124,25 +124,25 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
         "text": "` + text + `",
         "attachments": [
             {
-                "fallback": "Required plain-text summary of the attachment.",
+                "fallback": "` + text + `",
 
                 "color": "#36a64f",
 
-                "pretext": "Optional text that appears above the attachment block",
+                "pretext": "` + text + `",
 
-                "author_name": "Bobby Tables",
+                "author_name": "` + text + `",
                 "author_link": "http://flickr.com/bobby/",
                 "author_icon": "http://flickr.com/icons/bobby.jpg",
 
-                "title": "Slack API Documentation",
+                "title": "` + text + `",
                 "title_link": "https://api.slack.com/",
 
                 "text": "` + text + `",
 
                 "fields": [
                     {
-                        "title": "Priority",
-                        "value": "High",
+                        "title": "` + text + `",
+                        "value": "` + text + `",
                         "short": false
                     }
                 ],
