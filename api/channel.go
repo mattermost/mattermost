@@ -188,6 +188,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sc := Srv.Store.Channel().Get(channel.Id)
 	cmc := Srv.Store.Channel().GetMember(channel.Id, c.Session.UserId)
+	tmc := Srv.Store.Team().GetMember(c.TeamId, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -195,14 +196,19 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if cmcresult := <-cmc; cmcresult.Err != nil {
 		c.Err = cmcresult.Err
 		return
+	} else if tmcresult := <-tmc; cmcresult.Err != nil {
+		c.Err = tmcresult.Err
+		return
 	} else {
 		oldChannel := cresult.Data.(*model.Channel)
 		channelMember := cmcresult.Data.(model.ChannelMember)
+		teamMember := tmcresult.Data.(model.TeamMember)
+
 		if !c.HasPermissionsToTeam(oldChannel.TeamId, "updateChannel") {
 			return
 		}
 
-		if !strings.Contains(channelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !strings.Contains(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
+		if !strings.Contains(channelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !strings.Contains(teamMember.Roles, model.ROLE_TEAM_ADMIN) {
 			c.Err = model.NewLocAppError("updateChannel", "api.channel.update_channel.permission.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
