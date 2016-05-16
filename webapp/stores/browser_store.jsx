@@ -158,12 +158,17 @@ class BrowserStoreClass {
     clear() {
         // don't clear the logout id so IE11 can tell which tab sent a logout request
         const logoutId = sessionStorage.getItem('__logout__');
+        const serverVersion = this.getLastServerVersion();
 
         sessionStorage.clear();
         localStorage.clear();
 
         if (logoutId) {
             sessionStorage.setItem('__logout__', logoutId);
+        }
+
+        if (serverVersion) {
+            this.setLastServerVersion(serverVersion);
         }
     }
 
