@@ -434,6 +434,8 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		IsOAuth:     false,
 	}
 
+	c.TeamId = hook.TeamId
+
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "")
 		return

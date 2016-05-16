@@ -197,6 +197,27 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
 	return storeChannel
 }
 
+func (us SqlUserStore) UpdateUpdateAt(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		curTime := model.GetMillis()
+
+		if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_update.app_error", nil, "user_id="+userId)
+		} else {
+			result.Data = userId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 
@@ -461,7 +482,7 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			        WHERE
 			            UserId = :UserId
 			                AND Category = 'direct_channel_show')
-			ORDER BY UpdateAt DESC
+			ORDER BY UpdateAt DESC LIMIT 1
         `, map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
