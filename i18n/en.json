@@ -936,6 +936,10 @@
     "translation": "Already deleted id={{.PostId}}"
   },
   {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Unable to update system message"
+  },
+  {
     "id": "api.post_get_post_by_id.get.app_error",
     "translation": "Unable to get post"
   },

@@ -919,6 +919,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
+
+		if oldPost.IsSystemMessage() {
+			c.Err = model.NewLocAppError("updatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id)
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
 	}
 
 	hashtags, _ := model.ParseHashtags(post.Message)

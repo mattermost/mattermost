@@ -85,6 +85,7 @@ export default class RhsComment extends React.Component {
 
         const isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemMessage = post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
 
         var dropdownContents = [];
 
@@ -107,7 +108,7 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        if (isOwner) {
+        if (isOwner && !isSystemMessage) {
             dropdownContents.push(
                 <li
                     role='presentation'
