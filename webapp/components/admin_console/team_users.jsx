@@ -176,7 +176,7 @@ export default class UserList extends React.Component {
 
             return (
                 <UserItem
-                    team={this.props.team}
+                    team={this.state.team}
                     key={'user_' + user.id}
                     user={user}
                     teamMember={teamMember}

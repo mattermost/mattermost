@@ -22,7 +22,7 @@ class AdminStoreClass extends EventEmitter {
         this.logs = null;
         this.audits = null;
         this.config = null;
-        this.teams = {}
+        this.teams = {};
         this.complianceReports = null;
     }
 
