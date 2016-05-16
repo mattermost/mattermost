@@ -224,6 +224,10 @@
     "translation": "ダイレクトメッセージチャンネルから脱退することはできません"
   },
   {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "あなたが最後のメンバーです。脱退する代わりにプライベートグループを削除しましょう。"
+  },
+  {
     "id": "api.channel.leave.left",
     "translation": "%vがチャンネルから脱退しました。"
   },
@@ -380,6 +384,10 @@
     "translation": "Mattermostからログアウトする"
   },
   {
+    "id": "api.command_logout.fail_message",
+    "translation": "ログアウトに失敗しました"
+  },
+  {
     "id": "api.command_logout.name",
     "translation": "ログアウト"
   },
@@ -518,6 +526,10 @@
   {
     "id": "api.export.s3.app_error",
     "translation": "S3はローカルストレージへのエクスポートではサポートされません。"
+  },
+  {
+    "id": "api.file.file_upload.exceeds",
+    "translation": "ファイルが最大の画像サイズを超過しました。"
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -1696,8 +1708,16 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
+    "id": "api.user.update_roles.system_admin_needed.app_error",
+    "translation": "この操作には、システム管理者の役割が必要です"
+  },
+  {
     "id": "api.user.update_roles.system_admin_set.app_error",
     "translation": "システム管理者の役割は、他のシステム管理者だけが設定できます"
+  },
+  {
+    "id": "api.user.update_roles.team_admin_needed.app_error",
+    "translation": "この操作には、チーム管理者の役割が必要です"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2296,10 +2316,6 @@
     "translation": "LDAP設定の接続セキュリティーが不正です。'TLS'か'STARTTLS'にしてください"
   },
   {
-    "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "ダイレクトメッセージの制限が無効です。'any'か'team'にしてください"
-  },
-  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "サービス設定の接続待ちアドレスが不正です。設定してください。"
   },
@@ -2318,6 +2334,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "投稿頻度設定の1秒当たりの投稿数が不正です。正の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "ダイレクトメッセージの制限が無効です。'any'か'team'にしてください"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
