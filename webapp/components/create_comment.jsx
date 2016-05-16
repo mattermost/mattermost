@@ -224,7 +224,7 @@ class CreateComment extends React.Component {
             });
         }
 
-        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.keyCode === KeyCodes.UP) {
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP) {
             const lastPost = PostStore.getCurrentUsersLatestPost(this.props.channelId, this.props.rootId);
             if (!lastPost) {
                 return;
