@@ -411,6 +411,27 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var member model.TeamMember
+		err := s.GetReplica().SelectOne(&member, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId AND UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
+		} else {
+			result.Data = member
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlTeamStore) GetMembers(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

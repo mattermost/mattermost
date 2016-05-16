@@ -61,6 +61,7 @@ type TeamStore interface {
 	AnalyticsTeamCount() StoreChannel
 	SaveMember(member *model.TeamMember) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
+	GetMember(teamId string, userId string) StoreChannel
 	GetMembers(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
