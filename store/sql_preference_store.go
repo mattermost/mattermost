@@ -155,7 +155,7 @@ func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *mo
 	result := StoreResult{}
 
 	if err := transaction.Insert(preference); err != nil {
-		if IsUniqueConstraintError(err.Error(), "UserId", "preferences_pkey") {
+		if IsUniqueConstraintError(err.Error(), []string{"UserId", "preferences_pkey"}) {
 			result.Err = model.NewLocAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.exists.app_error", nil,
 				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error())
 		} else {

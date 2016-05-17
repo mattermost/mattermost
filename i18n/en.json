@@ -3500,6 +3500,10 @@
     "translation": "An account with that email already exists."
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Must call update for exisiting user"
   },
@@ -3514,6 +3518,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "An account with that username already exists."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
     "id": "store.sql_user.update.app_error",
