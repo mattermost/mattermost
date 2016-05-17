@@ -936,6 +936,10 @@
     "translation": "既に削除されたIDです id={{.PostId}}"
   },
   {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Unable to update system message"
+  },
+  {
     "id": "api.post_get_post_by_id.get.app_error",
     "translation": "投稿を取得できません"
   },
@@ -3378,6 +3382,10 @@
   {
     "id": "store.sql_team.get_by_name.app_error",
     "translation": "チームが保存できませんでした"
+  },
+  {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "チャンネルのメンバーが取得できませんでした"
   },
   {
     "id": "store.sql_team.get_members.app_error",

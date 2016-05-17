@@ -936,6 +936,10 @@
     "translation": "Ya fué elminado el id={{.PostId}}"
   },
   {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Unable to update system message"
+  },
+  {
     "id": "api.post_get_post_by_id.get.app_error",
     "translation": "No se puede obtener el mensaje"
   },
@@ -3378,6 +3382,10 @@
   {
     "id": "store.sql_team.get_by_name.app_error",
     "translation": "No encontramos el equipo al que perteneces"
+  },
+  {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "No pudimos obtener los miembros del equipo"
   },
   {
     "id": "store.sql_team.get_members.app_error",
