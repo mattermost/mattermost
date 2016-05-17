@@ -245,8 +245,7 @@ class SystemAnalytics extends React.Component {
 }
 
 SystemAnalytics.propTypes = {
-    intl: intlShape.isRequired,
-    team: React.PropTypes.object
+    intl: intlShape.isRequired
 };
 
 export default injectIntl(SystemAnalytics);

@@ -8,16 +8,43 @@ import Setting from './setting.jsx';
 import {FormattedMessage} from 'react-intl';
 
 export default class BooleanSetting extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.props.onChange(this.props.id, e.target.value === 'true');
+    }
+
     render() {
+        let helpText;
+        if (this.props.disabled && this.props.disabledText) {
+            helpText = (
+                <div>
+                    <span className='admin-console__disabled-text'>
+                        {this.props.disabledText}
+                    </span>
+                    {this.props.helpText}
+                </div>
+            );
+        } else {
+            helpText = this.props.helpText;
+        }
+
         return (
-            <Setting label={this.props.label}>
+            <Setting
+                label={this.props.label}
+                helpText={helpText}
+            >
                 <label className='radio-inline'>
                     <input
                         type='radio'
                         value='true'
-                        checked={this.props.currentValue}
-                        onChange={this.props.handleChange}
-                        disabled={this.props.isDisabled}
+                        checked={this.props.value}
+                        onChange={this.handleChange}
+                        disabled={this.props.disabled}
                     />
                     {this.props.trueText}
                 </label>
@@ -25,13 +52,12 @@ export default class BooleanSetting extends React.Component {
                     <input
                         type='radio'
                         value='false'
-                        checked={!this.props.currentValue}
-                        onChange={this.props.handleChange}
-                        disabled={this.props.isDisabled}
+                        checked={!this.props.value}
+                        onChange={this.handleChange}
+                        disabled={this.props.disabled}
                     />
                     {this.props.falseText}
                 </label>
-                {this.props.helpText}
             </Setting>
         );
     }
@@ -48,15 +74,18 @@ BooleanSetting.defaultProps = {
             id='admin.ldap.false'
             defaultMessage='false'
         />
-    )
+    ),
+    disabled: false
 };
 
 BooleanSetting.propTypes = {
+    id: React.PropTypes.string.isRequired,
     label: React.PropTypes.node.isRequired,
-    currentValue: React.PropTypes.bool.isRequired,
+    value: React.PropTypes.bool.isRequired,
+    onChange: React.PropTypes.func.isRequired,
     trueText: React.PropTypes.node,
     falseText: React.PropTypes.node,
-    isDisabled: React.PropTypes.bool.isRequired,
-    handleChange: React.PropTypes.func.isRequired,
+    disabled: React.PropTypes.bool.isRequired,
+    disabledText: React.PropTypes.node,
     helpText: React.PropTypes.node.isRequired
 };

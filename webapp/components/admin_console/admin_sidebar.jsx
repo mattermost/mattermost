@@ -2,69 +2,80 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-
-import AdminSidebarHeader from './admin_sidebar_header.jsx';
-import SelectTeamModal from './select_team_modal.jsx';
-import * as Utils from 'utils/utils.jsx';
-
-import {FormattedMessage} from 'react-intl';
-
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
-
 import React from 'react';
 
+import AdminStore from 'stores/admin_store.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
+import * as Utils from 'utils/utils.jsx';
+
+import AdminSidebarHeader from './admin_sidebar_header.jsx';
+import AdminSidebarTeam from './admin_sidebar_team.jsx';
+import {FormattedMessage} from 'react-intl';
+import {browserHistory} from 'react-router';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import SelectTeamModal from './select_team_modal.jsx';
+import AdminSidebarCategory from './admin_sidebar_category.jsx';
+import AdminSidebarSection from './admin_sidebar_section.jsx';
+
 export default class AdminSidebar extends React.Component {
+    static get contextTypes() {
+        return {
+            router: React.PropTypes.object.isRequired
+        };
+    }
+
     constructor(props) {
         super(props);
 
-        this.isSelected = this.isSelected.bind(this);
-        this.handleClick = this.handleClick.bind(this);
+        this.handleAllTeamsChange = this.handleAllTeamsChange.bind(this);
+
         this.removeTeam = this.removeTeam.bind(this);
 
         this.showTeamSelect = this.showTeamSelect.bind(this);
         this.teamSelectedModal = this.teamSelectedModal.bind(this);
         this.teamSelectedModalDismissed = this.teamSelectedModalDismissed.bind(this);
 
+        this.renderAddTeamButton = this.renderAddTeamButton.bind(this);
+        this.renderTeams = this.renderTeams.bind(this);
+
         this.state = {
+            teams: AdminStore.getAllTeams(),
+            selectedTeams: AdminStore.getSelectedTeams(),
             showSelectModal: false
         };
     }
 
+    componentDidMount() {
+        AdminStore.addAllTeamsChangeListener(this.handleAllTeamsChange);
+        AsyncClient.getAllTeams();
+    }
+
     componentDidUpdate() {
         if (!Utils.isMobile()) {
-            $('.sidebar--left .nav-pills__container').perfectScrollbar();
+            $('.admin-sidebar .nav-pills__container').perfectScrollbar();
         }
     }
 
-    handleClick(name, teamId, e) {
-        e.preventDefault();
-        this.props.selectTab(name, teamId);
+    componentWillUnmount() {
+        AdminStore.removeAllTeamsChangeListener(this.handleAllTeamsChange);
     }
 
-    isSelected(name, teamId) {
-        if (this.props.selected === name) {
-            if (name === 'team_users' || name === 'team_analytics') {
-                if (this.props.selectedTeam != null && this.props.selectedTeam === teamId) {
-                    return 'active';
-                }
-            } else {
-                return 'active';
-            }
-        }
-
-        return '';
+    handleAllTeamsChange() {
+        this.setState({
+            teams: AdminStore.getAllTeams(),
+            selectedTeams: AdminStore.getSelectedTeams()
+        });
     }
 
-    removeTeam(teamId, e) {
-        e.preventDefault();
-        e.stopPropagation();
-        Reflect.deleteProperty(this.props.selectedTeams, teamId);
-        this.props.removeSelectedTeam(teamId);
+    removeTeam(team) {
+        const selectedTeams = Object.assign({}, this.state.selectedTeams);
+        Reflect.deleteProperty(selectedTeams, team.id);
+        AdminStore.saveSelectedTeams(selectedTeams);
 
-        if (this.props.selected === 'team_users') {
-            if (this.props.selectedTeam != null && this.props.selectedTeam === teamId) {
-                this.props.selectTab('service_settings', null);
-            }
+        this.handleAllTeamsChange();
+
+        if (this.context.router.isActive('/admin_console/team/' + team.id)) {
+            browserHistory.push('/admin_console');
         }
     }
 
@@ -74,31 +85,23 @@ export default class AdminSidebar extends React.Component {
     }
 
     teamSelectedModal(teamId) {
-        this.setState({showSelectModal: false});
-        this.props.addSelectedTeam(teamId);
-        this.forceUpdate();
+        this.setState({
+            showSelectModal: false
+        });
+
+        const selectedTeams = Object.assign({}, this.state.selectedTeams);
+        selectedTeams[teamId] = true;
+
+        AdminStore.saveSelectedTeams(selectedTeams);
+
+        this.handleAllTeamsChange();
     }
 
     teamSelectedModalDismissed() {
         this.setState({showSelectModal: false});
     }
 
-    render() {
-        var count = '*';
-        var teams = (
-            <FormattedMessage
-                id='admin.sidebar.loading'
-                defaultMessage='Loading'
-            />
-        );
-        const removeTooltip = (
-            <Tooltip id='remove-team-tooltip'>
-                <FormattedMessage
-                    id='admin.sidebar.rmTeamSidebar'
-                    defaultMessage='Remove team from sidebar menu'
-                />
-            </Tooltip>
-        );
+    renderAddTeamButton() {
         const addTeamTooltip = (
             <Tooltip id='add-team-tooltip'>
                 <FormattedMessage
@@ -108,393 +111,468 @@ export default class AdminSidebar extends React.Component {
             </Tooltip>
         );
 
-        if (this.props.teams != null) {
-            count = '' + Object.keys(this.props.teams).length;
+        return (
+            <span className='menu-icon--right'>
+                <OverlayTrigger
+                    delayShow={1000}
+                    placement='top'
+                    overlay={addTeamTooltip}
+                >
+                    <a
+                        href='#'
+                        onClick={this.showTeamSelect}
+                    >
+                        <i
+                            className='fa fa-plus'
+                        ></i>
+                    </a>
+                </OverlayTrigger>
+            </span>
+        );
+    }
 
-            teams = [];
-            for (var key in this.props.selectedTeams) {
-                if (this.props.selectedTeams.hasOwnProperty(key)) {
-                    var team = this.props.teams[key];
+    renderTeams() {
+        const teams = [];
 
-                    if (team != null) {
-                        teams.push(
-                            <ul
-                                key={'team_' + team.id}
-                                className='nav nav__sub-menu'
-                            >
-                                <li>
-                                    <a
-                                        href='#'
-                                        onClick={this.handleClick.bind(this, 'team_users', team.id)}
-                                        className={'nav__sub-menu-item ' + this.isSelected('team_users', team.id) + ' ' + this.isSelected('team_analytics', team.id)}
-                                    >
-                                        {team.name}
-                                        <OverlayTrigger
-                                            delayShow={1000}
-                                            placement='top'
-                                            overlay={removeTooltip}
-                                        >
-                                            <span
-                                                className='menu-icon--right menu__close'
-                                                onClick={this.removeTeam.bind(this, team.id)}
-                                                style={{cursor: 'pointer'}}
-                                            >
-                                                {'×'}
-                                            </span>
-                                        </OverlayTrigger>
-                                    </a>
-                                </li>
-                                <li>
-                                    <ul className='nav nav__inner-menu'>
-                                        <li>
-                                            <a
-                                                href='#'
-                                                className={this.isSelected('team_users', team.id)}
-                                                onClick={this.handleClick.bind(this, 'team_users', team.id)}
-                                            >
-                                                <FormattedMessage
-                                                    id='admin.sidebar.users'
-                                                    defaultMessage='- Users'
-                                                />
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a
-                                                href='#'
-                                                className={this.isSelected('team_analytics', team.id)}
-                                                onClick={this.handleClick.bind(this, 'team_analytics', team.id)}
-                                            >
-                                                <FormattedMessage
-                                                    id='admin.sidebar.statistics'
-                                                    defaultMessage='- Statistics'
-                                                />
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        );
-                    }
-                }
+        for (const key in this.state.selectedTeams) {
+            if (!this.state.selectedTeams.hasOwnProperty(key)) {
+                continue;
             }
+
+            const team = this.state.teams[key];
+
+            if (!team) {
+                continue;
+            }
+
+            teams.push(
+                <AdminSidebarTeam
+                    key={team.id}
+                    team={team}
+                    onRemoveTeam={this.removeTeam}
+                />
+            );
         }
 
-        let ldapSettings;
-        let complianceSettings;
-        let licenseSettings;
-        if (global.window.mm_config.BuildEnterpriseReady === 'true') {
-            if (global.window.mm_license.IsLicensed === 'true') {
+        return (
+            <AdminSidebarCategory
+                parentLink='/admin_console'
+                icon='fa-gear'
+                title={
+                    <FormattedMessage
+                        id='admin.sidebar.teams'
+                        defaultMessage='TEAMS ({count, number})'
+                        values={{
+                            count: Object.keys(this.state.teams).length
+                        }}
+                    />
+                }
+                action={this.renderAddTeamButton()}
+            >
+                {teams}
+            </AdminSidebarCategory>
+        );
+    }
+
+    render() {
+        let ldapSettings = null;
+        let complianceSettings = null;
+
+        let license = null;
+        let audits = null;
+
+        if (window.mm_config.BuildEnterpriseReady === 'true') {
+            if (window.mm_license.IsLicensed === 'true') {
                 if (global.window.mm_license.LDAP === 'true') {
                     ldapSettings = (
-                        <li>
-                            <a
-                                href='#'
-                                className={this.isSelected('ldap_settings')}
-                                onClick={this.handleClick.bind(this, 'ldap_settings', null)}
-                            >
+                        <AdminSidebarSection
+                            name='ldap'
+                            title={
                                 <FormattedMessage
                                     id='admin.sidebar.ldap'
-                                    defaultMessage='LDAP Settings'
+                                    defaultMessage='LDAP'
                                 />
-                            </a>
-                        </li>
+                            }
+                        />
                     );
                 }
 
                 if (global.window.mm_license.Compliance === 'true') {
                     complianceSettings = (
-                        <li>
-                            <a
-                                href='#'
-                                className={this.isSelected('compliance_settings')}
-                                onClick={this.handleClick.bind(this, 'compliance_settings', null)}
-                            >
+                        <AdminSidebarSection
+                            name='compliance'
+                            title={
                                 <FormattedMessage
                                     id='admin.sidebar.compliance'
-                                    defaultMessage='Compliance Settings'
+                                    defaultMessage='Compliance'
                                 />
-                            </a>
-                        </li>
+                            }
+                        />
                     );
                 }
             }
 
-            licenseSettings = (
-                <li>
-                    <a
-                        href='#'
-                        className={this.isSelected('license')}
-                        onClick={this.handleClick.bind(this, 'license', null)}
-                    >
+            license = (
+                <AdminSidebarSection
+                    name='license'
+                    title={
                         <FormattedMessage
                             id='admin.sidebar.license'
                             defaultMessage='Edition and License'
                         />
-                    </a>
-                </li>
+                    }
+                />
             );
         }
 
-        let audits;
-        if (global.window.mm_license.IsLicensed === 'true') {
+        if (window.mm_license.IsLicensed === 'true') {
             audits = (
-                <li>
-                    <a
-                        href='#'
-                        className={this.isSelected('audits')}
-                        onClick={this.handleClick.bind(this, 'audits', null)}
-                    >
+                <AdminSidebarSection
+                    name='audits'
+                    title={
                         <FormattedMessage
                             id='admin.sidebar.audits'
-                            defaultMessage='Compliance and Auditing'
+                            defaultMessage='Complaince and Auditing'
                         />
-                    </a>
-                </li>
+                    }
+                />
             );
         }
 
         return (
-            <div className='sidebar--left sidebar--collapsable'>
+            <div className='admin-sidebar'>
                 <AdminSidebarHeader/>
                 <div className='nav-pills__container'>
                     <ul className='nav nav-pills nav-stacked'>
-                        <li>
-                            <ul className='nav nav__sub-menu'>
-                                <li>
-                                    <h4>
-                                        <span className='icon fa fa-gear'></span>
-                                        <span>
-                                            <FormattedMessage
-                                                id='admin.sidebar.reports'
-                                                defaultMessage='SITE REPORTS'
-                                            />
-                                        </span>
-                                    </h4>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu padded'>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('system_analytics')}
-                                        onClick={this.handleClick.bind(this, 'system_analytics', null)}
-                                    >
+                        <AdminSidebarCategory
+                            parentLink='/admin_console'
+                            icon='fa-gear'
+                            title={
+                                <FormattedMessage
+                                    id='admin.sidebar.reports'
+                                    defaultMessage='SITE REPORTS'
+                                />
+                            }
+                        >
+                            <AdminSidebarSection
+                                name='system_analytics'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.view_statistics'
+                                        defaultMessage='View Statistics'
+                                    />
+                                }
+                            />
+                        </AdminSidebarCategory>
+                        <AdminSidebarCategory
+                            parentLink='/admin_console'
+                            icon='fa-gear'
+                            title={
+                                <FormattedMessage
+                                    id='admin.sidebar.settings'
+                                    defaultMessage='SETTINGS'
+                                />
+                            }
+                        >
+                            <AdminSidebarSection
+                                name='general'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.general'
+                                        defaultMessage='General'
+                                    />
+                                }
+                            >
+                                <AdminSidebarSection
+                                    name='configuration'
+                                    title={
                                         <FormattedMessage
-                                            id='admin.sidebar.view_statistics'
-                                            defaultMessage='View Statistics'
+                                            id='admin.sidebar.configuration'
+                                            defaultMessage='Configuration'
                                         />
-                                    </a>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu'>
-                                <li>
-                                    <h4>
-                                        <span className='icon fa fa-gear'></span>
-                                        <span>
-                                            <FormattedMessage
-                                                id='admin.sidebar.settings'
-                                                defaultMessage='SETTINGS'
-                                            />
-                                        </span>
-                                    </h4>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu padded'>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('service_settings')}
-                                        onClick={this.handleClick.bind(this, 'service_settings', null)}
-                                    >
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='users_and_teams'
+                                    title={
                                         <FormattedMessage
-                                            id='admin.sidebar.service'
-                                            defaultMessage='Service Settings'
+                                            id='admin.sidebar.usersAndTeams'
+                                            defaultMessage='Users and Teams'
                                         />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('team_settings')}
-                                        onClick={this.handleClick.bind(this, 'team_settings', null)}
-                                    >
-                                        <FormattedMessage
-                                            id='admin.sidebar.team'
-                                            defaultMessage='Team Settings'
-                                        />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('sql_settings')}
-                                        onClick={this.handleClick.bind(this, 'sql_settings', null)}
-                                    >
-                                        <FormattedMessage
-                                            id='admin.sidebar.sql'
-                                            defaultMessage='SQL Settings'
-                                        />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('email_settings')}
-                                        onClick={this.handleClick.bind(this, 'email_settings', null)}
-                                    >
-                                        <FormattedMessage
-                                            id='admin.sidebar.email'
-                                            defaultMessage='Email Settings'
-                                        />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('image_settings')}
-                                        onClick={this.handleClick.bind(this, 'image_settings', null)}
-                                    >
-                                        <FormattedMessage
-                                            id='admin.sidebar.file'
-                                            defaultMessage='File Settings'
-                                        />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('log_settings')}
-                                        onClick={this.handleClick.bind(this, 'log_settings', null)}
-                                    >
-                                        <FormattedMessage
-                                            id='admin.sidebar.log'
-                                            defaultMessage='Log Settings'
-                                        />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('rate_settings')}
-                                        onClick={this.handleClick.bind(this, 'rate_settings', null)}
-                                    >
-                                        <FormattedMessage
-                                            id='admin.sidebar.rate_limit'
-                                            defaultMessage='Rate Limit Settings'
-                                        />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('privacy_settings')}
-                                        onClick={this.handleClick.bind(this, 'privacy_settings', null)}
-                                    >
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='privacy'
+                                    title={
                                         <FormattedMessage
                                             id='admin.sidebar.privacy'
-                                            defaultMessage='Privacy Settings'
+                                            defaultMessage='Privacy'
                                         />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('gitlab_settings')}
-                                        onClick={this.handleClick.bind(this, 'gitlab_settings', null)}
-                                    >
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='logging'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.logging'
+                                            defaultMessage='Logging'
+                                        />
+                                    }
+                                />
+                            </AdminSidebarSection>
+                            <AdminSidebarSection
+                                name='authentication'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.authentication'
+                                        defaultMessage='Authentication'
+                                    />
+                                }
+                            >
+                                <AdminSidebarSection
+                                    name='email'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.email'
+                                            defaultMessage='Email'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='gitlab'
+                                    title={
                                         <FormattedMessage
                                             id='admin.sidebar.gitlab'
-                                            defaultMessage='GitLab Settings'
+                                            defaultMessage='GitLab'
                                         />
-                                    </a>
-                                </li>
+                                    }
+                                />
                                 {ldapSettings}
-                                {complianceSettings}
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('legal_and_support_settings')}
-                                        onClick={this.handleClick.bind(this, 'legal_and_support_settings', null)}
-                                    >
+                            </AdminSidebarSection>
+                            <AdminSidebarSection
+                                name='security'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.security'
+                                        defaultMessage='Security'
+                                    />
+                                }
+                            >
+                                <AdminSidebarSection
+                                    name='sign_up'
+                                    title={
                                         <FormattedMessage
-                                            id='admin.sidebar.support'
-                                            defaultMessage='Legal and Support Settings'
+                                            id='admin.sidebar.signUp'
+                                            defaultMessage='Sign Up'
                                         />
-                                    </a>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu'>
-                                <li>
-                                    <h4>
-                                        <span className='icon fa fa-gear'></span>
-                                        <span>
-                                            <FormattedMessage
-                                                id='admin.sidebar.teams'
-                                                defaultMessage='TEAMS ({count})'
-                                                values={{
-                                                    count: count
-                                                }}
-                                            />
-                                        </span>
-                                        <span className='menu-icon--right'>
-                                            <OverlayTrigger
-                                                delayShow={1000}
-                                                placement='top'
-                                                overlay={addTeamTooltip}
-                                            >
-                                                <a
-                                                    href='#'
-                                                    onClick={this.showTeamSelect}
-                                                >
-                                                    <i
-                                                        className='fa fa-plus'
-                                                    ></i>
-                                                </a>
-                                            </OverlayTrigger>
-                                        </span>
-                                    </h4>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu padded'>
-                                <li>
-                                    {teams}
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu'>
-                                <li>
-                                    <h4>
-                                        <span className='icon fa fa-gear'></span>
-                                        <span>
-                                            <FormattedMessage
-                                                id='admin.sidebar.other'
-                                                defaultMessage='OTHER'
-                                            />
-                                        </span>
-                                    </h4>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu padded'>
-                                {licenseSettings}
-                                {audits}
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('logs')}
-                                        onClick={this.handleClick.bind(this, 'logs', null)}
-                                    >
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='login'
+                                    title={
                                         <FormattedMessage
-                                            id='admin.sidebar.logs'
-                                            defaultMessage='Logs'
+                                            id='admin.sidebar.login'
+                                            defaultMessage='Login'
                                         />
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='public_links'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.publicLinks'
+                                            defaultMessage='Public Links'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='sessions'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.sessions'
+                                            defaultMessage='Sessions'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='connections'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.connections'
+                                            defaultMessage='Connections'
+                                        />
+                                    }
+                                />
+                            </AdminSidebarSection>
+                            <AdminSidebarSection
+                                name='notifications'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.notifications'
+                                        defaultMessage='Notifications'
+                                    />
+                                }
+                            >
+                                <AdminSidebarSection
+                                    name='email'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.email'
+                                            defaultMessage='Email'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='push'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.push'
+                                            defaultMessage='Mobile Push'
+                                        />
+                                    }
+                                />
+                            </AdminSidebarSection>
+                            <AdminSidebarSection
+                                name='integrations'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.integrations'
+                                        defaultMessage='Integrations'
+                                    />
+                                }
+                            >
+                                <AdminSidebarSection
+                                    name='webhooks'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.webhooks'
+                                            defaultMessage='Webhooks and Commands'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='external'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.external'
+                                            defaultMessage='External Services'
+                                        />
+                                    }
+                                />
+                            </AdminSidebarSection>
+                            <AdminSidebarSection
+                                name='database'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.database'
+                                        defaultMessage='Database'
+                                    />
+                                }
+                            />
+                            <AdminSidebarSection
+                                name='files'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.files'
+                                        defaultMessage='Files'
+                                    />
+                                }
+                            >
+                                <AdminSidebarSection
+                                    name='storage'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.storage'
+                                            defaultMessage='Storage'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='images'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.images'
+                                            defaultMessage='Images'
+                                        />
+                                    }
+                                />
+                            </AdminSidebarSection>
+                            <AdminSidebarSection
+                                name='customization'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.customization'
+                                        defaultMessage='Customization'
+                                    />
+                                }
+                            >
+                                <AdminSidebarSection
+                                    name='custom_brand'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.customBrand'
+                                            defaultMessage='Custom Branding'
+                                        />
+
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='legal_and_support'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.legalAndSupport'
+                                            defaultMessage='Legal and Support'
+                                        />
+                                    }
+                                />
+                            </AdminSidebarSection>
+                            {complianceSettings}
+                            <AdminSidebarSection
+                                name='rate'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.rate'
+                                        defaultMessage='Rate Limiting'
+                                    />
+                                }
+                            />
+                            <AdminSidebarSection
+                                name='developer'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.developer'
+                                        defaultMessage='Developer'
+                                    />
+                                }
+                            />
+                        </AdminSidebarCategory>
+                        {this.renderTeams()}
+                        <AdminSidebarCategory
+                            parentLink='/admin_console'
+                            icon='fa-gear'
+                            title={
+                                <FormattedMessage
+                                    id='admin.sidebar.other'
+                                    defaultMessage='OTHER'
+                                />
+                            }
+                        >
+                            {license}
+                            {audits}
+                            <AdminSidebarSection
+                                name='logs'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.logs'
+                                        defaultMessage='Logs'
+                                    />
+                                }
+                            />
+                        </AdminSidebarCategory>
                     </ul>
                 </div>
-
                 <SelectTeamModal
-                    teams={this.props.teams}
+                    teams={this.state.teams}
                     show={this.state.showSelectModal}
                     onModalSubmit={this.teamSelectedModal}
                     onModalDismissed={this.teamSelectedModalDismissed}
@@ -503,13 +581,3 @@ export default class AdminSidebar extends React.Component {
         );
     }
 }
-
-AdminSidebar.propTypes = {
-    teams: React.PropTypes.object,
-    selectedTeams: React.PropTypes.object,
-    removeSelectedTeam: React.PropTypes.func,
-    addSelectedTeam: React.PropTypes.func,
-    selected: React.PropTypes.string,
-    selectedTeam: React.PropTypes.string,
-    selectTab: React.PropTypes.func
-};

@@ -1,6 +1,12 @@
 @charset 'UTF-8';
 
-.admin-controller {
+.admin-console {
+    color: #333;
+    height: 100%;
+    margin-left: 220px;
+    overflow: auto;
+    padding: 0 20px;
+
     > div {
         height: 100%;
     }
@@ -34,122 +40,6 @@
         }
     }
 
-    .sidebar--left {
-        &.sidebar--collapsable {
-            background: #333;
-
-            .team__header {
-                background: transparent;
-                margin-bottom: 5px;
-            }
-
-            .nav {
-                li {
-                    padding: 0;
-                    @include opacity(1);
-
-                    .icon {
-                        width: 17px;
-                    }
-
-                    &.divider {
-                        @include alpha-property(background, $black, .1);
-                    }
-
-                    > a {
-                        &:hover,
-                        &:focus {
-                            @include alpha-property(background, $black, .1);
-                        }
-
-                        &.active {
-                            background-color: transparent;
-                        }
-                    }
-
-                    > h4 {
-                        background: alpha-color($white, .15);
-                        color: $white;
-                        margin: 1px 0 0;
-                        padding: 10px;
-
-                        .menu-icon--right {
-                            right: 12px;
-                            top: 6px;
-                        }
-                    }
-                }
-
-                .menu-icon--right {
-                    font-size: 18px;
-                    font-weight: 600;
-                    height: 20px;
-                    line-height: 20px;
-                    position: absolute;
-                    right: 10px;
-                    text-align: center;
-                    top: 3px;
-                    width: 20px;
-
-                    .fa {
-                        color: $white;
-                        font-size: 13px;
-                        position: relative;
-                        right: -2px;
-                    }
-                }
-
-                &.nav__sub-menu {
-                    @include font-smoothing(initial);
-                    background: #111;
-
-                    &.padded {
-                        padding: 5px 0;
-                    }
-
-                    li {
-                        > a {
-                            background: transparent;
-                            color: #bbb;
-                            font-size: 13px;
-                            padding: 5px 35px 5px 15px;
-
-                            &:hover {
-                                color: lighten($primary-color, 10);
-                            }
-
-                            &.active {
-                                color: $white;
-                                font-weight: 600;
-                            }
-                        }
-
-                        .nav-more {
-                            background: transparent;
-                            color: #bbb;
-                            cursor: pointer;
-                            display: block;
-                            font-size: 13px;
-                            padding: 5px 15px;
-
-                            &:hover {
-                                color: lighten($primary-color, 10);
-                            }
-                        }
-                    }
-                }
-
-                &.nav__inner-menu {
-                    li {
-                        > a {
-                            padding-left: 20px;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     .log__panel {
         background-color: white;
         border: 1px solid #ddd;
@@ -160,167 +50,159 @@
         width: 100%;
     }
 
-    .app__content {
-        color: #333;
+    &.admin {
+        background-color: #f1f1f1;
+        min-height: 600px;
+        overflow: auto;
+        padding: 0 40px 20px;
+    }
 
-        &.admin {
-            background-color: #f1f1f1;
-            min-height: 600px;
-            overflow: auto;
-            padding: 0 40px 20px;
+    .wrapper--fixed {
+        max-width: 800px;
+    }
+
+    .form-horizontal {
+        margin-top: 40px;
+
+        .control-label {
+            font-weight: 600;
+            padding-right: 0;
+            text-align: left;
         }
 
-        .wrapper--fixed {
-            max-width: 800px;
+        .form-group {
+            margin-bottom: 25px;
         }
 
-        .form-horizontal {
-            margin-top: 40px;
+        .file__upload {
+            display: inline-block;
+            margin: 0 10px 10px 0;
+            position: relative;
 
-            .control-label {
-                font-weight: 600;
-                padding-right: 0;
-                text-align: left;
-            }
-
-            .form-group {
-                margin-bottom: 25px;
-
-                &.form-group--small {
-                    margin-bottom: 10px;
-                }
-            }
-
-            .file__upload {
-                display: inline-block;
-                margin: 0 10px 10px 0;
-                position: relative;
-
-                input {
-                    @include opacity(0);
-                    height: 100%;
-                    left: 0;
-                    position: absolute;
-                    top: 0;
-                    width: 100%;
-                    z-index: 5;
-                }
-            }
-
-            .help-text {
-                color: #777;
-                margin: 10px 0 0 15px;
-
-                &.no-margin {
-                    margin: 0;
-                }
-
-                &.no-margin--top {
-                    margin-top: 0;
-                }
-
-                ul,
-                ol {
-                    padding-left: 23px;
-                }
-
-                .help-link {
-                    margin-right: 5px;
-                }
-
-                .btn {
-                    font-size: 13px;
-                }
-            }
-
-            .alert {
-                display: inline-block;
-                margin: 1em 0 0;
-                padding: 5px 7px;
-                position: relative;
-                top: 1px;
-
-                .fa {
-                    margin-right: 5px;
-                }
+            input {
+                @include opacity(0);
+                height: 100%;
+                left: 0;
+                position: absolute;
+                top: 0;
+                width: 100%;
+                z-index: 5;
             }
         }
 
-        .banner {
-            background: $white;
-            border: 1px solid #ddd;
-            font-size: .95em;
-            margin: 2em 0;
-            padding: .7em 1.5em;
+        .help-text {
+            color: #777;
+            margin: 10px 0 0 15px;
 
-            .banner__heading {
-                font-size: 1.5em;
+            &.no-margin {
+                margin: 0;
             }
 
-            .banner__content {
-                width: 80%;
+            &.no-margin--top {
+                margin-top: 0;
             }
 
-            &.warning {
-                background: #e60000;
+            ul,
+            ol {
+                padding-left: 23px;
+            }
+
+            .help-link {
+                margin-right: 5px;
+            }
+
+            .btn {
+                font-size: 13px;
             }
         }
 
-        .popover {
-            border-radius: 3px;
-            font-size: .95em;
-            width: 100%;
+        .alert {
+            display: inline-block;
+            margin: 1em 0 0;
+            padding: 5px 7px;
+            position: relative;
+            top: 1px;
+
+            .fa {
+                margin-right: 5px;
+            }
+        }
+    }
+
+    .banner {
+        background: $white;
+        border: 1px solid #ddd;
+        font-size: .95em;
+        margin: 2em 0;
+        padding: .7em 1.5em;
+
+        .banner__heading {
+            font-size: 1.5em;
         }
 
-        .panel {
+        .banner__content {
+            width: 80%;
+        }
+
+        &.warning {
+            background: #e60000;
+        }
+    }
+
+    .popover {
+        border-radius: 3px;
+        font-size: .95em;
+        width: 100%;
+    }
+
+    .panel {
+        background-color: transparent;
+        border: none;
+    }
+
+    .panel-default {
+        > .panel-heading {
             background-color: transparent;
-            border: none;
+            padding: 10px 0;
         }
 
-        .panel-default {
-            > .panel-heading {
-                background-color: transparent;
-                padding: 10px 0;
-            }
-
-            .panel-body {
-                padding: 30px 0 10px;
-            }
+        .panel-body {
+            padding: 30px 0 10px;
         }
+    }
 
-        .panel-group {
-            margin-bottom: 50px;
-        }
+    .panel-group {
+        margin-bottom: 50px;
+    }
 
-        .panel-title {
-            font-size: 24px;
-            line-height: 1.5;
+    .panel-title {
+        font-size: 24px;
+        line-height: 1.5;
 
-            a {
-                @include clearfix;
-                display: block;
-                text-decoration: none;
+        a {
+            @include clearfix;
+            display: block;
+            text-decoration: none;
 
-                &.collapsed {
-                    .fa-minus {
-                        display: none;
-                    }
-
-                    .fa-plus {
-                        display: inline-block;
-                    }
-                }
-
-                .fa {
-                    color: #aaa;
-                    float: right;
-                    font-size: 18px;
-                    margin-top: 8px;
+            &.collapsed {
+                .fa-minus {
+                    display: none;
                 }
 
                 .fa-plus {
-                    display: none;
+                    display: inline-block;
                 }
+            }
+
+            .fa {
+                color: #aaa;
+                float: right;
+                font-size: 18px;
+                margin-top: 8px;
+            }
+
+            .fa-plus {
+                display: none;
             }
         }
     }
@@ -342,4 +224,109 @@
 .brand-img {
     margin-bottom: 1.5em;
     max-width: 150px;
+}
+
+.admin-console__disabled-text {
+    color: #777;
+    margin: 10px 0 0 15px;
+}
+
+.admin-sidebar {
+    background: #333;
+    border-right: 1px solid #ddd;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    width: 220px;
+    z-index: 5;
+
+    .team__header {
+        background: transparent;
+    }
+
+    .nav-pills__container {
+        background: #111;
+        @include font-smoothing(initial);
+        height: calc(100% - 80px);
+        margin-top: 1px;
+        position: relative;
+    }
+
+    .sidebar-category {
+        .category-title {
+            background: alpha-color($white, .15);
+            color: $white;
+            line-height: 15.4px;
+            padding: 10px;
+
+            .category-icon {
+                right: 12px;
+                top: 6px;
+                width: 17px;
+            }
+        }
+
+        .sections {
+            padding: 5px 0;
+        }
+    }
+
+    .sidebar-section-title {
+        padding: 5px 35px 5px 15px;
+    }
+
+    .sidebar-subsection-title {
+        padding: 5px 35px 5px 30px;
+    }
+
+    .sidebar-section-title,
+    .sidebar-subsection-title {
+        color: #bbb;
+        display: block;
+        font-size: 13px;
+        position: relative;
+
+        &:focus {
+            text-decoration: none;
+        }
+
+        &:hover {
+            color: lighten($primary-color, 10);
+            text-decoration: none;
+        }
+
+        &--active {
+            color: $white;
+            font-weight: 600;
+        }
+    }
+
+    .menu-icon--right {
+        font-size: 18px;
+        font-weight: 600;
+        height: 20px;
+        line-height: 20px;
+        position: absolute;
+        right: 12px;
+        text-align: center;
+        top: 8px;
+        width: 20px;
+
+        .fa {
+            color: $white;
+            font-size: 13px;
+            position: relative;
+            right: -2px;
+        }
+
+        &.menu__close {
+            cursor: pointer;
+            right: 10px;
+            top: 3px;
+        }
+    }
+}
+
+.email-connection-test {
+    margin-top: -15px;
 }

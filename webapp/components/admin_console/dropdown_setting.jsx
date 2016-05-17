@@ -6,6 +6,16 @@ import React from 'react';
 import Setting from './setting.jsx';
 
 export default class DropdownSetting extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.props.onChange(this.props.id, e.target.value);
+    }
+
     render() {
         const options = [];
         for (const {value, text} of this.props.values) {
@@ -22,30 +32,33 @@ export default class DropdownSetting extends React.Component {
         return (
             <Setting
                 label={this.props.label}
-                margin={this.props.margin}
+                inputId={this.props.id}
+                helpText={this.props.helpText}
             >
                 <select
                     className='form-control'
-                    value={this.props.currentValue}
-                    onChange={this.props.handleChange}
-                    disabled={this.props.isDisabled}
+                    id={this.props.id}
+                    value={this.props.value}
+                    onChange={this.handleChange}
+                    disabled={this.props.disabled}
                 >
                     {options}
                 </select>
-                {this.props.helpText}
             </Setting>
         );
     }
 }
+
 DropdownSetting.defaultProps = {
+    isDisabled: false
 };
 
 DropdownSetting.propTypes = {
+    id: React.PropTypes.string.isRequired,
     values: React.PropTypes.array.isRequired,
     label: React.PropTypes.node.isRequired,
-    currentValue: React.PropTypes.string.isRequired,
-    handleChange: React.PropTypes.func.isRequired,
-    isDisabled: React.PropTypes.bool.isRequired,
-    helpText: React.PropTypes.node.isRequired,
-    margin: React.PropTypes.oneOf(['', 'small'])
+    value: React.PropTypes.string.isRequired,
+    onChange: React.PropTypes.func.isRequired,
+    disabled: React.PropTypes.bool,
+    helpText: React.PropTypes.node
 };

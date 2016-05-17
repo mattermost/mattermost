@@ -1,309 +1,166 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
-
-var holders = defineMessages({
-    saving: {
-        id: 'admin.support.saving',
-        defaultMessage: 'Saving Config...'
-    }
-});
-
 import React from 'react';
 
-class LegalAndSupportSettings extends React.Component {
+import AdminSettings from './admin_settings.jsx';
+import {FormattedMessage} from 'react-intl';
+import SettingsGroup from './settings_group.jsx';
+import TextSetting from './text_setting.jsx';
+
+export default class LegalAndSupportSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.getConfigFromState = this.getConfigFromState.bind(this);
 
-        this.state = {
-            saveNeeded: false,
-            serverError: null
-        };
+        this.renderSettings = this.renderSettings.bind(this);
+
+        this.state = Object.assign(this.state, {
+            termsOfServiceLink: props.config.SupportSettings.TermsOfServiceLink,
+            privacyPolicyLink: props.config.SupportSettings.PrivacyPolicyLink,
+            aboutLink: props.config.SupportSettings.AboutLink,
+            helpLink: props.config.SupportSettings.HelpLink,
+            reportAProblemLink: props.config.SupportSettings.ReportAProblemLink,
+            supportEmail: props.config.SupportSettings.SupportEmail
+        });
     }
 
-    handleChange() {
-        var s = {saveNeeded: true, serverError: this.state.serverError};
-        this.setState(s);
+    getConfigFromState(config) {
+        config.SupportSettings.TermsOfServiceLink = this.state.termsOfServiceLink;
+        config.SupportSettings.PrivacyPolicyLink = this.state.privacyPolicyLink;
+        config.SupportSettings.AboutLink = this.state.aboutLink;
+        config.SupportSettings.HelpLink = this.state.helpLink;
+        config.SupportSettings.ReportAProblemLink = this.state.reportAProblemLink;
+        config.SupportSettings.SupportEmail = this.state.supportEmail;
+
+        return config;
     }
 
-    handleSubmit(e) {
-        e.preventDefault();
-        $('#save-button').button('loading');
-
-        var config = this.props.config;
-
-        config.SupportSettings.TermsOfServiceLink = ReactDOM.findDOMNode(this.refs.TermsOfServiceLink).value.trim();
-        config.SupportSettings.PrivacyPolicyLink = ReactDOM.findDOMNode(this.refs.PrivacyPolicyLink).value.trim();
-        config.SupportSettings.AboutLink = ReactDOM.findDOMNode(this.refs.AboutLink).value.trim();
-        config.SupportSettings.HelpLink = ReactDOM.findDOMNode(this.refs.HelpLink).value.trim();
-        config.SupportSettings.ReportAProblemLink = ReactDOM.findDOMNode(this.refs.ReportAProblemLink).value.trim();
-        config.SupportSettings.SupportEmail = ReactDOM.findDOMNode(this.refs.SupportEmail).value.trim();
-
-        Client.saveConfig(
-            config,
-            () => {
-                AsyncClient.getConfig();
-                this.setState({
-                    serverError: null,
-                    saveNeeded: false
-                });
-                $('#save-button').button('reset');
-            },
-            (err) => {
-                this.setState({
-                    serverError: err.message,
-                    saveNeeded: true
-                });
-                $('#save-button').button('reset');
-            }
+    renderTitle() {
+        return (
+            <h3>
+                <FormattedMessage
+                    id='admin.customization.title'
+                    defaultMessage='Customization Settings'
+                />
+            </h3>
         );
     }
 
-    render() {
-        var serverError = '';
-        if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
-        }
-
-        var saveClass = 'btn';
-        if (this.state.saveNeeded) {
-            saveClass = 'btn btn-primary';
-        }
-
+    renderSettings() {
         return (
-            <div className='wrapper--fixed'>
-                <div className='banner'>
-                    <div className='banner__content'>
-                        <h4 className='banner__heading'>
-                            <FormattedMessage
-                                id='admin.support.noteTitle'
-                                defaultMessage='Note:'
-                            />
-                        </h4>
-                        <p>
-                            <FormattedMessage
-                                id='admin.support.noteDescription'
-                                defaultMessage='If linking to an external site, URLs should begin with http:// or https://.'
-                            />
-                        </p>
-                    </div>
-                </div>
-                <h3>
+            <SettingsGroup
+                header={
                     <FormattedMessage
-                        id='admin.support.title'
-                        defaultMessage='Legal and Support Settings'
+                        id='admin.customization.support'
+                        defaultMessage='Legal and Support'
                     />
-                </h3>
-                <form
-                    className='form-horizontal'
-                    role='form'
-                >
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='TermsOfServiceLink'
-                        >
-                            <FormattedMessage
-                                id='admin.support.termsTitle'
-                                defaultMessage='Terms of Service link:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='TermsOfServiceLink'
-                                ref='TermsOfServiceLink'
-                                defaultValue={this.props.config.SupportSettings.TermsOfServiceLink}
-                                onChange={this.handleChange}
-                            />
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.support.termsDesc'
-                                    defaultMessage='Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='PrivacyPolicyLink'
-                        >
-                            <FormattedMessage
-                                id='admin.support.privacyTitle'
-                                defaultMessage='Privacy Policy link:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='PrivacyPolicyLink'
-                                ref='PrivacyPolicyLink'
-                                defaultValue={this.props.config.SupportSettings.PrivacyPolicyLink}
-                                onChange={this.handleChange}
-                            />
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.support.privacyDesc'
-                                    defaultMessage='Link to Privacy Policy available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='AboutLink'
-                        >
-                            <FormattedMessage
-                                id='admin.support.aboutTitle'
-                                defaultMessage='About link:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='AboutLink'
-                                ref='AboutLink'
-                                defaultValue={this.props.config.SupportSettings.AboutLink}
-                                onChange={this.handleChange}
-                            />
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.support.aboutDesc'
-                                    defaultMessage='Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='HelpLink'
-                        >
-                            <FormattedMessage
-                                id='admin.support.helpTitle'
-                                defaultMessage='Help link:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='HelpLink'
-                                ref='HelpLink'
-                                defaultValue={this.props.config.SupportSettings.HelpLink}
-                                onChange={this.handleChange}
-                            />
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.support.helpDesc'
-                                    defaultMessage='Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='ReportAProblemLink'
-                        >
-                            <FormattedMessage
-                                id='admin.support.problemTitle'
-                                defaultMessage='Report a Problem link:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='ReportAProblemLink'
-                                ref='ReportAProblemLink'
-                                defaultValue={this.props.config.SupportSettings.ReportAProblemLink}
-                                onChange={this.handleChange}
-                            />
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.support.problemDesc'
-                                    defaultMessage='Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='SupportEmail'
-                        >
-                            <FormattedMessage
-                                id='admin.support.emailTitle'
-                                defaultMessage='Support email:'
-                            />
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='SupportEmail'
-                                ref='SupportEmail'
-                                defaultValue={this.props.config.SupportSettings.SupportEmail}
-                                onChange={this.handleChange}
-                            />
-                            <p className='help-text'>
-                                <FormattedMessage
-                                    id='admin.support.emailHelp'
-                                    defaultMessage='Email shown during tutorial for end users to ask support questions.'
-                                />
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <div className='col-sm-12'>
-                            {serverError}
-                            <button
-                                disabled={!this.state.saveNeeded}
-                                type='submit'
-                                className={saveClass}
-                                onClick={this.handleSubmit}
-                                id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + this.props.intl.formatMessage(holders.saving)}
-                            >
-                                <FormattedMessage
-                                    id='admin.support.save'
-                                    defaultMessage='Save'
-                                />
-                            </button>
-                        </div>
-                    </div>
-
-                </form>
-            </div>
+                }
+            >
+                <TextSetting
+                    id='termsOfServiceLink'
+                    label={
+                        <FormattedMessage
+                            id='admin.support.termsTitle'
+                            defaultMessage='Terms of Service link:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.support.termsDesc'
+                            defaultMessage='Link to Terms of Service available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
+                        />
+                    }
+                    value={this.state.termsOfServiceLink}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='privacyPolicyLink'
+                    label={
+                        <FormattedMessage
+                            id='admin.support.privacyTitle'
+                            defaultMessage='Privacy Policy link:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.support.privacyDesc'
+                            defaultMessage='Link to Privacy Policy available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
+                        />
+                    }
+                    value={this.state.privacyPolicyLink}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='aboutLink'
+                    label={
+                        <FormattedMessage
+                            id='admin.support.aboutTitle'
+                            defaultMessage='About link:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.support.aboutDesc'
+                            defaultMessage='Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'
+                        />
+                    }
+                    value={this.state.aboutLink}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='helpLink'
+                    label={
+                        <FormattedMessage
+                            id='admin.support.helpTitle'
+                            defaultMessage='Help link:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.support.helpDesc'
+                            defaultMessage='Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.'
+                        />
+                    }
+                    value={this.state.helpLink}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='reportAProblemLink'
+                    label={
+                        <FormattedMessage
+                            id='admin.support.problemTitle'
+                            defaultMessage='Report a Problem link:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.support.problemDesc'
+                            defaultMessage='Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.'
+                        />
+                    }
+                    value={this.state.reportAProblemLink}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='supportEmail'
+                    label={
+                        <FormattedMessage
+                            id='admin.support.emailTitle'
+                            defaultMessage='Support email:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.support.emailHelp'
+                            defaultMessage='Email shown during tutorial for end users to ask support questions.'
+                        />
+                    }
+                    value={this.state.supportEmail}
+                    onChange={this.handleChange}
+                />
+            </SettingsGroup>
         );
     }
 }
-
-LegalAndSupportSettings.propTypes = {
-    intl: intlShape.isRequired,
-    config: React.PropTypes.object
-};
-
-export default injectIntl(LegalAndSupportSettings);

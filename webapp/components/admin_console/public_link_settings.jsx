@@ -6,9 +6,10 @@ import React from 'react';
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
 import {FormattedMessage} from 'react-intl';
+import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 
-export default class PrivacySettings extends AdminSettings {
+export default class PublicLinkSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
@@ -17,14 +18,14 @@ export default class PrivacySettings extends AdminSettings {
         this.renderSettings = this.renderSettings.bind(this);
 
         this.state = Object.assign(this.state, {
-            showEmailAddress: props.config.PrivacySettings.ShowEmailAddress,
-            showFullName: props.config.PrivacySettings.ShowFullName
+            enablePublicLink: props.config.FileSettings.EnablePublicLink,
+            publicLinkSalt: props.config.FileSettings.PublicLinkSalt
         });
     }
 
     getConfigFromState(config) {
-        config.PrivacySettings.ShowEmailAddress = this.state.showEmailAddress;
-        config.PrivacySettings.ShowFullName = this.state.showFullName;
+        config.FileSettings.EnablePublicLink = this.state.enablePublicLink;
+        config.FileSettings.PublicLinkSalt = this.state.publicLinkSalt;
 
         return config;
     }
@@ -33,8 +34,8 @@ export default class PrivacySettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.security.title'
+                    defaultMessage='Security Settings'
                 />
             </h3>
         );
@@ -45,43 +46,43 @@ export default class PrivacySettings extends AdminSettings {
             <SettingsGroup
                 header={
                     <FormattedMessage
-                        id='admin.general.privacy'
-                        defaultMessage='Privacy'
+                        id='admin.security.public_links'
+                        defaultMessage='Public Links'
                     />
                 }
             >
                 <BooleanSetting
-                    id='showEmailAddress'
+                    id='enablePublicLink'
                     label={
                         <FormattedMessage
-                            id='admin.privacy.showEmailTitle'
-                            defaultMessage='Show Email Address: '
+                            id='admin.image.shareTitle'
+                            defaultMessage='Share Public File Link: '
                         />
                     }
                     helpText={
                         <FormattedMessage
-                            id='admin.privacy.showEmailDescription'
-                            defaultMessage='When false, hides email address of users from other users in the user interface, including team owners and team administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'
+                            id='admin.image.shareDescription'
+                            defaultMessage='Allow users to share public links to files and images.'
                         />
                     }
-                    value={this.state.showEmailAddress}
+                    value={this.state.enablePublicLink}
                     onChange={this.handleChange}
                 />
-                <BooleanSetting
-                    id='showFullName'
+                <GeneratedSetting
+                    id='publicLinkSalt'
                     label={
                         <FormattedMessage
-                            id='admin.privacy.showFullNameTitle'
-                            defaultMessage='Show Full Name: '
+                            id='admin.image.publicLinkTitle'
+                            defaultMessage='Public Link Salt:'
                         />
                     }
                     helpText={
                         <FormattedMessage
-                            id='admin.privacy.showFullNameDescription'
-                            defaultMessage='When false, hides full name of users from other users, including team owners and team administrators. Username is shown in place of full name.'
+                            id='admin.image.publicLinkDescription'
+                            defaultMessage='32-character salt added to signing of public image links. Randomly generated on install. Click "Re-Generate" to create new salt.'
                         />
                     }
-                    value={this.state.showFullName}
+                    value={this.state.publicLinkSalt}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>
