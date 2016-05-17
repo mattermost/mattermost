@@ -165,7 +165,7 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 	}
 
 	if err := transaction.Insert(channel); err != nil {
-		if IsUniqueConstraintError(err.Error(), "Name", "channels_name_teamid_key") {
+		if IsUniqueConstraintError(err.Error(), []string{"Name", "channels_name_teamid_key"}) {
 			dupChannel := model.Channel{}
 			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
@@ -200,7 +200,7 @@ func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 		}
 
 		if count, err := s.GetMaster().Update(channel); err != nil {
-			if IsUniqueConstraintError(err.Error(), "Name", "channels_name_teamid_key") {
+			if IsUniqueConstraintError(err.Error(), []string{"Name", "channels_name_teamid_key"}) {
 				dupChannel := model.Channel{}
 				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 				if dupChannel.DeleteAt > 0 {
@@ -508,7 +508,7 @@ func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *mode
 	}
 
 	if err := transaction.Insert(member); err != nil {
-		if IsUniqueConstraintError(err.Error(), "ChannelId", "channelmembers_pkey") {
+		if IsUniqueConstraintError(err.Error(), []string{"ChannelId", "channelmembers_pkey"}) {
 			result.Err = model.NewLocAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.exists.app_error", nil, "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
 		} else {
 			result.Err = model.NewLocAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.save.app_error", nil, "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())

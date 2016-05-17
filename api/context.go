@@ -568,7 +568,7 @@ func GetSession(token string) *model.Session {
 		} else {
 			session = sessionResult.Data.(*model.Session)
 
-			if session.IsExpired() {
+			if session.IsExpired() || session.Token != token {
 				return nil
 			} else {
 				AddSessionToCache(session)

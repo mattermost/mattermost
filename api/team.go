@@ -222,11 +222,6 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateTeam(c *Context, team *model.Team) *model.Team {
-	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
-		c.Err = model.NewLocAppError("createTeam", "api.team.create_team.email_disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
-		return nil
-	}
 
 	if team == nil {
 		c.SetInvalidParam("createTeam", "team")
