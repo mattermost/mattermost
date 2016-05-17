@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"io"
-	"strings"
 )
 
 const (
