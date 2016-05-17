@@ -6,15 +6,6 @@ package api
 import (
 	"bytes"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/disintegration/imaging"
-	"github.com/golang/freetype"
-	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/einterfaces"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
-	"github.com/mssola/user_agent"
 	"hash/fnv"
 	"html/template"
 	"image"
@@ -30,6 +21,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
+	"github.com/golang/freetype"
+	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
+	"github.com/mssola/user_agent"
 )
 
 func InitUser() {
@@ -1291,6 +1292,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		if rusers[0].Username != rusers[1].Username {
+			sendEmailChangeUsernameAndForget(c, rusers[1].Username, rusers[0].Username, rusers[0].Email, c.GetSiteURL())
+		}
+
 		rusers[0].Password = ""
 		rusers[0].AuthData = new(string)
 		*rusers[0].AuthData = ""
@@ -1829,6 +1834,27 @@ func SendEmailChangeVerifyEmailAndForget(c *Context, userId, newUserEmail, siteU
 		if err := utils.SendMail(newUserEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error(utils.T("api.user.send_email_change_verify_email_and_forget.error"), err)
 		}
+	}()
+}
+
+func sendEmailChangeUsernameAndForget(c *Context, oldUsername, newUsername, email, siteURL string) {
+	go func() {
+
+		subjectPage := utils.NewHTMLTemplate("username_change_subject", c.Locale)
+		subjectPage.Props["Subject"] = c.T("api.templates.username_change_subject",
+			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
+		subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
+
+		bodyPage := utils.NewHTMLTemplate("email_change_body", c.Locale)
+		bodyPage.Props["SiteURL"] = siteURL
+		bodyPage.Props["Title"] = c.T("api.templates.username_change_body.title")
+		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.username_change_body.info",
+			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewUsername": newUsername}))
+
+		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+			l4g.Error(utils.T("api.user.send_email_change_username_and_forget.error"), err)
+		}
+
 	}()
 }
 
