@@ -312,7 +312,7 @@ export function getTimestamp() {
 
 // extracts links not styled by Markdown
 export function extractFirstLink(text) {
-    const pattern = /(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])/i;
+    const pattern = /(^|[\s\n]|<br\/?>|\b)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])\b/i;
     let inText = text;
 
     // strip out code blocks
