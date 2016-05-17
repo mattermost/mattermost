@@ -43,6 +43,15 @@ var config = {
                 }
             },
             {
+                test: /node_modules\/mattermost\/client\.jsx?$/,
+                loader: 'babel',
+                query: {
+                    presets: ['react', 'es2015-webpack', 'stage-0'],
+                    plugins: ['transform-runtime'],
+                    cacheDirectory: DEV
+                }
+            },
+            {
                 test: /\.json$/,
                 loader: 'json'
             },

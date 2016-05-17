@@ -1,7 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from '../client/client.jsx';
+import Client from '../node_modules/mattermost/client.jsx';
 import jqd from 'jquery-deferred';
 
 class TestHelperClass {
