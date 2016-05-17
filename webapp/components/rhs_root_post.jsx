@@ -41,6 +41,7 @@ export default class RhsRootPost extends React.Component {
         const user = this.props.user;
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemMessage = post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
 
@@ -94,7 +95,7 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        if (isOwner) {
+        if (isOwner && !isSystemMessage) {
             dropdownContents.push(
                 <li
                     key='rhs-root-edit'

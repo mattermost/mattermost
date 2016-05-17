@@ -6,6 +6,7 @@ import SpinnerButton from '../components/spinner_button.jsx';
 import React from 'react';
 
 describe('SpinnerButton', function() {
+    this.timeout(10000);
     jsdom();
 
     it('check props', function() {
