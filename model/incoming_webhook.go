@@ -4,8 +4,10 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
+	"regexp"
 )
 
 const (
@@ -125,13 +127,85 @@ func (o *IncomingWebhook) PreUpdate() {
 	o.UpdateAt = GetMillis()
 }
 
-func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
-	decoder := json.NewDecoder(data)
+// escapeControlCharsFromPayload escapes control chars (\n, \t) from a byte slice.
+// Context:
+// JSON strings are not supposed to contain control characters such as \n, \t,
+// ... but some incoming webhooks might still send invalid JSON and we want to
+// try to handle that. An example invalid JSON string from an incoming webhook
+// might look like this (strings for both "text" and "fallback" attributes are
+// invalid JSON strings because they contain unescaped newlines and tabs):
+//  `{
+//    "text": "this is a test
+//						 that contains a newline and tabs",
+//    "attachments": [
+//      {
+//        "fallback": "Required plain-text summary of the attachment
+//										that contains a newline and tabs",
+//        "color": "#36a64f",
+//  			...
+//        "text": "Optional text that appears within the attachment
+//								 that contains a newline and tabs",
+//  			...
+//        "thumb_url": "http://example.com/path/to/thumb.png"
+//      }
+//    ]
+//  }`
+// This function will search for `"key": "value"` pairs, and escape \n, \t
+// from the value.
+func escapeControlCharsFromPayload(by []byte) []byte {
+	// we'll search for `"text": "..."` or `"fallback": "..."`, ...
+	keys := "text|fallback|pretext|author_name|title|value"
+
+	// the regexp reads like this:
+	// (?s): this flag let . match \n (default is false)
+	// "(keys)": we search for the keys defined above
+	// \s*:\s*: followed by 0..n spaces/tabs, a colon then 0..n spaces/tabs
+	// ": a double-quote
+	// (\\"|[^"])*: any number of times the `\"` string or any char but a double-quote
+	// ": a double-quote
+	r := `(?s)"(` + keys + `)"\s*:\s*"(\\"|[^"])*"`
+	re := regexp.MustCompile(r)
+
+	// the function that will escape \n and \t on the regexp matches
+	repl := func(b []byte) []byte {
+		if bytes.Contains(b, []byte("\n")) {
+			b = bytes.Replace(b, []byte("\n"), []byte("\\n"), -1)
+		}
+		if bytes.Contains(b, []byte("\t")) {
+			b = bytes.Replace(b, []byte("\t"), []byte("\\t"), -1)
+		}
+
+		return b
+	}
+
+	return re.ReplaceAllFunc(by, repl)
+}
+
+func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
+	decoder := json.NewDecoder(bytes.NewReader(by))
 	var o IncomingWebhookRequest
 	err := decoder.Decode(&o)
 	if err == nil {
-		return &o
+		return &o, nil
 	} else {
-		return nil
+		return nil, err
 	}
+}
+
+func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(data)
+	by := buf.Bytes()
+
+	// Try to decode the JSON data. Only if it fails, try to escape control
+	// characters from the strings contained in the JSON data.
+	o, err := decodeIncomingWebhookRequest(by)
+	if err != nil {
+		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
+		if err != nil {
+			return nil
+		}
+	}
+
+	return o
 }

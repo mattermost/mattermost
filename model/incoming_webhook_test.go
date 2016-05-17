@@ -100,3 +100,75 @@ func TestIncomingWebhookPreUpdate(t *testing.T) {
 	o := IncomingWebhook{}
 	o.PreUpdate()
 }
+
+func TestIncomingWebhookRequestFromJson(t *testing.T) {
+	texts := []string{
+		`this is a test`,
+		`this is a test
+			that contains a newline and tabs`,
+		`this is a test \"foo
+			that contains a newline and tabs`,
+		`this is a test \"foo\"
+			that contains a newline and tabs`,
+		`this is a test \"foo\"
+		\"			that contains a newline and tabs`,
+		`this is a test \"foo\"
+
+		\"			that contains a newline and tabs
+		`,
+	}
+
+	for i, text := range texts {
+		// build a sample payload with the text
+		payload := `{
+        "text": "` + text + `",
+        "attachments": [
+            {
+                "fallback": "` + text + `",
+
+                "color": "#36a64f",
+
+                "pretext": "` + text + `",
+
+                "author_name": "` + text + `",
+                "author_link": "http://flickr.com/bobby/",
+                "author_icon": "http://flickr.com/icons/bobby.jpg",
+
+                "title": "` + text + `",
+                "title_link": "https://api.slack.com/",
+
+                "text": "` + text + `",
+
+                "fields": [
+                    {
+                        "title": "` + text + `",
+                        "value": "` + text + `",
+                        "short": false
+                    }
+                ],
+
+                "image_url": "http://my-website.com/path/to/image.jpg",
+                "thumb_url": "http://example.com/path/to/thumb.png"
+            }
+        ]
+    }`
+
+		// try to create an IncomingWebhookRequest from the payload
+		data := strings.NewReader(payload)
+		iwr := IncomingWebhookRequestFromJson(data)
+
+		// After it has been decoded, the JSON string won't contain the escape char anymore
+		expected := strings.Replace(text, `\"`, `"`, -1)
+		if iwr == nil {
+			t.Fatal("IncomingWebhookRequest should not be nil")
+		}
+		if iwr.Text != expected {
+			t.Fatalf("Sample %d text should be: %s, got: %s", i, expected, iwr.Text)
+		}
+		attachments := iwr.Attachments.([]interface{})
+		attachment := attachments[0].(map[string]interface{})
+		if attachment["text"] != expected {
+			t.Fatalf("Sample %d attachment text should be: %s, got: %s", i, expected, attachment["text"])
+		}
+	}
+}
