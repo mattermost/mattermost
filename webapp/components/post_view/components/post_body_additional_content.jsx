@@ -4,7 +4,7 @@
 import PostAttachmentList from './post_attachment_list.jsx';
 import PostAttachmentOEmbed from './post_attachment_oembed.jsx';
 import PostImage from './post_image.jsx';
-import YoutubeVideo from './youtube_video.jsx';
+import YoutubeVideo from 'components/youtube_video.jsx';
 
 import Constants from 'utils/constants.jsx';
 import OEmbedProviders from './providers.json';

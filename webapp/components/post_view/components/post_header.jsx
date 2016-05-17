@@ -1,9 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import UserProfile from './user_profile.jsx';
+import UserProfile from 'components/user_profile.jsx';
 import PostInfo from './post_info.jsx';
-import * as Utils from 'utils/utils.jsx';
+
+import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -33,7 +34,7 @@ export default class PostHeader extends React.Component {
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
-        } else if (Utils.isSystemMessage(post)) {
+        } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
                     user={{}}

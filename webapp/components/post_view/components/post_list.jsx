@@ -5,30 +5,28 @@ import $ from 'jquery';
 
 import Post from './post.jsx';
 import FloatingTimestamp from './floating_timestamp.jsx';
+import ScrollToBottomArrows from './scroll_to_bottom_arrows.jsx';
 
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-
-import PreferenceStore from 'stores/preference_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 
 import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
 
 import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 
 import Constants from 'utils/constants.jsx';
-const Preferences = Constants.Preferences;
+const ScrollTypes = Constants.ScrollTypes;
 
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-export default class PostsView extends React.Component {
+export default class PostList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateState = this.updateState.bind(this);
         this.handleScroll = this.handleScroll.bind(this);
         this.handleScrollStop = this.handleScrollStop.bind(this);
         this.isAtBottom = this.isAtBottom.bind(this);
@@ -39,7 +37,6 @@ export default class PostsView extends React.Component {
         this.handleResize = this.handleResize.bind(this);
         this.scrollToBottom = this.scrollToBottom.bind(this);
         this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
-        this.onUserChange = this.onUserChange.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
@@ -47,62 +44,31 @@ export default class PostsView extends React.Component {
 
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
-        let profiles = UserStore.getProfiles();
-        if (props.channel && props.channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
+        if (props.channel) {
+            this.introText = createChannelIntroMessage(props.channel);
+        } else {
+            this.introText = this.getArchivesIntroMessage();
         }
 
         this.state = {
-            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
-            centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
-            compactPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             isScrolling: false,
-            topPostId: null,
-            currentUser: UserStore.getCurrentUser(),
-            profiles
+            topPostId: null
         };
     }
-    static get SCROLL_TYPE_FREE() {
-        return 1;
-    }
-    static get SCROLL_TYPE_BOTTOM() {
-        return 2;
-    }
-    static get SCROLL_TYPE_SIDEBAR_OPEN() {
-        return 3;
-    }
-    static get SCROLL_TYPE_NEW_MESSAGE() {
-        return 4;
-    }
-    static get SCROLL_TYPE_POST() {
-        return 5;
-    }
-    updateState() {
-        this.setState({
-            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
-            centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
-            compactPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
-        });
-    }
-    onUserChange() {
-        let profiles = UserStore.getProfiles();
-        if (this.props.channel && this.props.channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
-    }
+
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom
         const atBottomMargin = 10;
 
         return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
     }
+
     handleScroll() {
         // HACK FOR RHS -- REMOVE WHEN RHS DIES
         const childNodes = this.refs.postlistcontent.childNodes;
         for (let i = 0; i < childNodes.length; i++) {
             // If the node is 1/3 down the page
-            if (childNodes[i].offsetTop > (this.refs.postlist.scrollTop + (this.refs.postlist.offsetHeight / 3))) {
+            if (childNodes[i].offsetTop > (this.refs.postlist.scrollTop + (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION))) {
                 this.jumpToPostNode = childNodes[i];
                 break;
             }
@@ -114,7 +80,7 @@ export default class PostsView extends React.Component {
 
         // --- --------
 
-        this.props.postViewScrolled(this.isAtBottom());
+        this.props.postListScrolled(this.isAtBottom());
         this.prevScrollHeight = this.refs.postlist.scrollHeight;
         this.prevOffsetTop = this.jumpToPostNode.offsetTop;
 
@@ -126,16 +92,18 @@ export default class PostsView extends React.Component {
             });
         }
 
-        this.scrollStopAction.fireAfter(2000);
+        this.scrollStopAction.fireAfter(Constants.SCROLL_DELAY);
     }
+
     handleScrollStop() {
         this.setState({
             isScrolling: false
         });
     }
+
     updateFloatingTimestamp() {
         // skip this in non-mobile view since that's when the timestamp is visible
-        if ($(window).width() > 768) {
+        if (!Utils.isMobile()) {
             return;
         }
 
@@ -143,7 +111,7 @@ export default class PostsView extends React.Component {
             // iterate through posts starting at the bottom since users are more likely to be viewing newer posts
             for (let i = 0; i < this.props.postList.order.length; i++) {
                 const id = this.props.postList.order[i];
-                const element = ReactDOM.findDOMNode(this.refs[id]);
+                const element = this.refs[id];
 
                 if (!element || element.offsetTop + element.clientHeight <= this.refs.postlist.scrollTop) {
                     // this post is off the top of the screen so the last one is at the top of the screen
@@ -167,17 +135,20 @@ export default class PostsView extends React.Component {
             }
         }
     }
+
     loadMorePostsTop() {
-        this.props.loadMorePostsTopClicked();
+        GlobalActions.emitLoadMorePostsEvent();
     }
+
     loadMorePostsBottom() {
-        this.props.loadMorePostsBottomClicked();
+        GlobalActions.emitLoadMorePostsFocusedBottomEvent();
     }
+
     createPosts(posts, order) {
         const postCtls = [];
         let previousPostDay = new Date(0);
-        const userId = this.state.currentUser.id;
-        const profiles = this.state.profiles || {};
+        const userId = this.props.currentUser.id;
+        const profiles = this.props.profiles || {};
 
         let renderedLastViewed = false;
 
@@ -185,7 +156,7 @@ export default class PostsView extends React.Component {
             const post = posts[order[i]];
             const parentPost = posts[post.parent_id];
             const prevPost = posts[order[i + 1]];
-            const postUserId = Utils.isSystemMessage(post) ? '' : post.user_id;
+            const postUserId = PostUtils.isSystemMessage(post) ? '' : post.user_id;
 
             // If the post is a comment whose parent has been deleted, don't add it to the list.
             if (parentPost && parentPost.state === Constants.POST_DELETED) {
@@ -197,11 +168,11 @@ export default class PostsView extends React.Component {
             let hideProfilePic = false;
 
             if (prevPost) {
-                const postIsComment = Utils.isComment(post);
-                const prevPostIsComment = Utils.isComment(prevPost);
+                const postIsComment = PostUtils.isComment(post);
+                const prevPostIsComment = PostUtils.isComment(prevPost);
                 const postFromWebhook = Boolean(post.props && post.props.from_webhook);
                 const prevPostFromWebhook = Boolean(prevPost.props && prevPost.props.from_webhook);
-                const prevPostUserId = Utils.isSystemMessage(prevPost) ? '' : prevPost.user_id;
+                const prevPostUserId = PostUtils.isSystemMessage(prevPost) ? '' : prevPost.user_id;
 
                 // consider posts from the same user if:
                 //     the previous post was made by the same user as the current post,
@@ -209,7 +180,7 @@ export default class PostsView extends React.Component {
                 //     the current post is not from a webhook
                 //     the previous post is not from a webhook
                 if (prevPostUserId === postUserId &&
-                        post.create_at - prevPost.create_at <= 1000 * 60 * 5 &&
+                        post.create_at - prevPost.create_at <= Constants.POST_COLLAPSE_TIMEOUT &&
                         !postFromWebhook && !prevPostFromWebhook) {
                     sameUser = true;
                 }
@@ -246,7 +217,7 @@ export default class PostsView extends React.Component {
 
             // check if it's the last comment in a consecutive string of comments on the same post
             // it is the last comment if it is last post in the channel or the next post has a different root post
-            const isLastComment = Utils.isComment(post) && (i === 0 || posts[order[i - 1]].root_id !== post.root_id);
+            const isLastComment = PostUtils.isComment(post) && (i === 0 || posts[order[i - 1]].root_id !== post.root_id);
 
             const keyPrefix = post.id ? post.id : i;
 
@@ -254,9 +225,22 @@ export default class PostsView extends React.Component {
 
             let profile;
             if (userId === post.user_id) {
-                profile = this.state.currentUser;
+                profile = this.props.currentUser;
             } else {
                 profile = profiles[post.user_id];
+            }
+
+            let commentCount = 0;
+            let commentRootId;
+            if (parentPost) {
+                commentRootId = post.root_id;
+            } else {
+                commentRootId = post.id;
+            }
+            for (const postId in posts) {
+                if (posts[postId].root_id === commentRootId) {
+                    commentCount += 1;
+                }
             }
 
             const postCtl = (
@@ -267,16 +251,15 @@ export default class PostsView extends React.Component {
                     sameRoot={sameRoot}
                     post={post}
                     parentPost={parentPost}
-                    posts={posts}
                     hideProfilePic={hideProfilePic}
                     isLastComment={isLastComment}
                     shouldHighlight={shouldHighlight}
-                    onClick={() => GlobalActions.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
-                    displayNameType={this.state.displayNameType}
+                    displayNameType={this.props.displayNameType}
                     user={profile}
-                    currentUser={this.state.currentUser}
-                    center={this.state.centerPosts}
-                    compactDisplay={this.state.compactPosts}
+                    currentUser={this.props.currentUser}
+                    center={this.props.displayPostsInCenter}
+                    commentCount={commentCount}
+                    compactDisplay={this.props.compactDisplay}
                 />
             );
 
@@ -302,8 +285,8 @@ export default class PostsView extends React.Component {
             }
 
             if (postUserId !== userId &&
-                    this.props.messageSeparatorTime !== 0 &&
-                    post.create_at > this.props.messageSeparatorTime &&
+                    this.props.lastViewed !== 0 &&
+                    post.create_at > this.props.lastViewed &&
                     !renderedLastViewed) {
                 renderedLastViewed = true;
 
@@ -337,10 +320,11 @@ export default class PostsView extends React.Component {
 
         return postCtls;
     }
+
     updateScrolling() {
-        if (this.props.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
+        if (this.props.scrollType === ScrollTypes.BOTTOM) {
             this.scrollToBottom();
-        } else if (this.props.scrollType === PostsView.SCROLL_TYPE_NEW_MESSAGE) {
+        } else if (this.props.scrollType === ScrollTypes.NEW_MESSAGE) {
             window.setTimeout(window.requestAnimationFrame(() => {
                 // If separator exists scroll to it. Otherwise scroll to bottom.
                 if (this.refs.newMessageSeparator) {
@@ -350,7 +334,7 @@ export default class PostsView extends React.Component {
                     this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
                 }
             }), 0);
-        } else if (this.props.scrollType === PostsView.SCROLL_TYPE_POST && this.props.scrollPostId) {
+        } else if (this.props.scrollType === ScrollTypes.POST && this.props.scrollPostId) {
             window.requestAnimationFrame(() => {
                 const postNode = ReactDOM.findDOMNode(this.refs[this.props.scrollPostId]);
                 if (postNode == null) {
@@ -358,12 +342,12 @@ export default class PostsView extends React.Component {
                 }
                 postNode.scrollIntoView();
                 if (this.refs.postlist.scrollTop === postNode.offsetTop) {
-                    this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / 3);
+                    this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION);
                 } else {
-                    this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / 3) + (this.refs.postlist.scrollTop - postNode.offsetTop);
+                    this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION) + (this.refs.postlist.scrollTop - postNode.offsetTop);
                 }
             });
-        } else if (this.props.scrollType === PostsView.SCROLL_TYPE_SIDEBAR_OPEN) {
+        } else if (this.props.scrollType === ScrollTypes.SIDEBAR_OPEN) {
             // If we are at the bottom then stay there
             if (this.wasAtBottom) {
                 this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
@@ -371,9 +355,9 @@ export default class PostsView extends React.Component {
                 window.requestAnimationFrame(() => {
                     this.jumpToPostNode.scrollIntoView();
                     if (this.refs.postlist.scrollTop === this.jumpToPostNode.offsetTop) {
-                        this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / 3);
+                        this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION);
                     } else {
-                        this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / 3) + (this.refs.postlist.scrollTop - this.jumpToPostNode.offsetTop);
+                        this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION) + (this.refs.postlist.scrollTop - this.jumpToPostNode.offsetTop);
                     }
                 });
             }
@@ -386,14 +370,17 @@ export default class PostsView extends React.Component {
             });
         }
     }
+
     handleResize() {
         this.updateScrolling();
     }
+
     scrollToBottom() {
         window.requestAnimationFrame(() => {
             this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
         });
     }
+
     scrollToBottomAnimated() {
         var postList = $(this.refs.postlist);
         postList.animate({scrollTop: this.refs.postlist.scrollHeight}, '500');
@@ -417,134 +404,65 @@ export default class PostsView extends React.Component {
             this.updateScrolling();
         }
 
-        if (this.props.isActive) {
-            PreferenceStore.addChangeListener(this.updateState);
-            UserStore.addChangeListener(this.onUserChange);
-        }
-
-        if (this.props.channel) {
-            this.introText = createChannelIntroMessage(this.props.channel);
-        } else {
-            this.introText = this.getArchivesIntroMessage();
-        }
-
         window.addEventListener('resize', this.handleResize);
     }
+
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
         this.scrollStopAction.cancel();
-        PreferenceStore.removeChangeListener(this.updateState);
-        UserStore.removeChangeListener(this.onUserChange);
     }
+
     componentDidUpdate() {
         if (this.props.postList != null) {
             this.updateScrolling();
         }
     }
-    componentWillReceiveProps(nextProps) {
-        if (!this.props.isActive && nextProps.isActive) {
-            this.updateState();
-            PreferenceStore.addChangeListener(this.updateState);
-            UserStore.addChangeListener(this.onUserChange);
-        } else if (this.props.isActive && !nextProps.isActive) {
-            PreferenceStore.removeChangeListener(this.updateState);
-            UserStore.removeChangeListener(this.onUserChange);
-        }
-    }
-    shouldComponentUpdate(nextProps, nextState) {
-        if (this.props.isActive !== nextProps.isActive) {
-            return true;
-        }
-        if (this.props.postList !== nextProps.postList) {
-            return true;
-        }
-        if (this.props.scrollPostId !== nextProps.scrollPostId) {
-            return true;
-        }
-        if (this.props.scrollType !== nextProps.scrollType && nextProps.scrollType !== PostsView.SCROLL_TYPE_FREE) {
-            return true;
-        }
-        if (this.props.messageSeparatorTime !== nextProps.messageSeparatorTime) {
-            return true;
-        }
-        if (!Utils.areObjectsEqual(this.props.postList, nextProps.postList)) {
-            return true;
-        }
-        if (nextState.displayNameType !== this.state.displayNameType) {
-            return true;
-        }
-        if (this.state.topPostId !== nextState.topPostId) {
-            return true;
-        }
-        if (this.state.isScrolling !== nextState.isScrolling) {
-            return true;
-        }
-        if (this.state.centerPosts !== nextState.centerPosts) {
-            return true;
-        }
-        if (this.state.compactPosts !== nextState.compactPosts) {
-            return true;
-        }
-        if (!Utils.areObjectsEqual(this.state.profiles, nextState.profiles)) {
-            return true;
-        }
 
-        return false;
-    }
     render() {
-        let posts = [];
-        let order = [];
-        let moreMessagesTop;
-        let moreMessagesBottom;
-        let postElements;
-        let activeClass = 'inactive';
-        if (this.props.postList != null) {
-            posts = this.props.postList.posts;
-            order = this.props.postList.order;
-
-            // Create intro message or top loadmore link
-            if (this.props.showMoreMessagesTop) {
-                moreMessagesTop = (
-                    <a
-                        ref='loadmoretop'
-                        className='more-messages-text theme'
-                        href='#'
-                        onClick={this.loadMorePostsTop}
-                    >
-                        <FormattedMessage
-                            id='posts_view.loadMore'
-                            defaultMessage='Load more messages'
-                        />
-                    </a>
-                );
-            } else {
-                moreMessagesTop = this.introText;
-            }
-
-            // Give option to load more posts at bottom if nessisary
-            if (this.props.showMoreMessagesBottom) {
-                moreMessagesBottom = (
-                    <a
-                        ref='loadmorebottom'
-                        className='more-messages-text theme'
-                        href='#'
-                        onClick={this.loadMorePostsBottom}
-                    >
-                        <FormattedMessage id='posts_view.loadMore'/>
-                    </a>
-                );
-            } else {
-                moreMessagesBottom = null;
-            }
-
-            // Create post elements
-            postElements = this.createPosts(posts, order);
-
-            // Show ourselves if we are marked active
-            if (this.props.isActive) {
-                activeClass = '';
-            }
+        if (this.props.postList == null) {
+            return <div/>;
         }
+
+        const posts = this.props.postList.posts;
+        const order = this.props.postList.order;
+
+        // Create intro message or top loadmore link
+        let moreMessagesTop;
+        if (this.props.showMoreMessagesTop) {
+            moreMessagesTop = (
+                <a
+                    ref='loadmoretop'
+                    className='more-messages-text theme'
+                    href='#'
+                    onClick={this.loadMorePostsTop}
+                >
+                    <FormattedMessage
+                        id='posts_view.loadMore'
+                        defaultMessage='Load more messages'
+                    />
+                </a>
+            );
+        } else {
+            moreMessagesTop = this.introText;
+        }
+
+        // Give option to load more posts at bottom if necessary
+        let moreMessagesBottom;
+        if (this.props.showMoreMessagesBottom) {
+            moreMessagesBottom = (
+                <a
+                    ref='loadmorebottom'
+                    className='more-messages-text theme'
+                    href='#'
+                    onClick={this.loadMorePostsBottom}
+                >
+                    <FormattedMessage id='posts_view.loadMore'/>
+                </a>
+            );
+        }
+
+        // Create post elements
+        const postElements = this.createPosts(posts, order);
 
         let topPostCreateAt = 0;
         if (this.state.topPostId && this.props.postList.posts[this.state.topPostId]) {
@@ -552,10 +470,10 @@ export default class PostsView extends React.Component {
         }
 
         return (
-            <div className={activeClass}>
+            <div>
                 <FloatingTimestamp
                     isScrolling={this.state.isScrolling}
-                    isMobile={$(window).width() > 768}
+                    isMobile={Utils.isMobile()}
                     createAt={topPostCreateAt}
                 />
                 <ScrollToBottomArrows
@@ -583,48 +501,24 @@ export default class PostsView extends React.Component {
         );
     }
 }
-PostsView.defaultProps = {
+
+PostList.defaultProps = {
+    lastViewed: 0
 };
 
-PostsView.propTypes = {
-    isActive: React.PropTypes.bool,
+PostList.propTypes = {
     postList: React.PropTypes.object,
+    profiles: React.PropTypes.object,
+    channel: React.PropTypes.object,
+    currentUser: React.PropTypes.object,
     scrollPostId: React.PropTypes.string,
     scrollType: React.PropTypes.number,
-    postViewScrolled: React.PropTypes.func.isRequired,
-    loadMorePostsTopClicked: React.PropTypes.func.isRequired,
-    loadMorePostsBottomClicked: React.PropTypes.func.isRequired,
+    postListScrolled: React.PropTypes.func.isRequired,
     showMoreMessagesTop: React.PropTypes.bool,
     showMoreMessagesBottom: React.PropTypes.bool,
-    channel: React.PropTypes.object,
-    messageSeparatorTime: React.PropTypes.number,
+    lastViewed: React.PropTypes.number,
     postsToHighlight: React.PropTypes.object,
+    displayNameType: React.PropTypes.string,
+    displayPostsInCenter: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool
-};
-
-function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
-    // only show on mobile
-    if ($(window).width() > 768) {
-        return <noscript/>;
-    }
-
-    let className = 'post-list__arrows';
-    if (isScrolling && !atBottom) {
-        className += ' scrolling';
-    }
-
-    return (
-        <div
-            className={className}
-            onClick={onClick}
-        >
-            <span dangerouslySetInnerHTML={{__html: Constants.SCROLL_BOTTOM_ICON}}/>
-        </div>
-    );
-}
-
-ScrollToBottomArrows.propTypes = {
-    isScrolling: React.PropTypes.bool.isRequired,
-    atBottom: React.PropTypes.bool.isRequired,
-    onClick: React.PropTypes.func.isRequired
 };
