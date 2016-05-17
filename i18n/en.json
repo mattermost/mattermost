@@ -352,6 +352,18 @@
     "translation": "echo"
   },
   {
+    "id": "api.command_goto.desc",
+    "translation": "TBA"
+  }
+  {
+    "id": "api.command_goto.hint",
+    "translation": "TBA"
+  }
+  {
+    "id": "api.command_goto.name",
+    "translation": "goto"
+  }
+  {
     "id": "api.command_join.desc",
     "translation": "Join the open channel"
   },
