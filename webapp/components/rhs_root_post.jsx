@@ -6,10 +6,12 @@ import UserProfile from './user_profile.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-import * as Utils from 'utils/utils.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
-import PostBodyAdditionalContent from './post_body_additional_content.jsx';
+import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
 import * as GlobalActions from 'action_creators/global_actions.jsx';
+
+import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -55,7 +57,7 @@ export default class RhsRootPost extends React.Component {
         }
 
         var systemMessageClass = '';
-        if (Utils.isSystemMessage(post)) {
+        if (PostUtils.isSystemMessage(post)) {
             systemMessageClass = 'post--system';
         }
 
@@ -187,7 +189,7 @@ export default class RhsRootPost extends React.Component {
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
-        } else if (Utils.isSystemMessage(post)) {
+        } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
                     user={{}}
@@ -201,7 +203,7 @@ export default class RhsRootPost extends React.Component {
         const profilePic = (
             <img
                 className='post-profile-img'
-                src={Utils.getProfilePicSrcForPost(post, timestamp)}
+                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 height='36'
                 width='36'
             />
