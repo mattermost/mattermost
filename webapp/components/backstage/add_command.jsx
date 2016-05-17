@@ -11,6 +11,7 @@ import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
 import {browserHistory, Link} from 'react-router';
 import SpinnerButton from 'components/spinner_button.jsx';
+import Constants from 'utils/constants.jsx';
 
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
@@ -85,6 +86,51 @@ export default class AddCommand extends React.Component {
                     <FormattedMessage
                         id='add_command.triggerRequired'
                         defaultMessage='A trigger word is required'
+                    />
+                )
+            });
+
+            return;
+        }
+
+        if (command.trigger.indexOf('/') === 0) {
+            this.setState({
+                saving: false,
+                clientError: (
+                    <FormattedMessage
+                        id='add_command.triggerInvalidSlash'
+                        defaultMessage='A trigger word cannot begin with a /'
+                    />
+                )
+            });
+
+            return;
+        }
+
+        if (command.trigger.indexOf(' ') !== -1) {
+            this.setState({
+                saving: false,
+                clientError: (
+                    <FormattedMessage
+                        id='add_command.triggerInvalidSpace'
+                        defaultMessage='A trigger word must not contain spaces'
+                    />
+                )
+            });
+            return;
+        }
+
+        if (command.trigger.length < Constants.MIN_TRIGGER_LENGTH || command.trigger.length > Constants.MAX_TRIGGER_LENGTH) {
+            this.setState({
+                saving: false,
+                clientError: (
+                    <FormattedMessage
+                        id='add_command.triggerInvalidLength'
+                        defaultMessage='A trigger word must contain between {min} and {max} characters'
+                        values={{
+                            min: Constants.MIN_TRIGGER_LENGTH,
+                            max: Constants.MAX_TRIGGER_LENGTH
+                        }}
                     />
                 )
             });
@@ -323,7 +369,7 @@ export default class AddCommand extends React.Component {
                                 <input
                                     id='trigger'
                                     type='text'
-                                    maxLength='128'
+                                    maxLength={Constants.MAX_TRIGGER_LENGTH}
                                     className='form-control'
                                     value={this.state.trigger}
                                     onChange={this.updateTrigger}
