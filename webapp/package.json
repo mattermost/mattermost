@@ -1,5 +1,5 @@
 {
-  "name": "mattermost",
+  "name": "mattermost-webapp",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
@@ -17,6 +17,7 @@
     "jquery": "2.2.3",
     "keymirror": "0.1.1",
     "marked": "mattermost/marked#cb85e5cc81bc7937dbb73c3c53d9532b1b97e3ca",
+    "mattermost": "mattermost/mattermost-javascript#master",
     "match-at": "0.1.0",
     "object-assign": "4.1.0",
     "perfect-scrollbar": "0.6.11",
