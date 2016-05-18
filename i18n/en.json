@@ -1204,6 +1204,18 @@
     "translation": "Your email address has changed for {{.TeamDisplayName}}"
   },
   {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "You updated your username"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Your username has changed for {{.TeamDisplayName}}"
+  },
+  {
     "id": "api.templates.email_change_verify_body.button",
     "translation": "Verify Email"
   },
@@ -1638,6 +1650,10 @@
   {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Failed to send email change notification email successfully err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "Failed to send username change notification email successfully err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
