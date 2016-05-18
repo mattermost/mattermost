@@ -33,7 +33,7 @@ export default class PostInfo extends React.Component {
         var post = this.props.post;
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-        const isSystemMessage = post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
+        const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || Utils.isPostEphemeral(post)) {
             return '';
