@@ -353,7 +353,7 @@
   },
   {
     "id": "api.command_goto.desc",
-    "translation": "Goes to an URL"
+    "translation": "Goes to an external URL"
   },
   {
     "id": "api.command_goto.hint",
@@ -368,7 +368,7 @@
     "translation": "Goto successful"
   },
   {
-    "id": "api_command_goto.fail.url",
+    "id": "api.command_goto.fail.url",
     "translation": "Not a valid URL"
   },
   {

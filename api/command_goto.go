@@ -39,7 +39,7 @@ func (me *GotoProvider) DoCommand(c *Context, channelId string, message string) 
 		message = "http://" + message;
 	}
 
-	if !model.IsValidHttpUrl(message) {
+	if !model.IsValidHttpUrl(message) || !strings.Contains(message, ".") {
 		return &model.CommandResponse{Text: c.T("api.command_goto.fail.url"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
