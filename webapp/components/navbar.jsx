@@ -171,19 +171,14 @@ export default class Navbar extends React.Component {
             let nextChannel = curChannel;
             let nextIndex = curIndex;
             if (e.keyCode === Constants.KeyCodes.DOWN) {
-                if (curIndex === allChannels.length - 1) {
-                    nextIndex = 0;
-                } else {
-                    nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
-                }
+                nextIndex = curIndex + 1;
             } else if (e.keyCode === Constants.KeyCodes.UP) {
-                if (curIndex === 0) {
+                nextIndex = curIndex - 1;
+                if (nextIndex < 0) {
                     nextIndex = allChannels.length - 1;
-                } else {
-                    nextIndex = Math.max(curIndex - 1, 0);
                 }
             }
-            nextChannel = allChannels[nextIndex];
+            nextChannel = allChannels[nextIndex % allChannels.length];
             GlobalActions.emitChannelClickEvent(nextChannel);
         }
     }
@@ -197,7 +192,7 @@ export default class Navbar extends React.Component {
             let nextIndex = curIndex;
             let count = 0;
             if (e.keyCode === Constants.KeyCodes.UP) {
-                while (count < allChannels.length && nextIndex >= 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
+                while (count < allChannels.length && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
                     nextIndex--;
                     count++;
                     if (nextIndex < 0) {
@@ -205,19 +200,16 @@ export default class Navbar extends React.Component {
                     }
                 }
             } else if (e.keyCode === Constants.KeyCodes.DOWN) {
-                while (count < allChannels.length && nextIndex <= allChannels.length - 1 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
+                while (count < allChannels.length && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
                     nextIndex++;
                     count++;
-                    if (nextIndex >= allChannels.length) {
-                        nextIndex = 0;
-                    }
+                    nextIndex = nextIndex % allChannels.length;
                 }
             }
-            if (nextIndex >= 0 && nextIndex < allChannels.length) {
-                if (ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 || ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
-                    nextChannel = allChannels[nextIndex];
-                    GlobalActions.emitChannelClickEvent(nextChannel);
-                }
+            const unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
+            if (unreadCounts.msgs !== 0 || unreadCounts.mentions !== 0) {
+                nextChannel = allChannels[nextIndex];
+                GlobalActions.emitChannelClickEvent(nextChannel);
             }
         }
     }
