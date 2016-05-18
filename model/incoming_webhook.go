@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -192,6 +193,55 @@ func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	}
 }
 
+// To mention @channel via a webhook in Slack, the message should contain
+// <!channel>, as explained at the bottom of this article:
+// https://get.slack.help/hc/en-us/articles/202009646-Making-announcements
+func expandAnnouncement(text string) string {
+	c1 := "<!channel>"
+	c2 := "@channel"
+	if strings.Contains(text, c1) {
+		return strings.Replace(text, c1, c2, -1)
+	}
+	return text
+}
+
+// Expand announcements in incoming webhooks from Slack. Those announcements
+// can be found in the text attribute, or in the pretext, text, title and value
+// attributes of the attachment structure. The Slack attachment structure is
+// documented here: https://api.slack.com/docs/attachments
+func expandAnnouncements(i *IncomingWebhookRequest) {
+	i.Text = expandAnnouncement(i.Text)
+
+	if i.Attachments != nil {
+		attachments := i.Attachments.([]interface{})
+		for _, attachment := range attachments {
+			a := attachment.(map[string]interface{})
+
+			if a["pretext"] != nil {
+				a["pretext"] = expandAnnouncement(a["pretext"].(string))
+			}
+
+			if a["text"] != nil {
+				a["text"] = expandAnnouncement(a["text"].(string))
+			}
+
+			if a["title"] != nil {
+				a["title"] = expandAnnouncement(a["title"].(string))
+			}
+
+			if a["fields"] != nil {
+				fields := a["fields"].([]interface{})
+				for _, field := range fields {
+					f := field.(map[string]interface{})
+					if f["value"] != nil {
+						f["value"] = expandAnnouncement(f["value"].(string))
+					}
+				}
+			}
+		}
+	}
+}
+
 func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
@@ -206,6 +256,8 @@ func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 			return nil
 		}
 	}
+
+	expandAnnouncements(o)
 
 	return o
 }
