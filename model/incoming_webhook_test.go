@@ -101,6 +101,65 @@ func TestIncomingWebhookPreUpdate(t *testing.T) {
 	o.PreUpdate()
 }
 
+func TestIncomingWebhookRequestFromJson_Announcements(t *testing.T) {
+	text := "This message will send a notification to all team members in the channel where you post the message, because it contains: <!channel>"
+	expected := "This message will send a notification to all team members in the channel where you post the message, because it contains: @channel"
+
+	// simple payload
+	payload := `{"text": "` + text + `"}`
+	data := strings.NewReader(payload)
+	iwr := IncomingWebhookRequestFromJson(data)
+
+	if iwr == nil {
+		t.Fatal("IncomingWebhookRequest should not be nil")
+	}
+	if iwr.Text != expected {
+		t.Fatalf("Sample text should be: %s, got: %s", expected, iwr.Text)
+	}
+
+	// payload with attachment (pretext, title, text, value)
+	payload = `{
+			"attachments": [
+				{
+					"pretext": "` + text + `",
+					"title": "` + text + `",
+					"text": "` + text + `",
+					"fields": [
+						{
+							"title": "A title",
+							"value": "` + text + `",
+							"short": false
+						}
+					]
+				}
+			]
+		}`
+
+	data = strings.NewReader(payload)
+	iwr = IncomingWebhookRequestFromJson(data)
+
+	if iwr == nil {
+		t.Fatal("IncomingWebhookRequest should not be nil")
+	}
+
+	attachments := iwr.Attachments.([]interface{})
+	attachment := attachments[0].(map[string]interface{})
+	if attachment["pretext"] != expected {
+		t.Fatalf("Sample attachment pretext should be: %s, got: %s", expected, attachment["pretext"])
+	}
+	if attachment["text"] != expected {
+		t.Fatalf("Sample attachment text should be: %s, got: %s", expected, attachment["text"])
+	}
+	if attachment["title"] != expected {
+		t.Fatalf("Sample attachment title should be: %s, got: %s", expected, attachment["title"])
+	}
+	fields := attachment["fields"].([]interface{})
+	field := fields[0].(map[string]interface{})
+	if field["value"] != expected {
+		t.Fatalf("Sample attachment field value should be: %s, got: %s", expected, field["value"])
+	}
+}
+
 func TestIncomingWebhookRequestFromJson(t *testing.T) {
 	texts := []string{
 		`this is a test`,
