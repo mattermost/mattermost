@@ -174,11 +174,8 @@ export default class Navbar extends React.Component {
                 nextIndex = curIndex + 1;
             } else if (e.keyCode === Constants.KeyCodes.UP) {
                 nextIndex = curIndex - 1;
-                if (nextIndex < 0) {
-                    nextIndex = allChannels.length - 1;
-                }
             }
-            nextChannel = allChannels[nextIndex % allChannels.length];
+            nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
             GlobalActions.emitChannelClickEvent(nextChannel);
         }
     }
@@ -195,15 +192,13 @@ export default class Navbar extends React.Component {
                 while (count < allChannels.length && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
                     nextIndex--;
                     count++;
-                    if (nextIndex < 0) {
-                        nextIndex = allChannels.length - 1;
-                    }
+                    nextIndex = Utils.mod(nextIndex, allChannels.length);
                 }
             } else if (e.keyCode === Constants.KeyCodes.DOWN) {
                 while (count < allChannels.length && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
                     nextIndex++;
                     count++;
-                    nextIndex = nextIndex % allChannels.length;
+                    nextIndex = Utils.mod(nextIndex, allChannels.length);
                 }
             }
             const unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
