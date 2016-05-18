@@ -1352,6 +1352,18 @@
     "translation": "[MATTERMOST] Mattermost 3.0アップデートのためのあなたのアカウントの変更"
   },
   {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "You updated your username"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Your username has changed for {{.TeamDisplayName}}"
+  },
+  {
     "id": "api.templates.verify_body.button",
     "translation": "電子メールアドレスを確認する"
   },
@@ -1638,6 +1650,10 @@
   {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "電子メールアドレス変更の確認の電子メールを送信できませんでした err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "Failed to send username change notification email successfully err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -3512,6 +3528,10 @@
     "translation": "その電子メールアドレスを持つアカウントは既に存在しています"
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "既存のユーザーの更新をしなくてはいけません"
   },
@@ -3526,6 +3546,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "そのユーザー名を持つアカウントは既に存在しています"
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
     "id": "store.sql_user.update.app_error",
