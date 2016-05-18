@@ -5,6 +5,7 @@ package api
 
 import (
 	"github.com/mattermost/platform/model"
+	"strings"
 )
 
 type GotoProvider struct {
@@ -34,4 +35,13 @@ func (me *GotoProvider) GetCommand(c *Context) *model.Command {
 
 func (me *GotoProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
 	
+	if !strings.Contains(message, "http") {
+		message = message + "http://";
+	}
+
+	if !model.IsValidHttpUrl(message) {
+		return &model.CommandResponse{Text: c.T("api.command_goto.fail.url"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	return &model.CommandResponse{GotoLocation: message, Text: c.T("api.command_goto.success"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }

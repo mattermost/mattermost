@@ -353,15 +353,23 @@
   },
   {
     "id": "api.command_goto.desc",
-    "translation": "TBA"
+    "translation": "Goes to an URL"
   }
   {
     "id": "api.command_goto.hint",
-    "translation": "TBA"
+    "translation": "[url]"
   }
   {
     "id": "api.command_goto.name",
     "translation": "goto"
+  }
+  {
+    "id": "api.command_goto.success",
+    "translation": "Goto successful"
+  }
+  {
+    "id": "api_command_goto.fail.url",
+    "translation": "Not a valid URL"
   }
   {
     "id": "api.command_join.desc",

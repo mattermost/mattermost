@@ -11,5 +11,12 @@ import (
 )
 
 func TestGotoCommands(t *testing.T) {
-	
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel := th.BasicChannel
+
+	gt := Client.Must(Client.Command(channel.Id, "/goto " + "google.com", false)).Data.(*model.CommandResponse)
+	if !strings.HasSuffix(gt.GotoLocation, "google.com") {
+		t.Fatal("failed to goto google")
+	}
 }
