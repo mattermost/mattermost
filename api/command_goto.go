@@ -34,9 +34,9 @@ func (me *GotoProvider) GetCommand(c *Context) *model.Command {
 }
 
 func (me *GotoProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
-	
+
 	if !strings.Contains(message, "http") {
-		message = "http://" + message;
+		message = "http://" + message
 	}
 
 	if !model.IsValidHttpUrl(message) || !strings.Contains(message, ".") {
