@@ -452,6 +452,18 @@
     "translation": "shrug"
   },
   {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Displays a list of keyboard shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Keyboard Shortcuts\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Open up channel switcher\n- CTRL/CMD+U - Open up file upload\n- CTRL/CMD+Up - Reprint last message or slash command entered\n- CTRL/CMD+SHIFT+A - Open account settings\n- CTRL/CMD+SHIFT+M - Open recent mentions\n\n#### ALT\n\n- ALT+Up - Go to previous channel\n- ALT+Down - Go to next channel\n- ALT+SHIFT+Up - Go to previous channel with unread messages\n- ALT+SHIFT+Down - Go to next channel with unread messages\n\n#### General\n\n- Up - Edit last message\n- /+Up/Down - See available slash commands\n"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
