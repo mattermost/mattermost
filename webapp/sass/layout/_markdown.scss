@@ -55,18 +55,14 @@
 
 .post-code__language {
     @include opacity(0);
-    @include translate3d(0, 0, 0);
+    @include transition(opacity, .6s);
     background: #21586d;
-    border-radius: 0 .25em;
+    border-radius: 0 0 0 2px;
     color: $white;
     padding: 4px 10px 5px;
     position: absolute;
     right: 0;
     top: 0;
-    -webkit-transition: opacity 0.6s;
-    -moz-transition: opacity 0.6s;
-    -o-transition: opacity 0.6s;
-    transition: opacity 0.6s;
     z-index: 5;
 }
 
