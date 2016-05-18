@@ -260,7 +260,7 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		ruser.Sanitize(map[string]bool{})
 
 		// This message goes to every channel, so the channelId is irrelevant
-		PublishAndForget(model.NewMessage("", "", ruser.Id, model.ACTION_NEW_USER))
+		go Publish(model.NewMessage("", "", ruser.Id, model.ACTION_NEW_USER))
 
 		return ruser, nil
 	}

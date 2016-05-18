@@ -274,7 +274,7 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	InvalidateCacheForUser(user.Id)
 
 	// This message goes to every channel, so the channelId is irrelevant
-	PublishAndForget(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
+	go Publish(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
 
 	return nil
 }
