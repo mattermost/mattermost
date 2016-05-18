@@ -52,6 +52,14 @@
     "translation": "Erreur lors de la lecture du fichier de log"
   },
   {
+    "id": "api.admin.get_brand_image.not_available.app_error",
+    "translation": "Custom branding is not configured or supported on this server"
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Image storage is not configured."
+  },
+  {
     "id": "api.admin.init.debug",
     "translation": "Initialisation des routes API d'administration"
   },
@@ -62,6 +70,30 @@
   {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Test des réglages de messagerie"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "Aucune image transmise dans la requête"
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "Pas de fichier dans le paramètre \"image\" de la requête"
+  },
+  {
+    "id": "api.admin.upload_brand_image.not_available.app_error",
+    "translation": "Custom branding is not configured or supported on this server"
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "Impossible d'analyser le formulaire multipart"
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Impossible d'envoyer le fichier. Le stockage d'images n'est pas configuré."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Impossible d'envoyer le fichier. Le fichier est trop volumineux."
   },
   {
     "id": "api.api.init.parsing_templates.debug",
@@ -190,6 +222,10 @@
   {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Impossible de quitter un canal de messages privés"
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "You're the only member left, try removing the Private Group instead of leaving."
   },
   {
     "id": "api.channel.leave.left",
@@ -348,6 +384,10 @@
     "translation": "Se déconnecter de Mattermost"
   },
   {
+    "id": "api.command_logout.fail_message",
+    "translation": "Failed to log out"
+  },
+  {
     "id": "api.command_logout.name",
     "translation": "quitter"
   },
@@ -366,6 +406,38 @@
   {
     "id": "api.command_me.name",
     "translation": "moi"
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Send Direct Message to a user"
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "An error occured while creating the direct message."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Une erreur s'est produite lors de l'énumération des canaux."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[username] 'message'"
+  },
+  {
+    "id": "api.command_msg.list.app_error",
+    "translation": "Une erreur s'est produite lors de l'énumération des canaux."
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Utilisateur introuvable"
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_msg.success",
+    "translation": "Messaged user."
   },
   {
     "id": "api.command_shrug.desc",
@@ -474,6 +546,10 @@
   {
     "id": "api.file.get_file.not_found.app_error",
     "translation": "Impossible de trouver le fichier."
+  },
+  {
+    "id": "api.file.get_file.public_disabled.app_error",
+    "translation": "Public links have been disabled by the system administrator"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -588,6 +664,10 @@
     "translation": "Impossible d'enregistrer le message. user=%v, message=%v"
   },
   {
+    "id": "api.import.import_user.join_team.error",
+    "translation": "Failed to join team when importing err=%v"
+  },
+  {
     "id": "api.import.import_user.joining_default.error",
     "translation": "Problème rencontré lors de la connexion aux canaux par défaut user_id=%s, team_id=%s, err=%v"
   },
@@ -694,6 +774,14 @@
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
     "translation": "Erreur lors de la récupération du jeton d'accès avant suppression"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned, but they did not receive notifications because they do not belong to this channel."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "{{.Username}} was mentioned, but they did not receive a notification because they do not belong to this channel."
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -848,6 +936,10 @@
     "translation": "Déjà supprimé id={{.PostId}}"
   },
   {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Unable to update system message"
+  },
+  {
     "id": "api.post_get_post_by_id.get.app_error",
     "translation": "Impossible de récupérer le message"
   },
@@ -906,6 +998,10 @@
   {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n Canaux ajoutés \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "Failed to add user to channel: {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
@@ -974,6 +1070,10 @@
   {
     "id": "api.slackimport.slack_import.open.app_error",
     "translation": "Impossible d'ouvrir : {{.Filename}}"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "Failed to get team to import into.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
@@ -1248,6 +1348,22 @@
     "translation": "Paramétrage Équipe {{ .SiteName }}"
   },
   {
+    "id": "api.templates.singin_change_email.body.info",
+    "translation": "You updated your sign-in method for on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.singin_change_email.subject",
+    "translation": "You updated your sign-in method on {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.upgrade_30_body.info",
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>YOUR DUPLICATE ACCOUNTS HAVE BEEN UPDATED</h3>Your Mattermost server is being upgraded to Version 3.0, which lets you use a single account across multiple teams.<br/><br/>You are receiving this email because the upgrade process has detected your account had the same email or username as other accounts on the server.<br/><br/>The following updates have been made: <br/><br/>{{if .EmailChanged }}- The duplicate email of an account on the `/{{.TeamName}}` team was changed to `{{.Email}}`. You will need to use email and password to login, you can use this new email address for login.<br/><br/>{{end}}{{if .UsernameChanged }}- The duplicate username of an account on the team site `/{{.TeamName}}` has been changed to `{{.Username}}` to avoid confusion with other accounts.<br/><br/>{{end}} RECOMMENDED ACTION: <br/><br/>It is recommended that you login to your teams used by your duplicate accounts and add your primary account to the team and any public channels and private groups which you wish to continue using. <br/><br/>This gives your primary account access to all public channel and private group history. You can continue to access the direct message history of your duplicate accounts by logging in with their credentials. <br/><br/>FOR MORE INFORMATION: <br/><br/>For more information on the upgrade to Mattermost 3.0 please see: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+  },
+  {
+    "id": "api.templates.upgrade_30_subject.info",
+    "translation": "[MATTERMOST] Changes to your account for Mattermost 3.0 Upgrade"
+  },
+  {
     "id": "api.templates.verify_body.button",
     "translation": "Vérifier l'adresse électronique"
   },
@@ -1328,6 +1444,14 @@
     "translation": "Votre compte est verrouillé en raison d'un trop grand nombre de tentatives de connexions. Veuillez réinitialiser votre mot de passe."
   },
   {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "Jeton invalide"
+  },
+  {
+    "id": "api.user.check_user_mfa.not_available.app_error",
+    "translation": "MFA is not configured or supported on this server"
+  },
+  {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Connexion échouée en raison d'un mot de passe invalide"
   },
@@ -1342,6 +1466,14 @@
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
     "translation": "{{.Service}} oauth non disponible sur ce serveur"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "An existing user is already attached to your {{.Service}} account"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_used.app_error",
+    "translation": "This {{.Service}} account has already been used to sign up"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -1370,6 +1502,10 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "Problème en tentant de rejoindre les canaux par défaut user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
   },
   {
     "id": "api.user.create_user.save.error",
@@ -1404,6 +1540,10 @@
     "translation": "LDAP n'est pas disponible sur ce serveur"
   },
   {
+    "id": "api.user.generate_mfa_qr.not_available.app_error",
+    "translation": "MFA not configured or available on this server"
+  },
+  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Prestataire OAuth non-supporté"
   },
@@ -1418,6 +1558,10 @@
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "LDAP n'est pas disponible sur ce serveur"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "This user account does not use LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -1548,6 +1692,10 @@
     "translation": "Vous n'avez pas les permissions appropriées"
   },
   {
+    "id": "api.user.update_mfa.not_available.app_error",
+    "translation": "MFA not configured or available on this server"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Mise à jour du mot de passe refusée car le user_id du contexte ne correspond pas à l'identifiant d'utilisateur fourni"
   },
@@ -1580,8 +1728,16 @@
     "translation": "Vous n'avez pas les permissions appropriées"
   },
   {
+    "id": "api.user.update_roles.system_admin_needed.app_error",
+    "translation": "The system admin role is needed for this action"
+  },
+  {
     "id": "api.user.update_roles.system_admin_set.app_error",
     "translation": "Le rôle d'administrateur système ne peut être donné que par un autre administrateur système"
+  },
+  {
+    "id": "api.user.update_roles.team_admin_needed.app_error",
+    "translation": "The team admin role is needed for this action"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -1664,6 +1820,14 @@
     "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
   },
   {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "Outgoing webhooks can only be created for public channels."
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "Droits insuffisants pour supprimer le webhook sortant"
+  },
+  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Les trigger_words ou channel_id doivent être définis"
   },
@@ -1702,6 +1866,30 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Droits insuffisants pour regénérer le jeton du webhook sortant"
+  },
+  {
+    "id": "ent.brand.save_brand_image.decode.app_error",
+    "translation": "Unable to decode image."
+  },
+  {
+    "id": "ent.brand.save_brand_image.decode_config.app_error",
+    "translation": "Unable to decode image config."
+  },
+  {
+    "id": "ent.brand.save_brand_image.encode.app_error",
+    "translation": "Unable to encode image as PNG."
+  },
+  {
+    "id": "ent.brand.save_brand_image.open.app_error",
+    "translation": "Unable to open the image."
+  },
+  {
+    "id": "ent.brand.save_brand_image.save_image.app_error",
+    "translation": "Unable to save image"
+  },
+  {
+    "id": "ent.brand.save_brand_image.too_large.app_error",
+    "translation": "Unable to open image. Image is too large."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -1752,8 +1940,76 @@
     "translation": "Identifiants corrects mais impossible de créer l'utilisateur."
   },
   {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "User is not permitted to use Mattermost. (LDAP user filter)"
+  },
+  {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Utilisateur non enregistré sur le serveur LDAP"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Invalid LDAP Filter"
+  },
+  {
+    "id": "ent.mfa.activate.authenticate.app_error",
+    "translation": "Error attempting to authenticate MFA token"
+  },
+  {
+    "id": "ent.mfa.activate.bad_token.app_error",
+    "translation": "Jeton invalide"
+  },
+  {
+    "id": "ent.mfa.activate.save_active.app_erro",
+    "translation": "Unable to update MFA active status for the user"
+  },
+  {
+    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "translation": "Unable to update MFA active status for the user"
+  },
+  {
+    "id": "ent.mfa.deactivate.save_secret.app_error",
+    "translation": "Error clearing the MFA secret"
+  },
+  {
+    "id": "ent.mfa.generate_qr_code.create_code.app_error",
+    "translation": "Error generating QR code"
+  },
+  {
+    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
+    "translation": "Error saving the MFA secret"
+  },
+  {
+    "id": "ent.mfa.license_disable.app_error",
+    "translation": "Your license does not support using multi-factor authentication"
+  },
+  {
+    "id": "ent.mfa.validate_token.authenticate.app_error",
+    "translation": "Error trying to authenticate MFA token"
+  },
+  {
+    "id": "error.generic.link_message",
+    "translation": "Retourner sur Mattermost"
+  },
+  {
+    "id": "error.generic.message",
+    "translation": "An error has occoured."
+  },
+  {
+    "id": "error.generic.title",
+    "translation": "Error"
+  },
+  {
+    "id": "error.not_found.link_message",
+    "translation": "Retourner sur Mattermost"
+  },
+  {
+    "id": "error.not_found.message",
+    "translation": "The page you where trying to reach does not exist."
+  },
+  {
+    "id": "error.not_found.title",
+    "translation": "Page not found"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -1830,6 +2086,10 @@
   {
     "id": "mattermost.system_admins.error",
     "translation": "Échec du chargement de la liste des administrateurs système pour les informer d'une mise à jour de sécurité de Mattermost."
+  },
+  {
+    "id": "mattermost.unable_to_load_config",
+    "translation": "Unable to load mattermost configuration file:"
   },
   {
     "id": "mattermost.working_dir",
@@ -1956,6 +2216,14 @@
     "translation": "La date de création doit être une date valide"
   },
   {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "Description invalide"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "Nom d'affichage invalide"
+  },
+  {
     "id": "model.command.is_valid.id.app_error",
     "translation": "Id invalide"
   },
@@ -2064,6 +2332,10 @@
     "translation": "Largeur des aperçus invalide dans les paramètres de fichiers. Doit être un entier positif."
   },
   {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "Sécurité de connexion invalide dans les paramètres de messagerie. Doit être '', 'TLS' ou 'STARTTLS'"
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Adresse d'écoute invalide dans les paramètres de service. Doit être renseignée."
   },
@@ -2082,6 +2354,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Nombre par secondes invalide pour les paramètres de limite de fréquence. Doit être un entier positif."
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "Invalid direct message restriction.  Must be 'any', or 'team'"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -2110,6 +2386,14 @@
   {
     "id": "model.incoming_hook.create_at.app_error",
     "translation": "La date de création doit être une date valide"
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "Description invalide"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "Nom d'affichage invalide"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -2176,6 +2460,14 @@
     "translation": "La date de création doit être une date valide"
   },
   {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "Description invalide"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "Nom d'affichage invalide"
+  },
+  {
     "id": "model.outgoing_hook.is_valid.id.app_error",
     "translation": "Id invalide"
   },
@@ -2186,6 +2478,10 @@
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
     "translation": "jeton invalide"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "Mots déclencheurs invalides"
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -2318,6 +2614,18 @@
   {
     "id": "model.team.is_valid.url.app_error",
     "translation": "Identifiant URL invalide"
+  },
+  {
+    "id": "model.team_member.is_valid.role.app_error",
+    "translation": "Rôle invalide"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "Id équipe invalide"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "Id utilisateur invalide"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -2572,6 +2880,10 @@
     "translation": "Nous n'avons pas pu trouver le canal existant"
   },
   {
+    "id": "store.sql_channel.get_by_name.missing.app_error",
+    "translation": "Channel does not exist"
+  },
+  {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
     "translation": "Nous n'avons pas pu obtenir le nombre de canaux"
   },
@@ -2594,6 +2906,10 @@
   {
     "id": "store.sql_channel.get_member.app_error",
     "translation": "Nous n'avons pas pu obtenir les membres du canal"
+  },
+  {
+    "id": "store.sql_channel.get_member.missing.app_error",
+    "translation": "No channel member found for that user id and channel id"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
@@ -3040,6 +3356,10 @@
     "translation": "Nous avons rencontré une erreur lors de la recherche des propriétés système"
   },
   {
+    "id": "store.sql_system.get_by_name.app_error",
+    "translation": "We couldn't find the system variable."
+  },
+  {
     "id": "store.sql_system.save.app_error",
     "translation": "Nous avons rencontré une erreur lors de l'enregistrement de la propriété système"
   },
@@ -3080,12 +3400,24 @@
     "translation": "Nous n'avons pas pu trouver d'équipe existante"
   },
   {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "Nous n'avons pas pu obtenir les membres du canal"
+  },
+  {
+    "id": "store.sql_team.get_members.app_error",
+    "translation": "Nous n'avons pas pu obtenir les membres du canal"
+  },
+  {
     "id": "store.sql_team.get_teams_for_email.app_error",
     "translation": "Nous avons rencontré un problème durant la recherche des équipes"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "Nous n'avons pas pu supprimer l'équipe existante"
+  },
+  {
+    "id": "store.sql_team.remove_member.app_error",
+    "translation": "Nous n'avons pas pu retirer le membre du canal"
   },
   {
     "id": "store.sql_team.save.app_error",
@@ -3098,6 +3430,14 @@
   {
     "id": "store.sql_team.save.existing.app_error",
     "translation": "La mise à jour doit être appelée pour une équipe existante"
+  },
+  {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "Un membre de canal avec cet id existe déjà"
+  },
+  {
+    "id": "store.sql_team.save_member.save.app_error",
+    "translation": "Nous n'avons pas pu enregistrer le membre du canal"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -3142,6 +3482,14 @@
   {
     "id": "store.sql_user.get_for_export.app_error",
     "translation": "Nous avons rencontré une erreur lors de la recherche des profils utilisateurs"
+  },
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "Nous n'avons pas pu trouver un compte existant correspondant à votre nom d'utilisateur pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
+  },
+  {
+    "id": "store.sql_user.get_for_login.multiple_users",
+    "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
@@ -3200,6 +3548,10 @@
     "translation": "Nous n'avons pas pu mettre à jour le compte"
   },
   {
+    "id": "store.sql_user.update.can_not_change_ldap.app_error",
+    "translation": "Can not change fields set by LDAP"
+  },
+  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Cette adresse électronique est déjà prise. Veuillez en choisir une autre."
   },
@@ -3238,6 +3590,14 @@
   {
     "id": "store.sql_user.update_last_ping.app_error",
     "translation": "Nous n'avons pas pu mettre à jour last_ping_at"
+  },
+  {
+    "id": "store.sql_user.update_mfa_active.app_error",
+    "translation": "We encountered an error updating the user's MFA active status"
+  },
+  {
+    "id": "store.sql_user.update_mfa_secret.app_error",
+    "translation": "We encountered an error updating the user's MFA secret"
   },
   {
     "id": "store.sql_user.update_password.app_error",
