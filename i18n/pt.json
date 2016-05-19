@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Teste de Configurações de EMail"
+    "translation": "Mattermost - Teste de Configurações de Email"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -438,6 +438,18 @@
   {
     "id": "api.command_msg.success",
     "translation": "Mensagem enviada."
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Displays a list of keyboard shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Keyboard Shortcuts\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Open up channel switcher\n- CTRL/CMD+U - Open up file upload\n- CTRL/CMD+Up - Reprint last message or slash command entered\n- CTRL/CMD+SHIFT+A - Open account settings\n- CTRL/CMD+SHIFT+M - Open recent mentions\n\n#### ALT\n\n- ALT+Up - Go to previous channel\n- ALT+Down - Go to next channel\n- ALT+SHIFT+Up - Go to previous channel with unread messages\n- ALT+SHIFT+Down - Go to next channel with unread messages\n\n#### General\n\n- Up - Edit last message\n- /+Up/Down - See available slash commands\n"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "shortcuts"
   },
   {
     "id": "api.command_shrug.desc",
@@ -888,12 +900,20 @@
     "translation": "Nova Mensagem Direta"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": " in "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_mention",
     "translation": " você foi mencionado no "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " enviado a você uma mensagem direta"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " posted in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -1353,15 +1373,15 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+    "translation": "Seu nome de usuário para {{.TeamDisplayName}} foi alterado para {{.NewEmail}}.<br>Se você não fez está mudança, por favor contate o administrador do sistema."
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": "You updated your username"
+    "translation": "Você atualizou seu nome de usuário"
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "Your username has changed for {{.TeamDisplayName}}"
+    "translation": "Seu nome de usuário foi alterado para {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1653,7 +1673,7 @@
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Failed to send username change notification email successfully err=%v"
+    "translation": "Falha ao enviar notificação por email sobre alteração do nome do usuário err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
