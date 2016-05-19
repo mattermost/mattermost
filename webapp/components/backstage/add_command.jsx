@@ -92,6 +92,20 @@ export default class AddCommand extends React.Component {
             return;
         }
 
+        if (command.trigger.indexOf('/') !== -1) {
+            this.setState({
+                saving: false,
+                clientError: (
+                    <FormattedMessage
+                        id='add_command.triggerInvalid'
+                        defaultMessage='A trigger word cannot contain /'
+                    />
+                )
+            });
+
+            return;
+        }
+
         if (!command.url) {
             this.setState({
                 saving: false,

@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const (
@@ -99,7 +100,7 @@ func (o *Command) IsValid() *AppError {
 		return NewLocAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "")
 	}
 
-	if len(o.Trigger) == 0 || len(o.Trigger) > 128 {
+	if len(o.Trigger) == 0 || len(o.Trigger) > 128 || strings.Contains(o.Trigger, "/") {
 		return NewLocAppError("Command.IsValid", "model.command.is_valid.trigger.app_error", nil, "")
 	}
 

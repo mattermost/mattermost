@@ -50,6 +50,7 @@
   "add_command.trigger.help2": "Reserved: /echo, /join, /logout, /me, /shrug",
   "add_command.trigger.placeholder": "Command trigger e.g. \"hello\" not including the slash",
   "add_command.triggerRequired": "A trigger word is required",
+  "add_command.triggerInvalid": "A trigger word cannot contain /",
   "add_command.url": "Request URL",
   "add_command.url.help": "The callback URL to receive the HTTP POST or GET event request when the slash command is run.",
   "add_command.url.placeholder": "Must start with http:// or https://",
