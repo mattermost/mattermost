@@ -9,6 +9,7 @@ import * as GlobalActions from 'action_creators/global_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import Client from 'utils/web_client.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
 import * as Utils from 'utils/utils.jsx';
@@ -44,6 +45,8 @@ export default class Login extends React.Component {
         if (UserStore.getCurrentUser()) {
             browserHistory.push('/select_team');
         }
+
+        AsyncClient.checkVersion();
     }
 
     preSubmit(e) {

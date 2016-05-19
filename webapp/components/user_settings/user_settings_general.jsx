@@ -160,6 +160,11 @@ class UserSettingsGeneralTab extends React.Component {
         const email = this.state.email.trim().toLowerCase();
         const confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
+        if (user.email === email) {
+            this.updateSection('');
+            return;
+        }
+
         const {formatMessage} = this.props.intl;
         if (email === '' || !Utils.isEmail(email)) {
             this.setState({emailError: formatMessage(holders.validEmail), clientError: '', serverError: ''});
@@ -168,11 +173,6 @@ class UserSettingsGeneralTab extends React.Component {
 
         if (email !== confirmEmail) {
             this.setState({emailError: formatMessage(holders.emailMatch), clientError: '', serverError: ''});
-            return;
-        }
-
-        if (user.email === email) {
-            this.updateSection('');
             return;
         }
 

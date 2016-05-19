@@ -14,6 +14,7 @@ export default class PostHeader extends React.Component {
         super(props);
         this.state = {};
     }
+
     render() {
         const post = this.props.post;
 
@@ -56,6 +57,7 @@ export default class PostHeader extends React.Component {
                         isLastComment={this.props.isLastComment}
                         sameUser={this.props.sameUser}
                         currentUser={this.props.currentUser}
+                        compactDisplay={this.props.compactDisplay}
                     />
                 </li>
             </ul>
@@ -76,5 +78,6 @@ PostHeader.propTypes = {
     commentCount: React.PropTypes.number.isRequired,
     isLastComment: React.PropTypes.bool.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
-    sameUser: React.PropTypes.bool.isRequired
+    sameUser: React.PropTypes.bool.isRequired,
+    compactDisplay: React.PropTypes.bool
 };

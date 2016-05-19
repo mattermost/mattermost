@@ -285,7 +285,7 @@ func ValidateLdapFilter(cfg *model.Config) *model.AppError {
 }
 
 func Desanitize(cfg *model.Config) {
-	if *cfg.LdapSettings.BindPassword == model.FAKE_SETTING {
+	if cfg.LdapSettings.BindPassword != nil && *cfg.LdapSettings.BindPassword == model.FAKE_SETTING {
 		*cfg.LdapSettings.BindPassword = *Cfg.LdapSettings.BindPassword
 	}
 

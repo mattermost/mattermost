@@ -222,11 +222,6 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateTeam(c *Context, team *model.Team) *model.Team {
-	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
-		c.Err = model.NewLocAppError("createTeam", "api.team.create_team.email_disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
-		return nil
-	}
 
 	if team == nil {
 		c.SetInvalidParam("createTeam", "team")
@@ -266,6 +261,10 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 		return tmr.Err
 	}
 
+	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
+		return uua.Err
+	}
+
 	// Soft error if there is an issue joining the default channels
 	if err := JoinDefaultChannels(team.Id, user, channelRole); err != nil {
 		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
@@ -275,7 +274,7 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	InvalidateCacheForUser(user.Id)
 
 	// This message goes to every channel, so the channelId is irrelevant
-	PublishAndForget(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
+	go Publish(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
 
 	return nil
 }

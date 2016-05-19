@@ -636,5 +636,5 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), strings.Title(service)+" SSO")
+	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), strings.Title(service)+" SSO")
 }

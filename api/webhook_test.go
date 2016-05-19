@@ -511,6 +511,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 		t.Fatal("should have errored - webhooks turned off")
 	}
 }
+
 func TestIncomingWebhooks(t *testing.T) {
 	th := Setup().InitSystemAdmin()
 	Client := th.SystemAdminClient
@@ -529,8 +530,14 @@ func TestIncomingWebhooks(t *testing.T) {
 	hook = Client.Must(Client.CreateIncomingWebhook(hook)).Data.(*model.IncomingWebhook)
 
 	url := "/hooks/" + hook.Id
+	text := `this is a \"test\"
+	that contains a newline and a tab`
 
 	if _, err := Client.DoPost(url, "{\"text\":\"this is a test\"}", "application/json"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Client.DoPost(url, "{\"text\":\""+text+"\"}", "application/json"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -549,6 +556,10 @@ func TestIncomingWebhooks(t *testing.T) {
 	}
 
 	if _, err := Client.DoPost(url, "payload={\"text\":\"this is a test\"}", "application/x-www-form-urlencoded"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Client.DoPost(url, "payload={\"text\":\""+text+"\"}", "application/x-www-form-urlencoded"); err != nil {
 		t.Fatal(err)
 	}
 

@@ -24,6 +24,10 @@ export default class PostBody extends React.Component {
             return true;
         }
 
+        if (!Utils.areObjectsEqual(nextProps.compactDisplay, this.props.compactDisplay)) {
+            return true;
+        }
+
         if (nextProps.retryPost.toString() !== this.props.retryPost.toString()) {
             return true;
         }
@@ -136,9 +140,11 @@ export default class PostBody extends React.Component {
         if (filenames && filenames.length > 0) {
             fileAttachmentHolder = (
                 <FileAttachmentList
+
                     filenames={filenames}
                     channelId={post.channel_id}
                     userId={post.user_id}
+                    compactDisplay={this.props.compactDisplay}
                 />
             );
         }
@@ -189,5 +195,6 @@ PostBody.propTypes = {
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired
+    handleCommentClick: React.PropTypes.func.isRequired,
+    compactDisplay: React.PropTypes.bool
 };

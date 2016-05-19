@@ -403,3 +403,34 @@ func TestTeamMembers(t *testing.T) {
 		}
 	}
 }
+
+func TestGetTeamMember(t *testing.T) {
+	Setup()
+
+	teamId1 := model.NewId()
+
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	Must(store.Team().SaveMember(m1))
+
+	if r := <-store.Team().GetMember(m1.TeamId, m1.UserId); r.Err != nil {
+		t.Fatal(r.Err)
+	} else {
+		rm1 := r.Data.(model.TeamMember)
+
+		if rm1.TeamId != m1.TeamId {
+			t.Fatal("bad team id")
+		}
+
+		if rm1.UserId != m1.UserId {
+			t.Fatal("bad user id")
+		}
+	}
+
+	if r := <-store.Team().GetMember(m1.TeamId, ""); r.Err == nil {
+		t.Fatal("empty user id - should have failed")
+	}
+
+	if r := <-store.Team().GetMember("", m1.UserId); r.Err == nil {
+		t.Fatal("empty team id - should have failed")
+	}
+}

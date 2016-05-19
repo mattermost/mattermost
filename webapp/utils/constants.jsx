@@ -531,7 +531,11 @@ export default {
         CHANNEL_DISPLAY_MODE: 'channel_display_mode',
         CHANNEL_DISPLAY_MODE_CENTERED: 'centered',
         CHANNEL_DISPLAY_MODE_FULL_SCREEN: 'full',
-        CHANNEL_DISPLAY_MODE_DEFAULT: 'centered'
+        CHANNEL_DISPLAY_MODE_DEFAULT: 'centered',
+        MESSAGE_DISPLAY: 'message_display',
+        MESSAGE_DISPLAY_CLEAN: 'clean',
+        MESSAGE_DISPLAY_COMPACT: 'compact',
+        MESSAGE_DISPLAY_DEFAULT: 'clean'
     },
     TutorialSteps: {
         INTRO_SCREENS: 0,

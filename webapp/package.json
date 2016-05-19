@@ -1,5 +1,5 @@
 {
-  "name": "mattermost",
+  "name": "mattermost-webapp",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
@@ -16,7 +16,8 @@
     "jasny-bootstrap": "3.1.3",
     "jquery": "2.2.3",
     "keymirror": "0.1.1",
-    "marked": "mattermost/marked#cb85e5cc81bc7937dbb73c3c53d9532b1b97e3ca",
+    "marked": "mattermost/marked#43e7e590944ea308a4d36f21917118d51a261e74",
+    "mattermost": "mattermost/mattermost-javascript#master",
     "match-at": "0.1.0",
     "object-assign": "4.1.0",
     "perfect-scrollbar": "0.6.11",
@@ -70,6 +71,6 @@
     "build": "NODE_ENV=production webpack",
     "run": "NODE_ENV=production webpack --progress --watch",
     "run-fullmap": "webpack --progress --watch",
-    "test": "mocha-webpack --webpack-config webpack.config-test.js \"**/*.test.jsx\""
+    "test": "mocha-webpack --webpack-config webpack.config.js \"**/*.test.jsx\""
   }
 }

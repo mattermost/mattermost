@@ -452,6 +452,18 @@
     "translation": "shrug"
   },
   {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Displays a list of keyboard shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Keyboard Shortcuts\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Open up channel switcher\n- CTRL/CMD+U - Open up file upload\n- CTRL/CMD+Up - Reprint last message or slash command entered\n- CTRL/CMD+SHIFT+A - Open account settings\n- CTRL/CMD+SHIFT+M - Open recent mentions\n\n#### ALT\n\n- ALT+Up - Go to previous channel\n- ALT+Down - Go to next channel\n- ALT+SHIFT+Up - Go to previous channel with unread messages\n- ALT+SHIFT+Down - Go to next channel with unread messages\n\n#### General\n\n- Up - Edit last message\n- /+Up/Down - See available slash commands\n"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
@@ -936,6 +948,10 @@
     "translation": "Already deleted id={{.PostId}}"
   },
   {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Unable to update system message"
+  },
+  {
     "id": "api.post_get_post_by_id.get.app_error",
     "translation": "Unable to get post"
   },
@@ -1189,7 +1205,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "You email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
+    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1198,6 +1214,18 @@
   {
     "id": "api.templates.email_change_subject",
     "translation": "Your email address has changed for {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "You updated your username"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Your username has changed for {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1634,6 +1662,10 @@
   {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Failed to send email change notification email successfully err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "Failed to send username change notification email successfully err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -3380,6 +3412,10 @@
     "translation": "We couldn't find the existing team"
   },
   {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "We couldn't get the team member"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "We couldn't get the team members"
   },
@@ -3504,6 +3540,10 @@
     "translation": "An account with that email already exists."
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Must call update for exisiting user"
   },
@@ -3518,6 +3558,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "An account with that username already exists."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
     "id": "store.sql_user.update.app_error",

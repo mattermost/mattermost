@@ -454,10 +454,11 @@ class PostStoreClass extends EventEmitter {
         for (let i = 0; i < len; i++) {
             const post = postList.posts[postList.order[i]];
 
-            // don't edit webhook posts or deleted posts
+            // don't edit webhook posts, deleted posts, or system messages
             if (post.user_id !== userId ||
                 (post.props && post.props.from_webhook) ||
-                post.state === Constants.POST_DELETED) {
+                post.state === Constants.POST_DELETED ||
+                (post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX))) {
                 continue;
             }
 

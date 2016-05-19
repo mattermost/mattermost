@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const nodeExternals = require('webpack-node-externals');
 
 const htmlExtract = new ExtractTextPlugin('html', 'root.html');
 
@@ -9,11 +10,17 @@ const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-pro
 
 var DEV = false;
 var FULLMAP = false;
+var TEST = false;
 if (NPM_TARGET === 'run' || NPM_TARGET === 'run-fullmap') {
     DEV = true;
     if (NPM_TARGET === 'run-fullmap') {
         FULLMAP = true;
     }
+}
+
+if (NPM_TARGET === 'test') {
+    DEV = false;
+    TEST = true;
 }
 
 var config = {
@@ -29,6 +36,15 @@ var config = {
                 test: /\.jsx?$/,
                 loader: 'babel',
                 exclude: /(node_modules|non_npm_dependencies)/,
+                query: {
+                    presets: ['react', 'es2015-webpack', 'stage-0'],
+                    plugins: ['transform-runtime'],
+                    cacheDirectory: DEV
+                }
+            },
+            {
+                test: /node_modules\/mattermost\/client\.jsx?$/,
+                loader: 'babel',
                 query: {
                     presets: ['react', 'es2015-webpack', 'stage-0'],
                     plugins: ['transform-runtime'],
@@ -137,6 +153,11 @@ if (!DEV) {
     config.plugins.push(
         new webpack.optimize.DedupePlugin()
     );
+}
+
+// Test mode configuration
+if (TEST) {
+    config.externals = [nodeExternals()];
 }
 
 module.exports = config;

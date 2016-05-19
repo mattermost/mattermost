@@ -224,6 +224,10 @@
     "translation": "Não é possível sair de um canal de mensagem direta"
   },
   {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "You're the only member left, try removing the Private Group instead of leaving."
+  },
+  {
     "id": "api.channel.leave.left",
     "translation": "%v deixou o canal."
   },
@@ -930,6 +934,10 @@
   {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Já deletado id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Unable to update system message"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1704,12 +1712,12 @@
     "translation": "Você não tem a permissão apropriada"
   },
   {
-    "id": "api.user.update_roles.system_admin_set.app_error",
-    "translation": "A função de administrador do sistema só pode ser definida por um outro administrador do sistema"
-  },
-  {
     "id": "api.user.update_roles.system_admin_needed.app_error",
     "translation": "A permissão admin do sistema é necessária para essa ação"
+  },
+  {
+    "id": "api.user.update_roles.system_admin_set.app_error",
+    "translation": "A função de administrador do sistema só pode ser definida por um outro administrador do sistema"
   },
   {
     "id": "api.user.update_roles.team_admin_needed.app_error",
@@ -3374,6 +3382,10 @@
   {
     "id": "store.sql_team.get_by_name.app_error",
     "translation": "Não foi possível encontrar a equipe existente"
+  },
+  {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "Não foi possível obter os membros da equipe"
   },
   {
     "id": "store.sql_team.get_members.app_error",

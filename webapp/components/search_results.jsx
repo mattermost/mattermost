@@ -30,7 +30,8 @@ function getStateFromStores() {
 
     return {
         results,
-        channels
+        channels,
+        searchTerm: SearchStore.getSearchTerm()
     };
 }
 
@@ -119,7 +120,7 @@ export default class SearchResults extends React.Component {
             searchForm = <SearchBox/>;
         }
         var noResults = (!results || !results.order || !results.order.length);
-        var searchTerm = SearchStore.getSearchTerm();
+        const searchTerm = this.state.searchTerm;
         const profiles = this.state.profiles || {};
 
         var ctls = null;

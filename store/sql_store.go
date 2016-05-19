@@ -582,9 +582,16 @@ func (ss SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 	}
 }
 
-func IsUniqueConstraintError(err string, mysql string, postgres string) bool {
+func IsUniqueConstraintError(err string, indexName []string) bool {
 	unique := strings.Contains(err, "unique constraint") || strings.Contains(err, "Duplicate entry")
-	field := strings.Contains(err, mysql) || strings.Contains(err, postgres)
+	field := false
+	for _, contain := range indexName {
+		if strings.Contains(err, contain) {
+			field = true
+			break
+		}
+	}
+
 	return unique && field
 }
 

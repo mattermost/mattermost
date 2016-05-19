@@ -33,6 +33,7 @@ export default class PostInfo extends React.Component {
         var post = this.props.post;
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || Utils.isPostEphemeral(post)) {
             return '';
@@ -108,7 +109,7 @@ export default class PostInfo extends React.Component {
             );
         }
 
-        if (isOwner) {
+        if (isOwner && !isSystemMessage) {
             dropdownContents.push(
                 <li
                     key='editPost'
@@ -219,6 +220,7 @@ export default class PostInfo extends React.Component {
                     <TimeSince
                         eventTime={post.create_at}
                         sameUser={this.props.sameUser}
+                        compactDisplay={this.props.compactDisplay}
                     />
                 </li>
                 <li className='col col__reply'>
@@ -250,5 +252,6 @@ PostInfo.propTypes = {
     allowReply: React.PropTypes.string.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     sameUser: React.PropTypes.bool.isRequired,
-    currentUser: React.PropTypes.object.isRequired
+    currentUser: React.PropTypes.object.isRequired,
+    compactDisplay: React.PropTypes.bool
 };

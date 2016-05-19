@@ -61,6 +61,7 @@ type TeamStore interface {
 	AnalyticsTeamCount() StoreChannel
 	SaveMember(member *model.TeamMember) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
+	GetMember(teamId string, userId string) StoreChannel
 	GetMembers(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
@@ -122,6 +123,7 @@ type UserStore interface {
 	Save(user *model.User) StoreChannel
 	Update(user *model.User, allowRoleUpdate bool) StoreChannel
 	UpdateLastPictureUpdate(userId string) StoreChannel
+	UpdateUpdateAt(userId string) StoreChannel
 	UpdateLastPingAt(userId string, time int64) StoreChannel
 	UpdateLastActivityAt(userId string, time int64) StoreChannel
 	UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel

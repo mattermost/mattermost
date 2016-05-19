@@ -144,6 +144,7 @@ export default class ChannelHeader extends React.Component {
     }
     openRecentMentions(e) {
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.keyCode === Constants.KeyCodes.M) {
+            e.preventDefault();
             this.searchMentions(e);
         }
     }

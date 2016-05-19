@@ -77,9 +77,9 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 		}
 
 		if err := us.GetMaster().Insert(user); err != nil {
-			if IsUniqueConstraintError(err.Error(), "Email", "users_email_key") {
+			if IsUniqueConstraintError(err.Error(), []string{"Email", "users_email_key", "idx_users_email_unique"}) {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.email_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
-			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_key") {
+			} else if IsUniqueConstraintError(err.Error(), []string{"Username", "users_username_key", "idx_users_username_unique"}) {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.username_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.app_error", nil, "user_id="+user.Id+", "+err.Error())
@@ -155,9 +155,9 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 			}
 
 			if count, err := us.GetMaster().Update(user); err != nil {
-				if IsUniqueConstraintError(err.Error(), "Email", "users_email_teamid_key") {
+				if IsUniqueConstraintError(err.Error(), []string{"Email", "users_email_key", "idx_users_email_unique"}) {
 					result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id+", "+err.Error())
-				} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_teamid_key") {
+				} else if IsUniqueConstraintError(err.Error(), []string{"Username", "users_username_key", "idx_users_username_unique"}) {
 					result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.username_taken.app_error", nil, "user_id="+user.Id+", "+err.Error())
 				} else {
 					result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.updating.app_error", nil, "user_id="+user.Id+", "+err.Error())
@@ -186,6 +186,27 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId)
+		} else {
+			result.Data = userId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) UpdateUpdateAt(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		curTime := model.GetMillis()
+
+		if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_update.app_error", nil, "user_id="+userId)
 		} else {
 			result.Data = userId
 		}
@@ -461,7 +482,7 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			        WHERE
 			            UserId = :UserId
 			                AND Category = 'direct_channel_show')
-			ORDER BY UpdateAt DESC
+			ORDER BY UpdateAt DESC LIMIT 1
         `, map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())

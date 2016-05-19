@@ -6,16 +6,6 @@ package api
 import (
 	"bytes"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/disintegration/imaging"
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
-	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
-	"github.com/mssola/user_agent"
-	"github.com/rwcarlsen/goexif/exif"
-	_ "golang.org/x/image/bmp"
 	"image"
 	"image/color"
 	"image/draw"
@@ -30,6 +20,17 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
+	"github.com/goamz/goamz/aws"
+	"github.com/goamz/goamz/s3"
+	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
+	"github.com/mssola/user_agent"
+	"github.com/rwcarlsen/goexif/exif"
+	_ "golang.org/x/image/bmp"
 )
 
 const (
@@ -165,110 +166,107 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		resStruct.ClientIds = append(resStruct.ClientIds, clientId)
 	}
 
-	handleImagesAndForget(imageNameList, imageDataList, c.TeamId, channelId, c.Session.UserId)
+	go handleImages(imageNameList, imageDataList, c.TeamId, channelId, c.Session.UserId)
 
 	w.Write([]byte(resStruct.ToJson()))
 }
 
-func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channelId, userId string) {
+func handleImages(filenames []string, fileData [][]byte, teamId, channelId, userId string) {
+	dest := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/"
 
-	go func() {
-		dest := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/"
+	for i, filename := range filenames {
+		name := filename[:strings.LastIndex(filename, ".")]
+		go func() {
+			// Decode image bytes into Image object
+			img, imgType, err := image.Decode(bytes.NewReader(fileData[i]))
+			if err != nil {
+				l4g.Error(utils.T("api.file.handle_images_forget.decode.error"), channelId, userId, filename, err)
+				return
+			}
 
-		for i, filename := range filenames {
-			name := filename[:strings.LastIndex(filename, ".")]
+			width := img.Bounds().Dx()
+			height := img.Bounds().Dy()
+
+			// Get the image's orientation and ignore any errors since not all images will have orientation data
+			orientation, _ := getImageOrientation(fileData[i])
+
+			if imgType == "png" {
+				dst := image.NewRGBA(img.Bounds())
+				draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
+				draw.Draw(dst, dst.Bounds(), img, img.Bounds().Min, draw.Over)
+				img = dst
+			}
+
+			switch orientation {
+			case UprightMirrored:
+				img = imaging.FlipH(img)
+			case UpsideDown:
+				img = imaging.Rotate180(img)
+			case UpsideDownMirrored:
+				img = imaging.FlipV(img)
+			case RotatedCWMirrored:
+				img = imaging.Transpose(img)
+			case RotatedCCW:
+				img = imaging.Rotate270(img)
+			case RotatedCCWMirrored:
+				img = imaging.Transverse(img)
+			case RotatedCW:
+				img = imaging.Rotate90(img)
+			}
+
+			// Create thumbnail
 			go func() {
-				// Decode image bytes into Image object
-				img, imgType, err := image.Decode(bytes.NewReader(fileData[i]))
+				thumbWidth := float64(utils.Cfg.FileSettings.ThumbnailWidth)
+				thumbHeight := float64(utils.Cfg.FileSettings.ThumbnailHeight)
+				imgWidth := float64(width)
+				imgHeight := float64(height)
+
+				var thumbnail image.Image
+				if imgHeight < thumbHeight && imgWidth < thumbWidth {
+					thumbnail = img
+				} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
+					thumbnail = imaging.Resize(img, 0, utils.Cfg.FileSettings.ThumbnailHeight, imaging.Lanczos)
+				} else {
+					thumbnail = imaging.Resize(img, utils.Cfg.FileSettings.ThumbnailWidth, 0, imaging.Lanczos)
+				}
+
+				buf := new(bytes.Buffer)
+				err = jpeg.Encode(buf, thumbnail, &jpeg.Options{Quality: 90})
 				if err != nil {
-					l4g.Error(utils.T("api.file.handle_images_forget.decode.error"), channelId, userId, filename, err)
+					l4g.Error(utils.T("api.file.handle_images_forget.encode_jpeg.error"), channelId, userId, filename, err)
 					return
 				}
 
-				width := img.Bounds().Dx()
-				height := img.Bounds().Dy()
-
-				// Get the image's orientation and ignore any errors since not all images will have orientation data
-				orientation, _ := getImageOrientation(fileData[i])
-
-				if imgType == "png" {
-					dst := image.NewRGBA(img.Bounds())
-					draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
-					draw.Draw(dst, dst.Bounds(), img, img.Bounds().Min, draw.Over)
-					img = dst
+				if err := WriteFile(buf.Bytes(), dest+name+"_thumb.jpg"); err != nil {
+					l4g.Error(utils.T("api.file.handle_images_forget.upload_thumb.error"), channelId, userId, filename, err)
+					return
 				}
-
-				switch orientation {
-				case UprightMirrored:
-					img = imaging.FlipH(img)
-				case UpsideDown:
-					img = imaging.Rotate180(img)
-				case UpsideDownMirrored:
-					img = imaging.FlipV(img)
-				case RotatedCWMirrored:
-					img = imaging.Transpose(img)
-				case RotatedCCW:
-					img = imaging.Rotate270(img)
-				case RotatedCCWMirrored:
-					img = imaging.Transverse(img)
-				case RotatedCW:
-					img = imaging.Rotate90(img)
-				}
-
-				// Create thumbnail
-				go func() {
-					thumbWidth := float64(utils.Cfg.FileSettings.ThumbnailWidth)
-					thumbHeight := float64(utils.Cfg.FileSettings.ThumbnailHeight)
-					imgWidth := float64(width)
-					imgHeight := float64(height)
-
-					var thumbnail image.Image
-					if imgHeight < thumbHeight && imgWidth < thumbWidth {
-						thumbnail = img
-					} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
-						thumbnail = imaging.Resize(img, 0, utils.Cfg.FileSettings.ThumbnailHeight, imaging.Lanczos)
-					} else {
-						thumbnail = imaging.Resize(img, utils.Cfg.FileSettings.ThumbnailWidth, 0, imaging.Lanczos)
-					}
-
-					buf := new(bytes.Buffer)
-					err = jpeg.Encode(buf, thumbnail, &jpeg.Options{Quality: 90})
-					if err != nil {
-						l4g.Error(utils.T("api.file.handle_images_forget.encode_jpeg.error"), channelId, userId, filename, err)
-						return
-					}
-
-					if err := WriteFile(buf.Bytes(), dest+name+"_thumb.jpg"); err != nil {
-						l4g.Error(utils.T("api.file.handle_images_forget.upload_thumb.error"), channelId, userId, filename, err)
-						return
-					}
-				}()
-
-				// Create preview
-				go func() {
-					var preview image.Image
-					if width > int(utils.Cfg.FileSettings.PreviewWidth) {
-						preview = imaging.Resize(img, utils.Cfg.FileSettings.PreviewWidth, utils.Cfg.FileSettings.PreviewHeight, imaging.Lanczos)
-					} else {
-						preview = img
-					}
-
-					buf := new(bytes.Buffer)
-
-					err = jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90})
-					if err != nil {
-						l4g.Error(utils.T("api.file.handle_images_forget.encode_preview.error"), channelId, userId, filename, err)
-						return
-					}
-
-					if err := WriteFile(buf.Bytes(), dest+name+"_preview.jpg"); err != nil {
-						l4g.Error(utils.T("api.file.handle_images_forget.upload_preview.error"), channelId, userId, filename, err)
-						return
-					}
-				}()
 			}()
-		}
-	}()
+
+			// Create preview
+			go func() {
+				var preview image.Image
+				if width > int(utils.Cfg.FileSettings.PreviewWidth) {
+					preview = imaging.Resize(img, utils.Cfg.FileSettings.PreviewWidth, utils.Cfg.FileSettings.PreviewHeight, imaging.Lanczos)
+				} else {
+					preview = img
+				}
+
+				buf := new(bytes.Buffer)
+
+				err = jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90})
+				if err != nil {
+					l4g.Error(utils.T("api.file.handle_images_forget.encode_preview.error"), channelId, userId, filename, err)
+					return
+				}
+
+				if err := WriteFile(buf.Bytes(), dest+name+"_preview.jpg"); err != nil {
+					l4g.Error(utils.T("api.file.handle_images_forget.upload_preview.error"), channelId, userId, filename, err)
+					return
+				}
+			}()
+		}()
+	}
 }
 
 func getImageOrientation(imageData []byte) (int, error) {
@@ -329,7 +327,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		info = cached.(*model.FileInfo)
 	} else {
 		fileData := make(chan []byte)
-		getFileAndForget(path, fileData)
+		go readFile(path, fileData)
 
 		newInfo, err := model.GetInfoForBytes(filename, <-fileData)
 		if err != nil {
@@ -435,7 +433,7 @@ func getFileData(teamId string, channelId string, userId string, filename string
 	path := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 
 	fileChan := make(chan []byte)
-	getFileAndForget(path, fileChan)
+	go readFile(path, fileChan)
 
 	if bytes := <-fileChan; bytes == nil {
 		err := model.NewLocAppError("writeFileResponse", "api.file.get_file.not_found.app_error", nil, "path="+path)
@@ -472,16 +470,14 @@ func writeFileResponse(filename string, bytes []byte, w http.ResponseWriter, r *
 	return nil
 }
 
-func getFileAndForget(path string, fileData chan []byte) {
-	go func() {
-		data, getErr := ReadFile(path)
-		if getErr != nil {
-			l4g.Error(getErr)
-			fileData <- nil
-		} else {
-			fileData <- data
-		}
-	}()
+func readFile(path string, fileData chan []byte) {
+	data, getErr := ReadFile(path)
+	if getErr != nil {
+		l4g.Error(getErr)
+		fileData <- nil
+	} else {
+		fileData <- data
+	}
 }
 
 func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -588,7 +584,7 @@ func WriteFile(f []byte, path string) *model.AppError {
 func MoveFile(oldPath, newPath string) *model.AppError {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		fileData := make(chan []byte)
-		getFileAndForget(oldPath, fileData)
+		go readFile(oldPath, fileData)
 		fileBytes := <-fileData
 
 		if fileBytes == nil {

@@ -55,6 +55,7 @@ export default class PostsView extends React.Component {
         this.state = {
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+            compactPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             isScrolling: false,
             topPostId: null,
             currentUser: UserStore.getCurrentUser(),
@@ -79,7 +80,8 @@ export default class PostsView extends React.Component {
     updateState() {
         this.setState({
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
-            centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED
+            centerPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+            compactPosts: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
         });
     }
     onUserChange() {
@@ -274,6 +276,7 @@ export default class PostsView extends React.Component {
                     user={profile}
                     currentUser={this.state.currentUser}
                     center={this.state.centerPosts}
+                    compactDisplay={this.state.compactPosts}
                 />
             );
 
@@ -479,6 +482,9 @@ export default class PostsView extends React.Component {
         if (this.state.centerPosts !== nextState.centerPosts) {
             return true;
         }
+        if (this.state.compactPosts !== nextState.compactPosts) {
+            return true;
+        }
         if (!Utils.areObjectsEqual(this.state.profiles, nextState.profiles)) {
             return true;
         }
@@ -592,7 +598,8 @@ PostsView.propTypes = {
     showMoreMessagesBottom: React.PropTypes.bool,
     channel: React.PropTypes.object,
     messageSeparatorTime: React.PropTypes.number,
-    postsToHighlight: React.PropTypes.object
+    postsToHighlight: React.PropTypes.object,
+    compactDisplay: React.PropTypes.bool
 };
 
 function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
