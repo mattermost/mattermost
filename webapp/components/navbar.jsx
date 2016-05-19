@@ -171,11 +171,11 @@ export default class Navbar extends React.Component {
             let nextChannel = curChannel;
             let nextIndex = curIndex;
             if (e.keyCode === Constants.KeyCodes.DOWN) {
-                nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
+                nextIndex = curIndex + 1;
             } else if (e.keyCode === Constants.KeyCodes.UP) {
-                nextIndex = Math.max(curIndex - 1, 0);
+                nextIndex = curIndex - 1;
             }
-            nextChannel = allChannels[nextIndex];
+            nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
             GlobalActions.emitChannelClickEvent(nextChannel);
         }
     }
@@ -187,16 +187,22 @@ export default class Navbar extends React.Component {
             const curIndex = allChannels.indexOf(curChannel);
             let nextChannel = curChannel;
             let nextIndex = curIndex;
+            let count = 0;
             if (e.keyCode === Constants.KeyCodes.UP) {
-                while (nextIndex >= 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
+                while (count < allChannels.length && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
                     nextIndex--;
+                    count++;
+                    nextIndex = Utils.mod(nextIndex, allChannels.length);
                 }
             } else if (e.keyCode === Constants.KeyCodes.DOWN) {
-                while (nextIndex <= allChannels.length - 1 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
+                while (count < allChannels.length && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
                     nextIndex++;
+                    count++;
+                    nextIndex = Utils.mod(nextIndex, allChannels.length);
                 }
             }
-            if (nextIndex !== curIndex && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 || ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
+            const unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
+            if (unreadCounts.msgs !== 0 || unreadCounts.mentions !== 0) {
                 nextChannel = allChannels[nextIndex];
                 GlobalActions.emitChannelClickEvent(nextChannel);
             }
@@ -224,10 +230,25 @@ export default class Navbar extends React.Component {
         return open.concat(priv).concat(dm);
     }
     compareByName(a, b) {
-        return a.name.toLowerCase() - b.name.toLowerCase();
+        return a.name.localeCompare(b.name);
     }
     compareByDmName(a, b) {
-        return UserStore.getProfile(a.name).username.toLowerCase() - UserStore.getProfile(b.name).username.toLowerCase();
+        const userId = UserStore.getCurrentId();
+        const idsA = a.name.split('__');
+        const idsB = b.name.split('__');
+        let idA = '';
+        let idB = '';
+        if (idsA[0] === userId) {
+            idA = idsA[1];
+        } else {
+            idA = idsA[0];
+        }
+        if (idsB[0] === userId) {
+            idB = idsB[1];
+        } else {
+            idB = idsB[0];
+        }
+        return UserStore.getProfile(idA).username.localeCompare(UserStore.getProfile(idB).username);
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
         if (channel) {
