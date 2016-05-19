@@ -1204,18 +1204,6 @@
     "translation": "Votre adresse électronique a été modifiée pour {{.TeamDisplayName}}"
   },
   {
-    "id": "api.templates.username_change_body.info",
-    "translation": "Votre nom d'utilisateur pour {{.TeamDisplayName}} a été modifiée en {{.NewUsername}}.<br>Si vous n'êtes pas à l'origine de cette action, veuillez contacter votre administrateur système."
-  },
-  {
-    "id": "api.templates.username_change_body.title",
-    "translation": "Vous avez mis à jour votre nom d'utilisateur."
-  },
-  {
-    "id": "api.templates.username_change_subject",
-    "translation": "Votre nom d'utilisateur a été modifiée pour {{.TeamDisplayName}}"
-  },
-  {
     "id": "api.templates.email_change_verify_body.button",
     "translation": "Vérifier votre adresse électronique"
   },
@@ -1362,6 +1350,18 @@
   {
     "id": "api.templates.upgrade_30_subject.info",
     "translation": "[MATTERMOST] Changes to your account for Mattermost 3.0 Upgrade"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "You updated your username"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Your username has changed for {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1653,7 +1653,7 @@
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Impossible d'envoyer le courriel de changement de nom d'utilisateur err=%v"
+    "translation": "Failed to send username change notification email successfully err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -3528,6 +3528,10 @@
     "translation": "Un compte avec cette adresse électronique existe déjà."
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "La mise à jour doit être appelée pour un utilisateur existant."
   },
@@ -3542,6 +3546,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "Un compte avec ce nom d'utilisateur existe déjà."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
     "id": "store.sql_user.update.app_error",

@@ -225,7 +225,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Group instead of leaving."
+    "translation": "Você é o único membro que restou, tente remover o Grupo Privado ao invés de manter."
   },
   {
     "id": "api.channel.leave.left",
@@ -937,7 +937,7 @@
   },
   {
     "id": "api.post.update_post.system_message.app_error",
-    "translation": "Unable to update system message"
+    "translation": "Não foi possível atualizar a mensagem do sistema"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1345,11 +1345,23 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>SUAS CONTAS DUPLICADAS FORAM ATUALIZADAS</h3>Seu servidor Mattermost está sendo atualizado para a Versão 3.0, o qual permite que você use uma única conta com multiplas equipes.<br/><br/>Você está recebendo este email porque durante o processo de atualização foi detectado que sua conta tinha o mesmo email e usuário em outras contas no servidor.<br/><br/>As seguintes atualizações foram feitas: <br/><br/>{{if .EmailChanged }}- O email duplicado da conta na equipe `/{{.TeamName}}` foi alterado para `{{.Email}}`. Se você usa email e senha para login, você pode usar este endereço de email para login.<br/><br/>{{end}}{{if .UsernameChanged }}- O usuário duplicado da conta na na equipe `/{{.TeamName}}` foi alterado para `{{.Username}}` para evitar confusões com outras contas.<br/><br/>{{end}} AÇÃO RECOMENDADA: <br/><br/>É recomendável que você acesse suas equipes usadas por suas contas duplicadas e adicione sua conta principal para a equipe e quaisquer canais públicos e grupos privados que deseja continuar usando. <br/><br/>Isto dá o acesso ao histórico para sua conta primária para todos os canais públicos e grupos privados. Você pode continuar acessando o histórico de mensagens diretas de suas contas duplicadas fazendo login com suas credenciais. <br/><br/>PARA MAIS INFORMAÇÕES: <br/><br/>Para mais informações sobre a atualização para o Mattermost 3.0 consulte: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>SUAS CONTAS DUPLICADAS FORAM ATUALIZADAS</h3>Seu servidor Mattermost está sendo atualizado para a Versão 3.0, o qual permite que você use uma única conta com múltiplas equipes.<br/><br/>Você está recebendo este email porque durante o processo de atualização foi detectado que sua conta tinha o mesmo email e usuário em outras contas no servidor.<br/><br/>As seguintes atualizações foram feitas: <br/><br/>{{if .EmailChanged }}- O email duplicado da conta na equipe `/{{.TeamName}}` foi alterado para `{{.Email}}`. Se você usa email e senha para login, você pode usar este endereço de email para login.<br/><br/>{{end}}{{if .UsernameChanged }}- O usuário duplicado da conta na na equipe `/{{.TeamName}}` foi alterado para `{{.Username}}` para evitar confusões com outras contas.<br/><br/>{{end}} AÇÃO RECOMENDADA: <br/><br/>É recomendável que você acesse suas equipes usadas por suas contas duplicadas e adicione sua conta principal para a equipe e quaisquer canais públicos e grupos privados que deseja continuar usando. <br/><br/>Isto dá o acesso ao histórico para sua conta primária para todos os canais públicos e grupos privados. Você pode continuar acessando o histórico de mensagens diretas de suas contas duplicadas fazendo login com suas credenciais. <br/><br/>PARA MAIS INFORMAÇÕES: <br/><br/>Para mais informações sobre a atualização para o Mattermost 3.0 consulte: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
     "translation": "[MATTERMOST] Alterações da sua conta na atualização Mattermost 3.0"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "You updated your username"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Your username has changed for {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1638,6 +1650,10 @@
   {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Falha ao enviar com sucesso uma notificação por email err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "Failed to send username change notification email successfully err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -3512,6 +3528,10 @@
     "translation": "Uma conta com este email já existe."
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "Está conta não usa autenticação LDAP. Por favor faça login usando email e senha."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Deve chamar update para o usuário existente"
   },
@@ -3526,6 +3546,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "Uma conta com este nome de usuário já existe."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "Uma conta com este nome de usuário já existe. Por favor contate seu Administrador."
   },
   {
     "id": "store.sql_user.update.app_error",

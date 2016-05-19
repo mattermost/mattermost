@@ -937,7 +937,7 @@
   },
   {
     "id": "api.post.update_post.system_message.app_error",
-    "translation": "Unable to update system message"
+    "translation": "No se puede actualizar el mensaje del sistema"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1352,6 +1352,18 @@
     "translation": "[MATTERMOST] Cambios a tu cuenta para la Actualización a Mattermost 3.0"
   },
   {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "You updated your username"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Your username has changed for {{.TeamDisplayName}}"
+  },
+  {
     "id": "api.templates.verify_body.button",
     "translation": "Confirmar Correo"
   },
@@ -1638,6 +1650,10 @@
   {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Falla al enviar la notificación por correo electrónico del cambio de correo err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "Failed to send username change notification email successfully err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -3512,6 +3528,10 @@
     "translation": "Ya existe una cuenta con ese correo electrónico."
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "Esta cuenta no tiene autenticación por LDAP. Por favor inicia sesión utilizando el correo electrónico y contraseña."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Debe ejecutarse actualizar para un usuario existente"
   },
@@ -3526,6 +3546,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "Una cuenta con ese nombre de usuario ya existe."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "Una cuenta con ese nombre de usuario ya existe. Por favor contacta a tu Administrador."
   },
   {
     "id": "store.sql_user.update.app_error",
