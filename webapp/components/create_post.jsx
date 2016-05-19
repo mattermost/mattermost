@@ -138,7 +138,11 @@ class CreatePost extends React.Component {
                     this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
                     if (data.goto_location && data.goto_location.length > 0) {
-                        browserHistory.push(data.goto_location);
+                        if (data.goto_location.indexOf('http') >= 0) {
+                            window.location.href = data.goto_location;
+                        } else {
+                            browserHistory.push(data.goto_location);
+                        }
                     }
                 },
                 (err) => {
