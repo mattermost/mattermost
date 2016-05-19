@@ -227,7 +227,7 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 
 	user.Roles = ""
 
-	// Below is a speical case where the first user in the entire
+	// Below is a special case where the first user in the entire
 	// system is granted the system_admin role instead of admin
 	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
 		return nil, result.Err
@@ -793,7 +793,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cchan store.StoreChannel
 
 	if sessionCache.Len() == 0 {
-		// Below is a speical case when intializating a new server
+		// Below is a special case when intializating a new server
 		// Lets check to make sure the server is really empty
 
 		cchan = Srv.Store.User().GetTotalUsersCount()
