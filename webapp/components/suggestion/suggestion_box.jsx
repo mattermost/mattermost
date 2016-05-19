@@ -176,7 +176,10 @@ export default class SuggestionBox extends React.Component {
         return (
             <div>
                 {textbox}
-                <SuggestionListComponent suggestionId={this.suggestionId}/>
+                <SuggestionListComponent
+                    suggestionId={this.suggestionId}
+                    location={this.props.listStyle}
+                />
             </div>
         );
     }
@@ -197,7 +200,8 @@ export default class SuggestionBox extends React.Component {
 }
 
 SuggestionBox.defaultProps = {
-    type: 'input'
+    type: 'input',
+    listStyle: 'top'
 };
 
 SuggestionBox.propTypes = {
@@ -206,6 +210,7 @@ SuggestionBox.propTypes = {
     value: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
+    listStyle: React.PropTypes.string,
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,

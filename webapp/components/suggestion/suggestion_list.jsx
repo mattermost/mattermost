@@ -117,11 +117,14 @@ export default class SuggestionList extends React.Component {
             );
         }
 
+        const mainClass = 'suggestion-list suggestion-list--' + this.props.location;
+        const contentClass = 'suggestion-list__content suggestion-list__content--' + this.props.location;
+
         return (
-            <div className='suggestion-list suggestion-list--top'>
+            <div className={mainClass}>
                 <div
                     ref='content'
-                    className='suggestion-list__content suggestion-list__content--top'
+                    className={contentClass}
                 >
                     {items}
                 </div>
@@ -131,5 +134,6 @@ export default class SuggestionList extends React.Component {
 }
 
 SuggestionList.propTypes = {
-    suggestionId: React.PropTypes.string.isRequired
+    suggestionId: React.PropTypes.string.isRequired,
+    location: React.PropTypes.string
 };
