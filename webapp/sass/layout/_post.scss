@@ -814,6 +814,7 @@ body.ios {
         padding: .2em .5em;
         width: calc(100% - 75px);
         word-wrap: break-word;
+        position: relative;
 
         p {
             margin: 0 0 .4em;
@@ -877,6 +878,20 @@ body.ios {
             &:before {
                 content: '\2022';
                 margin-right: 8px;
+            }
+        }
+
+        .pending-post-actions {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 5px 7px;
+            background: rgba(0, 0, 0, .7);
+            color: white;
+            font-size: .9em;
+
+            a {
+                color: white;
             }
         }
     }
