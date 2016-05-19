@@ -5,9 +5,6 @@
 
 coveralls_testflags="-v -covermode=count -coverprofile=coverage.out"
 
-echo "Running unit tests"
-ginkgo -r -race -randomizeAllSpecs -keepGoing -- -test.run TestGorp
-
 echo "Testing against mysql"
 export GORP_TEST_DSN=gorptest/gorptest/gorptest
 export GORP_TEST_DIALECT=mysql

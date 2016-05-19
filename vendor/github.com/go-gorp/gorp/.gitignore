@@ -1,5 +1,4 @@
 _test
-*.test
 _testmain.go
 _obj
 *~
