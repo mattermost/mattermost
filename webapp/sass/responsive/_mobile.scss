@@ -1,6 +1,12 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .post-code__language {
+        @include opacity(.6);
+        @include transition(none);
+        display: block;
+    }
+
     .backstage-filters {
         display: block;
 
@@ -1021,6 +1027,14 @@
 
         .signup-team__name {
             font-size: 2em;
+        }
+    }
+}
+
+@media screen and (max-width: 320px) {
+    .tip-overlay {
+        &.tip-overlay--sidebar {
+            min-height: 440px;
         }
     }
 }

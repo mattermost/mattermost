@@ -893,7 +893,7 @@
   "find_team.submitError": "Please enter a valid email address",
   "general_tab.chooseName": "Please choose a new name for your team",
   "general_tab.codeDesc": "Click 'Edit' to regenerate Invite Code.",
-  "general_tab.codeLongDesc": "The Invite Code is used as part of the URL in the team invitation link created by **Get Team Invite Link** in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.",
+  "general_tab.codeLongDesc": "The Invite Code is used as part of the URL in the team invitation link created by <strong>Get Team Invite Link</strong> in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.",
   "general_tab.codeTitle": "Invite Code",
   "general_tab.dirContact": "Contact your system administrator to turn on the team directory on the system home page.",
   "general_tab.dirDisabled": "Team Directory has been disabled.  Please ask a System Admin to enable the Team Directory in the System Console team settings.",

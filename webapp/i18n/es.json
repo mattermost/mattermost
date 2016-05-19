@@ -893,7 +893,7 @@
   "find_team.submitError": "Por favor ingresa una dirección válida",
   "general_tab.chooseName": "Por favor escoge otro nombre para tu equipo",
   "general_tab.codeDesc": "Pincha 'Editar' para regenerar el código de Invitación.",
-  "general_tab.codeLongDesc": "El Código de Invitación es utilizado como parte del URL del enlace creado por la opción **Obtener Enlace de invitación** en el menú principal. Regenerar este código crea un nuevo enlace e invalida los enlaces anteriores.",
+  "general_tab.codeLongDesc": "El Código de Invitación es utilizado como parte del URL del enlace creado por la opción <strong>Obtener Enlace de invitación</strong> en el menú principal. Regenerar este código crea un nuevo enlace e invalida los enlaces anteriores.",
   "general_tab.codeTitle": "Código de Invitación",
   "general_tab.dirContact": "Contácta a un administrador del sistema para habilitar el directorio de equipos en la página principal.",
   "general_tab.dirDisabled": "El directorio de Equipos ha sido deshabilitado.  Por favor solicita a un Administrador de Sistema que habilite la opción de Directorio de Equipos en la Consola del Sistema.",

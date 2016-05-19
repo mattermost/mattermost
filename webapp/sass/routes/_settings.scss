@@ -146,10 +146,10 @@
                             @include appearance(none);
                             appearance: none;
                             padding-right: 25px;
+                        }
 
-                            &::ms-expand {
-                                display: none;
-                            }
+                        select::ms-expand {
+                            display: none;
                         }
 
                         &:before {

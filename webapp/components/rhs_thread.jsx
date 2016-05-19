@@ -17,6 +17,14 @@ import Scrollbars from 'react-custom-scrollbars';
 
 import React from 'react';
 
+export function renderView(props) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--view'
+        />);
+}
+
 export function renderThumbHorizontal(props) {
     return (
         <div
@@ -211,6 +219,7 @@ export default class RhsThread extends React.Component {
                         autoHideDuration={500}
                         renderThumbHorizontal={renderThumbHorizontal}
                         renderThumbVertical={renderThumbVertical}
+                        renderView={renderView}
                     >
                         <div className='post-right__scroll'>
                             <RootPost

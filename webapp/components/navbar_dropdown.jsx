@@ -80,7 +80,6 @@ export default class NavbarDropdown extends React.Component {
         var inviteLink = '';
         var manageLink = '';
         var sysAdminLink = '';
-        var adminDivider = '';
         var currentUser = this.props.currentUser;
         var isAdmin = false;
         var isSystemAdmin = false;
@@ -133,8 +132,6 @@ export default class NavbarDropdown extends React.Component {
                     </ToggleModalButton>
                 </li>
             );
-
-            adminDivider = (<li className='divider'></li>);
 
             teamSettings = (
                 <li>
@@ -312,7 +309,7 @@ export default class NavbarDropdown extends React.Component {
                                 />
                             </a>
                         </li>
-                        {adminDivider}
+                        <li className='divider'></li>
                         {teamSettings}
                         {integrationsLink}
                         {manageLink}

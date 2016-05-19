@@ -893,7 +893,7 @@
   "find_team.submitError": "Por favor entre um endereço de e-mail válido",
   "general_tab.chooseName": "Por favor escolha um novo nome para sua equipe",
   "general_tab.codeDesc": "Clique 'Edit' para re-gerar o Código de Convite.",
-  "general_tab.codeLongDesc": "O Código de convite é usado como parte da URL no link de convite da equipe criado por **Obter Link de Convite de Equipe** no menu principal. Re-gerar cria um novo link de convite de equipe e invalida os link anteriores.",
+  "general_tab.codeLongDesc": "O Código de convite é usado como parte da URL no link de convite da equipe criado por <strong>Obter Link de Convite de Equipe</strong> no menu principal. Re-gerar cria um novo link de convite de equipe e invalida os link anteriores.",
   "general_tab.codeTitle": "Código de Convite",
   "general_tab.dirContact": "Contate o seu administrador do sistema para ativar o diretório de equipe na página inicial do sistema.",
   "general_tab.dirDisabled": "Diretório de equipe foi desativado.  Por favor peça a um Administrador de Sistema para ativar o Diretório de Equipe nas configurações do Console do Sistema.",

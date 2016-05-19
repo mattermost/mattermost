@@ -191,24 +191,21 @@ export default class Post extends React.Component {
             systemMessageClass = 'post--system';
         }
 
-        let profilePic = null;
-        if (!this.props.hideProfilePic || this.props.compactDisplay) {
+        let profilePic = (
+            <img
+                src={Utils.getProfilePicSrcForPost(post, timestamp)}
+                height='36'
+                width='36'
+            />
+        );
+
+        if (Utils.isSystemMessage(post)) {
             profilePic = (
-                <img
-                    src={Utils.getProfilePicSrcForPost(post, timestamp)}
-                    height='36'
-                    width='36'
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: mattermostLogo}}
                 />
             );
-
-            if (Utils.isSystemMessage(post)) {
-                profilePic = (
-                    <span
-                        className='icon'
-                        dangerouslySetInnerHTML={{__html: mattermostLogo}}
-                    />
-                );
-            }
         }
 
         let centerClass = '';

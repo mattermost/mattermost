@@ -600,6 +600,12 @@ body.ios {
                 }
             }
 
+            .post__img {
+                img {
+                    display: none;
+                }
+            }
+
             .post__header {
                 height: 0;
                 margin: 0;
@@ -619,9 +625,11 @@ body.ios {
                 display: none;
             }
 
-            .post__img {
-                img {
-                    display: none;
+            &.same--user {
+                .post__img {
+                    img {
+                        display: none;
+                    }
                 }
             }
         }
@@ -718,11 +726,11 @@ body.ios {
     }
 
     .post__img {
-        width: 46px;
+        width: 42px;
 
         svg {
-            height: 36px;
-            width: 36px;
+            height: 32px;
+            width: 32px;
         }
 
         path {
@@ -731,9 +739,9 @@ body.ios {
 
         img {
             @include border-radius(50px);
-            height: 36px;
+            height: 32px;
             vertical-align: inherit;
-            width: 36px;
+            width: 32px;
         }
     }
 
