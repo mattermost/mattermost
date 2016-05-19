@@ -892,6 +892,14 @@
     "translation": " mentioned you in "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": " in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " posted in "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " sent you a direct message"
   },

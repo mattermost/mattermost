@@ -465,6 +465,9 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 }
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel, profileMap map[string]*model.User, members []model.ChannelMember) {
+	if post.IsSystemMessage() {
+		return
+	}
 
 	if _, ok := profileMap[post.UserId]; !ok {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.user_id.error"), post.UserId)
@@ -472,6 +475,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	}
 
 	mentionedUserIds := make(map[string]bool)
+	alwaysNotifyUserIds := []string{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
 
@@ -518,6 +522,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 			// Add @channel to keywords if user has them turned on
 			if profile.NotifyProps["channel"] == "true" {
 				keywordMap["@channel"] = append(keywordMap["@channel"], profile.Id)
+			}
+
+			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL && (post.UserId != profile.Id || post.Props["from_webhook"] == "true") {
+				alwaysNotifyUserIds = append(alwaysNotifyUserIds, profile.Id)
 			}
 		}
 
@@ -575,7 +583,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	senderName := profileMap[post.UserId].Username
 
-	for id, _ := range mentionedUserIds {
+	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
 	}
 
@@ -604,7 +612,14 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	if sendPushNotifications {
 		for _, id := range mentionedUsersList {
-			sendPushNotification(post, profileMap[id], channel, senderName)
+			if profileMap[id].NotifyProps["push"] != "none" {
+				sendPushNotification(post, profileMap[id], channel, senderName, true)
+			}
+		}
+		for _, id := range alwaysNotifyUserIds {
+			if _, ok := mentionedUserIds[id]; !ok {
+				sendPushNotification(post, profileMap[id], channel, senderName, false)
+			}
 		}
 	}
 
@@ -715,7 +730,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	}
 }
 
-func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string) {
+func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) {
 	var sessions []*model.Session
 	if result := <-Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.sessions.error"), user.Id, result.Err)
@@ -732,13 +747,11 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		channelName = channel.DisplayName
 	}
 
-	alreadySeen := make(map[string]string)
 	userLocale := utils.GetUserTranslations(user.Locale)
 
 	for _, session := range sessions {
-		if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" &&
+		if len(session.DeviceId) > 0 &&
 			(strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")) {
-			alreadySeen[session.DeviceId] = session.DeviceId
 
 			msg := model.PushNotification{}
 			if badge := <-Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
@@ -764,14 +777,16 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 					msg.Category = model.CATEGORY_DM
 					msg.Message = "@" + senderName + ": " + model.ClearMentionTags(post.Message)
 				} else {
-					msg.Message = "@" + senderName + " @ " + channelName + ": " + model.ClearMentionTags(post.Message)
+					msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
 				}
 			} else {
 				if channel.Type == model.CHANNEL_DIRECT {
 					msg.Category = model.CATEGORY_DM
 					msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-				} else {
+				} else if wasMentioned {
 					msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+				} else {
+					msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
 				}
 			}
 
@@ -785,6 +800,9 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 			if _, err := httpClient.Do(request); err != nil {
 				l4g.Error(utils.T("api.post.send_notifications_and_forget.push_notification.error"), user.Id, err)
 			}
+
+			// notification sent, don't need to check other sessions
+			break
 		}
 	}
 }
