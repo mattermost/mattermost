@@ -589,10 +589,8 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
-			userAllowsEmails := true
-			if _, ok := profileMap[id].NotifyProps["email"]; ok && profileMap[id].NotifyProps["email"] == "false" {
-				userAllowsEmails = false
-			}
+			userAllowsEmails := profileMap[id].NotifyProps["email"] != "false"
+
 			if userAllowsEmails && (profileMap[id].IsAway() || profileMap[id].IsOffline()) {
 				sendNotificationEmail(c, post, profileMap[id], channel, team, senderName)
 			}
