@@ -202,6 +202,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["BuildNumber"] = model.BuildNumber
 	props["BuildDate"] = model.BuildDate
 	props["BuildHash"] = model.BuildHash
+	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName

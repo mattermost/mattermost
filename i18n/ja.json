@@ -2037,7 +2037,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "現在のバージョンは%v (%v/%v/%v)です"
+    "translation": "現在のバージョンは%v (%v/%v/%v/%v)です"
   },
   {
     "id": "mattermost.entreprise_enabled",
