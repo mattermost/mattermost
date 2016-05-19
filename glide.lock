@@ -17,7 +17,7 @@ imports:
   - redis
   - internal
 - name: github.com/go-gorp/gorp
-  version: 6a3c8a87d0457cf700e57046c41e19b7cf3c44fa
+  version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - name: github.com/go-ldap/ldap
   version: 0e7db8eb77695b5a952f0e5d78df9ab160050c73
 - name: github.com/go-sql-driver/mysql
