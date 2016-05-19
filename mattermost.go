@@ -127,11 +127,19 @@ func main() {
 			einterfaces.GetComplianceInterface().StartComplianceDailyJob()
 		}
 
+		if einterfaces.GetClusterInterface() != nil {
+			einterfaces.GetClusterInterface().StartInterNodeCommunication()
+		}
+
 		// wait for kill signal before attempting to gracefully shutdown
 		// the running service
 		c := make(chan os.Signal)
 		signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 		<-c
+
+		if einterfaces.GetClusterInterface() != nil {
+			einterfaces.GetClusterInterface().StopInterNodeCommunication()
+		}
 
 		api.StopServer()
 	}

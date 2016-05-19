@@ -60,6 +60,7 @@ type ServiceSettings struct {
 	WebsocketSecurePort               *int
 	WebsocketPort                     *int
 	WebserverMode                     *string
+	NodesForCluster                   []string
 }
 
 type SSOSettings struct {
@@ -476,6 +477,10 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.WebserverMode == nil {
 		o.ServiceSettings.WebserverMode = new(string)
 		*o.ServiceSettings.WebserverMode = "regular"
+	}
+
+	if o.ServiceSettings.NodesForCluster == nil {
+		o.ServiceSettings.NodesForCluster = []string{}
 	}
 
 	if o.ComplianceSettings.Enable == nil {

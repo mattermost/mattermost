@@ -23,7 +23,8 @@
         "SessionCacheInMinutes": 10,
         "WebsocketSecurePort": 443,
         "WebsocketPort": 80,
-        "WebserverMode": "regular"
+        "WebserverMode": "regular",
+        "NodesForCluster": []
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
