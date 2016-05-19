@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import PostList from './components/post_list.jsx';
@@ -24,11 +24,12 @@ export default class PostViewController extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
-        this.onChannelChange = this.onChannelChange.bind(this);
         this.onPostsViewJumpRequest = this.onPostsViewJumpRequest.bind(this);
         this.onPostListScroll = this.onPostListScroll.bind(this);
+        this.onActivate = this.onActivate.bind(this);
+        this.onDeactivate = this.onDeactivate.bind(this);
 
-        const channel = ChannelStore.getCurrent();
+        const channel = props.channel;
         let profiles = UserStore.getProfiles();
         if (channel && channel.type === Constants.DM_CHANNEL) {
             profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
@@ -55,19 +56,15 @@ export default class PostViewController extends React.Component {
     }
 
     componentDidMount() {
-        PreferenceStore.addChangeListener(this.onPreferenceChange);
-        UserStore.addChangeListener(this.onUserChange);
-        PostStore.addChangeListener(this.onPostsChange);
-        PostStore.addPostsViewJumpListener(this.onPostsViewJumpRequest);
-        ChannelStore.addChangeListener(this.onChannelChange);
+        if (this.props.active) {
+            this.onActivate();
+        }
     }
 
     componentWillUnmount() {
-        PreferenceStore.removeChangeListener(this.onPreferenceChange);
-        UserStore.removeChangeListener(this.onUserChange);
-        PostStore.removeChangeListener(this.onPostsChange);
-        PostStore.removePostsViewJumpListener(this.onPostsViewJumpRequest);
-        ChannelStore.removeChangeListener(this.onChannelChange);
+        if (this.props.active) {
+            this.onDeactivate();
+        }
     }
 
     onPreferenceChange() {
@@ -79,7 +76,7 @@ export default class PostViewController extends React.Component {
     }
 
     onUserChange() {
-        const channel = ChannelStore.get(this.state.channel.id);
+        const channel = this.state.channel;
         let profiles = UserStore.getProfiles();
         if (channel && channel.type === Constants.DM_CHANNEL) {
             profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
@@ -94,26 +91,50 @@ export default class PostViewController extends React.Component {
         });
     }
 
-    onChannelChange() {
-        const channel = ChannelStore.getCurrent();
+    onActivate() {
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
+        UserStore.addChangeListener(this.onUserChange);
+        PostStore.addChangeListener(this.onPostsChange);
+        PostStore.addPostsViewJumpListener(this.onPostsViewJumpRequest);
+    }
 
-        if (channel.id === this.state.channel.id) {
-            return;
+    onDeactivate() {
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        UserStore.removeChangeListener(this.onUserChange);
+        PostStore.removeChangeListener(this.onPostsChange);
+        PostStore.removePostsViewJumpListener(this.onPostsViewJumpRequest);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.props.active && !nextProps.active) {
+            this.onDeactivate();
+        } else if (!this.props.active && nextProps.active) {
+            this.onActivate();
+
+            const channel = nextProps.channel;
+
+            let lastViewed = Number.MAX_VALUE;
+            const member = ChannelStore.getMember(channel.id);
+            if (member != null) {
+                lastViewed = member.last_viewed_at;
+            }
+
+            let profiles = UserStore.getProfiles();
+            if (channel && channel.type === Constants.DM_CHANNEL) {
+                profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
+            }
+
+            this.setState({
+                channel,
+                lastViewed,
+                profiles: JSON.parse(JSON.stringify(profiles)),
+                postList: JSON.parse(JSON.stringify(PostStore.getVisiblePosts(channel.id))),
+                displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+                displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
+                compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+                scrollType: ScrollTypes.BOTTOM
+            });
         }
-
-        let lastViewed = Number.MAX_VALUE;
-        const member = ChannelStore.getMember(channel.id);
-        if (member != null) {
-            lastViewed = member.last_viewed_at;
-        }
-
-        this.setState({
-            channel,
-            postList: PostStore.getVisiblePosts(channel.id),
-            atTop: PostStore.getVisibilityAtTop(channel.id),
-            lastViewed,
-            scrollType: ScrollTypes.BOTTOM
-        });
     }
 
     onPostsViewJumpRequest(type, postId) {
@@ -142,6 +163,14 @@ export default class PostViewController extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if (nextProps.active !== this.props.active) {
+            return true;
+        }
+
+        if (nextState.atTop !== this.state.atTop) {
+            return true;
+        }
+
         if (nextState.displayNameType !== this.state.displayNameType) {
             return true;
         }
@@ -170,7 +199,7 @@ export default class PostViewController extends React.Component {
             return true;
         }
 
-        if (nextState.channel.id !== this.state.channel.id) {
+        if (nextProps.channel.id !== this.props.channel.id) {
             return true;
         }
 
@@ -216,10 +245,20 @@ export default class PostViewController extends React.Component {
             );
         }
 
+        let activeClass = '';
+        if (!this.props.active) {
+            activeClass = 'inactive';
+        }
+
         return (
-            <div id='post-list'>
+            <div className={activeClass}>
                 {content}
             </div>
         );
     }
 }
+
+PostViewController.propTypes = {
+    channel: React.PropTypes.object,
+    active: React.PropTypes.bool
+};
