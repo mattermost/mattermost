@@ -67,8 +67,9 @@
 
 .channel-intro {
     border-bottom: 1px solid $light-gray;
-    margin: 0 18px 35px;
     padding: 0 0 5px;
+    max-width: 1000px;
+    margin: auto;
 
     .intro-links {
         display: inline-block;
