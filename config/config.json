@@ -55,6 +55,7 @@
         "FileLocation": ""
     },
     "FileSettings": {
+        "MaxFileSize": 52428800,
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,

@@ -8,10 +8,6 @@ import (
 	"io"
 )
 
-const (
-	MAX_FILE_SIZE = 50000000 // 50 MB
-)
-
 var (
 	IMAGE_EXTENSIONS = [5]string{".jpg", ".jpeg", ".gif", ".bmp", ".png"}
 	IMAGE_MIME_TYPES = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff"}
