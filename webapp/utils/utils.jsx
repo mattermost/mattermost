@@ -1408,6 +1408,10 @@ export function localizeMessage(id, defaultMessage) {
     return id;
 }
 
+export function mod(a, b) {
+    return ((a % b) + b) % b;
+}
+
 export function getProfilePicSrcForPost(post, timestamp) {
     let src = Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
     if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {

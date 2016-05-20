@@ -17,6 +17,7 @@ import ToggleModalButton from './toggle_modal_button.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -56,7 +57,7 @@ export default class Navbar extends React.Component {
         this.navigateUnreadChannelShortcut = this.navigateUnreadChannelShortcut.bind(this);
         this.getDisplayedChannels = this.getDisplayedChannels.bind(this);
         this.compareByName = this.compareByName.bind(this);
-        this.compareByDmName = this.compareByDmName.bind(this);
+        this.compareByDisplayName = this.compareByDisplayName.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -166,16 +167,21 @@ export default class Navbar extends React.Component {
         if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
             const allChannels = this.getDisplayedChannels();
-            const curChannel = ChannelStore.getCurrent();
-            const curIndex = allChannels.indexOf(curChannel);
+            const curChannel = this.state.channel;
+            let curIndex = -1;
+            for (let i = 0; i < allChannels.length; i++) {
+                if (allChannels[i].id === curChannel.id) {
+                    curIndex = i;
+                }
+            }
             let nextChannel = curChannel;
             let nextIndex = curIndex;
             if (e.keyCode === Constants.KeyCodes.DOWN) {
-                nextIndex = Math.min(curIndex + 1, allChannels.length - 1);
+                nextIndex = curIndex + 1;
             } else if (e.keyCode === Constants.KeyCodes.UP) {
-                nextIndex = Math.max(curIndex - 1, 0);
+                nextIndex = curIndex - 1;
             }
-            nextChannel = allChannels[nextIndex];
+            nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
             GlobalActions.emitChannelClickEvent(nextChannel);
         }
     }
@@ -183,51 +189,69 @@ export default class Navbar extends React.Component {
         if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
             const allChannels = this.getDisplayedChannels();
-            const curChannel = ChannelStore.getCurrent();
-            const curIndex = allChannels.indexOf(curChannel);
-            let nextChannel = curChannel;
-            let nextIndex = curIndex;
-            if (e.keyCode === Constants.KeyCodes.UP) {
-                while (nextIndex >= 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
-                    nextIndex--;
-                }
-            } else if (e.keyCode === Constants.KeyCodes.DOWN) {
-                while (nextIndex <= allChannels.length - 1 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs === 0 && ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions === 0) {
-                    nextIndex++;
+            const curChannel = this.state.channel;
+            let curIndex = -1;
+            for (let i = 0; i < allChannels.length; i++) {
+                if (allChannels[i].id === curChannel.id) {
+                    curIndex = i;
                 }
             }
-            if (nextIndex !== curIndex && ChannelStore.getUnreadCount(allChannels[nextIndex].id).msgs !== 0 || ChannelStore.getUnreadCount(allChannels[nextIndex].id).mentions !== 0) {
+            let nextChannel = curChannel;
+            let nextIndex = curIndex;
+            let count = 0;
+            let increment = 0;
+            if (e.keyCode === Constants.KeyCodes.UP) {
+                increment = -1;
+            } else if (e.keyCode === Constants.KeyCodes.DOWN) {
+                increment = 1;
+            }
+            let unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
+            while (count < allChannels.length && unreadCounts.msgs === 0 && unreadCounts.mentions === 0) {
+                nextIndex += increment;
+                count++;
+                nextIndex = Utils.mod(nextIndex, allChannels.length);
+                unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
+            }
+            if (unreadCounts.msgs !== 0 || unreadCounts.mentions !== 0) {
                 nextChannel = allChannels[nextIndex];
                 GlobalActions.emitChannelClickEvent(nextChannel);
             }
         }
     }
     getDisplayedChannels() {
-        const allChannels = ChannelStore.getAll();
-        const open = [];
-        const priv = [];
-        const dm = [];
+        const allChannels = ChannelStore.getChannels().sort(this.compareByName);
+        const publicChannels = allChannels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
+        const privateChannels = allChannels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
 
-        for (let i = 0; i < allChannels.length; i++) {
-            if (allChannels[i].type === 'O') {
-                open.push(allChannels[i]);
-            } else if (allChannels[i].type === 'P') {
-                priv.push(allChannels[i]);
+        const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
+
+        const directChannels = [];
+        const directNonTeamChannels = [];
+        for (const [name, value] of preferences) {
+            if (value !== 'true') {
+                continue;
+            }
+
+            const directChannel = allChannels.find(Utils.isDirectChannelForUser.bind(null, name));
+            directChannel.display_name = Utils.displayUsername(name);
+
+            if (UserStore.hasTeamProfile(name)) {
+                directChannels.push(directChannel);
             } else {
-                dm.push(allChannels[i]);
+                directNonTeamChannels.push(directChannel);
             }
         }
-        open.sort(this.compareByName);
-        priv.sort(this.compareByName);
-        dm.sort(this.compareByDmName);
 
-        return open.concat(priv).concat(dm);
+        directChannels.sort(this.compareByDisplayName);
+        directNonTeamChannels.sort(this.compareByDisplayName);
+
+        return publicChannels.concat(privateChannels).concat(directChannels).concat(directNonTeamChannels);
     }
     compareByName(a, b) {
-        return a.name.toLowerCase() - b.name.toLowerCase();
+        return a.name.localeCompare(b.name);
     }
-    compareByDmName(a, b) {
-        return UserStore.getProfile(a.name).username.toLowerCase() - UserStore.getProfile(b.name).username.toLowerCase();
+    compareByDisplayName(a, b) {
+        return a.display_name.localeCompare(b.display_name);
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
         if (channel) {
