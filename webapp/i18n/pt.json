@@ -6,6 +6,7 @@
   "about.enterpriseEditionSt": "Moderna comunicação empresarial atrás do seu firewall.",
   "about.enterpriseEditione1": "Enterprise Edition",
   "about.hash": "Hash de Compilação:",
+  "about.hashee": "EE Build Hash:",
   "about.licensed": "Licenciado por:",
   "about.number": "O Número de Compilação:",
   "about.teamEditionLearn": "Junte-se a comunidade Mattermost em ",
@@ -46,9 +47,12 @@
   "add_command.method.help": "O tipo de solicitação do comando emitido para a URL requisitada.",
   "add_command.method.post": "POST",
   "add_command.trigger": "Comando Palavra Gatilho",
-  "add_command.trigger.help1": "Exemplos: paciente, cliente, funcionario",
-  "add_command.trigger.help2": "Reservados: echo, join, logout, me, shrug",
-  "add_command.trigger.placeholder": "Comando de gatilho ex. \"hello\"",
+  "add_command.trigger.help1": "Exemplos: /paciente, /cliente, /funcionario",
+  "add_command.trigger.help2": "Reservados: /echo, /join, /logout, /me, /shrug",
+  "add_command.trigger.placeholder": "Comando de gatilho ex. \"hello\", não incluí a barra",
+  "add_command.triggerInvalidLength": "A trigger word must contain between {min} and {max} characters",
+  "add_command.triggerInvalidSlash": "A trigger word cannot begin with a /",
+  "add_command.triggerInvalidSpace": "A trigger word must not contain spaces",
   "add_command.triggerRequired": "Uma palavra gatilho é necessária",
   "add_command.url": "URL da solicitação",
   "add_command.url.help": "A URL callback para receber o evento HTTP POST ou GET quando o comando slash for executado.",
@@ -1454,5 +1458,6 @@
   "web.footer.privacy": "Privacidade",
   "web.footer.terms": "Termos",
   "web.header.back": "Voltar",
-  "web.root.singup_info": "Toda comunicação em um só lugar, pesquisável e acessível em qualquer lugar"
+  "web.root.singup_info": "Toda comunicação em um só lugar, pesquisável e acessível em qualquer lugar",
+  "youtube_video.notFound": "Video not found"
 }
