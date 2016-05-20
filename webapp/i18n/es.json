@@ -1454,5 +1454,6 @@
   "web.footer.privacy": "Privacidad",
   "web.footer.terms": "Términos",
   "web.header.back": "Atrás",
-  "web.root.singup_info": "Todas las comunicaciones del equipo en un sólo lugar, con búsquedas y accesible desde cualquier parte"
+  "web.root.singup_info": "Todas las comunicaciones del equipo en un sólo lugar, con búsquedas y accesible desde cualquier parte",
+  "youtube_video.notFound": "Video no encontrado"
 }
