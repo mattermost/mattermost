@@ -4,6 +4,9 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
+import * as GlobalActions from 'action_creators/global_actions.jsx';
+import LocalizationStore from './localization_store.jsx';
+
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
@@ -100,6 +103,9 @@ class UserStoreClass extends EventEmitter {
         this.saveProfile(user);
         this.currentUserId = user.id;
         global.window.mm_current_user_id = this.currentUserId;
+        if (LocalizationStore.getLocale() !== user.locale) {
+            GlobalActions.newLocalizationSelected(user.locale);
+        }
     }
 
     getCurrentId() {
