@@ -499,7 +499,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 
 		query := ""
 		if indexType == INDEX_TYPE_FULL_TEXT {
-			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector(utils.Cfg.SqlSettings.PostgresTextSearchConfig, " + columnName + "))"
 		} else {
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}

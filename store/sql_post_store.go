@@ -732,7 +732,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 				terms = strings.Join(strings.Fields(terms), " & ")
 			}
 
-			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(:Terms)", searchType)
+			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(utils.Cfg.SqlSettings.PostgresTextSearchConfig, :Terms)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
