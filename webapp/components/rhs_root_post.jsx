@@ -210,6 +210,14 @@ export default class RhsRootPost extends React.Component {
             />
         );
 
+        const messageWrapper = (
+            <div
+                ref='message_holder'
+                onClick={TextFormatting.handleClick}
+                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
+            />
+        );
+
         return (
             <div className={'post post--root ' + userCss + ' ' + systemMessageClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
@@ -241,13 +249,9 @@ export default class RhsRootPost extends React.Component {
                             </li>
                         </ul>
                         <div className='post__body'>
-                            <div
-                                ref='message_holder'
-                                onClick={TextFormatting.handleClick}
-                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
-                            />
                             <PostBodyAdditionalContent
                                 post={post}
+                                message={messageWrapper}
                             />
                             {fileAttachment}
                         </div>

@@ -136,7 +136,6 @@ export default class PostBody extends React.Component {
         }
 
         let message;
-        let additionalContent = null;
         if (this.props.post.state === Constants.POST_DELETED) {
             message = (
                 <FormattedMessage
@@ -151,9 +150,28 @@ export default class PostBody extends React.Component {
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message)}}
                 />
             );
+        }
 
-            additionalContent = (
-                <PostBodyAdditionalContent post={this.props.post}/>
+        let messageWrapper = (
+            <div
+                key={`${post.id}_message`}
+                id={`${post.id}_message`}
+                className={postClass}
+            >
+                {loading}
+                {message}
+            </div>
+        );
+
+        let messageWithAdditionalContent;
+        if (this.props.post.state === Constants.POST_DELETED) {
+            messageWithAdditionalContent = messageWrapper;
+        } else {
+            messageWithAdditionalContent = (
+                <PostBodyAdditionalContent
+                    post={this.props.post}
+                    message={messageWrapper}
+                />
             );
         }
 
@@ -161,16 +179,8 @@ export default class PostBody extends React.Component {
             <div>
                 {comment}
                 <div className='post__body'>
-                    <div
-                        key={`${post.id}_message`}
-                        id={`${post.id}_message`}
-                        className={postClass}
-                    >
-                        {loading}
-                        {message}
-                    </div>
+                    {messageWithAdditionalContent}
                     {fileAttachmentHolder}
-                    {additionalContent}
                 </div>
             </div>
         );
