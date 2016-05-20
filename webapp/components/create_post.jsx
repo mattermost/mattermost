@@ -139,7 +139,10 @@ class CreatePost extends React.Component {
                     PostStore.storeDraft(this.state.channelId, null);
                     this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
-                    if (data.goto_location && data.goto_location.length > 0) {
+                    if (data.goto_channel && !ChannelStore.get(data.goto_channel)) {
+                        // we don't have the channel that we're going to yet
+                        GlobalActions.getAndSwitchToChannel(data.goto_channel);
+                    } else {
                         browserHistory.push(data.goto_location);
                     }
                 },

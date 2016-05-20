@@ -17,6 +17,7 @@ type CommandResponse struct {
 	ResponseType string      `json:"response_type"`
 	Text         string      `json:"text"`
 	GotoLocation string      `json:"goto_location"`
+	GotoChannel  string      `json:"goto_channel"`
 	Attachments  interface{} `json:"attachments"`
 }
 

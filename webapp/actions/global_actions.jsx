@@ -24,6 +24,21 @@ import {browserHistory} from 'react-router';
 
 import en from 'i18n/en.json';
 
+function switchToChannel(chan) {
+    AsyncClient.getChannels(true);
+    AsyncClient.getChannelExtraInfo(chan.id);
+    AsyncClient.updateLastViewedAt(chan.id);
+    AsyncClient.getPosts(chan.id);
+    trackPage();
+
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.CLICK_CHANNEL,
+        name: chan.name,
+        id: chan.id,
+        prev: ChannelStore.getCurrentId()
+    });
+}
+
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
         const otherUserId = Utils.getUserIdFromChannelName(chan);
@@ -36,20 +51,6 @@ export function emitChannelClickEvent(channel) {
                 fail();
             }
         );
-    }
-    function switchToChannel(chan) {
-        AsyncClient.getChannels(true);
-        AsyncClient.getChannelExtraInfo(chan.id);
-        AsyncClient.updateLastViewedAt(chan.id);
-        AsyncClient.getPosts(chan.id);
-        trackPage();
-
-        AppDispatcher.handleViewAction({
-            type: ActionTypes.CLICK_CHANNEL,
-            name: chan.name,
-            id: chan.id,
-            prev: ChannelStore.getCurrentId()
-        });
     }
 
     if (channel.fake) {
@@ -65,6 +66,24 @@ export function emitChannelClickEvent(channel) {
     } else {
         switchToChannel(channel);
     }
+}
+
+export function getAndSwitchToChannel(id) {
+    Client.getChannel(
+        id,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_CHANNEL,
+                channel: data.channel,
+                member: data.member
+            });
+
+            switchToChannel(data.channel);
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getInitialLoad');
+        }
+    );
 }
 
 export function emitInitialLoad(callback) {
