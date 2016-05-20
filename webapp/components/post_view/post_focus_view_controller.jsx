@@ -1,11 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import PostsView from './posts_view.jsx';
+import PostList from './components/post_list.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import PostStore from 'stores/post_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+
+import Constants from 'utils/constants.jsx';
+const ScrollTypes = Constants.ScrollTypes;
 
 import React from 'react';
 
@@ -15,17 +19,24 @@ export default class PostFocusView extends React.Component {
 
         this.onChannelChange = this.onChannelChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
-        this.handlePostsViewScroll = this.handlePostsViewScroll.bind(this);
-        this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
-        this.loadMorePostsBottom = this.loadMorePostsBottom.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
+        this.onPostListScroll = this.onPostListScroll.bind(this);
 
         const focusedPostId = PostStore.getFocusedPostId();
 
+        const channel = ChannelStore.getCurrent();
+        let profiles = UserStore.getProfiles();
+        if (channel && channel.type === Constants.DM_CHANNEL) {
+            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
+        }
+
         this.state = {
-            scrollType: PostsView.SCROLL_TYPE_POST,
+            postList: PostStore.getVisiblePosts(focusedPostId),
+            currentUser: UserStore.getCurrentUser(),
+            profiles,
+            scrollType: ScrollTypes.POST,
             currentChannel: ChannelStore.getCurrentId().slice(),
             scrollPostId: focusedPostId,
-            postList: PostStore.getVisiblePosts(focusedPostId),
             atTop: PostStore.getVisibilityAtTop(focusedPostId),
             atBottom: PostStore.getVisibilityAtBottom(focusedPostId)
         };
@@ -34,11 +45,13 @@ export default class PostFocusView extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChannelChange);
         PostStore.addChangeListener(this.onPostsChange);
+        UserStore.addChangeListener(this.onUserChange);
     }
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChannelChange);
         PostStore.removeChangeListener(this.onPostsChange);
+        UserStore.removeChangeListener(this.onUserChange);
     }
 
     onChannelChange() {
@@ -46,7 +59,7 @@ export default class PostFocusView extends React.Component {
         if (this.state.currentChannel !== currentChannel) {
             this.setState({
                 currentChannel: currentChannel.slice(),
-                scrollType: PostsView.SCROLL_TYPE_POST
+                scrollType: ScrollTypes.POST
             });
         }
     }
@@ -65,42 +78,50 @@ export default class PostFocusView extends React.Component {
         });
     }
 
-    handlePostsViewScroll() {
-        this.setState({scrollType: PostsView.SCROLL_TYPE_FREE});
+    onUserChange() {
+        const channel = ChannelStore.getCurrent();
+        let profiles = UserStore.getProfiles();
+        if (channel && channel.type === Constants.DM_CHANNEL) {
+            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
+        }
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
     }
 
-    loadMorePostsTop() {
-        GlobalActions.emitLoadMorePostsFocusedTopEvent();
-    }
-
-    loadMorePostsBottom() {
-        GlobalActions.emitLoadMorePostsFocusedBottomEvent();
+    onPostListScroll() {
+        this.setState({scrollType: ScrollTypes.FREE});
     }
 
     render() {
         const postsToHighlight = {};
         postsToHighlight[this.state.scrollPostId] = true;
 
-        if (!this.state.postList) {
-            return null;
+        let content;
+        if (this.state.postList == null) {
+            content = (
+                <LoadingScreen
+                    position='absolute'
+                    key='loading'
+                />
+            );
+        } else {
+            content = (
+                <PostList
+                    postList={this.state.postList}
+                    currentUser={this.state.currentUser}
+                    profiles={this.state.profiles}
+                    scrollType={this.state.scrollType}
+                    scrollPostId={this.state.scrollPostId}
+                    postListScrolled={this.onPostListScroll}
+                    showMoreMessagesTop={!this.state.atTop}
+                    showMoreMessagesBottom={!this.state.atBottom}
+                    postsToHighlight={postsToHighlight}
+                />
+            );
         }
 
         return (
             <div id='post-list'>
-                <PostsView
-                    key={'postfocusview'}
-                    isActive={true}
-                    postList={this.state.postList}
-                    scrollType={this.state.scrollType}
-                    scrollPostId={this.state.scrollPostId}
-                    postViewScrolled={this.handlePostsViewScroll}
-                    loadMorePostsTopClicked={this.loadMorePostsTop}
-                    loadMorePostsBottomClicked={this.loadMorePostsBottom}
-                    showMoreMessagesTop={!this.state.atTop}
-                    showMoreMessagesBottom={!this.state.atBottom}
-                    messageSeparatorTime={0}
-                    postsToHighlight={postsToHighlight}
-                />
+                {content}
             </div>
         );
     }
