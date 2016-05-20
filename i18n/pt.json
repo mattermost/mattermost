@@ -441,7 +441,7 @@
   },
   {
     "id": "api.command_shortcuts.desc",
-    "translation": "Displays a list of keyboard shortcuts"
+    "translation": "Mostrar a lista de atalhos"
   },
   {
     "id": "api.command_shortcuts.list",
@@ -449,7 +449,7 @@
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "shortcuts"
+    "translation": "atalhos"
   },
   {
     "id": "api.command_shrug.desc",
@@ -901,7 +901,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
-    "translation": " in "
+    "translation": " em "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention",
@@ -913,7 +913,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
-    "translation": " posted in "
+    "translation": " postado em "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -2073,7 +2073,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "Versão atual é %v (%v/%v/%v/%v)"
+    "translation": "Versão atual é %v (%v/%v/%v)"
   },
   {
     "id": "mattermost.entreprise_enabled",
