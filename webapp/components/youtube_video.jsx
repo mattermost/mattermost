@@ -145,11 +145,12 @@ export default class YoutubeVideo extends React.Component {
         let content;
         if (this.state.failed) {
             content = (
-                <div className='embed-responsive embed-responsive-4by3 video-div__placeholder'>
+                <div>
                     <div className='video-thumbnail__container'>
-                        <img
-                            className='video-not-found'
-                        />
+                        <div className='video-thumbnail__error'>
+                            <div><i className='fa fa-warning fa-2x'/></div>
+                            <div>{Utils.localizeMessage('youtube_video.notFound', 'Video not found')}</div>
+                        </div>
                     </div>
                 </div>
             );
