@@ -9,5 +9,5 @@ import (
 
 func TestConfig(t *testing.T) {
 	LoadConfig("config.json")
-	InitTranslations()
+	InitTranslations(Cfg.LocalizationSettings)
 }

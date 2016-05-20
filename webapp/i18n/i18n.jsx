@@ -41,12 +41,40 @@ const languages = {
     }
 };
 
-export function getLanguages() {
+let availableLanguages = null;
+
+function setAvailableLanguages() {
+    const available = global.window.mm_config.AvailableLocales.split(',');
+
+    availableLanguages = {};
+
+    available.forEach((l) => {
+        if (languages[l]) {
+            availableLanguages[l] = languages[l];
+        }
+    });
+}
+
+export function getAllLanguages() {
     return languages;
 }
 
+export function getLanguages() {
+    if (!availableLanguages) {
+        setAvailableLanguages();
+    }
+    return availableLanguages;
+}
+
 export function getLanguageInfo(locale) {
-    return languages[locale];
+    if (!availableLanguages) {
+        setAvailableLanguages();
+    }
+    return availableLanguages[locale];
+}
+
+export function isLanguageAvailable(locale) {
+    return !!availableLanguages[locale];
 }
 
 export function safariFix(callback) {
