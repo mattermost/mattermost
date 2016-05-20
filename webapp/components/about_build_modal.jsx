@@ -157,6 +157,12 @@ export default class AboutBuildModal extends React.Component {
                                 defaultMessage='Build Hash:'
                             />
                             &nbsp;{config.BuildHash}
+                            <br/>
+                            <FormattedMessage
+                                id='about.hashee'
+                                defaultMessage='EE Build Hash:'
+                            />
+                            &nbsp;{config.BuildHashEnterprise}
                         </p>
                         <p>
                             <FormattedMessage

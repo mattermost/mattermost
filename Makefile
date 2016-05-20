@@ -15,10 +15,12 @@ BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
+BUILD_HASH_ENTERPRISE = none
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
 	ifeq ($(BUILD_ENTERPRISE),true)
 		BUILD_ENTERPRISE_READY = true
 		BUILD_TYPE_NAME = enterprise
+		BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
 	else
 		BUILD_ENTERPRISE_READY = false
 		BUILD_TYPE_NAME = team
@@ -37,6 +39,7 @@ GO_LINKER_FLAGS ?= -ldflags \
 				   "-X github.com/mattermost/platform/model.BuildNumber=$(BUILD_NUMBER)\
 				    -X 'github.com/mattermost/platform/model.BuildDate=$(BUILD_DATE)'\
 				    -X github.com/mattermost/platform/model.BuildHash=$(BUILD_HASH)\
+				    -X github.com/mattermost/platform/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 				    -X github.com/mattermost/platform/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
 # Output paths

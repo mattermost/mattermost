@@ -88,7 +88,7 @@ func main() {
 	}
 
 	pwd, _ := os.Getwd()
-	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
+	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	l4g.Info(utils.T("mattermost.entreprise_enabled"), model.BuildEnterpriseReady)
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(flagConfigFile))

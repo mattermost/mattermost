@@ -2073,7 +2073,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "Current version is %v (%v/%v/%v)"
+    "translation": "Current version is %v (%v/%v/%v/%v)"
   },
   {
     "id": "mattermost.entreprise_enabled",
