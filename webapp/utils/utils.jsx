@@ -34,38 +34,6 @@ export function cleanUpUrlable(input) {
     return cleaned;
 }
 
-export function isTestDomain() {
-    if ((/^localhost/).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^dockerhost/).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^test/).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^127.0./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^192.168./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^10./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^176./).test(window.location.hostname)) {
-        return true;
-    }
-
-    return false;
-}
-
 export function isChrome() {
     if (navigator.userAgent.indexOf('Chrome') > -1) {
         return true;
