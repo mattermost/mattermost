@@ -291,7 +291,10 @@ export default class Login extends React.Component {
 
         if (global.window.mm_config.EnableOpenServer === 'true') {
             loginControls.push(
-                <div key='signup'>
+                <div
+                    className='form-group'
+                    key='signup'
+                >
                     <span>
                         <FormattedMessage
                             id='login.noAccount'

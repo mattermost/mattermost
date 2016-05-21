@@ -53,13 +53,6 @@ export default class AdminNavbarDropdown extends React.Component {
         var teams = [];
 
         if (this.state.teamMembers && this.state.teamMembers.length > 0) {
-            teams.push(
-                <li
-                    key='teamDiv'
-                    className='divider'
-                ></li>
-            );
-
             for (var index in this.state.teamMembers) {
                 if (this.state.teamMembers.hasOwnProperty(index)) {
                     var teamMember = this.state.teamMembers[index];
@@ -69,12 +62,23 @@ export default class AdminNavbarDropdown extends React.Component {
                             <Link
                                 to={'/' + team.name + '/channels/town-square'}
                             >
+                                <FormattedMessage
+                                    id='navbar_dropdown.switchTo'
+                                    defaultMessage='Switch to '
+                                />
                                 {team.display_name}
                             </Link>
                         </li>
                     );
                 }
             }
+
+            teams.push(
+                <li
+                    key='teamDiv'
+                    className='divider'
+                ></li>
+            );
         }
 
         return (
@@ -99,20 +103,18 @@ export default class AdminNavbarDropdown extends React.Component {
                         className='dropdown-menu'
                         role='menu'
                     >
+                        {teams}
                         <li>
                             <Link
                                 to={'/select_team'}
                             >
+                                <i className='fa fa-exchange'/>
                                 <FormattedMessage
                                     id='admin.nav.switch'
-                                    defaultMessage='Switch to {display_name}'
-                                    values={{
-                                        display_name: global.window.mm_config.SiteName
-                                    }}
+                                    defaultMessage='Switch Teams'
                                 />
                             </Link>
                         </li>
-                        {teams}
                         <li
                             key='teamDiv'
                             className='divider'
