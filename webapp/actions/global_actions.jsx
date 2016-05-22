@@ -392,8 +392,10 @@ export function newLocalizationSelected(locale) {
             translations: en
         });
     } else {
+        const localeInfo = I18n.getLanguageInfo(locale) || I18n.getLanguageInfo(global.window.mm_config.DefaultClientLocale);
+
         Client.getTranslations(
-            I18n.getLanguageInfo(locale).url,
+            localeInfo.url,
             (data, res) => {
                 let translations = data;
                 if (!data && res.text) {
