@@ -420,3 +420,20 @@ func IsSafeLink(link *string) bool {
 
 	return true
 }
+
+func Intersection(arr1, arr2 StringArray) StringArray {
+	arrMap := map[string]bool{}
+	result := StringArray{}
+
+	for _, value := range arr1 {
+		arrMap[value] = true
+	}
+
+	for _, value := range arr2 {
+		if arrMap[value] {
+			result = append(result, value)
+		}
+	}
+
+	return result
+}

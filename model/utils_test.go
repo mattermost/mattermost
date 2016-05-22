@@ -82,6 +82,28 @@ func TestEtag(t *testing.T) {
 	}
 }
 
+func TestIntersection(t *testing.T) {
+	a := StringArray{
+		"abc",
+		"def",
+		"ghi",
+	}
+	b := StringArray{
+		"jkl",
+	}
+	c := StringArray{
+		"def",
+	}
+
+	if len(Intersection(a, b)) != 0 {
+		t.Fatal("should be 0")
+	}
+
+	if len(Intersection(a, c)) != 1 {
+		t.Fatal("should be 1")
+	}
+}
+
 var hashtags map[string]string = map[string]string{
 	"#test":           "#test",
 	"test":            "",

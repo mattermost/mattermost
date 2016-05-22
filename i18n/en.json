@@ -1844,6 +1844,10 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+  },
+  {
     "id": "api.webhook.create_outgoing.not_open.app_error",
     "translation": "Outgoing webhooks can only be created for public channels."
   },
