@@ -284,6 +284,10 @@
     "translation": "Integrations have been limited to admins only."
   },
   {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "This trigger word is already in use. Please choose another word."
+  },
+  {
     "id": "api.command.delete.app_error",
     "translation": "Inappropriate permissions to delete command"
   },

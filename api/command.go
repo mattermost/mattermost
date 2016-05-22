@@ -86,6 +86,32 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.CommandListToJson(commands)))
 }
 
+func getCommands(c *Context) []*model.Command {
+	commands := make([]*model.Command, 0, 32)
+	seen := make(map[string]bool)
+	for _, value := range commandProviders {
+		cpy := *value.GetCommand(c)
+		if cpy.AutoComplete && !seen[cpy.Id] {
+			cpy.Sanitize()
+			seen[cpy.Trigger] = true
+			commands = append(commands, &cpy)
+		}
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableCommands {
+		if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
+			return nil
+		} else {
+			teamCmds := result.Data.([]*model.Command)
+			for _, cmd := range teamCmds {
+				commands = append(commands, cmd)
+			}
+		}
+	}
+
+	return commands
+}
+
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 	command := strings.TrimSpace(props["command"])
@@ -287,6 +313,15 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd.CreatorId = c.Session.UserId
 	cmd.TeamId = c.TeamId
+
+	allCmds := getCommands(c)
+
+	for _, command := range allCmds {
+		if cmd.Trigger == command.Trigger {
+			c.Err = model.NewLocAppError("createCommand", "api.command.duplicate_trigger.app_error", nil, "")
+			return
+		}
+	}
 
 	if result := <-Srv.Store.Command().Save(cmd); result.Err != nil {
 		c.Err = result.Err
