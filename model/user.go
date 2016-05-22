@@ -136,7 +136,6 @@ func (u *User) PreSave() {
 
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
-	u.Locale = strings.ToLower(u.Locale)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
@@ -166,7 +165,6 @@ func (u *User) PreSave() {
 func (u *User) PreUpdate() {
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
-	u.Locale = strings.ToLower(u.Locale)
 	u.UpdateAt = GetMillis()
 
 	if u.AuthData != nil && *u.AuthData == "" {
