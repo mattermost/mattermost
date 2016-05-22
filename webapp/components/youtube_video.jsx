@@ -23,7 +23,7 @@ export default class YoutubeVideo extends React.Component {
 
         this.state = {
             loaded: false,
-            failed: global.window.mm_config.GoogleDeveloperKey === '',
+            failed: false,
             playing: false,
             title: ''
         };
@@ -133,6 +133,10 @@ export default class YoutubeVideo extends React.Component {
     }
 
     render() {
+        if (!global.window.mm_config.GoogleDeveloperKey) {
+            return <div/>;
+        }
+
         if (!this.state.loaded) {
             return <div className='video-loading'/>;
         }
