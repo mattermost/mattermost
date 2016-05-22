@@ -530,6 +530,11 @@ func (o *Config) SetDefaults() {
 		o.LocalizationSettings.DefaultClientLocale = new(string)
 		*o.LocalizationSettings.DefaultClientLocale = DEFAULT_LOCALE
 	}
+
+	if o.LocalizationSettings.AvailableLocales == nil {
+		o.LocalizationSettings.AvailableLocales = new(string)
+		*o.LocalizationSettings.AvailableLocales = *o.LocalizationSettings.DefaultClientLocale
+	}
 }
 
 func (o *Config) IsValid() *AppError {

@@ -70,9 +70,15 @@ func SetTranslations(locale string) i18n.TranslateFunc {
 }
 
 func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
+	// This is for checking against locales like pt_BR or zn_CN
+	headerLocaleFull := strings.Split(r.Header.Get("Accept-Language"), ",")[0]
+	// This is for checking agains locales like en, es
 	headerLocale := strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
 	defaultLocale := *settings.DefaultClientLocale
-	if locales[headerLocale] != "" {
+	if locales[headerLocaleFull] != "" {
+		translations := TfuncWithFallback(headerLocaleFull)
+		return translations, headerLocaleFull
+	} else if locales[headerLocale] != "" {
 		translations := TfuncWithFallback(headerLocale)
 		return translations, headerLocale
 	} else if locales[defaultLocale] != "" {

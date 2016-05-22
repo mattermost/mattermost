@@ -4,7 +4,7 @@
 const es = require('!!file?name=i18n/[name].[ext]!./es.json');
 const fr = require('!!file?name=i18n/[name].[ext]!./fr.json');
 const ja = require('!!file?name=i18n/[name].[ext]!./ja.json');
-const pt = require('!!file?name=i18n/[name].[ext]!./pt.json');
+const pt_BR = require('!!file?name=i18n/[name].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
 
 import {addLocaleData} from 'react-intl';
 import enLocaleData from 'react-intl/locale-data/en';
@@ -34,10 +34,10 @@ const languages = {
         name: '日本語 (Beta)',
         url: ja
     },
-    pt: {
-        value: 'pt',
+    'pt-BR': {
+        value: 'pt-BR',
         name: 'Portugues (Beta)',
-        url: pt
+        url: pt_BR
     }
 };
 
