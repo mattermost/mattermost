@@ -11,7 +11,10 @@ export default class ChannelSelect extends React.Component {
     static get propTypes() {
         return {
             onChange: React.PropTypes.func,
-            value: React.PropTypes.string
+            value: React.PropTypes.string,
+            selectOpen: React.PropTypes.bool.isRequired,
+            selectPrivate: React.PropTypes.bool.isRequired,
+            selectDm: React.PropTypes.bool.isRequired
         };
     }
 
@@ -54,7 +57,25 @@ export default class ChannelSelect extends React.Component {
         ];
 
         this.state.channels.forEach((channel) => {
-            if (channel.type !== Constants.DM_CHANNEL) {
+            if (channel.type === Constants.OPEN_CHANNEL && this.props.selectOpen) {
+                options.push(
+                    <option
+                        key={channel.id}
+                        value={channel.id}
+                    >
+                        {channel.display_name}
+                    </option>
+                );
+            } else if (channel.type === Constants.PRIVATE_CHANNEL && this.props.selectPrivate) {
+                options.push(
+                    <option
+                        key={channel.id}
+                        value={channel.id}
+                    >
+                        {channel.display_name}
+                    </option>
+                );
+            } else if (channel.type === Constants.DM_CHANNEL && this.props.selectDm) {
                 options.push(
                     <option
                         key={channel.id}
@@ -77,3 +98,9 @@ export default class ChannelSelect extends React.Component {
         );
     }
 }
+
+ChannelSelect.defaultProps = {
+    selectOpen: false,
+    selectPrivate: false,
+    selectDm: false
+};
