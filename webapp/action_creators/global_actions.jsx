@@ -409,6 +409,12 @@ export function newLocalizationSelected(locale) {
 export function loadBrowserLocale() {
     let locale = (navigator.languages && navigator.languages.length > 0 ? navigator.languages[0] :
         (navigator.language || navigator.userLanguage)).split('-')[0];
+
+    const user = UserStore.getCurrentUser();
+    if (user) {
+        locale = user.locale || locale;
+    }
+
     if (!I18n.getLanguages()[locale]) {
         locale = 'en';
     }
