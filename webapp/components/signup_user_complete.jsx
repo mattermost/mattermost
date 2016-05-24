@@ -287,7 +287,7 @@ export default class SignupUserComplete extends React.Component {
             return;
         }
 
-        const providedPassword = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        const providedPassword = ReactDOM.findDOMNode(this.refs.password).value;
         if (!providedPassword || providedPassword.length < Constants.MIN_PASSWORD_LENGTH) {
             this.setState({
                 nameError: '',
