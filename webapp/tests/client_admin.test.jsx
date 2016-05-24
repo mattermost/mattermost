@@ -7,7 +7,35 @@ import TestHelper from './test_helper.jsx';
 describe('Client.Admin', function() {
     this.timeout(10000);
 
-    // TODO XXX FIXME Add tests for ReloadConfig and RecycleDatabaseConnection
+    it('Admin.reloadConfig', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            TestHelper.basicClient().reloadConfig(
+                function() {
+                    done(new Error('should need system admin permissions'));
+                },
+                function(err) {
+                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    done();
+                }
+            );
+        });
+    });
+
+    it('Admin.recycleDatabaseConnection', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+            TestHelper.basicClient().recycleDatabaseConnection(
+                function() {
+                    done(new Error('should need system admin permissions'));
+                },
+                function(err) {
+                    assert.equal(err.id, 'api.context.system_permissions.app_error');
+                    done();
+                }
+            );
+        });
+    });
 
     it('Admin.getComplianceReports', function(done) {
         TestHelper.initBasic(() => {
