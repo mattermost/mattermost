@@ -239,7 +239,6 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	user.MakeNonNil()
-	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		l4g.Error(utils.T("api.user.create_user.save.error"), result.Err)

@@ -30,7 +30,7 @@ type TestHelper struct {
 func SetupEnterprise() *TestHelper {
 	if Srv == nil {
 		utils.LoadConfig("config.json")
-		utils.InitTranslations(utils.Cfg.LocalizationSettings)
+		utils.InitTranslations()
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		utils.DisableDebugLogForTest()
 		utils.License.Features.SetDefaults()
@@ -50,7 +50,7 @@ func SetupEnterprise() *TestHelper {
 func Setup() *TestHelper {
 	if Srv == nil {
 		utils.LoadConfig("config.json")
-		utils.InitTranslations(utils.Cfg.LocalizationSettings)
+		utils.InitTranslations()
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		utils.DisableDebugLogForTest()
 		NewServer()

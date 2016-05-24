@@ -6,7 +6,6 @@
 
 import * as GlobalActions from 'action_creators/global_actions.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
-import Client from 'utils/web_client.jsx';
 
 import {IntlProvider} from 'react-intl';
 
@@ -29,10 +28,7 @@ export default class Root extends React.Component {
         this.redirectIfNecessary = this.redirectIfNecessary.bind(this);
     }
     localizationChanged() {
-        const locale = LocalizationStore.getLocale();
-
-        Client.setAcceptLanguage(locale);
-        this.setState({locale, translations: LocalizationStore.getTranslations()});
+        this.setState({locale: LocalizationStore.getLocale(), translations: LocalizationStore.getTranslations()});
     }
 
     redirectIfNecessary(props) {
@@ -67,7 +63,7 @@ export default class Root extends React.Component {
         FastClick.attach(document.body);
 
         // Get our localizaiton
-        GlobalActions.loadDefaultLocale();
+        GlobalActions.loadBrowserLocale();
 
         // Redirect if Necessary
         this.redirectIfNecessary(this.props);
