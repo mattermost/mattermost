@@ -92,6 +92,7 @@ type LogSettings struct {
 }
 
 type FileSettings struct {
+	MaxFileSize                *int64
 	DriverName                 string
 	Directory                  string
 	EnablePublicLink           bool
@@ -261,6 +262,11 @@ func (o *Config) SetDefaults() {
 
 	if len(o.SqlSettings.AtRestEncryptKey) == 0 {
 		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
+	}
+
+	if o.FileSettings.MaxFileSize == nil {
+		o.FileSettings.MaxFileSize = new(int64)
+		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
 	}
 
 	if len(o.FileSettings.PublicLinkSalt) == 0 {
@@ -567,6 +573,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.SqlSettings.MaxOpenConns <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "")
+	}
+
+	if *o.FileSettings.MaxFileSize <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "")
 	}
 
 	if !(o.FileSettings.DriverName == IMAGE_DRIVER_LOCAL || o.FileSettings.DriverName == IMAGE_DRIVER_S3) {

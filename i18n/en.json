@@ -2392,6 +2392,10 @@
     "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Invalid max file size for file settings. Must be a zero or positive number."
+  },
+  {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
   },
