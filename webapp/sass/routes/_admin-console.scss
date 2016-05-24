@@ -240,7 +240,6 @@
 
 .admin-sidebar {
     background: #333;
-    border-right: 1px solid #ddd;
     height: 100%;
     left: 0;
     position: absolute;
@@ -315,6 +314,27 @@
         &--active {
             color: $white;
             font-weight: 600;
+
+            &:after {
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased;
+                color: whitesmoke;
+                content: "\f0d9";
+                display: inline-block;
+                font: normal normal normal 26px/1 FontAwesome;
+                position: absolute;
+                right: -1px;
+                text-rendering: auto;
+                top: 3px;
+            }
+        }
+    }
+
+    .sidebar-subsection-title {
+        &--active {
+            &:after {
+                top: 2px;
+            }
         }
     }
 

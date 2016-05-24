@@ -250,7 +250,7 @@ export default class SidebarRightMenu extends React.Component {
                                 <i className='fa fa-exchange'></i>
                                 <FormattedMessage
                                     id='sidebar_right_menu.switch_team'
-                                    defaultMessage='Switch Team'
+                                    defaultMessage='Team Selection'
                                 />
                             </Link>
                         </li>

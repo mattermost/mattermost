@@ -111,7 +111,7 @@ export default class AdminNavbarDropdown extends React.Component {
                                 <i className='fa fa-exchange'/>
                                 <FormattedMessage
                                     id='admin.nav.switch'
-                                    defaultMessage='Switch Teams'
+                                    defaultMessage='Team Selection'
                                 />
                             </Link>
                         </li>
