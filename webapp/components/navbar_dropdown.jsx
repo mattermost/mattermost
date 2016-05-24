@@ -218,6 +218,10 @@ export default class NavbarDropdown extends React.Component {
                                 <Link
                                     to={'/' + team.name + '/channels/town-square'}
                                 >
+                                    <FormattedMessage
+                                        id='navbar_dropdown.switchTo'
+                                        defaultMessage='Switch to '
+                                    />
                                     {team.display_name}
                                 </Link>
                             </li>
