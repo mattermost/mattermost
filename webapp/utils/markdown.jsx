@@ -13,6 +13,40 @@ function markdownImageLoaded(image) {
 }
 window.markdownImageLoaded = markdownImageLoaded;
 
+class MattermostInlineLexer extends marked.InlineLexer {
+    constructor(links, options) {
+        super(links, options);
+
+        this.rules = Object.assign({}, this.rules);
+
+        // modified version of the regex that allows for links starting with www and those surrounded by parentheses
+        // the original is /^[\s\S]+?(?=[\\<!\[_*`~]|https?:\/\/| {2,}\n|$)/
+        this.rules.text = /^[\s\S]+?(?=[\\<!\[_*`~]|https?:\/\/|www\.|\(| {2,}\n|$)/;
+
+        // modified version of the regex that allows links starting with www and those surrounded by parentheses
+        // the original is /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/
+        this.rules.url = /^(\(?(?:https?:\/\/|www\.)[^\s<.][^\s<]*[^<.,:;"'\]\s])/;
+
+        // modified version of the regex that allows <links> starting with www.
+        // the original is /^<([^ >]+(@|:\/)[^ >]+)>/
+        this.rules.autolink = /^<((?:[^ >]+(@|:\/)|www\.)[^ >]+)>/;
+    }
+}
+
+class MattermostParser extends marked.Parser {
+    parse(src) {
+        this.inline = new MattermostInlineLexer(src.links, this.options, this.renderer);
+        this.tokens = src.reverse();
+
+        var out = '';
+        while (this.next()) {
+            out += this.tok();
+        }
+
+        return out;
+    }
+}
+
 class MattermostMarkdownRenderer extends marked.Renderer {
     constructor(options, formattingOptions = {}) {
         super(options);
@@ -75,6 +109,18 @@ class MattermostMarkdownRenderer extends marked.Renderer {
 
     link(href, title, text) {
         let outHref = href;
+        let outText = text;
+        let prefix = '';
+        let suffix = '';
+
+        // some links like https://en.wikipedia.org/wiki/Rendering_(computer_graphics) contain brackets
+        // and we try our best to differentiate those from ones just wrapped in brackets when autolinking
+        if (outHref.startsWith('(') && outHref.endsWith(')') && text === outHref) {
+            prefix = '(';
+            suffix = ')';
+            outText = text.substring(1, text.length - 1);
+            outHref = outHref.substring(1, outHref.length - 1);
+        }
 
         try {
             const unescaped = decodeURIComponent(unescape(href)).replace(/[^\w:]/g, '').toLowerCase();
@@ -103,9 +149,9 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             output += ' title="' + title + '"';
         }
 
-        output += '>' + text + '</a>';
+        output += '>' + outText + '</a>';
 
-        return output;
+        return prefix + output + suffix;
     }
 
     paragraph(text) {
@@ -440,7 +486,7 @@ export function format(text, options) {
 
     const tokens = new MattermostLexer(markdownOptions).lex(text);
 
-    return new marked.Parser(markdownOptions).parse(tokens);
+    return new MattermostParser(markdownOptions).parse(tokens);
 }
 
 // Marked helper functions that should probably just be exported
