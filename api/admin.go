@@ -10,11 +10,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
 )
@@ -26,9 +28,9 @@ func InitAdmin() {
 	BaseRoutes.Admin.Handle("/audits", ApiUserRequired(getAllAudits)).Methods("GET")
 	BaseRoutes.Admin.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
 	BaseRoutes.Admin.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
+	BaseRoutes.Admin.Handle("/reload_config", ApiUserRequired(reloadConfig)).Methods("GET")
 	BaseRoutes.Admin.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
-	BaseRoutes.Admin.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
-	BaseRoutes.Admin.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
+	BaseRoutes.Admin.Handle("/recycle_db_conn", ApiUserRequired(recycleDatabaseConnection)).Methods("GET")
 	BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
 	BaseRoutes.Admin.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiUserRequired(getAnalytics)).Methods("GET")
 	BaseRoutes.Admin.Handle("/save_compliance_report", ApiUserRequired(saveComplianceReport)).Methods("POST")
@@ -94,32 +96,6 @@ func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(model.MapToJson(utils.ClientCfg)))
-}
-
-func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
-	m := model.MapFromJson(r.Body)
-
-	lvl := m["level"]
-	msg := m["message"]
-
-	if len(msg) > 400 {
-		msg = msg[0:399]
-	}
-
-	if lvl == "ERROR" {
-		err := &model.AppError{}
-		err.Message = msg
-		err.Where = "client"
-		c.LogError(err)
-	}
-
-	rm := make(map[string]string)
-	rm["SUCCESS"] = "true"
-	w.Write([]byte(model.MapToJson(rm)))
-}
-
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.HasSystemAdminPermissions("getConfig") {
 		return
@@ -132,6 +108,16 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
+}
+
+func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("reloadConfig") {
+		return
+	}
+
+	utils.LoadConfig(utils.CfgFileName)
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	ReturnStatusOK(w)
 }
 
 func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -166,6 +152,25 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	rdata := map[string]string{}
 	rdata["status"] = "OK"
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func recycleDatabaseConnection(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("recycleDatabaseConnection") {
+		return
+	}
+
+	oldStore := Srv.Store
+
+	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
+	Srv.Store = store.NewSqlStore()
+
+	time.Sleep(20 * time.Second)
+	oldStore.Close()
+
+	l4g.Warn(utils.T("api.admin.recycle_db_end.warn"))
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	ReturnStatusOK(w)
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {

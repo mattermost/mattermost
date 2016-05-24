@@ -28,6 +28,8 @@ const (
 	HEADER_AUTH               = "Authorization"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
+	STATUS                    = "status"
+	STATUS_OK                 = "OK"
 
 	API_URL_SUFFIX_V1 = "/api/v1"
 	API_URL_SUFFIX_V3 = "/api/v3"
@@ -41,18 +43,21 @@ type Result struct {
 }
 
 type Client struct {
-	Url        string       // The location of the server like "http://localhost:8065"
-	ApiUrl     string       // The api location of the server like "http://localhost:8065/api/v3"
-	HttpClient *http.Client // The http client
-	AuthToken  string
-	AuthType   string
-	TeamId     string
+	Url           string       // The location of the server like "http://localhost:8065"
+	ApiUrl        string       // The api location of the server like "http://localhost:8065/api/v3"
+	HttpClient    *http.Client // The http client
+	AuthToken     string
+	AuthType      string
+	TeamId        string
+	RequestId     string
+	Etag          string
+	ServerVersion string
 }
 
 // NewClient constructs a new client with convienence methods for talking to
 // the server.
 func NewClient(url string) *Client {
-	return &Client{url, url + API_URL_SUFFIX, &http.Client{}, "", "", ""}
+	return &Client{url, url + API_URL_SUFFIX, &http.Client{}, "", "", "", "", "", ""}
 }
 
 func (c *Client) SetOAuthToken(token string) {
@@ -92,6 +97,10 @@ func (c *Client) GetChannelRoute(channelId string) string {
 
 func (c *Client) GetChannelNameRoute(channelName string) string {
 	return fmt.Sprintf("/teams/%v/channels/name/%v", c.GetTeamId(), channelName)
+}
+
+func (c *Client) GetGeneralRoute() string {
+	return "/general"
 }
 
 func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppError) {
@@ -155,6 +164,7 @@ func getCookie(name string, resp *http.Response) *http.Cookie {
 	return nil
 }
 
+// Must is a convenience function used for testing.
 func (c *Client) Must(result *Result, err *AppError) *Result {
 	if err != nil {
 		l4g.Close()
@@ -164,6 +174,76 @@ func (c *Client) Must(result *Result, err *AppError) *Result {
 
 	return result
 }
+
+// CheckStatusOK is a convenience function for checking the return of Web Service
+// call that return the a map of status=OK.
+func (c *Client) CheckStatusOK(r *http.Response) bool {
+	m := MapFromJson(r.Body)
+	if m != nil && m[STATUS] == STATUS_OK {
+		return true
+	}
+
+	return false
+}
+
+func (c *Client) fillInExtraProperties(r *http.Response) {
+	c.RequestId = r.Header.Get(HEADER_REQUEST_ID)
+	c.Etag = r.Header.Get(HEADER_ETAG_SERVER)
+	c.ServerVersion = r.Header.Get(HEADER_VERSION_ID)
+}
+
+func (c *Client) clearExtraProperties() {
+	c.RequestId = ""
+	c.Etag = ""
+	c.ServerVersion = ""
+}
+
+// General Routes Section
+
+// GetClientProperties returns properties needed by the client to show/hide
+// certian features.  It returns a map of strings.
+func (c *Client) GetClientProperties() (map[string]string, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet(c.GetGeneralRoute()+"/client_props", "", ""); err != nil {
+		return nil, err
+	} else {
+		c.fillInExtraProperties(r)
+		return MapFromJson(r.Body), nil
+	}
+}
+
+// LogClient is a convenience Web Service call so clients can log messages into
+// the server-side logs.  For example we typically log javascript error messages
+// into the server-side.  It returns true if the logging was successful.
+func (c *Client) LogClient(message string) (bool, *AppError) {
+	c.clearExtraProperties()
+	m := make(map[string]string)
+	m["level"] = "ERROR"
+	m["message"] = message
+
+	if r, err := c.DoApiPost(c.GetGeneralRoute()+"/log_client", MapToJson(m)); err != nil {
+		return false, err
+	} else {
+		c.fillInExtraProperties(r)
+		return c.CheckStatusOK(r), nil
+	}
+}
+
+// GetPing returns a map of strings with server time, server version, and node Id.
+// Systems that want to check on health status of the server should check the
+// url /api/v3/ping for a 200 status response.
+func (c *Client) GetPing() (map[string]string, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet(c.GetGeneralRoute()+"/ping", "", ""); err != nil {
+		return nil, err
+	} else {
+		c.fillInExtraProperties(r)
+		return MapFromJson(r.Body), nil
+
+	}
+}
+
+// Team Routes Section
 
 func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppError) {
 	m := make(map[string]string)
@@ -596,15 +676,6 @@ func (c *Client) GetAllAudits() (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetClientProperties() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/admin/client_props", "", ""); err != nil {
-		return nil, err
-	} else {
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
 func (c *Client) GetConfig() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/config", "", ""); err != nil {
 		return nil, err
@@ -614,12 +685,39 @@ func (c *Client) GetConfig() (*Result, *AppError) {
 	}
 }
 
+// ReloadConfig will reload the config.json file from disk.  Properties
+// requiring a server restart will still need a server restart.  You must
+// have the system admin role to call this method.  It will return status=OK
+// if it's successfully reloaded the config file, otherwise check the returned error.
+func (c *Client) ReloadConfig() (bool, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet("/admin/reload_config", "", ""); err != nil {
+		return false, err
+	} else {
+		c.fillInExtraProperties(r)
+		return c.CheckStatusOK(r), nil
+	}
+}
+
 func (c *Client) SaveConfig(config *Config) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/admin/save_config", config.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+// RecycleDatabaseConnection will attempt to recycle the database connections.
+// You must have the system admin role to call this method.  It will return status=OK
+// if it's successfully recycled the connections, otherwise check the returned error.
+func (c *Client) RecycleDatabaseConnection() (bool, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet("/admin/recycle_db_conn", "", ""); err != nil {
+		return false, err
+	} else {
+		c.fillInExtraProperties(r)
+		return c.CheckStatusOK(r), nil
 	}
 }
 
