@@ -373,6 +373,7 @@ export default class SignupUserComplete extends React.Component {
                             onChange={this.handleLdapIdChange}
                             placeholder={ldapIdPlaceholder}
                             spellCheck='false'
+                            autoCapitalize='off'
                         />
                     </div>
                     <div className={'form-group' + errorClass}>
@@ -513,6 +514,7 @@ export default class SignupUserComplete extends React.Component {
                         maxLength='128'
                         autoFocus={true}
                         spellCheck='false'
+                        autoCapitalize='off'
                     />
                     {emailError}
                     {emailHelpText}

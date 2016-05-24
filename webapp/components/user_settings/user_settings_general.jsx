@@ -345,6 +345,7 @@ class UserSettingsGeneralTab extends React.Component {
                                     type='text'
                                     onChange={this.updateEmail}
                                     value={this.state.email}
+                                    autoCapitalize='off'
                                 />
                             </div>
                         </div>
@@ -366,6 +367,7 @@ class UserSettingsGeneralTab extends React.Component {
                                     type='text'
                                     onChange={this.updateConfirmEmail}
                                     value={this.state.confirmEmail}
+                                    autoCapitalize='off'
                                 />
                             </div>
                         </div>
@@ -681,6 +683,7 @@ class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateNickname}
                                 value={this.state.nickname}
+                                autoCapitalize='off'
                             />
                         </div>
                     </div>
@@ -764,6 +767,7 @@ class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateUsername}
                                 value={this.state.username}
+                                autoCapitalize='off'
                             />
                         </div>
                     </div>

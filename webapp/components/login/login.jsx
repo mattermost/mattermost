@@ -259,6 +259,7 @@ export default class Login extends React.Component {
                                 onChange={this.handleLoginIdChange}
                                 placeholder={this.createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled)}
                                 spellCheck='false'
+                                autoCapitalize='off'
                             />
                         </div>
                         <div className={'form-group' + errorClass}>
