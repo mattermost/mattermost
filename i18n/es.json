@@ -64,6 +64,14 @@
     "translation": "Inicializando rutas del API para la administración"
   },
   {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Terminado el reciclaje de la conexión de base de datos"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Tratando de reciclar la conexión de base de datos"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>Parece que tu correo electrónico para Mattermost fue configurado correctamente!"
   },
@@ -441,15 +449,15 @@
   },
   {
     "id": "api.command_shortcuts.desc",
-    "translation": "Displays a list of keyboard shortcuts"
+    "translation": "Muestra una lista de los accesos rápidos de teclado"
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Open up channel switcher\n- CTRL/CMD+U - Open up file upload\n- CTRL/CMD+Up - Reprint last message or slash command entered\n- CTRL/CMD+SHIFT+A - Open account settings\n- CTRL/CMD+SHIFT+M - Open recent mentions\n\n#### ALT\n\n- ALT+Up - Go to previous channel\n- ALT+Down - Go to next channel\n- ALT+SHIFT+Up - Go to previous channel with unread messages\n- ALT+SHIFT+Down - Go to next channel with unread messages\n\n#### General\n\n- Up - Edit last message\n- /+Up/Down - See available slash commands\n"
+    "translation": "### Accesos rápidos de teclado\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Abre un dialogo para cambiar de canal\n- CTRL/CMD+U - Abre el dialogo para subir un archivo\n- CTRL/CMD+Up - Vuelve a escribir el último mensaje o comando de barra\n- CTRL/CMD+SHIFT+A - Abre configurar cuenta\n- CTRL/CMD+SHIFT+M - Abre menciones recientes\n\n#### ALT\n\n- ALT+Arriba - Ir al canal anterior\n- ALT+Abajo - Ir al canal siguiente\n- ALT+SHIFT+Arriba - Ir al canal anterior con mensajes no leidos\n- ALT+SHIFT+Abajo - Ir al canal siguiente con mensajes no leidos\n\n#### General\n\n- Arriba - Edita el último mensaje\n- /+Arriba/Abajo - Ver los comandos de barra disponibles\n"
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "shortcuts"
+    "translation": "accesos rápidos de teclado"
   },
   {
     "id": "api.command_shrug.desc",
@@ -670,6 +678,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Se encontró un error al escribir en el almacenamiento del servidor local"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Inicializando rutas generales del API"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -901,7 +913,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
-    "translation": " in "
+    "translation": " en "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention",
@@ -913,7 +925,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
-    "translation": " posted in "
+    "translation": " publicado en "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -2362,6 +2374,10 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Número inválido de máximos intentos de inició de sesión en la configuración del servicio.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "El tamaño máximo de archivo para la configuración de archivos es inválido. Debe ser un cero o un número positivo."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
