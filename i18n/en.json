@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "api.general.init.debug",
+    "translation": "Initializing general api routes"
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error reading log file"
   },
@@ -62,6 +66,14 @@
   {
     "id": "api.admin.init.debug",
     "translation": "Initializing admin api routes"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Finished recycling the database connection"
   },
   {
     "id": "api.admin.test_email.body",

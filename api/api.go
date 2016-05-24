@@ -40,6 +40,8 @@ type Routes struct {
 
 	Admin *mux.Router // 'api/v3/admin'
 
+	General *mux.Router // 'api/v3/general'
+
 	Preferences *mux.Router // 'api/v3/preferences'
 
 	License *mux.Router // 'api/v3/license'
@@ -67,6 +69,7 @@ func InitApi() {
 	BaseRoutes.Hooks = BaseRoutes.NeedTeam.PathPrefix("/hooks").Subrouter()
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
+	BaseRoutes.General = BaseRoutes.ApiRoot.PathPrefix("/general").Subrouter()
 	BaseRoutes.Preferences = BaseRoutes.ApiRoot.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
@@ -79,6 +82,7 @@ func InitApi() {
 	InitFile()
 	InitCommand()
 	InitAdmin()
+	InitGeneral()
 	InitOAuth()
 	InitWebhook()
 	InitPreference()
@@ -99,4 +103,10 @@ func HandleEtag(etag string, w http.ResponseWriter, r *http.Request) bool {
 	}
 
 	return false
+}
+
+func ReturnStatusOK(w http.ResponseWriter) {
+	m := make(map[string]string)
+	m[model.STATUS] = model.STATUS_OK
+	w.Write([]byte(model.MapToJson(m)))
 }
