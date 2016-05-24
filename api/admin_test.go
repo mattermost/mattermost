@@ -98,6 +98,9 @@ func TestReloadConfig(t *testing.T) {
 	if _, err := th.SystemAdminClient.ReloadConfig(); err != nil {
 		t.Fatal(err)
 	}
+
+	utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
 func TestSaveConfig(t *testing.T) {
