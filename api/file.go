@@ -77,13 +77,13 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.ContentLength > model.MAX_FILE_SIZE {
+	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
 		c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.too_large.app_error", nil, "")
 		c.Err.StatusCode = http.StatusRequestEntityTooLarge
 		return
 	}
 
-	err := r.ParseMultipartForm(model.MAX_FILE_SIZE)
+	err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

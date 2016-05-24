@@ -7,8 +7,10 @@
     overflow: auto;
     padding: 0 20px;
 
-    > div {
-        height: 100%;
+    .dropdown-menu {
+        .divider {
+            @include opacity(1);
+        }
     }
 
     .inner-wrap {
@@ -21,6 +23,11 @@
         font-weight: 600;
         margin: 1em 0;
         padding-bottom: .5em;
+    }
+
+    h4 {
+        font-weight: 600;
+        margin-bottom: 2em;
     }
 
     .form-control {
@@ -240,6 +247,10 @@
     width: 220px;
     z-index: 5;
 
+    .dropdown-menu {
+        min-width: 200px;
+    }
+
     .team__header {
         background: transparent;
     }
@@ -268,6 +279,12 @@
 
         .sections {
             padding: 5px 0;
+        }
+    }
+
+    .sidebar-section {
+        > .sidebar-section-title {
+            position: relative;
         }
     }
 

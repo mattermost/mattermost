@@ -598,6 +598,7 @@ var specialSearchChar = []string{
 	")",
 	"~",
 	"@",
+	":",
 }
 
 func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) StoreChannel {
