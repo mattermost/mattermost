@@ -6,6 +6,7 @@ import React from 'react';
 import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 export default class ChannelSelect extends React.Component {
     static get propTypes() {
@@ -18,10 +19,19 @@ export default class ChannelSelect extends React.Component {
         };
     }
 
+    static get defaultProps() {
+        return {
+            selectOpen: false,
+            selectPrivate: false,
+            selectDm: false
+        };
+    }
+
     constructor(props) {
         super(props);
 
         this.handleChannelChange = this.handleChannelChange.bind(this);
+        this.compareByDisplayName = this.compareByDisplayName.bind(this);
 
         this.state = {
             channels: []
@@ -29,8 +39,9 @@ export default class ChannelSelect extends React.Component {
     }
 
     componentWillMount() {
+        AsyncClient.getMoreChannels(true);
         this.setState({
-            channels: ChannelStore.getAll()
+            channels: ChannelStore.getAll().sort(this.compareByDisplayName)
         });
 
         ChannelStore.addChangeListener(this.handleChannelChange);
@@ -40,10 +51,18 @@ export default class ChannelSelect extends React.Component {
         ChannelStore.removeChangeListener(this.handleChannelChange);
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        return !Utils.areObjectsEqual(nextState.channels, this.state.channels);
+    }
+
     handleChannelChange() {
         this.setState({
-            channels: ChannelStore.getAll()
+            channels: ChannelStore.getAll().concat(ChannelStore.getMoreAll()).sort(this.compareByDisplayName)
         });
+    }
+
+    compareByDisplayName(channelA, channelB) {
+        return channelA.display_name.localeCompare(channelB.display_name);
     }
 
     render() {
@@ -98,9 +117,3 @@ export default class ChannelSelect extends React.Component {
         );
     }
 }
-
-ChannelSelect.defaultProps = {
-    selectOpen: false,
-    selectPrivate: false,
-    selectDm: false
-};
