@@ -33,26 +33,19 @@ export default class ChannelSelect extends React.Component {
         this.handleChannelChange = this.handleChannelChange.bind(this);
         this.compareByDisplayName = this.compareByDisplayName.bind(this);
 
+        AsyncClient.getMoreChannels(true);
+
         this.state = {
-            channels: []
+            channels: ChannelStore.getAll().sort(this.compareByDisplayName)
         };
     }
 
-    componentWillMount() {
-        AsyncClient.getMoreChannels(true);
-        this.setState({
-            channels: ChannelStore.getAll().sort(this.compareByDisplayName)
-        });
-
+    componentDidMount() {
         ChannelStore.addChangeListener(this.handleChannelChange);
     }
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.handleChannelChange);
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        return !Utils.areObjectsEqual(nextState.channels, this.state.channels);
     }
 
     handleChannelChange() {
