@@ -598,6 +598,7 @@ export default class SignupUserComplete extends React.Component {
                                     placeholder=''
                                     maxLength={Constants.MAX_USERNAME_LENGTH}
                                     spellCheck='false'
+                                    autoCapitalize='off'
                                 />
                                 {nameError}
                                 {nameHelpText}

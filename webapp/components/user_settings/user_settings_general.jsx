@@ -342,7 +342,7 @@ class UserSettingsGeneralTab extends React.Component {
                             <div className='col-sm-7'>
                                 <input
                                     className='form-control'
-                                    type='text'
+                                    type='email'
                                     onChange={this.updateEmail}
                                     value={this.state.email}
                                     autoCapitalize='off'
@@ -364,7 +364,7 @@ class UserSettingsGeneralTab extends React.Component {
                             <div className='col-sm-7'>
                                 <input
                                     className='form-control'
-                                    type='text'
+                                    type='email'
                                     onChange={this.updateConfirmEmail}
                                     value={this.state.confirmEmail}
                                     autoCapitalize='off'
