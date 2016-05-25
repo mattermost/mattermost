@@ -65,11 +65,11 @@
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Finished recycling the database connection"
+    "translation": "データベース接続の再利用が完了しました"
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Attempting to recycle the database connection"
+    "translation": "データベース接続を再利用しようとしています"
   },
   {
     "id": "api.admin.test_email.body",
@@ -449,15 +449,15 @@
   },
   {
     "id": "api.command_shortcuts.desc",
-    "translation": "Displays a list of keyboard shortcuts"
+    "translation": "キーボードショートカットのリストを表示する"
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Open up channel switcher\n- CTRL/CMD+U - Open up file upload\n- CTRL/CMD+Up - Reprint last message or slash command entered\n- CTRL/CMD+SHIFT+A - Open account settings\n- CTRL/CMD+SHIFT+M - Open recent mentions\n\n#### ALT\n\n- ALT+Up - Go to previous channel\n- ALT+Down - Go to next channel\n- ALT+SHIFT+Up - Go to previous channel with unread messages\n- ALT+SHIFT+Down - Go to next channel with unread messages\n\n#### General\n\n- Up - Edit last message\n- /+Up/Down - See available slash commands\n"
+    "translation": "### キーボードショートカット\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - チャンネルスイッチャーを開く\n- CTRL/CMD+U - ファイルアップロードを開く\n- CTRL/CMD+Up - 最新のメッセージまたは入力したスラッシュコマンドを再表示する\n- CTRL/CMD+SHIFT+A - アカウント設定を開く\n- CTRL/CMD+SHIFT+M - 最近のあなたについての投稿を開く\n\n#### ALT\n\n- ALT+Up - 前のチャンネルに移動する\n- ALT+Down - 次のチャンネルに移動する\n- ALT+SHIFT+Up - 未読のメッセージのある前のチャンネルに移動する\n- ALT+SHIFT+Down - 未読のメッセージのある次のチャンネルに移動する\n\n#### 全般\n\n- Up - 最新のメッセージを編集する\n- /+Up/Down - 使うことのできるスラッシュコマンドを見る\n"
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "shortcuts"
+    "translation": "ショートカット"
   },
   {
     "id": "api.command_shrug.desc",
@@ -681,7 +681,7 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "チームAPIルートを初期化しています"
+    "translation": "全般APIルートを初期化しています"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -969,7 +969,7 @@
   },
   {
     "id": "api.post.update_post.system_message.app_error",
-    "translation": "Unable to update system message"
+    "translation": "システムメッセージをアップデートできません"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1385,15 +1385,15 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "あなたの{{.TeamDisplayName}}用の電子メールアドレスが{{.NewEmail}}に変更されました。<br>あなたがこの変更をしていない場合には、システム管理者に問い合わせてください。"
+    "translation": "あなたの{{.TeamDisplayName}}用のユーザー名が{{.NewUsernamel}}に変更されました。<br>あなたがこの変更をしていない場合には、システム管理者に問い合わせてください。"
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": "あなたは電子メールアドレスを更新しました"
+    "translation": "あなたはユーザー名を更新しました"
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "{{.TeamDisplayName}}用に電子メールアドレスが変更されました"
+    "translation": "{{.TeamDisplayName}}用にユーザー名が変更されました"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1685,7 +1685,7 @@
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "電子メールアドレス変更の確認の電子メールを送信できませんでした err=%v"
+    "translation": "ユーザー名変更の確認の電子メールを送信しました err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -2085,7 +2085,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "現在のバージョンは%v (%v/%v/%v)です"
+    "translation": "現在のバージョンは%v (%v/%v/%v/%v)です"
   },
   {
     "id": "mattermost.entreprise_enabled",
@@ -2377,7 +2377,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "ファイル設定のプレビューの高さが不正です。ゼロ以上の数を指定してください。"
+    "translation": "ファイル設定の最大ファイルサイズが不正です。ゼロ以上の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3437,7 +3437,7 @@
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "チャンネルのメンバーが取得できませんでした"
+    "translation": "チームのメンバーが取得できませんでした"
   },
   {
     "id": "store.sql_team.get_members.app_error",
@@ -3565,7 +3565,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+    "translation": "このアカウントはLDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
   },
   {
     "id": "store.sql_user.save.existing.app_error",
@@ -3585,7 +3585,7 @@
   },
   {
     "id": "store.sql_user.save.username_exists.ldap_app_error",
-    "translation": "An account with that username already exists. Please contact your Administrator."
+    "translation": "このユーザー名を使ったアカウントは既に存在しています。システム管理者に連絡してください。"
   },
   {
     "id": "store.sql_user.update.app_error",
