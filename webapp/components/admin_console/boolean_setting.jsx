@@ -42,6 +42,7 @@ export default class BooleanSetting extends React.Component {
                     <input
                         type='radio'
                         value='true'
+                        name={this.props.id}
                         checked={this.props.value}
                         onChange={this.handleChange}
                         disabled={this.props.disabled}
@@ -52,6 +53,7 @@ export default class BooleanSetting extends React.Component {
                     <input
                         type='radio'
                         value='false'
+                        name={this.props.id}
                         checked={!this.props.value}
                         onChange={this.handleChange}
                         disabled={this.props.disabled}
