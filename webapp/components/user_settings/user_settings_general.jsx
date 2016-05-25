@@ -345,7 +345,6 @@ class UserSettingsGeneralTab extends React.Component {
                                     type='email'
                                     onChange={this.updateEmail}
                                     value={this.state.email}
-                                    autoCapitalize='off'
                                 />
                             </div>
                         </div>
@@ -367,7 +366,6 @@ class UserSettingsGeneralTab extends React.Component {
                                     type='email'
                                     onChange={this.updateConfirmEmail}
                                     value={this.state.confirmEmail}
-                                    autoCapitalize='off'
                                 />
                             </div>
                         </div>
