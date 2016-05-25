@@ -93,7 +93,7 @@ func main() {
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(flagConfigFile))
 
-	// Speical case for upgrading the db to 3.0
+	// Special case for upgrading the db to 3.0
 	// ADDED for 3.0 REMOVE for 3.4
 	cmdUpdateDb30()
 
@@ -351,7 +351,7 @@ func cmdUpdateDb30() {
 		store := api.Srv.Store.(*store.SqlStore)
 		utils.InitHTML()
 
-		l4g.Info("Attempting to run speical upgrade of the database schema to version 3.0 for user model changes")
+		l4g.Info("Attempting to run special upgrade of the database schema to version 3.0 for user model changes")
 		time.Sleep(time.Second)
 
 		if !store.DoesColumnExist("Users", "TeamId") {
@@ -406,7 +406,7 @@ func cmdUpdateDb30() {
 			flushLogAndExit(1)
 		}
 
-		l4g.Info("Starting speical 3.0 database upgrade with performed_backup=YES team_name=%v", team.Name)
+		l4g.Info("Starting special 3.0 database upgrade with performed_backup=YES team_name=%v", team.Name)
 		l4g.Info("Primary team %v will be left unchanged", team.Name)
 		l4g.Info("Upgrading primary team %v", team.Name)
 
@@ -481,7 +481,7 @@ func cmdUpdateDb30() {
 			store.RemoveColumnIfExists("Users", "TeamId")
 		}
 
-		l4g.Info("Finished running speical upgrade of the database schema to version 3.0 for user model changes")
+		l4g.Info("Finished running special upgrade of the database schema to version 3.0 for user model changes")
 
 		if result := <-store.System().Update(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
 			l4g.Error("Failed to update system schema version details=%v", result.Err)

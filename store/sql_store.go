@@ -101,7 +101,7 @@ func NewSqlStore() Store {
 		}
 	}
 
-	// This is a speical case for upgrading the schema to the 3.0 user model
+	// This is a special case for upgrading the schema to the 3.0 user model
 	// ADDED for 3.0 REMOVE for 3.4
 	if sqlStore.SchemaVersion == "2.2.0" ||
 		sqlStore.SchemaVersion == "2.1.0" ||
@@ -183,7 +183,7 @@ func NewSqlStore() Store {
 }
 
 // ADDED for 3.0 REMOVE for 3.4
-// This is a speical case for upgrading the schema to the 3.0 user model
+// This is a special case for upgrading the schema to the 3.0 user model
 func NewSqlStoreForUpgrade30() *SqlStore {
 	sqlStore := initConnection()
 

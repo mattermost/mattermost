@@ -629,7 +629,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			}
 		}
 
-		// these chars have speical meaning and can be treated as spaces
+		// these chars have special meaning and can be treated as spaces
 		for _, c := range specialSearchChar {
 			terms = strings.Replace(terms, c, " ", -1)
 		}
