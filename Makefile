@@ -188,8 +188,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -r compliance.test
 endif
 
-internal-test-client: start-docker prepare-enterprise
-	$(GO) run $(GOFLAGS) *.go -run_client_tests
+internal-test-web-client: start-docker prepare-enterprise
+	$(GO) run $(GOFLAGS) *.go -run_web_client_tests
+
+internal-test-javascript-client: start-docker prepare-enterprise
+	$(GO) run $(GOFLAGS) *.go -run_javascript_client_tests
 
 test-client: start-docker prepare-enterprise
 	@echo Running client tests
