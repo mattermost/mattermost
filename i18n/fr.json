@@ -64,6 +64,14 @@
     "translation": "Initialisation des routes API d'administration"
   },
   {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Finished recycling the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>Votre messagerie Mattermost semble être bien configurée !"
   },
@@ -670,6 +678,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Une erreur est survenue durant l'écriture sur le stockage du serveur local"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Initialisation des routes de l'api des équipes"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -2073,7 +2085,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "Version courante %v (%v/%v/%v/%v)"
+    "translation": "Version courante %v (%v/%v/%v)"
   },
   {
     "id": "mattermost.entreprise_enabled",
@@ -2362,6 +2374,10 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Nombre maximum de tentatives de connexion invalide dans les paramètre de service. Doit être un entier positif."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Hauteur des aperçus invalide dans les paramètres de fichiers. Doit être 0 ou un entier positif."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",

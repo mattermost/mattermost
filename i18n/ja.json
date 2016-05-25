@@ -64,6 +64,14 @@
     "translation": "管理者APIルートを初期化しています"
   },
   {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Finished recycling the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>あなたのMattermostの電子メールアドレスは正しく設定されています!"
   },
@@ -670,6 +678,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "ローカルサーバーストレージへの書き込みに失敗しました"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "チームAPIルートを初期化しています"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -2073,7 +2085,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "現在のバージョンは%v (%v/%v/%v/%v)です"
+    "translation": "現在のバージョンは%v (%v/%v/%v)です"
   },
   {
     "id": "mattermost.entreprise_enabled",
@@ -2362,6 +2374,10 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "サービス設定の最大ログイン試行回数が不正です。正の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "ファイル設定のプレビューの高さが不正です。ゼロ以上の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",

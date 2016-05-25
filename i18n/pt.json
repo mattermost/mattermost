@@ -64,6 +64,14 @@
     "translation": "Inicializando admin api routes"
   },
   {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Finished recycling the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>Parece que o seu email do Mattermost está configurado corretamente!"
   },
@@ -433,7 +441,7 @@
   },
   {
     "id": "api.command_msg.name",
-    "translation": "[mensagem]"
+    "translation": "mensagem"
   },
   {
     "id": "api.command_msg.success",
@@ -441,15 +449,15 @@
   },
   {
     "id": "api.command_shortcuts.desc",
-    "translation": "Displays a list of keyboard shortcuts"
+    "translation": "Mostrar a lista de atalhos"
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Open up channel switcher\n- CTRL/CMD+U - Open up file upload\n- CTRL/CMD+Up - Reprint last message or slash command entered\n- CTRL/CMD+SHIFT+A - Open account settings\n- CTRL/CMD+SHIFT+M - Open recent mentions\n\n#### ALT\n\n- ALT+Up - Go to previous channel\n- ALT+Down - Go to next channel\n- ALT+SHIFT+Up - Go to previous channel with unread messages\n- ALT+SHIFT+Down - Go to next channel with unread messages\n\n#### General\n\n- Up - Edit last message\n- /+Up/Down - See available slash commands\n"
+    "translation": "### Atalhos do Teclado\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Abre o alternador de canal\n- CTRL/CMD+U - Abre o upload de arquivo\n- CTRL/CMD+Up - Reimprime as última mensagem ou comando slash inserido\n- CTRL/CMD+SHIFT+A - Abre as configurações de conta\n- CTRL/CMD+SHIFT+M - Abre as menções recentes\n\n#### ALT\n\n- ALT+Up - Vai para o canal anterior\n- ALT+Down - Vai para o próximo canal\n- ALT+SHIFT+Up - Vai para o canal anterior com mensagens não lidas\n- ALT+SHIFT+Down - Vai para o próximo canal com mensagens não lidas\n\n#### Geral\n\n- Up - Edita a última mensagen\n- /+Up/Down - Exibe os camandos slash disponíveis\n"
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "shortcuts"
+    "translation": "atalhos"
   },
   {
     "id": "api.command_shrug.desc",
@@ -613,7 +621,7 @@
   },
   {
     "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+    "translation": "Armazenamento de arquivos não está configurado corretamente. Por favor configure S3 ou armazenamento de arquivos no servidor local."
   },
   {
     "id": "api.file.open_file_write_stream.creating_dir.app_error",
@@ -629,7 +637,7 @@
   },
   {
     "id": "api.file.read_file.configured.app_error",
-    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+    "translation": "Armazenamento de arquivos não está configurado corretamente. Por favor configure S3 ou armazenamento de arquivos no servidor local."
   },
   {
     "id": "api.file.read_file.get.app_error",
@@ -657,7 +665,7 @@
   },
   {
     "id": "api.file.write_file.configured.app_error",
-    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+    "translation": "Armazenamento de arquivos não está configurado corretamente. Por favor configure S3 ou armazenamento de arquivos no servidor local."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -670,6 +678,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Encontrado um erro ao gravar no servidor local de armazenamento"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Inicializando team api routes"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -901,7 +913,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
-    "translation": " in "
+    "translation": " em "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention",
@@ -913,7 +925,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
-    "translation": " posted in "
+    "translation": " postado em "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -1169,7 +1181,7 @@
   },
   {
     "id": "api.team.invite_members.already.app_error",
-    "translation": "Essa pessoa já está em sua equipe."
+    "translation": "Essa pessoa já está em sua equipe"
   },
   {
     "id": "api.team.invite_members.member",
@@ -1293,7 +1305,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Sua senha foi atualizada para {{.TeamDisplayName}} no {{ .TeamURL }} pelo {{.Method}}.<br>Se está mudança não foi iniciada por você, por favor entre em contato com o seu administrado do sistema"
+    "translation": "Sua senha foi atualizada para {{.TeamDisplayName}} no {{ .TeamURL }} pelo {{.Method}}.<br>Se está mudança não foi iniciada por você, por favor entre em contato com o seu administrado do sistema."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1593,7 +1605,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "ID do usuário ou o nome da equipe e e-mail deve ser fornecido"
+    "translation": "Id do usuário ou o nome da equipe e e-mail deve ser fornecido"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2049,7 +2061,7 @@
   },
   {
     "id": "manaultesting.manual_test.setup.info",
-    "translation": "Configuração para teste manual ..."
+    "translation": "Configuração para teste manual..."
   },
   {
     "id": "manaultesting.manual_test.uid.debug",
@@ -2161,7 +2173,7 @@
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -2205,7 +2217,7 @@
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": "ID do canal inválida"
+    "translation": "Id do canal inválida"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -2221,7 +2233,7 @@
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.client.connecting.app_error",
@@ -2277,7 +2289,7 @@
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",
@@ -2364,6 +2376,10 @@
     "translation": "Inválido máxima tentativas de login em configurações de serviço.  Deve ser um número positivo."
   },
   {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Definição da altura da pré-visualização inválida.  Deve ser zero ou um número positivo."
+  },
+  {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Inválido máximo de usuários por equipe em configurações de equipe.  Deve ser um número positivo."
   },
@@ -2429,11 +2445,11 @@
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
-    "translation": "ID app inválido"
+    "translation": "Id app inválido"
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
@@ -2513,7 +2529,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
@@ -2549,7 +2565,7 @@
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id Pai inválido"
+    "translation": "Id pai inválido"
   },
   {
     "id": "model.post.is_valid.props.app_error",
@@ -2557,7 +2573,7 @@
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
-    "translation": "Id raiz inválida."
+    "translation": "Id raiz inválida"
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
@@ -2573,7 +2589,7 @@
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.preference.is_valid.category.app_error",
@@ -2581,7 +2597,7 @@
   },
   {
     "id": "model.preference.is_valid.id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.preference.is_valid.name.app_error",
@@ -2645,7 +2661,7 @@
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -2673,7 +2689,7 @@
   },
   {
     "id": "model.user.is_valid.id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.user.is_valid.last_name.app_error",
@@ -2913,7 +2929,7 @@
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
-    "translation": "Nenhum canal foi encontrado."
+    "translation": "Nenhum canal foi encontrado"
   },
   {
     "id": "store.sql_channel.get_extra_members.app_error",
