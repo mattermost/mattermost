@@ -262,6 +262,17 @@ func TestCreateOutgoingHook(t *testing.T) {
 		t.Fatal("team ids didn't match")
 	}
 
+	hook = &model.OutgoingWebhook{ChannelId: channel1.Id, TriggerWords: []string{"cats", "dogs"}, CallbackURLs: []string{"http://nowhere.com", "http://cats.com"}}
+	hook1 := &model.OutgoingWebhook{ChannelId: channel1.Id, TriggerWords: []string{"cats"}, CallbackURLs: []string{"http://nowhere.com"}}
+
+	if _, err := Client.CreateOutgoingWebhook(hook); err != nil {
+		t.Fatal("multiple trigger words and urls failed")
+	}
+
+	if _, err := Client.CreateOutgoingWebhook(hook1); err == nil {
+		t.Fatal("should have failed - duplicate trigger words and urls")
+	}
+
 	hook = &model.OutgoingWebhook{ChannelId: "junk", CallbackURLs: []string{"http://nowhere.com"}}
 	if _, err := Client.CreateOutgoingWebhook(hook); err == nil {
 		t.Fatal("should have failed - bad channel id")

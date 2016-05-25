@@ -45,16 +45,28 @@ func TestCreateCommand(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
-	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
+	cmd1 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger"}
 
-	if _, err := Client.CreateCommand(cmd); err == nil {
+	if _, err := Client.CreateCommand(cmd1); err == nil {
 		t.Fatal("should have failed because not admin")
 	}
 
 	Client = th.SystemAdminClient
 
+	cmd2 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger"}
+
 	var rcmd *model.Command
-	if result, err := Client.CreateCommand(cmd); err != nil {
+	if result, err := Client.CreateCommand(cmd2); err != nil {
 		t.Fatal(err)
 	} else {
 		rcmd = result.Data.(*model.Command)
@@ -68,16 +80,19 @@ func TestCreateCommand(t *testing.T) {
 		t.Fatal("team ids didn't match")
 	}
 
-	cmd = &model.Command{CreatorId: "123", TeamId: "456", URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
-	if result, err := Client.CreateCommand(cmd); err != nil {
-		t.Fatal(err)
-	} else {
-		if result.Data.(*model.Command).CreatorId != user.Id {
-			t.Fatal("bad user id wasn't overwritten")
-		}
-		if result.Data.(*model.Command).TeamId != team.Id {
-			t.Fatal("bad team id wasn't overwritten")
-		}
+	cmd3 := &model.Command{
+		CreatorId: "123",
+		TeamId:    "456",
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger"}
+	if _, err := Client.CreateCommand(cmd3); err == nil {
+		t.Fatal("trigger cannot be duplicated")
+	}
+
+	cmd4 := cmd3
+	if _, err := Client.CreateCommand(cmd4); err == nil {
+		t.Fatal("command cannot be duplicated")
 	}
 }
 
