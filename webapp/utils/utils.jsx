@@ -556,6 +556,10 @@ export function toTitleCase(str) {
     return str.replace(/\w\S*/g, doTitleCase);
 }
 
+export function isHexColor(value) {
+    return value && (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i).test(value);
+}
+
 export function applyTheme(theme) {
     if (theme.sidebarBg) {
         changeCss('.app__body .sidebar--left, .app__body .sidebar--left .sidebar__divider .sidebar__divider__text, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .sidebar--menu', 'background:' + theme.sidebarBg, 1);
@@ -780,18 +784,6 @@ export function changeCss(className, classValue, classRepeat) {
 
     // append additional style
     classContainer.html('<style>' + className + ' {' + classValue + '}</style>');
-}
-
-export function rgb2hex(rgbIn) {
-    if (/^#[0-9A-F]{6}$/i.test(rgbIn)) {
-        return rgbIn;
-    }
-
-    var rgb = rgbIn.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-    function hex(x) {
-        return ('0' + parseInt(x, 10).toString(16)).slice(-2);
-    }
-    return '#' + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
 }
 
 export function updateCodeTheme(userTheme) {

@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 import 'bootstrap-colorpicker';
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
@@ -143,13 +144,17 @@ class CustomThemeChooser extends React.Component {
             return;
         }
 
+        // theme vectors are currently represented as a number of hex color codes followed by the code theme
+
         const colors = text.split(',');
 
         const theme = {type: 'custom'};
         let index = 0;
         Constants.THEME_ELEMENTS.forEach((element) => {
             if (index < colors.length - 1) {
-                theme[element.id] = colors[index];
+                if (Utils.isHexColor(colors[index])) {
+                    theme[element.id] = colors[index];
+                }
             }
             index++;
         });
