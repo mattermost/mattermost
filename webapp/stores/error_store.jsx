@@ -64,8 +64,10 @@ class ErrorStoreClass extends EventEmitter {
 
     clearLastError() {
         var lastError = this.getLastError();
+
+        // preview message can only be cleared by clearPreviewError
         if (lastError && lastError.email_preview) {
-            this.ignore_email_preview = true;
+            return;
         }
 
         BrowserStore.removeGlobalItem('last_error');
@@ -73,6 +75,12 @@ class ErrorStoreClass extends EventEmitter {
         if (lastError) {
             this.emitChange();
         }
+    }
+
+    clearPreviewError() {
+        this.ignore_email_preview = true;
+        this.storeLastError('');
+        this.clearLastError();
     }
 }
 
