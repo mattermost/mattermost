@@ -396,7 +396,10 @@ export function newLocalizationSelected(locale) {
 
         Client.getTranslations(
             localeInfo.url,
-            (data) => {
+            (data, res) => {
+                if (!data && res.text) {
+                    data = JSON.parse(res.text); //eslint-disable-line no-param-reassign
+                }
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_LOCALE,
                     locale,

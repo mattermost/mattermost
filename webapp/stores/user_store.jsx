@@ -4,7 +4,7 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from './localization_store.jsx';
 
 import Constants from 'utils/constants.jsx';
