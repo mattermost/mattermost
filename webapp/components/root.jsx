@@ -72,9 +72,6 @@ export default class Root extends React.Component {
 
         // Get our localizaiton
         GlobalActions.loadDefaultLocale();
-
-        // Redirect if Necessary
-        this.redirectIfNecessary(this.props);
     }
     componentWillUnmount() {
         LocalizationStore.removeChangeListener(this.localizationChanged);
