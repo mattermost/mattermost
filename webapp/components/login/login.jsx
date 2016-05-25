@@ -53,7 +53,7 @@ export default class Login extends React.Component {
         e.preventDefault();
 
         const loginId = this.state.loginId.trim();
-        const password = this.state.password.trim();
+        const password = this.state.password;
 
         if (global.window.mm_config.EnableMultifactorAuthentication === 'true') {
             Client.checkMfa(
