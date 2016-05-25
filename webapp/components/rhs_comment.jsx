@@ -3,22 +3,18 @@
 
 import UserProfile from './user_profile.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
+import PendingPostActions from './pending_post_actions.jsx';
 
-import PostStore from 'stores/post_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import * as GlobalActions from 'action_creators/global_actions.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
 
@@ -30,40 +26,9 @@ export default class RhsComment extends React.Component {
     constructor(props) {
         super(props);
 
-        this.retryComment = this.retryComment.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
 
         this.state = {};
-    }
-    retryComment(e) {
-        e.preventDefault();
-
-        var post = this.props.post;
-        Client.createPost(post,
-            (data) => {
-                AsyncClient.getPosts(post.channel_id);
-
-                var channel = ChannelStore.get(post.channel_id);
-                var member = ChannelStore.getMember(post.channel_id);
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = (new Date()).getTime();
-                ChannelStore.setChannelMember(member);
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST,
-                    post: data
-                });
-            },
-            () => {
-                post.state = Constants.POST_FAILED;
-                PostStore.updatePendingPost(post);
-                this.forceUpdate();
-            }
-        );
-
-        post.state = Constants.POST_LOADING;
-        PostStore.updatePendingPost(post);
-        this.forceUpdate();
     }
     handlePermalink(e) {
         e.preventDefault();
@@ -198,18 +163,7 @@ export default class RhsComment extends React.Component {
 
         if (post.state === Constants.POST_FAILED) {
             postClass += ' post-fail';
-            loading = (
-                <a
-                    className='theme post-retry pull-right'
-                    href='#'
-                    onClick={this.retryComment}
-                >
-                    <FormattedMessage
-                        id='rhs_comment.retry'
-                        defaultMessage='Retry'
-                    />
-                </a>
-            );
+            loading = <PendingPostActions post={this.props.post}/>;
         } else if (post.state === Constants.POST_LOADING) {
             postClass += ' post-waiting';
             loading = (

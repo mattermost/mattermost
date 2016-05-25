@@ -4,14 +4,9 @@
 import PostHeader from './post_header.jsx';
 import PostBody from './post_body.jsx';
 
-import PostStore from 'stores/post_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
-
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
-import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 
@@ -23,7 +18,6 @@ export default class Post extends React.Component {
 
         this.handleCommentClick = this.handleCommentClick.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
-        this.retryPost = this.retryPost.bind(this);
 
         this.state = {};
     }
@@ -43,36 +37,6 @@ export default class Post extends React.Component {
     forceUpdateInfo() {
         this.refs.info.forceUpdate();
         this.refs.header.forceUpdate();
-    }
-    retryPost(e) {
-        e.preventDefault();
-
-        var post = this.props.post;
-        Client.createPost(post,
-            (data) => {
-                AsyncClient.getPosts();
-
-                var channel = ChannelStore.get(post.channel_id);
-                var member = ChannelStore.getMember(post.channel_id);
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = Utils.getTimestamp();
-                ChannelStore.setChannelMember(member);
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST,
-                    post: data
-                });
-            },
-            () => {
-                post.state = Constants.POST_FAILED;
-                PostStore.updatePendingPost(post);
-                this.forceUpdate();
-            }
-        );
-
-        post.state = Constants.POST_LOADING;
-        PostStore.updatePendingPost(post);
-        this.forceUpdate();
     }
     shouldComponentUpdate(nextProps) {
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
@@ -245,7 +209,6 @@ export default class Post extends React.Component {
                                 parentPost={parentPost}
                                 posts={posts}
                                 handleCommentClick={this.handleCommentClick}
-                                retryPost={this.retryPost}
                                 compactDisplay={this.props.compactDisplay}
                             />
                         </div>
