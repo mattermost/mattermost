@@ -16,6 +16,7 @@ export default class YoutubeVideo extends React.Component {
         this.updateStateFromProps = this.updateStateFromProps.bind(this);
         this.handleReceivedMetadata = this.handleReceivedMetadata.bind(this);
         this.handleMetadataError = this.handleMetadataError.bind(this);
+        this.loadWithoutKey = this.loadWithoutKey.bind(this);
 
         this.play = this.play.bind(this);
         this.stop = this.stop.bind(this);
@@ -85,7 +86,13 @@ export default class YoutubeVideo extends React.Component {
         if (key) {
             WebClient.getYoutubeVideoInfo(key, this.state.videoId,
                 this.handleReceivedMetadata, this.handleMetadataError);
+        } else {
+            this.loadWithoutKey();
         }
+    }
+
+    loadWithoutKey() {
+        this.setState({loaded: true});
     }
 
     handleMetadataError() {
@@ -133,10 +140,6 @@ export default class YoutubeVideo extends React.Component {
     }
 
     render() {
-        if (!global.window.mm_config.GoogleDeveloperKey) {
-            return <div/>;
-        }
-
         if (!this.state.loaded) {
             return <div className='video-loading'/>;
         }
