@@ -224,6 +224,7 @@ export default class AddOutgoingWebhook extends React.Component {
                                     id='channelId'
                                     value={this.state.channelId}
                                     onChange={this.updateChannelId}
+                                    selectOpen={true}
                                 />
                             </div>
                         </div>

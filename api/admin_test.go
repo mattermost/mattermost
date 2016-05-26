@@ -138,8 +138,13 @@ func TestEmailTest(t *testing.T) {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	if _, err := th.SystemAdminClient.TestEmail(utils.Cfg); err != nil {
-		t.Fatal(err)
+	if _, err := th.SystemAdminClient.TestEmail(utils.Cfg); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		println(err.Id)
+		if err.Id != "api.admin.test_email.missing_server" {
+			t.Fatal(err)
+		}
 	}
 }
 

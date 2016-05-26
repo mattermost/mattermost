@@ -58,7 +58,12 @@ export default class ErrorBar extends React.Component {
             e.preventDefault();
         }
 
-        ErrorStore.clearLastError();
+        if (ErrorStore.getLastError() && ErrorStore.getLastError().email_preview) {
+            ErrorStore.clearPreviewError();
+        } else {
+            ErrorStore.clearLastError();
+        }
+
         this.setState({message: null});
     }
 

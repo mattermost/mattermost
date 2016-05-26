@@ -46,7 +46,8 @@ var flagCmdCreateUser bool
 var flagCmdAssignRole bool
 var flagCmdJoinTeam bool
 var flagCmdVersion bool
-var flagCmdRunClientTests bool
+var flagCmdRunWebClientTests bool
+var flagCmdRunJavascriptClientTests bool
 var flagCmdResetPassword bool
 var flagCmdResetMfa bool
 var flagCmdPermanentDeleteUser bool
@@ -261,7 +262,8 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
-	flag.BoolVar(&flagCmdRunClientTests, "run_client_tests", false, "")
+	flag.BoolVar(&flagCmdRunWebClientTests, "run_web_client_tests", false, "")
+	flag.BoolVar(&flagCmdRunJavascriptClientTests, "run_javascript_client_tests", false, "")
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
 	flag.BoolVar(&flagCmdResetMfa, "reset_mfa", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteUser, "permanent_delete_user", false, "")
@@ -279,7 +281,8 @@ func parseCmds() {
 		flagCmdResetPassword ||
 		flagCmdResetMfa ||
 		flagCmdVersion ||
-		flagCmdRunClientTests ||
+		flagCmdRunWebClientTests ||
+		flagCmdRunJavascriptClientTests ||
 		flagCmdPermanentDeleteUser ||
 		flagCmdPermanentDeleteTeam ||
 		flagCmdPermanentDeleteAllUsers ||
@@ -312,9 +315,7 @@ func setupClientTests() {
 	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
-func runClientTests() {
-	os.Chdir("webapp")
-	cmd := exec.Command("npm", "test")
+func executeTestCommand(cmd *exec.Cmd) {
 	cmdOutPipe, err := cmd.StdoutPipe()
 	if err != nil {
 		l4g.Error("Failed to run tests")
@@ -334,11 +335,30 @@ func runClientTests() {
 	}
 }
 
+func runWebClientTests() {
+	os.Chdir("webapp")
+	cmd := exec.Command("npm", "test")
+	executeTestCommand(cmd)
+}
+
+func runJavascriptClientTests() {
+	os.Chdir("../mattermost-driver-javascript")
+	cmd := exec.Command("npm", "test")
+	executeTestCommand(cmd)
+}
+
 func cmdRunClientTests() {
-	if flagCmdRunClientTests {
+	if flagCmdRunWebClientTests {
 		setupClientTests()
 		api.StartServer()
-		runClientTests()
+		runWebClientTests()
+		api.StopServer()
+	}
+
+	if flagCmdRunJavascriptClientTests {
+		setupClientTests()
+		api.StartServer()
+		runJavascriptClientTests()
 		api.StopServer()
 	}
 }
