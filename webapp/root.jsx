@@ -29,8 +29,8 @@ import * as Utils from 'utils/utils.jsx';
 
 import Client from 'utils/web_client.jsx';
 
-import * as Websockets from 'action_creators/websocket_actions.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as Websockets from 'actions/websocket_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import SignupUserComplete from 'components/signup_user_complete.jsx';
 import ShouldVerifyEmail from 'components/should_verify_email.jsx';
 import DoVerifyEmail from 'components/do_verify_email.jsx';
@@ -82,15 +82,15 @@ import LicenseSettings from 'components/admin_console/license_settings.jsx';
 import Audits from 'components/admin_console/audits.jsx';
 import Logs from 'components/admin_console/logs.jsx';
 
-import Claim from 'components/claim/claim.jsx';
+import ClaimController from 'components/claim/claim_controller.jsx';
 import EmailToOAuth from 'components/claim/components/email_to_oauth.jsx';
 import OAuthToEmail from 'components/claim/components/oauth_to_email.jsx';
 import LDAPToEmail from 'components/claim/components/ldap_to_email.jsx';
 import EmailToLDAP from 'components/claim/components/email_to_ldap.jsx';
 
-import Login from 'components/login/login.jsx';
+import LoginController from 'components/login/login_controller.jsx';
 import SelectTeam from 'components/select_team/select_team.jsx';
-import CreateTeam from 'components/create_team/create_team.jsx';
+import CreateTeamController from 'components/create_team/create_team_controller.jsx';
 import CreateTeamDisplayName from 'components/create_team/components/display_name.jsx';
 import CreateTeamTeamUrl from 'components/create_team/components/team_url.jsx';
 
@@ -279,7 +279,7 @@ function renderRootComponent() {
                 <Route component={HeaderFooterTemplate}>
                     <Route
                         path='login'
-                        component={Login}
+                        component={LoginController}
                     />
                     <Route
                         path='reset_password'
@@ -291,7 +291,7 @@ function renderRootComponent() {
                     />
                     <Route
                         path='claim'
-                        component={Claim}
+                        component={ClaimController}
                     >
                         <Route
                             path='oauth_to_email'
@@ -334,7 +334,7 @@ function renderRootComponent() {
                         />
                         <Route
                             path='create_team'
-                            component={CreateTeam}
+                            component={CreateTeamController}
                         >
                             <IndexRoute component={CreateTeamDisplayName}/>
                             <Route

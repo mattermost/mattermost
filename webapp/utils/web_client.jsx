@@ -4,7 +4,7 @@
 import Client from 'mattermost/client.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import request from 'superagent';
 

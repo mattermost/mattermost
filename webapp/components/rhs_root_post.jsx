@@ -9,7 +9,7 @@ import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 

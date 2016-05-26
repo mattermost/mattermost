@@ -35,7 +35,7 @@ import {Link, browserHistory} from 'react-router';
 
 import React from 'react';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 export default class Navbar extends React.Component {
     constructor(props) {

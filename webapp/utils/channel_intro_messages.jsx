@@ -8,7 +8,7 @@ import ToggleModalButton from 'components/toggle_modal_button.jsx';
 import UserProfile from 'components/user_profile.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import Constants from 'utils/constants.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'utils/web_client.jsx';
 
 import React from 'react';

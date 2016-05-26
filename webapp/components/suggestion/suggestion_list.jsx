@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 
 import React from 'react';
