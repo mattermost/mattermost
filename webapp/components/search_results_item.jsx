@@ -6,7 +6,7 @@ import UserProfile from './user_profile.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';

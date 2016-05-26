@@ -6,7 +6,7 @@ import $ from 'jquery';
 import Post from './post.jsx';
 import FloatingTimestamp from './floating_timestamp.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
