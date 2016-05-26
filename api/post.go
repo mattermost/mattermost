@@ -412,6 +412,8 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 			p.Set("user_id", post.UserId)
 			p.Set("user_name", user.Username)
 
+			p.Set("post_id", post.Id)
+
 			p.Set("text", post.Message)
 			p.Set("trigger_word", firstWord)
 

@@ -4,13 +4,17 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"net/http"
-	//"strings"
+	"net/http/httptest"
+	"strconv"
+	"strings"
+
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -103,6 +107,133 @@ func TestCreatePost(t *testing.T) {
 
 	if _, err = Client.DoApiPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
+	}
+}
+
+func TestCreatePostWithOutgoingHook(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+	user := th.SystemAdminUser
+	channel := th.CreateChannel(Client, team)
+
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+	}()
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+
+	var hook *model.OutgoingWebhook
+	var post *model.Post
+
+	// Create a test server that is the target of the outgoing webhook. It will
+	// validate the webhook body fields and write to the success channel on
+	// success/failure.
+	success := make(chan bool)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			t.Logf("Error parsing form: %q", err)
+			success <- false
+			return
+		}
+
+		if got, want := r.Form.Get("token"), hook.Token; got != want {
+			t.Logf("Token is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("team_id"), hook.TeamId; got != want {
+			t.Logf("TeamId is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("team_domain"), team.Name; got != want {
+			t.Logf("TeamDomain is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("channel_id"), post.ChannelId; got != want {
+			t.Logf("ChannelId is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("channel_name"), channel.Name; got != want {
+			t.Logf("ChannelName is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("timestamp"), strconv.FormatInt(post.CreateAt/1000, 10); got != want {
+			t.Logf("Timestamp is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("user_id"), post.UserId; got != want {
+			t.Logf("UserId is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("user_name"), user.Username; got != want {
+			t.Logf("Username is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("post_id"), post.Id; got != want {
+			t.Logf("PostId is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("text"), post.Message; got != want {
+			t.Logf("Message is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+		if got, want := r.Form.Get("trigger_word"), strings.Fields(post.Message)[0]; got != want {
+			t.Logf("TriggerWord is %s, should be %s", got, want)
+			success <- false
+			return
+		}
+
+		success <- true
+	}))
+	defer ts.Close()
+
+	// create an outgoing webhook, passing it the test server URL
+	triggerWord := "bingo"
+	hook = &model.OutgoingWebhook{
+		ChannelId:    channel.Id,
+		TriggerWords: []string{triggerWord},
+		CallbackURLs: []string{ts.URL},
+	}
+
+	if result, err := Client.CreateOutgoingWebhook(hook); err != nil {
+		t.Fatal(err)
+	} else {
+		hook = result.Data.(*model.OutgoingWebhook)
+	}
+
+	// create a post to trigger the webhook
+	message := triggerWord + " lorem ipusm"
+	post = &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+	}
+
+	if result, err := Client.CreatePost(post); err != nil {
+		t.Fatal(err)
+	} else {
+		post = result.Data.(*model.Post)
+	}
+
+	// We wait for the test server to write to the success channel and we make
+	// the test fail if that doesn't happen before the timeout.
+	select {
+	case ok := <-success:
+		if !ok {
+			t.Fatal("Test server was sent an invalid webhook.")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("Timeout, test server wasn't sent the webhook.")
 	}
 }
 
