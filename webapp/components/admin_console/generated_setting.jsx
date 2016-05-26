@@ -27,7 +27,7 @@ export default class GeneratedSetting extends React.Component {
             disabled: false,
             regenerateText: (
                 <FormattedMessage
-                    id='admin.email.regenerate'
+                    id='admin.regenerate'
                     defaultMessage='Re-Generate'
                 />
             )

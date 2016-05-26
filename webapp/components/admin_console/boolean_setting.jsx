@@ -67,13 +67,13 @@ export default class BooleanSetting extends React.Component {
 BooleanSetting.defaultProps = {
     trueText: (
         <FormattedMessage
-            id='admin.ldap.true'
+            id='admin.true'
             defaultMessage='true'
         />
     ),
     falseText: (
         <FormattedMessage
-            id='admin.ldap.false'
+            id='admin.false'
             defaultMessage='false'
         />
     ),
