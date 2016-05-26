@@ -71,6 +71,9 @@ api/data/*
 
 enterprise
 
+cover.out
+ecover.out
+
 .agignore
 .ctags
 tags

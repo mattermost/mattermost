@@ -7,6 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
+import PendingPostActions from './pending_post_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -25,10 +26,6 @@ export default class PostBody extends React.Component {
         }
 
         if (!Utils.areObjectsEqual(nextProps.compactDisplay, this.props.compactDisplay)) {
-            return true;
-        }
-
-        if (nextProps.retryPost.toString() !== this.props.retryPost.toString()) {
             return true;
         }
 
@@ -114,18 +111,7 @@ export default class PostBody extends React.Component {
         let loading;
         if (post.state === Constants.POST_FAILED) {
             postClass += ' post--fail';
-            loading = (
-                <a
-                    className='theme post-retry pull-right'
-                    href='#'
-                    onClick={this.props.retryPost}
-                >
-                    <FormattedMessage
-                        id='post_body.retry'
-                        defaultMessage='Retry'
-                    />
-                </a>
-            );
+            loading = <PendingPostActions post={this.props.post}/>;
         } else if (post.state === Constants.POST_LOADING) {
             postClass += ' post-waiting';
             loading = (

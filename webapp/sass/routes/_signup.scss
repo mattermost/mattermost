@@ -26,6 +26,10 @@
             @include flex(1.3 0 0);
             padding-right: 80px;
 
+            img {
+                max-width: 450px;
+            }
+
             p {
                 color: lighten($black, 50%);
             }

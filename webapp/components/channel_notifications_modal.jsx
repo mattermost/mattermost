@@ -182,7 +182,6 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const handleUpdateSection = function updateSection(e) {
                 this.updateSection('');
-                this.onListenerChange();
                 e.preventDefault();
             }.bind(this);
 
@@ -312,7 +311,6 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const handleUpdateSection = function handleUpdateSection(e) {
                 this.updateSection('');
-                this.onListenerChange();
                 e.preventDefault();
             }.bind(this);
 

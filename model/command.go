@@ -6,11 +6,14 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const (
 	COMMAND_METHOD_POST = "P"
 	COMMAND_METHOD_GET  = "G"
+	MIN_TRIGGER_LENGTH  = 1
+	MAX_TRIGGER_LENGTH  = 128
 )
 
 type Command struct {
@@ -99,7 +102,7 @@ func (o *Command) IsValid() *AppError {
 		return NewLocAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "")
 	}
 
-	if len(o.Trigger) == 0 || len(o.Trigger) > 128 {
+	if len(o.Trigger) < MIN_TRIGGER_LENGTH || len(o.Trigger) > MAX_TRIGGER_LENGTH || strings.Index(o.Trigger, "/") == 0 || strings.Contains(o.Trigger, " ") {
 		return NewLocAppError("Command.IsValid", "model.command.is_valid.trigger.app_error", nil, "")
 	}
 

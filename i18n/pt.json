@@ -64,12 +64,20 @@
     "translation": "Inicializando admin api routes"
   },
   {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Finished recycling the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>Parece que o seu email do Mattermost está configurado corretamente!"
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Teste de Configurações de EMail"
+    "translation": "Mattermost - Teste de Configurações de Email"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -225,7 +233,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Group instead of leaving."
+    "translation": "Você é o único membro que restou, tente remover o Grupo Privado ao invés de manter."
   },
   {
     "id": "api.channel.leave.left",
@@ -433,11 +441,23 @@
   },
   {
     "id": "api.command_msg.name",
-    "translation": "[mensagem]"
+    "translation": "mensagem"
   },
   {
     "id": "api.command_msg.success",
     "translation": "Mensagem enviada."
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Mostrar a lista de atalhos"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Atalhos do Teclado\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Abre o alternador de canal\n- CTRL/CMD+U - Abre o upload de arquivo\n- CTRL/CMD+Up - Reimprime as última mensagem ou comando slash inserido\n- CTRL/CMD+SHIFT+A - Abre as configurações de conta\n- CTRL/CMD+SHIFT+M - Abre as menções recentes\n\n#### ALT\n\n- ALT+Up - Vai para o canal anterior\n- ALT+Down - Vai para o próximo canal\n- ALT+SHIFT+Up - Vai para o canal anterior com mensagens não lidas\n- ALT+SHIFT+Down - Vai para o próximo canal com mensagens não lidas\n\n#### Geral\n\n- Up - Edita a última mensagen\n- /+Up/Down - Exibe os camandos slash disponíveis\n"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "atalhos"
   },
   {
     "id": "api.command_shrug.desc",
@@ -601,7 +621,7 @@
   },
   {
     "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+    "translation": "Armazenamento de arquivos não está configurado corretamente. Por favor configure S3 ou armazenamento de arquivos no servidor local."
   },
   {
     "id": "api.file.open_file_write_stream.creating_dir.app_error",
@@ -617,7 +637,7 @@
   },
   {
     "id": "api.file.read_file.configured.app_error",
-    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+    "translation": "Armazenamento de arquivos não está configurado corretamente. Por favor configure S3 ou armazenamento de arquivos no servidor local."
   },
   {
     "id": "api.file.read_file.get.app_error",
@@ -645,7 +665,7 @@
   },
   {
     "id": "api.file.write_file.configured.app_error",
-    "translation": "Armazenamento de arquivos não está configurado corretamente, Por favor configure S3 ou armazenamento de arquivos no servidor local."
+    "translation": "Armazenamento de arquivos não está configurado corretamente. Por favor configure S3 ou armazenamento de arquivos no servidor local."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -658,6 +678,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Encontrado um erro ao gravar no servidor local de armazenamento"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Inicializando team api routes"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -888,12 +912,20 @@
     "translation": "Nova Mensagem Direta"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": " em "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_mention",
     "translation": " você foi mencionado no "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " enviado a você uma mensagem direta"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " postado em "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -937,7 +969,7 @@
   },
   {
     "id": "api.post.update_post.system_message.app_error",
-    "translation": "Unable to update system message"
+    "translation": "Não foi possível atualizar a mensagem do sistema"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1149,7 +1181,7 @@
   },
   {
     "id": "api.team.invite_members.already.app_error",
-    "translation": "Essa pessoa já está em sua equipe."
+    "translation": "Essa pessoa já está em sua equipe"
   },
   {
     "id": "api.team.invite_members.member",
@@ -1273,7 +1305,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Sua senha foi atualizada para {{.TeamDisplayName}} no {{ .TeamURL }} pelo {{.Method}}.<br>Se está mudança não foi iniciada por você, por favor entre em contato com o seu administrado do sistema"
+    "translation": "Sua senha foi atualizada para {{.TeamDisplayName}} no {{ .TeamURL }} pelo {{.Method}}.<br>Se está mudança não foi iniciada por você, por favor entre em contato com o seu administrado do sistema."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1345,11 +1377,23 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>SUAS CONTAS DUPLICADAS FORAM ATUALIZADAS</h3>Seu servidor Mattermost está sendo atualizado para a Versão 3.0, o qual permite que você use uma única conta com multiplas equipes.<br/><br/>Você está recebendo este email porque durante o processo de atualização foi detectado que sua conta tinha o mesmo email e usuário em outras contas no servidor.<br/><br/>As seguintes atualizações foram feitas: <br/><br/>{{if .EmailChanged }}- O email duplicado da conta na equipe `/{{.TeamName}}` foi alterado para `{{.Email}}`. Se você usa email e senha para login, você pode usar este endereço de email para login.<br/><br/>{{end}}{{if .UsernameChanged }}- O usuário duplicado da conta na na equipe `/{{.TeamName}}` foi alterado para `{{.Username}}` para evitar confusões com outras contas.<br/><br/>{{end}} AÇÃO RECOMENDADA: <br/><br/>É recomendável que você acesse suas equipes usadas por suas contas duplicadas e adicione sua conta principal para a equipe e quaisquer canais públicos e grupos privados que deseja continuar usando. <br/><br/>Isto dá o acesso ao histórico para sua conta primária para todos os canais públicos e grupos privados. Você pode continuar acessando o histórico de mensagens diretas de suas contas duplicadas fazendo login com suas credenciais. <br/><br/>PARA MAIS INFORMAÇÕES: <br/><br/>Para mais informações sobre a atualização para o Mattermost 3.0 consulte: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>SUAS CONTAS DUPLICADAS FORAM ATUALIZADAS</h3>Seu servidor Mattermost está sendo atualizado para a Versão 3.0, o qual permite que você use uma única conta com múltiplas equipes.<br/><br/>Você está recebendo este email porque durante o processo de atualização foi detectado que sua conta tinha o mesmo email e usuário em outras contas no servidor.<br/><br/>As seguintes atualizações foram feitas: <br/><br/>{{if .EmailChanged }}- O email duplicado da conta na equipe `/{{.TeamName}}` foi alterado para `{{.Email}}`. Se você usa email e senha para login, você pode usar este endereço de email para login.<br/><br/>{{end}}{{if .UsernameChanged }}- O usuário duplicado da conta na na equipe `/{{.TeamName}}` foi alterado para `{{.Username}}` para evitar confusões com outras contas.<br/><br/>{{end}} AÇÃO RECOMENDADA: <br/><br/>É recomendável que você acesse suas equipes usadas por suas contas duplicadas e adicione sua conta principal para a equipe e quaisquer canais públicos e grupos privados que deseja continuar usando. <br/><br/>Isto dá o acesso ao histórico para sua conta primária para todos os canais públicos e grupos privados. Você pode continuar acessando o histórico de mensagens diretas de suas contas duplicadas fazendo login com suas credenciais. <br/><br/>PARA MAIS INFORMAÇÕES: <br/><br/>Para mais informações sobre a atualização para o Mattermost 3.0 consulte: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
     "translation": "[MATTERMOST] Alterações da sua conta na atualização Mattermost 3.0"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Seu nome de usuário para {{.TeamDisplayName}} foi alterado para {{.NewEmail}}.<br>Se você não fez está mudança, por favor contate o administrador do sistema."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Você atualizou seu nome de usuário"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Seu nome de usuário foi alterado para {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1561,7 +1605,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "ID do usuário ou o nome da equipe e e-mail deve ser fornecido"
+    "translation": "Id do usuário ou o nome da equipe e e-mail deve ser fornecido"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -1638,6 +1682,10 @@
   {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Falha ao enviar com sucesso uma notificação por email err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "Falha ao enviar notificação por email sobre alteração do nome do usuário err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -2013,7 +2061,7 @@
   },
   {
     "id": "manaultesting.manual_test.setup.info",
-    "translation": "Configuração para teste manual ..."
+    "translation": "Configuração para teste manual..."
   },
   {
     "id": "manaultesting.manual_test.uid.debug",
@@ -2037,7 +2085,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "Versão atual é %v (%v/%v/%v)"
+    "translation": "Versão atual é %v (%v/%v/%v/%v)"
   },
   {
     "id": "mattermost.entreprise_enabled",
@@ -2125,7 +2173,7 @@
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -2169,7 +2217,7 @@
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": "ID do canal inválida"
+    "translation": "Id do canal inválida"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -2185,7 +2233,7 @@
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.client.connecting.app_error",
@@ -2241,7 +2289,7 @@
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",
@@ -2328,6 +2376,10 @@
     "translation": "Inválido máxima tentativas de login em configurações de serviço.  Deve ser um número positivo."
   },
   {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Definição da altura da pré-visualização inválida.  Deve ser zero ou um número positivo."
+  },
+  {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Inválido máximo de usuários por equipe em configurações de equipe.  Deve ser um número positivo."
   },
@@ -2393,11 +2445,11 @@
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
-    "translation": "ID app inválido"
+    "translation": "Id app inválido"
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
@@ -2477,7 +2529,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
@@ -2513,7 +2565,7 @@
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Id Pai inválido"
+    "translation": "Id pai inválido"
   },
   {
     "id": "model.post.is_valid.props.app_error",
@@ -2521,7 +2573,7 @@
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
-    "translation": "Id raiz inválida."
+    "translation": "Id raiz inválida"
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
@@ -2537,7 +2589,7 @@
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.preference.is_valid.category.app_error",
@@ -2545,7 +2597,7 @@
   },
   {
     "id": "model.preference.is_valid.id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.preference.is_valid.name.app_error",
@@ -2609,7 +2661,7 @@
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -2637,7 +2689,7 @@
   },
   {
     "id": "model.user.is_valid.id.app_error",
-    "translation": "ID de usuário inválido"
+    "translation": "Id de usuário inválido"
   },
   {
     "id": "model.user.is_valid.last_name.app_error",
@@ -2877,7 +2929,7 @@
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
-    "translation": "Nenhum canal foi encontrado."
+    "translation": "Nenhum canal foi encontrado"
   },
   {
     "id": "store.sql_channel.get_extra_members.app_error",
@@ -3512,6 +3564,10 @@
     "translation": "Uma conta com este email já existe."
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "Está conta não usa autenticação LDAP. Por favor faça login usando email e senha."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Deve chamar update para o usuário existente"
   },
@@ -3526,6 +3582,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "Uma conta com este nome de usuário já existe."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "Uma conta com este nome de usuário já existe. Por favor contate seu Administrador."
   },
   {
     "id": "store.sql_user.update.app_error",

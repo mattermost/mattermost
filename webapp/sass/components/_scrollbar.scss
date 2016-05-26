@@ -29,3 +29,11 @@ body {
     @include border-radius(2px);
     @include alpha-property(background-color, $black, .5);
 }
+
+.scrollbar--view {
+    -ms-overflow-style: none;
+
+    .browser--ie & {
+        margin: 0 !important;
+    }
+}

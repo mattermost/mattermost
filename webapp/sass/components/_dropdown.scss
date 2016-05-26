@@ -6,6 +6,11 @@
         z-index: 2500;
     }
 
+    .fa {
+        @include opacity(.6);
+        margin-right: 5px;
+    }
+
     .divider {
         @include opacity(.15);
     }

@@ -31,9 +31,7 @@ var CfgFileName string = ""
 var ClientCfg map[string]string = map[string]string{}
 
 func FindConfigFile(fileName string) string {
-	if _, err := os.Stat("/tmp/" + fileName); err == nil {
-		fileName, _ = filepath.Abs("/tmp/" + fileName)
-	} else if _, err := os.Stat("./config/" + fileName); err == nil {
+	if _, err := os.Stat("./config/" + fileName); err == nil {
 		fileName, _ = filepath.Abs("./config/" + fileName)
 	} else if _, err := os.Stat("../config/" + fileName); err == nil {
 		fileName, _ = filepath.Abs("../config/" + fileName)
@@ -50,8 +48,6 @@ func FindDir(dir string) string {
 		fileName, _ = filepath.Abs("./" + dir + "/")
 	} else if _, err := os.Stat("../" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("../" + dir + "/")
-	} else if _, err := os.Stat("/tmp/" + dir); err == nil {
-		fileName, _ = filepath.Abs("/tmp/" + dir)
 	}
 
 	return fileName + "/"
@@ -202,6 +198,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["BuildNumber"] = model.BuildNumber
 	props["BuildDate"] = model.BuildDate
 	props["BuildHash"] = model.BuildHash
+	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName
@@ -223,6 +220,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
+	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)

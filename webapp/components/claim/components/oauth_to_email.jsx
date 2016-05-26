@@ -21,14 +21,14 @@ export default class OAuthToEmail extends React.Component {
         e.preventDefault();
         const state = {};
 
-        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.password).value;
         if (!password) {
             state.error = Utils.localizeMessage('claim.oauth_to_email.enterPwd', 'Please enter a password.');
             this.setState(state);
             return;
         }
 
-        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value.trim();
+        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value;
         if (!confirmPassword || password !== confirmPassword) {
             state.error = Utils.localizeMessage('claim.oauth_to_email.pwdNotMatch', 'Password do not match.');
             this.setState(state);

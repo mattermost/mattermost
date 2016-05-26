@@ -64,6 +64,14 @@
     "translation": "管理者APIルートを初期化しています"
   },
   {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Finished recycling the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>あなたのMattermostの電子メールアドレスは正しく設定されています!"
   },
@@ -440,6 +448,18 @@
     "translation": "ユーザーにメッセージを送信しました。"
   },
   {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Displays a list of keyboard shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Keyboard Shortcuts\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Open up channel switcher\n- CTRL/CMD+U - Open up file upload\n- CTRL/CMD+Up - Reprint last message or slash command entered\n- CTRL/CMD+SHIFT+A - Open account settings\n- CTRL/CMD+SHIFT+M - Open recent mentions\n\n#### ALT\n\n- ALT+Up - Go to previous channel\n- ALT+Down - Go to next channel\n- ALT+SHIFT+Up - Go to previous channel with unread messages\n- ALT+SHIFT+Down - Go to next channel with unread messages\n\n#### General\n\n- Up - Edit last message\n- /+Up/Down - See available slash commands\n"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "shortcuts"
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "¯\\_(ツ)_/¯をあなたのメッセージに追加します"
   },
@@ -658,6 +678,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "ローカルサーバーストレージへの書き込みに失敗しました"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "チームAPIルートを初期化しています"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -888,12 +912,20 @@
     "translation": "新しいダイレクトメッセージ"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": " in "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_mention",
     "translation": "があなたについて話しました:"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "があなたにダイレクトメッセージを送りました"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " posted in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -1352,6 +1384,18 @@
     "translation": "[MATTERMOST] Mattermost 3.0アップデートのためのあなたのアカウントの変更"
   },
   {
+    "id": "api.templates.username_change_body.info",
+    "translation": "あなたの{{.TeamDisplayName}}用の電子メールアドレスが{{.NewEmail}}に変更されました。<br>あなたがこの変更をしていない場合には、システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "あなたは電子メールアドレスを更新しました"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "{{.TeamDisplayName}}用に電子メールアドレスが変更されました"
+  },
+  {
     "id": "api.templates.verify_body.button",
     "translation": "電子メールアドレスを確認する"
   },
@@ -1637,6 +1681,10 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
+    "translation": "電子メールアドレス変更の確認の電子メールを送信できませんでした err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
     "translation": "電子メールアドレス変更の確認の電子メールを送信できませんでした err=%v"
   },
   {
@@ -2326,6 +2374,10 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "サービス設定の最大ログイン試行回数が不正です。正の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "ファイル設定のプレビューの高さが不正です。ゼロ以上の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3512,6 +3564,10 @@
     "translation": "その電子メールアドレスを持つアカウントは既に存在しています"
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "既存のユーザーの更新をしなくてはいけません"
   },
@@ -3526,6 +3582,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "そのユーザー名を持つアカウントは既に存在しています"
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
     "id": "store.sql_user.update.app_error",

@@ -7,8 +7,10 @@
     overflow: auto;
     padding: 0 20px;
 
-    > div {
-        height: 100%;
+    .dropdown-menu {
+        .divider {
+            @include opacity(1);
+        }
     }
 
     .inner-wrap {
@@ -21,6 +23,11 @@
         font-weight: 600;
         margin: 1em 0;
         padding-bottom: .5em;
+    }
+
+    h4 {
+        font-weight: 600;
+        margin-bottom: 2em;
     }
 
     .form-control {
@@ -233,12 +240,15 @@
 
 .admin-sidebar {
     background: #333;
-    border-right: 1px solid #ddd;
     height: 100%;
     left: 0;
     position: absolute;
     width: 220px;
     z-index: 5;
+
+    .dropdown-menu {
+        min-width: 200px;
+    }
 
     .team__header {
         background: transparent;
@@ -271,6 +281,12 @@
         }
     }
 
+    .sidebar-section {
+        > .sidebar-section-title {
+            position: relative;
+        }
+    }
+
     .sidebar-section-title {
         padding: 5px 35px 5px 15px;
     }
@@ -298,6 +314,27 @@
         &--active {
             color: $white;
             font-weight: 600;
+
+            &:after {
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased;
+                color: whitesmoke;
+                content: "\f0d9";
+                display: inline-block;
+                font: normal normal normal 26px/1 FontAwesome;
+                position: absolute;
+                right: -1px;
+                text-rendering: auto;
+                top: 3px;
+            }
+        }
+    }
+
+    .sidebar-subsection-title {
+        &--active {
+            &:after {
+                top: 2px;
+            }
         }
     }
 

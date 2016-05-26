@@ -40,7 +40,7 @@
     }
 
     .dropdown-menu {
-        max-height: 400px;
+        max-height: 80vh;
         max-width: 200px;
         overflow-x: hidden;
         overflow-y: auto;
@@ -138,6 +138,12 @@
                 margin: 1.1em 0 .5em;
                 padding: 0 10px 0 15px;
                 text-transform: uppercase;
+            }
+
+            .divider {
+                & + .divider {
+                    display: none;
+                }
             }
 
             > a {

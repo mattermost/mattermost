@@ -106,7 +106,6 @@ describe('Client.Team', function() {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getAllTeamListings(
                 function(data) {
-                    console.log(data);
                     assert.equal(data != null, true);
                     done();
                 },

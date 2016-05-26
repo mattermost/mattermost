@@ -64,6 +64,14 @@
     "translation": "Inicializando rutas del API para la administración"
   },
   {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Terminado el reciclaje de la conexión de base de datos"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Tratando de reciclar la conexión de base de datos"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>Parece que tu correo electrónico para Mattermost fue configurado correctamente!"
   },
@@ -440,6 +448,18 @@
     "translation": "Mensaje enviado al usuario."
   },
   {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Muestra una lista de los accesos rápidos de teclado"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Accesos rápidos de teclado\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Abre un dialogo para cambiar de canal\n- CTRL/CMD+U - Abre el dialogo para subir un archivo\n- CTRL/CMD+Up - Vuelve a escribir el último mensaje o comando de barra\n- CTRL/CMD+SHIFT+A - Abre configurar cuenta\n- CTRL/CMD+SHIFT+M - Abre menciones recientes\n\n#### ALT\n\n- ALT+Arriba - Ir al canal anterior\n- ALT+Abajo - Ir al canal siguiente\n- ALT+SHIFT+Arriba - Ir al canal anterior con mensajes no leidos\n- ALT+SHIFT+Abajo - Ir al canal siguiente con mensajes no leidos\n\n#### General\n\n- Arriba - Edita el último mensaje\n- /+Arriba/Abajo - Ver los comandos de barra disponibles\n"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "accesos rápidos de teclado"
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "Agrega ¯\\_(ツ)_/¯ a tu mensaje"
   },
@@ -658,6 +678,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Se encontró un error al escribir en el almacenamiento del servidor local"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Inicializando rutas generales del API"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -888,12 +912,20 @@
     "translation": "Nuevo Mensaje Directo"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": " en "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_mention",
     "translation": " te mencionó en "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " te envió un mensaje directo"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " publicado en "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -937,7 +969,7 @@
   },
   {
     "id": "api.post.update_post.system_message.app_error",
-    "translation": "Unable to update system message"
+    "translation": "No se puede actualizar el mensaje del sistema"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1352,6 +1384,18 @@
     "translation": "[MATTERMOST] Cambios a tu cuenta para la Actualización a Mattermost 3.0"
   },
   {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Tu nombre de usuario en {{.TeamDisplayName}} ha sido cambiado por {{.NewUsername}}.<br>Si este cambio no fue realizado por ti, por favor contacta un administrador de sistema."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Haz actualizado tu nombre de usuario"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Tu nombre de usuario para {{.TeamDisplayName}} ha cambiado"
+  },
+  {
     "id": "api.templates.verify_body.button",
     "translation": "Confirmar Correo"
   },
@@ -1638,6 +1682,10 @@
   {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Falla al enviar la notificación por correo electrónico del cambio de correo err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "Falla al enviar la notificación por correo electrónico del cambio de nombre de usuario err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -2037,7 +2085,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "La versión actual es %v (%v/%v/%v)"
+    "translation": "La versión actual es %v (%v/%v/%v/%v)"
   },
   {
     "id": "mattermost.entreprise_enabled",
@@ -2326,6 +2374,10 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Número inválido de máximos intentos de inició de sesión en la configuración del servicio.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "El tamaño máximo de archivo para la configuración de archivos es inválido. Debe ser un cero o un número positivo."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3512,6 +3564,10 @@
     "translation": "Ya existe una cuenta con ese correo electrónico."
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "Esta cuenta no tiene autenticación por LDAP. Por favor inicia sesión utilizando el correo electrónico y contraseña."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Debe ejecutarse actualizar para un usuario existente"
   },
@@ -3526,6 +3582,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "Una cuenta con ese nombre de usuario ya existe."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "Una cuenta con ese nombre de usuario ya existe. Por favor contacta a tu Administrador."
   },
   {
     "id": "store.sql_user.update.app_error",

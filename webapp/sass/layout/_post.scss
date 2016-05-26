@@ -506,6 +506,7 @@ body.ios {
             height: 26px;
             line-height: 25px;
             padding: 0 7px;
+            width: auto;
 
             .post-image__thumbnail {
                 display: none;
@@ -600,6 +601,12 @@ body.ios {
                 }
             }
 
+            .post__img {
+                img {
+                    display: none;
+                }
+            }
+
             .post__header {
                 height: 0;
                 margin: 0;
@@ -619,9 +626,11 @@ body.ios {
                 display: none;
             }
 
-            .post__img {
-                img {
-                    display: none;
+            &.same--user {
+                .post__img {
+                    img {
+                        display: none;
+                    }
                 }
             }
         }
@@ -718,11 +727,11 @@ body.ios {
     }
 
     .post__img {
-        width: 46px;
+        width: 42px;
 
         svg {
-            height: 36px;
-            width: 36px;
+            height: 32px;
+            width: 32px;
         }
 
         path {
@@ -731,9 +740,9 @@ body.ios {
 
         img {
             @include border-radius(50px);
-            height: 36px;
+            height: 32px;
             vertical-align: inherit;
-            width: 36px;
+            width: 32px;
         }
     }
 
@@ -805,6 +814,7 @@ body.ios {
         padding: .2em .5em;
         width: calc(100% - 75px);
         word-wrap: break-word;
+        position: relative;
 
         p {
             margin: 0 0 .4em;
@@ -868,6 +878,20 @@ body.ios {
             &:before {
                 content: '\2022';
                 margin-right: 8px;
+            }
+        }
+
+        .pending-post-actions {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 5px 7px;
+            background: rgba(0, 0, 0, .7);
+            color: white;
+            font-size: .9em;
+
+            a {
+                color: white;
             }
         }
     }

@@ -57,11 +57,19 @@
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "Image storage is not configured."
+    "translation": "Le stockage pour les images n'est pas configuré."
   },
   {
     "id": "api.admin.init.debug",
     "translation": "Initialisation des routes API d'administration"
+  },
+  {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Finished recycling the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
   },
   {
     "id": "api.admin.test_email.body",
@@ -440,6 +448,18 @@
     "translation": "Messaged user."
   },
   {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Displays a list of keyboard shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Keyboard Shortcuts\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Open up channel switcher\n- CTRL/CMD+U - Open up file upload\n- CTRL/CMD+Up - Reprint last message or slash command entered\n- CTRL/CMD+SHIFT+A - Open account settings\n- CTRL/CMD+SHIFT+M - Open recent mentions\n\n#### ALT\n\n- ALT+Up - Go to previous channel\n- ALT+Down - Go to next channel\n- ALT+SHIFT+Up - Go to previous channel with unread messages\n- ALT+SHIFT+Down - Go to next channel with unread messages\n\n#### General\n\n- Up - Edit last message\n- /+Up/Down - See available slash commands\n"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "shortcuts"
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "Ajoute ¯\\_(ツ)_/¯ à votre message"
   },
@@ -658,6 +678,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Une erreur est survenue durant l'écriture sur le stockage du serveur local"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Initialisation des routes de l'api des équipes"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -888,12 +912,20 @@
     "translation": "Nouveau Message Privé"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": " in "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_mention",
     "translation": " vous a mentionné sur "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " vous a envoyé un message privé"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " posted in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -1204,18 +1236,6 @@
     "translation": "Votre adresse électronique a été modifiée pour {{.TeamDisplayName}}"
   },
   {
-    "id": "api.templates.username_change_body.info",
-    "translation": "Votre nom d'utilisateur pour {{.TeamDisplayName}} a été modifiée en {{.NewUsername}}.<br>Si vous n'êtes pas à l'origine de cette action, veuillez contacter votre administrateur système."
-  },
-  {
-    "id": "api.templates.username_change_body.title",
-    "translation": "Vous avez mis à jour votre nom d'utilisateur."
-  },
-  {
-    "id": "api.templates.username_change_subject",
-    "translation": "Votre nom d'utilisateur a été modifiée pour {{.TeamDisplayName}}"
-  },
-  {
     "id": "api.templates.email_change_verify_body.button",
     "translation": "Vérifier votre adresse électronique"
   },
@@ -1362,6 +1382,18 @@
   {
     "id": "api.templates.upgrade_30_subject.info",
     "translation": "[MATTERMOST] Changes to your account for Mattermost 3.0 Upgrade"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Votre adresse électronique pour {{.TeamDisplayName}} a été modifiée en {{.NewEmail}}.<br>Si vous n'êtes pas à l'origine de cette action, veuillez contacter votre administrateur système."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "Vous avez mis à jour votre adresse électronique."
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Votre adresse électronique a été modifiée pour {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1653,7 +1685,7 @@
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Impossible d'envoyer le courriel de changement de nom d'utilisateur err=%v"
+    "translation": "Impossible d'envoyer le courriel de changement d'adresse électronique err=%v"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -2342,6 +2374,10 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Nombre maximum de tentatives de connexion invalide dans les paramètre de service. Doit être un entier positif."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Hauteur des aperçus invalide dans les paramètres de fichiers. Doit être 0 ou un entier positif."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3528,6 +3564,10 @@
     "translation": "Un compte avec cette adresse électronique existe déjà."
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "La mise à jour doit être appelée pour un utilisateur existant."
   },
@@ -3542,6 +3582,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "Un compte avec ce nom d'utilisateur existe déjà."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
     "id": "store.sql_user.update.app_error",

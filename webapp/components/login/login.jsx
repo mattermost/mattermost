@@ -53,7 +53,7 @@ export default class Login extends React.Component {
         e.preventDefault();
 
         const loginId = this.state.loginId.trim();
-        const password = this.state.password.trim();
+        const password = this.state.password;
 
         if (global.window.mm_config.EnableMultifactorAuthentication === 'true') {
             Client.checkMfa(
@@ -259,6 +259,7 @@ export default class Login extends React.Component {
                                 onChange={this.handleLoginIdChange}
                                 placeholder={this.createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled)}
                                 spellCheck='false'
+                                autoCapitalize='off'
                             />
                         </div>
                         <div className={'form-group' + errorClass}>
@@ -291,7 +292,10 @@ export default class Login extends React.Component {
 
         if (global.window.mm_config.EnableOpenServer === 'true') {
             loginControls.push(
-                <div key='signup'>
+                <div
+                    className='form-group'
+                    key='signup'
+                >
                     <span>
                         <FormattedMessage
                             id='login.noAccount'

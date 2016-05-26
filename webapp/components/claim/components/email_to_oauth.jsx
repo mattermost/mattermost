@@ -20,7 +20,7 @@ export default class EmailToOAuth extends React.Component {
         e.preventDefault();
         var state = {};
 
-        var password = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        var password = ReactDOM.findDOMNode(this.refs.password).value;
         if (!password) {
             state.error = Utils.localizeMessage('claim.email_to_oauth.pwdError', 'Please enter your password.');
             this.setState(state);

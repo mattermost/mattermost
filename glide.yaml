@@ -7,6 +7,7 @@ import:
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
 - package: github.com/go-gorp/gorp
+  version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - package: github.com/go-ldap/ldap
 - package: github.com/go-sql-driver/mysql
 - package: github.com/goamz/goamz
