@@ -8,7 +8,7 @@ import PendingPostActions from './pending_post_actions.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';

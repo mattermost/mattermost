@@ -8,7 +8,7 @@ import {browserHistory, Link} from 'react-router';
 
 import React from 'react';
 
-export default class CreateTeam extends React.Component {
+export default class CreateTeamController extends React.Component {
     constructor(props) {
         super(props);
 
@@ -67,6 +67,6 @@ export default class CreateTeam extends React.Component {
     }
 }
 
-CreateTeam.propTypes = {
+CreateTeamController.propTypes = {
     children: React.PropTypes.node
 };

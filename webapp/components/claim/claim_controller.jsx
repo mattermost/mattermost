@@ -7,7 +7,7 @@ import {Link} from 'react-router';
 
 import logoImage from 'images/logo.png';
 
-export default class Claim extends React.Component {
+export default class ClaimController extends React.Component {
     constructor(props) {
         super(props);
 
@@ -51,9 +51,9 @@ export default class Claim extends React.Component {
     }
 }
 
-Claim.defaultProps = {
+ClaimController.defaultProps = {
 };
-Claim.propTypes = {
+ClaimController.propTypes = {
     location: React.PropTypes.object.isRequired,
     children: React.PropTypes.node
 };

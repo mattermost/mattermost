@@ -8,7 +8,7 @@ import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as Websockets from 'action_creators/websocket_actions.jsx';
+import * as Websockets from 'actions/websocket_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router';

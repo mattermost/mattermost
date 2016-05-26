@@ -3,7 +3,9 @@
 
 import FormError from 'components/form_error.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+
+import * as GlobalActions from 'actions/global_actions.jsx';
+import {track} from 'actions/analytics_actions.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -12,11 +14,10 @@ import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {browserHistory, Link} from 'react-router';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {browserHistory, Link} from 'react-router';
 
 import logoImage from 'images/logo.png';
 
@@ -199,7 +200,7 @@ export default class SignupUserComplete extends React.Component {
     }
 
     handleUserCreated(user, data) {
-        Client.track('signup', 'signup_user_02_complete');
+        track('signup', 'signup_user_02_complete');
         Client.loginById(
             data.id,
             user.password,
@@ -405,7 +406,7 @@ export default class SignupUserComplete extends React.Component {
     }
 
     render() {
-        Client.track('signup', 'signup_user_01_welcome');
+        track('signup', 'signup_user_01_welcome');
 
         // If we have been used then just display a message
         if (this.state.usedBefore) {

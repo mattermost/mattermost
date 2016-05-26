@@ -5,7 +5,7 @@ import LoginMfa from './components/login_mfa.jsx';
 import ErrorBar from 'components/error_bar.jsx';
 import FormError from 'components/form_error.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import Client from 'utils/web_client.jsx';
@@ -21,7 +21,7 @@ import {browserHistory, Link} from 'react-router';
 import React from 'react';
 import logoImage from 'images/logo.png';
 
-export default class Login extends React.Component {
+export default class LoginController extends React.Component {
     constructor(props) {
         super(props);
 
@@ -446,8 +446,8 @@ export default class Login extends React.Component {
     }
 }
 
-Login.defaultProps = {
+LoginController.defaultProps = {
 };
-Login.propTypes = {
+LoginController.propTypes = {
     params: React.PropTypes.object.isRequired
 };

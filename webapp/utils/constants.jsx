@@ -88,6 +88,7 @@ export default {
         RECEIVED_MSG: null,
 
         RECEIVED_MY_TEAM: null,
+        CREATED_TEAM: null,
 
         RECEIVED_CONFIG: null,
         RECEIVED_LOGS: null,
@@ -723,6 +724,8 @@ export default {
         }
     },
     OVERLAY_TIME_DELAY: 400,
+    MIN_TEAMNAME_LENGTH: 4,
+    MAX_TEAMNAME_LENGTH: 15,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 22,
     MIN_PASSWORD_LENGTH: 5,

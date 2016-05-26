@@ -13,7 +13,7 @@ import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-
 import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;

@@ -4,7 +4,7 @@
 //import $ from 'jquery';
 //import Client from 'utils/web_client.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 
 import {IntlProvider} from 'react-intl';

@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';

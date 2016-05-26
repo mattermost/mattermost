@@ -10,7 +10,7 @@ import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
