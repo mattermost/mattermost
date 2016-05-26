@@ -270,6 +270,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='pushNotificationLevel'
                                 checked={notifyActive[0]}
                                 onChange={this.handlePushRadio.bind(this, 'all')}
                             />
@@ -284,6 +285,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='pushNotificationLevel'
                                 checked={notifyActive[1]}
                                 onChange={this.handlePushRadio.bind(this, 'mention')}
                             />
@@ -298,6 +300,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='pushNotificationLevel'
                                 checked={notifyActive[2]}
                                 onChange={this.handlePushRadio.bind(this, 'none')}
                             />
@@ -393,6 +396,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[0]}
                                 onChange={this.handleNotifyRadio.bind(this, 'all')}
                             />
@@ -407,6 +411,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[1]}
                                 onChange={this.handleNotifyRadio.bind(this, 'mention')}
                             />
@@ -421,6 +426,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[2]}
                                 onChange={this.handleNotifyRadio.bind(this, 'none')}
                             />
@@ -508,6 +514,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='notificationSounds'
                                 checked={soundActive[0]}
                                 onChange={this.handleSoundRadio.bind(this, 'true')}
                             />
@@ -522,6 +529,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='notificationSounds'
                                 checked={soundActive[1]}
                                 onChange={this.handleSoundRadio.bind(this, 'false')}
                             />
@@ -611,6 +619,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='emailNotifications'
                                 checked={emailActive[0]}
                                 onChange={this.handleEmailRadio.bind(this, 'true')}
                             />
@@ -625,6 +634,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='emailNotifications'
                                 checked={emailActive[1]}
                                 onChange={this.handleEmailRadio.bind(this, 'false')}
                             />

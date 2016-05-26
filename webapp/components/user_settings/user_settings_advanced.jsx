@@ -173,6 +173,7 @@ class AdvancedSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='sendOnCtrlEnter'
                                 checked={ctrlSendActive[0]}
                                 onChange={this.updateSetting.bind(this, 'send_on_ctrl_enter', 'true')}
                             />
@@ -187,6 +188,7 @@ class AdvancedSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='sendOnCtrlEnter'
                                 checked={ctrlSendActive[1]}
                                 onChange={this.updateSetting.bind(this, 'send_on_ctrl_enter', 'false')}
                             />
