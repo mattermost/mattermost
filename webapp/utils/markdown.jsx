@@ -120,14 +120,20 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         return `<div class="table-responsive"><table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
     }
 
-    listitem(text) {
+    listitem(text, bullet) {
         const taskListReg = /^\[([ |xX])\] /;
         const isTaskList = taskListReg.exec(text);
 
         if (isTaskList) {
             return `<li class="list-item--task-list">${'<input type="checkbox" disabled="disabled" ' + (isTaskList[1] === ' ' ? '' : 'checked="checked" ') + '/> '}${text.replace(taskListReg, '')}</li>`;
         }
-        return `<li>${text}</li>`;
+
+        if (/^\d+.$/.test(bullet)) {
+            // this is a numbered list item so override the numbering
+            return `<li value="${parseInt(bullet)}">${text}</li>`;
+        } else {
+            return `<li>${text}</li>`;
+        }
     }
 
     text(txt) {
