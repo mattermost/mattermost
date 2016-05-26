@@ -62,6 +62,10 @@ export default class SuggestionList extends React.Component {
 
     scrollToItem(term) {
         const content = this.getContent();
+        if (!content) {
+            return;
+        }
+
         const visibleContentHeight = content[0].clientHeight;
         const actualContentHeight = content[0].scrollHeight;
 
