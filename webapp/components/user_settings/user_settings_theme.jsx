@@ -214,6 +214,7 @@ export default class ThemeSetting extends React.Component {
                     <label>
                         <input
                             type='radio'
+                            name='theme'
                             checked={!displayCustom}
                             onChange={this.updateType.bind(this, 'premade')}
                         />
@@ -236,6 +237,7 @@ export default class ThemeSetting extends React.Component {
                     <label>
                         <input
                             type='radio'
+                            name='theme'
                             checked={displayCustom}
                             onChange={this.updateType.bind(this, 'custom')}
                         />
