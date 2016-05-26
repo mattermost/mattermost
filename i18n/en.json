@@ -84,6 +84,10 @@
     "translation": "Mattermost - Testing Email Settings"
   },
   {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Server is required"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "Empty array under 'image' in request"
   },
