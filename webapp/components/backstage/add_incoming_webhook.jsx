@@ -172,6 +172,8 @@ export default class AddIncomingWebhook extends React.Component {
                                     id='channelId'
                                     value={this.state.channelId}
                                     onChange={this.updateChannelId}
+                                    selectOpen={true}
+                                    selectPrivate={true}
                                 />
                             </div>
                         </div>
