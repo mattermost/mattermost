@@ -152,7 +152,7 @@ export default class PostBodyAdditionalContent extends React.Component {
             );
         }
 
-        return null;
+        return this.props.message;
     }
 }
 
