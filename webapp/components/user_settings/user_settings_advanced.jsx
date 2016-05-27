@@ -32,6 +32,11 @@ export default class AdvancedSettingsDisplay extends React.Component {
                 Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
                 'send_on_ctrl_enter',
                 'false'
+            ),
+            formatting: PreferenceStore.get(
+                Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
+                'formatting',
+                'true'
             )
         };
 
@@ -112,6 +117,24 @@ export default class AdvancedSettingsDisplay extends React.Component {
     updateSection(section) {
         $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
         this.props.updateSection(section);
+    }
+
+    renderOnOffLabel(enabled) {
+        if (enabled === 'false') {
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.off'
+                    defaultMessage='Off'
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='user.settings.advance.on'
+                defaultMessage='On'
+            />
+        );
     }
 
     renderFeatureLabel(feature) {
@@ -211,23 +234,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
                 />
             );
         } else {
-            let describe;
-            if (this.state.settings.send_on_ctrl_enter) {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.advance.on'
-                        defaultMessage='On'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.advance.off'
-                        defaultMessage='Off'
-                    />
-                );
-            }
-
             ctrlSendSection = (
                 <SettingItemMin
                     title={
@@ -236,8 +242,82 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             defaultMessage='Send messages on Ctrl + Enter'
                         />
                     }
-                    describe={describe}
+                    describe={this.renderOnOffLabel(this.state.settings.send_on_ctrl_enter)}
                     updateSection={() => this.props.updateSection('advancedCtrlSend')}
+                />
+            );
+        }
+
+        let formattingSection;
+        if (this.props.activeSection === 'formatting') {
+            formattingSection = (
+                <SettingItemMax
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.formattingTitle'
+                            defaultMessage='Enable Post Formatting'
+                        />
+                    }
+                    inputs={
+                        <div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='formatting'
+                                        checked={this.state.settings.formatting !== 'false'}
+                                        onChange={this.updateSetting.bind(this, 'formatting', 'true')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.advance.on'
+                                        defaultMessage='On'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='formatting'
+                                        checked={this.state.settings.formatting === 'false'}
+                                        onChange={this.updateSetting.bind(this, 'formatting', 'false')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.advance.off'
+                                        defaultMessage='Off'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div>
+                                <br/>
+                                <FormattedMessage
+                                    id='user.settings.advance.formattingDesc'
+                                    defaultMessage='If enabled, posts will be formatted to create links, show emoji, style the text, and add line breaks. By default, this setting is enabled. Changing this setting requires the page to be refreshed.'
+                                />
+                            </div>
+                        </div>
+                    }
+                    submit={() => this.handleSubmit('formatting')}
+                    server_error={serverError}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            formattingSection = (
+                <SettingItemMin
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.formattingTitle'
+                            defaultMessage='Enable Post Formatting'
+                        />
+                    }
+                    describe={this.renderOnOffLabel(this.state.settings.formatting)}
+                    updateSection={() => this.props.updateSection('formatting')}
                 />
             );
         }
@@ -352,6 +432,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     </h3>
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
+                    <div className='divider-light'/>
+                    {formattingSection}
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
                     <div className='divider-dark'/>

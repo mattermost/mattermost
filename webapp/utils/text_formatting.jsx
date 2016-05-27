@@ -6,6 +6,7 @@ import {browserHistory} from 'react-router';
 import Constants from './constants.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import twemoji from 'twemoji';
 import * as Utils from './utils.jsx';
@@ -19,13 +20,18 @@ import * as Utils from './utils.jsx';
 // - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
 export function formatText(text, options = {}) {
-    let output;
+    let output = text;
+
+    // would probably make more sense if it was on the calling components, but this option is intended primarily for debugging
+    if (PreferenceStore.get(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true') === 'false') {
+        return output;
+    }
 
     if (!('markdown' in options) || options.markdown) {
         // the markdown renderer will call doFormatText as necessary
-        output = Markdown.format(text, options);
+        output = Markdown.format(output, options);
     } else {
-        output = sanitizeHtml(text);
+        output = sanitizeHtml(output);
         output = doFormatText(output, options);
     }
 
