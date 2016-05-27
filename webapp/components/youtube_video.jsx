@@ -144,9 +144,22 @@ export default class YoutubeVideo extends React.Component {
             return <div className='video-loading'/>;
         }
 
-        let header = 'Youtube';
+        let header;
         if (this.state.title) {
-            header = header + ' - ';
+            header = (
+                <h4>
+                    <span className='video-type'>{'Youtube - '}</span>
+                    <span className='video-title'>
+                        <a
+                            href={this.props.link}
+                            target='blank'
+                            rel='noopener noreferrer'
+                        >
+                            {this.state.title}
+                        </a>
+                    </span>
+                </h4>
+            );
         }
 
         let content;
@@ -190,18 +203,7 @@ export default class YoutubeVideo extends React.Component {
 
         return (
             <div>
-                <h4>
-                    <span className='video-type'>{header}</span>
-                    <span className='video-title'>
-                        <a
-                            href={this.props.link}
-                            target='blank'
-                            rel='noopener noreferrer'
-                        >
-                            {this.state.title}
-                        </a>
-                    </span>
-                </h4>
+                {header}
                 <div
                     className='video-div embed-responsive-item'
                     onClick={this.play}

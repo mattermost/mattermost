@@ -34,6 +34,8 @@ export function formatText(text, options = {}) {
         output = replaceNewlines(output);
     }
 
+    output = insertLongLinkWbr(output);
+
     return output;
 }
 
@@ -75,6 +77,9 @@ export function doFormatText(text, options) {
             }
         });
     }
+
+    //replace all "/" to "/<wbr />"
+    output = output.replace(/\//g, '/<wbr />');
 
     // reinsert tokens with formatted versions of the important words and phrases
     output = replaceTokens(output, tokens);
@@ -424,4 +429,11 @@ export function handleClick(e) {
     } else if (linkAttribute) {
         browserHistory.push(linkAttribute.value);
     }
+}
+
+//replace all "/" inside <a> tags to "/<wbr />"
+function insertLongLinkWbr(test) {
+    return test.replace(/\//g, (match, position, string) => {
+        return match + ((/a[^>]*>[^<]*$/).test(string.substr(0, position)) ? '<wbr />' : '');
+    });
 }

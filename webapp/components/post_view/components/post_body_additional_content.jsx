@@ -117,21 +117,31 @@ export default class PostBodyAdditionalContent extends React.Component {
         const generateEmbed = this.generateEmbed();
 
         if (generateEmbed) {
-            let toggle;
+            let messageWithToggle = [];
             if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMBED_TOGGLE)) {
-                toggle = (
+                // if message has only one line and starts with a link place toggle in this only line
+                // else - place it in new line between message and embed
+                const prependToggle = (/^\s*https?:\/\/.*$/).test(this.props.post.message);
+                messageWithToggle.push(
                     <a
-                        className='post__embed-visibility'
+                        className={`post__embed-visibility ${prependToggle ? 'pull-left' : ''}`}
                         data-expanded={this.state.embedVisible}
                         aria-label='Toggle Embed Visibility'
                         onClick={this.toggleEmbedVisibility}
                     />
                 );
+                if (prependToggle) {
+                    messageWithToggle.push(this.props.message);
+                } else {
+                    messageWithToggle.unshift(this.props.message);
+                }
+            } else {
+                messageWithToggle.push(this.props.message);
             }
 
             return (
                 <div>
-                    {toggle}
+                    {messageWithToggle}
                     <div
                         className='post__embed-container'
                         hidden={!this.state.embedVisible}
@@ -142,10 +152,11 @@ export default class PostBodyAdditionalContent extends React.Component {
             );
         }
 
-        return null;
+        return this.props.message;
     }
 }
 
 PostBodyAdditionalContent.propTypes = {
-    post: React.PropTypes.object.isRequired
+    post: React.PropTypes.object.isRequired,
+    message: React.PropTypes.element.isRequired
 };

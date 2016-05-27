@@ -914,8 +914,12 @@ body.ios {
         cursor: pointer;
         display: inline-block;
         font: normal normal normal 14px/1 FontAwesome;
-        margin: 5px 0 10px;
+        margin: 0 0 10px;
         text-rendering: auto;
+
+        &.pull-left{
+            margin: 5px 5px 0 0;
+        }
 
         &:hover {
             text-decoration: none;
