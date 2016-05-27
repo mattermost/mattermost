@@ -90,28 +90,6 @@ export default class Post extends React.Component {
 
         return false;
     }
-    isCommentMention(props) {
-        const post = props.post;
-        const parentPost = props.parentPost;
-        const posts = props.posts;
-
-        let commentRootId;
-        if (parentPost) {
-            commentRootId = post.root_id;
-        } else {
-            commentRootId = post.id;
-        }
-        if (posts[commentRootId].user_id === props.currentUser.id) {
-            return true;
-        }
-        for (const postId in posts) {
-            if (posts[postId].root_id === commentRootId && posts[postId].user_id === props.currentUser.id && posts[postId].create_at < post.create_at) {
-                return true;
-            }
-        }
-
-        return false;
-    }
     render() {
         const post = this.props.post;
         const parentPost = this.props.parentPost;
@@ -144,7 +122,7 @@ export default class Post extends React.Component {
         let highlightCommentMentionClass = '';
         if (this.props.currentUser.id === post.user_id && !post.props.from_webhook && !PostUtils.isSystemMessage(post)) {
             currentUserCss = 'current--user';
-        } else if (this.isCommentMention(this.props)) {
+        } else if (this.props.isCommentMention) {
             highlightCommentMentionClass = 'comment--mention--highlight';
         }
 
@@ -268,6 +246,7 @@ Post.propTypes = {
     compactDisplay: React.PropTypes.bool,
     previewCollapsed: React.PropTypes.string,
     commentCount: React.PropTypes.number,
+    isCommentMention: React.PropTypes.boolean,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     emojis: React.PropTypes.object.isRequired
 };

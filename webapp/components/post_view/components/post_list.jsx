@@ -236,15 +236,22 @@ export default class PostList extends React.Component {
             }
 
             let commentCount = 0;
+            let isCommentMention = false;
             let commentRootId;
             if (parentPost) {
                 commentRootId = post.root_id;
             } else {
                 commentRootId = post.id;
             }
+            if (posts[commentRootId].user_id === this.props.currentUser.id) {
+                isCommentMention = true;
+            }
             for (const postId in posts) {
                 if (posts[postId].root_id === commentRootId) {
                     commentCount += 1;
+                    if (posts[postId].user_id === this.props.currentUser.id && posts[postId].create_at < post.create_at) {
+                        isCommentMention = true;
+                    }
                 }
             }
 
@@ -264,6 +271,7 @@ export default class PostList extends React.Component {
                     currentUser={this.props.currentUser}
                     center={this.props.displayPostsInCenter}
                     commentCount={commentCount}
+                    isCommentMention={isCommentMention}
                     compactDisplay={this.props.compactDisplay}
                     previewCollapsed={this.props.previewsCollapsed}
                     useMilitaryTime={this.props.useMilitaryTime}
