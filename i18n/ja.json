@@ -76,6 +76,10 @@
     "translation": "<br/><br/><br/>あなたのMattermostの電子メールアドレスは正しく設定されています!"
   },
   {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Server is required"
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - 電子メール設定のテスト"
   },

@@ -76,6 +76,10 @@
     "translation": "<br/><br/><br/>Parece que tu correo electrónico para Mattermost fue configurado correctamente!"
   },
   {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Server is required"
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Configuración de pruebas de correo"
   },
