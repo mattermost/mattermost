@@ -35,7 +35,7 @@ import {Link, browserHistory} from 'react-router';
 
 import React from 'react';
 
-import * as GlobalActions from 'actions/global_actions.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 
 export default class Navbar extends React.Component {
     constructor(props) {
@@ -56,7 +56,6 @@ export default class Navbar extends React.Component {
         this.navigateChannelShortcut = this.navigateChannelShortcut.bind(this);
         this.navigateUnreadChannelShortcut = this.navigateUnreadChannelShortcut.bind(this);
         this.getDisplayedChannels = this.getDisplayedChannels.bind(this);
-        this.compareByName = this.compareByName.bind(this);
         this.compareByDisplayName = this.compareByDisplayName.bind(this);
 
         const state = this.getStateFromStores();
@@ -182,7 +181,7 @@ export default class Navbar extends React.Component {
                 nextIndex = curIndex - 1;
             }
             nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
-            GlobalActions.emitChannelClickEvent(nextChannel);
+            ChannelActions.goToChannel(nextChannel);
         }
     }
     navigateUnreadChannelShortcut(e) {
@@ -214,12 +213,12 @@ export default class Navbar extends React.Component {
             }
             if (unreadCounts.msgs !== 0 || unreadCounts.mentions !== 0) {
                 nextChannel = allChannels[nextIndex];
-                GlobalActions.emitChannelClickEvent(nextChannel);
+                ChannelActions.goToChannel(nextChannel);
             }
         }
     }
     getDisplayedChannels() {
-        const allChannels = ChannelStore.getChannels().sort(this.compareByName);
+        const allChannels = ChannelStore.getChannels().sort(this.compareByDisplayName);
         const publicChannels = allChannels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
         const privateChannels = allChannels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
 
@@ -247,11 +246,8 @@ export default class Navbar extends React.Component {
 
         return publicChannels.concat(privateChannels).concat(directChannels).concat(directNonTeamChannels);
     }
-    compareByName(a, b) {
-        return a.name.localeCompare(b.name);
-    }
-    compareByDisplayName(a, b) {
-        return a.display_name.localeCompare(b.display_name);
+    compareByDisplayName(channelA, channelB) {
+        return channelA.display_name.localeCompare(channelB.display_name);
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
         if (channel) {
