@@ -151,6 +151,11 @@ export default class RhsComment extends React.Component {
 
         var timestamp = this.props.currentUser.update_at;
 
+        let botIndicator;
+
+        if (post.props && post.props.from_webhook) {
+            botIndicator = <li className='col col__name bot-indicator'>{Constants.BOT_NAME}</li>;
+        }
         let loading;
         let postClass = '';
         let message = (
@@ -206,9 +211,10 @@ export default class RhsComment extends React.Component {
                     </div>
                     <div>
                         <ul className='post__header'>
-                            <li className='col__name'>
+                            <li className='col col__name'>
                                 <strong><UserProfile user={this.props.user}/></strong>
                             </li>
+                            {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
                                     <FormattedDate

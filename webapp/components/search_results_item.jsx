@@ -67,6 +67,12 @@ export default class SearchResultsItem extends React.Component {
             disableProfilePopover = true;
         }
 
+        let botIndicator;
+
+        if (post.props && post.props.from_webhook) {
+            botIndicator = <li className='col col__name bot-indicator'>{Constants.BOT_NAME}</li>;
+        }
+
         return (
             <div className='search-item__container'>
                 <div className='date-separator'>
@@ -94,13 +100,14 @@ export default class SearchResultsItem extends React.Component {
                         </div>
                         <div>
                             <ul className='post__header'>
-                                <li className='col__name'><strong>
+                                <li className='col col__name'><strong>
                                     <UserProfile
                                         user={user}
                                         overwriteName={overrideUsername}
                                         disablePopover={disableProfilePopover}
                                     />
                                 </strong></li>
+                                {botIndicator}
                                 <li className='col'>
                                     <time className='search-item-time'>
                                         <FormattedDate

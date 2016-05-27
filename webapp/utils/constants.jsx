@@ -737,5 +737,6 @@ export default {
     EMOJI_PATH: '/static/emoji',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
-    MTPNS: 'http://push-test.mattermost.com'
+    MTPNS: 'http://push-test.mattermost.com',
+    BOT_NAME: 'BOT'
 };
