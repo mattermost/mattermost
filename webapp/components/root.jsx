@@ -6,6 +6,7 @@
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
+import Client from 'utils/web_client.jsx';
 
 import {IntlProvider} from 'react-intl';
 
@@ -26,9 +27,25 @@ export default class Root extends React.Component {
 
         this.localizationChanged = this.localizationChanged.bind(this);
         this.redirectIfNecessary = this.redirectIfNecessary.bind(this);
+
+        // Ya....
+        /*eslint-disable */
+        if (window.mm_config.SegmentDeveloperKey != null && window.mm_config.SegmentDeveloperKey !== "") {
+            !function(){var analytics=global.window.analytics=global.window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
+                analytics.load(window.mm_config.SegmentDeveloperKey);
+                analytics.page();
+            }}();
+        }
+        /*eslint-enable */
+
+        // Fastclick
+        FastClick.attach(document.body);
     }
     localizationChanged() {
-        this.setState({locale: LocalizationStore.getLocale(), translations: LocalizationStore.getTranslations()});
+        const locale = LocalizationStore.getLocale();
+
+        Client.setAcceptLanguage(locale);
+        this.setState({locale, translations: LocalizationStore.getTranslations()});
     }
 
     redirectIfNecessary(props) {
@@ -46,27 +63,15 @@ export default class Root extends React.Component {
         this.redirectIfNecessary(newProps);
     }
     componentWillMount() {
+        // Redirect if Necessary
+        this.redirectIfNecessary(this.props);
+    }
+    componentDidMount() {
         // Setup localization listener
         LocalizationStore.addChangeListener(this.localizationChanged);
 
-        // Ya....
-        /*eslint-disable */
-        if (window.mm_config.SegmentDeveloperKey != null && window.mm_config.SegmentDeveloperKey !== "") {
-            !function(){var analytics=global.window.analytics=global.window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
-            analytics.load(window.mm_config.SegmentDeveloperKey);
-            analytics.page();
-            }}();
-        } 
-        /*eslint-enable */
-
-        // Fastclick
-        FastClick.attach(document.body);
-
         // Get our localizaiton
         GlobalActions.loadBrowserLocale();
-
-        // Redirect if Necessary
-        this.redirectIfNecessary(this.props);
     }
     componentWillUnmount() {
         LocalizationStore.removeChangeListener(this.localizationChanged);
