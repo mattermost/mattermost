@@ -222,6 +222,11 @@ class SystemAnalytics extends React.Component {
                             />
                         }
                         data={postCountsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
                         width='740'
                         height='225'
                     />
@@ -235,6 +240,11 @@ class SystemAnalytics extends React.Component {
                             />
                         }
                         data={userCountsWithPostsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
                         width='740'
                         height='225'
                     />
@@ -252,46 +262,28 @@ export default injectIntl(SystemAnalytics);
 
 export function formatChannelDoughtnutData(totalPublic, totalPrivate, intl) {
     const {formatMessage} = intl;
-    const channelTypeData = [
-        {
-            value: totalPublic,
-            color: '#46BFBD',
-            highlight: '#5AD3D1',
-            label: formatMessage(holders.analyticsPublicChannels)
-        },
-        {
-            value: totalPrivate,
-            color: '#FDB45C',
-            highlight: '#FFC870',
-            label: formatMessage(holders.analyticsPrivateGroups)
-        }
-    ];
+    const channelTypeData = {
+        labels: [formatMessage(holders.analyticsPublicChannels), formatMessage(holders.analyticsPrivateGroups)],
+        datasets: [{
+            data: [totalPublic, totalPrivate],
+            backgroundColor: ['#46BFBD', '#FDB45C'],
+            hoverBackgroundColor: ['#5AD3D1', '#FFC870']
+        }]
+    };
 
     return channelTypeData;
 }
 
 export function formatPostDoughtnutData(filePosts, hashtagPosts, totalPosts, intl) {
     const {formatMessage} = intl;
-    const postTypeData = [
-        {
-            value: filePosts,
-            color: '#46BFBD',
-            highlight: '#5AD3D1',
-            label: formatMessage(holders.analyticsFilePosts)
-        },
-        {
-            value: hashtagPosts,
-            color: '#F7464A',
-            highlight: '#FF5A5E',
-            label: formatMessage(holders.analyticsHashtagPosts)
-        },
-        {
-            value: totalPosts - filePosts - hashtagPosts,
-            color: '#FDB45C',
-            highlight: '#FFC870',
-            label: formatMessage(holders.analyticsTextPosts)
-        }
-    ];
+    const postTypeData = {
+        labels: [formatMessage(holders.analyticsFilePosts), formatMessage(holders.analyticsHashtagPosts), formatMessage(holders.analyticsTextPosts)],
+        datasets: [{
+            data: [filePosts, hashtagPosts, (totalPosts - filePosts - hashtagPosts)],
+            backgroundColor: ['#46BFBD', '#F7464A', '#FDB45C'],
+            hoverBackgroundColor: ['#5AD3D1', '#FF5A5E', '#FFC870']
+        }]
+    };
 
     return postTypeData;
 }
@@ -301,11 +293,11 @@ export function formatPostsPerDayData(data) {
         labels: [],
         datasets: [{
             fillColor: 'rgba(151,187,205,0.2)',
-            strokeColor: 'rgba(151,187,205,1)',
-            pointColor: 'rgba(151,187,205,1)',
-            pointStrokeColor: '#fff',
-            pointHighlightFill: '#fff',
-            pointHighlightStroke: 'rgba(151,187,205,1)',
+            borderColor: 'rgba(151,187,205,1)',
+            pointBackgroundColor: 'rgba(151,187,205,1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(151,187,205,1)',
             data: []
         }]
     };
@@ -325,12 +317,13 @@ export function formatUsersWithPostsPerDayData(data) {
     var chartData = {
         labels: [],
         datasets: [{
+            label: '',
             fillColor: 'rgba(151,187,205,0.2)',
-            strokeColor: 'rgba(151,187,205,1)',
-            pointColor: 'rgba(151,187,205,1)',
-            pointStrokeColor: '#fff',
-            pointHighlightFill: '#fff',
-            pointHighlightStroke: 'rgba(151,187,205,1)',
+            borderColor: 'rgba(151,187,205,1)',
+            pointBackgroundColor: 'rgba(151,187,205,1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(151,187,205,1)',
             data: []
         }]
     };
