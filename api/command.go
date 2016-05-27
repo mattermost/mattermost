@@ -288,6 +288,26 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	cmd.CreatorId = c.Session.UserId
 	cmd.TeamId = c.TeamId
 
+	if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		teamCmds := result.Data.([]*model.Command)
+		for _, existingCommand := range teamCmds {
+			if cmd.Trigger == existingCommand.Trigger {
+				c.Err = model.NewLocAppError("createCommand", "api.command.duplicate_trigger.app_error", nil, "")
+				return
+			}
+		}
+		for _, builtInProvider := range commandProviders {
+			builtInCommand := *builtInProvider.GetCommand(c)
+			if cmd.Trigger == builtInCommand.Trigger {
+				c.Err = model.NewLocAppError("createCommand", "api.command.duplicate_trigger.app_error", nil, "")
+				return
+			}
+		}
+	}
+
 	if result := <-Srv.Store.Command().Save(cmd); result.Err != nil {
 		c.Err = result.Err
 		return

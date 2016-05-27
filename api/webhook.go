@@ -214,6 +214,23 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(c.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		allHooks := result.Data.([]*model.OutgoingWebhook)
+
+		for _, existingOutHook := range allHooks {
+			urlIntersect := utils.StringArrayIntersection(existingOutHook.CallbackURLs, hook.CallbackURLs)
+			triggerIntersect := utils.StringArrayIntersection(existingOutHook.TriggerWords, hook.TriggerWords)
+
+			if existingOutHook.ChannelId == hook.ChannelId && len(urlIntersect) != 0 && len(triggerIntersect) != 0 {
+				c.Err = model.NewLocAppError("createOutgoingHook", "api.webhook.create_outgoing.intersect.app_error", nil, "")
+				return
+			}
+		}
+	}
+
 	if result := <-Srv.Store.Webhook().SaveOutgoing(hook); result.Err != nil {
 		c.Err = result.Err
 		return
