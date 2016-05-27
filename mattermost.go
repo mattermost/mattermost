@@ -349,15 +349,15 @@ func runJavascriptClientTests() {
 
 func cmdRunClientTests() {
 	if flagCmdRunWebClientTests {
-		setupClientTests()
 		api.StartServer()
+		setupClientTests()
 		runWebClientTests()
 		api.StopServer()
 	}
 
 	if flagCmdRunJavascriptClientTests {
-		setupClientTests()
 		api.StartServer()
+		setupClientTests()
 		runJavascriptClientTests()
 		api.StopServer()
 	}
