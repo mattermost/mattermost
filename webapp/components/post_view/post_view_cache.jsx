@@ -35,6 +35,10 @@ export default class PostViewCache extends React.Component {
         const channels = Object.assign([], this.state.channels);
         const currentChannel = ChannelStore.getCurrent();
 
+        if (currentChannel == null) {
+            return;
+        }
+
         // make sure current channel really changed
         if (currentChannel.id === this.state.currentChannelId) {
             return;
