@@ -374,12 +374,12 @@ class CreatePost extends React.Component {
         }
 
         if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP) {
-            e.preventDefault();
             const channelId = ChannelStore.getCurrentId();
             const lastPost = PostStore.getCurrentUsersLatestPost(channelId);
-            if (!lastPost) {
+            if (!lastPost || this.state.messageText !== '') {
                 return;
             }
+            e.preventDefault();
             let message = lastPost.message;
             if (this.state.lastMessage !== '') {
                 message = this.state.lastMessage;
