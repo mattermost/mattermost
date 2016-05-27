@@ -61,6 +61,7 @@ class SecurityTab extends React.Component {
 
         this.state = this.getDefaultState();
     }
+
     getDefaultState() {
         return {
             currentPassword: '',
@@ -71,6 +72,7 @@ class SecurityTab extends React.Component {
             mfaToken: ''
         };
     }
+
     submitPassword(e) {
         e.preventDefault();
 
@@ -117,6 +119,7 @@ class SecurityTab extends React.Component {
             }
         );
     }
+
     activateMfa() {
         Client.updateMfa(
             this.state.mfaToken,
@@ -138,6 +141,7 @@ class SecurityTab extends React.Component {
             }
         );
     }
+
     deactivateMfa() {
         Client.updateMfa(
             '',
@@ -159,22 +163,28 @@ class SecurityTab extends React.Component {
             }
         );
     }
+
     updateCurrentPassword(e) {
         this.setState({currentPassword: e.target.value});
     }
+
     updateNewPassword(e) {
         this.setState({newPassword: e.target.value});
     }
+
     updateConfirmPassword(e) {
         this.setState({confirmPassword: e.target.value});
     }
+
     updateMfaToken(e) {
         this.setState({mfaToken: e.target.value});
     }
+
     showQrCode(e) {
         e.preventDefault();
         this.setState({mfaShowQr: true});
     }
+
     createMfaSection() {
         let updateSectionStatus;
         let submit;
@@ -329,6 +339,7 @@ class SecurityTab extends React.Component {
             />
         );
     }
+
     createPasswordSection() {
         let updateSectionStatus;
 
@@ -519,6 +530,7 @@ class SecurityTab extends React.Component {
             />
         );
     }
+
     createSignInSection() {
         let updateSectionStatus;
         const user = this.props.user;
@@ -676,7 +688,10 @@ class SecurityTab extends React.Component {
             />
         );
     }
+
     render() {
+        const user = this.props.user;
+
         const passwordSection = this.createPasswordSection();
 
         let numMethods = 0;
@@ -690,7 +705,9 @@ class SecurityTab extends React.Component {
         }
 
         let mfaSection;
-        if (global.window.mm_config.EnableMultifactorAuthentication === 'true' && global.window.mm_license.IsLicensed === 'true') {
+        if (global.window.mm_config.EnableMultifactorAuthentication === 'true' &&
+                global.window.mm_license.IsLicensed === 'true' &&
+                (user.auth_service === '' || user.auth_service === Constants.LDAP_SERVICE)) {
             mfaSection = this.createMfaSection();
         }
 

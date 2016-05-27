@@ -1736,6 +1736,10 @@
     "translation": "MFA not configured or available on this server"
   },
   {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA is not available for this account type"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Update password failed because context user_id did not match props user_id"
   },
