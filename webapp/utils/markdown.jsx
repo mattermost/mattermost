@@ -130,10 +130,10 @@ class MattermostMarkdownRenderer extends marked.Renderer {
 
         if (/^\d+.$/.test(bullet)) {
             // this is a numbered list item so override the numbering
-            return `<li value="${parseInt(bullet)}">${text}</li>`;
-        } else {
-            return `<li>${text}</li>`;
+            return `<li value="${parseInt(bullet, 10)}">${text}</li>`;
         }
+
+        return `<li>${text}</li>`;
     }
 
     text(txt) {
