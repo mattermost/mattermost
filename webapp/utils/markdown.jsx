@@ -103,7 +103,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             output += ' title="' + title + '"';
         }
 
-        output += '>' + text.replace(/\//g, '/<wbr />') + '</a>';
+        output += '>' + text + '</a>';
 
         return output;
     }
