@@ -304,6 +304,10 @@
     "translation": "コマンドがシステム管理者によって無効化されています。"
   },
   {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "This trigger word is already in use. Please choose another word."
+  },
+  {
     "id": "api.command.execute_command.debug",
     "translation": "実行中 cmd=%v userId=%v"
   },
@@ -1440,6 +1444,10 @@
     "translation": "あなたは{{ .TeamDisplayName }}に参加しました"
   },
   {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA is not available for this account type"
+  },
+  {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "ユーザーのダイレクトチャンネルの設定に追加できませんでした user_id=%s, team_id=%s, err=%v"
   },
@@ -1854,6 +1862,10 @@
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
