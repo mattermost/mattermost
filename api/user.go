@@ -2336,6 +2336,10 @@ func ActivateMfa(userId, token string) *model.AppError {
 		user = result.Data.(*model.User)
 	}
 
+	if len(user.AuthService) > 0 && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+		return model.NewLocAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "")
+	}
+
 	if err := mfaInterface.Activate(user, token); err != nil {
 		return err
 	}
