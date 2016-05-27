@@ -909,14 +909,7 @@ export function isValidUsername(name) {
 }
 
 export function isMobile() {
-    return window.innerWidth <= 768;
-}
-
-export function isComment(post) {
-    if ('root_id' in post) {
-        return post.root_id !== '' && post.root_id != null;
-    }
-    return false;
+    return window.innerWidth <= Constants.MOBILE_SCREEN_WIDTH;
 }
 
 export function getDirectTeammate(channelId) {
@@ -1315,10 +1308,6 @@ export function isFeatureEnabled(feature) {
     return PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label);
 }
 
-export function isSystemMessage(post) {
-    return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
-}
-
 export function fillArray(value, length) {
     const arr = [];
 
@@ -1378,19 +1367,4 @@ export function localizeMessage(id, defaultMessage) {
 
 export function mod(a, b) {
     return ((a % b) + b) % b;
-}
-
-export function getProfilePicSrcForPost(post, timestamp) {
-    let src = Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
-    if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
-        if (post.props.override_icon_url) {
-            src = post.props.override_icon_url;
-        } else {
-            src = Constants.DEFAULT_WEBHOOK_LOGO;
-        }
-    } else if (isSystemMessage(post)) {
-        src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;
-    }
-
-    return src;
 }

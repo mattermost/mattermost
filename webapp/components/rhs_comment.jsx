@@ -3,7 +3,7 @@
 
 import UserProfile from './user_profile.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
-import PendingPostActions from './pending_post_actions.jsx';
+import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -168,7 +168,7 @@ export default class RhsComment extends React.Component {
 
         if (post.state === Constants.POST_FAILED) {
             postClass += ' post-fail';
-            loading = <PendingPostActions post={this.props.post}/>;
+            loading = <PendingPostOptions post={this.props.post}/>;
         } else if (post.state === Constants.POST_LOADING) {
             postClass += ' post-waiting';
             loading = (

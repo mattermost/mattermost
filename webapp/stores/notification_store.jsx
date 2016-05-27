@@ -7,6 +7,7 @@ import Constants from 'utils/constants.jsx';
 import UserStore from './user_store.jsx';
 import ChannelStore from './channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
@@ -26,7 +27,7 @@ class NotificationStoreClass extends EventEmitter {
 
     handleRecievedPost(post, msgProps) {
         // Send desktop notification
-        if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true') && !Utils.isSystemMessage(post)) {
+        if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true') && !PostUtils.isSystemMessage(post)) {
             let mentions = [];
             if (msgProps.mentions) {
                 mentions = JSON.parse(msgProps.mentions);

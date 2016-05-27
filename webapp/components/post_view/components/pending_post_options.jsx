@@ -4,7 +4,7 @@
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -16,7 +16,7 @@ import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
-export default class PendingPostActions extends React.Component {
+export default class PendingPostOptions extends React.Component {
     constructor(props) {
         super(props);
         this.retryPost = this.retryPost.bind(this);
@@ -87,6 +87,6 @@ export default class PendingPostActions extends React.Component {
     }
 }
 
-PendingPostActions.propTypes = {
+PendingPostOptions.propTypes = {
     post: React.PropTypes.object
 };
