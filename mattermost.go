@@ -542,6 +542,7 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 
 	for _, user := range users {
 		shouldUpdateUser := false
+		shouldUpdateRole := false
 		previousRole := user.Roles
 		previousEmail := user.Email
 		previousUsername := user.Username
@@ -554,7 +555,7 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 		if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) {
 			member.Roles = model.ROLE_TEAM_ADMIN
 			user.Roles = ""
-			shouldUpdateUser = true
+			shouldUpdateRole = true
 		}
 
 		exists := false
@@ -666,6 +667,25 @@ func convertTeamTo30(primaryTeamName string, team *TeamForUpgrade, uniqueEmails 
 					bodyPage.Render(),
 				)
 			}
+		}
+
+		if shouldUpdateRole {
+			if _, err := store.GetMaster().Exec(`
+				UPDATE Users 
+				SET 
+				    Roles = ''
+				WHERE
+				    Id = :Id
+				`,
+				map[string]interface{}{
+					"Id": user.Id,
+				},
+			); err != nil {
+				l4g.Error("Failed to update user role %v details=%v", user.Email, err)
+				flushLogAndExit(1)
+			}
+
+			l4g.Info("modified user_id=%v, changed roles from=%v to=%v", user.Id, previousRole, user.Roles)
 		}
 
 		uniqueEmails[user.Email] = true

@@ -118,6 +118,7 @@ export default class LoginController extends React.Component {
     finishSignin() {
         GlobalActions.emitInitialLoad(
             () => {
+                GlobalActions.loadBrowserLocale();
                 browserHistory.push('/select_team');
             }
         );
