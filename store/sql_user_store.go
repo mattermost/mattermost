@@ -793,6 +793,27 @@ func (us SqlUserStore) GetByAuth(authData *string, authService string) StoreChan
 	return storeChannel
 }
 
+func (us SqlUserStore) GetAllUsingAuthService(authService string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+		var data []*model.User
+
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE AuthService = :AuthService", map[string]interface{}{"AuthService": authService}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "authService="+authService+", "+err.Error())
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) GetByUsername(username string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
