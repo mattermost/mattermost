@@ -392,11 +392,15 @@ export function newLocalizationSelected(locale) {
     } else {
         Client.getTranslations(
             I18n.getLanguageInfo(locale).url,
-            (data) => {
+            (data, res) => {
+                let translations = data;
+                if (!data && res.text) {
+                    translations = JSON.parse(res.text);
+                }
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_LOCALE,
                     locale,
-                    translations: data
+                    translations
                 });
             },
             (err) => {
@@ -409,6 +413,12 @@ export function newLocalizationSelected(locale) {
 export function loadBrowserLocale() {
     let locale = (navigator.languages && navigator.languages.length > 0 ? navigator.languages[0] :
         (navigator.language || navigator.userLanguage)).split('-')[0];
+
+    const user = UserStore.getCurrentUser();
+    if (user) {
+        locale = user.locale || locale;
+    }
+
     if (!I18n.getLanguages()[locale]) {
         locale = 'en';
     }
