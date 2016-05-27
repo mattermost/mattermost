@@ -65,15 +65,19 @@
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Finished recycling the database connection"
+    "translation": "Terminada a reciclagem da conexão do banco de dados"
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Attempting to recycle the database connection"
+    "translation": "Tentando reciclar a conexão com o banco de dados"
   },
   {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>Parece que o seu email do Mattermost está configurado corretamente!"
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Server is required"
   },
   {
     "id": "api.admin.test_email.subject",
@@ -681,7 +685,7 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "Inicializando team api routes"
+    "translation": "Inicializando as rotas gerais da api"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -2377,7 +2381,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Definição da altura da pré-visualização inválida.  Deve ser zero ou um número positivo."
+    "translation": "Tamanho máximo do arquivo inválido nas configurações de arquivo. Deve ser zero ou um número positivo."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
