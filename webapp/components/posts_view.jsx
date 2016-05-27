@@ -492,12 +492,15 @@ export default class PostsView extends React.Component {
         return false;
     }
     render() {
+        if (!this.props.isActive) {
+            return <div/>;
+        }
+
         let posts = [];
         let order = [];
         let moreMessagesTop;
         let moreMessagesBottom;
         let postElements;
-        let activeClass = 'inactive';
         if (this.props.postList != null) {
             posts = this.props.postList.posts;
             order = this.props.postList.order;
@@ -539,11 +542,6 @@ export default class PostsView extends React.Component {
 
             // Create post elements
             postElements = this.createPosts(posts, order);
-
-            // Show ourselves if we are marked active
-            if (this.props.isActive) {
-                activeClass = '';
-            }
         }
 
         let topPostCreateAt = 0;
@@ -552,7 +550,7 @@ export default class PostsView extends React.Component {
         }
 
         return (
-            <div className={activeClass}>
+            <div>
                 <FloatingTimestamp
                     isScrolling={this.state.isScrolling}
                     isMobile={$(window).width() > 768}
