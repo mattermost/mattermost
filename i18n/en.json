@@ -3676,10 +3676,6 @@
     "translation": "We couldn't get the post"
   },
   {
-    "id": "store.sql_post.get_comment_thread.app_error",
-    "translation": "We couldn't get the comment thread posts for the parent post"
-  },
-  {
     "id": "store.sql_post.get_for_export.app_error",
     "translation": "We couldn't get the posts for the channel"
   },

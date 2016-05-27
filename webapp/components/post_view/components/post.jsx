@@ -105,7 +105,7 @@ export default class Post extends React.Component {
             return true;
         }
         for (const postId in posts) {
-            if (posts[postId].root_id === commentRootId && posts[postId].user_id === props.currentUser.id) {
+            if (posts[postId].root_id === commentRootId && posts[postId].user_id === props.currentUser.id && posts[postId].create_at < post.create_at) {
                 return true;
             }
         }

@@ -320,29 +320,6 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) GetCommentThread(rootPostId string) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts,
-			"SELECT * FROM Posts WHERE (RootId = :RootId OR Id = :PostId) AND DeleteAt = 0 ORDER BY CreateAt",
-			map[string]interface{}{"RootId": rootPostId, "PostId": rootPostId})
-		if err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_comment_thread.app_error", nil, "rootPostId="+rootPostId+err.Error())
-		} else {
-			result.Data = posts
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel)
 

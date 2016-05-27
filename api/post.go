@@ -567,11 +567,11 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 
 		if len(post.RootId) > 0 {
-			if result := <-Srv.Store.Post().GetCommentThread(post.RootId); result.Err != nil {
+			if result := <-Srv.Store.Post().Get(post.RootId); result.Err != nil {
 				l4g.Error(utils.T("api.post.send_notifications_and_forget.comment_thread.error"), post.RootId, result.Err)
 				return
 			} else {
-				list := result.Data.([]*model.Post)
+				list := result.Data.(*model.PostList).Posts
 
 				for _, threadPost := range list {
 					userIds = append(userIds, threadPost.UserId)
