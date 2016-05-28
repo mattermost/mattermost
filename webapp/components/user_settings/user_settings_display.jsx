@@ -146,6 +146,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='clockFormat'
                                 checked={clockFormat[0]}
                                 onChange={this.handleClockRadio.bind(this, 'false')}
                             />
@@ -160,6 +161,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='clockFormat'
                                 checked={clockFormat[1]}
                                 onChange={this.handleClockRadio.bind(this, 'true')}
                             />
@@ -264,6 +266,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='nameFormat'
                                 checked={nameFormat[1]}
                                 onChange={this.handleNameRadio.bind(this, 'username')}
                             />
@@ -275,6 +278,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='nameFormat'
                                 checked={nameFormat[0]}
                                 onChange={this.handleNameRadio.bind(this, 'nickname_full_name')}
                             />
@@ -286,6 +290,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='nameFormat'
                                 checked={nameFormat[2]}
                                 onChange={this.handleNameRadio.bind(this, 'full_name')}
                             />
@@ -375,6 +380,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='messageDisplay'
                                 checked={messageDisplay[0]}
                                 onChange={this.handlemessageDisplayRadio.bind(this, Preferences.MESSAGE_DISPLAY_CLEAN)}
                             />
@@ -389,6 +395,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='messageDisplay'
                                 checked={messageDisplay[1]}
                                 onChange={this.handlemessageDisplayRadio.bind(this, Preferences.MESSAGE_DISPLAY_COMPACT)}
                             />
@@ -474,6 +481,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='channelDisplayMode'
                                 checked={channelDisplayMode[0]}
                                 onChange={this.handleChannelDisplayModeRadio.bind(this, Preferences.CHANNEL_DISPLAY_MODE_CENTERED)}
                             />
@@ -488,6 +496,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='channelDisplayMode'
                                 checked={channelDisplayMode[1]}
                                 onChange={this.handleChannelDisplayModeRadio.bind(this, Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN)}
                             />

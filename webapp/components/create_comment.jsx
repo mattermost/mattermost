@@ -16,7 +16,7 @@ import MsgTyping from './msg_typing.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -225,6 +225,7 @@ class CreateComment extends React.Component {
         }
 
         if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP) {
+            e.preventDefault();
             const lastPost = PostStore.getCurrentUsersLatestPost(this.props.channelId, this.props.rootId);
             if (!lastPost) {
                 return;

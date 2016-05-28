@@ -11,6 +11,7 @@ import {FormattedMessage} from 'react-intl';
 import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
+import RecycleDbButton from './recycle_db.jsx';
 
 export default class DatabaseSettings extends AdminSettings {
     constructor(props) {
@@ -186,6 +187,7 @@ export default class DatabaseSettings extends AdminSettings {
                     value={this.state.trace}
                     onChange={this.handleChange}
                 />
+                <RecycleDbButton/>
             </SettingsGroup>
         );
     }

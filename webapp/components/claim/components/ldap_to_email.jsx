@@ -2,7 +2,8 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+
+import {switchFromLdapToEmail} from 'actions/user_actions.jsx';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -16,6 +17,7 @@ export default class LDAPToEmail extends React.Component {
 
         this.state = {};
     }
+
     submit(e) {
         e.preventDefault();
         var state = {};
@@ -44,20 +46,15 @@ export default class LDAPToEmail extends React.Component {
         state.error = null;
         this.setState(state);
 
-        Client.ldapToEmail(
+        switchFromLdapToEmail(
             this.props.email,
             password,
             ldapPassword,
-            (data) => {
-                if (data.follow_link) {
-                    window.location.href = data.follow_link;
-                }
-            },
-            (error) => {
-                this.setState({error});
-            }
+            null,
+            (err) => this.setState({error: err.message})
         );
     }
+
     render() {
         var error = null;
         if (this.state.error) {

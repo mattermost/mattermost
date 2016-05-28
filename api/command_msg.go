@@ -46,7 +46,7 @@ func (me *msgProvider) DoCommand(c *Context, channelId string, message string) *
 	targetUser = strings.SplitN(message, " ", 2)[0]
 	targetUser = strings.TrimPrefix(targetUser, "@")
 
-	if profileList := <-Srv.Store.User().GetProfiles(c.TeamId); profileList.Err != nil {
+	if profileList := <-Srv.Store.User().GetAllProfiles(); profileList.Err != nil {
 		c.Err = profileList.Err
 		return &model.CommandResponse{Text: c.T("api.command_msg.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {

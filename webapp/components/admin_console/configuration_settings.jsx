@@ -9,6 +9,7 @@ import AdminSettings from './admin_settings.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
+import ReloadConfigButton from './reload_config.jsx';
 
 export default class ConfigurationSettings extends AdminSettings {
     constructor(props) {
@@ -50,6 +51,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     />
                 }
             >
+                <ReloadConfigButton/>
                 <TextSetting
                     id='listenAddress'
                     label={

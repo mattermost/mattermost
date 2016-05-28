@@ -5,7 +5,7 @@ import SettingItemMax from '../setting_item_max.jsx';
 
 import Client from 'utils/web_client.jsx';
 import * as I18n from 'i18n/i18n.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 

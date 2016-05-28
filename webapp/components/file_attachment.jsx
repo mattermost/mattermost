@@ -25,6 +25,7 @@ class FileAttachment extends React.Component {
 
         this.loadFiles = this.loadFiles.bind(this);
         this.addBackgroundImage = this.addBackgroundImage.bind(this);
+        this.onAttachmentClick = this.onAttachmentClick.bind(this);
 
         this.canSetState = false;
         this.state = {fileSize: -1};
@@ -127,6 +128,10 @@ class FileAttachment extends React.Component {
             $(ReactDOM.findDOMNode(this.refs[name])).css('background-image', 'initial');
         }
     }
+    onAttachmentClick(e) {
+        e.preventDefault();
+        this.props.handleImageClick(this.props.index);
+    }
     render() {
         var filename = this.props.filename;
 
@@ -197,7 +202,7 @@ class FileAttachment extends React.Component {
                 >
                     <a
                         href='#'
-                        onClick={() => this.props.handleImageClick(this.props.index)}
+                        onClick={this.onAttachmentClick}
                         className='post-image__name'
                         rel='noopener noreferrer'
                     >
@@ -215,7 +220,7 @@ class FileAttachment extends React.Component {
                 <a
                     className='post-image__thumbnail'
                     href='#'
-                    onClick={() => this.props.handleImageClick(this.props.index)}
+                    onClick={this.onAttachmentClick}
                 >
                     {thumbnail}
                 </a>

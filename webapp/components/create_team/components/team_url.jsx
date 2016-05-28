@@ -2,45 +2,20 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import TeamStore from 'stores/team_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-import Constants from 'utils/constants.jsx';
-import {browserHistory} from 'react-router';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import * as Utils from 'utils/utils.jsx';
+
+import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
+import {track} from 'actions/analytics_actions.jsx';
+import Constants from 'utils/constants.jsx';
 
 import logoImage from 'images/logo.png';
 
-const holders = defineMessages({
-    required: {
-        id: 'create_team.team_url.required',
-        defaultMessage: 'This field is required'
-    },
-    regex: {
-        id: 'create_team.team_url.regex',
-        defaultMessage: "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
-    },
-    charLength: {
-        id: 'create_team.team_url.charLength',
-        defaultMessage: 'Name must be 4 or more characters up to a maximum of 15'
-    },
-    taken: {
-        id: 'create_team.team_url.taken',
-        defaultMessage: 'URL is taken or contains a reserved word'
-    },
-    unavailable: {
-        id: 'create_team.team_url.unavailable',
-        defaultMessage: 'This URL is unavailable. Please try another.'
-    }
-});
-
 import React from 'react';
+import ReactDOM from 'react-dom';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
-class TeamUrl extends React.Component {
+export default class TeamUrl extends React.Component {
     constructor(props) {
         super(props);
 
@@ -58,10 +33,9 @@ class TeamUrl extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
-        const {formatMessage} = this.props.intl;
         const name = ReactDOM.findDOMNode(this.refs.name).value.trim();
         if (!name) {
-            this.setState({nameError: formatMessage(holders.required)});
+            this.setState({nameError: Utils.localizeMessage('create_team.team_url.required', 'This field is required')});
             return;
         }
 
@@ -69,17 +43,17 @@ class TeamUrl extends React.Component {
 
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
         if (cleanedName !== name || !urlRegex.test(name)) {
-            this.setState({nameError: formatMessage(holders.regex)});
+            this.setState({nameError: Utils.localizeMessage('create_team.team_url.regex', "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.")});
             return;
-        } else if (cleanedName.length < 4 || cleanedName.length > 15) {
-            this.setState({nameError: formatMessage(holders.charLength)});
+        } else if (cleanedName.length < Constants.MIN_TEAMNAME_LENGTH || cleanedName.length > Constants.MAX_TEAMNAME_LENGTH) {
+            this.setState({nameError: Utils.localizeMessage('create_team.team_url.charLength', 'Name must be 4 or more characters up to a maximum of 15')});
             return;
         }
 
         if (global.window.mm_config.RestrictTeamNames === 'true') {
             for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
                 if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
-                    this.setState({nameError: formatMessage(holders.taken)});
+                    this.setState({nameError: Utils.localizeMessage('create_team.team_url.taken', 'URL is taken or contains a reserved word')});
                     return;
                 }
             }
@@ -90,30 +64,24 @@ class TeamUrl extends React.Component {
         teamSignup.team.type = 'O';
         teamSignup.team.name = name;
 
-        Client.findTeamByName(name,
-            (findTeam) => {
-                if (findTeam) {
-                    this.setState({nameError: formatMessage(holders.unavailable)});
+        checkIfTeamExists(name,
+            (foundTeam) => {
+                if (foundTeam) {
+                    this.setState({nameError: Utils.localizeMessage('create_team.team_url.unavailable', 'This URL is unavailable. Please try another.')});
                     $('#finish-button').button('reset');
-                } else {
-                    Client.createTeam(teamSignup.team,
-                        (team) => {
-                            Client.track('signup', 'signup_team_08_complete');
-                            $('#sign-up-button').button('reset');
-                            AsyncClient.getDirectProfiles();
-                            TeamStore.saveTeam(team);
-                            TeamStore.appendTeamMember({team_id: team.id, user_id: UserStore.getCurrentId(), roles: 'admin'});
-                            TeamStore.emitChange();
-                            browserHistory.push('/' + team.name + '/channels/town-square');
-                        },
-                        (err) => {
-                            this.setState({nameError: err.message});
-                            $('#finish-button').button('reset');
-                        }
-                    );
-
-                    $('#finish-button').button('reset');
+                    return;
                 }
+
+                createTeam(teamSignup.team,
+                    () => {
+                        track('signup', 'signup_team_08_complete');
+                        $('#sign-up-button').button('reset');
+                    },
+                    (err) => {
+                        this.setState({nameError: err.message});
+                        $('#finish-button').button('reset');
+                    }
+                );
             },
             (err) => {
                 this.setState({nameError: err.message});
@@ -121,15 +89,17 @@ class TeamUrl extends React.Component {
             }
         );
     }
+
     handleFocus(e) {
         e.preventDefault();
 
         e.currentTarget.select();
     }
+
     render() {
         $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
 
-        Client.track('signup', 'signup_team_03_url');
+        track('signup', 'signup_team_03_url');
 
         let nameError = null;
         let nameDivClass = 'form-group';
@@ -223,9 +193,6 @@ class TeamUrl extends React.Component {
 }
 
 TeamUrl.propTypes = {
-    intl: intlShape.isRequired,
     state: React.PropTypes.object,
     updateParent: React.PropTypes.func
 };
-
-export default injectIntl(TeamUrl);

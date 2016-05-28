@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import FileAttachmentList from './file_attachment_list.jsx';
+import FileAttachmentList from 'components/file_attachment_list.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
-import PendingPostActions from './pending_post_actions.jsx';
+import PendingPostOptions from './pending_post_options.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -111,7 +111,7 @@ export default class PostBody extends React.Component {
         let loading;
         if (post.state === Constants.POST_FAILED) {
             postClass += ' post--fail';
-            loading = <PendingPostActions post={this.props.post}/>;
+            loading = <PendingPostOptions post={this.props.post}/>;
         } else if (post.state === Constants.POST_LOADING) {
             postClass += ' post-waiting';
             loading = (
@@ -136,7 +136,6 @@ export default class PostBody extends React.Component {
         }
 
         let message;
-        let additionalContent = null;
         if (this.props.post.state === Constants.POST_DELETED) {
             message = (
                 <FormattedMessage
@@ -151,9 +150,28 @@ export default class PostBody extends React.Component {
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message)}}
                 />
             );
+        }
 
-            additionalContent = (
-                <PostBodyAdditionalContent post={this.props.post}/>
+        let messageWrapper = (
+            <div
+                key={`${post.id}_message`}
+                id={`${post.id}_message`}
+                className={postClass}
+            >
+                {loading}
+                {message}
+            </div>
+        );
+
+        let messageWithAdditionalContent;
+        if (this.props.post.state === Constants.POST_DELETED) {
+            messageWithAdditionalContent = messageWrapper;
+        } else {
+            messageWithAdditionalContent = (
+                <PostBodyAdditionalContent
+                    post={this.props.post}
+                    message={messageWrapper}
+                />
             );
         }
 
@@ -161,16 +179,8 @@ export default class PostBody extends React.Component {
             <div>
                 {comment}
                 <div className='post__body'>
-                    <div
-                        key={`${post.id}_message`}
-                        id={`${post.id}_message`}
-                        className={postClass}
-                    >
-                        {loading}
-                        {message}
-                    </div>
+                    {messageWithAdditionalContent}
                     {fileAttachmentHolder}
-                    {additionalContent}
                 </div>
             </div>
         );

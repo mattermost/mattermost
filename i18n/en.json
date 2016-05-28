@@ -300,6 +300,10 @@
     "translation": "Integrations have been limited to admins only."
   },
   {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "This trigger word is already in use. Please choose another word."
+  },
+  {
     "id": "api.command.delete.app_error",
     "translation": "Inappropriate permissions to delete command"
   },
@@ -1732,6 +1736,10 @@
     "translation": "MFA not configured or available on this server"
   },
   {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA is not available for this account type"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Update password failed because context user_id did not match props user_id"
   },
@@ -1854,6 +1862,10 @@
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
