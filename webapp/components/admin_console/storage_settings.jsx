@@ -49,8 +49,8 @@ export default class StorageSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.files.title'
-                    defaultMessage='File Settings'
+                    id='admin.files.storage'
+                    defaultMessage='Storage'
                 />
             </h3>
         );
@@ -58,14 +58,7 @@ export default class StorageSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.files.storage'
-                        defaultMessage='Storage'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='maxFileSize'
                     label={

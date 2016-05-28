@@ -256,10 +256,11 @@
     }
 
     .nav-pills__container {
-        background: #111;
         @include font-smoothing(initial);
-        height: calc(100% - 80px);
+        background: #111;
+        height: calc(100% - 50px);
         margin-top: 1px;
+        padding-bottom: 20px;
         position: relative;
     }
 
@@ -286,6 +287,23 @@
         > .sidebar-section-title {
             position: relative;
         }
+
+        .nav__sub-menu {
+            margin-bottom: 7px;
+        }
+    }
+
+    .sections {
+        &.sections--settings {
+            .sidebar-section-title {
+                text-transform: uppercase;
+
+                &:hover,
+                &:focus {
+                    color: alpha-color($white, .5);
+                }
+            }
+        }
     }
 
     .sidebar-section-title {
@@ -298,7 +316,8 @@
 
     .sidebar-section-title,
     .sidebar-subsection-title {
-        color: #bbb;
+        @include clearfix;
+        color: alpha-color($white, .5);
         display: block;
         font-size: 13px;
         position: relative;
@@ -313,8 +332,14 @@
         }
 
         &--active {
+            background: alpha-color($white, .1);
             color: $white;
-            font-weight: 600;
+
+            &:hover,
+            &:focus {
+                background: alpha-color($white, .1);
+                color: $white;
+            }
 
             &:after {
                 -moz-osx-font-smoothing: grayscale;

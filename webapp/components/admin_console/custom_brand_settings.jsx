@@ -41,8 +41,8 @@ export default class CustomBrandSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.customization.title'
-                    defaultMessage='Customization Settings'
+                    id='admin.customization.customBrand'
+                    defaultMessage='Custom Branding'
                 />
             </h3>
         );
@@ -104,14 +104,7 @@ export default class CustomBrandSettings extends AdminSettings {
         }
 
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.customization.customBrand'
-                        defaultMessage='Custom Branding'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='siteName'
                     label={

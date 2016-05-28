@@ -44,8 +44,8 @@ export default class GitLabSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.authentication.title'
-                    defaultMessage='Authentication Settings'
+                    id='admin.authentication.gitlab'
+                    defaultMessage='GitLab'
                 />
             </h3>
         );
@@ -53,14 +53,7 @@ export default class GitLabSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.authentication.gitlab'
-                        defaultMessage='GitLab'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enable'
                     label={

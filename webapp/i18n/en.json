@@ -433,6 +433,7 @@
   "admin.sidebar.privacy": "Privacy",
   "admin.sidebar.publicLinks": "Public Links",
   "admin.sidebar.push": "Mobile Push",
+  "admin.sidebar.advanced": "Advanced",
   "admin.sidebar.rateLimiting": "Rate Limiting",
   "admin.sidebar.reports": "SITE REPORTS",
   "admin.sidebar.rmTeamSidebar": "Remove team from sidebar menu",

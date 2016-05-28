@@ -33,8 +33,8 @@ export default class PrivacySettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.general.privacy'
+                    defaultMessage='Privacy'
                 />
             </h3>
         );
@@ -42,14 +42,7 @@ export default class PrivacySettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.general.privacy'
-                        defaultMessage='Privacy'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='showEmailAddress'
                     label={

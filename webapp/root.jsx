@@ -371,6 +371,14 @@ function renderRootComponent() {
                                 component={PrivacySettings}
                             />
                             <Route
+                                path='database'
+                                component={DatabaseSettings}
+                            />
+                            <Route
+                                path='compliance'
+                                component={ComplianceSettings}
+                            />
+                            <Route
                                 path='logging'
                                 component={LogSettings}
                             />
@@ -435,10 +443,6 @@ function renderRootComponent() {
                                 component={ExternalServiceSettings}
                             />
                         </Route>
-                        <Route
-                            path='database'
-                            component={DatabaseSettings}
-                        />
                         <Route path='files'>
                             <IndexRedirect to='storage'/>
                             <Route
@@ -461,18 +465,17 @@ function renderRootComponent() {
                                 component={LegalAndSupportSettings}
                             />
                         </Route>
-                        <Route
-                            path='compliance'
-                            component={ComplianceSettings}
-                        />
-                        <Route
-                            path='rate'
-                            component={RateSettings}
-                        />
-                        <Route
-                            path='developer'
-                            component={DeveloperSettings}
-                        />
+                        <Route path='advanced'>
+                            <IndexRedirect to='rate'/>
+                            <Route
+                                path='rate'
+                                component={RateSettings}
+                            />
+                            <Route
+                                path='developer'
+                                component={DeveloperSettings}
+                            />
+                        </Route>
                         <Route path='team'>
                             <Redirect
                                 from=':team'

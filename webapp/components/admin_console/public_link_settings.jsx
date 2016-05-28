@@ -34,8 +34,8 @@ export default class PublicLinkSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.security.title'
-                    defaultMessage='Security Settings'
+                    id='admin.security.public_links'
+                    defaultMessage='Public Links'
                 />
             </h3>
         );
@@ -43,14 +43,7 @@ export default class PublicLinkSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.security.public_links'
-                        defaultMessage='Public Links'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enablePublicLink'
                     label={

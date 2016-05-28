@@ -41,8 +41,8 @@ export default class LegalAndSupportSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.customization.title'
-                    defaultMessage='Customization Settings'
+                    id='admin.customization.support'
+                    defaultMessage='Legal and Support'
                 />
             </h3>
         );
@@ -50,14 +50,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.customization.support'
-                        defaultMessage='Legal and Support'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='termsOfServiceLink'
                     label={

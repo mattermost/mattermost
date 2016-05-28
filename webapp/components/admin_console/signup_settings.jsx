@@ -36,8 +36,8 @@ export default class SignupSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.security.title'
-                    defaultMessage='Security Settings'
+                    id='admin.security.signup'
+                    defaultMessage='Signup'
                 />
             </h3>
         );
@@ -45,14 +45,7 @@ export default class SignupSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.security.signup'
-                        defaultMessage='Signup'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='requireEmailVerification'
                     label={
