@@ -3,12 +3,12 @@
 
 import UserProfile from './user_profile.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
-import PendingPostActions from './pending_post_actions.jsx';
+import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -151,6 +151,11 @@ export default class RhsComment extends React.Component {
 
         var timestamp = this.props.currentUser.update_at;
 
+        let botIndicator;
+
+        if (post.props && post.props.from_webhook) {
+            botIndicator = <li className='col col__name bot-indicator'>{Constants.BOT_NAME}</li>;
+        }
         let loading;
         let postClass = '';
         let message = (
@@ -163,7 +168,7 @@ export default class RhsComment extends React.Component {
 
         if (post.state === Constants.POST_FAILED) {
             postClass += ' post-fail';
-            loading = <PendingPostActions post={this.props.post}/>;
+            loading = <PendingPostOptions post={this.props.post}/>;
         } else if (post.state === Constants.POST_LOADING) {
             postClass += ' post-waiting';
             loading = (
@@ -206,9 +211,10 @@ export default class RhsComment extends React.Component {
                     </div>
                     <div>
                         <ul className='post__header'>
-                            <li className='col__name'>
+                            <li className='col col__name'>
                                 <strong><UserProfile user={this.props.user}/></strong>
                             </li>
+                            {botIndicator}
                             <li className='col'>
                                 <time className='post__time'>
                                     <FormattedDate

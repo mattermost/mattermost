@@ -18,6 +18,8 @@ import * as Utils from 'utils/utils.jsx';
 import * as Websockets from './websocket_actions.jsx';
 import * as I18n from 'i18n/i18n.jsx';
 
+import {trackPage} from 'actions/analytics_actions.jsx';
+
 import {browserHistory} from 'react-router';
 
 import en from 'i18n/en.json';
@@ -40,7 +42,7 @@ export function emitChannelClickEvent(channel) {
         AsyncClient.getChannelExtraInfo(chan.id);
         AsyncClient.updateLastViewedAt(chan.id);
         AsyncClient.getPosts(chan.id);
-        Client.trackPage();
+        trackPage();
 
         AppDispatcher.handleViewAction({
             type: ActionTypes.CLICK_CHANNEL,
@@ -392,11 +394,15 @@ export function newLocalizationSelected(locale) {
     } else {
         Client.getTranslations(
             I18n.getLanguageInfo(locale).url,
-            (data) => {
+            (data, res) => {
+                let translations = data;
+                if (!data && res.text) {
+                    translations = JSON.parse(res.text);
+                }
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_LOCALE,
                     locale,
-                    translations: data
+                    translations
                 });
             },
             (err) => {
@@ -409,6 +415,12 @@ export function newLocalizationSelected(locale) {
 export function loadBrowserLocale() {
     let locale = (navigator.languages && navigator.languages.length > 0 ? navigator.languages[0] :
         (navigator.language || navigator.userLanguage)).split('-')[0];
+
+    const user = UserStore.getCurrentUser();
+    if (user) {
+        locale = user.locale || locale;
+    }
+
     if (!I18n.getLanguages()[locale]) {
         locale = 'en';
     }

@@ -1,29 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
-import * as utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
-import {Link} from 'react-router';
+import {track} from 'actions/analytics_actions.jsx';
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
+import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import logoImage from 'images/logo.png';
 
-const holders = defineMessages({
-    required: {
-        id: 'create_team.display_name.required',
-        defaultMessage: 'This field is required'
-    },
-    charLength: {
-        id: 'create_team.display_name.charLength',
-        defaultMessage: 'Name must be 4 or more characters up to a maximum of 15'
-    }
-});
-
 import React from 'react';
+import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
+import {FormattedMessage} from 'react-intl';
 
-class TeamSignupDisplayNamePage extends React.Component {
+export default class TeamSignupDisplayNamePage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -35,19 +25,18 @@ class TeamSignupDisplayNamePage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
-        const {formatMessage} = this.props.intl;
         var displayName = ReactDOM.findDOMNode(this.refs.name).value.trim();
         if (!displayName) {
-            this.setState({nameError: formatMessage(holders.required)});
+            this.setState({nameError: Utils.localizeMessage('create_team.display_name.required', 'This field is required')});
             return;
-        } else if (displayName.length < 4 || displayName.length > 15) {
-            this.setState({nameError: formatMessage(holders.charLength)});
+        } else if (displayName.length < Constants.MIN_TEAMNAME_LENGTH || displayName.length > Constants.MAX_TEAMNAME_LENGTH) {
+            this.setState({nameError: Utils.localizeMessage('create_team.display_name.charLength', 'Name must be 4 or more characters up to a maximum of 15')});
             return;
         }
 
         this.props.state.wizard = 'team_url';
         this.props.state.team.display_name = displayName;
-        this.props.state.team.name = utils.cleanUpUrlable(displayName);
+        this.props.state.team.name = Utils.cleanUpUrlable(displayName);
         this.props.updateParent(this.props.state);
     }
 
@@ -57,7 +46,7 @@ class TeamSignupDisplayNamePage extends React.Component {
     }
 
     render() {
-        Client.track('signup', 'signup_team_02_name');
+        track('signup', 'signup_team_02_name');
 
         var nameError = null;
         var nameDivClass = 'form-group';
@@ -128,9 +117,6 @@ class TeamSignupDisplayNamePage extends React.Component {
 }
 
 TeamSignupDisplayNamePage.propTypes = {
-    intl: intlShape.isRequired,
     state: React.PropTypes.object,
     updateParent: React.PropTypes.func
 };
-
-export default injectIntl(TeamSignupDisplayNamePage);

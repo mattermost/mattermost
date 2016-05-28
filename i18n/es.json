@@ -76,6 +76,10 @@
     "translation": "<br/><br/><br/>Parece que tu correo electrónico para Mattermost fue configurado correctamente!"
   },
   {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "El Servidor SMTP es necesario"
+  },
+  {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Configuración de pruebas de correo"
   },
@@ -298,6 +302,10 @@
   {
     "id": "api.command.disabled.app_error",
     "translation": "Los comandos han sido deshabilitados por el administrador de sistema."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "Esta palabra gatilladora ya está siendo utilizada. Por favor escoge otra palabra."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1436,6 +1444,10 @@
     "translation": "Te haz unido a {{ .TeamDisplayName }}"
   },
   {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "AMF no está disponible para este tipo de cuenta."
+  },
+  {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "Falla al agragar las preferencias del canal directo para el usuario user_id=%s, team_id=%s, err=%v"
   },
@@ -1850,6 +1862,10 @@
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Webhoks de salida para el mismo canal no pueden tener las mismas palabras gatilladoras o los mismos URLs de retorno."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",

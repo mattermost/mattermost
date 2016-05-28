@@ -177,6 +177,11 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         TeamStore.saveMyTeam(action.team);
         TeamStore.emitChange();
         break;
+    case ActionTypes.CREATED_TEAM:
+        TeamStore.saveTeam(action.team);
+        TeamStore.appendTeamMember(action.member);
+        TeamStore.emitChange();
+        break;
     case ActionTypes.RECEIVED_ALL_TEAMS:
         TeamStore.saveTeams(action.teams);
         TeamStore.emitChange();

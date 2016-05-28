@@ -16,7 +16,7 @@
     "jasny-bootstrap": "3.1.3",
     "jquery": "2.2.3",
     "keymirror": "0.1.1",
-    "marked": "mattermost/marked#6d1f9d1da95a2ae8d5f7dfb0c9071e53052a3532",
+    "marked": "mattermost/marked#a16c38a3c7cdaaefc33922812b42bdf8bcfaa127",
     "match-at": "0.1.0",
     "mattermost": "mattermost/mattermost-javascript#master",
     "match-at": "0.1.0",

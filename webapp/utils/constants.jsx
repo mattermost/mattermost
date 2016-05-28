@@ -88,6 +88,7 @@ export default {
         RECEIVED_MSG: null,
 
         RECEIVED_MY_TEAM: null,
+        CREATED_TEAM: null,
 
         RECEIVED_CONFIG: null,
         RECEIVED_LOGS: null,
@@ -160,6 +161,14 @@ export default {
         EPHEMERAL_MESSAGE: 'ephemeral_message'
     },
 
+    ScrollTypes: {
+        FREE: 1,
+        BOTTOM: 2,
+        SIDEBBAR_OPEN: 3,
+        NEW_MESSAGE: 4,
+        POST: 5
+    },
+
     //SPECIAL_MENTIONS: ['all', 'channel'],
     SPECIAL_MENTIONS: ['channel'],
     CHARACTER_LIMIT: 4000,
@@ -203,6 +212,9 @@ export default {
     WEB_VIDEO_HEIGHT: 480,
     MOBILE_VIDEO_WIDTH: 480,
     MOBILE_VIDEO_HEIGHT: 360,
+    MOBILE_SCREEN_WIDTH: 768,
+    SCROLL_DELAY: 2000,
+    SCROLL_PAGE_FRACTION: 3,
     DEFAULT_CHANNEL: 'town-square',
     DEFAULT_CHANNEL_UI_NAME: 'Town Square',
     OFFTOPIC_CHANNEL: 'off-topic',
@@ -723,6 +735,8 @@ export default {
         }
     },
     OVERLAY_TIME_DELAY: 400,
+    MIN_TEAMNAME_LENGTH: 4,
+    MAX_TEAMNAME_LENGTH: 15,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 22,
     MIN_PASSWORD_LENGTH: 5,
@@ -734,5 +748,7 @@ export default {
     EMOJI_PATH: '/static/emoji',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
-    MTPNS: 'http://push-test.mattermost.com'
+    MTPNS: 'http://push-test.mattermost.com',
+    BOT_NAME: 'BOT',
+    POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5 // five minutes
 };
