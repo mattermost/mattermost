@@ -25,6 +25,46 @@ export default class LoggedIn extends React.Component {
         this.onUserChanged = this.onUserChanged.bind(this);
         this.setupUser = this.setupUser.bind(this);
 
+        // Initalize websockets
+        Websockets.initialize();
+
+        // Force logout of all tabs if one tab is logged out
+        $(window).bind('storage', (e) => {
+            // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
+            if (e.originalEvent.key === '__logout__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
+                // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
+                if (BrowserStore.isSignallingLogout(e.originalEvent.newValue)) {
+                    return;
+                }
+
+                console.log('detected logout from a different tab'); //eslint-disable-line no-console
+                browserHistory.push('/');
+            }
+
+            if (e.originalEvent.key === '__login__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
+                // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
+                if (BrowserStore.isSignallingLogin(e.originalEvent.newValue)) {
+                    return;
+                }
+
+                console.log('detected login from a different tab'); //eslint-disable-line no-console
+                location.reload();
+            }
+        });
+
+        // Because current CSS requires the root tag to have specific stuff
+        $('#root').attr('class', 'channel-view');
+
+        // Device tracking setup
+        var iOS = (/(iPad|iPhone|iPod)/g).test(navigator.userAgent);
+        if (iOS) {
+            $('body').addClass('ios');
+        }
+
+        // if preferences have already been stored in local storage do not wait until preference store change is fired and handled in channel.jsx
+        const selectedFont = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT);
+        Utils.applyFont(selectedFont);
+
         this.state = {
             user: UserStore.getCurrentUser()
         };
@@ -71,42 +111,13 @@ export default class LoggedIn extends React.Component {
         }
     }
 
-    componentWillMount() {
+    componentDidMount() {
         // Listen for user
         UserStore.addChangeListener(this.onUserChanged);
 
-        // Initalize websockets
-        Websockets.initialize();
-
         // Get all statuses regularally. (Soon to be switched to websocket)
+        AsyncClient.getStatuses();
         this.intervalId = setInterval(() => AsyncClient.getStatuses(), CLIENT_STATUS_INTERVAL);
-
-        // Force logout of all tabs if one tab is logged out
-        $(window).bind('storage', (e) => {
-            // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
-            if (e.originalEvent.key === '__logout__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
-                // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
-                if (BrowserStore.isSignallingLogout(e.originalEvent.newValue)) {
-                    return;
-                }
-
-                console.log('detected logout from a different tab'); //eslint-disable-line no-console
-                browserHistory.push('/');
-            }
-
-            if (e.originalEvent.key === '__login__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
-                // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
-                if (BrowserStore.isSignallingLogin(e.originalEvent.newValue)) {
-                    return;
-                }
-
-                console.log('detected login from a different tab'); //eslint-disable-line no-console
-                location.reload();
-            }
-        });
-
-        // Because current CSS requires the root tag to have specific stuff
-        $('#root').attr('class', 'channel-view');
 
         // ???
         $('body').on('mouseenter mouseleave', '.post', function mouseOver(ev) {
@@ -138,16 +149,6 @@ export default class LoggedIn extends React.Component {
                 $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--comment');
             }
         });
-
-        // Device tracking setup
-        var iOS = (/(iPad|iPhone|iPod)/g).test(navigator.userAgent);
-        if (iOS) {
-            $('body').addClass('ios');
-        }
-
-        // if preferences have already been stored in local storage do not wait until preference store change is fired and handled in channel.jsx
-        const selectedFont = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT);
-        Utils.applyFont(selectedFont);
 
         // Pervent backspace from navigating back a page
         $(window).on('keydown.preventBackspace', (e) => {
