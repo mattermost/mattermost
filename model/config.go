@@ -83,12 +83,13 @@ type SqlSettings struct {
 }
 
 type LogSettings struct {
-	EnableConsole bool
-	ConsoleLevel  string
-	EnableFile    bool
-	FileLevel     string
-	FileFormat    string
-	FileLocation  string
+	EnableConsole          bool
+	ConsoleLevel           string
+	EnableFile             bool
+	FileLevel              string
+	FileFormat             string
+	FileLocation           string
+	EnableWebhookDebugging bool
 }
 
 type FileSettings struct {

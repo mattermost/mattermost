@@ -382,18 +382,21 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		payload = r.Body
 	}
 
-	payload, err := utils.DebugReader(
-		payload,
-		utils.T("api.webhook.incoming.debug"),
-	)
-	if err != nil {
-		c.Err = model.NewLocAppError(
-			"incomingWebhook",
-			"api.webhook.incoming.debug.error",
-			nil,
-			err.Error(),
+	if utils.Cfg.LogSettings.EnableWebhookDebugging {
+		var err error
+		payload, err = utils.DebugReader(
+			payload,
+			utils.T("api.webhook.incoming.debug"),
 		)
-		return
+		if err != nil {
+			c.Err = model.NewLocAppError(
+				"incomingWebhook",
+				"api.webhook.incoming.debug.error",
+				nil,
+				err.Error(),
+			)
+			return
+		}
 	}
 
 	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
