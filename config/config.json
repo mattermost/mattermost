@@ -53,7 +53,7 @@
         "FileLevel": "INFO",
         "FileFormat": "",
         "FileLocation": "",
-        "EnableWebhookDebugging": false
+        "EnableWebhookDebugging": true
     },
     "FileSettings": {
         "MaxFileSize": 52428800,
