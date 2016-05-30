@@ -11,6 +11,10 @@ import UserStore from 'stores/user_store.jsx';
 import twemoji from 'twemoji';
 import * as Utils from './utils.jsx';
 
+// pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
+// http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
+const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
+
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
 // as part of the second parameter:
@@ -345,7 +349,11 @@ function parseSearchTerms(searchTerm) {
 
 function convertSearchTermToRegex(term) {
     let pattern;
-    if (term.endsWith('*')) {
+
+    if (cjkPattern.test(term)) {
+        // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
+        pattern = escapeRegex(term.replace(/\*/g,''));
+    } else if (term.endsWith('*')) {
         pattern = '\\b' + escapeRegex(term.substring(0, term.length - 1));
     } else {
         pattern = '\\b' + escapeRegex(term) + '\\b';
