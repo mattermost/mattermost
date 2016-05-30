@@ -39,6 +39,10 @@ export default class UserProfile extends React.Component {
             return true;
         }
 
+        if (nextProps.displayNameType !== this.props.displayNameType) {
+            return true;
+        }
+
         return false;
     }
     render() {
@@ -138,5 +142,6 @@ UserProfile.propTypes = {
     user: React.PropTypes.object,
     overwriteName: React.PropTypes.string,
     overwriteImage: React.PropTypes.string,
-    disablePopover: React.PropTypes.bool
+    disablePopover: React.PropTypes.bool,
+    displayNameType: React.PropTypes.string
 };

@@ -19,7 +19,12 @@ export default class PostHeader extends React.Component {
     render() {
         const post = this.props.post;
 
-        let userProfile = <UserProfile user={this.props.user}/>;
+        let userProfile = (
+            <UserProfile
+                user={this.props.user}
+                displayNameType={this.props.displayNameType}
+            />
+        );
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {
@@ -80,5 +85,6 @@ PostHeader.propTypes = {
     isLastComment: React.PropTypes.bool.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     sameUser: React.PropTypes.bool.isRequired,
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+    displayNameType: React.PropTypes.string
 };

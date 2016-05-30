@@ -182,6 +182,7 @@ export default class Post extends React.Component {
                                 user={this.props.user}
                                 currentUser={this.props.currentUser}
                                 compactDisplay={this.props.compactDisplay}
+                                displayNameType={this.props.displayNameType}
                             />
                             <PostBody
                                 post={post}
