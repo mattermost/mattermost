@@ -9,6 +9,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import Textbox from './textbox.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import PostStore from 'stores/post_store.jsx';
+import MessageHistoryStore from 'stores/message_history_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -48,6 +49,8 @@ class EditPostModal extends React.Component {
             $('#edit_post').modal('hide');
             return;
         }
+
+        MessageHistoryStore.storeMessageInHistory(updatedPost.message);
 
         if (updatedPost.message.length === 0) {
             var tempState = this.state;

@@ -752,6 +752,7 @@ export default {
     MHPNS: 'https://push.mattermost.com',
     MTPNS: 'http://push-test.mattermost.com',
     BOT_NAME: 'BOT',
+    MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
     LICENSE_EXPIRY_NOTIFICATION: 1000 * 60 * 60 * 24 * 15, // 15 days
     LICENSE_GRACE_PERIOD: 1000 * 60 * 60 * 24 * 15 // 15 days

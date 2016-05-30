@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import Client from 'utils/web_client.jsx';
-
 import Constants from 'utils/constants.jsx';
 
 export function isSystemMessage(post) {
