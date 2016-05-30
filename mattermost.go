@@ -799,7 +799,7 @@ func cmdInviteUser() {
 			flag.Usage()
 			os.Exit(1)
 		}
-		
+
 		if len(flagEmail) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
 			flag.Usage()
@@ -815,7 +815,7 @@ func cmdInviteUser() {
 				team = result.Data.(*model.Team)
 			}
 		}
-		
+
 		var user *model.User
 		if result := <-api.Srv.Store.User().GetByEmail(team.Email); result.Err != nil {
 			l4g.Error("%v", result.Err)
@@ -823,10 +823,10 @@ func cmdInviteUser() {
 		} else {
 			user = result.Data.(*model.User)
 		}
-		
+
 		invites := []string{flagEmail}
 		c := getMockContext()
-		api.InviteMembers(c,team, user, invites)
+		api.InviteMembers(c, team, user, invites)
 
 		os.Exit(0)
 	}
