@@ -98,12 +98,13 @@ const messages = defineMessages({
 
 import React from 'react';
 
+const HEX_CODE_LENGTH = 7;
+
 class CustomThemeChooser extends React.Component {
     constructor(props) {
         super(props);
 
         this.onPickerChange = this.onPickerChange.bind(this);
-        this.onInputChange = this.onInputChange.bind(this);
         this.pasteBoxChange = this.pasteBoxChange.bind(this);
         this.toggleContent = this.toggleContent.bind(this);
 
@@ -125,14 +126,13 @@ class CustomThemeChooser extends React.Component {
         });
     }
     onPickerChange(e) {
+        const inputBox = e.target.childNodes[0];
+        if (document.activeElement === inputBox && inputBox.value.length !== HEX_CODE_LENGTH) {
+            return;
+        }
+
         const theme = this.props.theme;
         theme[e.target.id] = e.color.toHex();
-        theme.type = 'custom';
-        this.props.updateTheme(theme);
-    }
-    onInputChange(e) {
-        const theme = this.props.theme;
-        theme[e.target.parentNode.id] = e.target.value;
         theme.type = 'custom';
         this.props.updateTheme(theme);
     }
@@ -220,8 +220,7 @@ class CustomThemeChooser extends React.Component {
                             <select
                                 className='form-control'
                                 type='text'
-                                value={theme[element.id]}
-                                onChange={this.onInputChange}
+                                defaultValue={theme[element.id]}
                             >
                                 {codeThemeOptions}
                             </select>
@@ -253,8 +252,7 @@ class CustomThemeChooser extends React.Component {
                             <input
                                 className='form-control'
                                 type='text'
-                                value={theme[element.id]}
-                                onChange={this.onInputChange}
+                                defaultValue={theme[element.id]}
                             />
                             <span className='input-group-addon'><i></i></span>
                         </div>
@@ -276,8 +274,7 @@ class CustomThemeChooser extends React.Component {
                             <input
                                 className='form-control'
                                 type='text'
-                                value={theme[element.id]}
-                                onChange={this.onInputChange}
+                                defaultValue={theme[element.id]}
                             />
                             <span className='input-group-addon'><i></i></span>
                         </div>
@@ -299,8 +296,7 @@ class CustomThemeChooser extends React.Component {
                             <input
                                 className='form-control'
                                 type='text'
-                                value={theme[element.id]}
-                                onChange={this.onInputChange}
+                                defaultValue={theme[element.id]}
                             />
                             <span className='input-group-addon'><i></i></span>
                         </div>
