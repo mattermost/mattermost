@@ -8,57 +8,15 @@ import SettingItemMax from '../setting_item_max.jsx';
 import Constants from 'utils/constants.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import * as Utils from 'utils/utils.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
-const holders = defineMessages({
-    sendTitle: {
-        id: 'user.settings.advance.sendTitle',
-        defaultMessage: 'Send messages on Ctrl + Enter'
-    },
-    on: {
-        id: 'user.settings.advance.on',
-        defaultMessage: 'On'
-    },
-    off: {
-        id: 'user.settings.advance.off',
-        defaultMessage: 'Off'
-    },
-    preReleaseTitle: {
-        id: 'user.settings.advance.preReleaseTitle',
-        defaultMessage: 'Preview pre-release features'
-    },
-    feature: {
-        id: 'user.settings.advance.feature',
-        defaultMessage: ' Feature '
-    },
-    features: {
-        id: 'user.settings.advance.features',
-        defaultMessage: ' Features '
-    },
-    enabled: {
-        id: 'user.settings.advance.enabled',
-        defaultMessage: 'enabled'
-    },
-    MARKDOWN_PREVIEW: {
-        id: 'user.settings.advance.markdown_preview',
-        defaultMessage: 'Show markdown preview option in message input box'
-    },
-    EMBED_PREVIEW: {
-        id: 'user.settings.advance.embed_preview',
-        defaultMessage: 'Show preview snippet of links below message'
-    },
-    EMBED_TOGGLE: {
-        id: 'user.settings.advance.embed_toggle',
-        defaultMessage: 'Show toggle for all embed previews'
-    }
-});
-
 import React from 'react';
 
-class AdvancedSettingsDisplay extends React.Component {
+export default class AdvancedSettingsDisplay extends React.Component {
     constructor(props) {
         super(props);
 
@@ -74,6 +32,11 @@ class AdvancedSettingsDisplay extends React.Component {
                 Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
                 'send_on_ctrl_enter',
                 'false'
+            ),
+            formatting: PreferenceStore.get(
+                Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
+                'formatting',
+                'true'
             )
         };
 
@@ -156,9 +119,54 @@ class AdvancedSettingsDisplay extends React.Component {
         this.props.updateSection(section);
     }
 
+    renderOnOffLabel(enabled) {
+        if (enabled === 'false') {
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.off'
+                    defaultMessage='Off'
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='user.settings.advance.on'
+                defaultMessage='On'
+            />
+        );
+    }
+
+    renderFeatureLabel(feature) {
+        switch (feature) {
+        case 'MARKDOWN_PREVIEW':
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.markdown_preview'
+                    defaultMessage='Show markdown preview option in message input box'
+                />
+            );
+        case 'EMBED_PREVIEW':
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.embed_preview'
+                    defaultMessage='Show preview snippet of links below message'
+                />
+            );
+        case 'EMBED_TOGGLE':
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.embed_toggle'
+                    defaultMessage='Show toggle for all embed previews'
+                />
+            );
+        default:
+            return null;
+        }
+    }
+
     render() {
         const serverError = this.state.serverError || null;
-        const {formatMessage} = this.props.intl;
         let ctrlSendSection;
 
         if (this.props.activeSection === 'advancedCtrlSend') {
@@ -208,10 +216,14 @@ class AdvancedSettingsDisplay extends React.Component {
                     </div>
                 </div>
             ];
-
             ctrlSendSection = (
                 <SettingItemMax
-                    title={formatMessage(holders.sendTitle)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.sendTitle'
+                            defaultMessage='Send messages on Ctrl + Enter'
+                        />
+                    }
                     inputs={inputs}
                     submit={() => this.handleSubmit('send_on_ctrl_enter')}
                     server_error={serverError}
@@ -224,9 +236,88 @@ class AdvancedSettingsDisplay extends React.Component {
         } else {
             ctrlSendSection = (
                 <SettingItemMin
-                    title={formatMessage(holders.sendTitle)}
-                    describe={this.state.settings.send_on_ctrl_enter === 'true' ? formatMessage(holders.on) : formatMessage(holders.off)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.sendTitle'
+                            defaultMessage='Send messages on Ctrl + Enter'
+                        />
+                    }
+                    describe={this.renderOnOffLabel(this.state.settings.send_on_ctrl_enter)}
                     updateSection={() => this.props.updateSection('advancedCtrlSend')}
+                />
+            );
+        }
+
+        let formattingSection;
+        if (this.props.activeSection === 'formatting') {
+            formattingSection = (
+                <SettingItemMax
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.formattingTitle'
+                            defaultMessage='Enable Post Formatting'
+                        />
+                    }
+                    inputs={
+                        <div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='formatting'
+                                        checked={this.state.settings.formatting !== 'false'}
+                                        onChange={this.updateSetting.bind(this, 'formatting', 'true')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.advance.on'
+                                        defaultMessage='On'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='formatting'
+                                        checked={this.state.settings.formatting === 'false'}
+                                        onChange={this.updateSetting.bind(this, 'formatting', 'false')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.advance.off'
+                                        defaultMessage='Off'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div>
+                                <br/>
+                                <FormattedMessage
+                                    id='user.settings.advance.formattingDesc'
+                                    defaultMessage='If enabled, posts will be formatted to create links, show emoji, style the text, and add line breaks. By default, this setting is enabled. Changing this setting requires the page to be refreshed.'
+                                />
+                            </div>
+                        </div>
+                    }
+                    submit={() => this.handleSubmit('formatting')}
+                    server_error={serverError}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            formattingSection = (
+                <SettingItemMin
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.formattingTitle'
+                            defaultMessage='Enable Post Formatting'
+                        />
+                    }
+                    describe={this.renderOnOffLabel(this.state.settings.formatting)}
+                    updateSection={() => this.props.updateSection('formatting')}
                 />
             );
         }
@@ -254,7 +345,7 @@ class AdvancedSettingsDisplay extends React.Component {
                                             this.toggleFeature(feature.label, e.target.checked);
                                         }}
                                     />
-                                    {formatMessage(holders[key])}
+                                    {this.renderFeatureLabel(key)}
                                 </label>
                             </div>
                         </div>
@@ -270,10 +361,14 @@ class AdvancedSettingsDisplay extends React.Component {
                         />
                     </div>
                 );
-
                 previewFeaturesSection = (
                     <SettingItemMax
-                        title={formatMessage(holders.preReleaseTitle)}
+                        title={
+                            <FormattedMessage
+                                id='user.settings.advance.preReleaseTitle'
+                                defaultMessage='Preview pre-release features'
+                            />
+                        }
                         inputs={inputs}
                         submit={this.saveEnabledFeatures}
                         server_error={serverError}
@@ -286,8 +381,14 @@ class AdvancedSettingsDisplay extends React.Component {
             } else {
                 previewFeaturesSection = (
                     <SettingItemMin
-                        title={formatMessage(holders.preReleaseTitle)}
-                        describe={this.state.enabledFeatures + (this.state.enabledFeatures === 1 ? formatMessage(holders.feature) : formatMessage(holders.features)) + formatMessage(holders.enabled)}
+                        title={Utils.localizeMessage('user.settings.advance.preReleaseTitle', 'Preview pre-release features')}
+                        describe={
+                            <FormattedMessage
+                                id='user.settings.advance.enabledFeatures'
+                                defaultMessage='{count, number} {count, plural, one {Feature} other {Features}} Enabled'
+                                values={{count: this.state.enabledFeatures}}
+                            />
+                        }
                         updateSection={() => this.props.updateSection('advancedPreviewFeatures')}
                     />
                 );
@@ -331,6 +432,8 @@ class AdvancedSettingsDisplay extends React.Component {
                     </h3>
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
+                    <div className='divider-light'/>
+                    {formattingSection}
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
                     <div className='divider-dark'/>
@@ -341,7 +444,6 @@ class AdvancedSettingsDisplay extends React.Component {
 }
 
 AdvancedSettingsDisplay.propTypes = {
-    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
@@ -349,5 +451,3 @@ AdvancedSettingsDisplay.propTypes = {
     closeModal: React.PropTypes.func.isRequired,
     collapseModal: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(AdvancedSettingsDisplay);
