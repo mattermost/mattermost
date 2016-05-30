@@ -69,6 +69,7 @@ This is a sentence with a http://192.168.1.1:4040 in it.
 This is a sentence with a https://[::1]:80 in it.
 This is a link to http://example.com.
 This is a link containing http://example.com/something?with,commas,in,url, but not at end
+This is a question about a link http://example.com?
 
 #### These links should auto-link to the specified location:
 
