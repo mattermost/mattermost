@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -362,30 +363,24 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 	}
 
 	hchan := Srv.Store.Webhook().GetOutgoingByTeam(c.TeamId)
-
-	hooks := []*model.OutgoingWebhook{}
-
-	if result := <-hchan; result.Err != nil {
+	result := <-hchan
+	if result.Err != nil {
 		l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.getting.error"), result.Err)
 		return
-	} else {
-		hooks = result.Data.([]*model.OutgoingWebhook)
 	}
 
+	hooks := result.Data.([]*model.OutgoingWebhook)
 	if len(hooks) == 0 {
 		return
 	}
 
 	splitWords := strings.Fields(post.Message)
-
 	if len(splitWords) == 0 {
 		return
 	}
-
 	firstWord := splitWords[0]
 
 	relevantHooks := []*model.OutgoingWebhook{}
-
 	for _, hook := range hooks {
 		if hook.ChannelId == post.ChannelId {
 			if len(hook.TriggerWords) == 0 || hook.HasTriggerWord(firstWord) {
@@ -398,25 +393,28 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 
 	for _, hook := range relevantHooks {
 		go func(hook *model.OutgoingWebhook) {
-			p := url.Values{}
-			p.Set("token", hook.Token)
-
-			p.Set("team_id", hook.TeamId)
-			p.Set("team_domain", team.Name)
-
-			p.Set("channel_id", post.ChannelId)
-			p.Set("channel_name", channel.Name)
-
-			p.Set("timestamp", strconv.FormatInt(post.CreateAt/1000, 10))
-
-			p.Set("user_id", post.UserId)
-			p.Set("user_name", user.Username)
-
-			p.Set("post_id", post.Id)
-
-			p.Set("text", post.Message)
-			p.Set("trigger_word", firstWord)
-
+			payload := &model.OutgoingWebhookPayload{
+				Token:       hook.Token,
+				TeamId:      hook.TeamId,
+				TeamDomain:  team.Name,
+				ChannelId:   post.ChannelId,
+				ChannelName: channel.Name,
+				Timestamp:   post.CreateAt,
+				UserId:      post.UserId,
+				UserName:    user.Username,
+				PostId:      post.Id,
+				Text:        post.Message,
+				TriggerWord: firstWord,
+			}
+			var body io.Reader
+			var contentType string
+			if hook.ContentType == "application/json" {
+				body = strings.NewReader(payload.ToJSON())
+				contentType = "application/json"
+			} else {
+				body = strings.NewReader(payload.ToFormValues())
+				contentType = "application/x-www-form-urlencoded"
+			}
 			tr := &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
 			}
@@ -424,8 +422,8 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 
 			for _, url := range hook.CallbackURLs {
 				go func(url string) {
-					req, _ := http.NewRequest("POST", url, strings.NewReader(p.Encode()))
-					req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+					req, _ := http.NewRequest("POST", url, body)
+					req.Header.Set("Content-Type", contentType)
 					req.Header.Set("Accept", "application/json")
 					if resp, err := client.Do(req); err != nil {
 						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())

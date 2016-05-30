@@ -21,6 +21,7 @@ export default class AddOutgoingWebhook extends React.Component {
 
         this.updateDisplayName = this.updateDisplayName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
+        this.updateContentType = this.updateContentType.bind(this);
         this.updateChannelId = this.updateChannelId.bind(this);
         this.updateTriggerWords = this.updateTriggerWords.bind(this);
         this.updateCallbackUrls = this.updateCallbackUrls.bind(this);
@@ -28,6 +29,7 @@ export default class AddOutgoingWebhook extends React.Component {
         this.state = {
             displayName: '',
             description: '',
+            contentType: 'application/x-www-form-urlencoded',
             channelId: '',
             triggerWords: '',
             callbackUrls: '',
@@ -103,6 +105,7 @@ export default class AddOutgoingWebhook extends React.Component {
             trigger_words: triggerWords,
             callback_urls: callbackUrls,
             display_name: this.state.displayName,
+            content_type: this.state.contentType,
             description: this.state.description
         };
 
@@ -129,6 +132,12 @@ export default class AddOutgoingWebhook extends React.Component {
     updateDescription(e) {
         this.setState({
             description: e.target.value
+        });
+    }
+
+    updateContentType(e) {
+        this.setState({
+            contentType: e.target.value
         });
     }
 
@@ -207,6 +216,31 @@ export default class AddOutgoingWebhook extends React.Component {
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-4'
+                                htmlFor='contentType'
+                            >
+                                <FormattedMessage
+                                    id='add_outgoing_webhook.content_Type'
+                                    defaultMessage='Content Type'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-8'>
+                                <select
+                                  className='form-control'
+                                  value={this.state.contentType}
+                                  onChange={this.updateContentType}
+                                >
+                                  <option value='application/x-www-form-urlencoded'>
+                                    application/x-www-form-urlencoded
+                                  </option>
+                                  <option value='application/json'>
+                                    application/json
+                                  </option>
+                                </select>
                             </div>
                         </div>
                         <div className='form-group'>
