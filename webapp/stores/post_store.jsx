@@ -23,6 +23,7 @@ class PostStoreClass extends EventEmitter {
         this.selectedPostId = null;
         this.postsInfo = {};
         this.currentFocusedPostId = null;
+        this.messageHistory = [];
     }
     emitChange() {
         this.emit(CHANGE_EVENT);
@@ -537,6 +538,27 @@ class PostStoreClass extends EventEmitter {
         }
 
         return commentCount;
+    }
+    getMessageInHistory(index) {
+        if (index < 0 || index >= this.messageHistory.length) {
+            return '';
+        }
+        return this.messageHistory[index % this.messageHistory.length];
+    }
+    getHistoryLength() {
+        if (this.messageHistory === null) {
+            return 0;
+        }
+        return this.messageHistory.length;
+    }
+    storeMessageInHistory(message) {
+        this.messageHistory.push(message);
+        if (this.messageHistory.length > Constants.MAX_PREV_MSGS) {
+            this.messageHistory = this.messageHistory.slice(1, Constants.MAX_PREV_MSGS + 1);
+        }
+    }
+    storeMessageInHistoryByIndex(index, message) {
+        this.messageHistory[index] = message;
     }
 }
 
