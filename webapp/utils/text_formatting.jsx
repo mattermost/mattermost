@@ -379,7 +379,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
         // highlight existing tokens matching search terms
         var newTokens = new Map();
         for (const [alias, token] of tokens) {
-            if (token.originalText === term.replace(/\*$/, '')) {
+            if (token.originalText.toLowerCase() === term.replace(/\*$/, '').toLowerCase()) {
                 const index = tokens.size + newTokens.size;
                 const newAlias = `MM_SEARCHTERM${index}`;
 
