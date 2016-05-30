@@ -160,6 +160,11 @@ export default class TeamAnalytics extends React.Component {
                             />
                         }
                         data={postCountsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
                         width='740'
                         height='225'
                     />
@@ -173,6 +178,11 @@ export default class TeamAnalytics extends React.Component {
                             />
                         }
                         data={userCountsWithPostsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
                         width='740'
                         height='225'
                     />

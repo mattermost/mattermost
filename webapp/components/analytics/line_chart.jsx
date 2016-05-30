@@ -42,7 +42,7 @@ export default class LineChart extends React.Component {
         }
         var el = ReactDOM.findDOMNode(this.refs.canvas);
         var ctx = el.getContext('2d');
-        this.chart = new Chart(ctx).Line(this.props.data, this.props.options || {}); //eslint-disable-line new-cap
+        this.chart = new Chart(ctx, {type: 'line', data: this.props.data, options: this.props.options || {}}); //eslint-disable-line new-cap
     }
 
     render() {
