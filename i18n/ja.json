@@ -460,10 +460,6 @@
     "translation": "キーボードショートカットのリストを表示する"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### キーボードショートカット\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - チャンネルスイッチャーを開く\n- CTRL/CMD+U - ファイルアップロードを開く\n- CTRL/CMD+Up - 最新のメッセージまたは入力したスラッシュコマンドを再表示する\n- CTRL/CMD+SHIFT+A - アカウント設定を開く\n- CTRL/CMD+SHIFT+M - 最近のあなたについての投稿を開く\n\n#### ALT\n\n- ALT+Up - 前のチャンネルに移動する\n- ALT+Down - 次のチャンネルに移動する\n- ALT+SHIFT+Up - 未読のメッセージのある前のチャンネルに移動する\n- ALT+SHIFT+Down - 未読のメッセージのある次のチャンネルに移動する\n\n#### 全般\n\n- Up - 最新のメッセージを編集する\n- /+Up/Down - 使うことのできるスラッシュコマンドを見る\n"
-  },
-  {
     "id": "api.command_shortcuts.name",
     "translation": "ショートカット"
   },

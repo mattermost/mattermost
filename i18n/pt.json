@@ -460,10 +460,6 @@
     "translation": "Mostrar a lista de atalhos"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### Atalhos do Teclado\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Abre o alternador de canal\n- CTRL/CMD+U - Abre o upload de arquivo\n- CTRL/CMD+Up - Reimprime as última mensagem ou comando slash inserido\n- CTRL/CMD+SHIFT+A - Abre as configurações de conta\n- CTRL/CMD+SHIFT+M - Abre as menções recentes\n\n#### ALT\n\n- ALT+Up - Vai para o canal anterior\n- ALT+Down - Vai para o próximo canal\n- ALT+SHIFT+Up - Vai para o canal anterior com mensagens não lidas\n- ALT+SHIFT+Down - Vai para o próximo canal com mensagens não lidas\n\n#### Geral\n\n- Up - Edita a última mensagen\n- /+Up/Down - Exibe os camandos slash disponíveis\n"
-  },
-  {
     "id": "api.command_shortcuts.name",
     "translation": "atalhos"
   },

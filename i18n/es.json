@@ -460,10 +460,6 @@
     "translation": "Muestra una lista de los accesos rápidos de teclado"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### Accesos rápidos de teclado\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Abre un dialogo para cambiar de canal\n- CTRL/CMD+U - Abre el dialogo para subir un archivo\n- CTRL/CMD+Up - Vuelve a escribir el último mensaje o comando de barra\n- CTRL/CMD+SHIFT+A - Abre configurar cuenta\n- CTRL/CMD+SHIFT+M - Abre menciones recientes\n\n#### ALT\n\n- ALT+Arriba - Ir al canal anterior\n- ALT+Abajo - Ir al canal siguiente\n- ALT+SHIFT+Arriba - Ir al canal anterior con mensajes no leidos\n- ALT+SHIFT+Abajo - Ir al canal siguiente con mensajes no leidos\n\n#### General\n\n- Arriba - Edita el último mensaje\n- /+Arriba/Abajo - Ver los comandos de barra disponibles\n"
-  },
-  {
     "id": "api.command_shortcuts.name",
     "translation": "accesos rápidos de teclado"
   },
