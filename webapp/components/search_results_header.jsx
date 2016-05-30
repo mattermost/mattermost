@@ -15,11 +15,25 @@ export default class SearchResultsHeader extends React.Component {
         super(props);
 
         this.handleClose = this.handleClose.bind(this);
+        this.closeShortcut = this.closeShortcut.bind(this);
     }
 
-    handleClose(e) {
-        e.preventDefault();
+    componentDidMount() {
+        document.addEventListener('keydown', this.closeShortcut);
+    }
 
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.closeShortcut);
+    }
+
+    closeShortcut(e) {
+        if (e.keyCode === Constants.KeyCodes.ESCAPE) {
+            e.preventDefault();
+            this.handleClose();
+        }
+    }
+
+    handleClose() {
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_SEARCH,
             results: null

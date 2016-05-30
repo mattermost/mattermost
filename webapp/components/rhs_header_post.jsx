@@ -17,13 +17,30 @@ export default class RhsHeaderPost extends React.Component {
 
         this.handleClose = this.handleClose.bind(this);
         this.handleBack = this.handleBack.bind(this);
+        this.closeShortcut = this.closeShortcut.bind(this);
 
         this.state = {};
     }
-    handleClose(e) {
-        e.preventDefault();
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.closeShortcut);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.closeShortcut);
+    }
+
+    closeShortcut(e) {
+        if (e.keyCode === Constants.KeyCodes.ESCAPE) {
+            e.preventDefault();
+            this.handleClose();
+        }
+    }
+
+    handleClose() {
         GlobalActions.emitCloseRightHandSide();
     }
+
     handleBack(e) {
         e.preventDefault();
 
@@ -39,6 +56,7 @@ export default class RhsHeaderPost extends React.Component {
             postId: null
         });
     }
+
     render() {
         let back;
         if (this.props.fromSearch) {
