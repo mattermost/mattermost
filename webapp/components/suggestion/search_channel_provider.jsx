@@ -1,13 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import React from 'react';
+
 import ChannelStore from 'stores/channel_store.jsx';
 import Constants from 'utils/constants.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 
-import React from 'react';
+import Suggestion from './suggestion.jsx';
 
-class SearchChannelSuggestion extends React.Component {
+class SearchChannelSuggestion extends Suggestion {
     render() {
         const {item, isSelection, onClick} = this.props;
 
@@ -26,12 +28,6 @@ class SearchChannelSuggestion extends React.Component {
         );
     }
 }
-
-SearchChannelSuggestion.propTypes = {
-    item: React.PropTypes.object.isRequired,
-    isSelection: React.PropTypes.bool,
-    onClick: React.PropTypes.func
-};
 
 export default class SearchChannelProvider {
     handlePretextChanged(suggestionId, pretext) {
@@ -62,10 +58,8 @@ export default class SearchChannelProvider {
             privateChannels.sort((a, b) => a.name.localeCompare(b.name));
             const privateChannelNames = privateChannels.map((channel) => channel.name);
 
-            SuggestionStore.setMatchedPretext(suggestionId, channelPrefix);
-
-            SuggestionStore.addSuggestions(suggestionId, publicChannelNames, publicChannels, SearchChannelSuggestion);
-            SuggestionStore.addSuggestions(suggestionId, privateChannelNames, privateChannels, SearchChannelSuggestion);
+            SuggestionStore.addSuggestions(suggestionId, publicChannelNames, publicChannels, SearchChannelSuggestion, channelPrefix);
+            SuggestionStore.addSuggestions(suggestionId, privateChannelNames, privateChannels, SearchChannelSuggestion, channelPrefix);
         }
     }
 }

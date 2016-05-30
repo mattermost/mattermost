@@ -27,10 +27,10 @@ export default class SuggestionBox extends React.Component {
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
         this.suggestionId = Utils.generateId();
+        SuggestionStore.registerSuggestionBox(this.suggestionId);
     }
 
     componentDidMount() {
-        SuggestionStore.registerSuggestionBox(this.suggestionId);
         $(document).on('click', this.handleDocumentClick);
 
         SuggestionStore.addCompleteWordListener(this.suggestionId, this.handleCompleteWord);
@@ -81,12 +81,24 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
-    handleCompleteWord(term) {
+    handleCompleteWord(term, matchedPretext) {
         const textbox = ReactDOM.findDOMNode(this.refs.textbox);
         const caret = Utils.getCaretPosition(textbox);
 
         const text = this.props.value;
-        const prefix = text.substring(0, caret - SuggestionStore.getMatchedPretext(this.suggestionId).length);
+        const pretext = text.substring(0, caret);
+
+        let prefix;
+        if (pretext.endsWith(matchedPretext)) {
+            prefix = pretext.substring(0, pretext.length - matchedPretext.length);
+        } else {
+            // the pretext has changed since we got a term to complete so see if the term still fits the pretext
+            const termWithoutMatched = term.substring(matchedPretext.length);
+            const overlap = SuggestionBox.findOverlap(pretext, termWithoutMatched);
+
+            prefix = pretext.substring(0, pretext.length - overlap.length - matchedPretext.length);
+        }
+
         const suffix = text.substring(caret);
 
         if (this.props.onUserInput) {
@@ -167,6 +179,20 @@ export default class SuggestionBox extends React.Component {
                 <SuggestionListComponent suggestionId={this.suggestionId}/>
             </div>
         );
+    }
+
+    // Finds the longest substring that's at both the end of b and the start of a. For example,
+    // if a = "firepit" and b = "pitbull", findOverlap would return "pit".
+    static findOverlap(a, b) {
+        for (let i = b.length; i > 0; i--) {
+            const substring = b.substring(0, i);
+
+            if (a.endsWith(substring)) {
+                return substring;
+            }
+        }
+
+        return '';
     }
 }
 
