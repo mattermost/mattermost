@@ -681,6 +681,7 @@ class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateNickname}
                                 value={this.state.nickname}
+                                maxLength={Constants.MAX_NICKNAME_LENGTH}
                                 autoCapitalize='off'
                             />
                         </div>
