@@ -155,5 +155,12 @@
         "Enable": false,
         "Directory": "./data/",
         "EnableDaily": false
+    },
+    "SampleAppSettings": {
+        "Enable": false,
+        "AppUrl": "",
+        "IconUrl": "",
+        "AppName": "",
+        "AppDisplayName": ""
     }
 }
