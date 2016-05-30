@@ -8,7 +8,7 @@ const ActionTypes = Constants.ActionTypes;
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'utils/web_client.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import {browserHistory} from 'react-router';
 

@@ -1,6 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import Banner from 'components/admin_console/banner.jsx';
 import LineChart from './line_chart.jsx';
 import DoughnutChart from './doughnut_chart.jsx';
 import StatisticCount from './statistic_count.jsx';
@@ -8,11 +9,12 @@ import StatisticCount from './statistic_count.jsx';
 import AnalyticsStore from 'stores/analytics_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
+import {isLicenseExpired, isLicenseExpiring, displayExpiryDate} from 'utils/license_utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
 const StatTypes = Constants.StatTypes;
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
+import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 const holders = defineMessages({
     analyticsPublicChannels: {
@@ -81,6 +83,7 @@ class SystemAnalytics extends React.Component {
 
         let advancedCounts;
         let advancedGraphs;
+        let banner;
         if (global.window.mm_license.IsLicensed === 'true') {
             advancedCounts = (
                 <div className='row'>
@@ -156,6 +159,36 @@ class SystemAnalytics extends React.Component {
                     />
                 </div>
             );
+
+            if (isLicenseExpired()) {
+                banner = (
+                    <Banner
+                        description={
+                            <FormattedHTMLMessage
+                                id='analytics.system.expiredBanner'
+                                defaultMessage='The Enterprise license expired on {date}. You have 15 days from this date to renew the license, please contact <a href="mailto:commercial@mattermost.com">commercial@mattermost.com</a>.'
+                                values={{
+                                    date: displayExpiryDate()
+                                }}
+                            />
+                        }
+                    />
+                );
+            } else if (isLicenseExpiring()) {
+                banner = (
+                    <Banner
+                        description={
+                            <FormattedHTMLMessage
+                                id='analytics.system.expiringBanner'
+                                defaultMessage='The Enterprise license is expiring on {date}. To renew your license, please contact <a href="mailto:commercial@mattermost.com">commercial@mattermost.com</a>.'
+                                values={{
+                                    date: displayExpiryDate()
+                                }}
+                            />
+                        }
+                    />
+                );
+            }
         }
 
         const postCountsDay = formatPostsPerDayData(stats[StatTypes.POST_PER_DAY]);
@@ -169,6 +202,7 @@ class SystemAnalytics extends React.Component {
                         defaultMessage='System Statistics'
                     />
                 </h3>
+                {banner}
                 <div className='row'>
                     <StatisticCount
                         title={
