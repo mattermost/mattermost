@@ -2,9 +2,17 @@
 // See License.txt for license information.
 
 import ErrorStore from 'stores/error_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+
 import * as Utils from 'utils/utils.jsx';
+import {isLicenseExpiring, isLicenseExpired, isLicensePastGracePeriod, displayExpiryDate} from 'utils/license_utils.jsx';
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
+const EXPIRING_ERROR = 'error_bar.expiring';
+const EXPIRED_ERROR = 'error_bar.expired';
+const PAST_GRACE_ERROR = 'error_bar.past_grace';
 
 export default class ErrorBar extends React.Component {
     constructor() {
@@ -12,6 +20,22 @@ export default class ErrorBar extends React.Component {
 
         this.onErrorChange = this.onErrorChange.bind(this);
         this.handleClose = this.handleClose.bind(this);
+
+        let isSystemAdmin = false;
+        const user = UserStore.getCurrentUser();
+        if (user) {
+            isSystemAdmin = Utils.isSystemAdmin(user.roles);
+        }
+
+        if (!ErrorStore.getIgnoreNotification() && global.window.mm_config.SendEmailNotifications === 'false') {
+            ErrorStore.storeLastError({notification: true, message: Utils.localizeMessage('error_bar.preview_mode', 'Preview Mode: Email notifications have not been configured')});
+        } else if (isLicenseExpiring() && isSystemAdmin) {
+            ErrorStore.storeLastError({notification: true, message: EXPIRING_ERROR});
+        } else if (isLicenseExpired() && isSystemAdmin) {
+            ErrorStore.storeLastError({notification: true, message: EXPIRED_ERROR, type: 'developer'});
+        } else if (isLicensePastGracePeriod()) {
+            ErrorStore.storeLastError({notification: true, message: PAST_GRACE_ERROR});
+        }
 
         this.state = ErrorStore.getLastError();
     }
@@ -26,13 +50,6 @@ export default class ErrorBar extends React.Component {
         }
 
         return true;
-    }
-
-    componentWillMount() {
-        if (!ErrorStore.getIgnoreEmailPreview() && global.window.mm_config.SendEmailNotifications === 'false') {
-            ErrorStore.storeLastError({email_preview: true, message: Utils.localizeMessage('error_bar.preview_mode', 'Preview Mode: Email notifications have not been configured')});
-            this.onErrorChange();
-        }
     }
 
     componentDidMount() {
@@ -58,8 +75,8 @@ export default class ErrorBar extends React.Component {
             e.preventDefault();
         }
 
-        if (ErrorStore.getLastError() && ErrorStore.getLastError().email_preview) {
-            ErrorStore.clearPreviewError();
+        if (ErrorStore.getLastError() && ErrorStore.getLastError().notification) {
+            ErrorStore.clearNotificationError();
         } else {
             ErrorStore.clearLastError();
         }
@@ -78,9 +95,36 @@ export default class ErrorBar extends React.Component {
             errClass = 'error-bar-developer';
         }
 
+        let message = this.state.message;
+        if (message === EXPIRING_ERROR) {
+            message = (
+                <FormattedMessage
+                    id={EXPIRING_ERROR}
+                    defaultMessage='The Enterprise license is expiring on {date}. To renew your license, please contact commercial@mattermost.com'
+                    values={{
+                        date: displayExpiryDate()
+                    }}
+                />
+            );
+        } else if (message === EXPIRED_ERROR) {
+            message = (
+                <FormattedMessage
+                    id={EXPIRED_ERROR}
+                    defaultMessage='Enterprise license has expired; you have 15 days from expiry to renew the license, please contact commercial@mattermost.com for details'
+                />
+            );
+        } else if (message === PAST_GRACE_ERROR) {
+            message = (
+                <FormattedMessage
+                    id={PAST_GRACE_ERROR}
+                    defaultMessage='Enterprise license has expired, please contact your System Administrator for details'
+                />
+            );
+        }
+
         return (
             <div className={errClass}>
-                <span>{this.state.message}</span>
+                <span>{message}</span>
                 <a
                     href='#'
                     className='error-bar__close'

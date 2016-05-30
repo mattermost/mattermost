@@ -1,16 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import AdminSettings from './admin_settings.jsx';
+import Banner from './banner.jsx';
+import BooleanSetting from './boolean_setting.jsx';
+import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';
+import SettingsGroup from './settings_group.jsx';
+import TextSetting from './text_setting.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
-import AdminSettings from './admin_settings.jsx';
-import BooleanSetting from './boolean_setting.jsx';
-import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import SettingsGroup from './settings_group.jsx';
-import TextSetting from './text_setting.jsx';
 
 export default class LdapSettings extends AdminSettings {
     constructor(props) {
@@ -90,22 +91,14 @@ export default class LdapSettings extends AdminSettings {
 
                 }
             >
-                <div className='banner'>
-                    <div className='banner__content'>
-                        <h4 className='banner__heading'>
-                            <FormattedMessage
-                                id='admin.ldap.bannerHeading'
-                                defaultMessage='Note:'
-                            />
-                        </h4>
-                        <p>
-                            <FormattedMessage
-                                id='admin.ldap.bannerDesc'
-                                defaultMessage='If a user attribute changes on the LDAP server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from an LDAP server. Synchronization with LDAP servers is planned in a future release.'
-                            />
-                        </p>
-                    </div>
-                </div>
+                <Banner
+                    description={
+                        <FormattedMessage
+                            id='admin.ldap.bannerDesc'
+                            defaultMessage='If a user attribute changes on the LDAP server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from an LDAP server. Synchronization with LDAP servers is planned in a future release.'
+                        />
+                    }
+                />
                 <BooleanSetting
                     id='enable'
                     label={
