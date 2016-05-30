@@ -160,6 +160,8 @@ export default class AddOutgoingWebhook extends React.Component {
     }
 
     render() {
+        const contentTypeOption1 = 'application/x-www-form-urlencoded';
+        const contentTypeOption2 = 'application/json';
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
@@ -230,16 +232,20 @@ export default class AddOutgoingWebhook extends React.Component {
                             </label>
                             <div className='col-md-5 col-sm-8'>
                                 <select
-                                  className='form-control'
-                                  value={this.state.contentType}
-                                  onChange={this.updateContentType}
+                                    className='form-control'
+                                    value={this.state.contentType}
+                                    onChange={this.updateContentType}
                                 >
-                                  <option value='application/x-www-form-urlencoded'>
-                                    application/x-www-form-urlencoded
-                                  </option>
-                                  <option value='application/json'>
-                                    application/json
-                                  </option>
+                                    <option
+                                        value={contentTypeOption1}
+                                    >
+                                        {contentTypeOption1}
+                                    </option>
+                                    <option
+                                        value={contentTypeOption2}
+                                    >
+                                        {contentTypeOption2}
+                                    </option>
                                 </select>
                             </div>
                         </div>

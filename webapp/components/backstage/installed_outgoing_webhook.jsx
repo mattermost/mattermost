@@ -113,17 +113,17 @@ export default class InstalledOutgoingWebhook extends React.Component {
         }
 
         let urls = (
-          <div className='item-details__row'>
-              <span className='item-details__url'>
-                  <FormattedMessage
-                      id='installed_integrations.callback_urls'
-                      defaultMessage='Callback URLs: {urls}'
-                      values={{
-                          urls: outgoingWebhook.callback_urls.join(', ')
-                      }}
-                  />
-              </span>
-          </div>
+            <div className='item-details__row'>
+                <span className='item-details__url'>
+                    <FormattedMessage
+                        id='installed_integrations.callback_urls'
+                        defaultMessage='Callback URLs: {urls}'
+                        values={{
+                            urls: outgoingWebhook.callback_urls.join(', ')
+                        }}
+                    />
+                </span>
+            </div>
         );
 
         return (
@@ -141,7 +141,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
                                 id='installed_integrations.content_type'
                                 defaultMessage='Content-Type: {contentType}'
                                 values={{
-                                    contentType: outgoingWebhook.content_type || "application/x-www-form-urlencoded"
+                                    contentType: outgoingWebhook.content_type || 'application/x-www-form-urlencoded'
                                 }}
                             />
                         </span>
