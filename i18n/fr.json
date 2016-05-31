@@ -460,10 +460,6 @@
     "translation": "Raccourcis clavier"
   },
   {
-    "id": "api.command_shortcuts.list",
-    "translation": "### Raccourcis clavier\n\n#### CTRL/CMD\n\n- CTRL/CMD+K - Ouvre la fenêtre de changement de canal\n- CTRL/CMD+U - Ouvre la fenêtre de téléchargement\n- CTRL/CMD+Up - Affiche le dernier message ou la dernière commande slash\n- CTRL/CMD+SHIFT+A - Ouvre les préférences\n- CTRL/CMD+SHIFT+M - Ouvre les mentions récentes\n\n#### ALT\n\n- ALT+Up - Canal précédent\n- ALT+Down - Canal précédent\n- ALT+SHIFT+Up - Canal précédent avec un message non-lu\n- ALT+SHIFT+Down - Canal suivant avec un message non-lu\n\n#### Général\n\n- Up - Modifie le dernier message\n- /+Up/Down - Liste des commandes slash disponibles\n"
-  },
-  {
     "id": "api.command_shortcuts.name",
     "translation": "raccourcis clavier"
   },
