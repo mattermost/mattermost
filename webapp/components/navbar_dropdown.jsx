@@ -292,7 +292,10 @@ export default class NavbarDropdown extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                onClick={() => this.setState({showUserSettingsModal: true})}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    this.setState({showUserSettingsModal: true});
+                                }}
                             >
                                 <FormattedMessage
                                     id='navbar_dropdown.accountSettings'
