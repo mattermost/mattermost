@@ -123,10 +123,12 @@ hlJS.registerLanguage('yaml', hljsYaml);
 
 const HighlightedLanguages = Constants.HighlightedLanguages;
 
-export function formatCode(lang, data, filename) {
+export function formatCode(lang, data, filename, searchTerm) {
     const language = lang.toLowerCase() || '';
+
     let contents;
     let header = '';
+    let className = 'post-code';
 
     if (HighlightedLanguages[language]) {
         let name = HighlightedLanguages[language].name;
@@ -147,10 +149,13 @@ export function formatCode(lang, data, filename) {
         contents = TextFormatting.sanitizeHtml(data);
     }
 
-    let className = 'post-code';
     if (!language) {
         // wrap when no language is specified
         className += ' post-code--wrap';
+
+        const tokens = new Map();
+        contents = TextFormatting.highlightSearchTerms(contents, tokens, searchTerm);
+        contents = TextFormatting.replaceTokens(contents, tokens);
     }
 
     if (filename) {

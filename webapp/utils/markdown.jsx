@@ -43,11 +43,25 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             usedLanguage = 'xml';
         }
 
-        return syntaxHightlighting.formatCode(usedLanguage, code);
+        return syntaxHightlighting.formatCode(usedLanguage, code, null, this.formattingOptions.searchTerm);
     }
 
     codespan(text) {
-        return '<span class="codespan__pre-wrap">' + super.codespan(text) + '</span>';
+        let output = text;
+
+        if (this.formattingOptions.searchTerm) {
+            const tokens = new Map();
+            output = TextFormatting.highlightSearchTerms(output, tokens, this.formattingOptions.searchTerm);
+            output = TextFormatting.replaceTokens(output, tokens);
+        }
+
+        return (
+            '<span class="codespan__pre-wrap">' +
+                '<code>' +
+                    output +
+                '</code>' +
+            '</span>'
+        );
     }
 
     br() {
