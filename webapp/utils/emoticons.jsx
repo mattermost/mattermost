@@ -132,7 +132,7 @@ export function getEmoticonsByCodePoint() {
 export function handleEmoticons(text, tokens) {
     let output = text;
 
-    function replaceEmoticonWithToken(fullMatch, matchText, name) {
+    function replaceEmoticonWithToken(fullMatch, prefix, matchText, name) {
         if (getEmoticonsByName().has(name)) {
             const index = tokens.size;
             const alias = `MM_EMOTICON${index}`;
@@ -143,14 +143,14 @@ export function handleEmoticons(text, tokens) {
                 originalText: fullMatch
             });
 
-            return alias;
+            return prefix + alias;
         }
 
         return fullMatch;
     }
 
     // match named emoticons like :goat:
-    output = output.replace(/(:([a-zA-Z0-9_-]+):)/g, (fullMatch, matchText, name) => replaceEmoticonWithToken(fullMatch, matchText, name));
+    output = output.replace(/(:([a-zA-Z0-9_-]+):)/g, (fullMatch, matchText, name) => replaceEmoticonWithToken(fullMatch, '', matchText, name));
 
     // match text smilies like :D
     for (const name of Object.keys(emoticonPatterns)) {
@@ -158,7 +158,7 @@ export function handleEmoticons(text, tokens) {
 
         // this might look a bit funny, but since the name isn't contained in the actual match
         // like with the named emoticons, we need to add it in manually
-        output = output.replace(pattern, (fullMatch, matchText) => replaceEmoticonWithToken(fullMatch, matchText, name));
+        output = output.replace(pattern, (fullMatch, prefix, matchText) => replaceEmoticonWithToken(fullMatch, prefix, matchText, name));
     }
 
     return output;
