@@ -145,7 +145,7 @@ export default class UserList extends React.Component {
     }
 
     componentWillReceiveProps(newProps) {
-        this.getTeamProfiles(newProps.team.id);
+        this.getTeamProfiles(newProps.params.team);
     }
 
     render() {
