@@ -112,22 +112,19 @@ export default class InstalledOutgoingWebhook extends React.Component {
             );
         }
 
-        const urls = [];
-        for (const url of outgoingWebhook.callback_urls) {
-            urls.push(
-                <div
-                    key={url}
-                    className='item-details__url'
-                >
-                    {url}
-                </div>
-            );
-            urls.push(
-                <br
-                    key={'BR' + url}
-                />
-            );
-        }
+        let urls = (
+            <div className='item-details__row'>
+                <span className='item-details__url'>
+                    <FormattedMessage
+                        id='installed_integrations.callback_urls'
+                        defaultMessage='Callback URLs: {urls}'
+                        values={{
+                            urls: outgoingWebhook.callback_urls.join(', ')
+                        }}
+                    />
+                </span>
+            </div>
+        );
 
         return (
             <div className='backstage-list__item'>
@@ -138,6 +135,17 @@ export default class InstalledOutgoingWebhook extends React.Component {
                         </span>
                     </div>
                     {description}
+                    <div className='item-details__row'>
+                        <span className='item-details__content_type'>
+                            <FormattedMessage
+                                id='installed_integrations.content_type'
+                                defaultMessage='Content-Type: {contentType}'
+                                values={{
+                                    contentType: outgoingWebhook.content_type || 'application/x-www-form-urlencoded'
+                                }}
+                            />
+                        </span>
+                    </div>
                     {triggerWords}
                     <div className='item-details__row'>
                         <span className='item-details__token'>
@@ -162,11 +170,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
                             />
                         </span>
                     </div>
-                    <div className='item-details__row'>
-                        <span className='item-details__urls'>
-                            {urls}
-                        </span>
-                    </div>
+                    {urls}
                 </div>
                 <div className='item-actions'>
                     <a

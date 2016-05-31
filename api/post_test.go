@@ -4,9 +4,11 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
+	"net/url"
+	"reflect"
 	"strings"
 
 	"fmt"
@@ -110,7 +112,11 @@ func TestCreatePost(t *testing.T) {
 	}
 }
 
-func TestCreatePostWithOutgoingHook(t *testing.T) {
+func testCreatePostWithOutgoingHook(
+	t *testing.T,
+	hookContentType string,
+	expectedContentType string,
+) {
 	th := Setup().InitSystemAdmin()
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
@@ -131,67 +137,52 @@ func TestCreatePostWithOutgoingHook(t *testing.T) {
 	// success/failure.
 	success := make(chan bool)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			t.Logf("Error parsing form: %q", err)
+		requestContentType := r.Header.Get("Content-Type")
+		if requestContentType != expectedContentType {
+			t.Logf("Content-Type is %s, should be %s", requestContentType, expectedContentType)
 			success <- false
 			return
 		}
 
-		if got, want := r.Form.Get("token"), hook.Token; got != want {
-			t.Logf("Token is %s, should be %s", got, want)
-			success <- false
-			return
+		expectedPayload := &model.OutgoingWebhookPayload{
+			Token:       hook.Token,
+			TeamId:      hook.TeamId,
+			TeamDomain:  team.Name,
+			ChannelId:   post.ChannelId,
+			ChannelName: channel.Name,
+			Timestamp:   post.CreateAt,
+			UserId:      post.UserId,
+			UserName:    user.Username,
+			PostId:      post.Id,
+			Text:        post.Message,
+			TriggerWord: strings.Fields(post.Message)[0],
 		}
-		if got, want := r.Form.Get("team_id"), hook.TeamId; got != want {
-			t.Logf("TeamId is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("team_domain"), team.Name; got != want {
-			t.Logf("TeamDomain is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("channel_id"), post.ChannelId; got != want {
-			t.Logf("ChannelId is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("channel_name"), channel.Name; got != want {
-			t.Logf("ChannelName is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("timestamp"), strconv.FormatInt(post.CreateAt/1000, 10); got != want {
-			t.Logf("Timestamp is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("user_id"), post.UserId; got != want {
-			t.Logf("UserId is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("user_name"), user.Username; got != want {
-			t.Logf("Username is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("post_id"), post.Id; got != want {
-			t.Logf("PostId is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("text"), post.Message; got != want {
-			t.Logf("Message is %s, should be %s", got, want)
-			success <- false
-			return
-		}
-		if got, want := r.Form.Get("trigger_word"), strings.Fields(post.Message)[0]; got != want {
-			t.Logf("TriggerWord is %s, should be %s", got, want)
-			success <- false
-			return
+
+		// depending on the Content-Type, we expect to find a JSON or form encoded payload
+		if requestContentType == "application/json" {
+			decoder := json.NewDecoder(r.Body)
+			o := &model.OutgoingWebhookPayload{}
+			decoder.Decode(&o)
+
+			if !reflect.DeepEqual(expectedPayload, o) {
+				t.Logf("JSON payload is %+v, should be %+v", o, expectedPayload)
+				success <- false
+				return
+			}
+		} else {
+			err := r.ParseForm()
+			if err != nil {
+				t.Logf("Error parsing form: %q", err)
+				success <- false
+				return
+			}
+
+			expectedFormValues, _ := url.ParseQuery(expectedPayload.ToFormValues())
+			if !reflect.DeepEqual(expectedFormValues, r.Form) {
+				t.Logf("Form values are %q, should be %q", r.Form, expectedFormValues)
+				success <- false
+				return
+			}
 		}
 
 		success <- true
@@ -202,6 +193,7 @@ func TestCreatePostWithOutgoingHook(t *testing.T) {
 	triggerWord := "bingo"
 	hook = &model.OutgoingWebhook{
 		ChannelId:    channel.Id,
+		ContentType:  hookContentType,
 		TriggerWords: []string{triggerWord},
 		CallbackURLs: []string{ts.URL},
 	}
@@ -235,6 +227,20 @@ func TestCreatePostWithOutgoingHook(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("Timeout, test server wasn't sent the webhook.")
 	}
+}
+
+func TestCreatePostWithOutgoingHook_form_urlencoded(t *testing.T) {
+	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded")
+}
+
+func TestCreatePostWithOutgoingHook_json(t *testing.T) {
+	testCreatePostWithOutgoingHook(t, "application/json", "application/json")
+}
+
+// hooks created before we added the ContentType field should be considered as
+// application/x-www-form-urlencoded
+func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
+	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded")
 }
 
 func TestUpdatePost(t *testing.T) {

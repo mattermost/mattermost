@@ -4,6 +4,8 @@
 package model
 
 import (
+	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -107,7 +109,48 @@ func TestOutgoingWebhookIsValid(t *testing.T) {
 
 	o.Description = strings.Repeat("1", 128)
 	if err := o.IsValid(); err != nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.ContentType = strings.Repeat("1", 129)
+	if err := o.IsValid(); err == nil {
 		t.Fatal(err)
+	}
+
+	o.ContentType = strings.Repeat("1", 128)
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOutgoingWebhookPayloadToFormValues(t *testing.T) {
+	p := &OutgoingWebhookPayload{
+		Token:       "Token",
+		TeamId:      "TeamId",
+		TeamDomain:  "TeamDomain",
+		ChannelId:   "ChannelId",
+		ChannelName: "ChannelName",
+		Timestamp:   123000,
+		UserId:      "UserId",
+		UserName:    "UserName",
+		PostId:      "PostId",
+		Text:        "Text",
+		TriggerWord: "TriggerWord",
+	}
+	v := url.Values{}
+	v.Set("token", "Token")
+	v.Set("team_id", "TeamId")
+	v.Set("team_domain", "TeamDomain")
+	v.Set("channel_id", "ChannelId")
+	v.Set("channel_name", "ChannelName")
+	v.Set("timestamp", "123")
+	v.Set("user_id", "UserId")
+	v.Set("user_name", "UserName")
+	v.Set("post_id", "PostId")
+	v.Set("text", "Text")
+	v.Set("trigger_word", "TriggerWord")
+	if got, want := p.ToFormValues(), v.Encode(); !reflect.DeepEqual(got, want) {
+		t.Fatalf("Got %+v, wanted %+v", got, want)
 	}
 }
 
