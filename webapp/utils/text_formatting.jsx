@@ -65,7 +65,7 @@ export function doFormatText(text, options) {
     }
 
     if (options.searchTerm) {
-        output = highlightSearchTerm(output, tokens, options.searchTerm);
+        output = highlightSearchTerms(output, tokens, options.searchTerm);
     }
 
     if (!('mentionHighlight' in options) || options.mentionHighlight) {
@@ -362,7 +362,7 @@ function convertSearchTermToRegex(term) {
     return new RegExp(pattern, 'gi');
 }
 
-function highlightSearchTerm(text, tokens, searchTerm) {
+export function highlightSearchTerms(text, tokens, searchTerm) {
     const terms = parseSearchTerms(searchTerm);
 
     if (terms.length === 0) {
@@ -411,7 +411,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
     return output;
 }
 
-function replaceTokens(text, tokens) {
+export function replaceTokens(text, tokens) {
     let output = text;
 
     // iterate backwards through the map so that we do replacement in the opposite order that we added tokens
