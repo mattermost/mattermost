@@ -81,7 +81,7 @@
   "add_outgoing_webhook.triggerWordsOrChannelRequired": "Un canal valide ou une liste de mot-clé est demander",
   "admin.audits.reload": "Rafraîchir",
   "admin.audits.title": "Activité de l'utilisateur",
-  "admin.banner.heading": "Note:",
+  "admin.banner.heading": "Remarque :",
   "admin.compliance.directoryDescription": "Répertoire des rapports de conformité. Si non spécifié :  ./data/ .",
   "admin.compliance.directoryExample": "Ex : \"./data/\"",
   "admin.compliance.directoryTitle": "Répertoire des éléments de conformité :",
