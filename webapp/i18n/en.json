@@ -468,7 +468,7 @@
   "admin.sql.warning": "Warning: re-generating this salt may cause some columns in the database to return empty results.",
   "admin.support.aboutDesc": "Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.",
   "admin.support.aboutTitle": "About link:",
-  "admin.support.emailHelp": "Email shown during tutorial for end users to ask support questions.",
+  "admin.support.emailHelp": "Email address displayed on email notifications and during tutorial for end users to ask support questions.",
   "admin.support.emailTitle": "Support email:",
   "admin.support.helpDesc": "Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.",
   "admin.support.helpTitle": "Help link:",

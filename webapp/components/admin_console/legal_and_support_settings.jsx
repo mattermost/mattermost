@@ -154,7 +154,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.support.emailHelp'
-                            defaultMessage='Email shown during tutorial for end users to ask support questions.'
+                            defaultMessage='Email address displayed on email notifications and during tutorial for end users to ask support questions.'
                         />
                     }
                     value={this.state.supportEmail}
