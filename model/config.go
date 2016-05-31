@@ -642,29 +642,6 @@ func (o *Config) SetDefaults() {
 		o.SampleAppSettings.AppDisplayName = new(string)
 		*o.SampleAppSettings.AppDisplayName = ""
 	}
-
-	if o.SampleAppSettings.Enable == nil {
-		o.SampleAppSettings.Enable = new(bool)
-		*o.SampleAppSettings.Enable = false
-	}
-
-	if !IsSafeLink(o.SampleAppSettings.AppUrl) {
-		*o.SampleAppSettings.AppUrl = ""
-	}
-
-	if !IsSafeLink(o.SampleAppSettings.IconUrl) {
-		*o.SampleAppSettings.IconUrl = ""
-	}
-
-	if o.SampleAppSettings.AppName == nil {
-		o.SampleAppSettings.AppName = new(string)
-		*o.SampleAppSettings.AppName = ""
-	}
-
-	if o.SampleAppSettings.AppDisplayName == nil {
-		o.SampleAppSettings.AppDisplayName = new(string)
-		*o.SampleAppSettings.AppDisplayName = ""
-	}
 }
 
 func (o *Config) IsValid() *AppError {
