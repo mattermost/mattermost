@@ -43,7 +43,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             usedLanguage = 'xml';
         }
 
-        return syntaxHightlighting.formatCode(usedLanguage, code);
+        return syntaxHightlighting.formatCode(usedLanguage, code, null, this.formattingOptions.searchTerm);
     }
 
     codespan(text) {
