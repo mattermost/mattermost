@@ -39,6 +39,19 @@ func TestUserPreSave(t *testing.T) {
 func TestUserPreUpdate(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreUpdate()
+
+	user.ThemeProps = StringMap{
+		"codeTheme":     "github",
+		"awayIndicator": "#cdbd4e",
+		"buttonColor":   "invalid",
+	}
+	user.PreUpdate()
+
+	if user.ThemeProps["codeTheme"] != "github" || user.ThemeProps["awayIndicator"] != "#cdbd4e" {
+		t.Fatal("shouldn't have changed valid theme props")
+	} else if user.ThemeProps["buttonColor"] != "#ffffff" {
+		t.Fatal("should've changed invalid theme prop")
+	}
 }
 
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {

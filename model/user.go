@@ -186,6 +186,21 @@ func (u *User) PreUpdate() {
 		}
 		u.NotifyProps["mention_keys"] = strings.Join(goodKeys, ",")
 	}
+
+	if u.ThemeProps != nil {
+		colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+
+		// blank out any invalid theme values
+		for name, value := range u.ThemeProps {
+			if name == "image" || name == "type" || name == "codeTheme" {
+				continue
+			}
+
+			if !colorPattern.MatchString(value) {
+				u.ThemeProps[name] = "#ffffff"
+			}
+		}
+	}
 }
 
 func (u *User) SetDefaultNotifications() {
