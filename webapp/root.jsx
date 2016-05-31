@@ -371,10 +371,6 @@ function renderRootComponent() {
                                 component={PrivacySettings}
                             />
                             <Route
-                                path='database'
-                                component={DatabaseSettings}
-                            />
-                            <Route
                                 path='compliance'
                                 component={ComplianceSettings}
                             />
@@ -470,6 +466,10 @@ function renderRootComponent() {
                             <Route
                                 path='rate'
                                 component={RateSettings}
+                            />
+                            <Route
+                                path='database'
+                                component={DatabaseSettings}
                             />
                             <Route
                                 path='developer'

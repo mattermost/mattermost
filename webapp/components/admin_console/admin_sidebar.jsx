@@ -312,15 +312,6 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
-                                <AdminSidebarSection
-                                    name='database'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.sidebar.database'
-                                            defaultMessage='Database'
-                                        />
-                                    }
-                                />
                                 {complianceSettings}
                                 <AdminSidebarSection
                                     name='logging'
@@ -551,6 +542,15 @@ export default class AdminSidebar extends React.Component {
                                         <FormattedMessage
                                             id='admin.sidebar.rate'
                                             defaultMessage='Rate Limiting'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='database'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.database'
+                                            defaultMessage='Database'
                                         />
                                     }
                                 />
