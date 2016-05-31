@@ -260,7 +260,11 @@ class PostStoreClass extends EventEmitter {
     clearChannelVisibility(id, atBottom) {
         this.makePostsInfo(id);
         this.postsInfo[id].endVisible = Constants.POST_CHUNK_SIZE;
-        this.postsInfo[id].atTop = false;
+        if (this.postsInfo[id].postList) {
+            this.postsInfo[id].atTop = this.postsInfo[id].atTop && Constants.POST_CHUNK_SIZE >= this.postsInfo[id].postList.order.length;
+        } else {
+            this.postsInfo[id].atTop = false;
+        }
         this.postsInfo[id].atBottom = atBottom;
     }
 
