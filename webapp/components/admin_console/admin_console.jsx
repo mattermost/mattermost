@@ -1,9 +1,9 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import React from 'react';
 
+import ErrorBar from 'components/error_bar.jsx';
 import AdminStore from 'stores/admin_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
@@ -42,8 +42,14 @@ export default class AdminConsole extends React.Component {
     }
 
     render() {
-        if ($.isEmptyObject(this.state.config)) {
-            return <div className='admin-console'/>;
+        const config = this.state.config;
+        if (config && Object.keys(config).length === 0 && config.constructor === 'Object') {
+            return (
+                <div>
+                    <ErrorBar/>
+                    <div className='admin-console'/>
+                </div>
+            );
         }
 
         // not every page in the system console will need the config, but the vast majority will
@@ -52,9 +58,12 @@ export default class AdminConsole extends React.Component {
         });
 
         return (
-            <div className='admin-console'>
-                <AdminSidebar/>
-                {children}
+            <div>
+                <ErrorBar/>
+                <div className='admin-console'>
+                    <AdminSidebar/>
+                    {children}
+                </div>
             </div>
         );
     }
