@@ -112,12 +112,12 @@ func TestOutgoingWebhookIsValid(t *testing.T) {
 		t.Fatal("should be invalid")
 	}
 
-	o.ContentType = strings.Repeat("1", 65)
+	o.ContentType = strings.Repeat("1", 129)
 	if err := o.IsValid(); err == nil {
 		t.Fatal(err)
 	}
 
-	o.ContentType = strings.Repeat("1", 64)
+	o.ContentType = strings.Repeat("1", 128)
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}

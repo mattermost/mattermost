@@ -167,7 +167,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.description.app_error", nil, "")
 	}
 
-	if len(o.ContentType) > 64 {
+	if len(o.ContentType) > 128 {
 		return NewLocAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.content_type.app_error", nil, "")
 	}
 
