@@ -136,7 +136,10 @@ func testCreatePostWithOutgoingHook(
 	// validate the webhook body fields and write to the success channel on
 	// success/failure.
 	success := make(chan bool)
+	wait := make(chan bool, 1)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-wait
+
 		requestContentType := r.Header.Get("Content-Type")
 		if requestContentType != expectedContentType {
 			t.Logf("Content-Type is %s, should be %s", requestContentType, expectedContentType)
@@ -216,6 +219,8 @@ func testCreatePostWithOutgoingHook(
 	} else {
 		post = result.Data.(*model.Post)
 	}
+
+	wait <- true
 
 	// We wait for the test server to write to the success channel and we make
 	// the test fail if that doesn't happen before the timeout.
