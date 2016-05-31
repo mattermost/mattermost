@@ -33,7 +33,7 @@ class SuggestionStore extends EventEmitter {
         // this.suggestions stores the state of all SuggestionBoxes by mapping their unique identifier to an
         // object with the following fields:
         // pretext: the text before the cursor
-        // matchedPretext: the text before the cursor that will be replaced if an autocomplete term is selected
+        // matchedPretext: a list of the text before the cursor that will be replaced if the corresponding autocomplete term is selected
         // terms: a list of strings which the previously typed text may be replaced by
         // items: a list of objects backing the terms which may be used in rendering
         // components: a list of react components that can be used to render their corresponding item
@@ -67,14 +67,14 @@ class SuggestionStore extends EventEmitter {
     removeCompleteWordListener(id, callback) {
         this.removeListener(COMPLETE_WORD_EVENT + id, callback);
     }
-    emitCompleteWord(id, term) {
-        this.emit(COMPLETE_WORD_EVENT + id, term);
+    emitCompleteWord(id, term, matchedPretext) {
+        this.emit(COMPLETE_WORD_EVENT + id, term, matchedPretext);
     }
 
     registerSuggestionBox(id) {
         this.suggestions.set(id, {
             pretext: '',
-            matchedPretext: '',
+            matchedPretext: [],
             terms: [],
             items: [],
             components: [],
@@ -89,7 +89,7 @@ class SuggestionStore extends EventEmitter {
     clearSuggestions(id) {
         const suggestion = this.suggestions.get(id);
 
-        suggestion.matchedPretext = '';
+        suggestion.matchedPretext = [];
         suggestion.terms = [];
         suggestion.items = [];
         suggestion.components = [];
@@ -111,21 +111,16 @@ class SuggestionStore extends EventEmitter {
         suggestion.pretext = pretext;
     }
 
-    setMatchedPretext(id, matchedPretext) {
-        const suggestion = this.suggestions.get(id);
-
-        suggestion.matchedPretext = matchedPretext;
-    }
-
-    addSuggestion(id, term, item, component) {
+    addSuggestion(id, term, item, component, matchedPretext) {
         const suggestion = this.suggestions.get(id);
 
         suggestion.terms.push(term);
         suggestion.items.push(item);
         suggestion.components.push(component);
+        suggestion.matchedPretext.push(matchedPretext);
     }
 
-    addSuggestions(id, terms, items, component) {
+    addSuggestions(id, terms, items, component, matchedPretext) {
         const suggestion = this.suggestions.get(id);
 
         suggestion.terms.push(...terms);
@@ -133,6 +128,7 @@ class SuggestionStore extends EventEmitter {
 
         for (let i = 0; i < terms.length; i++) {
             suggestion.components.push(component);
+            suggestion.matchedPretext.push(matchedPretext);
         }
     }
 
@@ -160,8 +156,16 @@ class SuggestionStore extends EventEmitter {
         return this.suggestions.get(id).pretext;
     }
 
-    getMatchedPretext(id) {
-        return this.suggestions.get(id).matchedPretext;
+    getSelectedMatchedPretext(id) {
+        const suggestion = this.suggestions.get(id);
+
+        for (let i = 0; i < suggestion.terms.length; i++) {
+            if (suggestion.terms[i] === suggestion.selection) {
+                return suggestion.matchedPretext[i];
+            }
+        }
+
+        return '';
     }
 
     getItems(id) {
@@ -174,6 +178,10 @@ class SuggestionStore extends EventEmitter {
 
     getComponents(id) {
         return this.suggestions.get(id).components;
+    }
+
+    getSuggestions(id) {
+        return this.suggestions.get(id);
     }
 
     getSelection(id) {
@@ -223,15 +231,11 @@ class SuggestionStore extends EventEmitter {
             this.emitSuggestionsChanged(id);
             break;
         case ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS:
-            if (this.getMatchedPretext(id) === '') {
-                this.setMatchedPretext(id, other.matchedPretext);
+            // ensure the matched pretext hasn't changed so that we don't receive suggestions for outdated pretext
+            this.addSuggestions(id, other.terms, other.items, other.component, other.matchedPretext);
 
-                // ensure the matched pretext hasn't changed so that we don't receive suggestions for outdated pretext
-                this.addSuggestions(id, other.terms, other.items, other.component);
-
-                this.ensureSelectionExists(id);
-                this.emitSuggestionsChanged(id);
-            }
+            this.ensureSelectionExists(id);
+            this.emitSuggestionsChanged(id);
             break;
         case ActionTypes.SUGGESTION_CLEAR_SUGGESTIONS:
             this.clearSuggestions(id);
@@ -247,7 +251,7 @@ class SuggestionStore extends EventEmitter {
             this.emitSuggestionsChanged(id);
             break;
         case ActionTypes.SUGGESTION_COMPLETE_WORD:
-            this.emitCompleteWord(id, other.term || this.getSelection(id), this.getMatchedPretext(id));
+            this.emitCompleteWord(id, other.term || this.getSelection(id), other.matchedPretext || this.getSelectedMatchedPretext(id));
 
             this.setPretext(id, '');
             this.clearSuggestions(id);

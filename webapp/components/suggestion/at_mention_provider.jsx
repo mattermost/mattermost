@@ -1,20 +1,21 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import React from 'react';
+
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import Suggestion from './suggestion.jsx';
 
 const MaxUserSuggestions = 40;
 
-import React from 'react';
-
-class AtMentionSuggestion extends React.Component {
+class AtMentionSuggestion extends Suggestion {
     render() {
-        const {item, isSelection, onClick} = this.props;
+        const {item, isSelection} = this.props;
 
         let username;
         let description;
@@ -56,7 +57,7 @@ class AtMentionSuggestion extends React.Component {
         return (
             <div
                 className={className}
-                onClick={onClick}
+                onClick={this.handleClick}
             >
                 <div className='pull-left'>
                     {icon}
@@ -73,12 +74,6 @@ class AtMentionSuggestion extends React.Component {
         );
     }
 }
-
-AtMentionSuggestion.propTypes = {
-    item: React.PropTypes.object.isRequired,
-    isSelection: React.PropTypes.bool,
-    onClick: React.PropTypes.func
-};
 
 export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
@@ -112,8 +107,7 @@ export default class AtMentionProvider {
 
             const mentions = filtered.map((user) => '@' + user.username);
 
-            SuggestionStore.setMatchedPretext(suggestionId, captured[0]);
-            SuggestionStore.addSuggestions(suggestionId, mentions, filtered, AtMentionSuggestion);
+            SuggestionStore.addSuggestions(suggestionId, mentions, filtered, AtMentionSuggestion, captured[0]);
         }
     }
 }

@@ -1,11 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as AsyncClient from 'utils/async_client.jsx';
-
 import React from 'react';
 
-class CommandSuggestion extends React.Component {
+import * as AsyncClient from 'utils/async_client.jsx';
+
+import Suggestion from './suggestion.jsx';
+
+class CommandSuggestion extends Suggestion {
     render() {
         const {item, isSelection, onClick} = this.props;
 
@@ -30,16 +32,10 @@ class CommandSuggestion extends React.Component {
     }
 }
 
-CommandSuggestion.propTypes = {
-    item: React.PropTypes.object.isRequired,
-    isSelection: React.PropTypes.bool,
-    onClick: React.PropTypes.func
-};
-
 export default class CommandProvider {
     handlePretextChanged(suggestionId, pretext) {
         if (pretext.startsWith('/')) {
-            AsyncClient.getSuggestedCommands(pretext, suggestionId, CommandSuggestion);
+            AsyncClient.getSuggestedCommands(pretext, suggestionId, CommandSuggestion, pretext);
         }
     }
 }

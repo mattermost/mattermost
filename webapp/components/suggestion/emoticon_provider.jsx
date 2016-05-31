@@ -1,14 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SuggestionStore from 'stores/suggestion_store.jsx';
+import React from 'react';
+
 import * as Emoticons from 'utils/emoticons.jsx';
+import SuggestionStore from 'stores/suggestion_store.jsx';
+
+import Suggestion from './suggestion.jsx';
 
 const MAX_EMOTICON_SUGGESTIONS = 40;
 
-import React from 'react';
-
-class EmoticonSuggestion extends React.Component {
+class EmoticonSuggestion extends Suggestion {
     render() {
         const text = this.props.term;
         const emoticon = this.props.item;
@@ -38,13 +40,6 @@ class EmoticonSuggestion extends React.Component {
         );
     }
 }
-
-EmoticonSuggestion.propTypes = {
-    item: React.PropTypes.object.isRequired,
-    term: React.PropTypes.string.isRequired,
-    isSelection: React.PropTypes.bool,
-    onClick: React.PropTypes.func
-};
 
 export default class EmoticonProvider {
     handlePretextChanged(suggestionId, pretext) {
@@ -82,8 +77,7 @@ export default class EmoticonProvider {
             const terms = matched.map((emoticon) => ':' + emoticon.alias + ':');
 
             if (terms.length > 0) {
-                SuggestionStore.setMatchedPretext(suggestionId, text);
-                SuggestionStore.addSuggestions(suggestionId, terms, matched, EmoticonSuggestion);
+                SuggestionStore.addSuggestions(suggestionId, terms, matched, EmoticonSuggestion, text);
 
                 // force the selection to be cleared since the order of elements may have changed
                 SuggestionStore.clearSelection(suggestionId);
