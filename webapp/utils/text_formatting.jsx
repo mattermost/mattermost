@@ -327,6 +327,15 @@ function parseSearchTerms(searchTerm) {
             continue;
         }
 
+        // capture at mentions differently from the server so we can highlight them with the preceeding at sign
+        captured = (/^@\w+\b/).exec(termString);
+        if (captured) {
+            termString = termString.substring(captured[0].length);
+
+            terms.push(captured[0]);
+            continue;
+        }
+
         // capture any plain text up until the next quote or search flag
         captured = (/^.+?(?=\bin|\bfrom|\bchannel|"|$)/).exec(termString);
         if (captured) {
@@ -336,9 +345,8 @@ function parseSearchTerms(searchTerm) {
             terms.push(...captured[0].split(/[ <>+\(\)~@]/).filter((term) => !!term));
             continue;
         }
-
         // we should never reach this point since at least one of the regexes should match something in the remaining text
-        throw new Error('Infinite loop in search term parsing: ' + termString);
+        throw new Error('Infinite loop in search term parsing: "' + termString + '"');
     }
 
     // remove punctuation from each term
@@ -352,11 +360,14 @@ function convertSearchTermToRegex(term) {
 
     if (cjkPattern.test(term)) {
         // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
-        pattern = escapeRegex(term.replace(/\*/g,''));
+        pattern = '()(' + escapeRegex(term.replace(/\*/g,'')) + ')';
     } else if (term.endsWith('*')) {
-        pattern = '\\b' + escapeRegex(term.substring(0, term.length - 1));
+        pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) +')';
+    } else if (term.startsWith('@')) {
+        // needs special handling of the first boundary because a word boundary doesn't work before an @ sign
+        pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b'
     } else {
-        pattern = '\\b' + escapeRegex(term) + '\\b';
+        pattern = '\\b()(' + escapeRegex(term) + ')\\b';
     }
 
     return new RegExp(pattern, 'gi');
@@ -371,7 +382,7 @@ export function highlightSearchTerms(text, tokens, searchTerm) {
 
     let output = text;
 
-    function replaceSearchTermWithToken(word) {
+    function replaceSearchTermWithToken(match, prefix, word) {
         const index = tokens.size;
         const alias = `MM_SEARCHTERM${index}`;
 
@@ -380,7 +391,7 @@ export function highlightSearchTerms(text, tokens, searchTerm) {
             originalText: word
         });
 
-        return alias;
+        return prefix + alias;
     }
 
     for (const term of terms) {
