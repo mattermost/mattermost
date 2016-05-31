@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP Server is required"
+    "translation": "SMTPサーバーが必要です"
   },
   {
     "id": "api.admin.test_email.subject",
@@ -305,7 +305,7 @@
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "This trigger word is already in use. Please choose another word."
+    "translation": "このトリガーワードは既に使われています。他の単語を選んでください。"
   },
   {
     "id": "api.command.execute_command.debug",
@@ -349,7 +349,7 @@
   },
   {
     "id": "api.command_echo.delay.app_error",
-    "translation": "遅延時間は10000秒より短かく設定してください"
+    "translation": "遅延時間は10000秒より短く設定してください"
   },
   {
     "id": "api.command_echo.desc",
@@ -1445,7 +1445,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFA is not available for this account type"
+    "translation": "MFAはこのアカウントタイプでは使用できません"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -1865,7 +1865,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+    "translation": "同一のチャンネルからの外向きのウェブフックには、同一のトリガーワード/コールバックURLを指定できません。"
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -3781,7 +3781,7 @@
   },
   {
     "id": "utils.license.validate_license.not_long.error",
-    "translation": "署名済みのライセンスが短過ぎます"
+    "translation": "署名済みのライセンスが十分に長くありません"
   },
   {
     "id": "utils.license.validate_license.signing.error",

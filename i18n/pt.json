@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP Server is required"
+    "translation": "Servidor SMTP é obrigatório"
   },
   {
     "id": "api.admin.test_email.subject",
@@ -305,7 +305,7 @@
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "This trigger word is already in use. Please choose another word."
+    "translation": "Esta palavra gatilho já está em uso. Por favor escolha outra palavra."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1445,7 +1445,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFA is not available for this account type"
+    "translation": "MFA não está disponível para este tipo de conta"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -1865,7 +1865,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+    "translation": "Webhooks de saída do mesmo canal não pode ter as mesmas palavras gatilho/URLs de retorno de chamada."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
