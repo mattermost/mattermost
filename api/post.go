@@ -467,7 +467,24 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 }
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel, profileMap map[string]*model.User, members []model.ChannelMember) {
+	message := model.NewMessage(c.TeamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
+	message.Add("post", post.ToJson())
+	message.Add("channel_type", channel.Type)
+
+	if len(post.Filenames) != 0 {
+		message.Add("otherFile", "true")
+
+		for _, filename := range post.Filenames {
+			ext := filepath.Ext(filename)
+			if model.IsFileExtImage(ext) {
+				message.Add("image", "true")
+				break
+			}
+		}
+	}
+
 	if post.IsSystemMessage() {
+		go Publish(message)
 		return
 	}
 
@@ -623,22 +640,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 	}
 
-	message := model.NewMessage(c.TeamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
-	message.Add("post", post.ToJson())
-	message.Add("channel_type", channel.Type)
 	message.Add("sender_name", senderName)
-
-	if len(post.Filenames) != 0 {
-		message.Add("otherFile", "true")
-
-		for _, filename := range post.Filenames {
-			ext := filepath.Ext(filename)
-			if model.IsFileExtImage(ext) {
-				message.Add("image", "true")
-				break
-			}
-		}
-	}
 
 	if len(mentionedUsersList) != 0 {
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
