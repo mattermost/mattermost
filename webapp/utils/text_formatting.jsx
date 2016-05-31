@@ -345,6 +345,7 @@ function parseSearchTerms(searchTerm) {
             terms.push(...captured[0].split(/[ <>+\(\)~@]/).filter((term) => !!term));
             continue;
         }
+
         // we should never reach this point since at least one of the regexes should match something in the remaining text
         throw new Error('Infinite loop in search term parsing: "' + termString + '"');
     }
@@ -360,12 +361,12 @@ function convertSearchTermToRegex(term) {
 
     if (cjkPattern.test(term)) {
         // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
-        pattern = '()(' + escapeRegex(term.replace(/\*/g,'')) + ')';
+        pattern = '()(' + escapeRegex(term.replace(/\*/g, '')) + ')';
     } else if (term.endsWith('*')) {
-        pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) +')';
+        pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) + ')';
     } else if (term.startsWith('@')) {
         // needs special handling of the first boundary because a word boundary doesn't work before an @ sign
-        pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b'
+        pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b';
     } else {
         pattern = '\\b()(' + escapeRegex(term) + ')\\b';
     }
