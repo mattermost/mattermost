@@ -131,7 +131,7 @@ export default class GitLabSettings extends AdminSettings {
                             defaultMessage='User API Endpoint:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.gitlab.userExample', 'Ex ""')}
+                    placeholder={Utils.localizeMessage('admin.gitlab.userExample', 'Ex "https://<your-gitlab-url>/api/v3/user"')}
                     helpText={
                         <FormattedMessage
                             id='admin.gitlab.userDescription'
@@ -150,7 +150,7 @@ export default class GitLabSettings extends AdminSettings {
                             defaultMessage='Auth Endpoint:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.gitlab.authExample', 'Ex ""')}
+                    placeholder={Utils.localizeMessage('admin.gitlab.authExample', 'Ex "https://<your-gitlab-url>/oauth/authorize"')}
                     helpText={
                         <FormattedMessage
                             id='admin.gitlab.authDescription'
@@ -169,7 +169,7 @@ export default class GitLabSettings extends AdminSettings {
                             defaultMessage='Token Endpoint:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.gitlab.tokenExample', 'Ex ""')}
+                    placeholder={Utils.localizeMessage('admin.gitlab.tokenExample', 'Ex "https://<your-gitlab-url>/oauth/token"')}
                     helpText={
                         <FormattedMessage
                             id='admin.gitlab.tokenDescription'
