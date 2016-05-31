@@ -88,9 +88,6 @@ export function doFormatText(text, options) {
         });
     }
 
-    //replace all "/" to "/<wbr />"
-    output = output.replace(/\//g, '/<wbr />');
-
     // reinsert tokens with formatted versions of the important words and phrases
     output = replaceTokens(output, tokens);
 
