@@ -193,6 +193,9 @@ export default class UserItem extends React.Component {
 
         const teamMember = this.props.teamMember;
         const user = this.props.user;
+        if (!user || !teamMember) {
+            return <div/>;
+        }
         let currentRoles = (
             <FormattedMessage
                 id='admin.user_item.member'
