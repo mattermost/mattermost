@@ -43,6 +43,7 @@ import (
 var flagCmdUpdateDb30 bool
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
+var flagCmdInviteUser bool
 var flagCmdAssignRole bool
 var flagCmdJoinTeam bool
 var flagCmdVersion bool
@@ -259,6 +260,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
 	flag.BoolVar(&flagCmdCreateUser, "create_user", false, "")
+	flag.BoolVar(&flagCmdInviteUser, "invite_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
@@ -276,6 +278,7 @@ func parseCmds() {
 
 	flagRunCmds = (flagCmdCreateTeam ||
 		flagCmdCreateUser ||
+		flagCmdInviteUser ||
 		flagCmdAssignRole ||
 		flagCmdJoinTeam ||
 		flagCmdResetPassword ||
@@ -295,6 +298,7 @@ func runCmds() {
 	cmdRunClientTests()
 	cmdCreateTeam()
 	cmdCreateUser()
+	cmdInviteUser()
 	cmdAssignRole()
 	cmdJoinTeam()
 	cmdResetPassword()
@@ -783,6 +787,46 @@ func cmdCreateUser() {
 				flushLogAndExit(1)
 			}
 		}
+
+		os.Exit(0)
+	}
+}
+
+func cmdInviteUser() {
+	if flagCmdInviteUser {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if len(flagTeamName) > 0 {
+			if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+				l4g.Error("%v", result.Err)
+				flushLogAndExit(1)
+			} else {
+				team = result.Data.(*model.Team)
+			}
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(team.Email); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		invites := []string{flagEmail}
+		c := getMockContext()
+		api.InviteMembers(c, team, user, invites)
 
 		os.Exit(0)
 	}
