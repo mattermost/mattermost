@@ -623,7 +623,8 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 
 func WriteFileLocally(f []byte, path string) *model.AppError {
 	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
-		return model.NewLocAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, err.Error())
+		directory, _ := filepath.Abs(filepath.Dir(path))
+		return model.NewLocAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error())
 	}
 
 	if err := ioutil.WriteFile(path, f, 0644); err != nil {
