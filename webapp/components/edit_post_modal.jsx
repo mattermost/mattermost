@@ -82,6 +82,10 @@ class EditPostModal extends React.Component {
             e.preventDefault();
             ReactDOM.findDOMNode(this.refs.editbox).blur();
             this.handleEdit(e);
+        } else if (this.state.ctrlSend && e.ctrlKey && e.which === KeyCodes.ENTER) {
+            e.preventDefault();
+            ReactDOM.findDOMNode(this.refs.editbox).blur();
+            this.handleSubmit(e);
         }
     }
     handleEditPostEvent(options) {

@@ -6,6 +6,7 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Client from 'utils/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
@@ -26,9 +27,12 @@ class EditChannelHeaderModal extends React.Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
+
+        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
 
         this.state = {
             header: props.channel.header,
@@ -40,10 +44,16 @@ class EditChannelHeaderModal extends React.Component {
         if (this.props.show) {
             this.onShow();
         }
+
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
+    }
+
+    componentWillUnmount() {
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.channel.header !== nextProps.channel.header) {
+        if (this.props !== nextProps) {
             this.setState({
                 header: nextProps.channel.header
             });
@@ -60,6 +70,10 @@ class EditChannelHeaderModal extends React.Component {
         this.setState({
             header: e.target.value
         });
+    }
+
+    onPreferenceChange() {
+        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
     }
 
     handleSubmit() {
@@ -99,6 +113,16 @@ class EditChannelHeaderModal extends React.Component {
         this.props.onHide();
     }
 
+    handleKeyDown(e) {
+        if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
+            e.preventDefault();
+            this.handleSubmit(e);
+        } else if (!this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            this.handleSubmit(e);
+        }
+    }
+
     render() {
         var serverError = null;
         if (this.state.serverError) {
@@ -136,6 +160,7 @@ class EditChannelHeaderModal extends React.Component {
                         maxLength='1024'
                         value={this.state.header}
                         onChange={this.handleChange}
+                        onKeyDown={this.handleKeyDown}
                     />
                     {serverError}
                 </Modal.Body>

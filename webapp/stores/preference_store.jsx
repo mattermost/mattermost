@@ -16,6 +16,8 @@ class PreferenceStoreClass extends EventEmitter {
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
 
         this.preferences = new Map();
+
+        this.setMaxListeners(15);
     }
 
     getKey(category, name) {
