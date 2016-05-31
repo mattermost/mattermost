@@ -31,7 +31,7 @@ export default class RhsHeaderPost extends React.Component {
     }
 
     closeShortcut(e) {
-        if (e.keyCode === Constants.KeyCodes.ESCAPE) {
+        if (e.keyCode === Constants.KeyCodes.ESCAPE && !e.defaultPrevented) {
             e.preventDefault();
             this.handleClose();
         }
