@@ -545,20 +545,6 @@ export default class Sidebar extends React.Component {
             head.appendChild(link);
         }
 
-        var directMessageMore = (
-            <li key='more'>
-                <a
-                    href='#'
-                    onClick={this.showMoreDirectChannelsModal}
-                >
-                    <FormattedMessage
-                        id='sidebar.more'
-                        defaultMessage='More'
-                    />
-                </a>
-            </li>
-        );
-
         let showChannelModal = false;
         if (this.state.newChannelModalType !== '') {
             showChannelModal = true;
@@ -572,11 +558,27 @@ export default class Sidebar extends React.Component {
                 />
             </Tooltip>
         );
+        const browseChannelTootlip = (
+            <Tooltip id='browse-channel-tooltip' >
+                <FormattedMessage
+                    id='sidebar.browseChannel'
+                    defaultMessage='Browse all channels'
+                />
+            </Tooltip>
+        );
         const createGroupTootlip = (
             <Tooltip id='new-group-tooltip'>
                 <FormattedMessage
                     id='sidebar.createGroup'
                     defaultMessage='Create new group'
+                />
+            </Tooltip>
+        );
+        const openDirectMessageTootlip = (
+            <Tooltip id='open-directmessage-tooltip'>
+                <FormattedMessage
+                    id='sidebar.openDirectMessage'
+                    defaultMessage='Open a direct message'
                 />
             </Tooltip>
         );
@@ -637,10 +639,21 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                <FormattedMessage
-                                    id='sidebar.channels'
-                                    defaultMessage='Channels'
-                                />
+                                <OverlayTrigger
+                                    delayShow={500}
+                                    placement='top'
+                                    overlay={browseChannelTootlip}
+                                >
+                                    <a
+                                        href='#'
+                                        onClick={this.showMoreChannelsModal}
+                                    >
+                                        <FormattedMessage
+                                            id='sidebar.channels'
+                                            defaultMessage='Channels'
+                                        />
+                                    </a>
+                                </OverlayTrigger>
                                 <OverlayTrigger
                                     delayShow={500}
                                     placement='top'
@@ -657,18 +670,6 @@ export default class Sidebar extends React.Component {
                             </h4>
                         </li>
                         {publicChannelItems}
-                        <li>
-                            <a
-                                href='#'
-                                className='nav-more'
-                                onClick={this.showMoreChannelsModal}
-                            >
-                                <FormattedMessage
-                                    id='sidebar.moreElips'
-                                    defaultMessage='More...'
-                                />
-                            </a>
-                        </li>
                     </ul>
 
                     <ul className='nav nav-pills nav-stacked'>
@@ -698,16 +699,26 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                <FormattedMessage
-                                    id='sidebar.direct'
-                                    defaultMessage='Direct Messages'
-                                />
+                                <OverlayTrigger
+                                    delayShow={500}
+                                    placement='top'
+                                    overlay={openDirectMessageTootlip}
+                                >
+                                    <a
+                                        href='#'
+                                        onClick={this.showMoreDirectChannelsModal}
+                                    >
+                                        <FormattedMessage
+                                            id='sidebar.direct'
+                                            defaultMessage='Direct Messages'
+                                        />
+                                    </a>
+                                </OverlayTrigger>
                             </h4>
                         </li>
                         {directMessageItems}
                         {directDivider}
                         {directMessageNonTeamItems}
-                        {directMessageMore}
                     </ul>
                 </div>
             </div>
