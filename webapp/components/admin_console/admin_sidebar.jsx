@@ -368,6 +368,15 @@ export default class AdminSidebar extends React.Component {
                                     }
                                 />
                                 <AdminSidebarSection
+                                    name='oauth'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.oauth'
+                                            defaultMessage='OAuth'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
                                     name='gitlab'
                                     title={
                                         <FormattedMessage
