@@ -162,5 +162,12 @@
         "DefaultServerLocale": "en",
         "DefaultClientLocale": "en",
         "AvailableLocales": "en,es,fr,ja,pt-BR"
+    },
+    "SampleAppSettings": {
+        "Enable": false,
+        "AppUrl": "",
+        "IconUrl": "",
+        "AppName": "",
+        "AppDisplayName": ""
     }
 }

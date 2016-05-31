@@ -272,6 +272,12 @@ func getClientConfig(c *model.Config) map[string]string {
 		}
 	}
 
+	props["EnableSampleApp"] = strconv.FormatBool(*c.SampleAppSettings.Enable)
+	props["SampleAppAppUrl"] = *c.SampleAppSettings.AppUrl
+	props["SampleAppIconUrl"] = *c.SampleAppSettings.IconUrl
+	props["SampleAppAppName"] = *c.SampleAppSettings.AppName
+	props["SampleAppAppDisplayName"] = *c.SampleAppSettings.AppDisplayName
+
 	return props
 }
 
