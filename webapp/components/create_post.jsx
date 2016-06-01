@@ -334,10 +334,10 @@ class CreatePost extends React.Component {
                 false,
                 null,
                 (err) => {
-                    const state = {};
-                    state.serverError = err.message;
-                    state.submitting = false;
-                    this.setState(state);
+                    this.setState({
+                        serverError: err.message,
+                        submitting: false
+                    });
                 }
             );
         }
