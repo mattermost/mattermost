@@ -1,5 +1,10 @@
 @charset 'UTF-8';
 
+.admin-console__wrapper {
+    height: 100%;
+    overflow: auto;
+}
+
 .admin-console {
     color: #333;
     height: 100%;
