@@ -26,16 +26,13 @@
     overflow-y: hidden;
     position: relative;
 
-    pre {
-        border: 1px solid rgba(221,221,221,0.2);
-        border-radius: .25em;
-        margin: 5px 0;
-        padding: 0;
-        text-align: left;
-    }
-
     code {
-        border: none;
+        border: 1px solid rgba(221,221,221,1);
+        border-radius: .25em;
+        font-size: 13px;
+        margin: 5px 0;
+        padding: 6.5px;
+        text-align: left;
         white-space: pre;
     }
 
@@ -50,6 +47,10 @@
 
     &--wrap code {
         white-space: pre-wrap;
+    }
+
+    .hljs {
+        position: relative;
     }
 }
 
@@ -76,6 +77,13 @@
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none;
+}
+
+.post-code__search-highlighting {
+    color: transparent;
+    pointer-events: none;
+    position: absolute;
+    @include user-select(none);
 }
 
 .post__body {

@@ -123,80 +123,21 @@ hlJS.registerLanguage('yaml', hljsYaml);
 
 const HighlightedLanguages = Constants.HighlightedLanguages;
 
-export function formatCode(lang, data, filename, searchTerm) {
-    const language = lang.toLowerCase() || '';
-
-    let contents;
-    let header = '';
-    let className = 'post-code';
+export function highlight(lang, code) {
+    const language = lang.toLowerCase();
 
     if (HighlightedLanguages[language]) {
-        let name = HighlightedLanguages[language].name;
-
-        if (filename) {
-            const fname = decodeURIComponent(Utils.getFileName(filename));
-            name = fname + ' - ' + name;
-        }
-
-        header = '<span class="post-code__language">' + name + '</span>';
-
         try {
-            contents = hlJS.highlight(language, data).value;
+            return hlJS.highlight(language, code).value;
         } catch (e) {
-            contents = TextFormatting.sanitizeHtml(data);
+            // fall through if highlighting fails and handle below
         }
-    } else {
-        contents = TextFormatting.sanitizeHtml(data);
     }
 
-    if (!language) {
-        // wrap when no language is specified
-        className += ' post-code--wrap';
-
-        const tokens = new Map();
-        contents = TextFormatting.highlightSearchTerms(contents, tokens, searchTerm);
-        contents = TextFormatting.replaceTokens(contents, tokens);
-    }
-
-    if (filename) {
-        // add line numbers when viewing a code file preview
-        const lines = data.match(/\r\n|\r|\n|$/g).length;
-        let strlines = '';
-        for (let i = 1; i <= lines; i++) {
-            if (strlines) {
-                strlines += '\n' + i;
-            } else {
-                strlines += i;
-            }
-        }
-
-        contents = (
-            '<table>' +
-                '<tbody>' +
-                    '<tr>' +
-                        '<td class="post-code__lineno">' + strlines + '</td>' +
-                        '<td>' +
-                            contents +
-                        '</td>' +
-                    '</tr>' +
-                '</tbody>' +
-            '</table>'
-        );
-    }
-
-    return (
-        '<div class="' + className + '">' +
-            header +
-            '<pre>' +
-                '<code class="hljs">' +
-                    contents +
-                '</code>' +
-            '</pre>' +
-        '</div>'
-    );
+    return TextFormatting.sanitizeHtml(code);
 }
 
-export function getLang(filename) {
+export function getLanguageFromFilename(filename) {
     const fileInfo = Utils.splitFileLocation(filename);
     var ext = fileInfo.ext;
     if (!ext) {
@@ -210,4 +151,16 @@ export function getLang(filename) {
         }
     }
     return null;
+}
+
+export function canHighlight(language) {
+    return !!HighlightedLanguages[language.toLowerCase()];
+}
+
+export function getLanguageName(language) {
+    if (canHighlight(language)) {
+        return HighlightedLanguages[language.toLowerCase()].name;
+    }
+
+    return '';
 }

@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as TextFormatting from './text_formatting.jsx';
-import * as syntaxHightlighting from './syntax_hightlighting.jsx';
+import * as SyntaxHighlighting from './syntax_hightlighting.jsx';
 
 import marked from 'marked';
 import katex from 'katex';
@@ -43,7 +43,52 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             usedLanguage = 'xml';
         }
 
-        return syntaxHightlighting.formatCode(usedLanguage, code, null, this.formattingOptions.searchTerm);
+        let className = 'post-code';
+        if (!usedLanguage) {
+            className += ' post-code--wrap';
+        }
+
+        let header = '';
+        if (SyntaxHighlighting.canHighlight(usedLanguage)) {
+            header = (
+                '<span class="post-code__language">' +
+                    SyntaxHighlighting.getLanguageName(language) +
+                '</span>'
+            );
+        }
+
+        // if we have to apply syntax highlighting AND highlighting of search terms, create two copies
+        // of the code block, one with syntax highlighting applied and another with invisible text, but
+        // search term highlighting and overlap them
+        const content = SyntaxHighlighting.highlight(usedLanguage, code);
+        let searchedContent = '';
+
+        if (this.formattingOptions.searchTerm) {
+            const tokens = new Map();
+
+            let searched = TextFormatting.sanitizeHtml(code);
+            searched = TextFormatting.highlightSearchTerms(searched, tokens, this.formattingOptions.searchTerm);
+
+            if (tokens.size > 0) {
+                searched = TextFormatting.replaceTokens(searched, tokens);
+
+                searchedContent = (
+                    '<div class="post-code__search-highlighting">' +
+                        searched +
+                    '</div>'
+                );
+            }
+        }
+
+        return (
+            '<div class="' + className + '">' +
+                header +
+                '<code class="hljs">' +
+                    searchedContent +
+                    content +
+                '</code>' +
+            '</div>'
+        );
     }
 
     codespan(text) {

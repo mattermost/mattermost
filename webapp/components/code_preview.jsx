@@ -2,11 +2,14 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import * as syntaxHightlighting from 'utils/syntax_hightlighting.jsx';
+import React from 'react';
+
+import * as SyntaxHighlighting from 'utils/syntax_hightlighting.jsx';
 import Constants from 'utils/constants.jsx';
+
 import FileInfoPreview from './file_info_preview.jsx';
 
-import React from 'react';
+import loadingGif from 'images/load.gif';
 
 export default class CodePreview extends React.Component {
     constructor(props) {
@@ -35,7 +38,7 @@ export default class CodePreview extends React.Component {
     }
 
     updateStateFromProps(props) {
-        var usedLanguage = syntaxHightlighting.getLang(props.filename);
+        var usedLanguage = SyntaxHighlighting.getLang(props.filename);
 
         if (!usedLanguage || props.fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
             this.setState({code: '', lang: '', loading: false, success: false});
@@ -54,8 +57,7 @@ export default class CodePreview extends React.Component {
     }
 
     handleReceivedCode(data) {
-        const parsed = syntaxHightlighting.formatCode(this.state.lang, data, this.props.filename);
-        this.setState({code: parsed, loading: false, success: true});
+        this.setState({code: data, loading: false, success: true});
     }
 
     handleReceivedError() {
@@ -63,7 +65,7 @@ export default class CodePreview extends React.Component {
     }
 
     static support(filename) {
-        return typeof syntaxHightlighting.getLang(filename) !== 'undefined';
+        return !!SyntaxHighlighting.getLanguageFromFilename(filename);
     }
 
     render() {
@@ -72,7 +74,7 @@ export default class CodePreview extends React.Component {
                 <div className='view-image__loading'>
                     <img
                         className='loader-image'
-                        src='/static/images/load.gif'
+                        src={loadingGif}
                     />
                 </div>
             );
@@ -89,7 +91,38 @@ export default class CodePreview extends React.Component {
             );
         }
 
-        return <div dangerouslySetInnerHTML={{__html: this.state.code}}/>;
+        // add line numbers when viewing a code file preview
+        const lines = this.state.code.match(/\r\n|\r|\n|$/g).length;
+        let strlines = '';
+        for (let i = 1; i <= lines; i++) {
+            if (strlines) {
+                strlines += '\n' + i;
+            } else {
+                strlines += i;
+            }
+        }
+
+        const language = SyntaxHighlighting.getLanguageName(this.state.lang);
+
+        const highlighted = SyntaxHighlighting.highlight(this.state.lang, this.state.code);
+
+        return (
+            <div className='post-code'>
+                <span className='post-code__language'>
+                    {`${this.props.filename} - ${language}`}
+                </span>
+                <code className='hljs'>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td className='post-code__lineno'>{strlines}</td>
+                                <td dangerouslySetInnerHTML={{__html: highlighted}}/>
+                            </tr>
+                        </tbody>
+                    </table>
+                </code>
+            </div>
+        );
     }
 }
 
