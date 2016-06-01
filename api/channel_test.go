@@ -129,12 +129,16 @@ func TestCreateDirectChannel(t *testing.T) {
 }
 
 func TestUpdateChannel(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	team := th.BasicTeam
-	user := th.BasicUser
-	user2 := th.CreateUser(th.BasicClient)
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+	sysAdminUser := th.SystemAdminUser
+	user := th.CreateUser(Client)
+	LinkUserToTeam(user, team)
+	user2 := th.CreateUser(Client)
 	LinkUserToTeam(user2, team)
+
+	Client.Login(user.Email, user.Password)
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -180,8 +184,25 @@ func TestUpdateChannel(t *testing.T) {
 	Client.Must(Client.JoinChannel(channel1.Id))
 	UpdateUserToTeamAdmin(user2, team)
 
+	Client.Logout()
+	Client.Login(user2.Email, user2.Password)
+	Client.SetTeamId(team.Id)
+
 	if _, err := Client.UpdateChannel(upChannel1); err != nil {
 		t.Fatal(err)
+	}
+
+	Client.Login(sysAdminUser.Email, sysAdminUser.Password)
+	Client.Must(Client.JoinChannel(channel1.Id))
+
+	if _, err := Client.UpdateChannel(upChannel1); err != nil {
+		t.Fatal(err)
+	}
+
+	Client.Must(Client.DeleteChannel(channel1.Id))
+
+	if _, err := Client.UpdateChannel(upChannel1); err == nil {
+		t.Fatal("should have failed - channel deleted")
 	}
 }
 
@@ -517,12 +538,16 @@ func TestLeaveChannel(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	team := th.BasicTeam
-	userTeamAdmin := th.BasicUser
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+	userSystemAdmin := th.SystemAdminUser
+	userTeamAdmin := th.CreateUser(Client)
+	LinkUserToTeam(userTeamAdmin, team)
+	user2 := th.CreateUser(Client)
+	LinkUserToTeam(user2, team)
 
-	th.LoginBasic2()
+	Client.Login(user2.Email, user2.Password)
 
 	channelMadeByCA := &model.Channel{DisplayName: "C Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channelMadeByCA = Client.Must(Client.CreateChannel(channelMadeByCA)).Data.(*model.Channel)
@@ -550,7 +575,7 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal("should have failed to post to deleted channel")
 	}
 
-	userStd := th.CreateUser(th.BasicClient)
+	userStd := th.CreateUser(Client)
 	LinkUserToTeam(userStd, team)
 	Client.Login(userStd.Email, userStd.Password)
 
@@ -577,8 +602,26 @@ func TestDeleteChannel(t *testing.T) {
 
 	UpdateUserToTeamAdmin(userStd, team)
 
+	Client.Logout()
+	Client.Login(userStd.Email, userStd.Password)
+	Client.SetTeamId(team.Id)
+
 	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
 		t.Fatal(err)
+	}
+
+	channel3 := &model.Channel{DisplayName: "B Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
+
+	Client.Login(userSystemAdmin.Email, userSystemAdmin.Password)
+	Client.Must(Client.JoinChannel(channel3.Id))
+
+	if _, err := Client.DeleteChannel(channel3.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Client.DeleteChannel(channel3.Id); err == nil {
+		t.Fatal("should have failed - channel already deleted")
 	}
 }
 
