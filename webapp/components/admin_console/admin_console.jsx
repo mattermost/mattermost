@@ -43,6 +43,9 @@ export default class AdminConsole extends React.Component {
 
     render() {
         const config = this.state.config;
+        if (!config) {
+            return <div/>;
+        }
         if (config && Object.keys(config).length === 0 && config.constructor === 'Object') {
             return (
                 <div className='admin-console__wrapper'>
@@ -56,7 +59,6 @@ export default class AdminConsole extends React.Component {
         const children = React.cloneElement(this.props.children, {
             config: this.state.config
         });
-
         return (
             <div className='admin-console__wrapper'>
                 <ErrorBar/>
