@@ -18,7 +18,7 @@
     "keymirror": "0.1.1",
     "marked": "mattermost/marked#2d92082cd542dc0adc175a1407194f6a4c3cb621",
     "match-at": "0.1.0",
-    "mattermost": "mattermost/mattermost-javascript#master",
+    "mattermost": "mattermost/mattermost-javascript#appcenter",
     "object-assign": "4.1.0",
     "perfect-scrollbar": "0.6.11",
     "react": "15.0.2",
