@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import Client from 'utils/web_client.jsx';
-
+import PostStore from 'stores/post_store.jsx';
 import Constants from 'utils/constants.jsx';
 
 export function isSystemMessage(post) {
@@ -29,4 +29,35 @@ export function getProfilePicSrcForPost(post, timestamp) {
     }
 
     return src;
+}
+
+export function messageHistoryHandler(e) {
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+        if (this.state.messageText !== '' && this.state.messageText !== PostStore.getMessageInHistory(this.currentLastMsgIndex)) {
+            this.currentLastMsgIndex = PostStore.getHistoryLength();
+            this.currentMsgHistoryLength = this.currentLastMsgIndex;
+            return;
+        }
+
+        e.preventDefault();
+
+        if (this.currentMsgHistoryLength !== PostStore.getHistoryLength()) {
+            this.currentLastMsgIndex = PostStore.getHistoryLength();
+            this.currentMsgHistoryLength = this.currentLastMsgIndex;
+        }
+
+        if (e.keyCode === Constants.KeyCodes.UP) {
+            this.currentLastMsgIndex--;
+        } else if (e.keyCode === Constants.KeyCodes.DOWN) {
+            this.currentLastMsgIndex++;
+        }
+
+        if (this.currentLastMsgIndex < 0) {
+            this.currentLastMsgIndex = 0;
+        } else if (this.currentLastMsgIndex >= PostStore.getHistoryLength()) {
+            this.currentLastMsgIndex = PostStore.getHistoryLength();
+        }
+
+        this.setState({messageText: PostStore.getMessageInHistory(this.currentLastMsgIndex)});
+    }
 }

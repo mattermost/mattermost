@@ -49,6 +49,8 @@ class EditPostModal extends React.Component {
             return;
         }
 
+        PostStore.storeMessageInHistory(updatedPost.message);
+
         if (updatedPost.message.length === 0) {
             var tempState = this.state;
             Reflect.deleteProperty(tempState, 'editText');
