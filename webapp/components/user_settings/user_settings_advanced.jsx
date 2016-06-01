@@ -153,13 +153,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     defaultMessage='Show preview snippet of links below message'
                 />
             );
-        case 'EMBED_TOGGLE':
-            return (
-                <FormattedMessage
-                    id='user.settings.advance.embed_toggle'
-                    defaultMessage='Show toggle for all embed previews'
-                />
-            );
         default:
             return null;
         }

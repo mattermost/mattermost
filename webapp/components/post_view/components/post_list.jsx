@@ -260,6 +260,7 @@ export default class PostList extends React.Component {
                     center={this.props.displayPostsInCenter}
                     commentCount={commentCount}
                     compactDisplay={this.props.compactDisplay}
+                    previewCollapsed={this.props.previewsCollapsed}
                 />
             );
 
@@ -520,5 +521,6 @@ PostList.propTypes = {
     postsToHighlight: React.PropTypes.object,
     displayNameType: React.PropTypes.string,
     displayPostsInCenter: React.PropTypes.bool,
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+    previewsCollapsed: React.PropTypes.bool
 };

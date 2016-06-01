@@ -72,6 +72,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.previewCollapsed !== this.props.previewCollapsed) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
         }
@@ -190,6 +194,7 @@ export default class Post extends React.Component {
                                 parentPost={parentPost}
                                 handleCommentClick={this.handleCommentClick}
                                 compactDisplay={this.props.compactDisplay}
+                                previewCollapsed={this.props.previewCollapsed}
                             />
                         </div>
                     </div>
@@ -213,5 +218,6 @@ Post.propTypes = {
     currentUser: React.PropTypes.object.isRequired,
     center: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool,
+    previewCollapsed: React.PropTypes.bool,
     commentCount: React.PropTypes.number
 };

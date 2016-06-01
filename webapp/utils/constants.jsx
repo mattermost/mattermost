@@ -547,7 +547,9 @@ export default {
         MESSAGE_DISPLAY: 'message_display',
         MESSAGE_DISPLAY_CLEAN: 'clean',
         MESSAGE_DISPLAY_COMPACT: 'compact',
-        MESSAGE_DISPLAY_DEFAULT: 'clean'
+        MESSAGE_DISPLAY_DEFAULT: 'clean',
+        COLLAPSE_DISPLAY: 'collapse_previews',
+        COLLAPSE_DISPLAY_DEFAULT: 'false'
     },
     TutorialSteps: {
         INTRO_SCREENS: 0,
@@ -728,10 +730,6 @@ export default {
         EMBED_PREVIEW: {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
-        },
-        EMBED_TOGGLE: {
-            label: 'embed_toggle',
-            description: 'Show toggle for all embed previews'
         }
     },
     OVERLAY_TIME_DELAY: 400,

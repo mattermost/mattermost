@@ -51,7 +51,8 @@ export default class PostViewController extends React.Component {
             scrollType: ScrollTypes.NEW_MESSAGE,
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
-            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+            previewsCollapsed: PreferenceStore.getBool(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, false)
         };
     }
 
@@ -71,7 +72,8 @@ export default class PostViewController extends React.Component {
         this.setState({
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
             displayPostsInCenter: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
-            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
+            previewsCollapsed: PreferenceStore.getBool(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, false)
         });
     }
 
@@ -183,6 +185,10 @@ export default class PostViewController extends React.Component {
             return true;
         }
 
+        if (nextState.previewsCollapsed !== this.state.previewsCollapsed) {
+            return true;
+        }
+
         if (nextState.lastViewed !== this.state.lastViewed) {
             return true;
         }
@@ -241,6 +247,7 @@ export default class PostViewController extends React.Component {
                     displayNameType={this.state.displayNameType}
                     displayPostsInCenter={this.state.displayPostsInCenter}
                     compactDisplay={this.state.compactDisplay}
+                    previewsCollapsed={this.state.previewsCollapsed}
                     lastViewed={this.state.lastViewed}
                 />
             );
