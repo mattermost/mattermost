@@ -40,6 +40,19 @@ export default class BrandImageSetting extends React.Component {
         });
     }
 
+    componentDidUpdate() {
+        if (this.refs.image) {
+            const reader = new FileReader();
+
+            const img = this.refs.image;
+            reader.onload = (e) => {
+                $(img).attr('src', e.target.result);
+            };
+
+            reader.readAsDataURL(this.state.brandImage);
+        }
+    }
+
     handleImageChange() {
         const element = $(this.refs.fileInput);
 
@@ -151,6 +164,7 @@ export default class BrandImageSetting extends React.Component {
                             ref='fileInput'
                             type='file'
                             accept='.jpg,.png,.bmp'
+                            disabled={this.props.disabled}
                             onChange={this.handleImageChange}
                         />
                     </div>
