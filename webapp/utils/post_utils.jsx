@@ -33,7 +33,9 @@ export function getProfilePicSrcForPost(post, timestamp) {
 
 export function messageHistoryHandler(e) {
     if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
-        if (this.state.messageText !== '' && this.currentLastMsgIndex === PostStore.getHistoryLength()) {
+        if (this.state.messageText !== '' && this.state.messageText !== PostStore.getMessageInHistory(this.currentLastMsgIndex)) {
+            this.currentLastMsgIndex = PostStore.getHistoryLength();
+            this.currentMsgHistoryLength = this.currentLastMsgIndex;
             return;
         }
 
