@@ -82,7 +82,7 @@ func TestEtag(t *testing.T) {
 	}
 }
 
-var hashtags map[string]string = map[string]string{
+var hashtags = map[string]string{
 	"#test":           "#test",
 	"test":            "",
 	"#test123":        "#test123",
@@ -101,6 +101,7 @@ var hashtags map[string]string = map[string]string{
 	"<#less_than<":    "#less_than",
 	">#greater_than>": "#greater_than",
 	"-#minus-":        "#minus",
+	"_#under_":        "#under",
 	"+#plus+":         "#plus",
 	"=#equals=":       "#equals",
 	"%#pct%":          "#pct",
@@ -111,12 +112,21 @@ var hashtags map[string]string = map[string]string{
 	"|#pipe|":         "#pipe",
 	":#colon:":        "#colon",
 	";#semi;":         "#semi",
+	"#Mötley;":        "#Mötley",
+	".#period.":       "#period",
+	"¿#upside¿":       "#upside",
+	"\"#quote\"":      "#quote",
+	"/#slash/":        "#slash",
+	"\\#backslash\\":  "#backslash",
+	"#a":              "",
+	"#1":              "",
+	"foo#bar":         "",
 }
 
 func TestParseHashtags(t *testing.T) {
 	for input, output := range hashtags {
 		if o, _ := ParseHashtags(input); o != output {
-			t.Fatal("expected=" + output + " actual=" + o)
+			t.Fatal("failed to parse hashtags from input=" + input + " expected=" + output + " actual=" + o)
 		}
 	}
 }

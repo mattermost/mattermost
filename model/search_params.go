@@ -4,8 +4,12 @@
 package model
 
 import (
+	"regexp"
 	"strings"
 )
+
+var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"]+`)
+var searchTermPuncEnd = regexp.MustCompile(`[^\pL\d\s*"]+$`)
 
 type SearchParams struct {
 	Terms      string
@@ -91,8 +95,8 @@ func parseSearchFlags(input []string) ([]string, [][2]string) {
 
 		if !isFlag {
 			// trim off surrounding punctuation (note that we leave trailing asterisks to allow wildcards)
-			word = puncStart.ReplaceAllString(word, "")
-			word = puncEndWildcard.ReplaceAllString(word, "")
+			word = searchTermPuncStart.ReplaceAllString(word, "")
+			word = searchTermPuncEnd.ReplaceAllString(word, "")
 
 			// and remove extra pound #s
 			word = hashtagStart.ReplaceAllString(word, "#")
