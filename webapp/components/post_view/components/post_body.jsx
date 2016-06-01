@@ -199,5 +199,5 @@ PostBody.propTypes = {
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.bool
+    previewCollapsed: React.PropTypes.string
 };

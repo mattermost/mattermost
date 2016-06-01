@@ -522,5 +522,5 @@ PostList.propTypes = {
     displayNameType: React.PropTypes.string,
     displayPostsInCenter: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool,
-    previewsCollapsed: React.PropTypes.bool
+    previewsCollapsed: React.PropTypes.string
 };

@@ -218,6 +218,6 @@ Post.propTypes = {
     currentUser: React.PropTypes.object.isRequired,
     center: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.bool,
+    previewCollapsed: React.PropTypes.string,
     commentCount: React.PropTypes.number
 };

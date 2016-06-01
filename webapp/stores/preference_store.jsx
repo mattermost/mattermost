@@ -80,8 +80,8 @@ class PreferenceStoreClass extends EventEmitter {
         this.preferences.clear();
     }
 
-    emitChange() {
-        this.emit(CHANGE_EVENT);
+    emitChange(category) {
+        this.emit(CHANGE_EVENT, category);
     }
 
     addChangeListener(callback) {
@@ -99,7 +99,7 @@ class PreferenceStoreClass extends EventEmitter {
         case ActionTypes.RECEIVED_PREFERENCE: {
             const preference = action.preference;
             this.setPreference(preference.category, preference.name, preference.value);
-            this.emitChange();
+            this.emitChange(preference.category);
             break;
         }
         case ActionTypes.RECEIVED_PREFERENCES:
