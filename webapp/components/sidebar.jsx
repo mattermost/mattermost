@@ -16,6 +16,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -56,6 +57,11 @@ export default class Sidebar extends React.Component {
 
         this.createChannelElement = this.createChannelElement.bind(this);
         this.updateTitle = this.updateTitle.bind(this);
+
+        this.navigateChannelShortcut = this.navigateChannelShortcut.bind(this);
+        this.navigateUnreadChannelShortcut = this.navigateUnreadChannelShortcut.bind(this);
+        this.getDisplayedChannels = this.getDisplayedChannels.bind(this);
+        this.updateScrollbarOnChannelChange = this.updateScrollbarOnChannelChange.bind(this);
 
         this.isLeaving = new Map();
 
@@ -155,6 +161,9 @@ export default class Sidebar extends React.Component {
 
         this.updateTitle();
         this.updateUnreadIndicators();
+
+        document.addEventListener('keydown', this.navigateChannelShortcut);
+        document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextState, this.state)) {
@@ -187,6 +196,8 @@ export default class Sidebar extends React.Component {
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
+        document.removeEventListener('keydown', this.navigateChannelShortcut);
+        document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
     onChange() {
         this.setState(this.getStateFromStores());
@@ -243,7 +254,73 @@ export default class Sidebar extends React.Component {
             showBottomUnread
         });
     }
-
+    updateScrollbarOnChannelChange(channel) {
+        const curChannel = this.refs[channel.name].getBoundingClientRect();
+        if ((curChannel.top - Constants.CHANNEL_SCROLL_ADJUSTMENT < 0) || (curChannel.top + curChannel.height > this.refs.container.getBoundingClientRect().height)) {
+            this.refs.container.scrollTop = this.refs.container.scrollTop + (curChannel.top - Constants.CHANNEL_SCROLL_ADJUSTMENT);
+            $('.nav-pills__container').perfectScrollbar('update');
+        }
+    }
+    navigateChannelShortcut(e) {
+        if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
+            const allChannels = this.getDisplayedChannels();
+            const curChannelId = this.state.activeId;
+            let curIndex = -1;
+            for (let i = 0; i < allChannels.length; i++) {
+                if (allChannels[i].id === curChannelId) {
+                    curIndex = i;
+                }
+            }
+            let nextChannel = allChannels[curIndex];
+            let nextIndex = curIndex;
+            if (e.keyCode === Constants.KeyCodes.DOWN) {
+                nextIndex = curIndex + 1;
+            } else if (e.keyCode === Constants.KeyCodes.UP) {
+                nextIndex = curIndex - 1;
+            }
+            nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
+            ChannelActions.goToChannel(nextChannel);
+            this.updateScrollbarOnChannelChange(nextChannel);
+        }
+    }
+    navigateUnreadChannelShortcut(e) {
+        if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
+            e.preventDefault();
+            const allChannels = this.getDisplayedChannels();
+            const curChannelId = this.state.activeId;
+            let curIndex = -1;
+            for (let i = 0; i < allChannels.length; i++) {
+                if (allChannels[i].id === curChannelId) {
+                    curIndex = i;
+                }
+            }
+            let nextChannel = allChannels[curIndex];
+            let nextIndex = curIndex;
+            let count = 0;
+            let increment = 0;
+            if (e.keyCode === Constants.KeyCodes.UP) {
+                increment = -1;
+            } else if (e.keyCode === Constants.KeyCodes.DOWN) {
+                increment = 1;
+            }
+            let unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
+            while (count < allChannels.length && unreadCounts.msgs === 0 && unreadCounts.mentions === 0) {
+                nextIndex += increment;
+                count++;
+                nextIndex = Utils.mod(nextIndex, allChannels.length);
+                unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
+            }
+            if (unreadCounts.msgs !== 0 || unreadCounts.mentions !== 0) {
+                nextChannel = allChannels[nextIndex];
+                ChannelActions.goToChannel(nextChannel);
+                this.updateScrollbarOnChannelChange(nextChannel);
+            }
+        }
+    }
+    getDisplayedChannels() {
+        return this.state.publicChannels.concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
+    }
     handleLeaveDirectChannel(e, channel) {
         e.preventDefault();
 

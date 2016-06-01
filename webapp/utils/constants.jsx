@@ -746,6 +746,7 @@ export default {
     MAX_TRIGGER_LENGTH: 128,
     TIME_SINCE_UPDATE_INTERVAL: 30000,
     MIN_HASHTAG_LINK_LENGTH: 3,
+    CHANNEL_SCROLL_ADJUSTMENT: 100,
     EMOJI_PATH: '/static/emoji',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
