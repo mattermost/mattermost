@@ -460,6 +460,10 @@
     "translation": "Muestra una lista de los accesos rápidos de teclado"
   },
   {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Atajos de Teclado\n\n#### Navigación\n\nALT+ARRIBA: Canal o mensaje directo previo en el LHS\nALT+ABAJO: Canal o mensaje directo siguiente en el LHS\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en el LHS con mensajes no leidos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en el LHS con mensajes no leidos\nCTRL/CMD+MAYUS+A: Abre la configuración de la cuenta\nCTRL/CMD+MAYUS+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL/CMD+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCTRL/CMD+U: Subir archivo(s)\n\n#### Mensajes\n\nCTRL/CMD+ARRIBA: Reimprime el último mensaje que ingresaste\nCTRL/CMD+ABAJO: Reimprime el siguiente mensaje que ingresaste\nARRIBA (con el cuadro de texto vacio): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Autocompleta @nombre que comience por [carácter]\n:[carácter]+TAB: Autocompleta el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nALT+IZQ/CMD+[: Canal anterior en tu historial\nALT+DER/CMD+]: Canal siguiente en tu historial\nCTRL/CMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL/CMD+MENOS: Decrementa el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+  },
+  {
     "id": "api.command_shortcuts.name",
     "translation": "accesos rápidos de teclado"
   },
