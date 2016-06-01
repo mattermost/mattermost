@@ -5,6 +5,8 @@ imports:
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
 - name: github.com/braintree/manners
   version: 82a8879fc5fd0381fa8b2d8033b19bf255252088
+- name: github.com/cloudfoundry/jibber_jabber
+  version: bcc4c8345a21301bf47c032ff42dd1aae2fe3027
 - name: github.com/dgryski/dgoogauth
   version: 67642ac6f9144f6610279e37e7be9af13f1cd668
 - name: github.com/disintegration/imaging

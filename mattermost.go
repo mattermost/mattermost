@@ -79,6 +79,7 @@ func main() {
 
 	parseCmds()
 
+	utils.InitTranslations()
 	if errstr := doLoadConfig(flagConfigFile); errstr != "" {
 		l4g.Exit(utils.T("mattermost.unable_to_load_config"), errstr)
 		return
@@ -87,7 +88,6 @@ func main() {
 	if flagRunCmds {
 		utils.ConfigureCmdLineLog()
 	}
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
 	pwd, _ := os.Getwd()
 	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)

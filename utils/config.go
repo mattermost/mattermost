@@ -246,8 +246,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 
-	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
-	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
+	props["AllowCorsFrom"] = *c.ServiceSettings.AllowCorsFrom
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {
