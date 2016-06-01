@@ -450,7 +450,13 @@ export function handleClick(e) {
     } else if (hashtagAttribute) {
         Utils.searchForTerm(hashtagAttribute.value);
     } else if (linkAttribute) {
-        browserHistory.push(linkAttribute.value);
+        const MIDDLE_MOUSE_BUTTON = 1;
+
+        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
+            e.preventDefault();
+
+            browserHistory.push(linkAttribute.value);
+        }
     }
 }
 

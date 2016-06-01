@@ -149,13 +149,13 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             outHref = `http://${outHref}`;
         }
 
-        let output = '<a class="theme markdown__link" ';
+        let output = '<a class="theme markdown__link" href="' + outHref + '" rel="noreferrer"';
 
         // special case for links that are inside the app
         if (outHref.startsWith(global.location.origin)) {
-            output += 'data-link="' + outHref.substring(global.location.origin.length) + '"';
+            output += ' data-link="' + outHref.substring(global.location.origin.length) + '"';
         } else {
-            output += 'href="' + outHref + '" target="_blank" rel="noreferrer"';
+            output += ' target="_blank"';
         }
 
         if (title) {
