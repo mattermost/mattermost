@@ -363,9 +363,8 @@ export default class PostList extends React.Component {
             }
         } else if (this.refs.postlist.scrollHeight !== this.prevScrollHeight) {
             window.requestAnimationFrame(() => {
-                // Only need to jump if we added posts to the top.
-                if (this.jumpToPostNode && (this.jumpToPostNode.offsetTop !== this.prevOffsetTop)) {
-                    this.refs.postlist.scrollTop += (this.refs.postlist.scrollHeight - this.prevScrollHeight);
+                if (this.jumpToPostNode) {
+                    this.refs.postlist.scrollTop += (this.jumpToPostNode.offsetTop - this.prevOffsetTop);
                 }
             });
         }
