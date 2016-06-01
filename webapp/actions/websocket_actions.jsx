@@ -245,7 +245,7 @@ function handleUserRemovedEvent(msg) {
 
 function handleChannelViewedEvent(msg) {
     // Useful for when multiple devices have the app open to different channels
-    if (TeamStore.getCurrentId() === msg.team_id && ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
+    if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
     }
 }
