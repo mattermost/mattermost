@@ -45,7 +45,7 @@ export default class AdminConsole extends React.Component {
         const config = this.state.config;
         if (config && Object.keys(config).length === 0 && config.constructor === 'Object') {
             return (
-                <div>
+                <div className='admin-console__wrapper'>
                     <ErrorBar/>
                     <div className='admin-console'/>
                 </div>
@@ -58,7 +58,7 @@ export default class AdminConsole extends React.Component {
         });
 
         return (
-            <div>
+            <div className='admin-console__wrapper'>
                 <ErrorBar/>
                 <div className='admin-console'>
                     <AdminSidebar/>
