@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 
+	_ "github.com/cloudfoundry/jibber_jabber"
 	_ "github.com/nicksnyder/go-i18n/i18n"
 )
 

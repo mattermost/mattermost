@@ -7,16 +7,15 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/mattermost/platform/model"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
 var T i18n.TranslateFunc
 var locales map[string]string = make(map[string]string)
-var settings model.LocalizationSettings
 
-func InitTranslations(localizationSettings model.LocalizationSettings) {
-	settings = localizationSettings
+func InitTranslations() {
 	InitTranslationsWithDir("i18n")
 }
 
@@ -35,10 +34,14 @@ func InitTranslationsWithDir(dir string) {
 }
 
 func GetTranslationsBySystemLocale() i18n.TranslateFunc {
-	locale := *settings.DefaultServerLocale
-	if _, ok := locales[locale]; !ok {
-		l4g.Error("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE)
-		locale = model.DEFAULT_LOCALE
+	locale := model.DEFAULT_LOCALE
+	if userLanguage, err := jibber_jabber.DetectLanguage(); err == nil {
+		if _, ok := locales[userLanguage]; ok {
+			locale = userLanguage
+		} else {
+			l4g.Error("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE)
+			locale = model.DEFAULT_LOCALE
+		}
 	}
 
 	if locales[locale] == "" {
@@ -69,19 +72,9 @@ func SetTranslations(locale string) i18n.TranslateFunc {
 }
 
 func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
-	// This is for checking against locales like pt_BR or zn_CN
-	headerLocaleFull := strings.Split(r.Header.Get("Accept-Language"), ",")[0]
-	// This is for checking agains locales like en, es
 	headerLocale := strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
-	defaultLocale := *settings.DefaultClientLocale
-	if locales[headerLocaleFull] != "" {
-		translations := TfuncWithFallback(headerLocaleFull)
-		return translations, headerLocaleFull
-	} else if locales[headerLocale] != "" {
+	if locales[headerLocale] != "" {
 		translations := TfuncWithFallback(headerLocale)
-		return translations, headerLocale
-	} else if locales[defaultLocale] != "" {
-		translations := TfuncWithFallback(defaultLocale)
 		return translations, headerLocale
 	}
 
@@ -96,7 +89,7 @@ func TfuncWithFallback(pref string) i18n.TranslateFunc {
 			return translated
 		}
 
-		t, _ := i18n.Tfunc(model.DEFAULT_LOCALE)
+		t, _ := i18n.Tfunc("en")
 		return t(translationID, args...)
 	}
 }

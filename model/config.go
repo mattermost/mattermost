@@ -204,27 +204,20 @@ type ComplianceSettings struct {
 	EnableDaily *bool
 }
 
-type LocalizationSettings struct {
-	DefaultServerLocale *string
-	DefaultClientLocale *string
-	AvailableLocales    *string
-}
-
 type Config struct {
-	ServiceSettings      ServiceSettings
-	TeamSettings         TeamSettings
-	SqlSettings          SqlSettings
-	LogSettings          LogSettings
-	FileSettings         FileSettings
-	EmailSettings        EmailSettings
-	RateLimitSettings    RateLimitSettings
-	PrivacySettings      PrivacySettings
-	SupportSettings      SupportSettings
-	GitLabSettings       SSOSettings
-	GoogleSettings       SSOSettings
-	LdapSettings         LdapSettings
-	ComplianceSettings   ComplianceSettings
-	LocalizationSettings LocalizationSettings
+	ServiceSettings    ServiceSettings
+	TeamSettings       TeamSettings
+	SqlSettings        SqlSettings
+	LogSettings        LogSettings
+	FileSettings       FileSettings
+	EmailSettings      EmailSettings
+	RateLimitSettings  RateLimitSettings
+	PrivacySettings    PrivacySettings
+	SupportSettings    SupportSettings
+	GitLabSettings     SSOSettings
+	GoogleSettings     SSOSettings
+	LdapSettings       LdapSettings
+	ComplianceSettings ComplianceSettings
 }
 
 func (o *Config) ToJson() string {
@@ -519,21 +512,6 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.NicknameAttribute == nil {
 		o.LdapSettings.NicknameAttribute = new(string)
 		*o.LdapSettings.NicknameAttribute = ""
-	}
-
-	if o.LocalizationSettings.DefaultServerLocale == nil {
-		o.LocalizationSettings.DefaultServerLocale = new(string)
-		*o.LocalizationSettings.DefaultServerLocale = DEFAULT_LOCALE
-	}
-
-	if o.LocalizationSettings.DefaultClientLocale == nil {
-		o.LocalizationSettings.DefaultClientLocale = new(string)
-		*o.LocalizationSettings.DefaultClientLocale = DEFAULT_LOCALE
-	}
-
-	if o.LocalizationSettings.AvailableLocales == nil {
-		o.LocalizationSettings.AvailableLocales = new(string)
-		*o.LocalizationSettings.AvailableLocales = *o.LocalizationSettings.DefaultClientLocale
 	}
 }
 
