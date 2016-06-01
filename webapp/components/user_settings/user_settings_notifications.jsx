@@ -817,7 +817,7 @@ class NotificationsTab extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.channelWide'
-                                defaultMessage='Channel-wide mentions "@channel"'
+                                defaultMessage='Channel-wide mentions "@channel", "@all"'
                             />
                         </label>
                     </div>
@@ -871,12 +871,9 @@ class NotificationsTab extends React.Component {
                 keys.push('@' + user.username);
             }
 
-            // if (this.state.allKey) {
-            //     keys.push('@all');
-            // }
-
             if (this.state.channelKey) {
                 keys.push('@channel');
+                keys.push('@all');
             }
             if (this.state.customKeys.length > 0) {
                 keys = keys.concat(this.state.customKeys.split(','));
