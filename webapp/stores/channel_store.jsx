@@ -36,6 +36,7 @@ class ChannelStoreClass extends EventEmitter {
         this.get = this.get.bind(this);
         this.getMember = this.getMember.bind(this);
         this.getByName = this.getByName.bind(this);
+        this.getByDisplayName = this.getByDisplayName.bind(this);
         this.setPostMode = this.setPostMode.bind(this);
         this.getPostMode = this.getPostMode.bind(this);
         this.setUnreadCount = this.setUnreadCount.bind(this);
@@ -117,6 +118,9 @@ class ChannelStoreClass extends EventEmitter {
     }
     getByName(name) {
         return this.findFirstBy('name', name);
+    }
+    getByDisplayName(displayName) {
+        return this.findFirstBy('display_name', displayName);
     }
     getMoreByName(name) {
         return this.findFirstMoreBy('name', name);

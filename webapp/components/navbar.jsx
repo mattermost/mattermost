@@ -18,6 +18,8 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
+import ChannelSwitchModal from './channel_switch_modal.jsx';
+
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -50,11 +52,15 @@ export default class Navbar extends React.Component {
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
         this.createDropdown = this.createDropdown.bind(this);
 
+        this.showChannelSwitchModal = this.showChannelSwitchModal.bind(this);
+        this.hideChannelSwitchModal = this.hideChannelSwitchModal.bind(this);
+
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
         state.showEditChannelHeaderModal = false;
         state.showMembersModal = false;
         state.showRenameChannelModal = false;
+        state.showChannelSwitchModal = false;
         this.state = state;
     }
     getStateFromStores() {
@@ -72,10 +78,12 @@ export default class Navbar extends React.Component {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
+        document.addEventListener('keydown', this.showChannelSwitchModal);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeExtraInfoChangeListener(this.onChange);
+        document.removeEventListener('keydown', this.showChannelSwitchModal);
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -148,6 +156,19 @@ export default class Navbar extends React.Component {
     hideRenameChannelModal() {
         this.setState({
             showRenameChannelModal: false
+        });
+    }
+    showChannelSwitchModal(e) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.K) {
+            e.preventDefault();
+            this.setState({
+                showChannelSwitchModal: true
+            });
+        }
+    }
+    hideChannelSwitchModal() {
+        this.setState({
+            showChannelSwitchModal: false
         });
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
@@ -441,6 +462,7 @@ export default class Navbar extends React.Component {
         var editChannelPurposeModal = null;
         let renameChannelModal = null;
         let channelMembersModal = null;
+        let channelSwitchModal = null;
 
         if (channel) {
             popoverContent = (
@@ -540,6 +562,13 @@ export default class Navbar extends React.Component {
                     channel={channel}
                 />
             );
+
+            channelSwitchModal = (
+                <ChannelSwitchModal
+                    show={this.state.showChannelSwitchModal}
+                    onHide={this.hideChannelSwitchModal}
+                />
+            );
         }
 
         var collapseButtons = this.createCollapseButtons(currentId);
@@ -574,6 +603,7 @@ export default class Navbar extends React.Component {
                 {editChannelPurposeModal}
                 {renameChannelModal}
                 {channelMembersModal}
+                {channelSwitchModal}
             </div>
         );
     }
