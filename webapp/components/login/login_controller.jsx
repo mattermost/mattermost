@@ -52,8 +52,20 @@ export default class LoginController extends React.Component {
     preSubmit(e) {
         e.preventDefault();
 
-        const loginId = this.state.loginId.trim();
-        const password = this.state.password;
+        // password managers don't always call onInput handlers for form fields so it's possible
+        // for the state to get out of sync with what the user sees in the browser
+        let loginId = this.refs.loginId.value;
+        if (loginId !== this.state.loginId) {
+            this.setState({loginId});
+        }
+
+        let password = this.refs.password.value;
+        if (password !== this.state.password) {
+            this.setState({password});
+        }
+
+        loginId = loginId.trim();
+        password = password.trim();
 
         if (!loginId) {
             this.setState({
@@ -286,6 +298,7 @@ export default class LoginController extends React.Component {
                         <div className={'form-group' + errorClass}>
                             <input
                                 className='form-control'
+                                ref='loginId'
                                 name='loginId'
                                 value={this.state.loginId}
                                 onChange={this.handleLoginIdChange}
@@ -298,6 +311,7 @@ export default class LoginController extends React.Component {
                             <input
                                 type='password'
                                 className='form-control'
+                                ref='password'
                                 name='password'
                                 value={this.state.password}
                                 onChange={this.handlePasswordChange}
