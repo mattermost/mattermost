@@ -3,7 +3,7 @@
 
 import SuggestionList from './suggestion/suggestion_list.jsx';
 import SuggestionBox from './suggestion/suggestion_box.jsx';
-import SwitchChannelProvider from './suggestion/Switch_channel_provider.jsx';
+import SwitchChannelProvider from './suggestion/switch_channel_provider.jsx';
 import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 import * as Utils from 'utils/utils.jsx';
@@ -100,7 +100,7 @@ export default class SwitchChannelModal extends React.Component {
                 <Modal.Body>
                     <FormattedMessage
                         id='channel_switch_modal.help'
-                        defaultMessage='`tab` or `↑↓` to browse, `↵` to select, `esc` to dismiss'
+                        defaultMessage='↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss'
                     />
                     <SuggestionBox
                         ref='search'
