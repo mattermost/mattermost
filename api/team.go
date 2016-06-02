@@ -39,7 +39,7 @@ func InitTeam() {
 
 	BaseRoutes.NeedTeam.Handle("/add_user_to_team", ApiUserRequired(addUserToTeam)).Methods("POST")
 
-	// These should be moved to the global admain console
+	// These should be moved to the global admin console
 	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequired(addUserToTeamFromInvite)).Methods("POST")
 }
@@ -399,12 +399,12 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	ia := make([]string, len(invites.Invites))
+	emailList := make([]string, len(invites.Invites))
 	for _, invite := range invites.Invites {
-		ia = append(ia, invite["email"])
+		emailList = append(emailList, invite["email"])
 	}
 
-	InviteMembers(c, team, user, ia)
+	InviteMembers(c, team, user, emailList)
 
 	w.Write([]byte(invites.ToJson()))
 }
