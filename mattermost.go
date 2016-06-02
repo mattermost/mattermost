@@ -1202,9 +1202,6 @@ USAGE:
 FLAGS: 
     -config="config.json"             Path to the config file
 
-    -working_directory="/dir"         Path to the working directory to load templates
-                                      and translation files from.
-
     -username="someuser"              Username used in other commands
 
     -license="ex.mattermost-license"  Path to your license file
