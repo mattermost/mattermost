@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -428,6 +429,10 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 					if resp, err := client.Do(req); err != nil {
 						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
 					} else {
+						defer func() {
+							ioutil.ReadAll(resp.Body)
+							resp.Body.Close()
+						}()
 						respProps := model.MapFromJson(resp.Body)
 
 						// copy the context and create a mock session for posting the message

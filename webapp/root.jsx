@@ -53,6 +53,7 @@ const ActionTypes = Constants.ActionTypes;
 import AdminConsole from 'components/admin_console/admin_console.jsx';
 import SystemAnalytics from 'components/analytics/system_analytics.jsx';
 import ConfigurationSettings from 'components/admin_console/configuration_settings.jsx';
+import LocalizationSettings from 'components/admin_console/localization_settings.jsx';
 import UsersAndTeamsSettings from 'components/admin_console/users_and_teams_settings.jsx';
 import PrivacySettings from 'components/admin_console/privacy_settings.jsx';
 import LogSettings from 'components/admin_console/log_settings.jsx';
@@ -142,8 +143,8 @@ function preRenderSetup(callwhendone) {
     );
 
     function afterIntl() {
-        I18n.doAddLocaleData();
         $.when(d1).done(() => {
+            I18n.doAddLocaleData();
             callwhendone();
         });
     }
@@ -363,12 +364,20 @@ function renderRootComponent() {
                                 component={ConfigurationSettings}
                             />
                             <Route
+                                path='localization'
+                                component={LocalizationSettings}
+                            />
+                            <Route
                                 path='users_and_teams'
                                 component={UsersAndTeamsSettings}
                             />
                             <Route
                                 path='privacy'
                                 component={PrivacySettings}
+                            />
+                            <Route
+                                path='compliance'
+                                component={ComplianceSettings}
                             />
                             <Route
                                 path='logging'
@@ -435,10 +444,6 @@ function renderRootComponent() {
                                 component={ExternalServiceSettings}
                             />
                         </Route>
-                        <Route
-                            path='database'
-                            component={DatabaseSettings}
-                        />
                         <Route path='files'>
                             <IndexRedirect to='storage'/>
                             <Route
@@ -461,18 +466,21 @@ function renderRootComponent() {
                                 component={LegalAndSupportSettings}
                             />
                         </Route>
-                        <Route
-                            path='compliance'
-                            component={ComplianceSettings}
-                        />
-                        <Route
-                            path='rate'
-                            component={RateSettings}
-                        />
-                        <Route
-                            path='developer'
-                            component={DeveloperSettings}
-                        />
+                        <Route path='advanced'>
+                            <IndexRedirect to='rate'/>
+                            <Route
+                                path='rate'
+                                component={RateSettings}
+                            />
+                            <Route
+                                path='database'
+                                component={DatabaseSettings}
+                            />
+                            <Route
+                                path='developer'
+                                component={DeveloperSettings}
+                            />
+                        </Route>
                         <Route path='team'>
                             <Redirect
                                 from=':team'

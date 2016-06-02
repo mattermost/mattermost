@@ -39,8 +39,8 @@ export default class SessionSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.security.title'
-                    defaultMessage='Security Settings'
+                    id='admin.security.session'
+                    defaultMessage='Sessions'
                 />
             </h3>
         );
@@ -48,14 +48,7 @@ export default class SessionSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.security.session'
-                        defaultMessage='Sessions'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='sessionLengthWebInDays'
                     label={

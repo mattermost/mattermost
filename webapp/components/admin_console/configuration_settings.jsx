@@ -34,8 +34,8 @@ export default class ConfigurationSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.general.configuration'
+                    defaultMessage='Configuration'
                 />
             </h3>
         );
@@ -43,14 +43,7 @@ export default class ConfigurationSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.general.configuration'
-                        defaultMessage='Configuration'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <ReloadConfigButton/>
                 <TextSetting
                     id='listenAddress'

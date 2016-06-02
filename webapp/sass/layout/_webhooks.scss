@@ -35,3 +35,110 @@
         padding-right: 20px;
     }
 }
+
+
+.attachment {
+    .attachment__content {
+        border-radius: 4px;
+        border-style: solid;
+        border-width: 1px;
+        margin: 0 0 5px 0;
+        padding: 2px 5px;
+    }
+
+    .attachment__thumb-pretext {
+        background: transparent;
+        border: none;
+        margin-left: 5px;
+    }
+
+    .attachment__container {
+        border-left-style: solid;
+        border-left-width: 4px;
+        padding: 10px;
+
+        &.attachment__container--good {
+            border-left-color: #00c100;
+        }
+
+        &.attachment__container--warning {
+            border-left-color: #dede01;
+        }
+
+        &.attachment__container--danger {
+            border-left-color: #e40303;
+        }
+    }
+
+    .attachment__body {
+        float: left;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-right: 5px;
+        width: 80%;
+
+        &.attachment__body--no_thumb {
+            width: 100%;
+        }
+    }
+
+    .attachment__text p:last-of-type {
+        display: inline-block;
+    }
+
+    .attachment__author-name {
+        @include opacity(.6);
+    }
+
+    .attachment__title {
+        font-size: 14px;
+        font-weight: 600;
+        height: 22px;
+        line-height: 18px;
+        margin: 5px 0;
+        padding: 0;
+    }
+
+    .attachment-link-more {
+        display: inline-block;
+        font-size: .9em;
+        margin: 5px 0;
+    }
+
+    .attachment__author-icon {
+        @include border-radius(50px);
+        height: 14px;
+        margin-right: 5px;
+        width: 14px;
+    }
+
+    .attachment__image {
+        margin-bottom: 1em;
+        max-width: 100%;
+    }
+
+    .attachment__thumb-container {
+        float: right;
+        width: 20%;
+
+        img {
+            max-height: 75px;
+            max-width: 100%;
+        }
+    }
+
+    .attachment-fields {
+        width: 100%;
+
+        .attachment-field__caption {
+            font-weight: 600;
+            padding-top: .7em;
+        }
+
+        .attachment-field {
+            p {
+                margin: 0;
+            }
+        }
+    }
+}

@@ -83,13 +83,15 @@ export default class GeneratedSetting extends React.Component {
                     <div className='help-text'>
                         {this.props.helpText}
                     </div>
-                    <button
-                        className='btn btn-default'
-                        onClick={this.regenerate}
-                        disabled={this.props.disabled}
-                    >
-                        {this.props.regenerateText}
-                    </button>
+                    <div className='help-text'>
+                        <button
+                            className='btn btn-default'
+                            onClick={this.regenerate}
+                            disabled={this.props.disabled}
+                        >
+                            {this.props.regenerateText}
+                        </button>
+                    </div>
                 </div>
             </div>
         );

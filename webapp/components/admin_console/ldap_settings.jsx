@@ -68,8 +68,8 @@ export default class LdapSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.authentication.title'
-                    defaultMessage='Authentication Settings'
+                    id='admin.authentication.ldap'
+                    defaultMessage='LDAP'
                 />
             </h3>
         );
@@ -82,15 +82,7 @@ export default class LdapSettings extends AdminSettings {
         }
 
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.authentication.ldap'
-                        defaultMessage='LDAP'
-                    />
-
-                }
-            >
+            <SettingsGroup>
                 <Banner
                     description={
                         <FormattedMessage

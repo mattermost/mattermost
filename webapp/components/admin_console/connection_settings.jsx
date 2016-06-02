@@ -36,8 +36,8 @@ export default class ConnectionSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.security.title'
-                    defaultMessage='Security Settings'
+                    id='admin.security.connection'
+                    defaultMessage='Connections'
                 />
             </h3>
         );
@@ -45,14 +45,7 @@ export default class ConnectionSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.security.connection'
-                        defaultMessage='Connections'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='allowCorsFrom'
                     label={

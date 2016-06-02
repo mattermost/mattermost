@@ -9,7 +9,7 @@ import Suggestion from './suggestion.jsx';
 
 class CommandSuggestion extends Suggestion {
     render() {
-        const {item, isSelection, onClick} = this.props;
+        const {item, isSelection} = this.props;
 
         let className = 'command';
         if (isSelection) {
@@ -19,7 +19,7 @@ class CommandSuggestion extends Suggestion {
         return (
             <div
                 className={className}
-                onClick={onClick}
+                onClick={this.handleClick}
             >
                 <div className='command__title'>
                     <string>{item.suggestion} {item.hint}</string>

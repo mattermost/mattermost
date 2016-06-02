@@ -11,7 +11,7 @@ import Suggestion from './suggestion.jsx';
 
 class SearchChannelSuggestion extends Suggestion {
     render() {
-        const {item, isSelection, onClick} = this.props;
+        const {item, isSelection} = this.props;
 
         let className = 'search-autocomplete__item';
         if (isSelection) {
@@ -20,7 +20,7 @@ class SearchChannelSuggestion extends Suggestion {
 
         return (
             <div
-                onClick={onClick}
+                onClick={this.handleClick}
                 className={className}
             >
                 <i className='fa fa fa-plus-square'></i>{item.name}

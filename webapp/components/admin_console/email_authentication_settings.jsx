@@ -35,8 +35,8 @@ export default class EmailAuthenticationSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.authentication.title'
-                    defaultMessage='Authentication Settings'
+                    id='admin.authentication.email'
+                    defaultMessage='Email'
                 />
             </h3>
         );
@@ -44,14 +44,7 @@ export default class EmailAuthenticationSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.authentication.email'
-                        defaultMessage='Email'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enableSignUpWithEmail'
                     label={

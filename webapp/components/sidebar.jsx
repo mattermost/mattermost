@@ -629,8 +629,8 @@ export default class Sidebar extends React.Component {
                     onClick={this.showMoreDirectChannelsModal}
                 >
                     <FormattedMessage
-                        id='sidebar.more'
-                        defaultMessage='More'
+                        id='sidebar.moreElips'
+                        defaultMessage='More...'
                     />
                 </a>
             </li>

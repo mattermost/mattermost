@@ -386,7 +386,7 @@ export default class UserSettingsDisplay extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.display.messageDisplayClean'
-                                defaultMessage='Clean'
+                                defaultMessage='Standard'
                             />
                         </label>
                         <br/>
@@ -439,7 +439,7 @@ export default class UserSettingsDisplay extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.messageDisplayClean'
-                        defaultMessage='Clean'
+                        defaultMessage='Standard'
                     />
                 );
             } else {
@@ -641,7 +641,11 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
+        const userLocale = this.props.user.locale;
         if (this.props.activeSection === 'languages') {
+            if (!I18n.isLanguageAvailable(userLocale)) {
+                this.props.user.locale = global.window.mm_config.DefaultClientLocale;
+            }
             languagesSection = (
                 <ManageLanguages
                     user={this.props.user}
@@ -652,7 +656,12 @@ export default class UserSettingsDisplay extends React.Component {
                 />
             );
         } else {
-            var locale = I18n.getLanguageInfo(this.props.user.locale).name;
+            let locale;
+            if (I18n.isLanguageAvailable(userLocale)) {
+                locale = I18n.getLanguageInfo(userLocale).name;
+            } else {
+                locale = I18n.getLanguageInfo(global.window.mm_config.DefaultClientLocale).name;
+            }
 
             languagesSection = (
                 <SettingItemMin

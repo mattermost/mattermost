@@ -43,8 +43,8 @@ export default class ImageSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.files.title'
-                    defaultMessage='File Settings'
+                    id='admin.files.images'
+                    defaultMessage='Images'
                 />
             </h3>
         );
@@ -52,14 +52,7 @@ export default class ImageSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.files.images'
-                        defaultMessage='Images'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='thumbnailWidth'
                     label={

@@ -11,7 +11,7 @@ import Suggestion from './suggestion.jsx';
 
 class SearchUserSuggestion extends Suggestion {
     render() {
-        const {item, isSelection, onClick} = this.props;
+        const {item, isSelection} = this.props;
 
         let className = 'search-autocomplete__item';
         if (isSelection) {
@@ -21,7 +21,7 @@ class SearchUserSuggestion extends Suggestion {
         return (
             <div
                 className={className}
-                onClick={onClick}
+                onClick={this.handleClick}
             >
                 <img
                     className='profile-img rounded'
