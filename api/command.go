@@ -203,6 +203,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 								handleResponse(c, w, response, channelId, cmd, false)
 							}
 						} else {
+							defer resp.Body.Close()
 							body, _ := ioutil.ReadAll(resp.Body)
 							c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": trigger, "Status": resp.Status}, string(body))
 						}
