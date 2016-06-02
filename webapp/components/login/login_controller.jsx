@@ -55,6 +55,33 @@ export default class LoginController extends React.Component {
         const loginId = this.state.loginId.trim();
         const password = this.state.password;
 
+        if (!loginId) {
+            this.setState({
+                serverError: (
+                    <FormattedMessage
+                        id='login.noLoginId'
+                        defaultMessage='Please enter your {loginId}'
+                        values={{
+                            loginId: this.createLoginPlaceholder()
+                        }}
+                    />
+                )
+            });
+            return;
+        }
+
+        if (!password) {
+            this.setState({
+                serverError: (
+                    <FormattedMessage
+                        id='login.noPassword'
+                        defaultMessage='Please enter your password'
+                    />
+                )
+            });
+            return;
+        }
+
         if (global.window.mm_config.EnableMultifactorAuthentication === 'true') {
             Client.checkMfa(
                 loginId,
@@ -155,7 +182,11 @@ export default class LoginController extends React.Component {
         return null;
     }
 
-    createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled) {
+    createLoginPlaceholder() {
+        const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
+        const usernameSigninEnabled = global.window.mm_config.EnableSignInWithUsername === 'true';
+        const emailSigninEnabled = global.window.mm_config.EnableSignInWithEmail === 'true';
+
         const loginPlaceholders = [];
         if (emailSigninEnabled) {
             loginPlaceholders.push(Utils.localizeMessage('login.email', 'Email'));
@@ -258,7 +289,7 @@ export default class LoginController extends React.Component {
                                 name='loginId'
                                 value={this.state.loginId}
                                 onChange={this.handleLoginIdChange}
-                                placeholder={this.createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled)}
+                                placeholder={this.createLoginPlaceholder()}
                                 spellCheck='false'
                                 autoCapitalize='off'
                             />
@@ -278,7 +309,6 @@ export default class LoginController extends React.Component {
                             <button
                                 type='submit'
                                 className='btn btn-primary'
-                                disabled={!this.state.loginId || !this.state.password}
                             >
                                 <FormattedMessage
                                     id='login.signIn'
