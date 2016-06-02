@@ -484,6 +484,15 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                <AdminSidebarSection
+                                    name='app-center'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.sample_app'
+                                            defaultMessage='Sample App'
+                                        />
+                                    }
+                                />
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='files'
