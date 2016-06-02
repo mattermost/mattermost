@@ -41,6 +41,7 @@ export default class RhsRootPost extends React.Component {
     render() {
         const post = this.props.post;
         const user = this.props.user;
+        const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
@@ -201,7 +202,7 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        const profilePic = (
+        let profilePic = (
             <img
                 className='post-profile-img'
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
@@ -209,6 +210,15 @@ export default class RhsRootPost extends React.Component {
                 width='36'
             />
         );
+
+        if (PostUtils.isSystemMessage(post)) {
+            profilePic = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: mattermostLogo}}
+                />
+            );
+        }
 
         const messageWrapper = (
             <div

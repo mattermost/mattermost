@@ -9,11 +9,11 @@ import {intlShape, injectIntl, defineMessages} from 'react-intl';
 const holders = defineMessages({
     collapse: {
         id: 'post_attachment.collapse',
-        defaultMessage: '▲ collapse text'
+        defaultMessage: 'Show less...'
     },
     more: {
         id: 'post_attachment.more',
-        defaultMessage: '▼ read more'
+        defaultMessage: 'Show more...'
     }
 });
 
@@ -44,7 +44,7 @@ class PostAttachment extends React.Component {
     getInitState() {
         const shouldCollapse = this.shouldCollapse();
         const text = TextFormatting.formatText(this.props.attachment.text || '');
-        const uncollapsedText = text + (shouldCollapse ? `<a class="attachment-link-more" href="#">${this.props.intl.formatMessage(holders.collapse)}</a>` : '');
+        const uncollapsedText = text + (shouldCollapse ? `<div><a class="attachment-link-more" href="#">${this.props.intl.formatMessage(holders.collapse)}</a></div>` : '');
         const collapsedText = shouldCollapse ? this.getCollapsedText() : text;
 
         return {
@@ -78,7 +78,7 @@ class PostAttachment extends React.Component {
             text = text.substr(0, 700);
         }
 
-        return TextFormatting.formatText(text) + `<a class="attachment-link-more" href="#">${this.props.intl.formatMessage(holders.more)}</a>`;
+        return TextFormatting.formatText(text) + `<div><a class="attachment-link-more" href="#">${this.props.intl.formatMessage(holders.more)}</a></div>`;
     }
 
     getFieldsTable() {
@@ -99,7 +99,7 @@ class PostAttachment extends React.Component {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
                 fieldTables.push(
                     <table
-                        className='attachment___fields'
+                        className='attachment-fields'
                         key={'attachment__table__' + nrTables}
                     >
                         <thead>
@@ -122,7 +122,7 @@ class PostAttachment extends React.Component {
             }
             headerCols.push(
                 <th
-                    className='attachment___field-caption'
+                    className='attachment-field__caption'
                     key={'attachment__field-caption-' + i + '__' + nrTables}
                     width='50%'
                 >
@@ -131,7 +131,7 @@ class PostAttachment extends React.Component {
             );
             bodyCols.push(
                 <td
-                    className='attachment___field'
+                    className='attachment-field'
                     key={'attachment__field-' + i + '__' + nrTables}
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(field.value || '')}}
                 >
@@ -143,7 +143,7 @@ class PostAttachment extends React.Component {
         if (headerCols.length > 0) { // Flush last fields
             fieldTables.push(
                 <table
-                    className='attachment___fields'
+                    className='attachment-fields'
                     key={'attachment__table__' + nrTables}
                 >
                     <thead>

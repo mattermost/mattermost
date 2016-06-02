@@ -97,16 +97,18 @@ export default class PostBodyAdditionalContent extends React.Component {
             );
         }
 
-        for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
-            const imageType = Constants.IMAGE_TYPES[i];
-            const suffix = link.substring(link.length - (imageType.length + 1));
-            if (suffix === '.' + imageType || suffix === '=' + imageType) {
-                return (
-                    <PostImage
-                        channelId={this.props.post.channel_id}
-                        link={link}
-                    />
-                );
+        if (!this.props.compactDisplay) {
+            for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
+                const imageType = Constants.IMAGE_TYPES[i];
+                const suffix = link.substring(link.length - (imageType.length + 1));
+                if (suffix === '.' + imageType || suffix === '=' + imageType) {
+                    return (
+                        <PostImage
+                            channelId={this.props.post.channel_id}
+                            link={link}
+                        />
+                    );
+                }
             }
         }
 
@@ -158,5 +160,6 @@ export default class PostBodyAdditionalContent extends React.Component {
 
 PostBodyAdditionalContent.propTypes = {
     post: React.PropTypes.object.isRequired,
+    compactDisplay: React.PropTypes.bool,
     message: React.PropTypes.element.isRequired
 };

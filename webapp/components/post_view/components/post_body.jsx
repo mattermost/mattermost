@@ -171,6 +171,7 @@ export default class PostBody extends React.Component {
                 <PostBodyAdditionalContent
                     post={this.props.post}
                     message={messageWrapper}
+                    compactDisplay={this.props.compactDisplay}
                 />
             );
         }

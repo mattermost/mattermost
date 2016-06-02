@@ -258,6 +258,10 @@ body.ios {
         position: absolute;
         width: 100%;
 
+        .modal-open & {
+            @include clearfix;
+        }
+
         &.active {
             display: inline;
         }
@@ -484,6 +488,26 @@ body.ios {
     }
 
     &.post--compact {
+        blockquote {
+            display: inline-block;
+            font-size: 1em;
+            margin-left: 0;
+            padding: 3px 0 0 25px;
+            vertical-align: top;
+
+            &:before {
+                font-size: 15px;
+                left: 4px;
+                top: 2px;
+            }
+        }
+
+        .post__embed-container {
+            img {
+                max-height: 150px;
+                max-width: 150px;
+            }
+        }
 
         .markdown__heading {
             font-size: 1em;
@@ -492,8 +516,15 @@ body.ios {
 
         .post__body {
             background: transparent !important;
+            line-height: 1.2;
             margin-top: -1px;
             padding: 3px 0;
+
+            ol,
+            ul {
+                display: inline-block;
+                padding-left: 30px;
+            }
         }
 
         .post-image__columns {
@@ -547,7 +578,7 @@ body.ios {
 
         .post__img {
             padding-top: 3px;
-            width: 28px;
+            width: 27px;
 
             img,
             svg {
@@ -586,14 +617,41 @@ body.ios {
 
     &.post--comment {
         .post__body {
-            padding-left: 7px;
             border-left: 4px solid $gray;
+            padding-left: 7px;
         }
     }
 
     &.same--root {
         &.same--user {
             padding: 0 .5em 0 1em;
+
+            &.post--system {
+                padding: 8px .5em 0 1em;
+
+                .post__header {
+                    height: auto;
+                    margin-bottom: 2px;
+
+                    .col__name {
+                        display: inline-block;
+                    }
+
+                    .col__reply {
+
+                    }
+                }
+
+                .post__time {
+                    @include opacity(.6);
+                    font-size: .9em;
+                    left: inherit;
+                    line-height: inherit;
+                    position: inherit;
+                    text-rendering: inherit;
+                    top: inherit;
+                }
+            }
 
             &:hover {
                 .post__time {
@@ -1045,102 +1103,6 @@ body.ios {
     font-weight: 600;
     margin: 0 0 0 -4px;
     padding: 2px 4px;
-}
-
-.attachment {
-    .attachment__content {
-        border-radius: 4px;
-        border-style: solid;
-        border-width: 1px;
-        margin: 0 0 5px 0;
-        padding: 2px 5px;
-    }
-
-    .attachment__thumb-pretext {
-        background: transparent;
-        border: none;
-        margin-left: 5px;
-    }
-
-    .attachment__container {
-        border-left-style: solid;
-        border-left-width: 4px;
-        padding: 2px 0 2px 10px;
-
-        &.attachment__container--good {
-            border-left-color: #00c100;
-        }
-
-        &.attachment__container--warning {
-            border-left-color: #dede01;
-        }
-
-        &.attachment__container--danger {
-            border-left-color: #e40303;
-        }
-    }
-
-    .attachment__body {
-        float: left;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-right: 5px;
-        width: 80%;
-
-        &.attachment__body--no_thumb {
-            width: 100%;
-        }
-    }
-
-    .attachment__text p:last-of-type {
-        display: inline-block;
-    }
-
-    .attachment__title {
-        font-size: 16px;
-        height: 22px;
-        line-height: 16px;
-        margin: 5px 0;
-        padding: 0;
-
-        a {
-            font-size: 16px;
-        }
-    }
-
-    .attachment__author-icon {
-        @include border-radius(50px);
-        height: 14px;
-        margin-right: 5px;
-        width: 14px;
-    }
-
-    .attachment__image {
-        margin-bottom: 1em;
-        max-width: 100%;
-    }
-
-    .attachment__thumb-container {
-        float: right;
-        width: 20%;
-
-        img {
-            max-height: 75px;
-            max-width: 100%;
-        }
-    }
-
-    .attachment___fields {
-        width: 100%;
-
-        .attachment___field-caption {
-            font-weight: 700;
-        }
-
-        .attachment___field p {
-            margin: 0;
-        }
-    }
 }
 
 .permalink-text {

@@ -4,10 +4,6 @@
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {FormattedRelative, FormattedDate} from 'react-intl';
-
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
@@ -26,38 +22,10 @@ export default class TimeSince extends React.Component {
         clearInterval(this.intervalId);
     }
     render() {
-        if (this.props.sameUser || this.props.compactDisplay) {
-            return (
-                <time className='post__time'>
-                    {Utils.displayTimeFormatted(this.props.eventTime)}
-                </time>
-            );
-        }
-
-        const tooltip = (
-            <Tooltip id={'time-since-tooltip-' + this.props.eventTime}>
-                <FormattedDate
-                    value={this.props.eventTime}
-                    month='long'
-                    day='numeric'
-                    year='numeric'
-                    hour12={!Utils.isMilitaryTime()}
-                    hour='numeric'
-                    minute='2-digit'
-                />
-            </Tooltip>
-        );
-
         return (
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='top'
-                overlay={tooltip}
-            >
-                <time className='post__time'>
-                    <FormattedRelative value={this.props.eventTime}/>
-                </time>
-            </OverlayTrigger>
+            <time className='post__time'>
+                {Utils.displayTimeFormatted(this.props.eventTime)}
+            </time>
         );
     }
 }
