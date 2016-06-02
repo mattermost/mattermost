@@ -10,17 +10,19 @@
 }
 
 .mentions__name {
+    @include clearfix;
     cursor: pointer;
     font-size: 13px;
     height: 36px;
     line-height: 36px;
+    margin: 5px 0;
     padding: 2px;
     position: relative;
     white-space: nowrap;
     width: 100%;
     z-index: 101;
 
-    .mention-align {
+    .mention--align {
         @include clearfix;
         text-overflow: ellipsis;
         width: calc(100% - 50px);

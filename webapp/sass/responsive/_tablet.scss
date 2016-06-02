@@ -113,6 +113,21 @@
 
                 .col__name {
                     font-weight: bold;
+                    margin-right: 2px;
+                    padding-right: 10px;
+                    position: relative;
+                    z-index: 1;
+
+                    &:after {
+                        content: ':';
+                        display: inline-block;
+                        font-family: FontAwesome;
+                        font-size: 19px;
+                        position: absolute;
+                        right: 3px;
+                        text-rendering: auto;
+                        top: -5px;
+                    }
                 }
 
                 .col__reply {
@@ -202,6 +217,13 @@
                 }
 
                 &.post--compact {
+                    &.post--system {
+                        .post__time {
+                            position: absolute;
+                            top: 3px;
+                        }
+                    }
+
                     .post__time {
                         font-size: .85em;
                         left: -70px;

@@ -141,15 +141,10 @@
                     }
 
                     .group--code {
-
                         select {
                             @include appearance(none);
                             appearance: none;
                             padding-right: 25px;
-                        }
-
-                        select::ms-expand {
-                            display: none;
                         }
 
                         &:before {
@@ -163,6 +158,10 @@
                             text-rendering: auto;
                             top: 11px;
                             z-index: 5;
+
+                            .browser--ie & {
+                                display: none;
+                            }
                         }
                     }
 

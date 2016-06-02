@@ -386,7 +386,7 @@ export default class UserSettingsDisplay extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.display.messageDisplayClean'
-                                defaultMessage='Clean'
+                                defaultMessage='Standard'
                             />
                         </label>
                         <br/>
@@ -439,7 +439,7 @@ export default class UserSettingsDisplay extends React.Component {
                 describe = (
                     <FormattedMessage
                         id='user.settings.display.messageDisplayClean'
-                        defaultMessage='Clean'
+                        defaultMessage='Standard'
                     />
                 );
             } else {
