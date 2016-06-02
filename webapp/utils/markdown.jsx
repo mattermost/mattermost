@@ -162,7 +162,8 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             output += ' title="' + title + '"';
         }
 
-        output += '>' + text + '</a>';
+        // remove any links added to the text by hashtag or mention parsing since they'll break this link
+        output += '>' + text.replace(/<\/?a[^>]*>/, '') + '</a>';
 
         return output;
     }
