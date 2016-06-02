@@ -407,6 +407,7 @@
   "admin.service.webhooksDescription": "有効な場合、内向きのウェブフックが使用可能になります。フィッシング攻撃を防ぐため、全てのウェブフックによる投稿にはBOTタグが付けられます。",
   "admin.service.webhooksTitle": "外向きのウェブフックを有効化する: ",
   "admin.sidebar.addTeamSidebar": "サイドバーメニューからチームを追加する",
+  "admin.sidebar.advanced": "Advanced",
   "admin.sidebar.audits": "コンプライアンスと監査",
   "admin.sidebar.authentication": "認証",
   "admin.sidebar.compliance": "コンプライアンス",

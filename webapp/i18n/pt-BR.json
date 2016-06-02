@@ -407,6 +407,7 @@
   "admin.service.webhooksDescription": "Quando verdadeiro, será permitido webhooks entrada. Para ajudar a combater os ataques de phishing, todos os posts de webhooks serão marcados por uma etiqueta BOT.",
   "admin.service.webhooksTitle": "Ativar Webhooks Entrada: ",
   "admin.sidebar.addTeamSidebar": "Adicionar equipe do menu lateral",
+  "admin.sidebar.advanced": "Advanced",
   "admin.sidebar.audits": "Conformidade e Auditoria",
   "admin.sidebar.authentication": "Autenticação",
   "admin.sidebar.compliance": "Compliance",
