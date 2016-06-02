@@ -48,8 +48,8 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.general.usersAndTeams'
+                    defaultMessage='Users and Teams'
                 />
             </h3>
         );
@@ -57,14 +57,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.general.usersAndTeams'
-                        defaultMessage='Users and Teams'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enableUserCreation'
                     label={

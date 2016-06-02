@@ -11,6 +11,7 @@ export default class AdminSidebarCategory extends React.Component {
             name: React.PropTypes.string,
             title: React.PropTypes.node.isRequired,
             icon: React.PropTypes.string.isRequired,
+            sectionClass: React.PropTypes.string,
             parentLink: React.PropTypes.string,
             children: React.PropTypes.node,
             action: React.PropTypes.node
@@ -57,7 +58,7 @@ export default class AdminSidebarCategory extends React.Component {
         let clonedChildren = null;
         if (this.props.children && this.context.router.isActive(link)) {
             clonedChildren = (
-                <ul className='sections'>
+                <ul className={'sections ' + this.props.sectionClass}>
                     {
                         React.Children.map(this.props.children, (child) => {
                             if (child === null) {

@@ -52,8 +52,8 @@ export default class EmailSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.notifications.title'
-                    defaultMessage='Notification Settings'
+                    id='admin.notifications.email'
+                    defaultMessage='Email'
                 />
             </h3>
         );
@@ -61,14 +61,7 @@ export default class EmailSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.notifications.email'
-                        defaultMessage='Email'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='sendEmailNotifications'
                     label={

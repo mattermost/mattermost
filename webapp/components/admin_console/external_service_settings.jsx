@@ -35,8 +35,8 @@ export default class ExternalServiceSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.integration.title'
-                    defaultMessage='Integration Settings'
+                    id='admin.integrations.external'
+                    defaultMessage='External Services'
                 />
             </h3>
         );
@@ -44,14 +44,7 @@ export default class ExternalServiceSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.integrations.external'
-                        defaultMessage='External Services'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <TextSetting
                     id='segmentDeveloperKey'
                     label={

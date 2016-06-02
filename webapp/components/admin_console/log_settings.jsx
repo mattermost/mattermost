@@ -45,8 +45,8 @@ export default class LogSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.general.log'
+                    defaultMessage='Logging'
                 />
             </h3>
         );
@@ -60,15 +60,7 @@ export default class LogSettings extends AdminSettings {
         ];
 
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.general.log'
-                        defaultMessage='Logging'
-                    />
-
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enableConsole'
                     label={

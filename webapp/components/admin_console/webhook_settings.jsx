@@ -41,8 +41,8 @@ export default class WebhookSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.integration.title'
-                    defaultMessage='Integration Settings'
+                    id='admin.integrations.webhook'
+                    defaultMessage='Webhooks and Commands'
                 />
             </h3>
         );
@@ -50,14 +50,7 @@ export default class WebhookSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.integrations.webhook'
-                        defaultMessage='Webhooks and Commands'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <BooleanSetting
                     id='enableIncomingWebhooks'
                     label={

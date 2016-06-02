@@ -41,8 +41,8 @@ export default class LoginSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.security.title'
-                    defaultMessage='Security Settings'
+                    id='admin.security.login'
+                    defaultMessage='Login'
                 />
             </h3>
         );
@@ -73,14 +73,7 @@ export default class LoginSettings extends AdminSettings {
         }
 
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.security.login'
-                        defaultMessage='Login'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <GeneratedSetting
                     id='passwordResetSalt'
                     label={
