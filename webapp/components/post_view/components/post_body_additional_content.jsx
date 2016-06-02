@@ -160,6 +160,9 @@ export default class PostBodyAdditionalContent extends React.Component {
     }
 }
 
+PostBodyAdditionalContent.defaultProps = {
+    previewCollapsed: 'false'
+};
 PostBodyAdditionalContent.propTypes = {
     post: React.PropTypes.object.isRequired,
     message: React.PropTypes.element.isRequired,
