@@ -44,6 +44,10 @@ export default class ReloadConfigButton extends React.Component {
     }
 
     render() {
+        if (global.window.mm_license.IsLicensed !== 'true') {
+            return <div></div>;
+        }
+
         let testMessage = null;
         if (this.state.fail) {
             testMessage = (
