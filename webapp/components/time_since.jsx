@@ -4,10 +4,6 @@
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {FormattedRelative, FormattedDate} from 'react-intl';
-
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
