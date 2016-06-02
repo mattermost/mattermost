@@ -86,6 +86,10 @@
         display: inline-block;
     }
 
+    .attachment__image {
+        max-height: 300px;
+    }
+
     .attachment__author-name {
         @include opacity(.6);
     }
@@ -119,7 +123,8 @@
 
     .attachment__thumb-container {
         float: right;
-        width: 20%;
+        text-align: right;
+        width: 80px;
 
         img {
             max-height: 75px;

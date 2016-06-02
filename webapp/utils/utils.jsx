@@ -718,6 +718,7 @@ export function applyTheme(theme) {
 
     if (theme.linkColor) {
         changeCss('.app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor, 1);
+        changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5), 1);
         changeCss('.app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor, 1);
     }
 

@@ -467,14 +467,14 @@ export default {
             uiName: 'Mention Highlight BG'
         },
         {
-            group: 'centerChannelElements',
-            id: 'mentionHighlightLink',
-            uiName: 'Mention Highlight Link'
-        },
-        {
             group: 'linkAndButtonElements',
             id: 'linkColor',
             uiName: 'Link Color'
+        },
+        {
+            group: 'centerChannelElements',
+            id: 'mentionHighlightLink',
+            uiName: 'Mention Highlight Link'
         },
         {
             group: 'linkAndButtonElements',
