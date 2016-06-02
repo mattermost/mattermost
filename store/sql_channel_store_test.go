@@ -778,6 +778,66 @@ func TestChannelStoreIncrementMentionCount(t *testing.T) {
 	}
 }
 
+func TestGetMember(t *testing.T) {
+	Setup()
+
+	userId := model.NewId()
+
+	c1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	Must(store.Channel().Save(c1))
+
+	c2 := &model.Channel{
+		TeamId:      c1.TeamId,
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	Must(store.Channel().Save(c2))
+
+	m1 := &model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      userId,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	Must(store.Channel().SaveMember(m1))
+
+	m2 := &model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      userId,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	Must(store.Channel().SaveMember(m2))
+
+	if result := <-store.Channel().GetMember(model.NewId(), userId); result.Err == nil {
+		t.Fatal("should've failed to get member for non-existant channel")
+	}
+
+	if result := <-store.Channel().GetMember(c1.Id, model.NewId()); result.Err == nil {
+		t.Fatal("should've failed to get member for non-existant user")
+	}
+
+	if result := <-store.Channel().GetMember(c1.Id, userId); result.Err != nil {
+		t.Fatal("shouldn't have errored when getting member", result.Err)
+	} else if member := result.Data.(model.ChannelMember); member.ChannelId != c1.Id {
+		t.Fatal("should've gotten member of channel 1")
+	} else if member.UserId != userId {
+		t.Fatal("should've gotten member for user")
+	}
+
+	if result := <-store.Channel().GetMember(c2.Id, userId); result.Err != nil {
+		t.Fatal("shouldn't have errored when getting member", result.Err)
+	} else if member := result.Data.(model.ChannelMember); member.ChannelId != c2.Id {
+		t.Fatal("should've gotten member of channel 2")
+	} else if member.UserId != userId {
+		t.Fatal("should've gotten member for user")
+	}
+}
+
 func TestGetMemberCount(t *testing.T) {
 	Setup()
 
