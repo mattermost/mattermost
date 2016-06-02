@@ -66,8 +66,8 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleSubmit() {
-        const channel = ChannelStore.getByDisplayName(this.state.text.trim());
-        if (channel !== null && channel.display_name === this.state.text.trim() && channel.type !== Constants.DM_CHANNEL) {
+        const channel = ChannelStore.getByName(this.state.text.trim());
+        if (channel !== null && channel.name === this.state.text.trim() && channel.type !== Constants.DM_CHANNEL) {
             ChannelActions.goToChannel(channel);
             this.onHide();
         } else if (this.state.text !== '') {

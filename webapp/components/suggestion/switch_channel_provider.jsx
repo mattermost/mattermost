@@ -16,12 +16,14 @@ class SwitchChannelSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
+        const displayName = item.display_name + ' (' + item.name + ')';
+
         return (
             <div
                 onClick={this.handleClick}
                 className={className}
             >
-            {item.display_name}
+            {displayName}
             </div>
         );
     }
@@ -41,7 +43,7 @@ export default class SwitchChannelProvider {
             }
 
             channels.sort((a, b) => a.display_name.localeCompare(b.display_name));
-            const channelNames = channels.map((channel) => channel.display_name);
+            const channelNames = channels.map((channel) => channel.name);
 
             SuggestionStore.addSuggestions(suggestionId, channelNames, channels, SwitchChannelSuggestion, channelPrefix);
         }
