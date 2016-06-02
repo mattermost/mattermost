@@ -13,6 +13,7 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -69,6 +70,7 @@ class CreatePost extends React.Component {
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
+        this.showShortcuts = this.showShortcuts.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -129,7 +131,7 @@ class CreatePost extends React.Component {
         this.setState({submitting: true, serverError: null});
         this.setState({lastMessage: this.state.messageText});
         if (post.message.indexOf('/') === 0) {
-            Client.executeCommand(
+            ChannelActions.executeCommand(
                 this.state.channelId,
                 post.message,
                 false,
@@ -311,6 +313,7 @@ class CreatePost extends React.Component {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
 
         this.focusTextbox();
+        document.addEventListener('keydown', this.showShortcuts);
     }
     componentDidUpdate(prevProps, prevState) {
         if (prevState.channelId !== this.state.channelId) {
@@ -320,6 +323,24 @@ class CreatePost extends React.Component {
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        document.removeEventListener('keydown', this.showShortcuts);
+    }
+    showShortcuts(e) {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
+            e.preventDefault();
+            ChannelActions.executeCommand(
+                this.state.channelId,
+                '/shortcuts ',
+                false,
+                null,
+                (err) => {
+                    this.setState({
+                        serverError: err.message,
+                        submitting: false
+                    });
+                }
+            );
+        }
     }
     onChange() {
         const channelId = ChannelStore.getCurrentId();
