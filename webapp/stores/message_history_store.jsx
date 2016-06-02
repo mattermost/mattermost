@@ -51,7 +51,6 @@ class MessageHistoryStoreClass {
 
     nextMessageInHistory(keyCode, messageText, type) {
         if (messageText !== '' && messageText !== this.getMessageInHistory(type)) {
-            this.resetHistoryIndex(type);
             return messageText;
         }
 
