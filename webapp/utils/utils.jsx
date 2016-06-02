@@ -229,8 +229,8 @@ export function displayTimeFormatted(ticks) {
     return (
         <FormattedTime
             value={ticks}
-            hour='numeric'
-            minute='numeric'
+            hour='2-digit'
+            minute='2-digit'
             hour12={!useMilitaryTime}
         />
     );
