@@ -360,6 +360,10 @@
     "translation": "invite_people"
   },
   {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Please specify one or more email addresses"
+  },
+  {
     "id": "api.command.invite_people.sent",
     "translation": "Email invite(s) sent"
   },
