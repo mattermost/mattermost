@@ -236,7 +236,7 @@ class CreateComment extends React.Component {
 
         if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.messageText, 'comment');
-            if (lastMessage !== this.state.messageText) {
+            if (lastMessage !== null) {
                 e.preventDefault();
                 this.setState({
                     messageText: lastMessage

@@ -15,9 +15,12 @@ class MessageHistoryStoreClass {
     }
 
     getMessageInHistory(type) {
-        if (this.index[type] >= this.messageHistory.length || this.index[type] < 0) {
+        if (this.index[type] >= this.messageHistory.length) {
             return '';
+        } else if (this.index[type] < 0) {
+            return null;
         }
+
         return this.messageHistory[this.index[type]];
     }
 
@@ -51,7 +54,7 @@ class MessageHistoryStoreClass {
 
     nextMessageInHistory(keyCode, messageText, type) {
         if (messageText !== '' && messageText !== this.getMessageInHistory(type)) {
-            return messageText;
+            return null;
         }
 
         if (keyCode === Constants.KeyCodes.UP) {
@@ -62,6 +65,7 @@ class MessageHistoryStoreClass {
 
         if (this.index[type] < 0) {
             this.index[type] = 0;
+            return null;
         } else if (this.index[type] >= this.getHistoryLength()) {
             this.index[type] = this.getHistoryLength();
         }
