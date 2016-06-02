@@ -361,7 +361,7 @@
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Please specify one or more email addresses"
+    "translation": "Please specify one or more valid email addresses"
   },
   {
     "id": "api.command.invite_people.sent",
