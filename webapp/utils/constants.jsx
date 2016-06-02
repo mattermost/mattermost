@@ -84,6 +84,9 @@ export default {
         RECEIVED_COMMAND: null,
         UPDATED_COMMAND: null,
         REMOVED_COMMAND: null,
+        RECEIVED_OAUTHAPPS: null,
+        RECEIVED_OAUTHAPP: null,
+        REMOVED_OAUTHAPP: null,
 
         RECEIVED_MSG: null,
 

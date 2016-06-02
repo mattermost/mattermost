@@ -24,7 +24,9 @@ func InitOAuth() {
 	l4g.Debug(utils.T("api.oauth.init.debug"))
 
 	BaseRoutes.OAuth.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/list", ApiUserRequired(getOAuthAppsByUser)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/delete", ApiUserRequired(deleteOAuthApp)).Methods("POST")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
@@ -47,6 +49,14 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !c.IsTeamAdmin() {
+			c.Err = model.NewLocAppError("registerOAuthApp", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	app := model.OAuthAppFromJson(r.Body)
 
 	if app == nil {
@@ -64,7 +74,6 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		app = result.Data.(*model.OAuthApp)
-		app.ClientSecret = secret
 
 		c.LogAudit("client_id=" + app.Id)
 
@@ -72,6 +81,30 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func getOAuthAppsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewLocAppError("getOAuthAppsByUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !c.IsTeamAdmin() {
+			c.Err = model.NewLocAppError("getOAuthAppsByUser", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	if result := <-Srv.Store.OAuth().GetAppByUser(c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		apps := result.Data.([]*model.OAuthApp)
+		w.Write([]byte(model.OAuthAppListToJson(apps)))
+	}
 }
 
 func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -355,7 +388,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		app = result.Data.(*model.OAuthApp)
 	}
 
-	if !model.ComparePassword(app.ClientSecret, secret) {
+	if app.ClientSecret != secret {
 		c.LogAudit("fail - invalid client credentials")
 		c.Err = model.NewLocAppError("getAccessToken", "web.get_access_token.credentials.app_error", nil, "")
 		return
@@ -637,4 +670,49 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 	}
 
 	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), strings.Title(service)+" SSO")
+}
+
+func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewLocAppError("deleteOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !c.IsTeamAdmin() {
+			c.Err = model.NewLocAppError("deleteOAuthApp", "api.command.admin_only.app_error", nil, "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	c.LogAudit("attempt")
+
+	props := model.MapFromJson(r.Body)
+
+	id := props["id"]
+	if len(id) == 0 {
+		c.SetInvalidParam("deleteOAuthApp", "id")
+		return
+	}
+
+	if result := <-Srv.Store.OAuth().GetApp(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		if c.Session.UserId != result.Data.(*model.OAuthApp).CreatorId && !c.IsSystemAdmin() {
+			c.LogAudit("fail - inappropriate permissions")
+			c.Err = model.NewLocAppError("deleteOAuthApp", "api.oauth.delete.permissions.app_error", nil, "user_id="+c.Session.UserId)
+			return
+		}
+	}
+
+	if err := (<-Srv.Store.OAuth().DeleteApp(id)).Err; err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	w.Write([]byte(model.MapToJson(props)))
 }

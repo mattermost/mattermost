@@ -152,7 +152,8 @@ export default class NavbarDropdown extends React.Component {
         const integrationsEnabled =
             window.mm_config.EnableIncomingWebhooks === 'true' ||
             window.mm_config.EnableOutgoingWebhooks === 'true' ||
-            window.mm_config.EnableCommands === 'true';
+            window.mm_config.EnableCommands === 'true' ||
+            window.mm_config.EnableOAuthServiceProvider === 'true';
         if (integrationsEnabled && (isAdmin || window.mm_config.EnableOnlyAdminIntegrations !== 'true')) {
             integrationsLink = (
                 <li>

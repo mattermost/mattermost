@@ -55,6 +55,21 @@ export default class BackstageSidebar extends React.Component {
             );
         }
 
+        let oauthApps = null;
+        if (window.mm_config.EnableOAuthServiceProvider === 'true') {
+            oauthApps = (
+                <BackstageSection
+                    name='oauth-apps'
+                    title={
+                        <FormattedMessage
+                            id='backstage_sidebar.integrations.oauthApps'
+                            defaultMessage='OAuth Apps'
+                        />
+                    }
+                />
+            );
+        }
+
         return (
             <div className='backstage-sidebar'>
                 <ul>
@@ -72,6 +87,7 @@ export default class BackstageSidebar extends React.Component {
                         {incomingWebhooks}
                         {outgoingWebhooks}
                         {commands}
+                        {oauthApps}
                     </BackstageCategory>
                 </ul>
             </div>
