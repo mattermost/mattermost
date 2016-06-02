@@ -40,17 +40,20 @@ func (me *InvitePeopleProvider) DoCommand(c *Context, channelId string, message 
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.email_off")}
 	}
 
-	if len(strings.TrimSpace(message)) == 0 {
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.no_email")}
-	}
-
 	tchan := Srv.Store.Team().Get(c.TeamId)
 	uchan := Srv.Store.User().Get(c.Session.UserId)
 
 	emailList := strings.Fields(message)
 
-	for i, email := range emailList {
-		emailList[i] = strings.Trim(email, ",")
+	for i := len(emailList) - 1; i >= 0; i-- {
+		emailList[i] = strings.Trim(emailList[i], ",")
+		if !strings.Contains(emailList[i], "@") {
+			emailList = append(emailList[:i], emailList[i+1:]...)
+		}
+	}
+
+	if len(emailList) == 0 {
+		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.no_email")}
 	}
 
 	var team *model.Team
