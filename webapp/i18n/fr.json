@@ -407,6 +407,7 @@
   "admin.service.webhooksDescription": "Si activé, les webhooks entrants ont autorisés. Pour éviter le hameçonnage, tous les messages provenant de webhooks sont marqués avec l'étiquette \"BOT\".",
   "admin.service.webhooksTitle": "Activer les webhooks entrants : ",
   "admin.sidebar.addTeamSidebar": "Afficher l'équipe dans le menu",
+  "admin.sidebar.advanced": "Advanced",
   "admin.sidebar.audits": "Conformité et vérification",
   "admin.sidebar.authentication": "authentification",
   "admin.sidebar.compliance": "Conformité",
