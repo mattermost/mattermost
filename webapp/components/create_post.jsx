@@ -396,7 +396,7 @@ class CreatePost extends React.Component {
 
         if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             const lastMessage = MessageHistoryStore.nextMessageInHistory(e.keyCode, this.state.messageText, 'post');
-            if (lastMessage !== '') {
+            if (lastMessage !== this.state.messageText) {
                 e.preventDefault();
                 this.setState({
                     messageText: lastMessage

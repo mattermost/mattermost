@@ -15,7 +15,7 @@ class MessageHistoryStoreClass {
     }
 
     getMessageInHistory(type) {
-        if (this.index[type] > this.messageHistory.length - 1 || this.index[type] < 0) {
+        if (this.index[type] >= this.messageHistory.length || this.index[type] < 0) {
             return '';
         }
         return this.messageHistory[this.index[type]];
@@ -52,7 +52,7 @@ class MessageHistoryStoreClass {
     nextMessageInHistory(keyCode, messageText, type) {
         if (messageText !== '' && messageText !== this.getMessageInHistory(type)) {
             this.resetHistoryIndex(type);
-            return '';
+            return messageText;
         }
 
         if (keyCode === Constants.KeyCodes.UP) {
