@@ -295,6 +295,15 @@ export default class AdminSidebar extends React.Component {
                                     }
                                 />
                                 <AdminSidebarSection
+                                    name='localization'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.localization'
+                                            defaultMessage='Localization'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
                                     name='users_and_teams'
                                     title={
                                         <FormattedMessage

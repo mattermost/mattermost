@@ -4,7 +4,7 @@
 const es = require('!!file?name=i18n/[name].[ext]!./es.json');
 const fr = require('!!file?name=i18n/[name].[ext]!./fr.json');
 const ja = require('!!file?name=i18n/[name].[ext]!./ja.json');
-const pt = require('!!file?name=i18n/[name].[ext]!./pt.json');
+const pt_BR = require('!!file?name=i18n/[name].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
 
 import {addLocaleData} from 'react-intl';
 import enLocaleData from 'react-intl/locale-data/en';
@@ -34,19 +34,47 @@ const languages = {
         name: '日本語 (Beta)',
         url: ja
     },
-    pt: {
-        value: 'pt',
+    'pt-BR': {
+        value: 'pt-BR',
         name: 'Portugues (Beta)',
-        url: pt
+        url: pt_BR
     }
 };
 
-export function getLanguages() {
+let availableLanguages = null;
+
+function setAvailableLanguages() {
+    const available = global.window.mm_config.AvailableLocales.split(',');
+
+    availableLanguages = {};
+
+    available.forEach((l) => {
+        if (languages[l]) {
+            availableLanguages[l] = languages[l];
+        }
+    });
+}
+
+export function getAllLanguages() {
     return languages;
 }
 
+export function getLanguages() {
+    if (!availableLanguages) {
+        setAvailableLanguages();
+    }
+    return availableLanguages;
+}
+
 export function getLanguageInfo(locale) {
-    return languages[locale];
+    if (!availableLanguages) {
+        setAvailableLanguages();
+    }
+    return availableLanguages[locale];
+}
+
+export function isLanguageAvailable(locale) {
+    return !!availableLanguages[locale];
 }
 
 export function safariFix(callback) {

@@ -155,5 +155,10 @@
         "Enable": false,
         "Directory": "./data/",
         "EnableDaily": false
+    },
+    "LocalizationSettings": {
+        "DefaultServerLocale": "en",
+        "DefaultClientLocale": "en",
+        "AvailableLocales": "en,es,fr,ja,pt-BR"
     }
 }

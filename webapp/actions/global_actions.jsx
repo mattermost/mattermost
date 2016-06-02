@@ -392,8 +392,10 @@ export function newLocalizationSelected(locale) {
             translations: en
         });
     } else {
+        const localeInfo = I18n.getLanguageInfo(locale) || I18n.getLanguageInfo(global.window.mm_config.DefaultClientLocale);
+
         Client.getTranslations(
-            I18n.getLanguageInfo(locale).url,
+            localeInfo.url,
             (data, res) => {
                 let translations = data;
                 if (!data && res.text) {
@@ -412,16 +414,11 @@ export function newLocalizationSelected(locale) {
     }
 }
 
-export function loadBrowserLocale() {
-    let locale = (navigator.languages && navigator.languages.length > 0 ? navigator.languages[0] :
-        (navigator.language || navigator.userLanguage)).split('-')[0];
+export function loadDefaultLocale() {
+    const defaultLocale = global.window.mm_config.DefaultClientLocale;
+    let locale = global.window.mm_user ? global.window.mm_user.locale || defaultLocale : defaultLocale;
 
-    const user = UserStore.getCurrentUser();
-    if (user) {
-        locale = user.locale || locale;
-    }
-
-    if (!I18n.getLanguages()[locale]) {
+    if (!I18n.getLanguageInfo(locale)) {
         locale = 'en';
     }
     return newLocalizationSelected(locale);
