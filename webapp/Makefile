@@ -8,7 +8,7 @@ check-style: .npminstall
 	npm run check
 
 test: .npminstall
-	cd $(BUILD_SERVER_DIR) && $(MAKE) internal-test-client
+	cd $(BUILD_SERVER_DIR) && $(MAKE) internal-test-web-client
 
 .npminstall: package.json
 	@echo Getting dependencies using npm
