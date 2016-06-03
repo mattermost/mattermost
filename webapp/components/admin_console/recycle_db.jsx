@@ -47,7 +47,7 @@ export default class RecycleDbButton extends React.Component {
         if (global.window.mm_license.IsLicensed !== 'true') {
             return <div></div>;
         }
-        
+
         let testMessage = null;
         if (this.state.fail) {
             testMessage = (
