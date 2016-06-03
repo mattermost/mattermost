@@ -872,7 +872,7 @@
   "general_tab.includeDirDesc": "Including this team will display the team name from the Team Directory section of the Home Page, and provide a link to the sign-in page.",
   "general_tab.includeDirTitle": "Include this team in the Team Directory",
   "general_tab.no": "No",
-  "general_tab.openInviteDesc": "When allowed, a link to this team will be including on the landing page allowing anyone with an account to join this team.",
+  "general_tab.openInviteDesc": "When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team.",
   "general_tab.openInviteTitle": "Allow anyone to join this team",
   "general_tab.regenerate": "Re-Generate",
   "general_tab.required": "This field is required",
