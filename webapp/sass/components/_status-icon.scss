@@ -1,0 +1,33 @@
+@charset 'UTF-8';
+
+.status {
+    display: inline-block;
+    margin-right: 6px;
+    position: relative;
+    top: 1px;
+    width: 12px;
+
+    svg {
+        max-height: 14px;
+    }
+
+    i,
+    path,
+    ellipse {
+        @include opacity(.5);
+
+        &.online--icon,
+        &.away--icon {
+            @include opacity(1);
+        }
+    }
+
+    .fa-lock {
+        margin-left: 1px;
+    }
+
+    .fa-globe {
+        position: relative;
+        top: -1px;
+    }
+}

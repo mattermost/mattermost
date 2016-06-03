@@ -574,6 +574,8 @@
 
             .navbar-brand {
                 white-space: nowrap;
+
+                @import "../components/status-icon";
             }
         }
     }

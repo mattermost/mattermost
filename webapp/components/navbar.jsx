@@ -13,6 +13,7 @@ import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
 import RenameChannelModal from './rename_channel_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
+import StatusIcon from './status_icon.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
@@ -77,12 +78,14 @@ export default class Navbar extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
+        UserStore.addStatusesChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.showChannelSwitchModal);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeExtraInfoChangeListener(this.onChange);
+        UserStore.removeStatusesChangeListener(this.onChange);
         document.removeEventListener('keydown', this.showChannelSwitchModal);
     }
     handleSubmit(e) {
@@ -352,7 +355,7 @@ export default class Navbar extends React.Component {
                             data-toggle='dropdown'
                             aria-expanded='true'
                         >
-                            <span className='heading'>{channelTitle} </span>
+                            <span className='heading'><StatusIcon status={this.getTeammateStatus()}/>{channelTitle} </span>
                             <span className='glyphicon glyphicon-chevron-down header-dropdown__icon'></span>
                         </a>
                         <ul
@@ -446,6 +449,21 @@ export default class Navbar extends React.Component {
 
         return buttons;
     }
+
+    getTeammateStatus() {
+        const channel = this.state.channel;
+
+        // get status for direct message channels
+        if (channel.type === 'D') {
+            const currentUserId = this.state.currentUser.id;
+            const teammate = this.state.users.find((user) => user.id !== currentUserId);
+            if (teammate) {
+                return UserStore.getStatus(teammate.id);
+            }
+        }
+        return null;
+    }
+
     render() {
         if (!this.isStateValid()) {
             return null;
