@@ -936,7 +936,7 @@ class NotificationsTab extends React.Component {
             );
         }
 
-        let pushNotificationSection = this.createPushNotificationSection();
+        const pushNotificationSection = this.createPushNotificationSection();
 
         return (
             <div>
