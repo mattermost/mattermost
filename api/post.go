@@ -473,6 +473,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	message := model.NewMessage(c.TeamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
 	message.Add("post", post.ToJson())
 	message.Add("channel_type", channel.Type)
+	message.Add("team_id", team.Id)
 
 	if len(post.Filenames) != 0 {
 		message.Add("otherFile", "true")

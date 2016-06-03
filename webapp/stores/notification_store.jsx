@@ -32,6 +32,7 @@ class NotificationStoreClass extends EventEmitter {
             if (msgProps.mentions) {
                 mentions = JSON.parse(msgProps.mentions);
             }
+            const teamId = msgProps.team_id;
 
             const channel = ChannelStore.get(post.channel_id);
             const user = UserStore.getCurrentUser();
@@ -67,14 +68,14 @@ class NotificationStoreClass extends EventEmitter {
 
             if (notifyText.length === 0) {
                 if (msgProps.image) {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image'), channel);
+                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image'), channel, teamId);
                 } else if (msgProps.otherFile) {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file'), channel);
+                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file'), channel, teamId);
                 } else {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.something', ' did something new'), channel);
+                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.something', ' did something new'), channel, teamId);
                 }
             } else {
-                Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.wrote', ' wrote: ') + notifyText, channel);
+                Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.wrote', ' wrote: ') + notifyText, channel, teamId);
             }
             if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
                 Utils.ding();

@@ -109,6 +109,15 @@ class TeamStoreClass extends EventEmitter {
         return '';
     }
 
+    getTeamUrl(id) {
+        const team = this.get(id);
+        if (team) {
+            return getWindowLocationOrigin() + '/' + team.name;
+        }
+
+        return null;
+    }
+
     saveTeam(team) {
         this.teams[team.id] = team;
     }
