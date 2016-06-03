@@ -25,6 +25,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.toggleFeature = this.toggleFeature.bind(this);
         this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
 
+        this.renderFormattingSection = this.renderFormattingSection.bind(this);
+
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeatures);
         const advancedSettings = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS);
         const settings = {
@@ -133,6 +135,85 @@ export default class AdvancedSettingsDisplay extends React.Component {
             <FormattedMessage
                 id='user.settings.advance.on'
                 defaultMessage='On'
+            />
+        );
+    }
+
+    renderFormattingSection() {
+        if (window.mm_config.EnableTesting === 'false') {
+            return null;
+        }
+
+        if (this.props.activeSection === 'formatting') {
+            return (
+                <SettingItemMax
+                    title={
+                        <FormattedMessage
+                            id='user.settings.advance.formattingTitle'
+                            defaultMessage='Enable Post Formatting'
+                        />
+                    }
+                    inputs={
+                        <div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='formatting'
+                                        checked={this.state.settings.formatting !== 'false'}
+                                        onChange={this.updateSetting.bind(this, 'formatting', 'true')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.advance.on'
+                                        defaultMessage='On'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        type='radio'
+                                        name='formatting'
+                                        checked={this.state.settings.formatting === 'false'}
+                                        onChange={this.updateSetting.bind(this, 'formatting', 'false')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.advance.off'
+                                        defaultMessage='Off'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div>
+                                <br/>
+                                <FormattedMessage
+                                    id='user.settings.advance.formattingDesc'
+                                    defaultMessage='If enabled, posts will be formatted to create links, show emoji, style the text, and add line breaks. By default, this setting is enabled. Changing this setting requires the page to be refreshed.'
+                                />
+                            </div>
+                        </div>
+                    }
+                    submit={() => this.handleSubmit('formatting')}
+                    server_error={this.state.serverError}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        }
+
+        return (
+            <SettingItemMin
+                title={
+                    <FormattedMessage
+                        id='user.settings.advance.formattingTitle'
+                        defaultMessage='Enable Post Formatting'
+                    />
+                }
+                describe={this.renderOnOffLabel(this.state.settings.formatting)}
+                updateSection={() => this.props.updateSection('formatting')}
             />
         );
     }
@@ -248,78 +329,10 @@ export default class AdvancedSettingsDisplay extends React.Component {
             );
         }
 
-        let formattingSection;
-        if (this.props.activeSection === 'formatting') {
-            formattingSection = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.advance.formattingTitle'
-                            defaultMessage='Enable Post Formatting'
-                        />
-                    }
-                    inputs={
-                        <div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        type='radio'
-                                        name='formatting'
-                                        checked={this.state.settings.formatting !== 'false'}
-                                        onChange={this.updateSetting.bind(this, 'formatting', 'true')}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.on'
-                                        defaultMessage='On'
-                                    />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        type='radio'
-                                        name='formatting'
-                                        checked={this.state.settings.formatting === 'false'}
-                                        onChange={this.updateSetting.bind(this, 'formatting', 'false')}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.off'
-                                        defaultMessage='Off'
-                                    />
-                                </label>
-                                <br/>
-                            </div>
-                            <div>
-                                <br/>
-                                <FormattedMessage
-                                    id='user.settings.advance.formattingDesc'
-                                    defaultMessage='If enabled, posts will be formatted to create links, show emoji, style the text, and add line breaks. By default, this setting is enabled. Changing this setting requires the page to be refreshed.'
-                                />
-                            </div>
-                        </div>
-                    }
-                    submit={() => this.handleSubmit('formatting')}
-                    server_error={serverError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
-            formattingSection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.advance.formattingTitle'
-                            defaultMessage='Enable Post Formatting'
-                        />
-                    }
-                    describe={this.renderOnOffLabel(this.state.settings.formatting)}
-                    updateSection={() => this.props.updateSection('formatting')}
-                />
-            );
+        const formattingSection = this.renderFormattingSection();
+        let formattingSectionDivider = null;
+        if (formattingSection) {
+            formattingSectionDivider = <div className='divider-light'/>;
         }
 
         let previewFeaturesSection;
@@ -432,7 +445,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     </h3>
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
-                    <div className='divider-light'/>
+                    {formattingSectionDivider}
                     {formattingSection}
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
