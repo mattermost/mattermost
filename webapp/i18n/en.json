@@ -286,6 +286,8 @@
   "admin.ldap.userFilterTitle": "User Filter:",
   "admin.ldap.usernameAttrEx": "Ex \"sAMAccountName\"",
   "admin.ldap.usernameAttrTitle": "Username Attribute:",
+  "admin.ldap.syncIntervalTitle": "Synchronization Interval (In Minutes)",
+  "admin.ldap.syncIntervalHelpText": "LDAP Synchronization is the process by which Mattermost updates its users to reflect any updated data on the LDAP server. For example if a name for a user is updated on the LDAP server, the change will be reflected in Mattermost when the synchronization is performed. Accounts that have been removed from the LDAP server will have their active sessions cleared and no longer be able to login to Mattermost. Mattermost will perform this synchronization regularly according to the interval supplied here. For example, if 60 is supplied, Mattermost will update the users every hour.",
   "admin.license.choose": "Choose File",
   "admin.license.chooseFile": "Choose File",
   "admin.license.edition": "Edition: ",

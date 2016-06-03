@@ -2028,6 +2028,14 @@
     "translation": "Invalid LDAP Filter"
   },
   {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "Unable to get all users using LDAP"
+  },
+  {
+    "id": "ent.ldap.syncdone.info",
+    "translation": "LDAP Synchronization completed"
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
     "translation": "Error attempting to authenticate MFA token"
   },
@@ -2410,6 +2418,10 @@
   {
     "id": "model.config.is_valid.ldap_security.app_error",
     "translation": "Invalid connection security for LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Invalid sync interval time. Must be at least one minute."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3554,6 +3566,10 @@
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
     "translation": "We encountered an error trying to find the account by authentication type."
+  },
+  {
+    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
+    "translation": "We encountered an error trying to find all the accounts using a specific authentication type."
   },
   {
     "id": "store.sql_user.get_by_username.app_error",

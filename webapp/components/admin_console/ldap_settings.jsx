@@ -36,6 +36,7 @@ export default class LdapSettings extends AdminSettings {
             emailAttribute: props.config.LdapSettings.EmailAttribute,
             usernameAttribute: props.config.LdapSettings.UsernameAttribute,
             idAttribute: props.config.LdapSettings.IdAttribute,
+            syncIntervalMinutes: props.config.LdapSettings.SyncIntervalMinutes,
             skipCertificateVerification: props.config.LdapSettings.SkipCertificateVerification,
             queryTimeout: props.config.LdapSettings.QueryTimeout,
             loginFieldName: props.config.LdapSettings.LoginFieldName
@@ -57,6 +58,7 @@ export default class LdapSettings extends AdminSettings {
         config.LdapSettings.EmailAttribute = this.state.emailAttribute;
         config.LdapSettings.UsernameAttribute = this.state.usernameAttribute;
         config.LdapSettings.IdAttribute = this.state.idAttribute;
+        config.LdapSettings.SyncIntervalMinutes = this.parseIntNonZero(this.state.syncIntervalMinutes);
         config.LdapSettings.SkipCertificateVerification = this.state.skipCertificateVerification;
         config.LdapSettings.QueryTimeout = this.parseIntNonZero(this.state.queryTimeout);
         config.LdapSettings.LoginFieldName = this.state.loginFieldName;
@@ -336,6 +338,24 @@ export default class LdapSettings extends AdminSettings {
                         />
                     }
                     value={this.state.idAttribute}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
+                />
+                <TextSetting
+                    id='syncIntervalMinutes'
+                    label={
+                        <FormattedMessage
+                            id='admin.ldap.syncIntervalTitle'
+                            defaultMessage='Synchronization Interval (In Minutes)'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.ldap.syncIntervalHelpText'
+                            defaultMessage='LDAP Synchronization is the process by which Mattermost updates its users to reflect any updated data on the LDAP server. For example if a name for a user is updated on the LDAP server, the change will be reflected in Mattermost when the synchronization is performed. Accounts that have been removed from the LDAP server will have their active sessions cleared and no longer be able to login to Mattermost. Mattermost will perform this synchronization regularly according to the interval supplied here. For example, if 60 is supplied, Mattermost will update the users every hour.'
+                        />
+                    }
+                    value={this.state.syncIntervalMinutes}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />

@@ -704,6 +704,7 @@ func RevokeSessionById(c *Context, sessionId string) {
 	}
 }
 
+// IF YOU UPDATE THIS PLEASE UPDATE BELOW
 func RevokeAllSession(c *Context, userId string) {
 	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
 		c.Err = result.Err
@@ -724,6 +725,28 @@ func RevokeAllSession(c *Context, userId string) {
 			}
 		}
 	}
+}
+
+// UGH...
+// If you update this please update above
+func RevokeAllSessionsNoContext(userId string) *model.AppError {
+	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+		return result.Err
+	} else {
+		sessions := result.Data.([]*model.Session)
+
+		for _, session := range sessions {
+			if session.IsOAuth {
+				RevokeAccessToken(session.Token)
+			} else {
+				sessionCache.Remove(session.Token)
+				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+					return result.Err
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {

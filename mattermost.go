@@ -55,6 +55,7 @@ var flagCmdPermanentDeleteUser bool
 var flagCmdPermanentDeleteTeam bool
 var flagCmdPermanentDeleteAllUsers bool
 var flagCmdResetDatabase bool
+var flagCmdRunLdapSync bool
 var flagUsername string
 var flagCmdUploadLicense bool
 var flagConfigFile string
@@ -125,8 +126,12 @@ func main() {
 		setDiagnosticId()
 		go runSecurityAndDiagnosticsJob()
 
-		if einterfaces.GetComplianceInterface() != nil {
-			einterfaces.GetComplianceInterface().StartComplianceDailyJob()
+		if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
+			complianceI.StartComplianceDailyJob()
+		}
+
+		if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
+			ldapI.StartLdapSyncJob()
 		}
 
 		// wait for kill signal before attempting to gracefully shutdown
@@ -154,94 +159,95 @@ func setDiagnosticId() {
 	}
 }
 
-func runSecurityAndDiagnosticsJob() {
-	for {
-		if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
-			if result := <-api.Srv.Store.System().Get(); result.Err == nil {
-				props := result.Data.(model.StringMap)
-				lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
-				currentTime := model.GetMillis()
+func doSecurityAndDiagnostics() {
+	if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
+		if result := <-api.Srv.Store.System().Get(); result.Err == nil {
+			props := result.Data.(model.StringMap)
+			lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
+			currentTime := model.GetMillis()
 
-				if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
-					l4g.Debug(utils.T("mattermost.security_checks.debug"))
+			if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
+				l4g.Debug(utils.T("mattermost.security_checks.debug"))
 
-					v := url.Values{}
+				v := url.Values{}
 
-					v.Set(utils.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
-					v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
-					v.Set(utils.PROP_DIAGNOSTIC_ENTERPRISE_READY, model.BuildEnterpriseReady)
-					v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
-					v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
-					v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
+				v.Set(utils.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
+				v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
+				v.Set(utils.PROP_DIAGNOSTIC_ENTERPRISE_READY, model.BuildEnterpriseReady)
+				v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
+				v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
+				v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
 
-					if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
-						v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "1")
-					} else {
-						v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "0")
-					}
+				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
+					v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "1")
+				} else {
+					v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "0")
+				}
 
-					systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
-					if lastSecurityTime == 0 {
-						<-api.Srv.Store.System().Save(systemSecurityLastTime)
-					} else {
-						<-api.Srv.Store.System().Update(systemSecurityLastTime)
-					}
+				systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
+				if lastSecurityTime == 0 {
+					<-api.Srv.Store.System().Save(systemSecurityLastTime)
+				} else {
+					<-api.Srv.Store.System().Update(systemSecurityLastTime)
+				}
 
-					if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-						v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
-					}
+				if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+					v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+				}
 
-					if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(); ucr.Err == nil {
-						v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
-					}
+				if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(); ucr.Err == nil {
+					v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+				}
 
-					res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
-					if err != nil {
-						l4g.Error(utils.T("mattermost.security_info.error"))
-						return
-					}
+				res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
+				if err != nil {
+					l4g.Error(utils.T("mattermost.security_info.error"))
+					return
+				}
 
-					bulletins := model.SecurityBulletinsFromJson(res.Body)
+				bulletins := model.SecurityBulletinsFromJson(res.Body)
 
-					for _, bulletin := range bulletins {
-						if bulletin.AppliesToVersion == model.CurrentVersion {
-							if props["SecurityBulletin_"+bulletin.Id] == "" {
-								if results := <-api.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
-									l4g.Error(utils.T("mattermost.system_admins.error"))
+				for _, bulletin := range bulletins {
+					if bulletin.AppliesToVersion == model.CurrentVersion {
+						if props["SecurityBulletin_"+bulletin.Id] == "" {
+							if results := <-api.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
+								l4g.Error(utils.T("mattermost.system_admins.error"))
+								return
+							} else {
+								users := results.Data.(map[string]*model.User)
+
+								resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
+								if err != nil {
+									l4g.Error(utils.T("mattermost.security_bulletin.error"))
 									return
-								} else {
-									users := results.Data.(map[string]*model.User)
-
-									resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
-									if err != nil {
-										l4g.Error(utils.T("mattermost.security_bulletin.error"))
-										return
-									}
-
-									body, err := ioutil.ReadAll(resBody.Body)
-									res.Body.Close()
-									if err != nil || resBody.StatusCode != 200 {
-										l4g.Error(utils.T("mattermost.security_bulletin_read.error"))
-										return
-									}
-
-									for _, user := range users {
-										l4g.Info(utils.T("mattermost.send_bulletin.info"), bulletin.Id, user.Email)
-										utils.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
-									}
 								}
 
-								bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-								<-api.Srv.Store.System().Save(bulletinSeen)
+								body, err := ioutil.ReadAll(resBody.Body)
+								res.Body.Close()
+								if err != nil || resBody.StatusCode != 200 {
+									l4g.Error(utils.T("mattermost.security_bulletin_read.error"))
+									return
+								}
+
+								for _, user := range users {
+									l4g.Info(utils.T("mattermost.send_bulletin.info"), bulletin.Id, user.Email)
+									utils.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
+								}
 							}
+
+							bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
+							<-api.Srv.Store.System().Save(bulletinSeen)
 						}
 					}
 				}
 			}
 		}
-
-		time.Sleep(time.Hour * 4)
 	}
+}
+
+func runSecurityAndDiagnosticsJob() {
+	doSecurityAndDiagnostics()
+	model.CreateRecurringTask("Security and Diagnostics", doSecurityAndDiagnostics, time.Hour*4)
 }
 
 func parseCmds() {
@@ -272,6 +278,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdPermanentDeleteTeam, "permanent_delete_team", false, "")
 	flag.BoolVar(&flagCmdPermanentDeleteAllUsers, "permanent_delete_all_users", false, "")
 	flag.BoolVar(&flagCmdResetDatabase, "reset_database", false, "")
+	flag.BoolVar(&flagCmdRunLdapSync, "ldap_sync", false, "")
 	flag.BoolVar(&flagCmdUploadLicense, "upload_license", false, "")
 
 	flag.Parse()
@@ -290,6 +297,7 @@ func parseCmds() {
 		flagCmdPermanentDeleteTeam ||
 		flagCmdPermanentDeleteAllUsers ||
 		flagCmdResetDatabase ||
+		flagCmdRunLdapSync ||
 		flagCmdUploadLicense)
 }
 
@@ -308,6 +316,7 @@ func runCmds() {
 	cmdPermDeleteAllUsers()
 	cmdResetDatabase()
 	cmdUploadLicense()
+	cmdRunLdapSync()
 }
 
 type TeamForUpgrade struct {
@@ -1128,6 +1137,21 @@ func cmdResetDatabase() {
 		flushLogAndExit(0)
 	}
 
+}
+
+func cmdRunLdapSync() {
+	if flagCmdRunLdapSync {
+		if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
+			if err := ldapI.Syncronize(); err != nil {
+				fmt.Println("ERROR: Ldap Syncronization Failed")
+				l4g.Error("%v", err.Error())
+				flushLogAndExit(1)
+			} else {
+				fmt.Println("SUCCESS: Ldap Syncronization Complete")
+				flushLogAndExit(0)
+			}
+		}
+	}
 }
 
 func cmdUploadLicense() {

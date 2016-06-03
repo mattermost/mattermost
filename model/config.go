@@ -190,6 +190,9 @@ type LdapSettings struct {
 	NicknameAttribute  *string
 	IdAttribute        *string
 
+	// Syncronization
+	SyncIntervalMinutes *int
+
 	// Advanced
 	SkipCertificateVerification *bool
 	QueryTimeout                *int
@@ -441,6 +444,11 @@ func (o *Config) SetDefaults() {
 		*o.LdapSettings.LoginFieldName = ""
 	}
 
+	if o.LdapSettings.SyncIntervalMinutes == nil {
+		o.LdapSettings.SyncIntervalMinutes = new(int)
+		*o.LdapSettings.SyncIntervalMinutes = 60
+	}
+
 	if o.ServiceSettings.SessionLengthWebInDays == nil {
 		o.ServiceSettings.SessionLengthWebInDays = new(int)
 		*o.ServiceSettings.SessionLengthWebInDays = 30
@@ -633,6 +641,10 @@ func (o *Config) IsValid() *AppError {
 
 	if !(*o.LdapSettings.ConnectionSecurity == CONN_SECURITY_NONE || *o.LdapSettings.ConnectionSecurity == CONN_SECURITY_TLS || *o.LdapSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "")
+	}
+
+	if *o.LdapSettings.SyncIntervalMinutes <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_sync_interval.app_error", nil, "")
 	}
 
 	return nil
