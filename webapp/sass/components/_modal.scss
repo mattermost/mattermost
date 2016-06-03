@@ -29,6 +29,21 @@
         }
     }
 
+    .modal__hint {
+        @include opacity(.8);
+        display: block;
+        font-size: .9em;
+        margin: 0 0 10px;
+    }
+
+    .modal__error {
+        color: $red;
+        float: left;
+        font-size: .95em;
+        font-weight: normal;
+        margin-top: 6px;
+    }
+
     .more-table {
         margin: 0;
         table-layout: fixed;

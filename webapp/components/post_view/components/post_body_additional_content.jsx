@@ -97,18 +97,16 @@ export default class PostBodyAdditionalContent extends React.Component {
             );
         }
 
-        if (!this.props.compactDisplay) {
-            for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
-                const imageType = Constants.IMAGE_TYPES[i];
-                const suffix = link.substring(link.length - (imageType.length + 1));
-                if (suffix === '.' + imageType || suffix === '=' + imageType) {
-                    return (
-                        <PostImage
-                            channelId={this.props.post.channel_id}
-                            link={link}
-                        />
-                    );
-                }
+        for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
+            const imageType = Constants.IMAGE_TYPES[i];
+            const suffix = link.substring(link.length - (imageType.length + 1));
+            if (suffix === '.' + imageType || suffix === '=' + imageType) {
+                return (
+                    <PostImage
+                        channelId={this.props.post.channel_id}
+                        link={link}
+                    />
+                );
             }
         }
 

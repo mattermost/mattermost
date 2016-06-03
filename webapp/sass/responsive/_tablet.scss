@@ -85,85 +85,103 @@
 
     .post {
         &.post--compact {
-            padding: 5px .5em 0 80px;
+            &:not(.post--thread) {
+                padding: 5px .5em 0 70px;
 
-            .post__link {
-                margin: 4px 0 7px;
-            }
-
-            .post__time {
-                font-size: .85em;
-                left: -70px;
-                position: absolute;
-                top: 2px;
-            }
-
-            span {
-                p {
-                    &:last-child {
-                        margin-bottom: .3em;
-                    }
-                }
-            }
-
-            .post__header {
-                float: left;
-                height: 18px;
-                padding-top: 3px;
-
-                .col__name {
-                    font-weight: bold;
-                    margin-right: 2px;
-                    padding-right: 10px;
-                    position: relative;
-                    z-index: 1;
-
-                    &:after {
-                        content: ':';
-                        display: inline-block;
-                        font-family: FontAwesome;
-                        font-size: 19px;
-                        position: absolute;
-                        right: 3px;
-                        text-rendering: auto;
-                        top: -5px;
-                    }
+                .post__link {
+                    margin: 4px 0 7px;
                 }
 
-                .col__reply {
-                    top: 2px;
+                .post__time {
+                    font-size: .85em;
+                    left: -70px;
+                    position: absolute;
+                    text-align: right;
+                    top: 4px;
+                    width: 60px;
                 }
-            }
 
-            &.other--root {
-                .post__body {
-                    > div {
-                        &:first-child {
-                            min-height: 21px;
+                span {
+                    p {
+                        &:last-child {
+                            margin-bottom: .3em;
                         }
                     }
                 }
 
-                .post__link + .post__body {
+                .post__header {
+                    float: left;
+                    height: 21px;
+                    padding-top: 3px;
+
+                    .col__name {
+                        font-weight: bold;
+                        margin-right: 2px;
+                        padding-right: 10px;
+                        position: relative;
+                        z-index: 1;
+
+                        &:after {
+                            content: ':';
+                            display: inline-block;
+                            font-family: FontAwesome;
+                            font-size: 19px;
+                            position: absolute;
+                            right: 3px;
+                            text-rendering: auto;
+                            top: -5px;
+                        }
+                    }
+
+                    .col__reply {
+                        top: 2px;
+                    }
+                }
+
+                &.other--root {
+                    .post__body {
+                        > div {
+                            &:first-child {
+                                min-height: 21px;
+                            }
+                        }
+                    }
+
+                    .post__link + .post__body {
+                        clear: both;
+                    }
+
+                    &.post--comment {
+                        .post__header {
+                            .col__reply {
+                                top: 0;
+                            }
+                        }
+                    }
+                }
+
+                .post-code {
                     clear: both;
                 }
 
-                &.post--comment {
-                    .post__header {
-                        .col__reply {
-                            top: 0;
-                        }
-                    }
+                .post__body {
+                    width: 100%;
                 }
-            }
 
-            .post-code {
-                clear: both;
+                .post__content {
+                    padding-right: 85px;
+                }
             }
 
             &.same--root {
                 &.same--user {
-                    padding-left: 80px;
+                    padding-left: 70px;
+
+                    .post__header {
+                        .col__reply {
+                            top: 4px;
+                        }
+                    }
 
                     .post__img {
                         img {
@@ -193,14 +211,6 @@
                         margin-left: 12px;
                     }
                 }
-            }
-
-            .post__body {
-                width: 100%;
-            }
-
-            .post__content {
-                padding-right: 85px;
             }
         }
 

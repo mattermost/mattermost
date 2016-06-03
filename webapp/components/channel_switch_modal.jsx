@@ -98,10 +98,12 @@ export default class SwitchChannelModal extends React.Component {
                 </Modal.Header>
 
                 <Modal.Body>
-                    <FormattedMessage
-                        id='channel_switch_modal.help'
-                        defaultMessage='↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss'
-                    />
+                    <div className='modal__hint'>
+                        <FormattedMessage
+                            id='channel_switch_modal.help'
+                            defaultMessage='↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss'
+                        />
+                    </div>
                     <SuggestionBox
                         ref='search'
                         className='form-control focused'
@@ -118,9 +120,9 @@ export default class SwitchChannelModal extends React.Component {
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <label className='control-label'>
+                    <div className='modal__error'>
                         {message}
-                    </label>
+                    </div>
                     <button
                         type='button'
                         className='btn btn-default'
