@@ -470,28 +470,6 @@ func handleWebhookEvents(c *Context, post *model.Post, team *model.Team, channel
 }
 
 func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel, profileMap map[string]*model.User, members []model.ChannelMember) {
-	message := model.NewMessage(c.TeamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
-	message.Add("post", post.ToJson())
-	message.Add("channel_type", channel.Type)
-	message.Add("team_id", team.Id)
-
-	if len(post.Filenames) != 0 {
-		message.Add("otherFile", "true")
-
-		for _, filename := range post.Filenames {
-			ext := filepath.Ext(filename)
-			if model.IsFileExtImage(ext) {
-				message.Add("image", "true")
-				break
-			}
-		}
-	}
-
-	if post.IsSystemMessage() {
-		go Publish(message)
-		return
-	}
-
 	if _, ok := profileMap[post.UserId]; !ok {
 		l4g.Error(utils.T("api.post.send_notifications_and_forget.user_id.error"), post.UserId)
 		return
@@ -547,7 +525,9 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				keywordMap["@channel"] = append(keywordMap["@channel"], profile.Id)
 			}
 
-			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL && (post.UserId != profile.Id || post.Props["from_webhook"] == "true") {
+			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&
+				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
+				!post.IsSystemMessage() {
 				alwaysNotifyUserIds = append(alwaysNotifyUserIds, profile.Id)
 			}
 		}
@@ -605,7 +585,9 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
 
 	senderName := ""
-	if profile, ok := profileMap[post.UserId]; ok {
+	if post.IsSystemMessage() {
+		senderName = c.T("system.message.name")
+	} else if profile, ok := profileMap[post.UserId]; ok {
 		senderName = profile.Username
 	}
 
@@ -647,7 +629,24 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 	}
 
+	message := model.NewMessage(c.TeamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
+	message.Add("post", post.ToJson())
+	message.Add("channel_type", channel.Type)
+	message.Add("channel_display_name", channel.DisplayName)
 	message.Add("sender_name", senderName)
+	message.Add("team_id", team.Id)
+
+	if len(post.Filenames) != 0 {
+		message.Add("otherFile", "true")
+
+		for _, filename := range post.Filenames {
+			ext := filepath.Ext(filename)
+			if model.IsFileExtImage(ext) {
+				message.Add("image", "true")
+				break
+			}
+		}
+	}
 
 	if len(mentionedUsersList) != 0 {
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
