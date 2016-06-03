@@ -108,6 +108,7 @@ export default class SwitchChannelModal extends React.Component {
                         type='input'
                         onUserInput={this.onUserInput}
                         value={this.state.text}
+                        placeholder={Utils.localizeMessage('channel_switch_modal.hint', 'Type the name of a channel')}
                         onKeyDown={this.handleKeyDown}
                         listComponent={SuggestionList}
                         maxLength='64'
