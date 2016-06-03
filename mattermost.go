@@ -63,6 +63,7 @@ var flagLicenseFile string
 var flagEmail string
 var flagPassword string
 var flagTeamName string
+var flagConfirmBackup string
 var flagRole string
 var flagRunCmds bool
 
@@ -261,6 +262,7 @@ func parseCmds() {
 	flag.StringVar(&flagEmail, "email", "", "")
 	flag.StringVar(&flagPassword, "password", "", "")
 	flag.StringVar(&flagTeamName, "team_name", "", "")
+	flag.StringVar(&flagConfirmBackup, "confirm_backup", "", "")
 	flag.StringVar(&flagRole, "role", "", "")
 
 	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
@@ -399,17 +401,19 @@ func cmdUpdateDb30() {
 			flushLogAndExit(1)
 		}
 
-		var confirmBackup string
 		fmt.Println("\nPlease see http://www.mattermost.org/upgrade-to-3-0/")
 		fmt.Println("**WARNING** This upgrade process will be irreversible.")
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirmBackup)
-		if confirmBackup != "YES" {
+
+		if len(flagConfirmBackup) == 0 {
+			fmt.Print("Have you performed a database backup? (YES/NO): ")
+			fmt.Scanln(&flagConfirmBackup)
+		}
+
+		if flagConfirmBackup != "YES" {
 			fmt.Fprintln(os.Stderr, "ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
 
-		var flagTeamName string
 		var teams []*TeamForUpgrade
 
 		if _, err := store.GetMaster().Select(&teams, "SELECT Id, Name FROM Teams"); err != nil {
@@ -417,14 +421,16 @@ func cmdUpdateDb30() {
 			flushLogAndExit(1)
 		}
 
-		fmt.Println(fmt.Sprintf("We found %v teams.", len(teams)))
+		if len(flagTeamName) == 0 {
+			fmt.Println(fmt.Sprintf("We found %v teams.", len(teams)))
 
-		for _, team := range teams {
-			fmt.Println(team.Name)
+			for _, team := range teams {
+				fmt.Println(team.Name)
+			}
+
+			fmt.Print("Please pick a primary team from the list above: ")
+			fmt.Scanln(&flagTeamName)
 		}
-
-		fmt.Print("Please pick a primary team from the list above: ")
-		fmt.Scanln(&flagTeamName)
 
 		var team *TeamForUpgrade
 		for _, t := range teams {
@@ -1014,10 +1020,12 @@ func cmdPermDeleteUser() {
 			user = result.Data.(*model.User)
 		}
 
-		var confirmBackup string
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirmBackup)
-		if confirmBackup != "YES" {
+		if len(flagConfirmBackup) == 0 {
+			fmt.Print("Have you performed a database backup? (YES/NO): ")
+			fmt.Scanln(&flagConfirmBackup)
+		}
+
+		if flagConfirmBackup != "YES" {
 			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
@@ -1058,10 +1066,12 @@ func cmdPermDeleteTeam() {
 			team = result.Data.(*model.Team)
 		}
 
-		var confirmBackup string
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirmBackup)
-		if confirmBackup != "YES" {
+		if len(flagConfirmBackup) == 0 {
+			fmt.Print("Have you performed a database backup? (YES/NO): ")
+			fmt.Scanln(&flagConfirmBackup)
+		}
+
+		if flagConfirmBackup != "YES" {
 			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
@@ -1088,10 +1098,12 @@ func cmdPermDeleteAllUsers() {
 	if flagCmdPermanentDeleteAllUsers {
 		c := getMockContext()
 
-		var confirmBackup string
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirmBackup)
-		if confirmBackup != "YES" {
+		if len(flagConfirmBackup) == 0 {
+			fmt.Print("Have you performed a database backup? (YES/NO): ")
+			fmt.Scanln(&flagConfirmBackup)
+		}
+
+		if flagConfirmBackup != "YES" {
 			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
@@ -1116,10 +1128,13 @@ func cmdPermDeleteAllUsers() {
 
 func cmdResetDatabase() {
 	if flagCmdResetDatabase {
-		var confirmBackup string
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirmBackup)
-		if confirmBackup != "YES" {
+
+		if len(flagConfirmBackup) == 0 {
+			fmt.Print("Have you performed a database backup? (YES/NO): ")
+			fmt.Scanln(&flagConfirmBackup)
+		}
+
+		if flagConfirmBackup != "YES" {
 			fmt.Print("ABORTED: You did not answer YES exactly, in all capitals.")
 			flushLogAndExit(1)
 		}
