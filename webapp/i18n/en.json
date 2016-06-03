@@ -956,6 +956,8 @@
   "login.invalidPassword": "Your password is incorrect.",
   "login.ldapUsername": "LDAP Username",
   "login.noAccount": "Don't have an account? ",
+  "login.noLoginId": "Please enter your {loginId}",
+  "login.noPassword": "Please enter your password",
   "login.on": "on {siteName}",
   "login.or": "or",
   "login.password": "Password",

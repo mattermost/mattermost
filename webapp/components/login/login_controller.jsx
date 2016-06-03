@@ -52,8 +52,47 @@ export default class LoginController extends React.Component {
     preSubmit(e) {
         e.preventDefault();
 
-        const loginId = this.state.loginId.trim();
-        const password = this.state.password;
+        // password managers don't always call onInput handlers for form fields so it's possible
+        // for the state to get out of sync with what the user sees in the browser
+        let loginId = this.refs.loginId.value;
+        if (loginId !== this.state.loginId) {
+            this.setState({loginId});
+        }
+
+        let password = this.refs.password.value;
+        if (password !== this.state.password) {
+            this.setState({password});
+        }
+
+        loginId = loginId.trim();
+        password = password.trim();
+
+        if (!loginId) {
+            this.setState({
+                serverError: (
+                    <FormattedMessage
+                        id='login.noLoginId'
+                        defaultMessage='Please enter your {loginId}'
+                        values={{
+                            loginId: this.createLoginPlaceholder()
+                        }}
+                    />
+                )
+            });
+            return;
+        }
+
+        if (!password) {
+            this.setState({
+                serverError: (
+                    <FormattedMessage
+                        id='login.noPassword'
+                        defaultMessage='Please enter your password'
+                    />
+                )
+            });
+            return;
+        }
 
         if (global.window.mm_config.EnableMultifactorAuthentication === 'true') {
             Client.checkMfa(
@@ -155,7 +194,11 @@ export default class LoginController extends React.Component {
         return null;
     }
 
-    createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled) {
+    createLoginPlaceholder() {
+        const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
+        const usernameSigninEnabled = global.window.mm_config.EnableSignInWithUsername === 'true';
+        const emailSigninEnabled = global.window.mm_config.EnableSignInWithEmail === 'true';
+
         const loginPlaceholders = [];
         if (emailSigninEnabled) {
             loginPlaceholders.push(Utils.localizeMessage('login.email', 'Email'));
@@ -255,10 +298,11 @@ export default class LoginController extends React.Component {
                         <div className={'form-group' + errorClass}>
                             <input
                                 className='form-control'
+                                ref='loginId'
                                 name='loginId'
                                 value={this.state.loginId}
                                 onChange={this.handleLoginIdChange}
-                                placeholder={this.createLoginPlaceholder(emailSigninEnabled, usernameSigninEnabled, ldapEnabled)}
+                                placeholder={this.createLoginPlaceholder()}
                                 spellCheck='false'
                                 autoCapitalize='off'
                             />
@@ -267,6 +311,7 @@ export default class LoginController extends React.Component {
                             <input
                                 type='password'
                                 className='form-control'
+                                ref='password'
                                 name='password'
                                 value={this.state.password}
                                 onChange={this.handlePasswordChange}
@@ -278,7 +323,6 @@ export default class LoginController extends React.Component {
                             <button
                                 type='submit'
                                 className='btn btn-primary'
-                                disabled={!this.state.loginId || !this.state.password}
                             >
                                 <FormattedMessage
                                     id='login.signIn'
