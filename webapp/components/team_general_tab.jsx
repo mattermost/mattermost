@@ -314,7 +314,7 @@ class GeneralTab extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='general_tab.openInviteDesc'
-                            defaultMessage='When allowed, a link to this team will be including on the landing page allowing anyone with an account to join this team.'
+                            defaultMessage='When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team.'
                         />
                     </div>
                 </div>
