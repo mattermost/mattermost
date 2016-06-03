@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import AdminSettings from './admin_settings.jsx';
-import Banner from './banner.jsx';
 import BooleanSetting from './boolean_setting.jsx';
 import ConnectionSecurityDropdownSetting from './connection_security_dropdown_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
@@ -85,14 +84,6 @@ export default class LdapSettings extends AdminSettings {
 
         return (
             <SettingsGroup>
-                <Banner
-                    description={
-                        <FormattedMessage
-                            id='admin.ldap.bannerDesc'
-                            defaultMessage='If a user attribute changes on the LDAP server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from an LDAP server. Synchronization with LDAP servers is planned in a future release.'
-                        />
-                    }
-                />
                 <BooleanSetting
                     id='enable'
                     label={
