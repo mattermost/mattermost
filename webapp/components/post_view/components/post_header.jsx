@@ -38,7 +38,7 @@ export default class PostHeader extends React.Component {
                 );
             }
 
-            botIndicator = <li className='col col__name bot-indicator'>{Constants.BOT_NAME}</li>;
+            botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
         } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile

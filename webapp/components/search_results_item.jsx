@@ -71,7 +71,7 @@ export default class SearchResultsItem extends React.Component {
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {
-            botIndicator = <li className='col col__name bot-indicator'>{Constants.BOT_NAME}</li>;
+            botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
         }
 
         return (

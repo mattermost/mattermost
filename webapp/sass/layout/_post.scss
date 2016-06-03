@@ -502,13 +502,6 @@ body.ios {
             }
         }
 
-        .post__embed-container {
-            img {
-                max-height: 150px;
-                max-width: 150px;
-            }
-        }
-
         .markdown__heading {
             font-size: 1em;
             margin: 0 0 7px;
@@ -519,6 +512,10 @@ body.ios {
             line-height: 1.2;
             margin-top: -1px;
             padding: 3px 0;
+
+            p + p {
+                margin-top: 1em;
+            }
 
             ol,
             ul {
