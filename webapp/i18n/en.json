@@ -721,6 +721,7 @@
   "channel_switch_modal.help": "↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss",
   "channel_switch_modal.submit": "Switch",
   "channel_switch_modal.not_found": "No matches found.",
+  "channel_switch_modal.hint": "Type the name of a channel",
   "choose_auth_page.emailCreate": "Create new team with email address",
   "choose_auth_page.find": "Find my teams",
   "choose_auth_page.gitlabCreate": "Create new team with GitLab Account",
