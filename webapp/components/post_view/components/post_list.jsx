@@ -68,7 +68,7 @@ export default class PostList extends React.Component {
         const childNodes = this.refs.postlistcontent.childNodes;
         for (let i = 0; i < childNodes.length; i++) {
             // If the node is 1/3 down the page
-            if (childNodes[i].offsetTop > (this.refs.postlist.scrollTop + (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION))) {
+            if (childNodes[i].offsetTop >= (this.refs.postlist.scrollTop + (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION))) {
                 this.jumpToPostNode = childNodes[i];
                 break;
             }
