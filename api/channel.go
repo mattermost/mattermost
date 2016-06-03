@@ -512,8 +512,15 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "")
 	}
 
-	if result := <-Srv.Store.Channel().GetMember(channel.Id, user.Id); result.Err != nil {
-		if result.Err.Id != store.MISSING_MEMBER_ERROR {
+	tmchan := Srv.Store.Team().GetMember(channel.TeamId, user.Id)
+	cmchan := Srv.Store.Channel().GetMember(channel.Id, user.Id)
+
+	if result := <-tmchan; result.Err != nil {
+		return nil, result.Err
+	}
+
+	if result := <-cmchan; result.Err != nil {
+		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return nil, result.Err
 		}
 	} else {

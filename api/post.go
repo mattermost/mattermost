@@ -603,7 +603,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 
 	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
 
-	senderName := profileMap[post.UserId].Username
+	senderName := ""
+	if profile, ok := profileMap[post.UserId]; ok {
+		senderName = profile.Username
+	}
 
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
