@@ -340,6 +340,34 @@
     "translation": "コマンドAPIルートを初期化しています"
   },
   {
+    "id": "api.command.invite_people.desc",
+    "translation": "Send an email invite to your Mattermost team"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Email has not been configured, no invite(s) sent"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Encountered an error sending email invite(s)"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Please specify one or more valid email addresses"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Email invite(s) sent"
+  },
+  {
     "id": "api.command.regen.app_error",
     "translation": "コマンドトークンを再生成するために必要な権限が付与されていません"
   },
@@ -1996,6 +2024,14 @@
     "translation": "ユーザーがLDAPサーバーに登録されていません"
   },
   {
+    "id": "ent.ldap.syncdone.info",
+    "translation": "LDAP Synchronization completed"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "Unable to get all users using LDAP"
+  },
+  {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "不正なLDAPフィルターです"
   },
@@ -2382,6 +2418,10 @@
   {
     "id": "model.config.is_valid.ldap_security.app_error",
     "translation": "LDAP設定の接続セキュリティーが不正です。'TLS'か'STARTTLS'にしてください"
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Invalid sync interval time. Must be at least one minute."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3518,6 +3558,10 @@
   {
     "id": "store.sql_user.get.app_error",
     "translation": "アカウントを探す際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
+    "translation": "認証形式でアカウントを探す際にエラーが発生しました"
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
