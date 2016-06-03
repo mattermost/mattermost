@@ -176,6 +176,11 @@ export default class Textbox extends React.Component {
             </div>
         );
 
+        const otherProps = {};
+        if (!this.props.typing) {
+            otherProps.value = this.props.messageText;
+        }
+
         return (
             <div
                 ref='wrapper'
@@ -189,7 +194,6 @@ export default class Textbox extends React.Component {
                     spellCheck='true'
                     maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
-                    value={this.props.messageText}
                     onUserInput={this.props.onUserInput}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
@@ -198,6 +202,7 @@ export default class Textbox extends React.Component {
                     listComponent={SuggestionList}
                     providers={this.suggestionProviders}
                     channelId={this.props.channelId}
+                    {...otherProps}
                 />
                 <div
                     ref='preview'
@@ -238,5 +243,6 @@ Textbox.propTypes = {
     onKeyPress: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,
-    supportsCommands: React.PropTypes.bool.isRequired
+    supportsCommands: React.PropTypes.bool.isRequired,
+    typing: React.PropTypes.bool.isRequired
 };

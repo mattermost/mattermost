@@ -78,7 +78,8 @@ class CreateComment extends React.Component {
             previews: draft.previews,
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            typing: false
         };
     }
 
@@ -184,7 +185,8 @@ class CreateComment extends React.Component {
             submitting: false,
             postError: null,
             previews: [],
-            serverError: null
+            serverError: null,
+            typing: false
         });
     }
 
@@ -206,7 +208,9 @@ class CreateComment extends React.Component {
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').parent().scrollTop($('.post-right__scroll')[0].scrollHeight);
-        this.setState({messageText: messageText});
+
+        const typing = messageText !== '';
+        this.setState({messageText, typing});
     }
 
     handleKeyDown(e) {
@@ -325,7 +329,7 @@ class CreateComment extends React.Component {
     componentWillReceiveProps(newProps) {
         if (newProps.rootId !== this.props.rootId) {
             const draft = PostStore.getCommentDraft(newProps.rootId);
-            this.setState({messageText: draft.message, uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
+            this.setState({messageText: draft.message, uploadsInProgress: draft.uploadsInProgress, previews: draft.previews, typing: false});
         }
     }
 
@@ -415,6 +419,7 @@ class CreateComment extends React.Component {
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
+                                typing={this.state.typing}
                                 createMessage={formatMessage(holders.addComment)}
                                 initialText=''
                                 supportsCommands={false}
