@@ -33,6 +33,9 @@ export default class LoginController extends React.Component {
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
 
         this.state = {
+            ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
+            usernameSigninEnabled: global.window.mm_config.EnableSignInWithUsername === 'true',
+            emailSigninEnabled: global.window.mm_config.EnableSignInWithEmail === 'true',
             loginId: '', // the browser will set a default for this
             password: '',
             showMfa: false
@@ -68,13 +71,24 @@ export default class LoginController extends React.Component {
         password = password.trim();
 
         if (!loginId) {
+            // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
+            let msgId = 'login.no';
+            if (this.state.emailSigninEnabled) {
+                msgId += 'Email';
+            }
+            if (this.state.usernameSigninEnabled) {
+                msgId += 'Username';
+            }
+            if (this.state.ldapEnabled) {
+                msgId += 'LdapUsername';
+            }
+
             this.setState({
                 serverError: (
                     <FormattedMessage
-                        id='login.noLoginId'
-                        defaultMessage='Please enter your {loginId}'
+                        id={msgId}
                         values={{
-                            loginId: this.createLoginPlaceholder()
+                            ldapUsername: global.window.mm_config.LdapLoginFieldName || Utils.localizeMessage('login.ldapUsernameLower', 'LDAP username')
                         }}
                     />
                 )
@@ -195,9 +209,9 @@ export default class LoginController extends React.Component {
     }
 
     createLoginPlaceholder() {
-        const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
-        const usernameSigninEnabled = global.window.mm_config.EnableSignInWithUsername === 'true';
-        const emailSigninEnabled = global.window.mm_config.EnableSignInWithEmail === 'true';
+        const ldapEnabled = this.state.ldapEnabled;
+        const usernameSigninEnabled = this.state.usernameSigninEnabled;
+        const emailSigninEnabled = this.state.emailSigninEnabled;
 
         const loginPlaceholders = [];
         if (emailSigninEnabled) {
@@ -212,7 +226,7 @@ export default class LoginController extends React.Component {
             if (global.window.mm_config.LdapLoginFieldName) {
                 loginPlaceholders.push(global.window.mm_config.LdapLoginFieldName);
             } else {
-                loginPlaceholders.push(Utils.localizeMessage('login.ldap_username', 'LDAP Username'));
+                loginPlaceholders.push(Utils.localizeMessage('login.ldapUsername', 'LDAP Username'));
             }
         }
 
@@ -276,11 +290,11 @@ export default class LoginController extends React.Component {
 
         const loginControls = [];
 
-        const ldapEnabled = global.window.mm_config.EnableLdap === 'true';
+        const ldapEnabled = this.state.ldapEnabled;
         const gitlabSigninEnabled = global.window.mm_config.EnableSignUpWithGitLab === 'true';
         const googleSigninEnabled = global.window.mm_config.EnableSignUpWithGoogle === 'true';
-        const usernameSigninEnabled = global.window.mm_config.EnableSignInWithUsername === 'true';
-        const emailSigninEnabled = global.window.mm_config.EnableSignInWithEmail === 'true';
+        const usernameSigninEnabled = this.state.usernameSigninEnabled;
+        const emailSigninEnabled = this.state.emailSigninEnabled;
 
         if (emailSigninEnabled || usernameSigninEnabled || ldapEnabled) {
             let errorClass = '';
