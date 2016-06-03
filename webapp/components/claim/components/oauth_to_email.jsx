@@ -46,8 +46,8 @@ export default class OAuthToEmail extends React.Component {
                     browserHistory.push(data.follow_link);
                 }
             },
-            (error) => {
-                this.setState({error});
+            (err) => {
+                this.setState({error: err.message});
             }
         );
     }

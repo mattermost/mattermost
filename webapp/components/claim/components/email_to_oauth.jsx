@@ -39,8 +39,8 @@ export default class EmailToOAuth extends React.Component {
                     window.location.href = data.follow_link;
                 }
             },
-            (error) => {
-                this.setState({error});
+            (err) => {
+                this.setState({error: err.message});
             }
         );
     }
