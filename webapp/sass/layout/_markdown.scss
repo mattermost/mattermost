@@ -81,6 +81,8 @@
 
 .post-code__search-highlighting {
     color: transparent;
+    right: 6.5px;
+    left: 6.5px;
     pointer-events: none;
     position: absolute;
     @include user-select(none);
