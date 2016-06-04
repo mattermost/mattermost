@@ -4,6 +4,7 @@
 import React from 'react';
 
 import SuggestionStore from 'stores/suggestion_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
@@ -25,7 +26,10 @@ class AtMentionSuggestion extends Suggestion {
             description = (
                 <FormattedMessage
                     id='suggestion.mention.all'
-                    defaultMessage='Notifies everyone in the team'
+                    defaultMessage='Notifies everyone in the channel, use in {townsquare} to notify the whole team'
+                    values={{
+                        townsquare: ChannelStore.getByName('town-square').display_name
+                    }}
                 />
             );
             icon = <i className='mention__image fa fa-users fa-2x'/>;
@@ -97,9 +101,12 @@ export default class AtMentionProvider {
             }
 
             if (!pretext.startsWith('/msg')) {
-                // add dummy users to represent the @channel special mention when not using the /msg command
+                // add dummy users to represent the @channel and @all special mentions when not using the /msg command
                 if ('channel'.startsWith(usernamePrefix)) {
                     filtered.push({username: 'channel'});
+                }
+                if ('all'.startsWith(usernamePrefix)) {
+                    filtered.push({username: 'all'});
                 }
             }
 
