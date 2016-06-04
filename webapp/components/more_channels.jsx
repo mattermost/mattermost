@@ -40,7 +40,7 @@ export default class MoreChannels extends React.Component {
 
         var initState = getStateFromStores();
         initState.channelType = '';
-        initState.joiningChannel = -1;
+        initState.joiningChannel = '';
         initState.showNewChannelModal = false;
         this.state = initState;
     }
@@ -65,17 +65,17 @@ export default class MoreChannels extends React.Component {
             this.setState(newState);
         }
     }
-    handleJoin(channel, channelIndex) {
-        this.setState({joiningChannel: channelIndex});
+    handleJoin(channel) {
+        this.setState({joiningChannel: channel.id});
         GlobalActions.emitJoinChannelEvent(
             channel,
             () => {
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
                 browserHistory.push(Utils.getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
-                this.setState({joiningChannel: -1});
+                this.setState({joiningChannel: ''});
             },
             (err) => {
-                this.setState({joiningChannel: -1, serverError: err.message});
+                this.setState({joiningChannel: '', serverError: err.message});
             }
         );
     }
@@ -83,9 +83,9 @@ export default class MoreChannels extends React.Component {
         $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
         this.setState({showNewChannelModal: true});
     }
-    createChannelRow(channel, index) {
+    createChannelRow(channel) {
         let joinButton;
-        if (this.state.joiningChannel === index) {
+        if (this.state.joiningChannel === channel.id) {
             joinButton = (
                 <img
                     className='join-channel-loading-gif'
@@ -95,7 +95,7 @@ export default class MoreChannels extends React.Component {
         } else {
             joinButton = (
                 <button
-                    onClick={this.handleJoin.bind(self, channel, index)}
+                    onClick={this.handleJoin.bind(self, channel)}
                     className='btn btn-primary'
                 >
                     <FormattedMessage
