@@ -263,71 +263,89 @@ class NotificationsTab extends React.Component {
             }
 
             let inputs = [];
+            let extraInfo = null;
+            let submit = null;
 
-            inputs.push(
-                <div key='userNotificationLevelOption'>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='pushNotificationLevel'
-                                checked={notifyActive[0]}
-                                onChange={this.handlePushRadio.bind(this, 'all')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.push_notification.allActivity'
-                                defaultMessage='For all activity'
-                            />
-                        </label>
-                        <br/>
+            if (global.window.mm_config.SendPushNotifications === 'true') {
+                inputs.push(
+                    <div key='userNotificationLevelOption'>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    type='radio'
+                                    name='pushNotificationLevel'
+                                    checked={notifyActive[0]}
+                                    onChange={this.handlePushRadio.bind(this, 'all')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.push_notification.allActivity'
+                                    defaultMessage='For all activity'
+                                />
+                            </label>
+                            <br/>
+                        </div>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    type='radio'
+                                    name='pushNotificationLevel'
+                                    checked={notifyActive[1]}
+                                    onChange={this.handlePushRadio.bind(this, 'mention')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.push_notification.onlyMentions'
+                                    defaultMessage='For mentions and direct messages'
+                                />
+                            </label>
+                            <br/>
+                        </div>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    type='radio'
+                                    name='pushNotificationLevel'
+                                    checked={notifyActive[2]}
+                                    onChange={this.handlePushRadio.bind(this, 'none')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.push_notification.off'
+                                    defaultMessage='Off'
+                                />
+                            </label>
+                        </div>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='pushNotificationLevel'
-                                checked={notifyActive[1]}
-                                onChange={this.handlePushRadio.bind(this, 'mention')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.push_notifications.onlyMentions'
-                                defaultMessage='For mentions and direct messages'
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='pushNotificationLevel'
-                                checked={notifyActive[2]}
-                                onChange={this.handlePushRadio.bind(this, 'none')}
-                            />
-                            <FormattedMessage
-                                id='user.settings.push_notifications.off'
-                                defaultMessage='Off'
-                            />
-                        </label>
-                    </div>
-                </div>
-            );
+                );
 
-            const extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.push_notifications.info'
-                        defaultMessage='Notification alerts are pushed to your mobile device when there is activity in Mattermost.'
-                    />
-                </span>
-            );
+                extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.push_notification.info'
+                            defaultMessage='Notification alerts are pushed to your mobile device when there is activity in Mattermost.'
+                        />
+                    </span>
+                );
+
+                submit = this.handleSubmit();
+            } else {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <FormattedMessage
+                            id='user.settings.push_notification.disabled_long'
+                            defaultMessage='Push notifications for mobile devices have been disabled by your System Administrator.'
+                        />
+                    </div>
+                );
+            }
 
             return (
                 <SettingItemMax
                     title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
                     extraInfo={extraInfo}
                     inputs={inputs}
-                    submit={this.handleSubmit}
+                    submit={submit}
                     server_error={this.state.serverError}
                     updateSection={this.handleCancel}
                 />
@@ -345,14 +363,21 @@ class NotificationsTab extends React.Component {
         } else if (this.state.notifyPushLevel === 'none') {
             describe = (
                 <FormattedMessage
-                    id='user.settings.push_notifications.off'
+                    id='user.settings.push_notification.off'
                     defaultMessage='Off'
+                />
+            );
+        } else if (global.window.mm_config.SendPushNotifications === 'false') {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.push_notification.disabled'
+                    defaultMessage='Disabled by system administrator'
                 />
             );
         } else {
             describe = (
                 <FormattedMessage
-                    id='user.settings.push_notifications.onlyMentions'
+                    id='user.settings.push_notification.onlyMentions'
                     defaultMessage='For mentions and direct messages'
                 />
             );
@@ -364,7 +389,7 @@ class NotificationsTab extends React.Component {
 
         return (
             <SettingItemMin
-                title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
+                title={Utils.localizeMessage('user.settings.notification.push', 'Mobile push notifications')}
                 describe={describe}
                 updateSection={handleUpdateDesktopSection}
             />
@@ -911,10 +936,7 @@ class NotificationsTab extends React.Component {
             );
         }
 
-        let pushNotificationSection;
-        if (global.window.mm_config.SendPushNotifications === 'true') {
-            pushNotificationSection = this.createPushNotificationSection();
-        }
+        const pushNotificationSection = this.createPushNotificationSection();
 
         return (
             <div>

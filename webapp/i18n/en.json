@@ -1393,6 +1393,8 @@
   "user.settings.push_notification.info": "Notification alerts are pushed to your mobile device when there is activity in Mattermost.",
   "user.settings.push_notification.off": "Off",
   "user.settings.push_notification.onlyMentions": "For mentions and direct messages",
+  "user.settings.push_notification.disabled": "Disabled by system administrator",
+  "user.settings.push_notification.disabled_long": "Push notifications for mobile devices have been disabled by your System Administrator.",
   "user.settings.security.close": "Close",
   "user.settings.security.currentPassword": "Current Password",
   "user.settings.security.currentPasswordError": "Please enter your current password",
