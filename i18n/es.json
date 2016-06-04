@@ -340,6 +340,34 @@
     "translation": "Inicializando rutas del API para los comandos"
   },
   {
+    "id": "api.command.invite_people.desc",
+    "translation": "Envía un correo de invitación a tu equipo de Mattermost"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "El servicio de correo electrónico no ha sido configurado. no se envió la(s) invitacion(es)"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Se encontró un error al enviar los correos de invitación"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[nombre@dominio.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invitar"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Por favor especifica una o más direcciones de correo electrónico válidas"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Enviado(s) correo(s) de invitación"
+  },
+  {
     "id": "api.command.regen.app_error",
     "translation": "Permisos inapropiados para utilizar le comando de regenerar token"
   },
@@ -1996,6 +2024,14 @@
     "translation": "Usuario no registrado en el servidor LDAP"
   },
   {
+    "id": "ent.ldap.syncdone.info",
+    "translation": "Sincronización de LDAP completada"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "No se pudo obtener a todos los usuarios utilizando LDAP"
+  },
+  {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Filtro de LDAP inválido"
   },
@@ -2382,6 +2418,10 @@
   {
     "id": "model.config.is_valid.ldap_security.app_error",
     "translation": "Conexión segura inválida en la configuración de LDAP.  Debe ser '', 'TLS', o 'STARTTLS'"
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Intervalo de sincronización inválido. De ser de al menos un minuto."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3518,6 +3558,10 @@
   {
     "id": "store.sql_user.get.app_error",
     "translation": "Encontramos un error buscando la cuenta"
+  },
+  {
+    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
+    "translation": "Encontramos un error tratando de identificar todas las cuentas con este tipo de autenticación."
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
