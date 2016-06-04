@@ -749,6 +749,7 @@ func TestAddChannelMember(t *testing.T) {
 	Client := th.BasicClient
 	team := th.BasicTeam
 	user2 := th.BasicUser2
+	user3 := th.CreateUser(Client)
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -790,6 +791,9 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("Should have errored, channel deleted")
 	}
 
+	if _, err := Client.AddChannelMember(channel1.Id, user3.Id); err == nil {
+		t.Fatal("Should have errored, user not on team")
+	}
 }
 
 func TestRemoveChannelMember(t *testing.T) {

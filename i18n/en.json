@@ -3492,6 +3492,10 @@
     "translation": "We couldn't find the existing team"
   },
   {
+    "id": "store.sql_team.get_member.missing.app_error",
+    "translation": "No team member found for that user id and team id"
+  },
+  {
     "id": "store.sql_team.get_member.app_error",
     "translation": "We couldn't get the team member"
   },

@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	MISSING_CHANNEL_ERROR = "store.sql_channel.get_by_name.missing.app_error"
-	MISSING_MEMBER_ERROR  = "store.sql_channel.get_member.missing.app_error"
-	CHANNEL_EXISTS_ERROR  = "store.sql_channel.save_channel.exists.app_error"
+	MISSING_CHANNEL_ERROR        = "store.sql_channel.get_by_name.missing.app_error"
+	MISSING_CHANNEL_MEMBER_ERROR = "store.sql_channel.get_member.missing.app_error"
+	CHANNEL_EXISTS_ERROR         = "store.sql_channel.save_channel.exists.app_error"
 )
 
 type SqlChannelStore struct {
@@ -579,7 +579,7 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel
 
 		if err := s.GetReplica().SelectOne(&member, "SELECT * FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewLocAppError("SqlChannelStore.GetMember", MISSING_MEMBER_ERROR, nil, "channel_id="+channelId+"user_id="+userId+","+err.Error())
+				result.Err = model.NewLocAppError("SqlChannelStore.GetMember", MISSING_CHANNEL_MEMBER_ERROR, nil, "channel_id="+channelId+"user_id="+userId+","+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlChannelStore.GetMember", "store.sql_channel.get_member.app_error", nil, "channel_id="+channelId+"user_id="+userId+","+err.Error())
 			}
