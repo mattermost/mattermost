@@ -84,7 +84,7 @@ class CreatePost extends React.Component {
             previews: draft.previews,
             submitting: false,
             initialText: draft.messageText,
-            ctrlSend: false,
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             centerTextbox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             showTutorialTip: false,
             showPostDeletedModal: false
