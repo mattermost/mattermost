@@ -57,7 +57,7 @@ export default class ExternalServiceSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.segmentDescription'
-                            defaultMessage='For users running a SaaS services, sign up for a key at Segment.com to track metrics.'
+                            defaultMessage='Segment.com is an online service that can be optionally used to track detailed system statistics. You can obtain a key by signing-up for a free account at Segment.com.'
                         />
                     }
                     value={this.state.segmentDeveloperKey}

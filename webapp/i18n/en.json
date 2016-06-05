@@ -394,7 +394,7 @@
   "admin.service.overrideTitle": "Enable Overriding Usernames from Webhooks and Slash Commands: ",
   "admin.service.securityDesc": "When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.",
   "admin.service.securityTitle": "Enable Security Alerts: ",
-  "admin.service.segmentDescription": "For users running a SaaS services, sign up for a key at Segment.com to track metrics.",
+  "admin.service.segmentDescription": "Segment.com is an online service that can be optionally used to track detailed system statistics. You can obtain a key by signing-up for a free account at Segment.com.",
   "admin.service.segmentExample": "Ex \"g3fgGOXJAQ43QV7rAh6iwQCkV4cA1Gs\"",
   "admin.service.segmentTitle": "Segment Developer Key:",
   "admin.service.sessionCache": "Session Cache in Minutes:",
