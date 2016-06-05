@@ -22,6 +22,12 @@ import {browserHistory, Link} from 'react-router';
 import logoImage from 'images/logo.png';
 
 export default class SignupUserComplete extends React.Component {
+    static get propTypes() {
+        return {
+            location: React.PropTypes.object
+        };
+    }
+
     constructor(props) {
         super(props);
 
@@ -729,6 +735,22 @@ export default class SignupUserComplete extends React.Component {
                                 defaultMessage="Let's create your account"
                             />
                         </h4>
+                        <span className='color--light'>
+                            <FormattedMessage
+                                id='signup_user_completed.haveAccount'
+                                defaultMessage='Already have an account?'
+                            />
+                            {' '}
+                            <Link
+                                to={'/login'}
+                                query={this.props.location.query}
+                            >
+                                <FormattedMessage
+                                    id='signup_user_completed.signIn'
+                                    defaultMessage='Click here to sign in.'
+                                />
+                            </Link>
+                        </span>
                         {signupMessage}
                         {ldapSignup}
                         {emailSignup}
@@ -740,9 +762,3 @@ export default class SignupUserComplete extends React.Component {
         );
     }
 }
-
-SignupUserComplete.defaultProps = {
-};
-SignupUserComplete.propTypes = {
-    location: React.PropTypes.object
-};

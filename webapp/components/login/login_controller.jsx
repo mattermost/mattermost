@@ -22,6 +22,13 @@ import React from 'react';
 import logoImage from 'images/logo.png';
 
 export default class LoginController extends React.Component {
+    static get propTypes() {
+        return {
+            location: React.PropTypes.object.isRequired,
+            params: React.PropTypes.object.isRequired
+        };
+    }
+
     constructor(props) {
         super(props);
 
@@ -128,12 +135,31 @@ export default class LoginController extends React.Component {
     }
 
     submit(loginId, password, token) {
+        this.setState({serverError: null});
+
         Client.webLogin(
             loginId,
             password,
             token,
             () => {
-                this.setState({serverError: null});
+                // check for query params brought over from signup_user_complete
+                if (this.props.location.query.id || this.props.location.query.h) {
+                    Client.addUserToTeamFromInvite(
+                        this.props.location.query.d,
+                        this.props.location.query.h,
+                        this.props.location.query.id,
+                        () => {
+                            this.finishSignin();
+                        },
+                        () => {
+                            // there's not really a good way to deal with this, so just let the user log in like normal
+                            this.finishSignin();
+                        }
+                    );
+
+                    return;
+                }
+
                 this.finishSignin();
             },
             (err) => {
@@ -504,9 +530,3 @@ export default class LoginController extends React.Component {
         );
     }
 }
-
-LoginController.defaultProps = {
-};
-LoginController.propTypes = {
-    params: React.PropTypes.object.isRequired
-};
