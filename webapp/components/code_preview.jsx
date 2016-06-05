@@ -38,7 +38,7 @@ export default class CodePreview extends React.Component {
     }
 
     updateStateFromProps(props) {
-        var usedLanguage = SyntaxHighlighting.getLang(props.filename);
+        var usedLanguage = SyntaxHighlighting.getLanguageFromFilename(props.filename);
 
         if (!usedLanguage || props.fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
             this.setState({code: '', lang: '', loading: false, success: false});
