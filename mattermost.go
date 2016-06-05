@@ -1217,13 +1217,13 @@ func getMockContext() *api.Context {
 
 var usage = `Mattermost commands to help configure the system
 
-NAME: 
+NAME:
     platform -- platform configuation tool
-    
-USAGE: 
+
+USAGE:
     platform [options]
-    
-FLAGS: 
+
+FLAGS:
     -config="config.json"             Path to the config file
 
     -username="someuser"              Username used in other commands
@@ -1243,7 +1243,7 @@ FLAGS:
                                         "system_admin" - Represents a system
                                            admin who has access to all teams
                                            and configuration settings.
-COMMANDS: 
+COMMANDS:
     -create_team                      Creates a team.  It requires the -team_name
                                       and -email flag to create a team.
         Example:
@@ -1253,6 +1253,11 @@ COMMANDS:
                                        and -team_name and -username are optional to create a user.
         Example:
             platform -create_user -team_name="name" -email="user@example.com" -password="mypassword" -username="user"
+
+    -invite_user                      Invites a user to a team by email. It requires the -team_name
+                                        and -email flags.
+        Example:
+            platform -invite_user -team_name="name" -email="user@example.com"
 
     -join_team                        Joins a user to the team.  It required the -email and
                                        -team_name.  You may need to logout of your current session
