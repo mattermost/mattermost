@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "system.message.name",
+    "translation": "System"
+  },
+  {
     "id": "api.general.init.debug",
     "translation": "Initializing general api routes"
   },

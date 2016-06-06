@@ -27,7 +27,11 @@ class NotificationStoreClass extends EventEmitter {
 
     handleRecievedPost(post, msgProps) {
         // Send desktop notification
-        if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true') && !PostUtils.isSystemMessage(post)) {
+        if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true')) {
+            if (PostUtils.isSystemMessage(post) && post.type !== 'system_join_leave') {
+                return;
+            }
+
             let mentions = [];
             if (msgProps.mentions) {
                 mentions = JSON.parse(msgProps.mentions);
@@ -52,6 +56,8 @@ class NotificationStoreClass extends EventEmitter {
             let username = Utils.localizeMessage('channel_loader.someone', 'Someone');
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 username = post.props.override_username;
+            } else if (msgProps.sender_name) {
+                username = msgProps.sender_name;
             } else if (UserStore.hasProfile(post.user_id)) {
                 username = UserStore.getProfile(post.user_id).username;
             }
@@ -59,6 +65,8 @@ class NotificationStoreClass extends EventEmitter {
             let title = Utils.localizeMessage('channel_loader.posted', 'Posted');
             if (channel) {
                 title = channel.display_name;
+            } else if (msgProps.channel_display_name) {
+                title = msgProps.channel_display_name;
             }
 
             let notifyText = post.message.replace(/\n+/g, ' ');
