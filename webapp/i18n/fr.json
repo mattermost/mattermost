@@ -718,7 +718,6 @@
   "channel_notifications.unreadInfo": "Le nom du canal est en gras dans la barre latérale lorsqu'il y a des messages non-plus. Choisir \"Seulement pour les mentions\" mettra en gras le canal seulement si vous être mentionné.",
   "channel_select.placeholder": "--- Sélectionnez un canal ---",
   "channel_switch_modal.help": "↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss",
-  "channel_switch_modal.hint": "Type the name of a channel",
   "channel_switch_modal.not_found": "No matches found.",
   "channel_switch_modal.submit": "Switch",
   "channel_switch_modal.title": "Switch Channels",

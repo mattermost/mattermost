@@ -718,7 +718,6 @@
   "channel_notifications.unreadInfo": "El nombre del canal está en negritas en la barra lateral cuando hay mensajes sin leer. Al elegir \"Sólo para menciones\" sólo lo dejará en negritas cuando seas mencionado.",
   "channel_select.placeholder": "--- Selecciona un canal ---",
   "channel_switch_modal.help": "↑↓ para navegar, TAB para seleccionar, ↵ para confirmar, ESC para descartar",
-  "channel_switch_modal.hint": "Escribe el nombre de un canal",
   "channel_switch_modal.not_found": "No se encontró ninguna coincidencia.",
   "channel_switch_modal.submit": "Cambiar",
   "channel_switch_modal.title": "Cambiar Canales",
