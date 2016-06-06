@@ -99,7 +99,7 @@ import * as I18n from 'i18n/i18n.jsx';
 
 const notFoundParams = {
     title: Utils.localizeMessage('error.not_found.title', 'Page not found'),
-    message: Utils.localizeMessage('error.not_found.message', 'The page you where trying to reach does not exist'),
+    message: Utils.localizeMessage('error.not_found.message', 'The page you were trying to reach does not exist'),
     link: '/',
     linkmessage: Utils.localizeMessage('error.not_found.link_message', 'Back to Mattermost')
 };

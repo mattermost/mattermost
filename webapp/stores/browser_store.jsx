@@ -1,7 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {generateId} from 'utils/utils.jsx';
+import {browserHistory} from 'react-router';
+import * as Utils from 'utils/utils.jsx';
+
+const notSupportedParams = {
+    title: Utils.localizeMessage('error.not_supported.title', 'Browser not supported'),
+    message: Utils.localizeMessage('error.not_supported.message', 'Private browsing is not supported')
+};
 
 function getPrefix() {
     if (global.window.mm_current_user_id) {
@@ -100,7 +106,7 @@ class BrowserStoreClass {
     signalLogout() {
         if (this.isLocalStorageSupported()) {
             // PLT-1285 store an identifier in session storage so we can catch if the logout came from this tab on IE11
-            const logoutId = generateId();
+            const logoutId = Utils.generateId();
 
             sessionStorage.setItem('__logout__', logoutId);
             localStorage.setItem('__logout__', logoutId);
@@ -115,7 +121,7 @@ class BrowserStoreClass {
     signalLogin() {
         if (this.isLocalStorageSupported()) {
             // PLT-1285 store an identifier in session storage so we can catch if the logout came from this tab on IE11
-            const loginId = generateId();
+            const loginId = Utils.generateId();
 
             sessionStorage.setItem('__login__', loginId);
             localStorage.setItem('__login__', loginId);
@@ -183,9 +189,6 @@ class BrowserStoreClass {
         }
 
         try {
-            sessionStorage.setItem('__testSession__', '1');
-            sessionStorage.removeItem('__testSession__');
-
             localStorage.setItem('__testLocal__', '1');
             if (localStorage.getItem('__testLocal__') !== '1') {
                 this.checkedLocalStorageSupported = false;
@@ -195,6 +198,14 @@ class BrowserStoreClass {
             this.checkedLocalStorageSupported = true;
         } catch (e) {
             this.checkedLocalStorageSupported = false;
+        }
+
+        try {
+            sessionStorage.setItem('__testSession__', '1');
+            sessionStorage.removeItem('__testSession__');
+        } catch (e) {
+            // Session storage not usable, website is unusable
+            browserHistory.push(window.location.origin + '/error?title=' + notSupportedParams.title + '&message=' + notSupportedParams.message);
         }
 
         return this.checkedLocalStorageSupported;
