@@ -69,7 +69,7 @@ class CreateComment extends React.Component {
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
 
         PostStore.clearCommentDraftUploads();
-        MessageHistoryStore.resetAllHistoryIndex();
+        MessageHistoryStore.resetHistoryIndex('comment');
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
         this.state = {
