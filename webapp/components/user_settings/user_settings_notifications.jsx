@@ -325,7 +325,7 @@ class NotificationsTab extends React.Component {
                     </span>
                 );
 
-                submit = this.handleSubmit();
+                submit = this.handleSubmit;
             } else {
                 inputs.push(
                     <div
