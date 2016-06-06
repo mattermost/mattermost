@@ -32,6 +32,9 @@ export default class RhsRootPost extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
     shouldComponentUpdate(nextProps) {
+        if (nextProps.compactDisplay !== this.props.compactDisplay) {
+            return true;
+        }
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
@@ -220,6 +223,11 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
+        let compactClass = '';
+        if (this.props.compactDisplay) {
+            compactClass = 'post--compact';
+        }
+
         const messageWrapper = (
             <div
                 ref='message_holder'
@@ -229,7 +237,7 @@ export default class RhsRootPost extends React.Component {
         );
 
         return (
-            <div className={'post post--root ' + userCss + ' ' + systemMessageClass}>
+            <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
                 <div className='post__content'>
                     <div className='post__img'>
@@ -279,5 +287,6 @@ RhsRootPost.propTypes = {
     post: React.PropTypes.object.isRequired,
     user: React.PropTypes.object.isRequired,
     currentUser: React.PropTypes.object.isRequired,
-    commentCount: React.PropTypes.number
+    commentCount: React.PropTypes.number,
+    compactDisplay: React.PropTypes.bool
 };

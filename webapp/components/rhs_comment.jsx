@@ -35,6 +35,9 @@ export default class RhsComment extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
     shouldComponentUpdate(nextProps) {
+        if (nextProps.compactDisplay !== this.props.compactDisplay) {
+            return true;
+        }
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
@@ -186,6 +189,11 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        let compactClass = '';
+        if (this.props.compactDisplay) {
+            compactClass = 'post--compact';
+        }
+
         var dropdown = this.createDropdown();
 
         var fileAttachment;
@@ -195,12 +203,13 @@ export default class RhsComment extends React.Component {
                     filenames={post.filenames}
                     channelId={post.channel_id}
                     userId={post.user_id}
+                    compactDisplay={this.props.compactDisplay}
                 />
             );
         }
 
         return (
-            <div className={'post ' + currentUserCss}>
+            <div className={'post post--thread ' + currentUserCss + ' ' + compactClass}>
                 <div className='post__content'>
                     <div className='post__img'>
                         <img
@@ -249,5 +258,6 @@ export default class RhsComment extends React.Component {
 RhsComment.propTypes = {
     post: React.PropTypes.object,
     user: React.PropTypes.object.isRequired,
-    currentUser: React.PropTypes.object.isRequired
+    currentUser: React.PropTypes.object.isRequired,
+    compactDisplay: React.PropTypes.bool
 };

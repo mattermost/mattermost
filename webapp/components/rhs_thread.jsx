@@ -12,6 +12,7 @@ import RhsHeaderPost from './rhs_header_post.jsx';
 import RootPost from './rhs_root_post.jsx';
 import Comment from './rhs_comment.jsx';
 import Constants from 'utils/constants.jsx';
+const Preferences = Constants.Preferences;
 import FileUploadOverlay from './file_upload_overlay.jsx';
 import Scrollbars from 'react-custom-scrollbars';
 
@@ -50,12 +51,14 @@ export default class RhsThread extends React.Component {
         this.onPostChange = this.onPostChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         const state = this.getPosts();
         state.windowWidth = Utils.windowWidth();
         state.windowHeight = Utils.windowHeight();
         state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
+        state.compactDisplay = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT;
 
         this.state = state;
     }
@@ -63,6 +66,7 @@ export default class RhsThread extends React.Component {
         PostStore.addSelectedPostChangeListener(this.onPostChange);
         PostStore.addChangeListener(this.onPostChange);
         PreferenceStore.addChangeListener(this.forceUpdateInfo);
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
 
         this.scrollToBottom();
@@ -74,6 +78,7 @@ export default class RhsThread extends React.Component {
         PostStore.removeSelectedPostChangeListener(this.onPostChange);
         PostStore.removeChangeListener(this.onPostChange);
         PreferenceStore.removeChangeListener(this.forceUpdateInfo);
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
 
         window.removeEventListener('resize', this.handleResize);
@@ -103,6 +108,10 @@ export default class RhsThread extends React.Component {
             return true;
         }
 
+        if (nextState.compactDisplay !== this.state.compactDisplay) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextState.profiles, this.state.profiles)) {
             return true;
         }
@@ -122,6 +131,11 @@ export default class RhsThread extends React.Component {
         this.setState({
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight()
+        });
+    }
+    onPreferenceChange() {
+        this.setState({
+            compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT
         });
     }
     onPostChange() {
@@ -228,6 +242,7 @@ export default class RhsThread extends React.Component {
                                 commentCount={postsArray.length}
                                 user={profile}
                                 currentUser={this.props.currentUser}
+                                compactDisplay={this.state.compactDisplay}
                             />
                             <div className='post-right-comments-container'>
                                 {postsArray.map((comPost) => {
@@ -244,6 +259,7 @@ export default class RhsThread extends React.Component {
                                             post={comPost}
                                             user={p}
                                             currentUser={this.props.currentUser}
+                                            compactDisplay={this.state.compactDisplay}
                                         />
                                     );
                                 })}

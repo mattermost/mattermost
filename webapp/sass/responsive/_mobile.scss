@@ -26,6 +26,10 @@
         }
     }
 
+    .member-select__container {
+        margin-top: 10px;
+    }
+
     .user-popover {
         pointer-events: none;
     }
@@ -51,11 +55,6 @@
     }
 
     .post {
-        &.post--compact {
-
-
-        }
-
         .post__dropdown {
             display: inline-block;
             height: 20px;

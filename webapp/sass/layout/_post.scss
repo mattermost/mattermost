@@ -488,6 +488,13 @@ body.ios {
     }
 
     &.post--compact {
+        &.post--thread {
+            .post__header {
+                height: 22px;
+                padding-top: 3px;
+            }
+        }
+
         blockquote {
             display: inline-block;
             font-size: 1em;
@@ -509,9 +516,18 @@ body.ios {
 
         .post__body {
             background: transparent !important;
-            line-height: 1.2;
+            line-height: 1.6;
             margin-top: -1px;
             padding: 3px 0;
+
+            .img-div {
+                max-height: 150px;
+                max-width: 150px;
+            }
+
+            p {
+                line-height: inherit;
+            }
 
             p + p {
                 margin-top: 1em;
@@ -520,6 +536,7 @@ body.ios {
             ol,
             ul {
                 display: inline-block;
+                margin-top: 1px;
                 padding-left: 30px;
             }
         }
@@ -758,7 +775,7 @@ body.ios {
 
         .col__reply {
             position: absolute;
-            right: 10px;
+            right: 0;
             top: 30px;
             white-space: nowrap;
             width: 65px;
