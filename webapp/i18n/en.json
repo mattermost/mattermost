@@ -720,7 +720,6 @@
   "channel_notifications.unreadInfo": "The channel name is bolded in the sidebar when there are unread messages. Selecting \"Only for mentions\" will bold the channel only when you are mentioned.",
   "channel_select.placeholder": "--- Select a channel ---",
   "channel_switch_modal.help": "Type channel name. Use ↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss",
-  "channel_switch_modal.hint": "Type the name of a channel",
   "channel_switch_modal.not_found": "No matches found.",
   "channel_switch_modal.submit": "Switch",
   "channel_switch_modal.title": "Switch Channels",

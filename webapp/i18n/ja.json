@@ -718,7 +718,6 @@
   "channel_notifications.unreadInfo": "チャンネル名は未読のメッセージがある場合、サイドバーで太字で表示されます。「あなたについての投稿のみ」を選択することで、あなたについての投稿がある場合のみ太字で表示されます。",
   "channel_select.placeholder": "--- チャンネルを選択してください ---",
   "channel_switch_modal.help": "↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss",
-  "channel_switch_modal.hint": "Type the name of a channel",
   "channel_switch_modal.not_found": "No matches found.",
   "channel_switch_modal.submit": "Switch",
   "channel_switch_modal.title": "Switch Channels",
