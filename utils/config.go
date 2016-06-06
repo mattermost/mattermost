@@ -249,6 +249,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
+	props["SQLDriverName"] = c.SqlSettings.DriverName
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {
