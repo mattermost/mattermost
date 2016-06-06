@@ -400,6 +400,26 @@
     "translation": "echo"
   },
   {
+    "id": "api.command_collapse.desc",
+    "translation": "Turn on auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "collapse"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Turn off auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "An error occured while expanding previews"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "expand"
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "Join the open channel"
   },

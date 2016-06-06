@@ -25,7 +25,11 @@ export default class PostBody extends React.Component {
             return true;
         }
 
-        if (!Utils.areObjectsEqual(nextProps.compactDisplay, this.props.compactDisplay)) {
+        if (nextProps.compactDisplay !== this.props.compactDisplay) {
+            return true;
+        }
+
+        if (nextProps.previewCollapsed !== this.props.previewCollapsed) {
             return true;
         }
 
@@ -172,6 +176,7 @@ export default class PostBody extends React.Component {
                     post={this.props.post}
                     message={messageWrapper}
                     compactDisplay={this.props.compactDisplay}
+                    previewCollapsed={this.props.previewCollapsed}
                 />
             );
         }
@@ -193,5 +198,6 @@ PostBody.propTypes = {
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+    previewCollapsed: React.PropTypes.string
 };

@@ -14,6 +14,9 @@ const (
 	PREFERENCE_CATEGORY_TUTORIAL_STEPS      = "tutorial_step"
 	PREFERENCE_CATEGORY_ADVANCED_SETTINGS   = "advanced_settings"
 
+	PREFERENCE_CATEGORY_DISPLAY_SETTINGS = "display_settings"
+	PREFERENCE_NAME_COLLAPSE_SETTING     = "collapse_previews"
+
 	PREFERENCE_CATEGORY_LAST     = "last"
 	PREFERENCE_NAME_LAST_CHANNEL = "channel"
 )

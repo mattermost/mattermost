@@ -22,8 +22,12 @@ export default class PostBodyAdditionalContent extends React.Component {
         this.toggleEmbedVisibility = this.toggleEmbedVisibility.bind(this);
 
         this.state = {
-            embedVisible: true
+            embedVisible: props.previewCollapsed.startsWith('false')
         };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({embedVisible: nextProps.previewCollapsed.startsWith('false')});
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -118,25 +122,23 @@ export default class PostBodyAdditionalContent extends React.Component {
 
         if (generateEmbed) {
             let messageWithToggle = [];
-            if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMBED_TOGGLE)) {
-                // if message has only one line and starts with a link place toggle in this only line
-                // else - place it in new line between message and embed
-                const prependToggle = (/^\s*https?:\/\/.*$/).test(this.props.post.message);
-                messageWithToggle.push(
-                    <a
-                        className={`post__embed-visibility ${prependToggle ? 'pull-left' : ''}`}
-                        data-expanded={this.state.embedVisible}
-                        aria-label='Toggle Embed Visibility'
-                        onClick={this.toggleEmbedVisibility}
-                    />
-                );
-                if (prependToggle) {
-                    messageWithToggle.push(this.props.message);
-                } else {
-                    messageWithToggle.unshift(this.props.message);
-                }
-            } else {
+
+            // if message has only one line and starts with a link place toggle in this only line
+            // else - place it in new line between message and embed
+            const prependToggle = (/^\s*https?:\/\/.*$/).test(this.props.post.message);
+            messageWithToggle.push(
+                <a
+                    className={`post__embed-visibility ${prependToggle ? 'pull-left' : ''}`}
+                    data-expanded={this.state.embedVisible}
+                    aria-label='Toggle Embed Visibility'
+                    onClick={this.toggleEmbedVisibility}
+                />
+            );
+
+            if (prependToggle) {
                 messageWithToggle.push(this.props.message);
+            } else {
+                messageWithToggle.unshift(this.props.message);
             }
 
             return (
@@ -156,8 +158,12 @@ export default class PostBodyAdditionalContent extends React.Component {
     }
 }
 
+PostBodyAdditionalContent.defaultProps = {
+    previewCollapsed: 'false'
+};
 PostBodyAdditionalContent.propTypes = {
     post: React.PropTypes.object.isRequired,
+    message: React.PropTypes.element.isRequired,
     compactDisplay: React.PropTypes.bool,
-    message: React.PropTypes.element.isRequired
+    previewCollapsed: React.PropTypes.string
 };
