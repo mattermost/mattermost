@@ -11,6 +11,7 @@ import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
@@ -143,7 +144,21 @@ class CreatePost extends React.Component {
                     PostStore.storeDraft(this.state.channelId, null);
                     this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
-                    if (data.goto_location && data.goto_location.length > 0) {
+                    if (data.goto_location.indexOf('channels') !== -1) {
+                        const channelId = data.goto_location.substr(data.goto_location.lastIndexOf('/') + 1, data.goto_location.length);
+                        const channelName = data.goto_location.substr(0, data.goto_location.indexOf('/channels'));
+                        GlobalActions.emitJoinChannelByIdEvent(
+                            channelId,
+                            () => {
+                                ChannelActions.goToChannelByName(channelName);
+                            },
+                            (err) => {
+                                this.setState({
+                                    serverError: err.message
+                                });
+                            }
+                            );
+                    } else if (data.goto_location && data.goto_location.length > 0) {
                         browserHistory.push(data.goto_location);
                     }
                 },
