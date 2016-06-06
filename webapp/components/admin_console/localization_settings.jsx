@@ -80,7 +80,7 @@ export default class LocalizationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.localization.serverLocaleDescription'
-                            defaultMessage='This setting sets the default language for the system messages and logs. (NEED SERVER RESTART)'
+                            defaultMessage='Default language for system messages and logs. Changing this will require a server restart before taking effect.'
                         />
                     }
                 />
@@ -98,7 +98,7 @@ export default class LocalizationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.localization.clientLocaleDescription'
-                            defaultMessage="This setting sets the Default language for newly created users and for pages where the user hasn't loggged in."
+                            defaultMessage="Default language for newly created users and pages where the user hasn't logged in."
                         />
                     }
                 />
@@ -117,7 +117,7 @@ export default class LocalizationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.localization.availableLocalesDescription'
-                            defaultMessage='This setting determines the available languages that a user can set using the Account Settings.'
+                            defaultMessage='Determines which languages are available for users in Account Settings.'
                         />
                     }
                     noResultText={
