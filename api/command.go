@@ -240,7 +240,7 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 		if len(cmd.IconURL) != 0 {
 			post.AddProp("override_icon_url", cmd.IconURL)
 		} else {
-			post.AddProp("override_icon_url", model.DEFAULT_WEBHOOK_ICON)
+			post.AddProp("override_icon_url", "")
 		}
 	}
 
