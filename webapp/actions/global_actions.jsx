@@ -475,3 +475,11 @@ export function emitJoinChannelEvent(channel, success, failure) {
         failure,
     );
 }
+
+export function emitJoinChannelByIdEvent(channelId, success, failure) {
+    Client.joinChannel(
+        channelId,
+        success,
+        failure,
+    );
+}

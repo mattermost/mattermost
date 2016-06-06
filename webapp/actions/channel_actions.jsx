@@ -13,3 +13,7 @@ export function goToChannel(channel) {
 export function executeCommand(channelId, message, suggest, success, error) {
     Client.executeCommand(channelId, message, suggest, success, error);
 }
+
+export function goToChannelByName(name) {
+    browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + name);
+}
