@@ -4,12 +4,17 @@
 import SuggestionList from './suggestion/suggestion_list.jsx';
 import SuggestionBox from './suggestion/suggestion_box.jsx';
 import SwitchChannelProvider from './suggestion/switch_channel_provider.jsx';
+
 import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
-import * as Utils from 'utils/utils.jsx';
+
 import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+
 import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
+
 import React from 'react';
 
 export default class SwitchChannelModal extends React.Component {
@@ -66,8 +71,17 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleSubmit() {
-        const channel = ChannelStore.getByName(this.state.text.trim());
-        if (channel !== null && channel.name === this.state.text.trim() && channel.type !== Constants.DM_CHANNEL) {
+        const name = this.state.text.trim();
+        let channel = null;
+
+        if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
+            const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
+            channel = ChannelStore.getByName(Utils.getDirectChannelNameByUsername(dmUsername, UserStore.getCurrentUser().username).trim());
+        } else {
+            channel = ChannelStore.getByName(this.state.text.trim());
+        }
+
+        if (channel !== null) {
             ChannelActions.goToChannel(channel);
             this.onHide();
         } else if (this.state.text !== '') {

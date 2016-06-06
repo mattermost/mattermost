@@ -1147,6 +1147,13 @@ export function getDirectChannelName(id, otherId) {
     return handle;
 }
 
+export function getDirectChannelNameByUsername(username, otherUsername) {
+    const id = UserStore.getProfileByUsername(username).id;
+    const otherId = UserStore.getProfileByUsername(otherUsername).id;
+
+    return getDirectChannelName(id, otherId);
+}
+
 // Used to get the id of the other user from a DM channel
 export function getUserIdFromChannelName(channel) {
     var ids = channel.name.split('__');

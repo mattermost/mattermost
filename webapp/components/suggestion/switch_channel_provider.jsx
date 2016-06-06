@@ -6,6 +6,8 @@ import React from 'react';
 import ChannelStore from 'stores/channel_store.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import Suggestion from './suggestion.jsx';
+import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 class SwitchChannelSuggestion extends Suggestion {
     render() {
@@ -16,7 +18,12 @@ class SwitchChannelSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
-        const displayName = item.display_name + ' (' + item.name + ')';
+        let displayName = '';
+        if (item.type === Constants.DM_CHANNEL) {
+            displayName = item.display_name + ' ' + Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)');
+        } else {
+            displayName = item.display_name + ' (' + item.name + ')';
+        }
 
         return (
             <div
@@ -39,6 +46,14 @@ export default class SwitchChannelProvider {
                 const channel = allChannels[id];
                 if (channel.display_name.toLowerCase().startsWith(channelPrefix.toLowerCase())) {
                     channels.push(channel);
+                } else if (channel.type === Constants.DM_CHANNEL && Utils.getDirectTeammate(channel.id).username.startsWith(channelPrefix.toLowerCase())) {
+                    // New channel to not modify existing channel
+                    const newChannel = {
+                        display_name: Utils.getDirectTeammate(channel.id).username,
+                        name: Utils.getDirectTeammate(channel.id).username + ' ' + Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)'),
+                        type: Constants.DM_CHANNEL
+                    };
+                    channels.push(newChannel);
                 }
             }
 
