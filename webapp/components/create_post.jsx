@@ -87,7 +87,8 @@ class CreatePost extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             centerTextbox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             showTutorialTip: false,
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            typing: false
         };
     }
 
@@ -132,7 +133,7 @@ class CreatePost extends React.Component {
 
         MessageHistoryStore.storeMessageInHistory(this.state.messageText);
 
-        this.setState({submitting: true, serverError: null});
+        this.setState({submitting: true, serverError: null, typing: false});
 
         if (post.message.indexOf('/') === 0) {
             ChannelActions.executeCommand(
@@ -218,7 +219,8 @@ class CreatePost extends React.Component {
     }
 
     handleUserInput(messageText) {
-        this.setState({messageText});
+        const typing = messageText !== '';
+        this.setState({messageText, typing});
 
         const draft = PostStore.getCurrentDraft();
         draft.message = messageText;
@@ -365,7 +367,7 @@ class CreatePost extends React.Component {
         if (this.state.channelId !== channelId) {
             const draft = this.getCurrentDraft();
 
-            this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, previews: draft.previews, uploadsInProgress: draft.uploadsInProgress});
+            this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, typing: false, serverError: null, postError: null, previews: draft.previews, uploadsInProgress: draft.uploadsInProgress});
         }
     }
 
@@ -516,6 +518,7 @@ class CreatePost extends React.Component {
                                 onKeyPress={this.postMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
+                                typing={this.state.typing}
                                 createMessage={this.props.intl.formatMessage(holders.write)}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
