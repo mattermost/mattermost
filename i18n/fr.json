@@ -372,6 +372,14 @@
     "translation": "Droits insuffisants pour regénérer la clé de commande"
   },
   {
+    "id": "api.command_collapse.desc",
+    "translation": "Turn on auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "collapse"
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "Impossible de créer /echo post, err=%v"
   },
@@ -394,6 +402,18 @@
   {
     "id": "api.command_echo.name",
     "translation": "echo"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Turn off auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "expand"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "An error occured while expanding previews"
   },
   {
     "id": "api.command_join.desc",
@@ -489,7 +509,7 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in LHS\nALT+DOWN: Next channel or direct message in LHS\nALT+SHIFT+UP: Previous channel or direct message in LHS with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in LHS with unread messages\nCTRL/CMD+SHIFT+A: Open account settings\nCTRL/CMD+SHIFT+K: Open a quick channel switcher dialog\nCTRL/CMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL/CMD+U: Upload file(s)\n\n#### Messages\n\nCTRL/CMD+UP: Reprint the last message you entered\nCTRL/CMD+DOWN: Reprint the next message you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT/CMD+[: Previous channel in your history\nALT+RIGHT/CMD+]: Next channel in your history\nCTRL/CMD+PLUS: Increase font size (zoom in)\nCTRL/CMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL/CMD+K: Open a quick channel switcher dialog\nCTRL/CMD+SHIFT+A: Open account settings\nCTRL/CMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL/CMD+U: Upload file(s)\n\n#### Messages\n\nCTRL/CMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL/CMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT/CMD+[: Previous channel in your history\nALT+RIGHT/CMD+]: Next channel in your history\nCTRL/CMD+PLUS: Increase font size (zoom in)\nCTRL/CMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -3496,6 +3516,10 @@
     "translation": "Nous ne pouvons pas obtenir les membres de l'équipe"
   },
   {
+    "id": "store.sql_team.get_member.missing.app_error",
+    "translation": "Aucun élément de canal trouvé pour cet id d'utilisateur et cet id de canal"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "Nous ne pouvons pas obtenir les membres de l'équipe"
   },
@@ -3778,6 +3802,10 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "Nous n'avons pas pu mettre à jour le webhook"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "System"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
