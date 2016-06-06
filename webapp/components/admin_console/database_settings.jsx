@@ -24,7 +24,6 @@ export default class DatabaseSettings extends AdminSettings {
         this.state = Object.assign(this.state, {
             driverName: this.props.config.SqlSettings.DriverName,
             dataSource: this.props.config.SqlSettings.DataSource,
-            dataSourceReplicas: this.props.config.SqlSettings.DataSourceReplicas,
             maxIdleConns: props.config.SqlSettings.MaxIdleConns,
             maxOpenConns: props.config.SqlSettings.MaxOpenConns,
             atRestEncryptKey: props.config.SqlSettings.AtRestEncryptKey,
@@ -33,7 +32,7 @@ export default class DatabaseSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
-        // driverName, dataSource, and dataSourceReplicas are read-only from the UI
+        // driverName and dataSource are read-only from the UI
 
         config.SqlSettings.MaxIdleConns = this.parseIntNonZero(this.state.maxIdleConns);
         config.SqlSettings.MaxOpenConns = this.parseIntNonZero(this.state.maxOpenConns);
@@ -56,15 +55,6 @@ export default class DatabaseSettings extends AdminSettings {
 
     renderSettings() {
         const dataSource = '**********' + this.state.dataSource.substring(this.state.dataSource.indexOf('@'));
-
-        let dataSourceReplicas = '';
-        this.state.dataSourceReplicas.forEach((replica) => {
-            dataSourceReplicas += '[**********' + replica.substring(replica.indexOf('@')) + '] ';
-        });
-
-        if (this.state.dataSourceReplicas.length === 0) {
-            dataSourceReplicas = 'none';
-        }
 
         return (
             <SettingsGroup>
@@ -100,20 +90,6 @@ export default class DatabaseSettings extends AdminSettings {
                     </label>
                     <div className='col-sm-8'>
                         <p className='help-text'>{dataSource}</p>
-                    </div>
-                </div>
-                <div className='form-group'>
-                    <label
-                        className='control-label col-sm-4'
-                        htmlFor='DataSourceReplicas'
-                    >
-                        <FormattedMessage
-                            id='admin.sql.replicas'
-                            defaultMessage='Data Source Replicas:'
-                        />
-                    </label>
-                    <div className='col-sm-8'>
-                        <p className='help-text'>{dataSourceReplicas}</p>
                     </div>
                 </div>
                 <TextSetting
