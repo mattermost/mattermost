@@ -46,7 +46,7 @@ export default class SwitchChannelProvider {
                 const channel = allChannels[id];
                 if (channel.display_name.toLowerCase().startsWith(channelPrefix.toLowerCase())) {
                     channels.push(channel);
-                } else if (channel.type === Constants.DM_CHANNEL) {
+                } else if (channel.type === Constants.DM_CHANNEL && Utils.getDirectTeammate(channel.id).username.startsWith(channelPrefix.toLowerCase())) {
                     // New channel to not modify existing channel
                     const newChannel = {
                         display_name: Utils.getDirectTeammate(channel.id).username,
