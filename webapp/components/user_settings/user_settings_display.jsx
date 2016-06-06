@@ -41,10 +41,13 @@ export default class UserSettingsDisplay extends React.Component {
         this.handleFont = this.handleFont.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.updateState = this.updateState.bind(this);
-        this.deactivate = this.deactivate.bind(this);
         this.createCollapseSection = this.createCollapseSection.bind(this);
 
         this.state = getDisplayStateFromStores();
+    }
+
+    componentWillUnmount() {
+        Utils.applyFont(PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT));
     }
 
     handleSubmit() {
@@ -134,10 +137,6 @@ export default class UserSettingsDisplay extends React.Component {
             this.handleFont(newState.selectedFont);
             this.setState(newState);
         }
-    }
-
-    deactivate() {
-        this.updateState();
     }
 
     createCollapseSection() {
