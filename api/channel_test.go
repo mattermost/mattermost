@@ -462,10 +462,24 @@ func TestJoinChannelById(t *testing.T) {
 
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team)
-	Client.Login(user3.Email, "pwd")
+	Client.Must(Client.Login(user3.Email, "Password1"))
 
 	if _, err := Client.JoinChannel(rchannel.Id); err == nil {
 		t.Fatal("shoudn't be able to join direct channel")
+	}
+
+	th.LoginBasic()
+
+	if _, err := Client.JoinChannel(channel1.Id); err != nil {
+		t.Fatal("should be able to join public channel that we're a member of")
+	}
+
+	if _, err := Client.JoinChannel(channel3.Id); err != nil {
+		t.Fatal("should be able to join private channel that we're a member of")
+	}
+
+	if _, err := Client.JoinChannel(rchannel.Id); err != nil {
+		t.Fatal("should be able to join direct channel that we're a member of")
 	}
 }
 
@@ -492,10 +506,24 @@ func TestJoinChannelByName(t *testing.T) {
 
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team)
-	Client.Login(user3.Email, "pwd")
+	Client.Must(Client.Login(user3.Email, "Password1"))
 
 	if _, err := Client.JoinChannelByName(rchannel.Name); err == nil {
 		t.Fatal("shoudn't be able to join direct channel")
+	}
+
+	th.LoginBasic()
+
+	if _, err := Client.JoinChannelByName(channel1.Name); err != nil {
+		t.Fatal("should be able to join public channel that we're a member of")
+	}
+
+	if _, err := Client.JoinChannelByName(channel3.Name); err != nil {
+		t.Fatal("should be able to join private channel that we're a member of")
+	}
+
+	if _, err := Client.JoinChannelByName(rchannel.Name); err != nil {
+		t.Fatal("should be able to join direct channel that we're a member of")
 	}
 }
 
