@@ -476,6 +476,11 @@ func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel stor
 		channel := cresult.Data.(*model.Channel)
 		user := uresult.Data.(*model.User)
 
+		if mresult := <-Srv.Store.Channel().GetMember(channel.Id, user.Id); mresult.Err == nil && mresult.Data != nil {
+			// the user is already in the channel so just return successful
+			return nil, channel
+		}
+
 		if !c.HasPermissionsToTeam(channel.TeamId, "join") {
 			return c.Err, nil
 		}
