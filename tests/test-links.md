@@ -43,6 +43,7 @@ ___https://example.com___
 <https://example.com>
 <https://en.wikipedia.org/wiki/Rendering_(computer_graphics)>
 www1.example.com
+[This whole #sentence should be a link](https://example.com)
 
 #### These strings should not auto-link:
 
