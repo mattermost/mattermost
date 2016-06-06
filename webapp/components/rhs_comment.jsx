@@ -35,6 +35,9 @@ export default class RhsComment extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
     shouldComponentUpdate(nextProps) {
+        if (nextProps.compactDisplay !== this.props.compactDisplay) {
+            return true;
+        }
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
