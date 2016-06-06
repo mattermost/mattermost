@@ -101,7 +101,7 @@ export default class SwitchChannelModal extends React.Component {
                     <div className='modal__hint'>
                         <FormattedMessage
                             id='channel_switch_modal.help'
-                            defaultMessage='↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss'
+                            defaultMessage='Type channel name. Use ↑↓ to browse, TAB to select, ↵ to confirm, ESC to dismiss'
                         />
                     </div>
                     <SuggestionBox
