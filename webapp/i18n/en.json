@@ -243,7 +243,6 @@
   "admin.image.thumbWidthDescription": "Width of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.",
   "admin.image.thumbWidthExample": "Ex \"120\"",
   "admin.image.thumbWidthTitle": "Thumbnail Width:",
-  "admin.ldap.bannerDesc": "If a user attribute changes on the LDAP server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from an LDAP server. Synchronization with LDAP servers is planned in a future release.",
   "admin.ldap.baseDesc": "The Base DN is the Distinguished Name of the location where Mattermost should start its search for users in the LDAP tree.",
   "admin.ldap.baseEx": "Ex \"ou=Unit Name,dc=corp,dc=example,dc=com\"",
   "admin.ldap.baseTitle": "BaseDN:",
