@@ -372,6 +372,14 @@
     "translation": "Permisos inapropiados para utilizar le comando de regenerar token"
   },
   {
+    "id": "api.command_collapse.desc",
+    "translation": "Activar auto-colapso de previsualizaciones de imagen"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "colapsar"
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "No se pudo crear el /echo mensaje, err=%v"
   },
@@ -394,6 +402,18 @@
   {
     "id": "api.command_echo.name",
     "translation": "echo"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Desactivar auto-colapso de previsualizaciones de imagen"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "expandir"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "Ha ocurrido un error mientras se expandian las previsualizaciones"
   },
   {
     "id": "api.command_join.desc",
@@ -489,7 +509,7 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Atajos de Teclado\n\n#### Navigación\n\nALT+ARRIBA: Canal o mensaje directo previo en el LHS\nALT+ABAJO: Canal o mensaje directo siguiente en el LHS\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en el LHS con mensajes no leidos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en el LHS con mensajes no leidos\nCTRL/CMD+MAYUS+A: Abre la configuración de la cuenta\nCTRL/CMD+MAYUS+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL/CMD+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCTRL/CMD+U: Subir archivo(s)\n\n#### Mensajes\n\nCTRL/CMD+ARRIBA: Reimprime el último mensaje que ingresaste\nCTRL/CMD+ABAJO: Reimprime el siguiente mensaje que ingresaste\nARRIBA (con el cuadro de texto vacio): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Autocompleta @nombre que comience por [carácter]\n:[carácter]+TAB: Autocompleta el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nALT+IZQ/CMD+[: Canal anterior en tu historial\nALT+DER/CMD+]: Canal siguiente en tu historial\nCTRL/CMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL/CMD+MENOS: Decrementa el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
+    "translation": "### Atajos de Teclado\n\n#### Navegación\n\nALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\nALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\nALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\nALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\nCTRL/CMD+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\nCTRL/CMD+MAYUS+A: Abre la configuración de la cuenta\nCTRL/CMD+MAYUS+M: Abre las menciones recientes\n\n#### Archivos\n\nCTRL/CMD+U: Subir archivo(s)\n\n#### Mensajes\n\nCTRL/CMD+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\nCTRL/CMD+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\nARRIBA (con el cuadro de texto vacío): Edita tu último mensaje en el canal en el que te encuentras\n@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n:[carácter]+TAB: Auto completa el emoji que comience por [carácter]\n\n#### Comandos incluidos en el Navegador\n\nALT+IZQ/CMD+[: Canal anterior en tu historial\nALT+DER/CMD+]: Canal siguiente en tu historial\nCTRL/CMD+MAS: Incrementa el tamaño de las letras (hace zoom)\nCTRL/CMD+MENOS: Reduce el tamaño de las letras (quita zoom)\nSHIFT+ARRIBA (en el cuadro de texto): Selecciona el texto en las lineas de arriba\nSHIFT+ABAJO (en el cuadro de texto): Selecciona el texto en las lineas de abajo\nSHIFT+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -3496,6 +3516,10 @@
     "translation": "No pudimos obtener los miembros del equipo"
   },
   {
+    "id": "store.sql_team.get_member.missing.app_error",
+    "translation": "No se encontró un miembro del equipo para el id de usuario y el id del equipo"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "No pudimos obtener los miembros del equipo"
   },
@@ -3778,6 +3802,10 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "No pudimos actualizar el webhook"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "Sistema"
   },
   {
     "id": "utils.config.load_config.decoding.panic",

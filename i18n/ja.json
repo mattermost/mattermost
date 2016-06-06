@@ -341,15 +341,15 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Send an email invite to your Mattermost team"
+    "translation": "あなたのMattermostチームに招待の電子メールを送る"
   },
   {
     "id": "api.command.invite_people.email_off",
-    "translation": "Email has not been configured, no invite(s) sent"
+    "translation": "電子メールが使えるように設定されていません。招待の電子メールは送信できませんでした。"
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Encountered an error sending email invite(s)"
+    "translation": "招待の電子メールを送信する際にエラーが発生しました"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -357,19 +357,27 @@
   },
   {
     "id": "api.command.invite_people.name",
-    "translation": "invite_people"
+    "translation": "招待した人々"
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Please specify one or more valid email addresses"
+    "translation": "1つ以上の有効な電子メールアドレスを指定してください"
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "Email invite(s) sent"
+    "translation": "招待の電子メールを送信しました"
   },
   {
     "id": "api.command.regen.app_error",
     "translation": "コマンドトークンを再生成するために必要な権限が付与されていません"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Turn on auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "collapse"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -394,6 +402,18 @@
   {
     "id": "api.command_echo.name",
     "translation": "エコー"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Turn off auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "expand"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "An error occured while expanding previews"
   },
   {
     "id": "api.command_join.desc",
@@ -489,7 +509,7 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: LHSの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: LHSの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのあるLHSの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのあるLHSの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP: 最後に入力したメッセージを表示する\nCTRL/CMD+DOWN: 入力したメッセージの次を表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
+    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\nESC: 右側のサイドバーを閉じる\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP (空の入力欄で): 前のメッセージまたはスラッシュコマンドを表示する\nCTRL/CMD+DOWN (空の入力欄で): 次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -2025,11 +2045,11 @@
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP Synchronization completed"
+    "translation": "LDAPの同期が完了しました"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Unable to get all users using LDAP"
+    "translation": "LDAPを使っている全てのユーザーを取得できません"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -2421,7 +2441,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
-    "translation": "Invalid sync interval time. Must be at least one minute."
+    "translation": "同期の時間間隔が不正です。少なくとも1分間以上にしてください。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3496,6 +3516,10 @@
     "translation": "チームのメンバーが取得できませんでした"
   },
   {
+    "id": "store.sql_team.get_member.missing.app_error",
+    "translation": "そのユーザーIDとチームIDに合致するチームのメンバーが見付かりません"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "チャンネルのメンバーが取得できませんでした"
   },
@@ -3561,7 +3585,7 @@
   },
   {
     "id": "store.sql_user.get_all_using_auth_service.other.app_error",
-    "translation": "認証形式でアカウントを探す際にエラーが発生しました"
+    "translation": "特定の認証形式を使う全てのアカウントを抽出する際にエラーが発生しました。"
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
@@ -3778,6 +3802,10 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "ウェブフックを更新できませんでした"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "System"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
