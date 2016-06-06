@@ -17,7 +17,7 @@ class PreferenceStoreClass extends EventEmitter {
 
         this.preferences = new Map();
 
-        this.setMaxListeners(15);
+        this.setMaxListeners(20);
     }
 
     getKey(category, name) {
