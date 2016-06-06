@@ -906,7 +906,9 @@ class NotificationsTab extends React.Component {
 
             let describe = '';
             for (var i = 0; i < keys.length; i++) {
-                describe += '"' + keys[i] + '", ';
+                if (keys[i] !== '') {
+                    describe += '"' + keys[i] + '", ';
+                }
             }
 
             if (describe.length > 0) {
