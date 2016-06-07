@@ -551,7 +551,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_POSTS: {
-        const id = PostStore.currentFocusedPostId == null ? action.id : PostStore.currentFocusedPostId;
+        const id = PostStore.currentFocusedPostId !== null && action.isPost ? PostStore.currentFocusedPostId : action.id;
         PostStore.storePosts(id, makePostListNonNull(action.post_list));
         PostStore.checkBounds(id, action.numRequested, makePostListNonNull(action.post_list), action.before);
         PostStore.emitChange();
