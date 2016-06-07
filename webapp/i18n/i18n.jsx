@@ -13,6 +13,7 @@ import frLocaleData from 'react-intl/locale-data/fr';
 import jaLocaleData from 'react-intl/locale-data/ja';
 import ptLocaleData from 'react-intl/locale-data/pt';
 
+// should match the values in model/config.go
 const languages = {
     en: {
         value: 'en',

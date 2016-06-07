@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const (
@@ -34,6 +35,15 @@ const (
 
 	FAKE_SETTING = "********************************"
 )
+
+// should match the values in webapp/i18n/i18n.jsx
+var LOCALES = []string{
+	"en",
+	"es",
+	"fr",
+	"ja",
+	"pt-BR",
+}
 
 type ServiceSettings struct {
 	ListenAddress                     string
@@ -541,7 +551,7 @@ func (o *Config) SetDefaults() {
 
 	if o.LocalizationSettings.AvailableLocales == nil {
 		o.LocalizationSettings.AvailableLocales = new(string)
-		*o.LocalizationSettings.AvailableLocales = *o.LocalizationSettings.DefaultClientLocale
+		*o.LocalizationSettings.AvailableLocales = strings.Join(LOCALES, ",")
 	}
 }
 
