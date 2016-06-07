@@ -285,11 +285,6 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	suchan := Srv.Store.User().GetByAuth(user.AuthData, service)
 	euchan := Srv.Store.User().GetByEmail(user.Email)
 
-	var tchan store.StoreChannel
-	if len(teamId) != 0 {
-		tchan = Srv.Store.Team().Get(teamId)
-	}
-
 	found := true
 	count := 0
 	for found {
@@ -319,20 +314,14 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 		return nil
 	}
 
-	if tchan != nil {
-		if result := <-tchan; result.Err != nil {
-			c.Err = result.Err
+	if len(teamId) > 0 {
+		err = JoinUserToTeamById(teamId, user)
+		if err != nil {
+			c.Err = err
 			return nil
-		} else {
-			team := result.Data.(*model.Team)
-			err = JoinUserToTeam(team, user)
-			if err != nil {
-				c.Err = err
-				return nil
-			}
-
-			go addDirectChannels(team.Id, user)
 		}
+
+		go addDirectChannels(teamId, user)
 	}
 
 	doLogin(c, w, r, ruser, "")
