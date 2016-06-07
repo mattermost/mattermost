@@ -444,7 +444,7 @@ export default class LoginController extends React.Component {
                 <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={Client.getOAuthRoute() + '/gitlab/login'}
+                    href={Client.getOAuthRoute() + '/gitlab/login' + this.props.location.search}
                 >
                     <span className='icon'/>
                     <span>

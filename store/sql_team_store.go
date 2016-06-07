@@ -10,6 +10,10 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const (
+	TEAM_MEMBER_EXISTS_ERROR = "store.sql_team.save_member.exists.app_error"
+)
+
 type SqlTeamStore struct {
 	*SqlStore
 }
@@ -372,8 +376,8 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(member); err != nil {
-			if IsUniqueConstraintError(err.Error(), []string{"TeamId", "teammembers_pkey"}) {
-				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.exists.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
+			if IsUniqueConstraintError(err.Error(), []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", TEAM_MEMBER_EXISTS_ERROR, nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
 			}

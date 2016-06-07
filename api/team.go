@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -247,6 +248,14 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 	}
 }
 
+func JoinUserToTeamById(teamId string, user *model.User) *model.AppError {
+	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+		return result.Err
+	} else {
+		return JoinUserToTeam(result.Data.(*model.Team), user)
+	}
+}
+
 func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
 	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id}
@@ -258,6 +267,9 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	}
 
 	if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
+		if tmr.Err.Id == store.TEAM_MEMBER_EXISTS_ERROR {
+			return nil
+		}
 		return tmr.Err
 	}
 
