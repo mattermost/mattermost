@@ -1257,7 +1257,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "La création d'équipes est désactivé. Veuillez demander les détails à votre administrateur système."
+    "translation": "La création d'équipes est désactivée. Veuillez demander les détails à votre administrateur système."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",

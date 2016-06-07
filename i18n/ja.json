@@ -185,7 +185,7 @@
   },
   {
     "id": "api.channel.delete_channel.failed_send.app_error",
-    "translation": "アーカイブマッサージを送信できませんでした"
+    "translation": "アーカイブメッサージを送信できませんでした"
   },
   {
     "id": "api.channel.delete_channel.incoming_webhook.error",
@@ -509,7 +509,7 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\nESC: 右側のサイドバーを閉じる\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP (空の入力欄で): 前のメッセージまたはスラッシュコマンドを表示する\nCTRL/CMD+DOWN (空の入力欄で): 次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
+    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP (空の入力欄で): 前のメッセージまたはスラッシュコマンドを表示する\nCTRL/CMD+DOWN (空の入力欄で): 次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
   },
   {
     "id": "api.command_shortcuts.name",
