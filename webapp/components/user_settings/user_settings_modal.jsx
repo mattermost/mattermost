@@ -65,7 +65,6 @@ class UserSettingsModal extends React.Component {
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleCancelConfirmation = this.handleCancelConfirmation.bind(this);
 
-        this.deactivateTab = this.deactivateTab.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.collapseModal = this.collapseModal.bind(this);
 
@@ -108,7 +107,6 @@ class UserSettingsModal extends React.Component {
             return;
         }
 
-        this.deactivateTab();
         this.props.onModalDismissed();
         return;
     }
@@ -124,8 +122,6 @@ class UserSettingsModal extends React.Component {
     // Called to hide the settings pane when on mobile
     handleCollapse() {
         $(ReactDOM.findDOMNode(this.refs.modalBody)).closest('.modal-dialog').removeClass('display--content');
-
-        this.deactivateTab();
 
         this.setState({
             active_tab: '',
@@ -167,14 +163,6 @@ class UserSettingsModal extends React.Component {
         }
     }
 
-    // Called to let settings tab perform cleanup before being closed
-    deactivateTab() {
-        const activeTab = this.refs.userSettings.getActiveTab();
-        if (activeTab && activeTab.deactivate) {
-            activeTab.deactivate();
-        }
-    }
-
     // Called by settings tabs when their close button is pressed
     closeModal() {
         if (this.requireConfirm) {
@@ -197,8 +185,6 @@ class UserSettingsModal extends React.Component {
         if (!skipConfirm && this.requireConfirm) {
             this.showConfirmModal(() => this.updateTab(tab, true));
         } else {
-            this.deactivateTab();
-
             this.setState({
                 active_tab: tab,
                 active_section: ''

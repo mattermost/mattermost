@@ -16,7 +16,6 @@ export default class UserSettings extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getActiveTab = this.getActiveTab.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
 
         this.state = {user: UserStore.getCurrentUser()};
@@ -28,10 +27,6 @@ export default class UserSettings extends React.Component {
 
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onListenerChange);
-    }
-
-    getActiveTab() {
-        return this.refs.activeTab;
     }
 
     onListenerChange() {
@@ -46,7 +41,6 @@ export default class UserSettings extends React.Component {
             return (
                 <div>
                     <GeneralTab
-                        ref='activeTab'
                         user={this.state.user}
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
@@ -60,7 +54,6 @@ export default class UserSettings extends React.Component {
             return (
                 <div>
                     <SecurityTab
-                        ref='activeTab'
                         user={this.state.user}
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
@@ -75,7 +68,6 @@ export default class UserSettings extends React.Component {
             return (
                 <div>
                     <NotificationsTab
-                        ref='activeTab'
                         user={this.state.user}
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
@@ -89,7 +81,6 @@ export default class UserSettings extends React.Component {
             return (
                 <div>
                     <DeveloperTab
-                        ref='activeTab'
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
                         closeModal={this.props.closeModal}
@@ -101,7 +92,6 @@ export default class UserSettings extends React.Component {
             return (
                 <div>
                     <DisplayTab
-                        ref='activeTab'
                         user={this.state.user}
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
@@ -117,7 +107,6 @@ export default class UserSettings extends React.Component {
             return (
                 <div>
                     <AdvancedTab
-                        ref='activeTab'
                         user={this.state.user}
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
