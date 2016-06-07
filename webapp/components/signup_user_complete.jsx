@@ -173,11 +173,24 @@ export default class SignupUserComplete extends React.Component {
             this.state.ldapPassword,
             null,
             () => {
-                GlobalActions.emitInitialLoad(
-                    () => {
-                        browserHistory.push('/select_team');
-                    }
-                );
+                if (this.props.location.query.id || this.props.location.query.h) {
+                    Client.addUserToTeamFromInvite(
+                        this.props.location.query.d,
+                        this.props.location.query.h,
+                        this.props.location.query.id,
+                        () => {
+                            this.finishSignup();
+                        },
+                        () => {
+                            // there's not really a good way to deal with this, so just let the user log in like normal
+                            this.finishSignup();
+                        }
+                    );
+
+                    return;
+                }
+
+                this.finishSignup();
             },
             (err) => {
                 if (err.id === 'ent.ldap.do_login.user_not_registered.app_error' || err.id === 'ent.ldap.do_login.user_filtered.app_error') {
@@ -201,6 +214,15 @@ export default class SignupUserComplete extends React.Component {
                 } else {
                     this.setState({ldapError: err.message});
                 }
+            }
+        );
+    }
+
+    finishSignup() {
+        GlobalActions.emitInitialLoad(
+            () => {
+                GlobalActions.loadDefaultLocale();
+                browserHistory.push('/select_team');
             }
         );
     }
