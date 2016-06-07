@@ -138,8 +138,8 @@ Verify that all list types render as expected.
     • Lima
 • Mike
     1. November
-        1. Oscar
-            1. Papa
+        4. Oscar
+            5. Papa
 ```
 
 **Actual:**
