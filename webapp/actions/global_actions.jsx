@@ -138,8 +138,8 @@ export function doFocusPost(channelId, postId, data) {
     });
     AsyncClient.getChannels(true);
     AsyncClient.getChannelExtraInfo(channelId);
-    AsyncClient.getPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
-    AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
+    AsyncClient.getPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
+    AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
 }
 
 export function emitPostFocusEvent(postId) {
