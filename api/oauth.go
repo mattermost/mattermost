@@ -204,7 +204,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			break
 		case model.OAUTH_ACTION_LOGIN:
-			LoginByOAuth(c, w, r, service, body)
+			user := LoginByOAuth(c, w, r, service, body)
+			if len(teamId) > 0 {
+				c.Err = JoinUserToTeamById(teamId, user)
+			}
 			if c.Err == nil {
 				http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 			}
@@ -424,8 +427,17 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	service := params["service"]
 	loginHint := r.URL.Query().Get("login_hint")
 
+	teamId, err := getTeamIdFromQuery(r.URL.Query())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAUTH_ACTION_LOGIN
+	if len(teamId) != 0 {
+		stateProps["team_id"] = teamId
+	}
 
 	if authUrl, err := GetAuthorizationCode(c, service, stateProps, loginHint); err != nil {
 		c.Err = err
@@ -433,6 +445,36 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, authUrl, http.StatusFound)
 	}
+}
+
+func getTeamIdFromQuery(query url.Values) (string, *model.AppError) {
+	hash := query.Get("h")
+	inviteId := query.Get("id")
+
+	if len(hash) > 0 {
+		data := query.Get("d")
+		props := model.MapFromJson(strings.NewReader(data))
+
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+			return "", model.NewLocAppError("getTeamIdFromQuery", "web.singup_with_oauth.invalid_link.app_error", nil, "")
+		}
+
+		t, err := strconv.ParseInt(props["time"], 10, 64)
+		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+			return "", model.NewLocAppError("getTeamIdFromQuery", "web.singup_with_oauth.expired_link.app_error", nil, "")
+		}
+
+		return props["id"], nil
+	} else if len(inviteId) > 0 {
+		if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
+			// soft fail, so we still create user but don't auto-join team
+			l4g.Error("%v", result.Err)
+		} else {
+			return result.Data.(*model.Team).Id, nil
+		}
+	}
+
+	return "", nil
 }
 
 func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -445,34 +487,10 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash := r.URL.Query().Get("h")
-
-	teamId := ""
-	inviteId := r.URL.Query().Get("id")
-
-	if len(hash) > 0 {
-		data := r.URL.Query().Get("d")
-		props := model.MapFromJson(strings.NewReader(data))
-
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
-			c.Err = model.NewLocAppError("signupWithOAuth", "web.singup_with_oauth.invalid_link.app_error", nil, "")
-			return
-		}
-
-		t, err := strconv.ParseInt(props["time"], 10, 64)
-		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-			c.Err = model.NewLocAppError("signupWithOAuth", "web.singup_with_oauth.expired_link.app_error", nil, "")
-			return
-		}
-
-		teamId = props["id"]
-	} else if len(inviteId) != 0 {
-		if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
-			// soft fail, so we still create user but don't auto-join team
-			l4g.Error("%v", result.Err)
-		} else {
-			teamId = result.Data.(*model.Team).Id
-		}
+	teamId, err := getTeamIdFromQuery(r.URL.Query())
+	if err != nil {
+		c.Err = err
+		return
 	}
 
 	stateProps := map[string]string{}
