@@ -51,6 +51,7 @@ export default class SuggestionList extends React.Component {
     }
 
     getContent() {
+        $('body').addClass('modal-open');
         return $(ReactDOM.findDOMNode(this.refs.content));
     }
 

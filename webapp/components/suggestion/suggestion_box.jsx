@@ -31,7 +31,7 @@ export default class SuggestionBox extends React.Component {
     }
 
     componentDidMount() {
-        $(document).on('click', this.handleDocumentClick);
+        $(document).on('click touchstart', this.handleDocumentClick);
 
         SuggestionStore.addCompleteWordListener(this.suggestionId, this.handleCompleteWord);
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
@@ -42,7 +42,7 @@ export default class SuggestionBox extends React.Component {
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
 
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
-        $(document).off('click', this.handleDocumentClick);
+        $(document).off('click touchstart', this.handleDocumentClick);
     }
 
     getTextbox() {
@@ -58,6 +58,11 @@ export default class SuggestionBox extends React.Component {
 
     handleDocumentClick(e) {
         const container = $(ReactDOM.findDOMNode(this));
+        if ($('.suggestion-list__content').length) {
+            if (!($(e.target).hasClass('suggestion-list__content') || $(e.target).parents().hasClass('suggestion-list__content'))) {
+                $('body').removeClass('modal-open');
+            }
+        }
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
             // we can't just use blur for this because it fires and hides the children before
             // their click handlers can be called
