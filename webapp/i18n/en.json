@@ -1,6 +1,7 @@
 {
   "about.close": "Close",
   "about.copyright": "Copyright 2016 Mattermost, Inc. All rights reserved",
+  "about.database": "Database:",
   "about.date": "Build Date:",
   "about.enterpriseEditionLearn": "Learn more about Enterprise Edition at ",
   "about.enterpriseEditionSt": "Modern enterprise communication from behind your firewall.",
@@ -15,7 +16,6 @@
   "about.teamEditiont1": "Enterprise Edition",
   "about.title": "About Mattermost",
   "about.version": "Version:",
-  "about.database": "Database:",
   "access_history.title": "Access History",
   "activity_log.activeSessions": "Active Sessions",
   "activity_log.browser": "Browser: {browser}",
