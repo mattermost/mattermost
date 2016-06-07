@@ -254,6 +254,9 @@ export default class PostList extends React.Component {
                     }
                 }
             }
+            if (post.user_id === this.props.currentUser.id) {
+                isCommentMention = false;
+            }
 
             const postCtl = (
                 <Post

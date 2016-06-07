@@ -60,6 +60,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.isCommentMention !== this.props.isCommentMention) {
+            return true;
+        }
+
         if (nextProps.shouldHighlight !== this.props.shouldHighlight) {
             return true;
         }
@@ -119,11 +123,8 @@ export default class Post extends React.Component {
         }
 
         let currentUserCss = '';
-        let highlightCommentMentionClass = '';
         if (this.props.currentUser.id === post.user_id && !post.props.from_webhook && !PostUtils.isSystemMessage(post)) {
             currentUserCss = 'current--user';
-        } else if (this.props.isCommentMention) {
-            highlightCommentMentionClass = 'comment--mention--highlight';
         }
 
         let timestamp = 0;
@@ -194,7 +195,7 @@ export default class Post extends React.Component {
             <div>
                 <div
                     id={'post_' + post.id}
-                    className={'post ' + sameUserClass + ' ' + compactClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + highlightCommentMentionClass + shouldHighlightClass + ' ' + systemMessageClass + ' ' + hideControls}
+                    className={'post ' + sameUserClass + ' ' + compactClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass + ' ' + hideControls}
                 >
                     <div className={'post__content ' + centerClass}>
                         {profilePicContainer}
@@ -204,6 +205,7 @@ export default class Post extends React.Component {
                                 post={post}
                                 sameRoot={this.props.sameRoot}
                                 commentCount={commentCount}
+                                isCommentMention={this.props.isCommentMention}
                                 handleCommentClick={this.handleCommentClick}
                                 isLastComment={this.props.isLastComment}
                                 sameUser={this.props.sameUser}
@@ -246,7 +248,7 @@ Post.propTypes = {
     compactDisplay: React.PropTypes.bool,
     previewCollapsed: React.PropTypes.string,
     commentCount: React.PropTypes.number,
-    isCommentMention: React.PropTypes.boolean,
+    isCommentMention: React.PropTypes.bool,
     useMilitaryTime: React.PropTypes.bool.isRequired,
     emojis: React.PropTypes.object.isRequired
 };
