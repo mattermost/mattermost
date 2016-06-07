@@ -137,6 +137,13 @@ export default class AboutBuildModal extends React.Component {
                                     />
                                     {'\u00a0' + config.Version + '\u00a0' + config.BuildNumber}
                                 </div>
+                                <div>
+                                    <FormattedMessage
+                                        id='about.database'
+                                        defaultMessage='Database:'
+                                    />
+                                    {'\u00a0' + config.SQLDriverName}
+                                </div>
                             </div>
                             {licensee}
                         </div>
