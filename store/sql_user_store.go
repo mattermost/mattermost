@@ -47,7 +47,10 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
-	// ADDED for 3.2 remove for 3.6
+	// ADDED for 2.0 REMOVE for 2.4
+	us.CreateColumnIfNotExists("Users", "Locale", "varchar(5)", "character varying(5)", model.DEFAULT_LOCALE)
+
+	// ADDED for 3.2 REMOVE for 3.6
 	var data []*model.User
 	shouldUpdate := false
 	if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE ThemeProps LIKE '%solaris%'"); err == nil {
@@ -65,6 +68,7 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 					return
 				}
 			}
+			shouldUpdate = false
 		}
 	}
 }
