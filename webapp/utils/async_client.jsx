@@ -603,7 +603,7 @@ export function getPosts(id) {
     );
 }
 
-export function getPostsBefore(postId, offset, numPost) {
+export function getPostsBefore(postId, offset, numPost, isPost) {
     const channelId = ChannelStore.getCurrentId();
     if (channelId == null) {
         return;
@@ -624,7 +624,8 @@ export function getPostsBefore(postId, offset, numPost) {
                 id: channelId,
                 before: true,
                 numRequested: numPost,
-                post_list: data
+                post_list: data,
+                isPost
             });
 
             getProfiles();
@@ -638,7 +639,7 @@ export function getPostsBefore(postId, offset, numPost) {
     );
 }
 
-export function getPostsAfter(postId, offset, numPost) {
+export function getPostsAfter(postId, offset, numPost, isPost) {
     const channelId = ChannelStore.getCurrentId();
     if (channelId == null) {
         return;
@@ -659,7 +660,8 @@ export function getPostsAfter(postId, offset, numPost) {
                 id: channelId,
                 before: false,
                 numRequested: numPost,
-                post_list: data
+                post_list: data,
+                isPost
             });
 
             getProfiles();
