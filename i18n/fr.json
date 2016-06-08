@@ -305,7 +305,7 @@
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "This trigger word is already in use. Please choose another word."
+    "translation": "Ce mot déclencheur est déjà utilisé. Veuillez choisir un autre mot."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -341,11 +341,11 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Send an email invite to your Mattermost team"
+    "translation": "Envoyer un courriel d'invitation à votre équipe"
   },
   {
     "id": "api.command.invite_people.email_off",
-    "translation": "Email has not been configured, no invite(s) sent"
+    "translation": "La messagerie n'est pas configurée, aucun courriel envoyé."
   },
   {
     "id": "api.command.invite_people.fail",
@@ -365,7 +365,7 @@
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "Email invite(s) sent"
+    "translation": "Mail d'invitation envoyé"
   },
   {
     "id": "api.command.regen.app_error",
@@ -409,7 +409,7 @@
   },
   {
     "id": "api.command_expand.name",
-    "translation": "expand"
+    "translation": "étendre"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -3517,7 +3517,7 @@
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "Aucun élément de canal trouvé pour cet id d'utilisateur et cet id de canal"
+    "translation": "Aucun membre d'équipe trouvé pour cet id d'utilisateur et cet id d'équipe"
   },
   {
     "id": "store.sql_team.get_members.app_error",
@@ -3805,7 +3805,7 @@
   },
   {
     "id": "system.message.name",
-    "translation": "System"
+    "translation": "Système"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
