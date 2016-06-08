@@ -137,7 +137,10 @@ export default class PostList extends React.Component {
     }
 
     loadMorePostsTop() {
-        GlobalActions.emitLoadMorePostsEvent();
+        if (this.props.isFocusPost) {
+            return GlobalActions.emitLoadMorePostsFocusedTopEvent();
+        }
+        return GlobalActions.emitLoadMorePostsEvent();
     }
 
     loadMorePostsBottom() {
@@ -522,5 +525,6 @@ PostList.propTypes = {
     displayNameType: React.PropTypes.string,
     displayPostsInCenter: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool,
-    previewsCollapsed: React.PropTypes.string
+    previewsCollapsed: React.PropTypes.string,
+    isFocusPost: React.PropTypes.bool
 };

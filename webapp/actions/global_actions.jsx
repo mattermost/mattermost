@@ -134,6 +134,7 @@ export function doFocusPost(channelId, postId, data) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_FOCUSED_POST,
         postId,
+        channelId,
         post_list: data
     });
     AsyncClient.getChannels(true);
@@ -208,25 +209,25 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
 
 export function emitLoadMorePostsEvent() {
     const id = ChannelStore.getCurrentId();
-    loadMorePostsTop(id);
+    loadMorePostsTop(id, false);
 }
 
 export function emitLoadMorePostsFocusedTopEvent() {
     const id = PostStore.getFocusedPostId();
-    loadMorePostsTop(id);
+    loadMorePostsTop(id, true);
 }
 
-export function loadMorePostsTop(id) {
+export function loadMorePostsTop(id, isFocusPost) {
     const earliestPostId = PostStore.getEarliestPost(id).id;
     if (PostStore.requestVisibilityIncrease(id, Constants.POST_CHUNK_SIZE)) {
-        AsyncClient.getPostsBefore(earliestPostId, 0, Constants.POST_CHUNK_SIZE);
+        AsyncClient.getPostsBefore(earliestPostId, 0, Constants.POST_CHUNK_SIZE, isFocusPost);
     }
 }
 
 export function emitLoadMorePostsFocusedBottomEvent() {
     const id = PostStore.getFocusedPostId();
     const latestPostId = PostStore.getLatestPost(id).id;
-    AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE);
+    AsyncClient.getPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE, !!id);
 }
 
 export function emitPostRecievedEvent(post, msg) {
@@ -255,6 +256,13 @@ export function emitPostRecievedEvent(post, msg) {
 export function emitUserPostedEvent(post) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.CREATE_POST,
+        post
+    });
+}
+
+export function emitUserCommentedEvent(post) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.CREATE_COMMENT,
         post
     });
 }
