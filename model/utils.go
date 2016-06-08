@@ -419,3 +419,38 @@ func IsSafeLink(link *string) bool {
 
 	return true
 }
+
+func IsPasswordValid(password string, requirements PasswordSettings) *AppError {
+	id := "model.user.is_valid.pwd"
+	isError := false
+
+	if len(password) < *requirements.MinimumLength || len(password) > *requirements.MaximumLength {
+		isError = true
+	}
+
+	if *requirements.Lowercase && !strings.ContainsAny(password, LOWERCASE_LETTERS) {
+		isError = true
+		id = id + "_lowercase"
+	}
+
+	if *requirements.Uppercase && !strings.ContainsAny(password, UPPERCASE_LETTERS) {
+		isError = true
+		id = id + "_uppercase"
+	}
+
+	if *requirements.Number && !strings.ContainsAny(password, NUMBERS) {
+		isError = true
+		id = id + "_number"
+	}
+
+	if *requirements.Symbol && !strings.ContainsAny(password, SYMBOLS) {
+		isError = true
+		id = id + "_symbol"
+	}
+
+	if isError {
+		return NewLocAppError("User.IsValid", id+".app_error", map[string]interface{}{"Min": requirements.MinimumLength, "Max": requirements.MaximumLength}, "")
+	}
+
+	return nil
+}

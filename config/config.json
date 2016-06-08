@@ -55,6 +55,14 @@
         "FileLocation": "",
         "EnableWebhookDebugging": true
     },
+    "PasswordSettings": {
+        "MinimumLength": 5,
+        "MaximumLength": 50,
+        "Lowercase": true,
+        "Number": true,
+        "Uppercase": false,
+        "Symbol": false
+    },
     "FileSettings": {
         "MaxFileSize": 52428800,
         "DriverName": "local",
