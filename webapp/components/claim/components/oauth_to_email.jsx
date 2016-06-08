@@ -8,6 +8,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router';
+import AdminStore from 'stores/admin_store.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 export default class OAuthToEmail extends React.Component {
     constructor(props) {
@@ -15,8 +17,26 @@ export default class OAuthToEmail extends React.Component {
 
         this.submit = this.submit.bind(this);
 
+        this.adminConfigListener = this.adminConfigListener.bind(this);
+
+        this.passwordRequirements = null;
+
         this.state = {};
     }
+
+    componentDidMount() {
+        AdminStore.addConfigChangeListener(this.adminConfigListener);
+        AsyncClient.getConfig();
+    }
+
+    componentWillUnmount() {
+        AdminStore.removeConfigChangeListener(this.adminConfigListener);
+    }
+
+    adminConfigListener() {
+        this.passwordRequirements = AdminStore.getConfig().PasswordSettings;
+    }
+
     submit(e) {
         e.preventDefault();
         const state = {};
@@ -25,6 +45,14 @@ export default class OAuthToEmail extends React.Component {
         if (!password) {
             state.error = Utils.localizeMessage('claim.oauth_to_email.enterPwd', 'Please enter a password.');
             this.setState(state);
+            return;
+        }
+
+        const passwordErr = Utils.isValidPassword(password, this.passwordRequirements);
+        if (passwordErr !== '') {
+            this.setState({
+                error: passwordErr
+            });
             return;
         }
 
