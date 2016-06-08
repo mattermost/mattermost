@@ -10,6 +10,7 @@ import ToggleModalButton from '../toggle_modal_button.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import AdminStore from 'stores/admin_store.jsx';
 
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -26,7 +27,7 @@ const holders = defineMessages({
     },
     passwordLengthError: {
         id: 'user.settings.security.passwordLengthError',
-        defaultMessage: 'New passwords must be at least {chars} characters'
+        defaultMessage: 'New passwords must be at least {min} characters and at most {max} characters.'
     },
     passwordMatchError: {
         id: 'user.settings.security.passwordMatchError',
@@ -60,7 +61,24 @@ class SecurityTab extends React.Component {
         this.createSignInSection = this.createSignInSection.bind(this);
         this.showQrCode = this.showQrCode.bind(this);
 
+        this.adminConfigListener = this.adminConfigListener.bind(this);
+
+        this.passwordRequirements = null;
+
         this.state = this.getDefaultState();
+    }
+
+    componentDidMount() {
+        AdminStore.addConfigChangeListener(this.adminConfigListener);
+        AsyncClient.getConfig();
+    }
+
+    componentWillUnmount() {
+        AdminStore.removeConfigChangeListener(this.adminConfigListener);
+    }
+
+    adminConfigListener() {
+        this.passwordRequirements = AdminStore.getConfig().PasswordSettings;
     }
 
     getDefaultState() {
@@ -90,8 +108,12 @@ class SecurityTab extends React.Component {
             return;
         }
 
-        if (newPassword.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({passwordError: formatMessage(holders.passwordLengthError, {chars: Constants.MIN_PASSWORD_LENGTH}), serverError: ''});
+        const passwordErr = Utils.isValidPassword(newPassword, this.passwordRequirements);
+        if (passwordErr !== '') {
+            this.setState({
+                passwordError: passwordErr,
+                serverError: ''
+            });
             return;
         }
 

@@ -14,9 +14,12 @@ import * as AsyncClient from './async_client.jsx';
 import Client from './web_client.jsx';
 
 import {browserHistory} from 'react-router';
+import {FormattedMessage} from 'react-intl';
 
 import icon50 from 'images/icon50x50.png';
 import bing from 'images/bing.mp3';
+
+import React from 'react';
 
 export function isEmail(email) {
     // writing a regex to match all valid email addresses is really, really hard (see http://stackoverflow.com/a/201378)
@@ -1325,4 +1328,48 @@ export function localizeMessage(id, defaultMessage) {
 
 export function mod(a, b) {
     return ((a % b) + b) % b;
+}
+
+export function isValidPassword(password, requirements) {
+    let errorMsg = '';
+    let errorId = 'user.settings.security.passwordError';
+    let error = false;
+
+    if (password.length < requirements.MinimumLength || password.length > Constants.MAX_PASSWORD_LENGTH) {
+        error = true;
+    }
+
+    if (requirements.Lowercase && !password.match(/[a-z]/)) {
+        errorId = errorId + 'Lowercase';
+        error = true;
+    }
+
+    if (requirements.Number && !password.match(/[0-9]/)) {
+        errorId = errorId + 'Uppercase';
+        error = true;
+    }
+
+    if (requirements.Uppercase && !password.match(/[A-Z]/)) {
+        errorId = errorId + 'Number';
+        error = true;
+    }
+
+    if (requirements.Symbol && !password.match(/[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/)) {
+        errorId = errorId + 'Symbol';
+        error = true;
+    }
+
+    if (error) {
+        errorMsg = (
+            <FormattedMessage
+                id={errorId}
+                default='Your password must be at least {min} characters.'
+                values={{
+                    min: requirements.MinimumLength
+                }}
+            />
+        );
+    }
+
+    return errorMsg;
 }

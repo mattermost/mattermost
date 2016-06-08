@@ -8,14 +8,32 @@ import {switchFromLdapToEmail} from 'actions/user_actions.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
+import AdminStore from 'stores/admin_store.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 export default class LDAPToEmail extends React.Component {
     constructor(props) {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.adminConfigListener = this.adminConfigListener.bind(this);
+
+        this.passwordRequirements = null;
 
         this.state = {};
+    }
+
+    componentDidMount() {
+        AdminStore.addConfigChangeListener(this.adminConfigListener);
+        AsyncClient.getConfig();
+    }
+
+    componentWillUnmount() {
+        AdminStore.removeConfigChangeListener(this.adminConfigListener);
+    }
+
+    adminConfigListener() {
+        this.passwordRequirements = AdminStore.getConfig().PasswordSettings;
     }
 
     submit(e) {
@@ -26,6 +44,14 @@ export default class LDAPToEmail extends React.Component {
         if (!password) {
             state.error = Utils.localizeMessage('claim.ldap_to_email.pwdError', 'Please enter your password.');
             this.setState(state);
+            return;
+        }
+
+        const passwordErr = Utils.isValidPassword(password, this.passwordRequirements);
+        if (passwordErr !== '') {
+            this.setState({
+                error: passwordErr
+            });
             return;
         }
 
