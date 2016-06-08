@@ -5,8 +5,6 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Client from 'utils/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import PostStore from 'stores/post_store.jsx';
@@ -145,24 +143,11 @@ class CreateComment extends React.Component {
         post.user_id = userId;
         post.create_at = time;
 
-        PostStore.storePendingPost(post);
-        PostStore.storeCommentDraft(this.props.rootId, null);
-
+        GlobalActions.emitUserCommentedEvent(post);
         Client.createPost(
             post,
-            (data) => {
-                AsyncClient.getPosts(this.props.channelId);
-
-                const channel = ChannelStore.get(this.props.channelId);
-                const member = ChannelStore.getMember(this.props.channelId);
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = Date.now();
-                ChannelStore.setChannelMember(member);
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST,
-                    post: data
-                });
+            () => {
+                // DO nothing. Websockets will handle this.
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
