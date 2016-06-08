@@ -1092,13 +1092,13 @@ func TestGetChannelExtraInfo(t *testing.T) {
 
 	Client2 := model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
 
-	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Tester 2", Password: "pwd"}
+	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Tester 2", Password: "passwd1"}
 	user2 = Client2.Must(Client2.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
 	Client2.SetTeamId(team.Id)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client2.Login(user2.Email, "pwd")
+	Client2.Login(user2.Email, "passwd1")
 	Client2.Must(Client2.JoinChannel(channel1.Id))
 
 	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {

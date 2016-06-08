@@ -65,7 +65,7 @@ func TestGetAccessToken(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := ApiClient.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "pwd"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "passwd1"}
 	ruser := ApiClient.Must(ApiClient.CreateUser(&user, "")).Data.(*model.User)
 	api.JoinUserToTeam(rteam.Data.(*model.Team), ruser)
 	store.Must(api.Srv.Store.User().VerifyEmail(ruser.Id))
@@ -80,7 +80,7 @@ func TestGetAccessToken(t *testing.T) {
 		}
 	} else {
 
-		ApiClient.Must(ApiClient.LoginById(ruser.Id, "pwd"))
+		ApiClient.Must(ApiClient.LoginById(ruser.Id, "passwd1"))
 		ApiClient.SetTeamId(rteam.Data.(*model.Team).Id)
 		app = ApiClient.Must(ApiClient.RegisterApp(app)).Data.(*model.OAuthApp)
 
@@ -196,7 +196,7 @@ func TestIncomingWebhook(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
 	store.Must(api.Srv.Store.User().VerifyEmail(user.Id))
 	api.JoinUserToTeam(team, user)
@@ -205,7 +205,7 @@ func TestIncomingWebhook(t *testing.T) {
 	c.RequestId = model.NewId()
 	c.IpAddress = "cmd_line"
 	api.UpdateUserRoles(c, user, model.ROLE_SYSTEM_ADMIN)
-	ApiClient.Login(user.Email, "pwd")
+	ApiClient.Login(user.Email, "passwd1")
 	ApiClient.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
