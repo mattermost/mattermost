@@ -3208,6 +3208,26 @@
     "translation": "We encountered an error saving the compliance report"
   },
   {
+    "id": "store.sql_emoji.delete.app_error",
+    "translation": "We couldn't delete the emoji"
+  },
+  {
+    "id": "store.sql_emoji.delete.no_results",
+    "translation": "We couldn’t find the emoji to delete"
+  },
+  {
+    "id": "store.sql_emoji.get.app_error",
+    "translation": "We couldn't get the emoji"
+  },
+  {
+    "id": "store.sql_emoji.get_all.app_error",
+    "translation": "We couldn't get the emoji"
+  },
+  {
+    "id": "store.sql_emoji.save.app_error",
+    "translation": "We couldn't save the emoji"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "We encountered an error getting the license"
   },
