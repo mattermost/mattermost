@@ -23,26 +23,26 @@ export default class DoughnutChart extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (!Utils.areObjectsEqual(prevProps.data, this.props.data) || !Utils.areObjectsEqual(prevProps.options, this.props.options)) {
-            if (this.chart) {
-                this.chart.destroy();
-            }
-            this.initChart();
+            this.initChart(true);
         }
     }
 
     componentWillUnmount() {
-        if (this.chart) {
+        if (this.chart && this.refs.canvas) {
             this.chart.destroy();
         }
     }
 
-    initChart() {
+    initChart(update) {
         if (!this.refs.canvas) {
             return;
         }
         var el = ReactDOM.findDOMNode(this.refs.canvas);
         var ctx = el.getContext('2d');
         this.chart = new Chart(ctx, {type: 'doughnut', data: this.props.data, options: this.props.options || {}}); //eslint-disable-line new-cap
+        if (update) {
+            this.chart.update();
+        }
     }
 
     render() {
