@@ -8,8 +8,8 @@ import * as Utils from 'utils/utils.jsx';
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
 import {FormattedMessage} from 'react-intl';
-import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
+import GeneratedSetting from './generated_setting.jsx';
 import TextSetting from './text_setting.jsx';
 
 export default class LoginSettings extends AdminSettings {
@@ -21,19 +21,18 @@ export default class LoginSettings extends AdminSettings {
         this.renderSettings = this.renderSettings.bind(this);
 
         this.state = Object.assign(this.state, {
-            passwordResetSalt: props.config.EmailSettings.PasswordResetSalt,
             maximumLoginAttempts: props.config.ServiceSettings.MaximumLoginAttempts,
-            enableMultifactorAuthentication: props.config.ServiceSettings.EnableMultifactorAuthentication
+            enableMultifactorAuthentication: props.config.ServiceSettings.EnableMultifactorAuthentication,
+            passwordResetSalt: props.config.EmailSettings.PasswordResetSalt
         });
     }
 
     getConfigFromState(config) {
-        config.EmailSettings.PasswordResetSalt = this.state.passwordResetSalt;
         config.ServiceSettings.MaximumLoginAttempts = this.parseIntNonZero(this.state.maximumLoginAttempts);
+        config.EmailSettings.PasswordResetSalt = this.state.passwordResetSalt;
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true') {
             config.ServiceSettings.EnableMultifactorAuthentication = this.state.enableMultifactorAuthentication;
         }
-
         return config;
     }
 
@@ -74,6 +73,25 @@ export default class LoginSettings extends AdminSettings {
 
         return (
             <SettingsGroup>
+                <TextSetting
+                    id='maximumLoginAttempts'
+                    label={
+                        <FormattedMessage
+                            id='admin.service.attemptTitle'
+                            defaultMessage='Maximum Login Attempts:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.service.attemptExample', 'Ex "10"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.service.attemptDescription'
+                            defaultMessage='Login attempts allowed before user is locked out and required to reset password via email.'
+                        />
+                    }
+                    value={this.state.maximumLoginAttempts}
+                    onChange={this.handleChange}
+                />
+                {mfaSetting}
                 <GeneratedSetting
                     id='passwordResetSalt'
                     label={
@@ -98,25 +116,6 @@ export default class LoginSettings extends AdminSettings {
                         />
                     }
                 />
-                <TextSetting
-                    id='maximumLoginAttempts'
-                    label={
-                        <FormattedMessage
-                            id='admin.service.attemptTitle'
-                            defaultMessage='Maximum Login Attempts:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.service.attemptExample', 'Ex "10"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.service.attemptDescription'
-                            defaultMessage='Login attempts allowed before user is locked out and required to reset password via email.'
-                        />
-                    }
-                    value={this.state.maximumLoginAttempts}
-                    onChange={this.handleChange}
-                />
-                {mfaSetting}
             </SettingsGroup>
         );
     }

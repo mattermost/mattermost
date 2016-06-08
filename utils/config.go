@@ -277,6 +277,14 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
 		}
+
+		if *License.Features.PasswordRequirements {
+			props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
+			props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
+			props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
+			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
+			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
+		}
 	}
 
 	return props

@@ -46,9 +46,17 @@ export default class LDAPToEmail extends React.Component {
             return;
         }
 
+        const passwordErr = Utils.isValidPassword(password);
+        if (passwordErr !== '') {
+            this.setState({
+                passwordError: passwordErr
+            });
+            return;
+        }
+
         const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value;
         if (!confirmPassword || password !== confirmPassword) {
-            state.confirmError = Utils.localizeMessage('claim.ldap_to_email.pwdNotMatch', 'Passwords do not match.');
+            state.error = Utils.localizeMessage('claim.ldap_to_email.pwdNotMatch', 'Passwords do not match.');
             this.setState(state);
             return;
         }

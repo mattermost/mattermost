@@ -177,6 +177,7 @@ export default class AdminSidebar extends React.Component {
     render() {
         let ldapSettings = null;
         let complianceSettings = null;
+        let passwordSettings = null;
 
         let license = null;
         let audits = null;
@@ -223,6 +224,20 @@ export default class AdminSidebar extends React.Component {
                         }
                     />
                 );
+
+                if (global.window.mm_license.PasswordRequirements === 'true') {
+                    passwordSettings = (
+                        <AdminSidebarSection
+                            name='password'
+                            title={
+                                <FormattedMessage
+                                    id='admin.sidebar.password'
+                                    defaultMessage='Password'
+                                />
+                            }
+                        />
+                    );
+                }
             }
 
             license = (
@@ -420,6 +435,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {passwordSettings}
                                 <AdminSidebarSection
                                     name='public_links'
                                     title={

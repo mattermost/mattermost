@@ -20,6 +20,13 @@ import (
 	"github.com/pborman/uuid"
 )
 
+const (
+	LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
+	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+)
+
 type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
