@@ -73,6 +73,7 @@ import DatabaseSettings from 'components/admin_console/database_settings.jsx';
 import StorageSettings from 'components/admin_console/storage_settings.jsx';
 import ImageSettings from 'components/admin_console/image_settings.jsx';
 import CustomBrandSettings from 'components/admin_console/custom_brand_settings.jsx';
+import CustomEmojiSettings from 'components/admin_console/custom_emoji_settings.jsx';
 import LegalAndSupportSettings from 'components/admin_console/legal_and_support_settings.jsx';
 import ComplianceSettings from 'components/admin_console/compliance_settings.jsx';
 import RateSettings from 'components/admin_console/rate_settings.jsx';
@@ -460,6 +461,10 @@ function renderRootComponent() {
                             <Route
                                 path='custom_brand'
                                 component={CustomBrandSettings}
+                            />
+                            <Route
+                                path='custom_emoji'
+                                component={CustomEmojiSettings}
                             />
                             <Route
                                 path='legal_and_support'

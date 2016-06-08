@@ -33,6 +33,9 @@ const (
 	DIRECT_MESSAGE_TEAM = "team"
 
 	FAKE_SETTING = "********************************"
+
+	RESTRICT_EMOJI_CREATION_ALL   = "all"
+	RESTRICT_EMOJI_CREATION_ADMIN = "system_admin"
 )
 
 type ServiceSettings struct {
@@ -60,6 +63,8 @@ type ServiceSettings struct {
 	WebsocketSecurePort               *int
 	WebsocketPort                     *int
 	WebserverMode                     *string
+	EnableCustomEmoji                 *bool
+	RestrictCustomEmojiCreation       *string
 }
 
 type SSOSettings struct {
@@ -497,6 +502,16 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.WebserverMode == nil {
 		o.ServiceSettings.WebserverMode = new(string)
 		*o.ServiceSettings.WebserverMode = "regular"
+	}
+
+	if o.ServiceSettings.EnableCustomEmoji == nil {
+		o.ServiceSettings.EnableCustomEmoji = new(bool)
+		*o.ServiceSettings.EnableCustomEmoji = true
+	}
+
+	if o.ServiceSettings.RestrictCustomEmojiCreation == nil {
+		o.ServiceSettings.RestrictCustomEmojiCreation = new(string)
+		*o.ServiceSettings.RestrictCustomEmojiCreation = RESTRICT_EMOJI_CREATION_ALL
 	}
 
 	if o.ComplianceSettings.Enable == nil {
