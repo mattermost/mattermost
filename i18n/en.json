@@ -880,6 +880,10 @@
     "translation": "The system admin has turned off OAuth service providing."
   },
   {
+    "id": "api.oauth.delete.permissions.app_error",
+    "translation": "Inappropriate permissions to delete the oauth app"
+  },
+  {
     "id": "api.oauth.get_auth_data.find.error",
     "translation": "Couldn't find auth code for code=%s"
   },
@@ -3310,6 +3314,10 @@
   {
     "id": "store.sql_license.save.app_error",
     "translation": "We encountered an error saving the license"
+  },
+  {
+    "id": "store.sql_oauth.delete_app.app_error",
+    "translation": "We couldn't delete the oauth app"
   },
   {
     "id": "store.sql_oauth.get_access_data.app_error",
