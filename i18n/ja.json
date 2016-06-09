@@ -373,11 +373,11 @@
   },
   {
     "id": "api.command_collapse.desc",
-    "translation": "Turn on auto-collapsing of image previews"
+    "translation": "画像プレビューの自動折りたたみをオンにします"
   },
   {
     "id": "api.command_collapse.name",
-    "translation": "collapse"
+    "translation": "折りたたみ"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -405,15 +405,15 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "Turn off auto-collapsing of image previews"
+    "translation": "画像プレビューの自動折りたたみをオフにします。"
   },
   {
     "id": "api.command_expand.name",
-    "translation": "expand"
+    "translation": "展開"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "An error occured while expanding previews"
+    "translation": "プレビューの展開中にエラーが発生しました"
   },
   {
     "id": "api.command_join.desc",

@@ -373,11 +373,11 @@
   },
   {
     "id": "api.command_collapse.desc",
-    "translation": "Turn on auto-collapsing of image previews"
+    "translation": "Ativar auto-recolher preview de imagens"
   },
   {
     "id": "api.command_collapse.name",
-    "translation": "collapse"
+    "translation": "recolher"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -405,15 +405,15 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "Turn off auto-collapsing of image previews"
+    "translation": "Desativar auto-recolher preview de imagens"
   },
   {
     "id": "api.command_expand.name",
-    "translation": "expand"
+    "translation": "expandir"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "An error occured while expanding previews"
+    "translation": "Um erro ocorreu ao expandir o preview"
   },
   {
     "id": "api.command_join.desc",
@@ -509,7 +509,7 @@
   },
   {
     "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL/CMD+K: Open a quick channel switcher dialog\nCTRL/CMD+SHIFT+A: Open account settings\nCTRL/CMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL/CMD+U: Upload file(s)\n\n#### Messages\n\nCTRL/CMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL/CMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT/CMD+[: Previous channel in your history\nALT+RIGHT/CMD+]: Next channel in your history\nCTRL/CMD+PLUS: Increase font size (zoom in)\nCTRL/CMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "### Atalhos do Teclado\n\n#### Navegação\n\nALT+UP: Canal anterior ou mensagem direta na barra lateral esquerda\nALT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda\nALT+SHIFT+UP: Canal anterior ou mensagem direta na barra lateral esquerda com mensagens não lidas\nALT+SHIFT+DOWN: Próximo canal ou mensagem direta na barra lateral esquerda com mensagens não lidas\nCTRL/CMD+K: Abre uma janela de troca rápida de canal\nCTRL/CMD+SHIFT+A: Abre as configurações de conta\nCTRL/CMD+SHIFT+M: Abre as menções recentes\n\n#### Arquivos\n\nCTRL/CMD+U: Enviar arquivo(s)\n\n#### Mensagens\n\nCTRL/CMD+UP (campo de mensagem vazio): Reimprimir a mensagem anterior ou comando slash digitado\nCTRL/CMD+DOWN (campo de mensagem vazio): Reimprimir a próxima mensagem ou comando slash digitado\nUP (campo de mensagem vazio): Edita sua última mensagem no canal atual\n@[caracter]+TAB: Autocompleta o @usuário começando com [caracter]\n:[caracter]+TAB: Autocompleta o emoji começando com [caracter]\n\n#### Comandos do Navegador\n\nALT+LEFT/CMD+[: Canal anterior no seu histórico\nALT+RIGHT/CMD+]: Próximo canal no seu histórico\nCTRL/CMD+PLUS: Aumentar o tamanho da fonte (zoom in)\nCTRL/CMD+MINUS: Reduzir o tamanho da fonte (zoom out)\nSHIFT+UP (no campo de mensagem): Selecionar texto da linha anterior\nSHIFT+DOWN (no campo de mensagem): Selecionar texto da próxima linha\nSHIFT+ENTER (no campo de mensagem): Criar uma nova linha\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1989,7 +1989,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "Funcionalidade Compliance desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
+    "translation": "Funcionalidade Compliance desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -2017,7 +2017,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Funcionalidade LDAP desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
+    "translation": "Funcionalidade LDAP desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -2045,11 +2045,11 @@
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP Synchronization completed"
+    "translation": "Sincronização LDAP completada"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Unable to get all users using LDAP"
+    "translation": "Não foi possível obter todos os usuários usando LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -2441,7 +2441,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
-    "translation": "Invalid sync interval time. Must be at least one minute."
+    "translation": "Intervalo de tempo de sincronização inválido. Deve ser pelo menos um minuto."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2893,7 +2893,7 @@
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
-    "translation": "A funcionalidade de mais de uma réplica está desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença de empresa."
+    "translation": "A funcionalidade de mais de uma réplica está desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
   {
     "id": "store.sql.remove_index.critical",
@@ -3517,7 +3517,7 @@
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "Nenhum membro canal encontrado para esse id de usuário e id de canal"
+    "translation": "Nenhum membro encontrado para esse id de usuário e id de equipe"
   },
   {
     "id": "store.sql_team.get_members.app_error",
@@ -3585,7 +3585,7 @@
   },
   {
     "id": "store.sql_user.get_all_using_auth_service.other.app_error",
-    "translation": "Foi encontrado um erro ao tentar encontrar a conta pelo tipo de autenticação."
+    "translation": "Foi encontrado um erro ao tentar encontrar todas as contas usando um específico tipo de autenticação."
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
@@ -3805,7 +3805,7 @@
   },
   {
     "id": "system.message.name",
-    "translation": "System"
+    "translation": "Sistema"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
