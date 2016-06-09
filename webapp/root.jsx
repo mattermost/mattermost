@@ -81,6 +81,7 @@ import DeveloperSettings from 'components/admin_console/developer_settings.jsx';
 import TeamUsers from 'components/admin_console/team_users.jsx';
 import TeamAnalytics from 'components/analytics/team_analytics.jsx';
 import LicenseSettings from 'components/admin_console/license_settings.jsx';
+import SampleAppSettings from 'components/admin_console/sample_app_settings.jsx';
 import Audits from 'components/admin_console/audits.jsx';
 import Logs from 'components/admin_console/logs.jsx';
 
@@ -447,6 +448,10 @@ function renderRootComponent() {
                             <Route
                                 path='external'
                                 component={ExternalServiceSettings}
+                            />
+                            <Route
+                                path='app-center'
+                                component={SampleAppSettings}
                             />
                         </Route>
                         <Route path='files'>
