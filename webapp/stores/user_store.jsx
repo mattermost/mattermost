@@ -104,7 +104,7 @@ class UserStoreClass extends EventEmitter {
         this.currentUserId = user.id;
         global.window.mm_current_user_id = this.currentUserId;
         if (LocalizationStore.getLocale() !== user.locale) {
-            GlobalActions.newLocalizationSelected(user.locale);
+            setTimeout(() => GlobalActions.newLocalizationSelected(user.locale), 0);
         }
     }
 
