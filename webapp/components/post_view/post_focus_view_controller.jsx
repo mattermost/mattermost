@@ -115,6 +115,7 @@ export default class PostFocusView extends React.Component {
                     showMoreMessagesTop={!this.state.atTop}
                     showMoreMessagesBottom={!this.state.atBottom}
                     postsToHighlight={postsToHighlight}
+                    isFocusPost={true}
                 />
             );
         }

@@ -231,13 +231,14 @@ class PostStoreClass extends EventEmitter {
         this.postsInfo[post.channel_id].postList = postList;
     }
 
-    storeFocusedPost(postId, postList) {
+    storeFocusedPost(postId, channelId, postList) {
         const focusedPost = postList.posts[postId];
         if (!focusedPost) {
             return;
         }
         this.currentFocusedPostId = postId;
         this.storePosts(postId, postList);
+        this.storePosts(channelId, postList);
     }
 
     checkBounds(id, numRequested, postList, before) {
@@ -407,11 +408,11 @@ class PostStoreClass extends EventEmitter {
             return null;
         }
 
-        let posts;
+        const posts = {};
         let pendingPosts;
         for (const k in this.postsInfo) {
             if (this.postsInfo[k].postList && this.postsInfo[k].postList.posts.hasOwnProperty(this.selectedPostId)) {
-                posts = this.postsInfo[k].postList.posts;
+                Object.assign(posts, this.postsInfo[k].postList.posts);
                 if (this.postsInfo[k].pendingPosts != null) {
                     pendingPosts = this.postsInfo[k].pendingPosts.posts;
                 }
@@ -559,7 +560,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
     }
     case ActionTypes.RECEIVED_FOCUSED_POST:
         PostStore.clearChannelVisibility(action.postId, false);
-        PostStore.storeFocusedPost(action.postId, makePostListNonNull(action.post_list));
+        PostStore.storeFocusedPost(action.postId, action.channelId, makePostListNonNull(action.post_list));
         PostStore.emitChange();
         break;
     case ActionTypes.RECEIVED_POST:
@@ -578,6 +579,10 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         PostStore.storePendingPost(action.post);
         PostStore.storeDraft(action.post.channel_id, null);
         PostStore.jumpPostsViewToBottom();
+        break;
+    case ActionTypes.CREATE_COMMENT:
+        PostStore.storePendingPost(action.post);
+        PostStore.storeCommentDraft(action.post.root_id, null);
         break;
     case ActionTypes.POST_DELETED:
         PostStore.deletePost(action.post);
