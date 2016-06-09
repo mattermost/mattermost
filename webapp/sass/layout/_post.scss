@@ -258,10 +258,6 @@ body.ios {
         position: absolute;
         width: 100%;
 
-        .modal-open & {
-            @include clearfix;
-        }
-
         &.active {
             display: inline;
         }
