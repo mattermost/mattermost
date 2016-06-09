@@ -194,3 +194,16 @@ func TestOAuthStoreRemoveAuthDataByUser(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestOAuthStoreDeleteApp(t *testing.T) {
+	a1 := model.OAuthApp{}
+	a1.CreatorId = model.NewId()
+	a1.Name = "TestApp" + model.NewId()
+	a1.CallbackUrls = []string{"https://nowhere.com"}
+	a1.Homepage = "https://nowhere.com"
+	Must(store.OAuth().SaveApp(&a1))
+
+	if err := (<-store.OAuth().DeleteApp(a1.Id)).Err; err != nil {
+		t.Fatal(err)
+	}
+}

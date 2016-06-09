@@ -8,6 +8,7 @@ import IntegrationOption from './integration_option.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import WebhookIcon from 'images/webhook_icon.jpg';
+import AppIcon from 'images/app_icon.png';
 
 export default class Integrations extends React.Component {
     render() {
@@ -75,6 +76,28 @@ export default class Integrations extends React.Component {
                         />
                     }
                     link={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands'}
+                />
+            );
+        }
+
+        if (window.mm_config.EnableOAuthServiceProvider === 'true') {
+            options.push(
+                <IntegrationOption
+                    key='oauthApps'
+                    image={AppIcon}
+                    title={
+                        <FormattedMessage
+                            id='integrations.oauthApps.title'
+                            defaultMessage='OAuth Apps'
+                        />
+                    }
+                    description={
+                        <FormattedMessage
+                            id='integrations.oauthApps.description'
+                            defaultMessage='OAuth apps allow external applications to authenticate users against Mattermost'
+                        />
+                    }
+                    link={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/oauth-apps'}
                 />
             );
         }

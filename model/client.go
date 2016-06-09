@@ -1352,6 +1352,28 @@ func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*
 	}
 }
 
+func (c *Client) GetOAuthAppsByUser() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/oauth/list", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), OAuthAppListFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) DeleteOAuthApp(id string) (*Result, *AppError) {
+	data := make(map[string]string)
+	data["id"] = id
+	if r, err := c.DoApiPost("/oauth/delete", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/oauth/access_token", data.Encode()); err != nil {
 		return nil, err

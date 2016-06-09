@@ -41,9 +41,11 @@ import Integrations from 'components/backstage/integrations.jsx';
 import InstalledIncomingWebhooks from 'components/backstage/installed_incoming_webhooks.jsx';
 import InstalledOutgoingWebhooks from 'components/backstage/installed_outgoing_webhooks.jsx';
 import InstalledCommands from 'components/backstage/installed_commands.jsx';
+import InstalledOAuthApps from 'components/backstage/installed_oauth_apps.jsx';
 import AddIncomingWebhook from 'components/backstage/add_incoming_webhook.jsx';
 import AddOutgoingWebhook from 'components/backstage/add_outgoing_webhook.jsx';
 import AddCommand from 'components/backstage/add_command.jsx';
+import AddOAuthApp from 'components/backstage/add_oauth_app.jsx';
 import ErrorPage from 'components/error_page.jsx';
 
 import AppDispatcher from './dispatcher/app_dispatcher.jsx';
@@ -608,6 +610,23 @@ function renderRootComponent() {
                                         navbar: BackstageNavbar,
                                         sidebar: BackstageSidebar,
                                         center: AddCommand
+                                    }}
+                                />
+                            </Route>
+                            <Route path='oauth-apps'>
+                                <IndexRoute
+                                    components={{
+                                        navbar: BackstageNavbar,
+                                        sidebar: BackstageSidebar,
+                                        center: InstalledOAuthApps
+                                    }}
+                                />
+                                <Route
+                                    path='add'
+                                    components={{
+                                        navbar: BackstageNavbar,
+                                        sidebar: BackstageSidebar,
+                                        center: AddOAuthApp
                                     }}
                                 />
                             </Route>

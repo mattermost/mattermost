@@ -172,6 +172,24 @@ func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
+func (as SqlOAuthStore) DeleteApp(id string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := as.GetMaster().Exec("DELETE FROM OAuthApps WHERE Id = :Id", map[string]interface{}{"Id": id})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete_app.app_error", nil, "id="+id+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) StoreChannel {
 
 	storeChannel := make(StoreChannel)
