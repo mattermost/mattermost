@@ -50,6 +50,7 @@ export default class MultiSelectSetting extends React.Component {
                     labelKey='text'
                     options={this.props.values}
                     joinValues={true}
+                    clearable={false}
                     disabled={this.props.disabled}
                     noResultsText={this.props.noResultText}
                     onChange={this.handleChange}
