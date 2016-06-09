@@ -139,7 +139,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	protocol := GetProtocol(r)
-	c.setSiteURL(protocol + "://" + r.Host)
+	c.SetSiteURL(protocol + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgLastModified))
@@ -417,7 +417,7 @@ func (c *Context) SetTeamURLFromSession() {
 	}
 }
 
-func (c *Context) setSiteURL(url string) {
+func (c *Context) SetSiteURL(url string) {
 	c.siteURL = url
 }
 
