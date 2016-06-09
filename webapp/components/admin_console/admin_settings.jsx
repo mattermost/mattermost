@@ -66,6 +66,7 @@ export default class AdminSettings extends React.Component {
             config,
             () => {
                 AsyncClient.getConfig();
+                AsyncClient.getClientConfig();
                 this.setState({
                     saveNeeded: false,
                     saving: false
