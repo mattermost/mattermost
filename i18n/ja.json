@@ -3805,7 +3805,7 @@
   },
   {
     "id": "system.message.name",
-    "translation": "System"
+    "translation": "システム"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
