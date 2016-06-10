@@ -52,10 +52,6 @@
     "translation": "System"
   },
   {
-    "id": "api.general.init.debug",
-    "translation": "Initializing general api routes"
-  },
-  {
     "id": "api.admin.file_read_error",
     "translation": "Error reading log file"
   },
@@ -580,6 +576,50 @@
     "translation": "An unknown error has occurred. Please contact support."
   },
   {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Unable to create emoji. Image exceeds maximum file size."
+  },
+  {
+    "id": "api.emoji.create.permissions.app_error",
+    "translation": "Inappropriate permissions to create emoji."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Unable to create emoji. Could not understand request."
+  },
+  {
+    "id": "api.emoji.delete.permissions.app_error",
+    "translation": "Inappropriate permissions to delete emoji."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Custom emoji have been disabled by the system admin."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Unable to decode image file for emoji."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Unable to read image file for emoji."
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.app_error",
+    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
+  },
+  {
+    "id": "api.emoji.init.debug",
+    "translation": "Initializing emoji api routes"
+  },
+  {
     "id": "api.export.json.app_error",
     "translation": "Unable to convert to json"
   },
@@ -742,6 +782,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Encountered an error writing to local server storage"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Initializing general api routes"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -2314,6 +2358,18 @@
   {
     "id": "model.client.connecting.app_error",
     "translation": "We encountered an error while connecting to the server"
+  },
+  {
+    "id": "model.client.create_emoji.emoji.app_error",
+    "translation": "Unable to attach emoji data to request"
+  },
+  {
+    "id": "model.client.create_emoji.image.app_error",
+    "translation": "Unable to attach image to request"
+  },
+  {
+    "id": "model.client.create_emoji.writer.app_error",
+    "translation": "Unable to write request"
   },
   {
     "id": "model.client.login.app_error",
