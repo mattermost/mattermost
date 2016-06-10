@@ -68,7 +68,7 @@ export default class PostList extends React.Component {
         const childNodes = this.refs.postlistcontent.childNodes;
         for (let i = 0; i < childNodes.length; i++) {
             // If the node is 1/3 down the page
-            if (childNodes[i].offsetTop > (this.refs.postlist.scrollTop + (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION))) {
+            if (childNodes[i].offsetTop >= (this.refs.postlist.scrollTop + (this.refs.postlist.offsetHeight / Constants.SCROLL_PAGE_FRACTION))) {
                 this.jumpToPostNode = childNodes[i];
                 break;
             }
@@ -367,9 +367,8 @@ export default class PostList extends React.Component {
             }
         } else if (this.refs.postlist.scrollHeight !== this.prevScrollHeight) {
             window.requestAnimationFrame(() => {
-                // Only need to jump if we added posts to the top.
-                if (this.jumpToPostNode && (this.jumpToPostNode.offsetTop !== this.prevOffsetTop)) {
-                    this.refs.postlist.scrollTop += (this.refs.postlist.scrollHeight - this.prevScrollHeight);
+                if (this.jumpToPostNode) {
+                    this.refs.postlist.scrollTop += (this.jumpToPostNode.offsetTop - this.prevOffsetTop);
                 }
             });
         }

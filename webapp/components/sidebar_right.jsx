@@ -10,8 +10,6 @@ import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-const SIDEBAR_SCROLL_DELAY = 500;
-
 import React from 'react';
 
 export default class SidebarRight extends React.Component {
@@ -55,8 +53,8 @@ export default class SidebarRight extends React.Component {
         const isOpen = this.state.searchVisible || this.state.postRightVisible;
         const willOpen = nextState.searchVisible || nextState.postRightVisible;
 
-        if (!isOpen && willOpen) {
-            setTimeout(() => PostStore.jumpPostsViewSidebarOpen(), SIDEBAR_SCROLL_DELAY);
+        if (isOpen !== willOpen) {
+            PostStore.jumpPostsViewSidebarOpen();
         }
     }
     doStrangeThings() {
