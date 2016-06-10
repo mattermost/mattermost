@@ -1,0 +1,4150 @@
+[
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "에러 로그파일을 읽고 있습니다."
+  },
+  {
+    "id": "api.admin.get_brand_image.not_available.app_error",
+    "translation": "사용자 정의 설정이 구성되지 않았거나 이 서버에서는 지원하지 않습니다."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "이미지 저장소가 설정되지 않았습니다."
+  },
+  {
+    "id": "api.admin.init.debug",
+    "translation": "관리자 API 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "데이터베이스 연결 재활용이 완료되었습니다."
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "데이터 베이스 연결 재활용을 시도합니다."
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "<br/><br/><br/>이 글이 보인다면 당신의 Mattermost 이메일이 정확하게 설정된 것 입니다!"
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP 서버가 필요합니다."
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - 이메일 설정 테스트"
+  },
+  {
+    "id": "api.admin.upload_brand_image.array.app_error",
+    "translation": "이미지'요청의 배열이 비어있습니다."
+  },
+  {
+    "id": "api.admin.upload_brand_image.no_file.app_error",
+    "translation": "이미지'요청에 파일이 없습니다."
+  },
+  {
+    "id": "api.admin.upload_brand_image.not_available.app_error",
+    "translation": "Custom사용자 정의 설정이 구성되지 않았거나 이 서버에서는 지원하지 않습니다."
+  },
+  {
+    "id": "api.admin.upload_brand_image.parse.app_error",
+    "translation": "multipart form을 파싱할 수 없었습니다."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "이미지 저장소가 지정되지 않아 이미지 업로드 할 수 없습니다."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "파일이 너무 커서 업로드 할 수 없습니다."
+  },
+  {
+    "id": "api.api.init.parsing_templates.debug",
+    "translation": "서버 템플릿을 파싱합니다. %v"
+  },
+  {
+    "id": "api.api.init.parsing_templates.error",
+    "translation": "서버 템플릿을 파싱하는데 실패하였습니다. %v"
+  },
+  {
+    "id": "api.api.render.error",
+    "translation": "%v 템플릿을 렌더링하는데 오류가 발생하였습니다. err=%v"
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v 채널이 추가되었습니다. 만든이: %v"
+  },
+  {
+    "id": "api.channel.add_member.find_channel.app_error",
+    "translation": "채널을 찾는데 실패하였습니다."
+  },
+  {
+    "id": "api.channel.add_member.find_user.app_error",
+    "translation": "추가할 사용자를 찾는데 실패하였습니다."
+  },
+  {
+    "id": "api.channel.add_member.user_adding.app_error",
+    "translation": "찾은 사용자를 추가하는데 실패하였습니다."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.deleted.app_error",
+    "translation": "이미 채널이 이미 보관되었거나 삭제되었습니다."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "이 형태의 채널에 사용자를 추가할 수 없습니다."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "채널에 사용자를 추가하는데 실패하였습니다."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.app_error",
+    "translation": "쪽지 채널을 만들려면 createDirectChannel API 서비스를 이용해주세요."
+  },
+  {
+    "id": "api.channel.create_channel.invalid_character.app_error",
+    "translation": "쪽지 채널을 제외하고'__' 문자열을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.channel.create_default_channels.off_topic",
+    "translation": "토픽-꺼짐"
+  },
+  {
+    "id": "api.channel.create_default_channels.town_square",
+    "translation": "타운 스퀘어"
+  },
+  {
+    "id": "api.channel.create_direct_channel.invalid_user.app_error",
+    "translation": "다른 유저 ID가 잘못 되었습니다."
+  },
+  {
+    "id": "api.channel.delete_channel.archived",
+    "translation": "%v가 이 채널을 보관하였습니다."
+  },
+  {
+    "id": "api.channel.delete_channel.cannot.app_error",
+    "translation": "기본 채널을 삭제 할 수 없습니다. {{.Channel}}"
+  },
+  {
+    "id": "api.channel.delete_channel.deleted.app_error",
+    "translation": "이미 채널이 보관되거나 삭제되었습니다."
+  },
+  {
+    "id": "api.channel.delete_channel.failed_post.error",
+    "translation": "보관 메시지 %v의 게시를 실패하였습니다."
+  },
+  {
+    "id": "api.channel.delete_channel.failed_send.app_error",
+    "translation": "보관 메시지를 보내는데 실패하였습니다."
+  },
+  {
+    "id": "api.channel.delete_channel.incoming_webhook.error",
+    "translation": "들어오는 웹 후크를 제거할 때 오류가 발생하였습니다. id=%v"
+  },
+  {
+    "id": "api.channel.delete_channel.outgoing_webhook.error",
+    "translation": "나가는 웹 후크를 제거할 때 오류가 발생하였습니다. id=%v"
+  },
+  {
+    "id": "api.channel.delete_channel.permissions.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.channel.get_channel_counts.app_error",
+    "translation": "데이터베이스로부터 채널 수를 가져올 수 없습니다."
+  },
+  {
+    "id": "api.channel.get_channel_extra_info.deleted.app_error",
+    "translation": "이미 채널이 보관되거나 삭제되었습니다."
+  },
+  {
+    "id": "api.channel.get_channel_extra_info.member_limit.app_error",
+    "translation": "멤버 제한을 읽을 수 없습니다."
+  },
+  {
+    "id": "api.channel.get_channels.error",
+    "translation": "id=%v 사용자의 프로필을 얻을 수 없습니다. 강0 로그아웃합니다."
+  },
+  {
+    "id": "api.channel.init.debug",
+    "translation": "채널 API 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v가 채널에 참여했습니다."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "기본 채널에서 나갈 수 없습니다. {{.Channel}}"
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "쪽지 메시지 채널에서 나갈 수 없습니다."
+  },
+  {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "당신이 마지막 멤버입니다. 탈퇴하는 대신 개인 그룹을 제거해주세요."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v가 채널에서 퇴장하였습니다."
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
+    "translation": "채널 참여/퇴장 메시지 %v를 게시하는데 실패하였습니다."
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.removed",
+    "translation": "%s removed the channel header (was: %s)"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
+    "translation": "Failed to retrieve user while trying to save update channel header message %v"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
+    "translation": "%s updated the channel header from: %s to: %s"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
+    "translation": "%s updated the channel header to: %s"
+  },
+  {
+    "id": "api.channel.post_user_add_remove_message_and_forget.error",
+    "translation": "Failed to post join/leave message %v"
+  },
+  {
+    "id": "api.channel.remove_member.permissions.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.channel.remove_member.unable.app_error",
+    "translation": "사용자를 삭제할 수 없습니다."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.deleted.app_error",
+    "translation": "이미 채널이 이미 보관되었거나 삭제되었습니다."
+  },
+  {
+    "id": "api.channel.update_channel.deleted.app_error",
+    "translation": "이미 채널이 이미 보관되었거나 삭제되었습니다."
+  },
+  {
+    "id": "api.channel.update_channel.permission.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "기본 채널{{.Channel}}에서 잘못된 업데이트를 하려고 했습니다."
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "이미지 미리보기의 자동축소를 사용합니다."
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "축소"
+  },
+  {
+    "id": "api.command_echo.create.app_error",
+    "translation": "/echo를 게시할 수 없습니다. err=%v"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "지연시간은 10000 초 이하로 설정해주세요."
+  },
+  {
+    "id": "api.command_echo.desc",
+    "translation": "당신의 계정에서의 에코 텍스트입니다."
+  },
+  {
+    "id": "api.command_echo.high_volume.app_error",
+    "translation": "에코 요청이 너무 많아 요청을 처리할 수 없습니다."
+  },
+  {
+    "id": "api.command_echo.hint",
+    "translation": "메시지' [지연 시간 (초)]"
+    },
+  {
+    "id": "api.command_echo.name",
+    "translation": "에코"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "미리보기를 확대하는 동안 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "이미지 미리보기의 자동축소를 사용사용하지 않습니다."
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "확대"
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "공개 된 채널에 참여"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "채널에 참여하는 동안 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "[채널-이름]"
+    },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "채널 목록을 작성하는 동안 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "채널을 찾을 수 없습니다."
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "참여"
+  },
+  {
+    "id": "api.command_join.success",
+    "translation": "채널에 참여했습니다."
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Mattermost에서 로그 아웃"
+  },
+  {
+    "id": "api.command_logout.fail_message",
+    "translation": "로그 아웃에 실패하였습니다."
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "로그 아웃"
+  },
+  {
+    "id": "api.command_logout.success_message",
+    "translation": "로그 아웃 중입니다..."
+  },
+  {
+    "id": "api.command_me.desc",
+    "translation": "작업중..."
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[메시지]"
+    },
+  {
+    "id": "api.command_me.name",
+    "translation": "나"
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "사용자에게 쪽지 보내기"
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "쪽지를 만드는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "사용자에게 메시지를 보내는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[사용자 이름]'메시지'"
+    },
+  {
+    "id": "api.command_msg.list.app_error",
+    "translation": "사용자 목록을 작성하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "사용자를 찾을 수 없습니다."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "메시지"
+  },
+  {
+    "id": "api.command_msg.success",
+    "translation": "사용자에게 메시지 보내기."
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "키보드 단축키 목록을 보려면"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### 키보드  단축키\n \n#### 이동 \n \nALT + UP : 왼쪽 사이드 바의 이전 채널 또는 쪽지 \nALT + DOWN : 왼쪽 사이드 바의 다음 채널 또는 쪽지 \nALT + SHIFT + UP : 읽지 않은 메시지가있는 왼쪽 사이드 바의 이전 채널 또는 쪽지 \nALT + SHIFT + DOWN : 읽지 않은 메시지가있는 왼쪽 사이드 바의 다음 채널 또는 쪽지 \nCTRL / CMD + SHIFT + K : 간이 채널 변경 대화 상자 열기\nCTRL / CMD + SHIFT + A : 계정 설정 열기\nCTRL / CMD + SHIFT + M : 최근 당신에 대한 게시물 열기\n \n#### 파일 \n \nCTRL / CMD + U : 파일 업로드\n \n#### 메시지 \n\nCTRL / CMD + UP (빈 입력란에서) : 이전 메시지 또는 슬래시 명령을 표시\nCTRL / CMD + DOWN (빈 입력란에서) : 다음 메시지 또는 슬래시 명령을 표시\nUP (빈 입력란에서) : 현재 채널의 최신 메시지를 편집 \n@ [문자] + TAB : @[username]에 대한 자동입력 도우미\n: [문자] + TAB : 이모티콘 자동입력 도우미\n \n#### 브라우저 내장 명령\n \nALT + LEFT / CMD + : 뒤로가기\nALT + RIGHT / CMD + : 앞으로\nCTRL / CMD + PLUS : 글꼴 크기 확대 (줌 인) \nCTRL / CMD + MINUS : 글꼴 크기 작게 (줌 아웃) \nSHIFT + UP (입력란에서) : 이전행으로 블록 선택 (드래그 위로)\nSHIFT + DOWN (입력란에서) : 다음행으로 블록 선택 (드래그 아래로)\nSHIFT + ENTER (입력 필드에서) : 줄 바꿈 \n"
+    },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "단축키"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "¯\\_(진)_/¯ 당신의 메시지에 추가합니다."
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[메시지]"
+    },
+  {
+    "id": "api.command_shrug.name",
+    "translation": "shrug"
+  },
+  {
+    "id": "api.command.admin_only.app_error",
+    "translation": "통합기능은 관리자만 사용 가능합니다."
+  },
+  {
+    "id": "api.command.delete.app_error",
+    "translation": "삭제 명령에 필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.command.disabled.app_error",
+    "translation": "명령이 시스템 관리자에 의해 비활성화되어 있습니다."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "이 트리거 워드는 이미 사용되고 있습니다. 다른 단어를 선택해주세요."
+  },
+  {
+    "id": "api.command.execute_command.debug",
+    "translation": "실행중 cmd=%v userId=%v"
+  },
+  {
+    "id": "api.command.execute_command.failed_empty.app_error",
+    "translation": "트리거'{{.Trigger}}'에 의한 명령이 비어있는 응답을 반환하였습니다."
+  },
+  {
+    "id": "api.command.execute_command.failed_resp.app_error",
+    "translation": "트리거'{{.Trigger}}'에 의한 명령은 {{.Status}} 상태를 반환했습니다."
+  },
+  {
+    "id": "api.command.execute_command.failed.app_error",
+    "translation": "트리거'{{.Trigger}}'에 의한 명령이 실패하였습니다."
+  },
+  {
+    "id": "api.command.execute_command.not_found.app_error",
+    "translation": "트리거'{{.Trigger}}'에 의한 명령을 찾을 수 없습니다."
+  },
+  {
+    "id": "api.command.execute_command.save.app_error",
+    "translation": "명령의 결과를 채널에 저장할 때 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command.execute_command.start.app_error",
+    "translation": "명령의 트리거를 찾을 수 없습니다."
+  },
+  {
+    "id": "api.command.init.debug",
+    "translation": "명령 API 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.command.invite_people.desc",
+    "translation": "Mattermost 팀에 초대할 멤버에게 메일을 전송합니다."
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "이메일 설정이 되어있지 않아 초대 메일을 보낼 수 없습니다."
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "초대 이메일을 보낼 때 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[name@domain.com...]"
+    },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "초대 한 사람"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "하나 이상의 유효한 이메일 주소를 지정해주세요."
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "초대 이메일을 발송하였습니다."
+  },
+  {
+    "id": "api.command.regen.app_error",
+    "translation": "명령 토큰을 다시 생성하는데 필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.context.404.app_error",
+    "translation": "죄송합니다. 페이지를 찾을 수 없습니다.Sorry, we could not find the page."
+  },
+  {
+    "id": "api.context.invalid_param.app_error",
+    "translation": "잘못된 {{.Name}} 매개변수입니다."
+  },
+  {
+    "id": "api.context.invalid_team_url.debug",
+    "translation": "팀 URL이 잘못된 타이밍에 액세스 되었습니다. 팀 URL은 API 함수 또는 팀과 관계없는 곳에서 사용할 수 없습니다."
+  },
+  {
+    "id": "api.context.invalid_token.error",
+    "translation": "잘못된 세션 토큰=%v, err=%v"
+  },
+  {
+    "id": "api.context.last_activity_at.error",
+    "translation": "LastActivityAt을 업데이트할 수 없습니다. user_id=%v and session_id=%v, err=%v"
+  },
+  {
+    "id": "api.context.log.error",
+    "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [자세히: %v]"
+    },
+  {
+    "id": "api.context.permissions.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.context.session_expired.app_error",
+    "translation": "유효하지 않거나 세션이 파기되었습니다. 다시 로그인해주세요."
+  },
+  {
+    "id": "api.context.system_permissions.app_error",
+    "translation": "필요한 권한이 없습니다. (system)"
+  },
+  {
+    "id": "api.context.token_provided.app_error",
+    "translation": "세션이 OAuth가 아니지만 쿼리 문자열에서 토큰이 전달되었습니다."
+  },
+  {
+    "id": "api.context.unknown.app_error",
+    "translation": "알 수 없는 오류가 발생하였습니다. 관리자에게 문의해주세요."
+  },
+  {
+    "id": "api.export.json.app_error",
+    "translation": "JSON으로 변환할 수 없습니다."
+  },
+  {
+    "id": "api.export.open_dir.app_error",
+    "translation": "디렉토리를 열 수 없습니다."
+  },
+  {
+    "id": "api.export.open_file.app_error",
+    "translation": "파일을 내보낼 수 없습니다."
+  },
+  {
+    "id": "api.export.open.app_error",
+    "translation": "파일을 열 수 없습니다."
+  },
+  {
+    "id": "api.export.options.create.app_error",
+    "translation": "옵션 파일을 만들 수 없습니다."
+  },
+  {
+    "id": "api.export.options.write.app_error",
+    "translation": "옵션 파일에 쓸 수 없습니다."
+  },
+  {
+    "id": "api.export.read_dir.app_error",
+    "translation": "디렉토리를 읽을 수 없습니다."
+  },
+  {
+    "id": "api.export.s3.app_error",
+    "translation": "S3는 로컬 스토리지로 내보내기가 지원되지 않습니다."
+  },
+  {
+    "id": "api.file.file_upload.exceeds",
+    "translation": "파일이 최대 이미지 크기를 초과했습니다."
+  },
+  {
+    "id": "api.file.file_upload.exceeds",
+    "translation": "파일이 최대 이미지 크기를 초과했습니다."
+  },
+  {
+    "id": "api.file.get_export.retrieve.app_error",
+    "translation": "내보낸 파일을 가져올 수 없습니다. 다시 내보내주세요."
+  },
+  {
+    "id": "api.file.get_export.team_admin.app_error",
+    "translation": "팀 관리자만 내보낸 데이터를 가져올 수 있습니다."
+  },
+  {
+    "id": "api.file.get_file.not_found.app_error",
+    "translation": "파일을 찾을 수 없습니다."
+  },
+  {
+    "id": "api.file.get_file.public_disabled.app_error",
+    "translation": "공개링크가 시스템 관리자에 의해 비활성화 되어있습니다."
+  },
+  {
+    "id": "api.file.get_file.public_invalid.app_error",
+    "translation": "공개 링크가 유효하지 않습니다."
+  },
+  {
+    "id": "api.file.get_public_link.disabled.app_error",
+    "translation": "공개 링크가 비활성화 되어있습니다."
+  },
+  {
+    "id": "api.file.handle_images_forget.decode.error",
+    "translation": "이미지를 디코드할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.encode_jpeg.error",
+    "translation": "이미지를 JPEG 형식으로 인코딩할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.encode_preview.error",
+    "translation": "이미지를 미리보기 JPG 형식으로 인코딩할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.upload_preview.error",
+    "translation": "미리보기를 업로드할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.handle_images_forget.upload_thumb.error",
+    "translation": "썸네일을 업로드할 수 없습니다. channelId=%v userId=%v filename=%v err=%v"
+  },
+  {
+    "id": "api.file.init.debug",
+    "translation": "파일 API 라우트를 초기화하는 중입니다."
+  },
+  {
+    "id": "api.file.move_file.configured.app_error",
+    "translation": "파일 저장소가 올바르게 설정되지 않았습니다. S3 또는 로컬 서버 파일 저장소를 설정해주세요."
+  },
+  {
+    "id": "api.file.move_file.delete_from_s3.app_error",
+    "translation": "파일을 S3에서 삭제할 수 없습니다."
+  },
+  {
+    "id": "api.file.move_file.get_from_s3.app_error",
+    "translation": "파일을 S3에서 가져올 수 없습니다."
+  },
+  {
+    "id": "api.file.move_file.rename.app_error",
+    "translation": "로컬 파일을 이동할 수 없습니다."
+  },
+  {
+    "id": "api.file.open_file_write_stream.configured.app_error",
+    "translation": "File 저장소가 올바르게 설정되지 않았습니다. S3 또는 로컬 서버 파일 저장소를 설정해주세요."
+  },
+  {
+    "id": "api.file.open_file_write_stream.creating_dir.app_error",
+    "translation": "새로운 파일을 위해 디렉토리를 생성하는 동안 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.file.open_file_write_stream.local_server.app_error",
+    "translation": "로컬 서버 저장소에 쓰는 동안 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.file.open_file_write_stream.s3.app_error",
+    "translation": "S3 는 지원되지 않습니다."
+  },
+  {
+    "id": "api.file.read_file.configured.app_error",
+    "translation": "파일 저장소가 올바르게 설정되지 않았습니다. S3 또는 로컬 서버 파일 저장소를 설정해주세요."
+  },
+  {
+    "id": "api.file.read_file.get.app_error",
+    "translation": "파일을 S3에서 찾을 수 없습니다."
+  },
+  {
+    "id": "api.file.read_file.reading_local.app_error",
+    "translation": "로컬 서버 저장소를 읽는데 실패하였습니다."
+  },
+  {
+    "id": "api.file.upload_file.image.app_error",
+    "translation": "이미지 파일을 업로드할 수 없습니다."
+  },
+  {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "파일이 너무 커 이미지 파일을 업로드할 수 없습니다."
+  },
+  {
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "이미지 저장소가 설정되어있지 않아 파일을 업로드할 수 없습니다."
+  },
+  {
+    "id": "api.file.upload_file.too_large.app_error",
+    "translation": "파일이 너무 커 파일을 업로드할 수 없습니다."
+  },
+  {
+    "id": "api.file.write_file_locally.create_dir.app_error",
+    "translation": "새로운 파일을 위해 디렉토리를 생성하는 동안 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.file.write_file_locally.writing.app_error",
+    "translation": "로컬 서버 저장소에 쓰는 동안 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.file.write_file.configured.app_error",
+    "translation": "File 저장소가 올바르게 설정되지 않았습니다. S3 또는 로컬 서버 파일 저장소를 설정해주세요."
+  },
+  {
+    "id": "api.file.write_file.s3.app_error",
+    "translation": "S3에 쓰는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "기본 API 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.import.import_post.saving.debug",
+    "translation": "게시물 저장 오류. user=%v, message=%v"
+  },
+  {
+    "id": "api.import.import_user.join_team.error",
+    "translation": "가져올 때 팀에 참여할 수 없습니다. err=%v"
+  },
+  {
+    "id": "api.import.import_user.joining_default.error",
+    "translation": "기본 채널에 참여 문제가 발생했습니다. channels user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.import.import_user.saving.error",
+    "translation": "사용자 저장 오류. err=%v"
+  },
+  {
+    "id": "api.import.import_user.set_email.error",
+    "translation": "이메일 확인 상태로 설정하는데 실패하였습니다. err=%v"
+  },
+  {
+    "id": "api.license.add_license.array.app_error",
+    "translation": "요청의'license'배열이 비어있습니다."
+  },
+  {
+    "id": "api.license.add_license.expired.app_error",
+    "translation": "라이센스가 만료되었거나 아직 활성화되지 않았습니다."
+  },
+  {
+    "id": "api.license.add_license.invalid_count.app_error",
+    "translation": "중복되지 않은 모든 사용자 수를 셀 수 없습니다."
+  },
+  {
+    "id": "api.license.add_license.invalid.app_error",
+    "translation": "잘못된 라이센스 파일입니다."
+  },
+  {
+    "id": "api.license.add_license.no_file.app_error",
+    "translation": "요청'license'에 파일이 없습니다."
+  },
+  {
+    "id": "api.license.add_license.open.app_error",
+    "translation": "라이센스 파일을 열 수 없습니다."
+  },
+  {
+    "id": "api.license.add_license.save_active.app_error",
+    "translation": "유효한 라이센스 ID가 성공적으로 저장되지 않았습니다."
+  },
+  {
+    "id": "api.license.add_license.save.app_error",
+    "translation": "라이센스가 성공적으로 저장되지 않았습니다."
+  },
+  {
+    "id": "api.license.add_license.unique_users.app_error",
+    "translation": "당신의 시스템은 중복되지 않은 {{.Count}}명의 사용자가 사용하고 있습니다. 이 라이센스는 {{.Users}} 사용자만 지원합니다. 고유 한 사용자 수는 이메일 주소에 의해 결정됩니다. 전체 사용자 수는 사이트 리포트 -> 통계를 참조해주세요."
+  },
+  {
+    "id": "api.license.init.debug",
+    "translation": "라이센스 API 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.license.remove_license.remove.app_error",
+    "translation": "라이센스가 정상적으로 삭제되지 않았습니다."
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_client.app_error",
+    "translation": "유효하지 않은 요청: client_id 불량"
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_redirect.app_error",
+    "translation": "유효하지 않은 요청: redirect_uri가 없거나 잘못되었습니다."
+  },
+  {
+    "id": "api.oauth.allow_oauth.bad_response.app_error",
+    "translation": "유효하지 않은 요청: response_type 불량"
+  },
+  {
+    "id": "api.oauth.allow_oauth.database.app_error",
+    "translation": "서버 오류: 데이터 베이스 접근 오류"
+  },
+  {
+    "id": "api.oauth.allow_oauth.redirect_callback.app_error",
+    "translation": "유효하지 않은 요청: 지정된 redirect_uri가 등록된 callback_url과 일치하지 않습니다"
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "시스템 관리자가 OAuth 서비스를 비활성화 하였습니다."
+  },
+  {
+    "id": "api.oauth.get_auth_data.find.error",
+    "translation": "code=%s의 인증 코드를 찾을 수 없습니다."
+  },
+  {
+    "id": "api.oauth.init.debug",
+    "translation": "oauth API를 초기화중입니다."
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "시스템 관리자가 OAuth 서비스를 비활성화 하였습니다."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_code.app_error",
+    "translation": "데이터베이스에서 인증 코드를 제거 할 수 없습니다."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_session.app_error",
+    "translation": "데이터베이스에서 세션을 제거 할 수 없습니다."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.del_token.app_error",
+    "translation": "데이터베이스에서 엑세스 토큰을 제거 할 수 없습니다."
+  },
+  {
+    "id": "api.oauth.revoke_access_token.get.app_error",
+    "translation": "삭제 전에 데이터베이스에서 액세스 토큰을 얻을 수 없습니다."
+  },
+  {
+    "id": "api.post_get_post_by_id.get.app_error",
+    "translation": "Unable to get post"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
+    "translation": "{{.Usernames}}과 {{.LastUsername}}이 멘션되었지만 그들은 이 채널에 속하지 않아 알림을 받을 수 없습니다."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.message.one",
+    "translation": "{{.Username}} 이 멘션되었지만 그들은 이 채널에 속하지 않아 알림을 받을 수 없습니다."
+  },
+  {
+    "id": "api.post.create_post.bad_filename.error",
+    "translation": "파일명이 유효하지 않아 취소되었습니다. filename=%v"
+  },
+  {
+    "id": "api.post.create_post.channel_root_id.app_error",
+    "translation": "RootId의 매개변수 ChannelId 불량"
+  },
+  {
+    "id": "api.post.create_post.last_viewed.error",
+    "translation": "최신 읽기를 업데이트 할 수 없습니다. channel_id=%s, user_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.create_post.parent_id.app_error",
+    "translation": "잘못된 ParentId 매개변수"
+  },
+  {
+    "id": "api.post.create_post.root_id.app_error",
+    "translation": "잘못된 RootId 매개변수"
+  },
+  {
+    "id": "api.post.create_webhook_post.creating.app_error",
+    "translation": "E게시물을 만들 수 없습니다."
+  },
+  {
+    "id": "api.post.delete_post.permissions.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.post.get_out_of_channel_mentions.regex.error",
+    "translation": "@mention 정규 표현식을 컴파일 할 수 없습니다. user_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.get_post.permissions.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.channel.error",
+    "translation": "채널을 가져오는데 오류가 발생하였습니다. channel_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.members.error",
+    "translation": "채널 멤버를 가져오는데 실패하였습니다. channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.profiles.error",
+    "translation": "사용자 프로필을 가져오는데 실패하였습니다. team_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.team.error",
+    "translation": "팀을 가져오는데 오류가 발생하였습니다. team_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_post_events_and_forget.user.error",
+    "translation": "사용자를 가져오는데 오류가 발생하였습니다. user_id=%s, err=%v"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.create_post.error",
+    "translation": "회신 게시물을 작성하는데 실패하였습니다. err=%v"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.event_post.error",
+    "translation": "POST 이벤트가 실패하였습니다., err=%s"
+  },
+  {
+    "id": "api.post.handle_webhook_events_and_forget.getting.error",
+    "translation": "팀의 웹 후크를 가져오는 동안 오류가 발생하였습니다. err=%v"
+  },
+  {
+    "id": "api.post.init.debug",
+    "translation": "게시물 api 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.get_2_members.error",
+    "translation": "쪽지채널의 두 멤버를 가져오는데 실패하였습니다. channel channel_id=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.get_members.error",
+    "translation": "채널 멤버를 가져오는데 실패하였습니다. channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.save_pref.error",
+    "translation": "쪽지 채널 설정 저장을 실패하였습니다. user_id=%v other_user_id=%v err=%v"
+  },
+  {
+    "id": "api.post.make_direct_channel_visible.update_pref.error",
+    "translation": "쪽지 채널 설정 업데이트를 실패하였습니다. user_id=%v other_user_id=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.mention_body",
+    "translation": "하나의 멘션이 있습니다."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.mention_subject",
+    "translation": "새로운 멘션"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.message_body",
+    "translation": "하나의 새로운 메시지가 도착했습니다."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.message_subject",
+    "translation": "새로운 쪽지"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": "in"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_mention",
+    "translation": "가 당신에 대해 이야기했습니다:"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "가 당신에게 쪽지를 보냈습니다."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": "posted in"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_notification.debug",
+    "translation": "%v에'%v'푸시 알림을 보내고 있습니다."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_notification.error",
+    "translation": "푸시 알림을 보낼 수 없습니다. notificationid=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.send.error",
+    "translation": "당신의 멘션을 알리는 이메일을 보내는데 실패하였습니다. email=%v err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.sent",
+    "translation": "{{.Prefix}} {{.Filenames}} 를 보냈습니다."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.sessions.error",
+    "translation": "세션의 알림을 가져오는데 실패하였습니다. id=%v, err=%v"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.user_id.error",
+    "translation": "GetProfiles가 반환한 user_id를 게시합니다. user_id=%v"
+  },
+  {
+    "id": "api.post.update_mention_count_and_forget.update_error",
+    "translation": "당신을 멘션한 게시물을 세는 데 실패하였습니다. user_id=%v on channel_id=%v err=%v"
+  },
+  {
+    "id": "api.post.update_post.find.app_error",
+    "translation": "수정된 댓글이나 게시물을 찾을 수 없습니다."
+  },
+  {
+    "id": "api.post.update_post.permissions_details.app_error",
+    "translation": "이미 삭제된 ID입니다. id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "시스템 메시지를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "api.preference.init.debug",
+    "translation": "설정 API 라우트를 초기화합니다"
+  },
+  {
+    "id": "api.preference.save_preferences.decode.app_error",
+    "translation": "요청으로 부터 설정을 디코드할 수 없습니다."
+  },
+  {
+    "id": "api.preference.save_preferences.set_details.app_error",
+    "translation": "session.user_id={{.SessionUserId}
+  }, preference.user_id={{.PreferenceUserId}}"
+  },
+  {
+    "id": "api.preference.save_preferences.set.app_error",
+    "translation": "다른 사용자의 설정을 변경할 수 없습니다."
+  },
+  {
+    "id": "api.server.new_server.init.info",
+    "translation": "서버 초기화중..."
+  },
+  {
+    "id": "api.server.start_server.listening.info",
+    "translation": "서버가 %v를 통해 연결 대기중입니다."
+  },
+  {
+    "id": "api.server.start_server.rate.info",
+    "translation": "RateLimiter 가 활성화되었습니다."
+  },
+  {
+    "id": "api.server.start_server.rate.warn",
+    "translation": "RateLimitSettings 설정이 올바르지 않습니다. VaryByHeader를 사용하고 VaryByRemoteAddr를 해제해주세요."
+  },
+  {
+    "id": "api.server.start_server.starting.critical",
+    "translation": "서버 시작시 오류가 발생했습니다 err : %v"
+  },
+  {
+    "id": "api.server.start_server.starting.info",
+    "translation": "서버를 시작합니다..."
+  },
+  {
+    "id": "api.server.start_server.starting.panic",
+    "translation": "서버 시작시 오류가 발생했습니다"
+  },
+  {
+    "id": "api.server.stop_server.stopped.info",
+    "translation": "서버를 중지했습니다."
+  },
+  {
+    "id": "api.server.stop_server.stopping.info",
+    "translation": "서버를 중지하고 있습니다..."
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.added",
+    "translation": "\r\n 채널이 추가되었습니다 \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
+    "translation": "채널에 사용자를 추가 할 수 없습니다 : {{.Username}} \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed",
+    "translation": "가져올 수 없습니다 : {{.DisplayName}} \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.import_failed.debug",
+    "translation": "가져올 수 없습니다 : %s"
+  },
+  {
+    "id": "api.slackimport.slack_add_channels.merge",
+    "translation": "기존 채널에 병합했습니다 : {{.DisplayName}} \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.bot.warn",
+    "translation": "Slack bot 게시물을 아직 가져오지 않았습니다."
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
+    "translation": "사용자가 없는 메시지"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.unsupported.warn",
+    "translation": "지원되지 않는 게시물의 형식: %v %v"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
+    "translation": "사용자 : %v는 존재하지 않습니다!"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.without_user.debug",
+    "translation": "사용자가 없는 메시지"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.created",
+    "translation": "\r\n 사용자가 생성되었습니다 \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email_pwd",
+    "translation": "이메일 주소, 비밀번호 : {{.Email}} {{.Password}} \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.unable_import",
+    "translation": "사용자를 가져올 수 없습니다 : {{.Username}} \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_convert_timestamp.bad.warn",
+    "translation": "잘못된 타임 스탬프가 감지되었습니다"
+  },
+  {
+    "id": "api.slackimport.slack_import.log",
+    "translation": "Mattermost Slack 가져오기 로그 \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note1",
+    "translation": "- 게시물 중 일부는 가져오지 못했습니다. 이 가져오기 프로그램에서는 지원되지 않습니다. \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.note2",
+    "translation": "- Slack bot 게시물은 현재 지원되지 않습니다. \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.notes",
+    "translation": "\r\n주의사항 \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.open.app_error",
+    "translation": "열 수 없습니다 : {{.Filename}}"
+  },
+  {
+    "id": "api.slackimport.slack_import.team_fail",
+    "translation": "팀을 가져오는 데 실패하였습니다. \r\n"
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.app_error",
+    "translation": "zip 파일을 열 수 없습니다"
+  },
+  {
+    "id": "api.team.create_team_from_signup.email_disabled.app_error",
+    "translation": "이메일로 팀에 등록하는 것은 비활성화 되어있습니다."
+  },
+  {
+    "id": "api.team.create_team_from_signup.expired_link.app_error",
+    "translation": "등록 링크가 만료되었습니다."
+  },
+  {
+    "id": "api.team.create_team_from_signup.invalid_link.app_error",
+    "translation": "등록 링크가 유효하지 않습니다."
+  },
+  {
+    "id": "api.team.create_team_from_signup.unavailable.app_error",
+    "translation": "이 URL은 사용할 수 없습니다. 다른 URL을 시도해주세요."
+  },
+  {
+    "id": "api.team.create_team.email_disabled.app_error",
+    "translation": "이메일로 팀에 등록하는 것은 비활성화 되어있습니다."
+  },
+  {
+    "id": "api.team.email_teams.sending.error",
+    "translation": "emailTeams 이메일 보낼 때 오류가 발생했습니다 err=%v"
+  },
+  {
+    "id": "api.team.export_team.admin.app_error",
+    "translation": "팀 관리자 만 데이터를 내보낼 수 있습니다."
+  },
+  {
+    "id": "api.team.get_invite_info.not_open_team",
+    "translation": "누구나 초대 할 수 있는 팀이 아니기 때문에 초대 기능을 사용할 수 없습니다."
+  },
+  {
+    "id": "api.team.import_team.admin.app_error",
+    "translation": "팀 관리자 만 데이터를 가져올 수 있습니다."
+  },
+  {
+    "id": "api.team.import_team.array.app_error",
+    "translation": "요청에'file' 배열이 비어 있습니다"
+  },
+  {
+    "id": "api.team.import_team.integer.app_error",
+    "translation": "파일 크기가 정수가 아닙니다"
+  },
+  {
+    "id": "api.team.import_team.no_file.app_error",
+    "translation": "요청에'file' 파일이 없습니다"
+  },
+  {
+    "id": "api.team.import_team.open.app_error",
+    "translation": "파일을 열 수 없습니다"
+  },
+  {
+    "id": "api.team.import_team.parse.app_error",
+    "translation": "멀티 파트 폼을 분석 할 수 없습니다"
+  },
+  {
+    "id": "api.team.import_team.unavailable.app_error",
+    "translation": "파일 크기를 알 수 없습니다"
+  },
+  {
+    "id": "api.team.init.debug",
+    "translation": "팀 API 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.team.invite_members.admin",
+    "translation": "관리자"
+  },
+  {
+    "id": "api.team.invite_members.already.app_error",
+    "translation": "이 사람은 이미 당신의 팀원입니다."
+  },
+  {
+    "id": "api.team.invite_members.member",
+    "translation": "회원"
+  },
+  {
+    "id": "api.team.invite_members.no_one.app_error",
+    "translation": "아무도 초대하지 않았습니다."
+  },
+  {
+    "id": "api.team.invite_members.send.error",
+    "translation": "초대 이메일을 보내는데 실패하였습니다. err=%v"
+  },
+  {
+    "id": "api.team.invite_members.sending.info",
+    "translation": "%v 초대장을 보냅니다. %v"
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.disabled.app_error",
+    "translation": "팀을 새로 만드는 기능이 비활성화되어 있습니다. 자세한 내용은 시스템 관리자에게 문의해주세요."
+  },
+  {
+    "id": "api.team.is_team_creation_allowed.domain.app_error",
+    "translation": "이메일은 특정 도메인 (예 : @ example.com)에서 전송 되어야합니다. 자세한 내용은 시스템 관리자에게 문의해주세요."
+  },
+  {
+    "id": "api.team.permanent_delete_team.attempting.warn",
+    "translation": "팀 %v를 완전히 제거하려고합니다 id=%v"
+  },
+  {
+    "id": "api.team.permanent_delete_team.deleted.warn",
+    "translation": "팀 %v를 완전히 제거했습니다 id=%v"
+  },
+  {
+    "id": "api.team.signup_team.email_disabled.app_error",
+    "translation": "이메일로 팀에 등록하는 것은 비활성화 되어있습니다."
+  },
+  {
+    "id": "api.team.update_team.permissions.app_error",
+    "translation": "필요한 권한이 없습니다."
+  },
+  {
+    "id": "api.templates.email_change_body.info",
+    "translation": "당신의 {{.TeamDisplayName}} 이메일 주소가 {{.NewEmail}}로 변경되었습니다. <br> 당신이 변경하지 않은 경우에는 시스템 관리자에게 문의해주세요."
+  },
+  {
+    "id": "api.templates.email_change_body.title",
+    "translation": "당신은 이메일 주소를 업데이트 했습니다."
+  },
+  {
+    "id": "api.templates.email_change_subject",
+    "translation": "{{.TeamDisplayName}}용 이메일 주소가 변경되었습니다"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.button",
+    "translation": "이메일 주소 확인"
+  },
+  {
+    "id": "api.templates.email_change_verify_body.info",
+    "translation": "{{.TeamDisplayName}}의 이메일 주소를 업데이트 완료하려면 다음 링크를 클릭하고 올바른 이메일 주소인지 확인해주세요."
+  },
+  {
+    "id": "api.templates.email_change_verify_body.title",
+    "translation": "당신은 이메일 주소를 업데이트 했습니다."
+  },
+  {
+    "id": "api.templates.email_change_verify_subject",
+    "translation": "{{.TeamDisplayName}}의 이메일 주소를 확인"
+  },
+  {
+    "id": "api.templates.email_footer",
+    "translation": "알림 설정을 변경하려면 팀에 로그인하고 계정 설정에서 알림을 선택해주세요."
+  },
+  {
+    "id": "api.templates.email_info",
+    "translation": "어떤 질문이 있으면 언제든지 저희에게 문의해주세요 : <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'> {{.SupportEmail}} </a>. <br> 행운을 빌어요, <br> {{.SiteName}} 팀 <br>"
+  },
+  {
+    "id": "api.templates.error.link",
+    "translation": "Mattermost로 돌아가기"
+  },
+  {
+    "id": "api.templates.error.title",
+    "translation": "{{.SiteName}} 당신의 도움이 필요합니다"
+  },
+  {
+    "id": "api.templates.find_teams_body.found",
+    "translation": "당신의 이메일 주소를 연결한 팀에 대한 요청은 다음과 같습니다 :"
+  },
+  {
+    "id": "api.templates.find_teams_body.not_found",
+    "translation": "지정된 이메일 주소로 연결한 팀을 찾을 수 없습니다."
+  },
+  {
+    "id": "api.templates.find_teams_body.title",
+    "translation": "팀을 찾고 있습니다"
+  },
+  {
+    "id": "api.templates.find_teams_subject",
+    "translation": "당신의 {{.SiteName}} 팀"
+  },
+  {
+    "id": "api.templates.invite_body.button",
+    "translation": "팀에 합류"
+  },
+  {
+    "id": "api.templates.invite_body.extra_info",
+    "translation": "Mattermost를 이용해 메시지와 파일을 PC나 스마트 폰에서 공유 할 수 있습니다. 또한 검색 및 보관도 할 수 있습니다. <strong> {{. TeamDisplayName}} </strong>에 등록하면 웹 주소를 통해 언제든지 사용할 수 있습니다. : <br/> <br/> <a href='{{.TeamURL}}'> {{.TeamURL}} </a>"
+  },
+  {
+    "id": "api.templates.invite_body.info",
+    "translation": "팀 {{.SenderStatus}} <strong> {{. SenderName}} </strong>은 당신을 <strong> {{. TeamDisplayName}} </strong>에 초대했습니다."
+  },
+  {
+    "id": "api.templates.invite_body.title",
+    "translation": "초대되었습니다"
+  },
+  {
+    "id": "api.templates.invite_subject",
+    "translation": "{{.SenderName}}이 {.SiteName}}의 {{.TeamDisplayName}}에 초대하고 있습니다."
+  },
+  {
+    "id": "api.templates.password_change_body.info",
+    "translation": "{{.Method}}에 의해 {{.TeamURL}}의 {{.TeamDisplayName}} 비밀번호가 업데이트되었습니다. <br> 당신이 변경 한 것이 아니라면 시스템 관리자에게 문의 해주세요."
+  },
+  {
+    "id": "api.templates.password_change_body.title",
+    "translation": "비밀번호가 업데이트되었습니다"
+  },
+  {
+    "id": "api.templates.password_change_subject",
+    "translation": "{{.SiteName}}의 {{.TeamDisplayName}} 비밀번호가 업데이트되었습니다."
+  },
+  {
+    "id": "api.templates.post_body.button",
+    "translation": "채널 이동"
+  },
+  {
+    "id": "api.templates.post_body.info",
+    "translation": "채널 : {{.ChannelName}} <br> {{.SenderName}} - {{.Hour}} {{. Minute}} {{.TimeZone}} {{.Month}} { {.Day}}"
+  },
+  {
+    "id": "api.templates.post_subject",
+    "translation": "{{.TeamDisplayName}}의 {{.SubjectText}} 날짜 : {{.Month}} {{.Day}} {{.Year}}"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "비밀번호 초기화"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "비밀번호를 변경하려면 다음의 "비밀번호 초기화 "를 클릭해주세요. <br> 비밀번호를 변경하지 않는 경우에는 이 이메일을 무시해도 상관 없습니다. 비밀번호는 변경되지 않은 상태로 남을 것입니다. 비밀번호 초기화 링크는 24시간 이후 만료됩니다."
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "당신은 비밀번호 초기화를 요청했습니다"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "비밀번호 초기화"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "이메일 주소와 비밀번호"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "로그인 방법을 변경했습니다."
+  },
+  {
+    "id": "api.templates.signup_team_body.button",
+    "translation": "팀을 설치하기"
+  },
+  {
+    "id": "api.templates.signup_team_body.info",
+    "translation": "{{.SiteName}}은 모든 팀의 커뮤니케이션의 장소이며 검색 가능한 어디에서나 사용할 수 있습니다. <br> 팀이 커뮤니케이션을 계속 한 {{.SiteName}}에서 여러가지를 얻을 수 있습니다."
+  },
+  {
+    "id": "api.templates.signup_team_body.title",
+    "translation": "팀을 만들어 주셔서 감사합니다!"
+  },
+  {
+    "id": "api.templates.signup_team_subject",
+    "translation": "{{.SiteName}} 팀 설치"
+  },
+  {
+    "id": "api.templates.singin_change_email.body.info",
+    "translation": "{{.SiteURL}}의 로그인 방법이 {{.Method}}에 업데이트되었습니다. <br> 당신이 변경한 것이 아니라면 시스템 관리자에게 문의해주세요."
+  },
+  {
+    "id": "api.templates.singin_change_email.subject",
+    "translation": "{{.SiteName}}에 당신의 로그인 방법을 변경했습니다."
+  },
+  {
+    "id": "api.templates.upgrade_30_body.info",
+    "translation": "<h3 style='font-weight : normal; margin-top : 10px;'> 중복 계정이 업데이트되었습니다 </h3> 이용하고 있는 Mattermost 서버가 버전 3.0으로 업데이트 됩니다. 하나의 계정으로 여러 팀을 이용할 수 있게 되었습니다. <br/> <br/> 서버에서 다른 계정과 동일한 이메일 주소 사용자 이름이 사용되는 것을 감지했기 때문에 메일로 알려드리고 있습니다. <br/> <br/> 계정은 다음과 같이 업데이트 되었습니다 : <br/> <br/> {{if.EmailChanged}} - 메일 주소가 중복 된`/ {{.TeamName}}`팀의 계정 이메일 주소는`{{.Email}}`로 변경되었습니다. 메일 주소와 비밀번호를 로그인에 사용하는 경우, 이 새로운 이메일 주소를 사용하여 주세요.<br/> <br/> {{end}} {{if.UsernameChanged}} - 사용자 이름이 중복 된`/ {{. TeamName}}`팀의 계정 사용자 이름은`{{. Username}}`로 변경되었습니다. <br/> <br/> {{end}} 권장 : <br/> <br/> 중복 계정을 이용하여 팀에 로그인 하고 메인 계정의 팀과 공개 채널 사용을 계속 비공개 그룹에 추가 할 것을 권장합니다. <br/> <br/> 메인 계정에서 모든 공개 채널과 비공개 그룹의 내역을 볼 수 있습니다. 쪽지의 내용은 중복 계정에 로그인하여 볼 수 있습니다. <br/> <br/> 추가 정보 : <br/> <br/> Mattermost 3.0에 업데이트 정보는 다음 URL에서 확인해주세요 : <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'> http://www.mattermost.org/ upgrading-to-mattermost-3-0 / </a> <br/> <br/>"
+  },
+  {
+    "id": "api.templates.upgrade_30_subject.info",
+    "translation": "[MATTERMOST] Mattermost 3.0 업데이트를 위한 당신의 계정 변경"
+    },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "당신의 {{.TeamDisplayName}} 용의 사용자 이름이 {{.NewUsernamel}}로 변경되었습니다. <br> 당신이 변경을 하지 않은 경우에는 시스템 관리자에게 문의 해주세요."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "당신은 사용자 이름을 변경했습니다."
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "{{.TeamDisplayName}} 용으로 사용자 이름이 변경되었습니다"
+  },
+  {
+    "id": "api.templates.verify_body.button",
+    "translation": "이메일 주소 확인"
+  },
+  {
+    "id": "api.templates.verify_body.info",
+    "translation": "아래 링크를 클릭하여 이메일 주소를 확인해주세요."
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "당신은 {{.TeamDisplayName}} 팀에 참여했습니다."
+  },
+  {
+    "id": "api.templates.verify_subject",
+    "translation": "[{{.TeamDisplayName}} {{.SiteName}}] 이메일 주소 확인"
+    },
+  {
+    "id": "api.templates.welcome_body.button",
+    "translation": "이메일 주소 확인"
+  },
+  {
+    "id": "api.templates.welcome_body.info",
+    "translation": "아래 링크를 클릭하여 이메일 주소를 확인해주세요."
+  },
+  {
+    "id": "api.templates.welcome_body.info2",
+    "translation": "웹 주소에서 새로운 팀에 로그인 할 수 있습니다 :"
+  },
+  {
+    "id": "api.templates.welcome_body.info3",
+    "translation": "Mattermost를 이용해 메시지와 파일을 PC나 스마트 폰에서 공유 하거나 검색 및 보관할 수 있습니다."
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "당신은 {{.TeamDisplayName}} 팀에 참여했습니다."
+  },
+  {
+    "id": "api.templates.welcome_subject",
+    "translation": "당신은 {{.TeamDisplayName}}에 참여했습니다."
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA는 이 계정 유형으로 사용할 수 없습니다"
+  },
+  {
+    "id": "api.user.add_direct_channels_and_forget.failed.error",
+    "translation": "사용자의 쪽지 설정을 추가하는데 실패했습니다. user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_response.app_error",
+    "translation": "토큰을 요청에서 유효하지 않은 응답이 왔습니다."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.bad_token.app_error",
+    "translation": "토큰의 형식이 잘못되었습니다"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state_team.app_error",
+    "translation": "상태가 잘못되었습니다; 팀 이름이 없습니다."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.invalid_state.app_error",
+    "translation": "잘못된 상태"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.missing.app_error",
+    "translation": "액세스 토큰이 없습니다"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.service.app_error",
+    "translation": "{{.Service}}에 대한 토큰 요청이 실패했습니다"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.token_failed.app_error",
+    "translation": "토큰 요청이 실패했습니다"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.unsupported.app_error",
+    "translation": "지원되지 않는 OAuth 서비스 제공자입니다"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many.app_error",
+    "translation": "비밀번호를 잘못 입력 한 횟수가 너무 많아 당신의 계정이 잠겨있습니다. 비밀번호를 초기화 해주세요."
+  },
+  {
+    "id": "api.user.check_user_mfa.bad_code.app_error",
+    "translation": "잘못된 MFA 토큰입니다."
+  },
+  {
+    "id": "api.user.check_user_mfa.not_available.app_error",
+    "translation": "MFA는 설정되어 있지 않거나 이 서버에서 지원되지 않습니다"
+  },
+  {
+    "id": "api.user.check_user_password.invalid.app_error",
+    "translation": "비밀번호가 올바르지 않기 때문에 로그인 할 수 없습니다"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "비어있는 이메일"
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.parse.app_error",
+    "translation": "사용자 객체에서 인증 데이터 {{.Service}}를 파싱할 수 없습니다."
+  },
+  {
+    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
+    "translation": "{{.Service}}의 OAuth는 이 서버에서는 사용할 수 없습니다"
+  },
+  {
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "당신의 {{.Service}}에 이미 연결된 사용자가 존재합니다."
+  },
+  {
+    "id": "api.user.create_oauth_user.already_used.app_error",
+    "translation": "이 {{.Service}} 계정은 이미 등록되어 있습니다"
+  },
+  {
+    "id": "api.user.create_oauth_user.create.app_error",
+    "translation": "사용자 객체 {{.Service}}에서 사용자를 만들 수 없습니다"
+  },
+  {
+    "id": "api.user.create_oauth_user.not_available.app_error",
+    "translation": "{{.Service}}의 OAuth는 이 서버에서는 사용할 수 없습니다"
+  },
+  {
+    "id": "api.user.create_profile_image.default_font.app_error",
+    "translation": "기본 프로필 이미지 폰트를 만들 수 없습니다"
+  },
+  {
+    "id": "api.user.create_profile_image.encode.app_error",
+    "translation": "기본 프로필 사진을 인코딩 할 수 없습니다"
+  },
+  {
+    "id": "api.user.create_profile_image.initial.app_error",
+    "translation": "기본 프로필 사진에 사용자의 이니셜을 추가 할 수 없습니다"
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "당신의 지정된 이메일 주소의 도메인은 허용되지 않습니다. 시스템 관리자에게 문의하거나 다른 이메일 주소로 등록해주세요."
+  },
+  {
+    "id": "api.user.create_user.joining.error",
+    "translation": "기본 채널에 참여하는 동안 문제가 발생했습니다 user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.no_open_server",
+    "translation": "이 서버는 누구나 자유롭게 등록 할 수 있도록 설정되어 있지 않습니다. 시스템 관리자에게 초대를 받아주세요."
+  },
+  {
+    "id": "api.user.create_user.save.error",
+    "translation": "사용자를 저장할 수 없습니다 err=%v"
+  },
+  {
+    "id": "api.user.create_user.signup_email_disabled.app_error",
+    "translation": "이메일로 팀에 등록하는 것은 비활성화 되어있습니다."
+  },
+  {
+    "id": "api.user.create_user.signup_link_expired.app_error",
+    "translation": "등록 링크가 만료되었습니다."
+  },
+  {
+    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "등록 링크 불량"
+  },
+  {
+    "id": "api.user.create_user.team_name.app_error",
+    "translation": "잘못된 팀 이름입니다"
+  },
+  {
+    "id": "api.user.create_user.tutorial.error",
+    "translation": "튜토리얼 설정을 저장하는 동안 오류가 발생했습니다 err=%v"
+  },
+  {
+    "id": "api.user.create_user.verified.error",
+    "translation": "이메일 확인 상태를 설정하는데 실패하였습니다. err=%v"
+  },
+  {
+    "id": "api.user.email_to_ldap.not_available.app_error",
+    "translation": "이 서버에서 LDAP을 사용할 수 없습니다"
+  },
+  {
+    "id": "api.user.generate_mfa_qr.not_available.app_error",
+    "translation": "이 서버는 MFA는 설정되어 있지 않거나 사용할 수 없습니다"
+  },
+  {
+    "id": "api.user.get_authorization_code.unsupported.app_error",
+    "translation": "지원되지 않는 OAuth 서비스 제공자입니다"
+  },
+  {
+    "id": "api.user.get_me.getting.error",
+    "translation": "id=%v 사용자의 프로필을 확인할 수 없습니다. 강0 로그 아웃합니다"
+  },
+  {
+    "id": "api.user.init.debug",
+    "translation": "user API 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.user.ldap_to_email.not_available.app_error",
+    "translation": "이 서버에서 LDAP을 사용할 수 없습니다"
+  },
+  {
+    "id": "api.user.ldap_to_email.not_ldap_account.app_error",
+    "translation": "이 사용자 계정은 LDAP을 사용하지 않습니다"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "{{.Service}}의 OAuth는 이 서버에서는 사용할 수 없습니다"
+  },
+  {
+    "id": "api.user.login_by_oauth.parse.app_error",
+    "translation": "사용자 객체에서 인증 데이터 {{.Service}}를 파싱할 수 없습니다."
+  },
+  {
+    "id": "api.user.login_ldap.blank_pwd.app_error",
+    "translation": "비밀번호는 비어있을 수 없습니다."
+  },
+  {
+    "id": "api.user.login_ldap.disabled.app_error",
+    "translation": "이 서버는 LDAP이 활성화되어있지 않습니다."
+  },
+  {
+    "id": "api.user.login_ldap.need_id.app_error",
+    "translation": "ID가 필요합니다"
+  },
+  {
+    "id": "api.user.login_ldap.not_available.app_error",
+    "translation": "이 서버는 LDAP이 사용 가능하지 않습니다."
+  },
+  {
+    "id": "api.user.login.blank_pwd.app_error",
+    "translation": "비밀번호는 비어있을 수 없습니다."
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "귀하의 계정은 비활성화되어 있습니다. 시스템 관리자에게 문의해주세요."
+  },
+  {
+    "id": "api.user.login.not_provided.app_error",
+    "translation": "사용자 ID 또는 팀 이름과 이메일 주소의 조합을 지정하지 않으면 안됩니다"
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "이메일 주소가 확인되지 않기 때문에 로그인 할 수 없습니다"
+  },
+  {
+    "id": "api.user.login.revoking.app_error",
+    "translation": "userId=%v의 sessionId=%v를 비활성화했습니다. 같은 장치 ID로 다시 로그인 해주십시오"
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "{{.AuthService}}를 사용하여 로그인해주세요"
+  },
+  {
+    "id": "api.user.oauth_to_email.context.app_error",
+    "translation": "user_id가 일치하지 않기 때문에 비밀번호를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "api.user.permanent_delete_user.attempting.warn",
+    "translation": "팀 %v를 완전히 제거하려고합니다 id=%v"
+  },
+  {
+    "id": "api.user.permanent_delete_user.deleted.warn",
+    "translation": "팀 %v를 완전히 제거했습니다 id=%v"
+  },
+  {
+    "id": "api.user.permanent_delete_user.system_admin.warn",
+    "translation": "당신이 삭제하려는 %v는 시스템 관리자입니다. 삭제한 경우 커맨드 라인 명령을 이용해 다른 계정을 관리자로 설정해야합니다."
+  },
+  {
+    "id": "api.user.reset_password.invalid_link.app_error",
+    "translation": "비밀번호 초기화 링크 불량"
+  },
+  {
+    "id": "api.user.reset_password.link_expired.app_error",
+    "translation": "비밀번호 초기화 링크가 만료되었습니다."
+  },
+  {
+    "id": "api.user.reset_password.method",
+    "translation": "비밀번호 초기화 링크를 사용"
+  },
+  {
+    "id": "api.user.reset_password.sso.app_error",
+    "translation": "단일 로그온 비밀번호를 초기화 할 수 없습니다"
+  },
+  {
+    "id": "api.user.reset_password.wrong_team.app_error",
+    "translation": "잘못된 팀에서 사용자의 비밀번호를 초기화하려고합니다."
+  },
+  {
+    "id": "api.user.send_email_change_email_and_forget.error",
+    "translation": "이메일 주소 변경 확인 이메일을 보낼 수 없습니다 err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "사용자 이름 변경 확인 이메일을 보냈습니다 err=%v"
+  },
+  {
+    "id": "api.user.send_email_change_verify_email_and_forget.error",
+    "translation": "이메일 주소 변경 확인 이메일을 보낼 수 없습니다 err=%v"
+  },
+  {
+    "id": "api.user.send_password_change_email_and_forget.error",
+    "translation": "비밀번호 갱신 이메일을 보낼 수 없습니다 err=%v"
+  },
+  {
+    "id": "api.user.send_password_reset.find.app_error",
+    "translation": "그 주소를 가진 사용자를 찾을 수 없습니다"
+  },
+  {
+    "id": "api.user.send_password_reset.send.app_error",
+    "translation": "비밀번호를 초기화하기위한 이메일을 보낼 수 없습니다"
+  },
+  {
+    "id": "api.user.send_password_reset.sso.app_error",
+    "translation": "단일 로그온 계정의 비밀번호를 초기화 할 수 없습니다"
+  },
+  {
+    "id": "api.user.send_sign_in_change_email_and_forget.error",
+    "translation": "비밀번호 갱신 이메일을 보낼 수 없습니다 err=%v"
+  },
+  {
+    "id": "api.user.send_verify_email_and_forget.failed.error",
+    "translation": "확인 이메일을 보낼 수 없습니다 err=%v"
+  },
+  {
+    "id": "api.user.send_welcome_email_and_forget.failed.error",
+    "translation": "환영 이메일을 보낼 수 없습니다 err=%v"
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "당신은 필요한 권한이 부여되어 있지 않습니다."
+  },
+  {
+    "id": "api.user.update_mfa.not_available.app_error",
+    "translation": "MFA는이 서버에 설정되어 있지 않거나 사용할 수 없습니다"
+  },
+  {
+    "id": "api.user.update_password.context.app_error",
+    "translation": "user_id가 일치하지 않기 때문에 비밀번호를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "api.user.update_password.failed.app_error",
+    "translation": "비밀번호를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "api.user.update_password.incorrect.app_error",
+    "translation": "입력된 "현재 비밀번호"가 올바르지 않습니다. Caps Lock 키의 상태를 확인하고 다시 입력해주세요."
+  },
+  {
+    "id": "api.user.update_password.menu",
+    "translation": "설정 메뉴 사용"
+  },
+  {
+    "id": "api.user.update_password.oauth.app_error",
+    "translation": "OAuth 서비스를 사용하여 로그인하고 있기 때문에 비밀번호를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "api.user.update_password.valid_account.app_error",
+    "translation": "유효한 계정이 없기 때문에 비밀번호를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "api.user.update_roles.one_admin.app_error",
+    "translation": "적어도 1 명의 관리자가 필요합니다"
+  },
+  {
+    "id": "api.user.update_roles.permissions.app_error",
+    "translation": "당신은 필요한 권한이 부여되어 있지 않습니다."
+  },
+  {
+    "id": "api.user.update_roles.system_admin_needed.app_error",
+    "translation": "이 작업은 시스템 관리자 권한이 필요합니다"
+  },
+  {
+    "id": "api.user.update_roles.system_admin_set.app_error",
+    "translation": "시스템 관리자 권한은 다른 시스템 관리자만 설정할 수 있습니다"
+  },
+  {
+    "id": "api.user.update_roles.team_admin_needed.app_error",
+    "translation": "이 작업은 팀 관리자의 권한이 필요합니다"
+  },
+  {
+    "id": "api.user.upload_profile_user.array.app_error",
+    "translation": "요청 'image'에 배열이 비어 있습니다"
+  },
+  {
+    "id": "api.user.upload_profile_user.decode_config.app_error",
+    "translation": "프로필 사진 설정을 디코딩 할 수 없습니다."
+  },
+  {
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "프로필 사진을 디코딩 할 수 없습니다"
+  },
+  {
+    "id": "api.user.upload_profile_user.encode.app_error",
+    "translation": "프로필 사진을 인코딩 할 수 없습니다"
+  },
+  {
+    "id": "api.user.upload_profile_user.no_file.app_error",
+    "translation": "요청 'image'에 파일이 없습니다"
+  },
+  {
+    "id": "api.user.upload_profile_user.open.app_error",
+    "translation": "이미지 파일을 열 수 없습니다"
+  },
+  {
+    "id": "api.user.upload_profile_user.parse.app_error",
+    "translation": "멀티 파트 폼을 분석 할 수 없습니다"
+  },
+  {
+    "id": "api.user.upload_profile_user.storage.app_error",
+    "translation": "파일을 업로드 할 수 없습니다. 이미지 저장소가 설정되어 있지 않습니다."
+  },
+  {
+    "id": "api.user.upload_profile_user.too_large.app_error",
+    "translation": "프로필 사진을 업로드 할 수 없습니다. 파일이 너무 큽니다."
+  },
+  {
+    "id": "api.user.upload_profile_user.upload_profile.app_error",
+    "translation": "프로필 사진을 업로드 할 수 없습니다"
+  },
+  {
+    "id": "api.user.verify_email.bad_link.app_error",
+    "translation": "잘못된 이메일 확인 링크입니다."
+  },
+  {
+    "id": "api.web_conn.new_web_conn.last_activity.error",
+    "translation": "LastActivityAt를 업데이트 할 수 없습니다 user_id=%v, session_id=%v, err=%v"
+  },
+  {
+    "id": "api.web_conn.new_web_conn.last_ping.error",
+    "translation": "user_id=%v의 LastPingAt를 업데이트 할 수 없습니다 err=%v"
+  },
+  {
+    "id": "api.web_hub.start.stopping.debug",
+    "translation": "%v 연결을 중단합니다"
+  },
+  {
+    "id": "api.web_socket.connect.error",
+    "translation": "웹 소켓 연결 오류 : %v"
+  },
+  {
+    "id": "api.web_socket.connect.upgrade.app_error",
+    "translation": "웹 소켓 연결을 업그레이드 할 수 없습니다"
+  },
+  {
+    "id": "api.web_socket.init.debug",
+    "translation": "웹 소켓 API 라우트를 초기화중입니다."
+  },
+  {
+    "id": "api.web_team_hun.start.debug",
+    "translation": "teamId=%v용 팀 허브를 정지중입니다."
+  },
+  {
+    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "translation": "들어오는 웹 후크는 시스템 관리자에가 비활성화 하였습니다."
+  },
+  {
+    "id": "api.webhook.create_outgoing.disabled.app_error",
+    "translation": "나가는 웹 후크는 시스템 관리자가 비활성화 하였습니다."
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "동일한 채널에서의 나가는 웹 후크는 동일한 트리거 워드 / 콜백 URL을 지정할 수 없습니다."
+  },
+  {
+    "id": "api.webhook.create_outgoing.not_open.app_error",
+    "translation": "나가는 웹 후크는 공개 채널에서만 만들 수 있습니다."
+  },
+  {
+    "id": "api.webhook.create_outgoing.permissions.app_error",
+    "translation": "나가는 웹 후크를 만들 수있는 충분한 권한이 부여되어 있지 않습니다."
+  },
+  {
+    "id": "api.webhook.create_outgoing.triggers.app_error",
+    "translation": "trigger_words 또는 channel_id을 설정해주세요"
+  },
+  {
+    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "translation": "들어오는 웹 후크는 시스템 관리자에가 비활성화 하였습니다."
+  },
+  {
+    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "translation": "들어오는 웹 후크를 제거하는 데 충분한 권한이 부여되어 있지 않습니다."
+  },
+  {
+    "id": "api.webhook.delete_outgoing.disabled.app_error",
+    "translation": "나가는 웹 후크는 시스템 관리자가 비활성화 하였습니다."
+  },
+  {
+    "id": "api.webhook.delete_outgoing.permissions.app_error",
+    "translation": "나가는 웹 후크를 제거하는데 충분한 권한이 부여되어 있지 않습니다."
+  },
+  {
+    "id": "api.webhook.get_incoming.disabled.app_error",
+    "translation": "들어오는 웹 후크는 시스템 관리자에가 비활성화 하였습니다."
+  },
+  {
+    "id": "api.webhook.get_outgoing.disabled.app_error",
+    "translation": "나가는 웹 후크는 시스템 관리자가 비활성화 하였습니다."
+  },
+  {
+    "id": "api.webhook.init.debug",
+    "translation": "웹 후크 API 라우트를 초기화합니다"
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "translation": "나가는 웹 후크는 시스템 관리자가 비활성화 하였습니다."
+  },
+  {
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "나가는 웹 후크 토큰을 다시 생성하는 데 충분한 권한이 부여되어 있지 않습니다."
+  },
+  {
+    "id": "April",
+    "translation": "4월"
+  },
+  {
+    "id": "August",
+    "translation": "8월"
+  },
+  {
+    "id": "December",
+    "translation": "12월"
+  },
+  {
+    "id": "ent.brand.save_brand_image.decode_config.app_error",
+    "translation": "이미지 설정을 디코딩 할 수 없습니다."
+  },
+  {
+    "id": "ent.brand.save_brand_image.decode.app_error",
+    "translation": "이미지를 디코딩 할 수 없습니다."
+  },
+  {
+    "id": "ent.brand.save_brand_image.encode.app_error",
+    "translation": "이미지를 PNG로 디코딩 할 수 없습니다."
+  },
+  {
+    "id": "ent.brand.save_brand_image.open.app_error",
+    "translation": "이미지를 열 수 없습니다."
+  },
+  {
+    "id": "ent.brand.save_brand_image.save_image.app_error",
+    "translation": "이미지를 저장할 수 없습니다"
+  },
+  {
+    "id": "ent.brand.save_brand_image.too_large.app_error",
+    "translation": "이미지를 열 수 없습니다. 이미지가 너무 큽니다."
+  },
+  {
+    "id": "ent.compliance.licence_disable.app_error",
+    "translation": "맞춤 기능이 현재 라이센스는 비활성화되어 있습니다. 시스템 관리자에게 엔터프라이즈 라이센스를 업그레이드하도록 요청해주세요."
+  },
+  {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "맞춤 내보내기가 실패했습니다. 경로='{{. FilePath}}'작업='{{. JobName}}'"
+  },
+  {
+    "id": "ent.compliance.run_finished.info",
+    "translation": "맞춤 내보내기'{{.JobName}}'작업을 완료했습니다. {{. Count}} 개 레코드가'{{.FilePath}}'에 내보냈습니다."
+  },
+  {
+    "id": "ent.compliance.run_limit.warning",
+    "translation": "맞춤 내보내기'{{.JobName}}'작업의 경고 :'{{.FilePath}}'에서 열 수가 너무 커서 위해 30,000까지 수출됩니다."
+  },
+  {
+    "id": "ent.compliance.run_started.info",
+    "translation": "맞춤 내보내기가 시작되었습니다 작업='{{. JobName}}'파일='{{. FilePath}}'"
+  },
+  {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "LDAP 서버에 연결할 수 없습니다. BindUsername과 BindPassword을 확인해주세요."
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "잘못된 비밀번호입니다"
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "현재의 라이센스는 LDAP 기능을 사용할 수 없습니다. 엔터프라이즈 라이센스를 업그레이드 하도록 시스템 관리자에게 문의해주세요."
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "사용자 이름이 여러 사용자와 중복됩니다."
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "LDAP 서버 검색에 실패했습니다"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "LDAP 서버에 연결할 수 없습니다"
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_create_user.app_error",
+    "translation": "인증 정보는 유효하지만 사용자를 만들 수 없습니다."
+  },
+  {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "이 사용자는 Mattermost 사용 권한이 없습니다 (LDAP 사용자 필터)."
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "사용자가 LDAP 서버에 등록되어 있지 않습니다"
+  },
+  {
+    "id": "ent.ldap.syncdone.info",
+    "translation": "LDAP 동기화가 완료되었습니다"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "LDAP을 사용하는 모든 사용자를 검색 할 수 없습니다"
+  },
+  {
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "잘못된 LDAP 필터입니다"
+  },
+  {
+    "id": "ent.mfa.activate.authenticate.app_error",
+    "translation": "MFA 토큰을 인증 할 수 없습니다"
+  },
+  {
+    "id": "ent.mfa.activate.bad_token.app_error",
+    "translation": "잘못된 MFA 토큰입니다"
+  },
+  {
+    "id": "ent.mfa.activate.save_active.app_erro",
+    "translation": "사용자의 MFA의 활동 상태를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "translation": "사용자의 MFA의 활동 상태를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "ent.mfa.deactivate.save_secret.app_error",
+    "translation": "MFA의 비밀 정보를 지울 수 없습니다"
+  },
+  {
+    "id": "ent.mfa.generate_qr_code.create_code.app_error",
+    "translation": "QR 코드를 생성 할 수 없습니다"
+  },
+  {
+    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
+    "translation": "MFA의 비밀 정보를 저장할 수 없습니다"
+  },
+  {
+    "id": "ent.mfa.license_disable.app_error",
+    "translation": "당신의 라이센스는 다단계 인증을 지원하지 않습니다"
+  },
+  {
+    "id": "ent.mfa.validate_token.authenticate.app_error",
+    "translation": "MFA 토큰을 인증 할 수 없습니다"
+  },
+  {
+    "id": "error.generic.link_message",
+    "translation": "Mattermost로 돌아 가기"
+  },
+  {
+    "id": "error.generic.message",
+    "translation": "오류가 발생했습니다."
+  },
+  {
+    "id": "error.generic.title",
+    "translation": "오류"
+  },
+  {
+    "id": "error.not_found.link_message",
+    "translation": "Mattermost로 돌아 가기"
+  },
+  {
+    "id": "error.not_found.message",
+    "translation": "찾고있는 페이지가 존재하지 않습니다."
+  },
+  {
+    "id": "error.not_found.title",
+    "translation": "페이지를 찾을 수 없습니다"
+  },
+  {
+    "id": "February",
+    "translation": "2월"
+  },
+  {
+    "id": "January",
+    "translation": "1월"
+  },
+  {
+    "id": "July",
+    "translation": "7월"
+  },
+  {
+    "id": "June",
+    "translation": "6월"
+  },
+  {
+    "id": "manaultesting.get_channel_id.no_found.debug",
+    "translation": "채널을 찾을 수 없습니다 : %v %v는 없습니까"
+  },
+  {
+    "id": "manaultesting.get_channel_id.unable.debug",
+    "translation": "채널을 검색 할 수 없습니다"
+  },
+  {
+    "id": "manaultesting.manual_test.create.info",
+    "translation": "사용자와 팀을 만들고 있습니다"
+  },
+  {
+    "id": "manaultesting.manual_test.parse.app_error",
+    "translation": "URL을 분석 할 수 없습니다"
+  },
+  {
+    "id": "manaultesting.manual_test.setup.info",
+    "translation": "수동 테스트를 설치 중입니다..."
+  },
+  {
+    "id": "manaultesting.manual_test.uid.debug",
+    "translation": "URL을 UID가 없습니다"
+  },
+  {
+    "id": "manaultesting.test_autolink.info",
+    "translation": "수동 자동 링크 테스트"
+  },
+  {
+    "id": "manaultesting.test_autolink.unable.app_error",
+    "translation": "채널을 검색 할 수 없습니다"
+  },
+  {
+    "id": "March",
+    "translation": "3월"
+  },
+  {
+    "id": "mattermost.bulletin.subject",
+    "translation": "Mattermost 보안 통지"
+  },
+  {
+    "id": "mattermost.config_file",
+    "translation": "%v에서 설정 파일을로드 중입니다"
+  },
+  {
+    "id": "mattermost.current_version",
+    "translation": "현재 버전은 %v (%v / %v / %v / %v)입니다"
+  },
+  {
+    "id": "mattermost.entreprise_enabled",
+    "translation": "기업이 활성화 : %v"
+  },
+  {
+    "id": "mattermost.load_license.find.warn",
+    "translation": "유효한 라이센스를 찾을 수 없습니다"
+  },
+  {
+    "id": "mattermost.security_bulletin_read.error",
+    "translation": "보안 알림에 대한 자세한을 읽을 수 없습니다"
+  },
+  {
+    "id": "mattermost.security_bulletin.error",
+    "translation": "보안 알림에 대한 자세한을 얻을 수 없습니다"
+  },
+  {
+    "id": "mattermost.security_checks.debug",
+    "translation": "Mattermost에서 보안 업데이트 확인 중"
+  },
+  {
+    "id": "mattermost.security_info.error",
+    "translation": "Mattermost에서 보안 업데이트 정보를 취득 할 수 없습니다"
+  },
+  {
+    "id": "mattermost.send_bulletin.info",
+    "translation": "%v 보안 알림을 %v로 보내고 있습니다"
+  },
+  {
+    "id": "mattermost.system_admins.error",
+    "translation": "Mattermost에서 보안 업데이트 정보를 위해 시스템 관리자를 얻는데 실패하였습니다."
+  },
+  {
+    "id": "mattermost.unable_to_load_config",
+    "translation": "Mattermost 설정 파일을 읽을 수 없습니다"
+  },
+  {
+    "id": "mattermost.working_dir",
+    "translation": "현재 작업 디렉토리는 %v입니다"
+  },
+  {
+    "id": "May",
+    "translation": "5월"
+  },
+  {
+    "id": "model.access.is_valid.access_token.app_error",
+    "translation": "잘못된 액세스 토큰입니다"
+  },
+  {
+    "id": "model.access.is_valid.auth_code.app_error",
+    "translation": "잘못된 인증 코드"
+  },
+  {
+    "id": "model.access.is_valid.redirect_uri.app_error",
+    "translation": "잘못된 전송 URL입니다"
+  },
+  {
+    "id": "model.access.is_valid.refresh_token.app_error",
+    "translation": "잘못된 새로 고침 토큰입니다"
+  },
+  {
+    "id": "model.authorize.is_valid.auth_code.app_error",
+    "translation": "잘못된 인증 코드"
+  },
+  {
+    "id": "model.authorize.is_valid.client_id.app_error",
+    "translation": "잘못된 클라이언트 ID입니다"
+  },
+  {
+    "id": "model.authorize.is_valid.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.authorize.is_valid.expires.app_error",
+    "translation": "유효 기간을 설정해주세요"
+  },
+  {
+    "id": "model.authorize.is_valid.redirect_uri.app_error",
+    "translation": "잘못된 전송 URL입니다"
+  },
+  {
+    "id": "model.authorize.is_valid.scope.app_error",
+    "translation": "잘못된 범위입니다"
+  },
+  {
+    "id": "model.authorize.is_valid.state.app_error",
+    "translation": "잘못된 상태"
+  },
+  {
+    "id": "model.authorize.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID입니다"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_id.app_error",
+    "translation": "잘못된 채널 ID입니다"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_level.app_error",
+    "translation": "잘못된 통지 수준입니다"
+  },
+  {
+    "id": "model.channel_member.is_valid.role.app_error",
+    "translation": "잘못된 역할입니다"
+  },
+  {
+    "id": "model.channel_member.is_valid.unread_level.app_error",
+    "translation": "잘못된 읽지 않음 표시 수준입니다"
+  },
+  {
+    "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID입니다"
+  },
+  {
+    "id": "model.channel.is_valid.2_or_more.app_error",
+    "translation": "이름은 2 자 이상의 영숫자 소문자합니다"
+  },
+  {
+    "id": "model.channel.is_valid.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.channel.is_valid.creator_id.app_error",
+    "translation": "잘못된 creator id입니다"
+  },
+  {
+    "id": "model.channel.is_valid.display_name.app_error",
+    "translation": "잘못된 표시 이름입니다"
+  },
+  {
+    "id": "model.channel.is_valid.header.app_error",
+    "translation": "잘못된 헤더입니다"
+  },
+  {
+    "id": "model.channel.is_valid.id.app_error",
+    "translation": "잘못된 ID입니다"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "부당한 이름입니다"
+  },
+  {
+    "id": "model.channel.is_valid.purpose.app_error",
+    "translation": "부정한 목적입니다"
+  },
+  {
+    "id": "model.channel.is_valid.type.app_error",
+    "translation": "잘못된 형식입니다"
+  },
+  {
+    "id": "model.channel.is_valid.update_at.app_error",
+    "translation": "수정한 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.client.connecting.app_error",
+    "translation": "서버에 연결하는 동안 오류가 발생했습니다"
+  },
+  {
+    "id": "model.client.login.app_error",
+    "translation": "인증 토큰이 일치하지 않습니다"
+  },
+  {
+    "id": "model.command.is_valid.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.command.is_valid.description.app_error",
+    "translation": "잘못된 설명입니다"
+  },
+  {
+    "id": "model.command.is_valid.display_name.app_error",
+    "translation": "잘못된 표시 이름입니다"
+  },
+  {
+    "id": "model.command.is_valid.id.app_error",
+    "translation": "잘못된 ID입니다"
+  },
+  {
+    "id": "model.command.is_valid.method.app_error",
+    "translation": "잘못된 방법입니다"
+  },
+  {
+    "id": "model.command.is_valid.team_id.app_error",
+    "translation": "잘못된 팀 ID입니다"
+  },
+  {
+    "id": "model.command.is_valid.token.app_error",
+    "translation": "잘못된 토큰"
+  },
+  {
+    "id": "model.command.is_valid.trigger.app_error",
+    "translation": "잘못된 트리거입니다"
+  },
+  {
+    "id": "model.command.is_valid.update_at.app_error",
+    "translation": "수정한 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.command.is_valid.url_http.app_error",
+    "translation": "잘못된 URL입니다. 올바른 URL은 http:// 또는 https://로 시작합니다"
+  },
+  {
+    "id": "model.command.is_valid.url.app_error",
+    "translation": "잘못된 URL입니다"
+  },
+  {
+    "id": "model.command.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID입니다"
+  },
+  {
+    "id": "model.compliance.is_valid.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.compliance.is_valid.desc.app_error",
+    "translation": "잘못된 설명입니다"
+  },
+  {
+    "id": "model.compliance.is_valid.end_at.app_error",
+    "translation": "날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.compliance.is_valid.id.app_error",
+    "translation": "잘못된 ID입니다"
+  },
+  {
+    "id": "model.compliance.is_valid.start_at.app_error",
+    "translation": "날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "translation": "종료는 유효한 시작 이후에 나오지 않으면 안됩니다"
+  },
+  {
+    "id": "model.config.is_valid.email_reset_salt.app_error",
+    "translation": "이메일 설정에서 비밀번호를 초기화하기위한 salt키가 잘못되었습니다. 32자 이상이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.email_salt.app_error",
+    "translation": "이메일 설정에서 salt키가 잘못되었습니다.32자 이상이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.email_security.app_error",
+    "translation": "이메일 설정의 보안연결 형식이 잘못되었습니다.'TLS' 또는 'STARTTLS' 이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.encrypt_sql.app_error",
+    "translation": "SQL 설정 REST 비밀번호화 키가 잘못되었습니다. 32자 이상이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.file_driver.app_error",
+    "translation": "파일 설정의 드라이버 이름이 잘못되었습니다. 'local' 또는 'amazons3' 이어야 합니다"
+  },
+  {
+    "id": "model.config.is_valid.file_preview_height.app_error",
+    "translation": "파일 설정 미리보기의 높이가 잘못되었습니다. 0 이상의 수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.file_preview_width.app_error",
+    "translation": "파일 설정 미리보기의 폭이 잘못되었습니다. 0 이상의 수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.file_profile_height.app_error",
+    "translation": "파일 설정의 프로필 높이가 잘못되었습니다. 0 이상의 수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.file_profile_width.app_error",
+    "translation": "파일 설정의 프로필 너비가 잘못되었습니다. 0 이상의 수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.file_salt.app_error",
+    "translation": "파일 설정 공개 링크의 salt키가 잘못되었습니다. 32자 이상이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.file_thumb_height.app_error",
+    "translation": "파일 설정 썸네일의 높이가 잘못되었습니다. 0 이상의 수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.file_thumb_width.app_error",
+    "translation": "파일 설정 썸네일의 폭이 잘못되었습니다. 0 이상의 수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.ldap_security.app_error",
+    "translation": "LDAP 설정 보안 연결 형식이 잘못되었습니다.'TLS' 또는 'STARTTLS' 이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "동기화 시간 간격이 잘못되었습니다. 적어도 1분 이상으로해주세요."
+  },
+  {
+    "id": "model.config.is_valid.listen_address.app_error",
+    "translation": "서비스 설정의 연결 대기 주소가 잘못되었습니다. 설정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.login_attempts.app_error",
+    "translation": "서비스 설정의 최대 로그인 시도 횟수가 잘못되었습니다. 양수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "파일 설정의 최대 파일 크기가 잘못되었습니다. 0 이상의 수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.max_users.app_error",
+    "translation": "팀 구성 팀 당 최대 사용자 수가 잘못되었습니다. 양수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.rate_mem.app_error",
+    "translation": "게시물 빈도 설정의 메모리 저장 크기가 잘못되었습니다. 양수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.rate_sec.app_error",
+    "translation": "게시물 빈도 설정 초당 게시물이 잘못되었습니다. 양수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "쪽지 제한이 잘못되었습니다.'any'또는'team'합니다"
+  },
+  {
+    "id": "model.config.is_valid.sql_data_src.app_error",
+    "translation": "SQL 설정 데이터 소스가 잘못된 설정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.sql_driver.app_error",
+    "translation": "SQL 설정의 드라이버 이름이 잘못되었습니다.'mysql'또는'postgres'로 설정해주세요"
+  },
+  {
+    "id": "model.config.is_valid.sql_idle.app_error",
+    "translation": "SQL 설정의 최대 유휴 연결 수가 잘못되었습니다. 양수를 지정해주세요."
+  },
+  {
+    "id": "model.config.is_valid.sql_max_conn.app_error",
+    "translation": "SQL 설정 최대 가동 연결 수가 잘못되었습니다. 양수를 지정해주세요."
+  },
+  {
+    "id": "model.file_info.get.gif.app_error",
+    "translation": "GIF를 디코딩 할 수 없습니다"
+  },
+  {
+    "id": "model.incoming_hook.channel_id.app_error",
+    "translation": "잘못된 채널 ID입니다"
+  },
+  {
+    "id": "model.incoming_hook.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.incoming_hook.description.app_error",
+    "translation": "잘못된 설명입니다"
+  },
+  {
+    "id": "model.incoming_hook.display_name.app_error",
+    "translation": "잘못된 표시 이름입니다"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "잘못된 ID입니다"
+  },
+  {
+    "id": "model.incoming_hook.team_id.app_error",
+    "translation": "잘못된 팀 ID입니다"
+  },
+  {
+    "id": "model.incoming_hook.update_at.app_error",
+    "translation": "수정한 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.incoming_hook.user_id.app_error",
+    "translation": "잘못된 사용자 ID입니다"
+  },
+  {
+    "id": "model.oauth.is_valid.app_id.app_error",
+    "translation": "잘못된 응용 프로그램 ID입니다"
+  },
+  {
+    "id": "model.oauth.is_valid.callback.app_error",
+    "translation": "잘못된 콜백 URL입니다"
+  },
+  {
+    "id": "model.oauth.is_valid.client_secret.app_error",
+    "translation": "잘못된 클라이언트 비밀 정보입니다"
+  },
+  {
+    "id": "model.oauth.is_valid.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.oauth.is_valid.creator_id.app_error",
+    "translation": "잘못된 creator id입니다"
+  },
+  {
+    "id": "model.oauth.is_valid.description.app_error",
+    "translation": "잘못된 설명입니다"
+  },
+  {
+    "id": "model.oauth.is_valid.homepage.app_error",
+    "translation": "잘못된 홈페이지입니다"
+  },
+  {
+    "id": "model.oauth.is_valid.name.app_error",
+    "translation": "잘못된 이름입니다"
+  },
+  {
+    "id": "model.oauth.is_valid.update_at.app_error",
+    "translation": "수정한 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.callback.app_error",
+    "translation": "잘못된 콜백 URL입니다"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.channel_id.app_error",
+    "translation": "잘못된 채널 ID입니다"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.description.app_error",
+    "translation": "잘못된 설명입니다"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.display_name.app_error",
+    "translation": "잘못된 표시 이름입니다"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.id.app_error",
+    "translation": "잘못된 ID입니다"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.team_id.app_error",
+    "translation": "잘못된 팀 ID입니다"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.token.app_error",
+    "translation": "잘못된 토큰"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
+    "translation": "잘못된 트리거 단어입니다"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.update_at.app_error",
+    "translation": "수정한 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.url.app_error",
+    "translation": "잘못된 콜백 URL입니다.http:// 또는 https://로 시작하는 올바른 URL을해주세요."
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.words.app_error",
+    "translation": "잘못된 트리거 단어입니다"
+  },
+  {
+    "id": "model.post.is_valid.channel_id.app_error",
+    "translation": "잘못된 채널 ID입니다"
+  },
+  {
+    "id": "model.post.is_valid.create_at.app_error",
+    "translation": "만들 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.post.is_valid.filenames.app_error",
+    "translation": "잘못된 파일 이름입니다"
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": "잘못된 해시 태그입니다"
+  },
+  {
+    "id": "model.post.is_valid.id.app_error",
+    "translation": "잘못된 ID입니다"
+  },
+  {
+    "id": "model.post.is_valid.msg.app_error",
+    "translation": "잘못된 메시지입니다"
+  },
+  {
+    "id": "model.post.is_valid.original_id.app_error",
+    "translation": "잘못된 원래 ID입니다"
+  },
+  {
+    "id": "model.post.is_valid.parent_id.app_error",
+    "translation": "잘못된 부모 ID입니다"
+  },
+  {
+    "id": "model.post.is_valid.props.app_error",
+    "translation": "잘못된 설정 값입니다"
+  },
+  {
+    "id": "model.post.is_valid.root_id.app_error",
+    "translation": "잘못된 루트 ID입니다"
+  },
+  {
+    "id": "model.post.is_valid.root_parent.app_error",
+    "translation": "부모 ID가 설정되어있는 경우 올바른 루트 ID를 설정해주세요"
+  },
+  {
+    "id": "model.post.is_valid.type.app_error",
+    "translation": "잘못된 형식입니다"
+  },
+  {
+    "id": "model.post.is_valid.update_at.app_error",
+    "translation": "수정한 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.post.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID입니다"
+  },
+  {
+    "id": "model.preference.is_valid.category.app_error",
+    "translation": "잘못된 카테고리입니다"
+  },
+  {
+    "id": "model.preference.is_valid.id.app_error",
+    "translation": "잘못된 사용자 ID입니다"
+  },
+  {
+    "id": "model.preference.is_valid.name.app_error",
+    "translation": "잘못된 이름입니다"
+  },
+  {
+    "id": "model.preference.is_valid.value.app_error",
+    "translation": "값이 너무 깁니다"
+  },
+  {
+    "id": "model.team_member.is_valid.role.app_error",
+    "translation": "잘못된 역할입니다"
+  },
+  {
+    "id": "model.team_member.is_valid.team_id.app_error",
+    "translation": "잘못된 팀 ID입니다"
+  },
+  {
+    "id": "model.team_member.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID입니다"
+  },
+  {
+    "id": "model.team.is_valid.characters.app_error",
+    "translation": "이름은 4 자 이상의 영숫자 소문자합니다"
+  },
+  {
+    "id": "model.team.is_valid.company.app_error",
+    "translation": "잘못된 회사 이름입니다"
+  },
+  {
+    "id": "model.team.is_valid.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.team.is_valid.domains.app_error",
+    "translation": "허가 된 도메인이 잘못되었습니다"
+  },
+  {
+    "id": "model.team.is_valid.email.app_error",
+    "translation": "잘못된 이메일 주소입니다"
+  },
+  {
+    "id": "model.team.is_valid.id.app_error",
+    "translation": "잘못된 ID입니다"
+  },
+  {
+    "id": "model.team.is_valid.name.app_error",
+    "translation": "잘못된 이름입니다"
+  },
+  {
+    "id": "model.team.is_valid.reserved.app_error",
+    "translation": "이 URL은 사용할 수 없습니다. 다른 URL을 시도해주세요."
+  },
+  {
+    "id": "model.team.is_valid.type.app_error",
+    "translation": "잘못된 형식입니다"
+  },
+  {
+    "id": "model.team.is_valid.update_at.app_error",
+    "translation": "수정한 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.team.is_valid.url.app_error",
+    "translation": "잘못된 URL 식별자입니다"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "잘못된 사용자입니다. 비밀번호와 인증 데이터는 모두 지정할 수 없습니다"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "잘못된 사용자입니다. 인증 데이터는 인증 형식과 함께 설정해주세요"
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "잘못된 인증 데이터입니다"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "만든 날짜는 반드시 유효해야합니다."
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "잘못된 이메일 주소입니다"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "잘못된 이름 (이름)입니다"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "잘못된 사용자 ID입니다"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "잘못된 이름입니다"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "잘못된 별명입니다"
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": "잘못된 비밀번호입니다"
+  },
+  {
+    "id": "model.user.is_valid.team_id.app_error",
+    "translation": "잘못된 팀 ID입니다"
+  },
+  {
+    "id": "model.user.is_valid.theme.app_error",
+    "translation": "잘못된 테마입니다"
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "수정한 날짜는 반드시 유효해야 합니다."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "잘못된 사용자 이름입니다"
+  },
+  {
+    "id": "model.utils.decode_json.app_error",
+    "translation": "디코딩 할 수 없습니다"
+  },
+  {
+    "id": "November",
+    "translation": "11월"
+  },
+  {
+    "id": "October",
+    "translation": "10월"
+  },
+  {
+    "id": "September",
+    "translation": "9월"
+  },
+  {
+    "id": "store.sql_audit.get.finding.app_error",
+    "translation": "감사 데이터를 검색하는 중에 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_audit.get.limit.app_error",
+    "translation": "더 이상의 페이지를 생성 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_audit.permanent_delete_by_user.app_error",
+    "translation": "감사 데이터를 삭제할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_audit.save.saving.app_error",
+    "translation": "감사 데이터를 저장할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_channel.analytics_type_count.app_error",
+    "translation": "채널 형식 개수를 가져올 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.check_open_channel_permissions.app_error",
+    "translation": "권한을 확인할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.check_permissions_by_name.app_error",
+    "translation": "권한을 확인할 수 없습니다 っ했다"
+  },
+  {
+    "id": "store.sql_channel.check_permissions.app_error",
+    "translation": "권한을 확인할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.delete.channel.app_error",
+    "translation": "채널을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.extra_updated.app_error",
+    "translation": "멤버의 마지막 시간의 업데이트에 문제가 있습니다"
+  },
+  {
+    "id": "store.sql_channel.get_by_name.existing.app_error",
+    "translation": "채널을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_channel.get_by_name.missing.app_error",
+    "translation": "채널이 존재하지 않습니다"
+  },
+  {
+    "id": "store.sql_channel.get_channel_counts.get.app_error",
+    "translation": "채널 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_channels.get.app_error",
+    "translation": "채널을 취득 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_channels.not_found.app_error",
+    "translation": "채널을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_channel.get_extra_members.app_error",
+    "translation": "채널 회원국에 대한 추가 정보를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_for_export.app_error",
+    "translation": "채널이 모두는 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_member_count.app_error",
+    "translation": "채널 회원을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_member.app_error",
+    "translation": "채널의 회원이 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_member.missing.app_error",
+    "translation": "사용자 ID 및 채널 ID와 일치하는 채널의 멤버를 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_members.app_error",
+    "translation": "채널의 회원이 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_more_channels.get.app_error",
+    "translation": "채널을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_channel.get.existing.app_error",
+    "translation": "채널을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_channel.get.find.app_error",
+    "translation": "채널을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_channel.increment_mention_count.app_error",
+    "translation": "당신에 대한 게시물을 집계 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.app_error",
+    "translation": "채널을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
+    "translation": "채널의 멤버를 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.remove_member.app_error",
+    "translation": "채널의 멤버를 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_channel.current_count.app_error",
+    "translation": "현재의 채널 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "기존 채널의 업데이트를하지 않으면 안됩니다"
+  },
+  {
+    "id": "store.sql_channel.save_channel.exists.app_error",
+    "translation": "이 URL은 다른 채널에서 사용 중입니다."
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "허가 된 채널의 멤버 한도에 도달했습니다"
+  },
+  {
+    "id": "store.sql_channel.save_channel.previously.app_error",
+    "translation": "해당 URL 채널은 이전에 작성되었습니다"
+  },
+  {
+    "id": "store.sql_channel.save_channel.save.app_error",
+    "translation": "채널을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.add_members.app_error",
+    "translation": "직접 채널의 멤버를 추가 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.commit.app_error",
+    "translation": "트랜잭션을 커밋 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
+    "translation": "SaveDirectChannel에서 작성하려고했다 다이렉트 채널이 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
+    "translation": "트랜잭션을 열 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_member.commit_transaction.app_error",
+    "translation": "트랜잭션을 커밋 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_member.exists.app_error",
+    "translation": "이 ID를 가진 채널의 회원은 이미 존재합니다"
+  },
+  {
+    "id": "store.sql_channel.save_member.open_transaction.app_error",
+    "translation": "트랜잭션을 열 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save_member.save.app_error",
+    "translation": "채널의 멤버를 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save.commit_transaction.app_error",
+    "translation": "트랜잭션을 커밋 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.save.direct_channel.app_error",
+    "translation": "직접 채널을 만들려면 SaveDirectChannel를 사용해주세요"
+  },
+  {
+    "id": "store.sql_channel.save.open_transaction.app_error",
+    "translation": "트랜잭션을 열 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at.app_error",
+    "translation": "최근 조회 시간을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.update_member.app_error",
+    "translation": "채널의 멤버를 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_channel.update.app_error",
+    "translation": "채널을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.update.exists.app_error",
+    "translation": "핸들을 가진 채널이 이미 있습니다"
+  },
+  {
+    "id": "store.sql_channel.update.previously.app_error",
+    "translation": "다루려하고있는 채널은 이전에 작성되었습니다"
+  },
+  {
+    "id": "store.sql_channel.update.updating.app_error",
+    "translation": "채널을 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_command.analytics_command_count.app_error",
+    "translation": "명령 수를 셀 수 없습니다"
+  },
+  {
+    "id": "store.sql_command.save.delete_perm.app_error",
+    "translation": "명령을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_command.save.delete.app_error",
+    "translation": "명령을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_command.save.get_team.app_error",
+    "translation": "명령을 취득 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_command.save.get.app_error",
+    "translation": "명령을 취득 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_command.save.saving_overwrite.app_error",
+    "translation": "이미 명령은 덮어 쓸 수 없습니다"
+  },
+  {
+    "id": "store.sql_command.save.saving.app_error",
+    "translation": "명령을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_command.save.update.app_error",
+    "translation": "명령을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_compliance.get.finding.app_error",
+    "translation": "컴플라이언스 리포트를 가져올 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_compliance.save.saving.app_error",
+    "translation": "컴플라이언스 리포트 저장할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_license.get.app_error",
+    "translation": "라이센스를 취득 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_license.get.missing.app_error",
+    "translation": "해당 ID에 끈 붙는 라이센스를 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_license.save.app_error",
+    "translation": "라이센스를 저장할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_oauth.get_access_data_by_code.app_error",
+    "translation": "액세스 토큰을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_oauth.get_access_data.app_error",
+    "translation": "액세스 토큰을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_oauth.get_app_by_user.find.app_error",
+    "translation": "응용 프로그램이 하나도 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_oauth.get_app.find.app_error",
+    "translation": "이미 존재하는 응용 프로그램을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_oauth.get_app.finding.app_error",
+    "translation": "응용 프로그램을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_oauth.get_auth_data.find.app_error",
+    "translation": "기존의 인증 코드를 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_oauth.get_auth_data.finding.app_error",
+    "translation": "인증 코드를 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
+    "translation": "인증 코드를 제거 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_oauth.remove_access_data.app_error",
+    "translation": "액세스 토큰을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_oauth.remove_auth_data.app_error",
+    "translation": "인증 코드를 제거 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_oauth.save_access_data.app_error",
+    "translation": "액세스 토큰을 저장할 수 없습니다."
+  },
+  {
+    "id": "store.sql_oauth.save_app.existing.app_error",
+    "translation": "기존 응용 프로그램의 업데이트를하지 않으면 안됩니다"
+  },
+  {
+    "id": "store.sql_oauth.save_app.save.app_error",
+    "translation": "응용 프로그램을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_oauth.save_auth_data.app_error",
+    "translation": "인증 코드를 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_oauth.update_app.find.app_error",
+    "translation": "업데이트 할 응용 프로그램을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_oauth.update_app.finding.app_error",
+    "translation": "응용 프로그램을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_oauth.update_app.update.app_error",
+    "translation": "응용 프로그램을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_oauth.update_app.updating.app_error",
+    "translation": "응용 프로그램을 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
+    "translation": "날마다의 게시물을 검색 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.analytics_posts_count.app_error",
+    "translation": "게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "게시 한 사용자 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.compliance_export.app_error",
+    "translation": "맞춤 내보내기 게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.delete.app_error",
+    "translation": "게시물을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.get_for_export.app_error",
+    "translation": "채널 게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.get_parents_posts.app_error",
+    "translation": "채널의 부모에 해당 게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.get_posts_around.get_parent.app_error",
+    "translation": "채널의 부모에 해당 게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.get_posts_around.get.app_error",
+    "translation": "채널 게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.get_posts_since.app_error",
+    "translation": "채널 게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.get_posts.app_error",
+    "translation": "더 이상의 페이지를 생성 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.get_root_posts.app_error",
+    "translation": "채널 게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.get.app_error",
+    "translation": "게시물을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
+    "translation": "사용자의 의견을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_user.app_error",
+    "translation": "사용자 삭제하려는 게시물을 선택할 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
+    "translation": "사용자 삭제하려는 게시물을 선택할 수 없습니다 (수가 너무 많습니다.) 다시 실행해주세요"
+  },
+  {
+    "id": "store.sql_post.permanent_delete.app_error",
+    "translation": "게시물을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.save.app_error",
+    "translation": "게시물을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_post.save.existing.app_error",
+    "translation": "기존의 게시는 업데이트 할 수 없습니다."
+  },
+  {
+    "id": "store.sql_post.search.app_error",
+    "translation": "게시물을 검색 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_post.update.app_error",
+    "translation": "게시물을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_preference.delete_unused_features.debug",
+    "translation": "사용하지 않는 프리 릴리즈 기능을 제거하고 있습니다"
+  },
+  {
+    "id": "store.sql_preference.get_all.app_error",
+    "translation": "설정을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_preference.get_category.app_error",
+    "translation": "설정을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_preference.get.app_error",
+    "translation": "설정을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_preference.insert.exists.app_error",
+    "translation": "사용자 ID 및 카테고리 이름의 설정이 이미 있습니다"
+  },
+  {
+    "id": "store.sql_preference.insert.save.app_error",
+    "translation": "설정을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_preference.is_feature_enabled.app_error",
+    "translation": "프리 릴리즈 설정을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_preference.permanent_delete_by_user.app_error",
+    "translation": "설정을 삭제할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_preference.save.commit_transaction.app_error",
+    "translation": "설정을 저장하는 트랜잭션을 커밋 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_preference.save.missing_driver.app_error",
+    "translation": "설정을 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_preference.save.open_transaction.app_error",
+    "translation": "설정을 저장하는 트랜잭션을 시작할 수 없습니다"
+  },
+  {
+    "id": "store.sql_preference.save.rollback_transaction.app_error",
+    "translation": "설정을 저장하는 트랜잭션을 롤백 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_preference.save.updating.app_error",
+    "translation": "설정을 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_preference.update.app_error",
+    "translation": "설정을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.analytics_session_count.app_error",
+    "translation": "세션 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.cleanup_expired_sessions.app_error",
+    "translation": "만료 사용자 세션을 삭제하는 중에 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_session.get_sessions.app_error",
+    "translation": "사용자 세션을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_session.get_sessions.error",
+    "translation": "getSessions 세션을 정리하지 못했습니다 err=%v"
+  },
+  {
+    "id": "store.sql_session.get.app_error",
+    "translation": "세션을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
+    "translation": "사용자의 모든 세션을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
+    "translation": "모든 세션을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.remove.app_error",
+    "translation": "세션을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.save.app_error",
+    "translation": "세션을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.save.cleanup.error",
+    "translation": "Save에서 세션을 정리하지 못했습니다 err=%v"
+  },
+  {
+    "id": "store.sql_session.save.existing.app_error",
+    "translation": "기존의 세션을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.update_device_id.app_error",
+    "translation": "장치 ID를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.update_last_activity.app_error",
+    "translation": "last_activity_at를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_session.update_roles.app_error",
+    "translation": "역할을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_system.get_by_name.app_error",
+    "translation": "시스템 변수를 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_system.get.app_error",
+    "translation": "시스템 설정 값을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_system.save.app_error",
+    "translation": "시스템 설정 값을 저장할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_system.update.app_error",
+    "translation": "시스템 설정을 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_team.analytics_team_count.app_error",
+    "translation": "팀 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_all_team_listing.app_error",
+    "translation": "모든 팀을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_all.app_error",
+    "translation": "모든 팀을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_by_invite_id.find.app_error",
+    "translation": "팀을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_team.get_by_invite_id.finding.app_error",
+    "translation": "팀을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_team.get_by_name.app_error",
+    "translation": "팀을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "팀의 멤버가 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_member.missing.app_error",
+    "translation": "사용자 ID와 팀 ID와 일치하는 팀의 구성원을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_members.app_error",
+    "translation": "채널의 회원이 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_teams_for_email.app_error",
+    "translation": "팀을 검색하는 동안 문제가 발생했습니다"
+  },
+  {
+    "id": "store.sql_team.get.find.app_error",
+    "translation": "팀을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_team.get.finding.app_error",
+    "translation": "팀을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_team.permanent_delete.app_error",
+    "translation": "기존의 팀을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.remove_member.app_error",
+    "translation": "채널의 멤버를 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.save_member.exists.app_error",
+    "translation": "그 ID를 가지는 채널의 회원은 이미 존재합니다"
+  },
+  {
+    "id": "store.sql_team.save_member.save.app_error",
+    "translation": "채널의 멤버를 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.save.app_error",
+    "translation": "팀을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.save.domain_exists.app_error",
+    "translation": "그 도메인을 가진 팀은 이미 존재합니다"
+  },
+  {
+    "id": "store.sql_team.save.existing.app_error",
+    "translation": "기존 팀의 업데이트를하지 않으면 안됩니다"
+  },
+  {
+    "id": "store.sql_team.update_display_name.app_error",
+    "translation": "팀 이름을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.update.app_error",
+    "translation": "팀이 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.update.find.app_error",
+    "translation": "업그레이드해야하는 팀을 찾을 수 없습니다."
+  },
+  {
+    "id": "store.sql_team.update.finding.app_error",
+    "translation": "팀을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_team.update.updating.app_error",
+    "translation": "팀을 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.analytics_unique_user_count.app_error",
+    "translation": "중복없이 사용자 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
+    "translation": "특정 인증 형식을 사용하는 모든 계정을 추출 할 때 오류가 발생했습니다."
+  },
+  {
+    "id": "store.sql_user.get_by_auth.missing_account.app_error",
+    "translation": "이 팀의 인증 형식에 부합하는 기존의 계정을 찾지 못했습니다. 이 팀에 합류하려면 팀의 소유자로부터 초대를 받아야합니다."
+  },
+  {
+    "id": "store.sql_user.get_by_auth.other.app_error",
+    "translation": "인증 형식으로 계정을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.get_by_username.app_error",
+    "translation": "이 팀에서 당신의 이메일 주소와 일치하는 계정을 찾지 못했습니다. 이 팀에 합류하려면 팀의 소유자로부터 초대를 받아야합니다."
+  },
+  {
+    "id": "store.sql_user.get_for_export.app_error",
+    "translation": "사용자의 프로필을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.get_for_login.app_error",
+    "translation": "당신의 인증 정보에 부합하는 계정을 찾지 못했습니다. 이 팀에 합류하려면 팀의 소유자로부터 초대를 받아야합니다."
+  },
+  {
+    "id": "store.sql_user.get_for_login.multiple_users",
+    "translation": "당신의 인증 정보에 부합하는 여러 사용자가 발견되어, 로그인 할 수 없습니다. 시스템 관리자에게 문의해주세요."
+  },
+  {
+    "id": "store.sql_user.get_profiles.app_error",
+    "translation": "사용자의 프로필을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.get_sysadmin_profiles.app_error",
+    "translation": "사용자의 프로필을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.get_total_active_users_count.app_error",
+    "translation": "사용자 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.get_total_users_count.app_error",
+    "translation": "사용자 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.get_unread_count.app_error",
+    "translation": "읽지 않은 메시지 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.get.app_error",
+    "translation": "계정을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.missing_account.const",
+    "translation": "이 팀에서 당신의 이메일 주소와 일치하는 계정을 찾지 못했습니다. 이 팀에 합류하려면 팀의 소유자로부터 초대를 받아야합니다."
+  },
+  {
+    "id": "store.sql_user.permanent_delete.app_error",
+    "translation": "기존 계정을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.save.app_error",
+    "translation": "계정을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.save.email_exists.app_error",
+    "translation": "이메일 주소를 가진 계정이 이미 있습니다"
+  },
+  {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "이 계정은 LDAP 인증을 사용하지 않습니다. 이메일 주소와 비밀번호를 사용하여 로그인해주세요."
+  },
+  {
+    "id": "store.sql_user.save.existing.app_error",
+    "translation": "기존 사용자 업데이트를하지 않으면 안됩니다"
+  },
+  {
+    "id": "store.sql_user.save.max_accounts.app_error",
+    "translation": "이 팀은 등록 사용자 수 제한에 도달했습니다. 시스템 관리자에게 상한치 설정을 변경하도록 요청해주세요."
+  },
+  {
+    "id": "store.sql_user.save.member_count.app_error",
+    "translation": "현재 팀의 참가자 수를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.save.username_exists.app_error",
+    "translation": "사용자 이름을 가진 계정이 이미 있습니다"
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "이 사용자 이름을 사용한 계정이 이미 있습니다. 시스템 관리자에게 문의해주세요."
+  },
+  {
+    "id": "store.sql_user.update_auth_data.app_error",
+    "translation": "인증 데이터를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
+    "translation": "failed_attempts를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update_last_activity.app_error",
+    "translation": "last_activity_at를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update_last_picture_update.app_error",
+    "translation": "update_at를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update_last_ping.app_error",
+    "translation": "last_ping_at를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update_mfa_active.app_error",
+    "translation": "사용자의 MFA의 활동 상태를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update_mfa_secret.app_error",
+    "translation": "사용자의 MFA 비밀 정보를 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.update_password.app_error",
+    "translation": "사용자 비밀번호를 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update.app_error",
+    "translation": "계정을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update.can_not_change_ldap.app_error",
+    "translation": "LDAP에 의해 설정되는 항목은 변경할 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update.email_taken.app_error",
+    "translation": "이 이메일 주소는 이미 사용되고 있습니다. 다른 이메일 주소를 지정해주세요."
+  },
+  {
+    "id": "store.sql_user.update.find.app_error",
+    "translation": "업그레이드해야하는 사용자를 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.update.finding.app_error",
+    "translation": "계정을 찾을 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.update.updating.app_error",
+    "translation": "계정을 업데이트 할 때 오류가 발생했습니다"
+  },
+  {
+    "id": "store.sql_user.update.username_taken.app_error",
+    "translation": "이 사용자 이름은 이미 사용하고 있습니다. 다른 사용자 이름을 지정해주세요."
+  },
+  {
+    "id": "store.sql_user.verify_email.app_error",
+    "translation": "이메일 주소 검증을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
+    "translation": "들어오는 웹 후크 개수를 가져올 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
+    "translation": "나가는 웹 후크의 개수를 가져올 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.delete_incoming.app_error",
+    "translation": "웹 연결을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.delete_outgoing.app_error",
+    "translation": "웹 연결을 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
+    "translation": "웹 후크들을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming_by_user.app_error",
+    "translation": "웹 후크를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.get_incoming.app_error",
+    "translation": "웹 후크를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
+    "translation": "웹 후크들을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
+    "translation": "웹 후크들을 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.get_outgoing.app_error",
+    "translation": "웹 후크를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "웹 후크를 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "웹 후크를 삭제할 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.save_incoming.app_error",
+    "translation": "IncomingWebhook을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.save_incoming.existing.app_error",
+    "translation": "기존의 IncomingWebhook을 덮어 쓸 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.save_outgoing.app_error",
+    "translation": "OutgoingWebhook을 저장할 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.save_outgoing.override.app_error",
+    "translation": "기존의 OutgoingWebhook을 덮어 쓸 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.update_outgoing.app_error",
+    "translation": "웹 연결을 업데이트 할 수 없습니다"
+  },
+  {
+    "id": "store.sql.alter_column_type.critical",
+    "translation": "열 형식 %v를 변경할 수 없습니다"
+  },
+  {
+    "id": "store.sql.check_index.critical",
+    "translation": "인덱스 %v를 확인할 수 없습니다"
+  },
+  {
+    "id": "store.sql.closing.info",
+    "translation": "SqlStore를 닫습니다"
+  },
+  {
+    "id": "store.sql.column_exists_missing_driver.critical",
+    "translation": "드라이버가 없어 열이 있는지 확인할 수 없습니다"
+  },
+  {
+    "id": "store.sql.column_exists.critical",
+    "translation": "열이 있는지 확인할 수 없습니다 %v"
+  },
+  {
+    "id": "store.sql.convert_encrypt_string_map",
+    "translation": "FromDb : EncryptStringMap을 * string로 변환 할 수 없습니다"
+  },
+  {
+    "id": "store.sql.convert_string_array",
+    "translation": "FromDb : StringArray을 * string로 변환 할 수 없습니다"
+  },
+  {
+    "id": "store.sql.convert_string_interface",
+    "translation": "FromDb : StringInterface을 * string로 변환 할 수 없습니다"
+  },
+  {
+    "id": "store.sql.convert_string_map",
+    "translation": "FromDb : StringMap을 * string로 변환 할 수 없습니다"
+  },
+  {
+    "id": "store.sql.create_column_missing_driver.critical",
+    "translation": "드라이버가 없어 열을 만들 수 없습니다"
+  },
+  {
+    "id": "store.sql.create_column.critical",
+    "translation": "%v 컬럼을 만드는데 실패하였습니다."
+  },
+  {
+    "id": "store.sql.create_index_missing_driver.critical",
+    "translation": "드라이버가 없어 인덱스를 만들 수 없습니다"
+  },
+  {
+    "id": "store.sql.create_index.critical",
+    "translation": "인덱스 %v는 만들 수 없습니다"
+  },
+  {
+    "id": "store.sql.creating_tables.critical",
+    "translation": "데이터베이스 테이블을 만들 수 없습니다 : %v"
+  },
+  {
+    "id": "store.sql.dialect_driver.critical",
+    "translation": "특정 드라이버를 만드는데 실패하였습니다."
+  },
+  {
+    "id": "store.sql.dialect_driver.panic",
+    "translation": "특정 드라이버 %v를 만드는데 실패하였습니다."
+  },
+  {
+    "id": "store.sql.drop_column.critical",
+    "translation": "열 %v를 제거 할 수 없습니다"
+  },
+  {
+    "id": "store.sql.incorrect_mac",
+    "translation": "주어진 ciphertext 대한 MAC이 올바르지 않습니다"
+  },
+  {
+    "id": "store.sql.maxlength_column.critical",
+    "translation": "열 %v의 최대 길이를 얻을 수 없습니다"
+  },
+  {
+    "id": "store.sql.open_conn.critical",
+    "translation": "SQL 연결을 열 수 없습니다 : %v"
+  },
+  {
+    "id": "store.sql.open_conn.panic",
+    "translation": "SQL 연결 %v를 열 수 없습니다."
+  },
+  {
+    "id": "store.sql.ping.critical",
+    "translation": "DB에서 응답이 없습니다 : %v"
+  },
+  {
+    "id": "store.sql.pinging.info",
+    "translation": "SQL %v 데이터베이스에서 응답 확인 중"
+  },
+  {
+    "id": "store.sql.read_replicas_not_licensed.critical",
+    "translation": "현재의 라이센스는 2 이상의 복제 기능은 비활성화되어 있습니다. 시스템 관리자에게 엔터프라이즈 라이센스를 업그레이드 하도록 요청해주세요."
+  },
+  {
+    "id": "store.sql.remove_index.critical",
+    "translation": "인덱스 %v를 제거 할 수 없습니다"
+  },
+  {
+    "id": "store.sql.rename_column.critical",
+    "translation": "열 %v의 이름을 바꿀 수 없습니다"
+  },
+  {
+    "id": "store.sql.schema_out_of_date.warn",
+    "translation": "%v 데이터베이스 스키마 버전이 오래되었습니다"
+  },
+  {
+    "id": "store.sql.schema_set.info",
+    "translation": "데이터베이스 스키마 버전 %v로 설정되었습니다"
+  },
+  {
+    "id": "store.sql.schema_upgrade_attempt.warn",
+    "translation": "데이터베이스 스키마의 버전을 %v로 업그레이드 하려고합니다"
+  },
+  {
+    "id": "store.sql.schema_version.critical",
+    "translation": "%v 버전의 데이터베이스 스키마로 업그레이드 할 수 없습니다. 버전을 건너 뛸 수 없습니다."
+  },
+  {
+    "id": "store.sql.short_ciphertext",
+    "translation": "짧은 ciphertext입니다"
+  },
+  {
+    "id": "store.sql.table_column_type.critical",
+    "translation": "열 %s (테이블 %s)의 데이터 형식을 검색 할 수 없습니다 : %v"
+  },
+  {
+    "id": "store.sql.table_exists.critical",
+    "translation": "테이블이 존재하는지 확인하는데 실패하였습니다. %v"
+  },
+  {
+    "id": "store.sql.too_short_ciphertext",
+    "translation": "ciphertext가 너무 짧습니다"
+  },
+  {
+    "id": "store.sql.upgraded.warn",
+    "translation": "데이터베이스 스키마 버전 %v로 업그레이드 되었습니다"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "System"
+  },
+  {
+    "id": "utils.config.load_config.decoding.panic",
+    "translation": "설정 값을 디코딩 할 수 없습니다 file={{. Filename}} err={{. Error}}"
+  },
+  {
+    "id": "utils.config.load_config.getting.panic",
+    "translation": "설정 정보를 얻을 수 없습니다 file={{. Filename}} err={{. Error}}"
+  },
+  {
+    "id": "utils.config.load_config.opening.panic",
+    "translation": "설정 파일을 열 수 없습니다 file={{. Filename}} err={{. Error}}"
+  },
+  {
+    "id": "utils.config.load_config.validating.panic",
+    "translation": "설정 파일의 형식이 잘못되었습니다 file={{. Filename}} err={{. Error}}"
+  },
+  {
+    "id": "utils.config.save_config.saving.app_error",
+    "translation": "파일을 {{.Filename}}에 저장하는 동안 오류가 발생했습니다"
+  },
+  {
+    "id": "utils.i18n.loaded",
+    "translation": "%v'용 시스템 번역을'%v'에서 가져 왔습니다"
+  },
+  {
+    "id": "utils.iru.with_evict",
+    "translation": "크기는 양수가 아니면 안됩니다"
+  },
+  {
+    "id": "utils.license.load_license.invalid.warn",
+    "translation": "유효한 엔터프라이즈 라이센스를 찾을 수 없습니다"
+  },
+  {
+    "id": "utils.license.remove_license.unable.error",
+    "translation": "라이센스 파일을 삭제할 수 없습니다 err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.decode.error",
+    "translation": "라이센스를 디코딩하는 동안 오류가 발생했습니다 err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.invalid.error",
+    "translation": "잘못된 서명입니다 err=%v"
+  },
+  {
+    "id": "utils.license.validate_license.not_long.error",
+    "translation": "서명된 라이센스가 충분히 길지 않습니다."
+  },
+  {
+    "id": "utils.license.validate_license.signing.error",
+    "translation": "라이센스에 서명하는 동안 오류가 발생했습니다 err=%v"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open_tls.app_error",
+    "translation": "TLS에 연결할 수 없습니다"
+  },
+  {
+    "id": "utils.mail.connect_smtp.open.app_error",
+    "translation": "연결할 수 없습니다"
+  },
+  {
+    "id": "utils.mail.new_client.auth.app_error",
+    "translation": "SMTP 서버 인증에 실패했습니다"
+  },
+  {
+    "id": "utils.mail.new_client.open.error",
+    "translation": "SMTP 서버 %v에 연결할 수 없습니다"
+  },
+  {
+    "id": "utils.mail.send_mail.close.app_error",
+    "translation": "SMTP 서버로의 연결을 종료하는데 실패하였습니다."
+  },
+  {
+    "id": "utils.mail.send_mail.from_address.app_error",
+    "translation": "이메일 주소를 추가하는데 실패하였습니다."
+  },
+  {
+    "id": "utils.mail.send_mail.msg_data.app_error",
+    "translation": "이메일 메시지에 데이터를 추가하는데 실패하였습니다."
+  },
+  {
+    "id": "utils.mail.send_mail.msg.app_error",
+    "translation": "이메일 메시지를 쓰는데 실패하였습니다."
+  },
+  {
+    "id": "utils.mail.send_mail.sending.debug",
+    "translation": "%v로 제목'%v'이메일을 보냅니다."
+  },
+  {
+    "id": "utils.mail.send_mail.to_address.app_error",
+    "translation": "이메일 주소를 추가하는데 실패하였습니다."
+  },
+  {
+    "id": "utils.mail.test.configured.error",
+    "translation": "SMTP 서버의 설정이 올바르지 않습니다 err=%v details=%v"
+  },
+  {
+    "id": "web.admin_console.title",
+    "translation": "관리 콘솔"
+  },
+  {
+    "id": "web.authorize_oauth.disabled.app_error",
+    "translation": "시스템 관리자가 OAuth 서비스를 사용하도록 설정하였습니다."
+  },
+  {
+    "id": "web.authorize_oauth.missing.app_error",
+    "translation": "response_type, client_id, redirect_uri 중 하나 이상이 없습니다."
+  },
+  {
+    "id": "web.authorize_oauth.title",
+    "translation": "어플리케이션 인증"
+  },
+  {
+    "id": "web.check_browser_compatibility.app_error",
+    "translation": "이 브라우저는 지원하지 않습니다. 다음의 브라우저중 하나로 업그레이드 해주세요. Google Chrome 21 이상, Internet Explorer 11 이상, Firefox 14 이상 또는 Safari 9 이상"
+  },
+  {
+    "id": "web.claim_account.team.error",
+    "translation": "팀을 찾을 수 없었습니다 name=%v, err=%v"
+  },
+  {
+    "id": "web.claim_account.title",
+    "translation": "계정 요청"
+  },
+  {
+    "id": "web.claim_account.user.error",
+    "translation": "사용자를 찾을 수 없습니다 teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.create_dir.error",
+    "translation": "디렉토리를 생성하는데 실패했습니다. watcher %v"
+  },
+  {
+    "id": "web.dir_fail.error",
+    "translation": "디렉토리에서 실패했습니다. watcher %v"
+  },
+  {
+    "id": "web.do_load_channel.error",
+    "translation": "id=%v 사용자의 프로필을 확인할 수 없습니다. 강0 로그 아웃합니다"
+  },
+  {
+    "id": "web.doc.title",
+    "translation": "문서"
+  },
+  {
+    "id": "web.email_verified.title",
+    "translation": "이메일 주소 확인됨"
+  },
+  {
+    "id": "web.find_team.title",
+    "translation": "팀 찾기"
+  },
+  {
+    "id": "web.get_access_token.bad_client_id.app_error",
+    "translation": "잘못된 요청 : 잘못된 client_id입니다"
+  },
+  {
+    "id": "web.get_access_token.bad_client_secret.app_error",
+    "translation": "잘못된 요청 : client_secret이 없습니다"
+  },
+  {
+    "id": "web.get_access_token.bad_grant.app_error",
+    "translation": "잘못된 요청 : 잘못된 grant_type입니다"
+  },
+  {
+    "id": "web.get_access_token.credentials.app_error",
+    "translation": "잘못된 클라이언트 : 잘못된 클라이언트 인증 정보입니다"
+  },
+  {
+    "id": "web.get_access_token.disabled.app_error",
+    "translation": "시스템 관리자가 OAuth 서비스를 제공하지 않도록 설정하였습니다."
+  },
+  {
+    "id": "web.get_access_token.exchanged.app_error",
+    "translation": "잘못된 권한 부여 : 인증 코드가 이미 액세스 토큰으로 교환되었습니다."
+  },
+  {
+    "id": "web.get_access_token.expired_code.app_error",
+    "translation": "잘못된 권한 부여 : 유효하지 않거나 만료된 인증 코드"
+  },
+  {
+    "id": "web.get_access_token.internal_saving.app_error",
+    "translation": "서버 오류 : 데이터베이스에 액세스 토큰을 저장하는 동안 서버 내부 오류가 발생했습니다"
+  },
+  {
+    "id": "web.get_access_token.internal_session.app_error",
+    "translation": "서버 오류 : 데이터베이스에 세션을 저장하는 동안 서버 내부 오류가 발생했습니다"
+  },
+  {
+    "id": "web.get_access_token.internal_user.app_error",
+    "translation": "서버 오류 : 데이터베이스에서 사용자를 검색하는 동안 서버 내부 오류가 발생했습니다"
+  },
+  {
+    "id": "web.get_access_token.internal.app_error",
+    "translation": "서버 오류 : 데이터베이스에 액세스하는 동안 서버 내부 오류가 발생했습니다"
+  },
+  {
+    "id": "web.get_access_token.missing_code.app_error",
+    "translation": "잘못된 요청 : 코드를 찾을 수 없습니다"
+  },
+  {
+    "id": "web.get_access_token.redirect_uri.app_error",
+    "translation": "잘못된 요청 : 사용 된 redirect_uri은 인증 코드 redirect_uri과 맞지 않습니다"
+  },
+  {
+    "id": "web.get_access_token.revoking.error",
+    "translation": "액세스 토큰을 폐기 하는 동안 오류가 발생했습니다 err="
+  },
+  {
+    "id": "web.header.back",
+    "translation": "뒤로"
+  },
+  {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "채널을 찾을 수 없습니다."
+  },
+  {
+    "id": "web.incoming_webhook.disabled.app_error",
+    "translation": "들어오는 웹 후크가 시스템 관리자에의해 비활성화되어 있습니다."
+  },
+  {
+    "id": "web.incoming_webhook.invalid.app_error",
+    "translation": "잘못된 웹 후크입니다"
+  },
+  {
+    "id": "web.incoming_webhook.parse.app_error",
+    "translation": "외부에서 데이터를 분석 할 수 없습니다"
+  },
+  {
+    "id": "web.incoming_webhook.permissions.app_error",
+    "translation": "채널에 대한 권한이 충분하지 않습니다"
+  },
+  {
+    "id": "web.incoming_webhook.text.app_error",
+    "translation": "텍스트가 지정되어 있지 않습니다."
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "사용자를 찾을 수 없습니다"
+  },
+  {
+    "id": "web.init.debug",
+    "translation": "웹 라우트를 초기화합니다"
+  },
+  {
+    "id": "web.login_with_oauth.invalid_team.app_error",
+    "translation": "잘못된 팀 이름입니다"
+  },
+  {
+    "id": "web.login.error",
+    "translation": "팀을 찾을 수 없습니다 name=%v, err=%v"
+  },
+  {
+    "id": "web.login.login_title",
+    "translation": "로그인"
+  },
+  {
+    "id": "web.parsing_templates.debug",
+    "translation": "템플릿 %v를 다시 읽고 있습니다"
+  },
+  {
+    "id": "web.parsing_templates.error",
+    "translation": "템플릿 %v의 해석에 실패했습니다"
+  },
+  {
+    "id": "web.post_permalink.app_error",
+    "translation": "잘못된 게시 ID입니다"
+  },
+  {
+    "id": "web.reparse_templates.info",
+    "translation": "파일 %v가 변경 되었기 때문에 템플릿을 다시 읽고 있습니다"
+  },
+  {
+    "id": "web.reset_password.expired_link.app_error",
+    "translation": "비밀번호 초기화 링크가 만료되었습니다."
+  },
+  {
+    "id": "web.reset_password.invalid_link.app_error",
+    "translation": "초기화 링크 불량"
+  },
+  {
+    "id": "web.root.home_title",
+    "translation": "홈"
+  },
+  {
+    "id": "web.root.singup_title",
+    "translation": "등록"
+  },
+  {
+    "id": "web.signup_team_complete.invalid_link.app_error",
+    "translation": "등록 링크 불량"
+  },
+  {
+    "id": "web.signup_team_complete.link_expired.app_error",
+    "translation": "등록 링크가 만료되었습니다."
+  },
+  {
+    "id": "web.signup_team_complete.title",
+    "translation": "팀의 등록이 완료되었습니다."
+  },
+  {
+    "id": "web.signup_team_confirm.title",
+    "translation": "등록 이메일을 보냈습니다"
+  },
+  {
+    "id": "web.signup_user_complete.link_expired.app_error",
+    "translation": "등록 링크가 만료되었습니다."
+  },
+  {
+    "id": "web.signup_user_complete.link_invalid.app_error",
+    "translation": "등록 링크 불량"
+  },
+  {
+    "id": "web.signup_user_complete.no_invites.app_error",
+    "translation": "이 팀은 누구나 초대 할 수있는 형식이 아닙니다"
+  },
+  {
+    "id": "web.signup_user_complete.title",
+    "translation": "사용자의 등록이 완료되었습니다."
+  },
+  {
+    "id": "web.singup_with_oauth.disabled.app_error",
+    "translation": "사용자의 등록이 비활성화되어 있습니다."
+  },
+  {
+    "id": "web.singup_with_oauth.expired_link.app_error",
+    "translation": "등록 링크가 만료되었습니다."
+  },
+  {
+    "id": "web.singup_with_oauth.invalid_link.app_error",
+    "translation": "등록 링크 불량"
+  },
+  {
+    "id": "web.singup_with_oauth.invalid_team.app_error",
+    "translation": "잘못된 팀 이름입니다"
+  },
+  {
+    "id": "web.watcher_fail.error",
+    "translation": "디렉토리를 추가 할 수 없습니다. watcher %v"}
+]
