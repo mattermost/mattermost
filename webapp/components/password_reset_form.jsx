@@ -29,7 +29,9 @@ class PasswordResetForm extends React.Component {
                     <FormattedMessage
                         id='password_form.error'
                         defaultMessage='Please enter at least {chars} characters.'
-                        chars={Constants.MIN_PASSWORD_LENGTH}
+                        values={{
+                            chars: Constants.MIN_PASSWORD_LENGTH
+                        }}
                     />
                 )
             });
