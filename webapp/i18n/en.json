@@ -326,6 +326,8 @@
   "admin.log.logSettings": "Log Settings",
   "admin.logs.reload": "Reload",
   "admin.logs.title": "Server Logs",
+  "admin.log.enableWebhookDebugging": "Enable Webhook Debugging:",
+  "admin.log.enableWebhookDebuggingDescription": "You can set this to false to disable the debug logging of all incoming webhook request bodies.",
   "admin.nav.help": "Help",
   "admin.nav.logout": "Logout",
   "admin.nav.report": "Report a Problem",

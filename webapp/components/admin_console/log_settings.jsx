@@ -26,7 +26,8 @@ export default class LogSettings extends AdminSettings {
             enableFile: props.config.LogSettings.EnableFile,
             fileLevel: props.config.LogSettings.FileLevel,
             fileLocation: props.config.LogSettings.FileLocation,
-            fileFormat: props.config.LogSettings.FileFormat
+            fileFormat: props.config.LogSettings.FileFormat,
+            enableWebhookDebugging: props.config.LogSettings.EnableWebhookDebugging
         });
     }
 
@@ -37,6 +38,7 @@ export default class LogSettings extends AdminSettings {
         config.LogSettings.FileLevel = this.state.fileLevel;
         config.LogSettings.FileLocation = this.state.fileLocation;
         config.LogSettings.FileFormat = this.state.fileFormat;
+        config.LogSettings.EnableWebhookDebugging = this.state.enableWebhookDebugging;
 
         return config;
     }
@@ -165,6 +167,23 @@ export default class LogSettings extends AdminSettings {
                     value={this.state.fileFormat}
                     onChange={this.handleChange}
                     disabled={!this.state.enableFile}
+                />
+                <BooleanSetting
+                    id='enableWebhookDebugging'
+                    label={
+                        <FormattedMessage
+                            id='admin.log.enableWebhookDebugging'
+                            defaultMessage='Enable Webhook Debugging:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.log.enableWebhookDebuggingDescription'
+                            defaultMessage='You can set this to false to disable the debug logging of all incoming webhook request bodies.'
+                        />
+                    }
+                    value={this.state.enableWebhookDebugging}
+                    onChange={this.handleChange}
                 />
             </SettingsGroup>
         );

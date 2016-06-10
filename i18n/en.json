@@ -1956,6 +1956,14 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.webhook.incoming.debug",
+    "translation": "Incoming webhook received. Content="
+  },
+  {
+    "id": "api.webhook.incoming.debug.error",
+    "translation": "Could not read payload of incoming webhook."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Initializing webhook api routes"
   },
