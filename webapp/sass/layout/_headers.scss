@@ -43,6 +43,10 @@
                 text-decoration: none;
             }
 
+            .dropdown-menu {
+                margin-top: -5px;
+            }
+
             .modal {
                 white-space: normal;
             }
@@ -94,7 +98,7 @@
         float: left;
 
         img {
-            @include border-radius(100px);
+            @include border-radius(4px);
         }
     }
 
@@ -172,7 +176,7 @@
             .dropdown-menu {
                 a {
                     overflow: hidden;
-                    padding: 3px 20px;
+                    padding: 3px 10px;
                     text-overflow: ellipsis;
                 }
             }

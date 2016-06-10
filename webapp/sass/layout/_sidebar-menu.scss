@@ -1,6 +1,7 @@
 @charset 'UTF-8';
 
 .sidebar--menu {
+    @include box-shadow(inset 20px 0 30px -20px rgba(0, 0, 0, 0.5));
     background: #fafafa;
     border-right: $border-gray;
     display: none;
@@ -65,7 +66,7 @@
                 background: none !important;
                 color: inherit;
                 font-size: 15px;
-                line-height: 40px;
+                line-height: 45px;
                 padding: 0 15px;
 
                 .fa,

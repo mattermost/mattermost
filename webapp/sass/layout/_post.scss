@@ -1,8 +1,9 @@
 @charset 'UTF-8';
 
 .custom-textarea {
+    @include border-radius(2px);
     background: transparent;
-    border: 1px solid #cccccc;
+    border: 2px solid #cccccc;
     height: auto;
     line-height: 20px;
     min-height: 36px;
@@ -12,6 +13,7 @@
     word-wrap: break-word;
 
     &:focus {
+        @include alpha-property(background-color, $white, .05);
         border-color: #cccccc;
         box-shadow: none;
     }
@@ -62,7 +64,6 @@ body.ios {
 
     .help__text {
         bottom: -23px;
-        cursor: pointer;
         font-size: 13px;
         position: absolute;
         right: 0;
@@ -452,6 +453,9 @@ body.ios {
 
         .dropdown-menu {
             &.bottom {
+                @include box-shadow(0 0 10px rgba(0, 0, 0, 0.3));
+                @include border-radius($border-rad-dropdown);
+                border-color: rgba(51, 51, 51, 0.2);
                 bottom: 25px;
                 top: auto;
             }
@@ -476,6 +480,11 @@ body.ios {
 
         .permalink-icon {
             visibility: visible;
+        }
+
+        &.current--user .post__body {
+            border-radius: 2px;
+            box-shadow: inset 0 0 1px 0 rgba(0, 0, 0, .5);
         }
     }
 
@@ -807,7 +816,7 @@ body.ios {
         }
 
         img {
-            @include border-radius(50px);
+            @include border-radius(4px);
             height: 32px;
             vertical-align: inherit;
             width: 32px;
@@ -834,7 +843,7 @@ body.ios {
         .dropdown-menu {
             left: auto;
             min-width: 130px;
-            padding: 2px 0;
+            padding: 0;
             right: 0;
 
             li {
@@ -848,6 +857,15 @@ body.ios {
     }
 
     .post__dropdown {
+        @include opacity(.7);
+        text-decoration: none;
+
+        &:hover,
+        &:focus,
+        &:active {
+            @include opacity(1);
+        }
+
         &:after {
             content: '[...]';
             position: relative;
@@ -1045,9 +1063,16 @@ body.ios {
     }
 
     .comment-icon__container {
+        @include opacity(.7);
         display: inline-block;
         fill: $primary-color;
         visibility: hidden;
+
+        &:hover,
+        &:focus,
+        &:active {
+            @include opacity(1);
+        }
 
         &:focus {
             outline: none;

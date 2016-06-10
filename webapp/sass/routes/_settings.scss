@@ -14,20 +14,24 @@
         width: 800px;
 
         .modal-back {
+            @include border-radius($border-rad);
+            @include single-transition(all, .1s, ease-in);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             font-size: 27px;
             font-weight: normal;
-            height: 40px;
-            left: 0;
-            line-height: 32px;
+            height: 32px;
+            left: 10px;
+            line-height: 31px;
             position: absolute;
             text-align: center;
-            top: 12px;
-            width: 50px;
+            top: 13px;
+            width: 32px;
 
             .fa {
                 height: 100%;
                 left: 0;
                 line-height: inherit;
+                margin-left: -1px;
                 position: absolute;
                 width: 100%;
             }
@@ -307,6 +311,11 @@
 
                 .setting-list-item {
                     margin-top: 7px;
+
+                    .btn.theme {
+                        border-color: currentColor;
+                        margin-left: 10px;
+                    }
                 }
 
                 .has-error {
@@ -429,6 +438,10 @@
     .member-menu {
         right: 110%;
         top: -50%;
+
+        & > li > a {
+            padding: 10px 15px;
+        }
     }
 }
 
