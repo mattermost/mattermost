@@ -1341,6 +1341,7 @@
   "user.settings.general.emailMatch": "The new emails you entered do not match.",
   "user.settings.general.emptyName": "Click 'Edit' to add your full name",
   "user.settings.general.emptyNickname": "Click 'Edit' to add a nickname",
+  "user.settings.general.field_handled_externally": "This field is handled through your login provider. If you want to change it, you need to do so through your login provider.",
   "user.settings.general.firstName": "First Name",
   "user.settings.general.fullName": "Full Name",
   "user.settings.general.imageTooLarge": "Unable to upload profile image. File is too large.",

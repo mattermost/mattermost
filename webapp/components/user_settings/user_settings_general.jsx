@@ -596,7 +596,7 @@ class UserSettingsGeneralTab extends React.Component {
                     <span>
                         <FormattedMessage
                             id='user.settings.general.field_handled_externally'
-                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so though your login provider.'
+                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
                         />
                     </span>
                 );
