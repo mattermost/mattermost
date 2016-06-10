@@ -1,6 +1,8 @@
 @charset 'UTF-8';
 
 .dropdown-menu {
+    padding-top: 0;
+    padding-bottom: 0;
 
     &.colorpicker {
         z-index: 2500;
@@ -17,6 +19,8 @@
 
     > li > a {
         color: inherit;
+        padding-left: 10px;
+        padding-right: 10px;
 
         &:focus,
         &:hover {

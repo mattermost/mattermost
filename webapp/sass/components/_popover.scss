@@ -2,7 +2,7 @@
 @import 'compass/css3/transition';
 
 .popover {
-    @include border-radius($border-rad);
+    @include border-radius($border-rad-dropdown);
     color: lighten($black, 25%);
 
     &.bottom,
@@ -179,7 +179,10 @@
 }
 
 .member-list__popover {
+    @include box-shadow(0 3px 8px -2px rgba(0, 0, 0, 0.3) !important);
     max-width: initial;
+    padding: 0;
+    top: 42px !important;
 
     .popover-content {
         max-height: 350px;

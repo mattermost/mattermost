@@ -40,11 +40,14 @@
     }
 
     .dropdown-menu {
+        @include box-shadow(0 3px 8px -2px rgba(0, 0, 0, 0.3) !important);
+        @include border-radius($border-rad-dropdown !important);
         max-height: 80vh;
-        max-width: 200px;
+        max-width: 300px;
         overflow-x: hidden;
         overflow-y: auto;
-        width: 200px;
+        right: -100px;
+        width: 300px;
     }
 
     .search__form {
@@ -132,8 +135,8 @@
         li {
             > h4 {
                 color: #aaaaaa;
-                font-size: 1em;
-                font-weight: 400;
+                font-size: 0.9em;
+                font-weight: 700;
                 letter-spacing: -.3px;
                 margin: 1.1em 0 .5em;
                 padding: 0 10px 0 15px;
@@ -188,6 +191,10 @@
                     font-weight: 600;
                 }
 
+                &.nav-more {
+                    text-decoration: none;
+                }
+
             }
 
             &.active {
@@ -220,6 +227,7 @@
     }
 
     .add-channel-btn {
+        @include single-transition(all, .1s, ease-in);
         color: #aaaaaa;
         float: right;
         font-size: 22px;

@@ -17,7 +17,7 @@
 
 .search__clear {
     @include single-transition(all, .2s, linear);
-    @include translateX(60px);
+    @include translateX(70px);
     cursor: pointer;
     display: none;
     line-height: 45px;

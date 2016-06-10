@@ -49,6 +49,10 @@
         table-layout: fixed;
     }
 
+    .modal-backdrop {
+        background: linear-gradient(to bottom, rgba(0, 0, 0 , 1) 0%, rgba(0, 0, 0, 0.7) 100%);
+    }
+
     .modal {
         color: alpha-color($black, .9);
         width: 100%;
@@ -76,7 +80,13 @@
 
             &.btn-default {
                 background: transparent;
-                border: none;
+                border: 1px solid currentColor;
+
+                &:hover,
+                &:focus,
+                &:active {
+                    background: rgba(0, 0, 0, 0.1);
+                }
             }
         }
 
@@ -122,7 +132,7 @@
         .modal-header {
             @include border-radius(0);
             @include clearfix;
-            background: $primary-color;
+            background: darken($primary-color, 20%);
             border: 1px solid $light-gray;
             color: $white;
             min-height: 56px;
@@ -146,18 +156,23 @@
             }
 
             .close {
+                @include border-radius($border-rad);
                 @include opacity(1);
-                @include single-transition(all, .25s, ease-in);
+                @include single-transition(all, .1s, ease-in);
+                border: 1px solid rgba(255, 255, 255, 0.5);
                 color: $white;
-                height: 30px;
-                line-height: 30px;
+                height: 32px;
+                line-height: 28px;
                 position: absolute;
                 right: 10px;
-                width: 30px;
+                width: 32px;
                 z-index: 5;
 
-                &:hover {
-                    @include alpha-property(background, $black, .1);
+                &:hover,
+                &:focus,
+                &:active {
+                    background: $white;
+                    color: rgba(102, 102, 102, 1);
                 }
 
                 span {
@@ -168,8 +183,9 @@
 
             .btn {
                 &.btn-primary {
+                    border: 1px solid rgba(255, 255, 255, 0.5);
                     float: right;
-                    margin: -4px 25px 0 0;
+                    margin: -2px 35px 0 0;
                     position: relative;
 
                     i {
@@ -194,8 +210,9 @@
         }
 
         .modal-content {
-            border-radius: 0;
-            box-shadow: none;
+            @include border-radius($border-rad);
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
         .modal-chevron-icon {
@@ -504,7 +521,7 @@
     }
 
     .more-modal__image {
-        @include border-radius(60px);
+        @include border-radius(4px);
         flex-grow: 0;
         flex-shrink: 0;
         margin-right: 8px;
