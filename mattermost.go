@@ -63,6 +63,7 @@ var flagLicenseFile string
 var flagEmail string
 var flagPassword string
 var flagTeamName string
+var flagSiteURL string
 var flagConfirmBackup string
 var flagRole string
 var flagRunCmds bool
@@ -262,6 +263,7 @@ func parseCmds() {
 	flag.StringVar(&flagEmail, "email", "", "")
 	flag.StringVar(&flagPassword, "password", "", "")
 	flag.StringVar(&flagTeamName, "team_name", "", "")
+	flag.StringVar(&flagSiteURL, "site_url", "", "")
 	flag.StringVar(&flagConfirmBackup, "confirm_backup", "", "")
 	flag.StringVar(&flagRole, "role", "", "")
 
@@ -821,14 +823,25 @@ func cmdInviteUser() {
 			os.Exit(1)
 		}
 
+		if len(flagSiteURL) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -site_url")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		// basic validation of the URL format
+		if _, err := url.ParseRequestURI(flagSiteURL); err != nil {
+			fmt.Fprintln(os.Stderr, "-site_url flag is invalid. It should look like http://example.com")
+			flag.Usage()
+			os.Exit(1)
+		}
+
 		var team *model.Team
-		if len(flagTeamName) > 0 {
-			if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
-				l4g.Error("%v", result.Err)
-				flushLogAndExit(1)
-			} else {
-				team = result.Data.(*model.Team)
-			}
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
 		}
 
 		var user *model.User
@@ -841,6 +854,7 @@ func cmdInviteUser() {
 
 		invites := []string{flagEmail}
 		c := getMockContext()
+		c.SetSiteURL(strings.TrimSuffix(flagSiteURL, "/"))
 		api.InviteMembers(c, team, user, invites)
 
 		os.Exit(0)
@@ -1236,6 +1250,8 @@ FLAGS:
 
     -team_name="name"                 The team name used in other commands
 
+    -site_url="url"										The site URL used in other commands
+
     -role="system_admin"              The role used in other commands
                                       valid values are
                                         "" - The empty role is basic user
@@ -1255,9 +1271,9 @@ COMMANDS:
             platform -create_user -team_name="name" -email="user@example.com" -password="mypassword" -username="user"
 
     -invite_user                      Invites a user to a team by email. It requires the -team_name
-                                        and -email flags.
+                                      , -email and -site_url flags.
         Example:
-            platform -invite_user -team_name="name" -email="user@example.com"
+				platform -invite_user -team_name="name" -email="user@example.com" -site_url="https://mattermost.example.com"
 
     -join_team                        Joins a user to the team.  It required the -email and
                                        -team_name.  You may need to logout of your current session
