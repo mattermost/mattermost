@@ -4,7 +4,7 @@
 import Constants from './constants.jsx';
 import emojis from './emoji.json';
 
-const emoticonPatterns = {
+export const emoticonPatterns = {
     slightly_smiling_face: /(^|\s)(:-?\))(?=$|\s)/g, // :)
     wink: /(^|\s)(;-?\))(?=$|\s)/g, // ;)
     open_mouth: /(^|\s)(:o)(?=$|\s)/gi, // :o
