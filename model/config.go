@@ -123,6 +123,7 @@ type EmailSettings struct {
 	RequireEmailVerification bool
 	FeedbackName             string
 	FeedbackEmail            string
+	FeedbackOrganization     *string
 	SMTPUsername             string
 	SMTPPassword             string
 	SMTPServer               string

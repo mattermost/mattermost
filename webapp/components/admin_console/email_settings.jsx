@@ -25,6 +25,7 @@ export default class EmailSettings extends AdminSettings {
             sendEmailNotifications: props.config.EmailSettings.SendEmailNotifications,
             feedbackName: props.config.EmailSettings.FeedbackName,
             feedbackEmail: props.config.EmailSettings.FeedbackEmail,
+            feedbackOrganization: props.config.EmailSettings.FeedbackOrganization,
             smtpUsername: props.config.EmailSettings.SMTPUsername,
             smtpPassword: props.config.EmailSettings.SMTPPassword,
             smtpServer: props.config.EmailSettings.SMTPServer,
@@ -38,6 +39,7 @@ export default class EmailSettings extends AdminSettings {
         config.EmailSettings.SendEmailNotifications = this.state.sendEmailNotifications;
         config.EmailSettings.FeedbackName = this.state.feedbackName;
         config.EmailSettings.FeedbackEmail = this.state.feedbackEmail;
+        config.EmailSettings.FeedbackOrganization = this.state.feedbackOrganization;
         config.EmailSettings.SMTPUsername = this.state.smtpUsername;
         config.EmailSettings.SMTPPassword = this.state.smtpPassword;
         config.EmailSettings.SMTPServer = this.state.smtpServer;
@@ -114,6 +116,25 @@ export default class EmailSettings extends AdminSettings {
                         />
                     }
                     value={this.state.feedbackEmail}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
+                />
+                <TextSetting
+                    id='feedbackOrganization'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.notificationOrganization'
+                            defaultMessage='Notification Footer Address:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.email.notificationOrganizationExample', 'Ex: "(c) 2015 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.email.notificationOrganizationDescription'
+                            defaultMessage='Organization name and address displayed in email footer when sending emails from Mattermost. Defaults to Notfication Email Address if empty.'
+                        />
+                    }
+                    value={this.state.feedbackOrganization}
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications}
                 />
