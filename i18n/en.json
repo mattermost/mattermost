@@ -1561,7 +1561,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "An existing user is already attached to your {{.Service}} account"
+    "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
