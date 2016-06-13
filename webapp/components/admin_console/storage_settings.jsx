@@ -22,8 +22,8 @@ export default class StorageSettings extends AdminSettings {
 
         this.renderSettings = this.renderSettings.bind(this);
 
+        //maxFileSize: props.config.FileSettings.MaxFileSize,
         this.state = Object.assign(this.state, {
-            maxFileSize: props.config.FileSettings.MaxFileSize,
             driverName: props.config.FileSettings.DriverName,
             directory: props.config.FileSettings.Directory,
             amazonS3AccessKeyId: props.config.FileSettings.AmazonS3AccessKeyId,
@@ -34,7 +34,7 @@ export default class StorageSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
-        config.FileSettings.MaxFileSize = this.parseInt(this.state.maxFileSize);
+        //config.FileSettings.MaxFileSize = this.parseInt(this.state.maxFileSize);
         config.FileSettings.DriverName = this.state.driverName;
         config.FileSettings.Directory = this.state.directory;
         config.FileSettings.AmazonS3AccessKeyId = this.state.amazonS3AccessKeyId;
@@ -57,26 +57,27 @@ export default class StorageSettings extends AdminSettings {
     }
 
     renderSettings() {
+        /*<TextSetting
+            id='maxFileSize'
+            label={
+                <FormattedMessage
+                    id='admin.image.maxFileSizeTitle'
+                    defaultMessage='Max File Size:'
+                />
+            }
+            placeholder={Utils.localizeMessage('admin.image.maxFileSizeExample', 'Ex "52428800"')}
+            helpText={
+                <FormattedMessage
+                    id='admin.image.maxFileSizeDescription'
+                    defaultMessage='Max File Size in bytes. If blank, will be set to 52428800 (50MB).'
+                />
+            }
+            value={this.state.maxFileSize}
+            onChange={this.handleChange}
+        />*/
+
         return (
             <SettingsGroup>
-                <TextSetting
-                    id='maxFileSize'
-                    label={
-                        <FormattedMessage
-                            id='admin.image.maxFileSizeTitle'
-                            defaultMessage='Max File Size:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.image.maxFileSizeExample', 'Ex "52428800"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.image.maxFileSizeDescription'
-                            defaultMessage='Max File Size in bytes. If blank, will be set to 52428800 (50MB).'
-                        />
-                    }
-                    value={this.state.maxFileSize}
-                    onChange={this.handleChange}
-                />
                 <DropdownSetting
                     id='driverName'
                     values={[
