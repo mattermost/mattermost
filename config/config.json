@@ -160,6 +160,6 @@
     "LocalizationSettings": {
         "DefaultServerLocale": "en",
         "DefaultClientLocale": "en",
-        "AvailableLocales": "en,es,fr,ja,pt-BR"
+        "AvailableLocales": "de,en,es,fr,ja,pt-BR"
     }
 }

@@ -38,6 +38,7 @@ const (
 
 // should match the values in webapp/i18n/i18n.jsx
 var LOCALES = []string{
+	"de",
 	"en",
 	"es",
 	"fr",
