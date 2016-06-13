@@ -180,7 +180,7 @@ class CreatePost extends React.Component {
 
         Client.createPost(post,
             () => {
-                // DO nothing. Websockets will handle this.
+                PostStore.removePendingPost(post.pending_post_id);
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
