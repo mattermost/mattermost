@@ -1,0 +1,51 @@
+body {
+    &.appcenter {
+        background-color: $app-center-content-bg-color;
+        height: 100%;
+        overflow: auto;
+
+        #root {
+            height: 100%;
+
+            > div {
+                height: 100%;
+            }
+        }
+    }
+}
+
+.appcenter-content {
+    height: calc(100% - 50px);
+    margin: 5px;
+    text-align: center;
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+}
+
+.appcenter-navbar {
+    background: $app-center-navbar-bg-color;
+    border-bottom: 1px solid $light-gray;
+    color: $white;
+    padding: 10px 20px;
+    z-index: 10;
+}
+
+.appcenter-navbar__back {
+    color: inherit;
+    text-decoration: none;
+
+    .fa {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-right: 7px;
+    }
+
+    &:hover,
+    &:active {
+        color: inherit;
+    }
+}
