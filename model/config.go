@@ -371,6 +371,11 @@ func (o *Config) SetDefaults() {
 		*o.EmailSettings.PushNotificationContents = GENERIC_NOTIFICATION
 	}
 
+	if o.EmailSettings.FeedbackOrganization == nil {
+		o.EmailSettings.FeedbackOrganization = new(string)
+		*o.EmailSettings.FeedbackOrganization = ""
+	}
+
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
 		o.SupportSettings.TermsOfServiceLink = nil
 	}
