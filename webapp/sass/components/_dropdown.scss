@@ -1,6 +1,7 @@
 @charset 'UTF-8';
 
 .dropdown-menu {
+    border-radius: $border-rad;
 
     &.colorpicker {
         z-index: 2500;

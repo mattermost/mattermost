@@ -10,6 +10,7 @@ import Constants from 'utils/constants.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 const Preferences = Constants.Preferences;
+import * as Utils from 'utils/utils.jsx';
 
 import {Overlay} from 'react-bootstrap';
 
@@ -47,7 +48,16 @@ export default class TutorialTip extends React.Component {
             return;
         }
 
+        this.closeRightSidebar();
         this.toggle();
+    }
+    closeRightSidebar() {
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .inner-wrap').classList.remove('move--left-small');
+                document.querySelector('.app__body .sidebar--menu').classList.remove('move--left');
+            });
+        }
     }
     skipTutorial(e) {
         e.preventDefault();
@@ -94,7 +104,7 @@ export default class TutorialTip extends React.Component {
         }
 
         var tutorialGifImage = tutorialGif;
-        if (this.props.overlayClass === 'tip-overlay--header' || this.props.overlayClass === 'tip-overlay--sidebar') {
+        if (this.props.overlayClass === 'tip-overlay--header' || this.props.overlayClass === 'tip-overlay--sidebar' || this.props.overlayClass === 'tip-overlay--header--up') {
             tutorialGifImage = tutorialGifWhite;
         }
 

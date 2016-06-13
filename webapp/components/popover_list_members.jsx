@@ -142,6 +142,7 @@ export default class PopoverListMembers extends React.Component {
             <div>
                 <div
                     id='member_popover'
+                    className='member-popover__trigger'
                     ref='member_popover_target'
                     onClick={(e) => this.setState({popoverTarget: e.target, showPopover: !this.state.showPopover})}
                 >

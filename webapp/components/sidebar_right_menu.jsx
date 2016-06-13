@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
@@ -14,6 +15,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
+const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 
@@ -30,6 +32,7 @@ export default class SidebarRightMenu extends React.Component {
 
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.handleAboutModal = this.handleAboutModal.bind(this);
+        this.searchMentions = this.searchMentions.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
 
         const state = this.getStateFromStores();
@@ -60,11 +63,80 @@ export default class SidebarRightMenu extends React.Component {
     getStateFromStores() {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
-        return {showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER && Utils.isMobile()};
+        return {
+            currentUser: UserStore.getCurrentUser(),
+            showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER && Utils.isMobile()
+        };
     }
 
     onPreferenceChange() {
         this.setState(this.getStateFromStores());
+    }
+
+    searchMentions(e) {
+        e.preventDefault();
+
+        const user = this.state.currentUser;
+
+        let terms = '';
+        if (user.notify_props && user.notify_props.mention_keys) {
+            const termKeys = UserStore.getMentionKeys(user.id);
+
+            if (user.notify_props.all === 'true' && termKeys.indexOf('@all') !== -1) {
+                termKeys.splice(termKeys.indexOf('@all'), 1);
+            }
+
+            if (user.notify_props.channel === 'true' && termKeys.indexOf('@channel') !== -1) {
+                termKeys.splice(termKeys.indexOf('@channel'), 1);
+            }
+            terms = termKeys.join(' ');
+        }
+
+        this.hideSidebars();
+
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
+            term: terms,
+            do_search: true,
+            is_mention_search: true
+        });
+    }
+
+    closeLeftSidebar() {
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .inner-wrap').classList.remove('move--right');
+                document.querySelector('.app__body .sidebar--left').classList.remove('move--right');
+            });
+        }
+    }
+
+    openRightSidebar() {
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .inner-wrap').classList.add('move--left-small');
+                document.querySelector('.app__body .sidebar--menu').classList.add('move--left');
+            });
+        }
+    }
+
+    hideSidebars() {
+        if (Utils.isMobile()) {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH,
+                results: null
+            });
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST_SELECTED,
+                postId: null
+            });
+
+            document.querySelector('.app__body .inner-wrap').classList.remove('move--right', 'move--left', 'move--left-small');
+            document.querySelector('.app__body .sidebar--left').classList.remove('move--right');
+            document.querySelector('.app__body .sidebar--right').classList.remove('move--left');
+            document.querySelector('.app__body .sidebar--menu').classList.remove('move--left');
+        }
     }
 
     render() {
@@ -87,7 +159,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         onClick={GlobalActions.showInviteMemberModal}
                     >
-                        <i className='fa fa-user-plus'></i>
+                        <i className='icon fa fa-user-plus'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.inviteNew'
                             defaultMessage='Invite New Member'
@@ -103,7 +175,7 @@ export default class SidebarRightMenu extends React.Component {
                             href='#'
                             onClick={GlobalActions.showGetTeamInviteLinkModal}
                         >
-                            <i className='glyphicon glyphicon-link'></i>
+                            <i className='icon glyphicon glyphicon-link'></i>
                             <FormattedMessage
                                 id='sidebar_right_menu.teamLink'
                                 defaultMessage='Get Team Invite Link'
@@ -122,7 +194,7 @@ export default class SidebarRightMenu extends React.Component {
                         data-toggle='modal'
                         data-target='#team_settings'
                     >
-                        <i className='fa fa-globe'></i>
+                        <i className='icon fa fa-globe'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.teamSettings'
                             defaultMessage='Team Settings'
@@ -133,7 +205,7 @@ export default class SidebarRightMenu extends React.Component {
             manageLink = (
                 <li>
                     <ToggleModalButton dialogType={TeamMembersModal}>
-                        <i className='fa fa-users'></i>
+                        <i className='icon fa fa-users'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.manageMembers'
                             defaultMessage='Manage Members'
@@ -149,7 +221,7 @@ export default class SidebarRightMenu extends React.Component {
                     <Link
                         to={'/admin_console'}
                     >
-                        <i className='fa fa-wrench'></i>
+                        <i className='icon fa fa-wrench'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.console'
                             defaultMessage='System Console'
@@ -177,7 +249,7 @@ export default class SidebarRightMenu extends React.Component {
                         rel='noopener noreferrer'
                         to={global.window.mm_config.HelpLink}
                     >
-                        <i className='fa fa-question'></i>
+                        <i className='icon fa fa-question'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.help'
                             defaultMessage='Help'
@@ -196,7 +268,7 @@ export default class SidebarRightMenu extends React.Component {
                         rel='noopener noreferrer'
                         to={global.window.mm_config.ReportAProblemLink}
                     >
-                        <i className='fa fa-phone'></i>
+                        <i className='icon fa fa-phone'></i>
                         <FormattedMessage
                             id='sidebar_right_menu.report'
                             defaultMessage='Report a Problem'
@@ -209,6 +281,8 @@ export default class SidebarRightMenu extends React.Component {
         let tutorialTip = null;
         if (this.state.showTutorialTip) {
             tutorialTip = createMenuTip((e) => e.preventDefault(), true);
+            this.closeLeftSidebar();
+            this.openRightSidebar();
         }
 
         return (
@@ -231,9 +305,21 @@ export default class SidebarRightMenu extends React.Component {
                         <li>
                             <a
                                 href='#'
+                                onClick={this.searchMentions}
+                            >
+                                <i className='icon mentions'>{'@'}</i>
+                                <FormattedMessage
+                                    id='sidebar_right_menu.recentMentions'
+                                    defaultMessage='Recent Mentions'
+                                />
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                href='#'
                                 onClick={() => this.setState({showUserSettingsModal: true})}
                             >
-                                <i className='fa fa-cog'></i>
+                                <i className='icon fa fa-cog'></i>
                                 <FormattedMessage
                                     id='sidebar_right_menu.accountSettings'
                                     defaultMessage='Account Settings'
@@ -247,7 +333,7 @@ export default class SidebarRightMenu extends React.Component {
                         {consoleLink}
                         <li>
                             <Link to='/select_team'>
-                                <i className='fa fa-exchange'></i>
+                                <i className='icon fa fa-exchange'></i>
                                 <FormattedMessage
                                     id='sidebar_right_menu.switch_team'
                                     defaultMessage='Team Selection'
@@ -260,7 +346,7 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={GlobalActions.emitUserLoggedOutEvent}
                             >
-                                <i className='fa fa-sign-out'></i>
+                                <i className='icon fa fa-sign-out'></i>
                                 <FormattedMessage
                                     id='sidebar_right_menu.logout'
                                     defaultMessage='Logout'
@@ -275,7 +361,7 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={this.handleAboutModal}
                             >
-                                <i className='fa fa-info'></i>
+                                <i className='icon fa fa-info'></i>
                                 <FormattedMessage
                                     id='navbar_dropdown.about'
                                     defaultMessage='About Mattermost'

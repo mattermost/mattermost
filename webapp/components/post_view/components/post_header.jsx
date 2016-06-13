@@ -26,6 +26,7 @@ export default class PostHeader extends React.Component {
             />
         );
         let botIndicator;
+        let colon;
 
         if (post.props && post.props.from_webhook) {
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
@@ -50,9 +51,13 @@ export default class PostHeader extends React.Component {
             );
         }
 
+        if (this.props.compactDisplay) {
+            colon = (<strong>{':'}</strong>);
+        }
+
         return (
             <ul className='post__header'>
-                <li className='col col__name'>{userProfile}</li>
+                <li className='col col__name'>{userProfile}{colon}</li>
                 {botIndicator}
                 <li className='col'>
                     <PostInfo
