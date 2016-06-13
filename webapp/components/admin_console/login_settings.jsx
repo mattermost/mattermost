@@ -25,7 +25,6 @@ export default class LoginSettings extends AdminSettings {
 
         this.state = Object.assign(this.state, {
             passwordMinimumLength: props.config.PasswordSettings.MinimumLength,
-            passwordMaximumLength: props.config.PasswordSettings.MaximumLength,
             passwordLowercase: props.config.PasswordSettings.Lowercase,
             passwordNumber: props.config.PasswordSettings.Number,
             passwordUppercase: props.config.PasswordSettings.Uppercase,
@@ -52,10 +51,9 @@ export default class LoginSettings extends AdminSettings {
         this.sampleErrorMsg = (
             <FormattedMessage
                 id={sampleErrorMsgId}
-                default='Your password must be at least {min} characters and at most {max} characters.'
+                default='Your password must be at least {min} characters.'
                 values={{
-                    min: props.config.PasswordSettings.MinimumLength,
-                    max: props.config.PasswordSettings.MaximumLength
+                    min: props.config.PasswordSettings.MinimumLength
                 }}
             />
         );
@@ -67,7 +65,6 @@ export default class LoginSettings extends AdminSettings {
 
     getConfigFromState(config) {
         config.PasswordSettings.MinimumLength = parseInt(this.state.passwordMinimumLength, 10);
-        config.PasswordSettings.MaximumLength = parseInt(this.state.passwordMaximumLength, 10);
         config.PasswordSettings.Lowercase = this.refs.lowercase.checked;
         config.PasswordSettings.Uppercase = this.refs.uppercase.checked;
         config.PasswordSettings.Number = this.refs.number.checked;
@@ -97,10 +94,9 @@ export default class LoginSettings extends AdminSettings {
         this.sampleErrorMsg = (
             <FormattedMessage
                 id={sampleErrorMsgId}
-                default='Your password must be at least {min} characters and at most {max} characters.'
+                default='Your password must be at least {min} characters.'
                 values={{
-                    min: this.props.config.PasswordSettings.MinimumLength,
-                    max: this.props.config.PasswordSettings.MaximumLength
+                    min: this.props.config.PasswordSettings.MinimumLength
                 }}
             />
         );
@@ -158,23 +154,6 @@ export default class LoginSettings extends AdminSettings {
                         />
                     }
                     value={this.state.passwordMinimumLength}
-                    onChange={this.handleChange}
-                />
-                <TextSetting
-                    id='passwordMaximumLength'
-                    label={
-                        <FormattedMessage
-                            id='admin.password.maximumLength'
-                            defaultMessage='Maximum Password Length:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.password.maximumLengthDescription'
-                            defaultMessage='Maximum number of characters allowed in a valid password.'
-                        />
-                    }
-                    value={this.state.passwordMaximumLength}
                     onChange={this.handleChange}
                 />
                 <Setting

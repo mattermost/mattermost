@@ -27,10 +27,6 @@ const (
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"
-	LOWERCASE_LETTERS          = "abcdefghijklmnopqrstuvwxyz"
-	UPPERCASE_LETTERS          = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS                    = "0123456789"
-	SYMBOLS                    = "!@#$%^&*"
 )
 
 type User struct {

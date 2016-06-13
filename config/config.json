@@ -57,9 +57,8 @@
     },
     "PasswordSettings": {
         "MinimumLength": 5,
-        "MaximumLength": 50,
-        "Lowercase": true,
-        "Number": true,
+        "Lowercase": false,
+        "Number": false,
         "Uppercase": false,
         "Symbol": false
     },

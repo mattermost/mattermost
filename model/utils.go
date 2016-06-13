@@ -20,6 +20,13 @@ import (
 	"github.com/pborman/uuid"
 )
 
+const (
+	LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
+	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+)
+
 type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
@@ -424,7 +431,7 @@ func IsPasswordValid(password string, requirements PasswordSettings) *AppError {
 	id := "model.user.is_valid.pwd"
 	isError := false
 
-	if len(password) < *requirements.MinimumLength || len(password) > *requirements.MaximumLength {
+	if len(password) < *requirements.MinimumLength || len(password) > PASSWORD_MAXIMUM_LENGTH {
 		isError = true
 	}
 
@@ -449,7 +456,7 @@ func IsPasswordValid(password string, requirements PasswordSettings) *AppError {
 	}
 
 	if isError {
-		return NewLocAppError("User.IsValid", id+".app_error", map[string]interface{}{"Min": requirements.MinimumLength, "Max": requirements.MaximumLength}, "")
+		return NewLocAppError("User.IsValid", id+".app_error", map[string]interface{}{"Min": requirements.MinimumLength}, "")
 	}
 
 	return nil

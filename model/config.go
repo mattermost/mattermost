@@ -19,7 +19,7 @@ const (
 	DATABASE_DRIVER_MYSQL    = "mysql"
 	DATABASE_DRIVER_POSTGRES = "postgres"
 
-	PASSWORD_MAXIMUM_LENGTH = 64
+	PASSWORD_MAXIMUM_LENGTH = 50
 	PASSWORD_MINIMUM_LENGTH = 1
 
 	SERVICE_GITLAB = "gitlab"
@@ -97,7 +97,6 @@ type LogSettings struct {
 
 type PasswordSettings struct {
 	MinimumLength *int
-	MaximumLength *int
 	Lowercase     *bool
 	Number        *bool
 	Uppercase     *bool
@@ -333,19 +332,14 @@ func (o *Config) SetDefaults() {
 		*o.PasswordSettings.MinimumLength = 5
 	}
 
-	if o.PasswordSettings.MaximumLength == nil {
-		o.PasswordSettings.MaximumLength = new(int)
-		*o.PasswordSettings.MaximumLength = 50
-	}
-
 	if o.PasswordSettings.Lowercase == nil {
 		o.PasswordSettings.Lowercase = new(bool)
-		*o.PasswordSettings.Lowercase = true
+		*o.PasswordSettings.Lowercase = false
 	}
 
 	if o.PasswordSettings.Number == nil {
 		o.PasswordSettings.Number = new(bool)
-		*o.PasswordSettings.Number = true
+		*o.PasswordSettings.Number = false
 	}
 
 	if o.PasswordSettings.Uppercase == nil {
@@ -695,12 +689,8 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length_min.app_error", map[string]interface{}{"MinLength": PASSWORD_MINIMUM_LENGTH}, "")
 	}
 
-	if *o.PasswordSettings.MaximumLength > PASSWORD_MAXIMUM_LENGTH {
+	if *o.PasswordSettings.MinimumLength > PASSWORD_MAXIMUM_LENGTH {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length_max.app_error", map[string]interface{}{"MaxLength": PASSWORD_MAXIMUM_LENGTH}, "")
-	}
-
-	if *o.PasswordSettings.MaximumLength < *o.PasswordSettings.MinimumLength {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length_max_min.app_error", nil, "")
 	}
 
 	return nil

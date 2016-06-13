@@ -1378,7 +1378,7 @@ export function isValidPassword(password, requirements) {
     let errorId = 'user.settings.security.passwordError';
     let error = false;
 
-    if (password.length < requirements.MinimumLength || password.length > requirements.MaximumLength) {
+    if (password.length < requirements.MinimumLength || password.length > Constants.MAX_PASSWORD_LENGTH) {
         error = true;
     }
 
@@ -1397,7 +1397,7 @@ export function isValidPassword(password, requirements) {
         error = true;
     }
 
-    if (requirements.Symbol && !password.match(/[!@#$%^&*]/)) {
+    if (requirements.Symbol && !password.match(/[ !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/)) {
         errorId = errorId + 'Symbol';
         error = true;
     }
@@ -1406,10 +1406,9 @@ export function isValidPassword(password, requirements) {
         errorMsg = (
             <FormattedMessage
                 id={errorId}
-                default='Your password must be at least {min} characters and at most {max} characters.'
+                default='Your password must be at least {min} characters.'
                 values={{
-                    min: requirements.MinimumLength,
-                    max: requirements.MaximumLength
+                    min: requirements.MinimumLength
                 }}
             />
         );
