@@ -239,6 +239,22 @@ export default class AdminSidebar extends React.Component {
             );
         }
 
+        let customBranding = null;
+
+        if (window.mm_license.IsLicensed === 'true') {
+            customBranding = (
+                <AdminSidebarSection
+                    name='custom_brand'
+                    title={
+                        <FormattedMessage
+                            id='admin.sidebar.customBrand'
+                            defaultMessage='Custom Branding'
+                        />
+                    }
+                />
+            );
+        }
+
         return (
             <div className='admin-sidebar'>
                 <AdminSidebarHeader/>
@@ -515,16 +531,7 @@ export default class AdminSidebar extends React.Component {
                                     />
                                 }
                             >
-                                <AdminSidebarSection
-                                    name='custom_brand'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.sidebar.customBrand'
-                                            defaultMessage='Custom Branding'
-                                        />
-
-                                    }
-                                />
+                                {customBranding}
                                 <AdminSidebarSection
                                     name='legal_and_support'
                                     title={

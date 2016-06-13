@@ -69,13 +69,13 @@ export default class LoginController extends React.Component {
             this.setState({loginId});
         }
 
-        let password = this.refs.password.value;
+        const password = this.refs.password.value;
         if (password !== this.state.password) {
             this.setState({password});
         }
 
+        // don't trim the password since we support spaces in passwords
         loginId = loginId.trim();
-        password = password.trim();
 
         if (!loginId) {
             // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
@@ -444,7 +444,7 @@ export default class LoginController extends React.Component {
                 <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={Client.getOAuthRoute() + '/gitlab/login'}
+                    href={Client.getOAuthRoute() + '/gitlab/login' + this.props.location.search}
                 >
                     <span className='icon'/>
                     <span>

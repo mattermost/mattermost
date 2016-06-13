@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const (
@@ -34,6 +35,15 @@ const (
 
 	FAKE_SETTING = "********************************"
 )
+
+// should match the values in webapp/i18n/i18n.jsx
+var LOCALES = []string{
+	"en",
+	"es",
+	"fr",
+	"ja",
+	"pt-BR",
+}
 
 type ServiceSettings struct {
 	ListenAddress                     string
@@ -420,19 +430,39 @@ func (o *Config) SetDefaults() {
 		*o.SupportSettings.SupportEmail = "feedback@mattermost.com"
 	}
 
+	if o.LdapSettings.Enable == nil {
+		o.LdapSettings.Enable = new(bool)
+		*o.LdapSettings.Enable = false
+	}
+
+	if o.LdapSettings.LdapServer == nil {
+		o.LdapSettings.LdapServer = new(string)
+		*o.LdapSettings.LdapServer = ""
+	}
+
 	if o.LdapSettings.LdapPort == nil {
 		o.LdapSettings.LdapPort = new(int)
 		*o.LdapSettings.LdapPort = 389
 	}
 
-	if o.LdapSettings.QueryTimeout == nil {
-		o.LdapSettings.QueryTimeout = new(int)
-		*o.LdapSettings.QueryTimeout = 60
+	if o.LdapSettings.ConnectionSecurity == nil {
+		o.LdapSettings.ConnectionSecurity = new(string)
+		*o.LdapSettings.ConnectionSecurity = ""
 	}
 
-	if o.LdapSettings.Enable == nil {
-		o.LdapSettings.Enable = new(bool)
-		*o.LdapSettings.Enable = false
+	if o.LdapSettings.BaseDN == nil {
+		o.LdapSettings.BaseDN = new(string)
+		*o.LdapSettings.BaseDN = ""
+	}
+
+	if o.LdapSettings.BindUsername == nil {
+		o.LdapSettings.BindUsername = new(string)
+		*o.LdapSettings.BindUsername = ""
+	}
+
+	if o.LdapSettings.BindPassword == nil {
+		o.LdapSettings.BindPassword = new(string)
+		*o.LdapSettings.BindPassword = ""
 	}
 
 	if o.LdapSettings.UserFilter == nil {
@@ -440,14 +470,49 @@ func (o *Config) SetDefaults() {
 		*o.LdapSettings.UserFilter = ""
 	}
 
-	if o.LdapSettings.LoginFieldName == nil {
-		o.LdapSettings.LoginFieldName = new(string)
-		*o.LdapSettings.LoginFieldName = ""
+	if o.LdapSettings.FirstNameAttribute == nil {
+		o.LdapSettings.FirstNameAttribute = new(string)
+		*o.LdapSettings.FirstNameAttribute = ""
+	}
+
+	if o.LdapSettings.LastNameAttribute == nil {
+		o.LdapSettings.LastNameAttribute = new(string)
+		*o.LdapSettings.LastNameAttribute = ""
+	}
+
+	if o.LdapSettings.EmailAttribute == nil {
+		o.LdapSettings.EmailAttribute = new(string)
+		*o.LdapSettings.EmailAttribute = ""
+	}
+
+	if o.LdapSettings.NicknameAttribute == nil {
+		o.LdapSettings.NicknameAttribute = new(string)
+		*o.LdapSettings.NicknameAttribute = ""
+	}
+
+	if o.LdapSettings.IdAttribute == nil {
+		o.LdapSettings.IdAttribute = new(string)
+		*o.LdapSettings.IdAttribute = ""
 	}
 
 	if o.LdapSettings.SyncIntervalMinutes == nil {
 		o.LdapSettings.SyncIntervalMinutes = new(int)
 		*o.LdapSettings.SyncIntervalMinutes = 60
+	}
+
+	if o.LdapSettings.SkipCertificateVerification == nil {
+		o.LdapSettings.SkipCertificateVerification = new(bool)
+		*o.LdapSettings.SkipCertificateVerification = false
+	}
+
+	if o.LdapSettings.QueryTimeout == nil {
+		o.LdapSettings.QueryTimeout = new(int)
+		*o.LdapSettings.QueryTimeout = 60
+	}
+
+	if o.LdapSettings.LoginFieldName == nil {
+		o.LdapSettings.LoginFieldName = new(string)
+		*o.LdapSettings.LoginFieldName = ""
 	}
 
 	if o.ServiceSettings.SessionLengthWebInDays == nil {
@@ -515,21 +580,6 @@ func (o *Config) SetDefaults() {
 		*o.ComplianceSettings.EnableDaily = false
 	}
 
-	if o.LdapSettings.ConnectionSecurity == nil {
-		o.LdapSettings.ConnectionSecurity = new(string)
-		*o.LdapSettings.ConnectionSecurity = ""
-	}
-
-	if o.LdapSettings.SkipCertificateVerification == nil {
-		o.LdapSettings.SkipCertificateVerification = new(bool)
-		*o.LdapSettings.SkipCertificateVerification = false
-	}
-
-	if o.LdapSettings.NicknameAttribute == nil {
-		o.LdapSettings.NicknameAttribute = new(string)
-		*o.LdapSettings.NicknameAttribute = ""
-	}
-
 	if o.LocalizationSettings.DefaultServerLocale == nil {
 		o.LocalizationSettings.DefaultServerLocale = new(string)
 		*o.LocalizationSettings.DefaultServerLocale = DEFAULT_LOCALE
@@ -542,7 +592,7 @@ func (o *Config) SetDefaults() {
 
 	if o.LocalizationSettings.AvailableLocales == nil {
 		o.LocalizationSettings.AvailableLocales = new(string)
-		*o.LocalizationSettings.AvailableLocales = *o.LocalizationSettings.DefaultClientLocale
+		*o.LocalizationSettings.AvailableLocales = strings.Join(LOCALES, ",")
 	}
 }
 

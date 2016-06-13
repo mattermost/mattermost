@@ -67,6 +67,7 @@ class EditPostModal extends React.Component {
         Client.updatePost(
             updatedPost,
             () => {
+                AsyncClient.getPosts(updatedPost.channel_id);
                 window.scrollTo(0, 0);
             },
             (err) => {

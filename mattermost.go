@@ -868,6 +868,7 @@ func cmdVersion() {
 		fmt.Fprintln(os.Stderr, "Build Date: "+model.BuildDate)
 		fmt.Fprintln(os.Stderr, "Build Hash: "+model.BuildHash)
 		fmt.Fprintln(os.Stderr, "Build Enterprise Ready: "+model.BuildEnterpriseReady)
+		fmt.Fprintln(os.Stderr, "DB Version: "+api.Srv.Store.(*store.SqlStore).SchemaVersion)
 
 		os.Exit(0)
 	}
