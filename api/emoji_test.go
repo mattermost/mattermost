@@ -121,6 +121,16 @@ func TestCreateEmoji(t *testing.T) {
 	} else {
 		emoji = emojiResult
 	}
+
+	// try to create an emoji with a duplicate name
+	emoji2 := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      emoji.Name,
+	}
+	if _, err := Client.CreateEmoji(emoji2, createTestGif(t, 10, 10), "image.gif"); err == nil {
+		t.Fatal("shouldn't be able to create an emoji with a duplicate name")
+	}
+
 	Client.MustGeneric(Client.DeleteEmoji(emoji.Id))
 
 	// try to create a valid animated gif emoji
@@ -197,7 +207,7 @@ func TestCreateEmoji(t *testing.T) {
 
 	*utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ADMIN
 
-	// try to create an emoji when only system admins are allowed to creat them
+	// try to create an emoji when only system admins are allowed to create them
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),

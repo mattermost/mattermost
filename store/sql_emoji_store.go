@@ -86,6 +86,34 @@ func (es SqlEmojiStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
+func (es SqlEmojiStore) GetByName(name string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var emoji *model.Emoji
+
+		if err := es.GetReplica().SelectOne(&emoji,
+			`SELECT
+				*
+			FROM
+				Emoji
+			WHERE
+				Name = :Name
+				AND DeleteAt = 0`, map[string]interface{}{"Name": name}); err != nil {
+			result.Err = model.NewLocAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error())
+		} else {
+			result.Data = emoji
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (es SqlEmojiStore) GetAll() StoreChannel {
 	storeChannel := make(StoreChannel)
 

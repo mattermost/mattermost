@@ -12,20 +12,36 @@ import (
 func TestEmojiSaveDelete(t *testing.T) {
 	Setup()
 
-	emoji := model.Emoji{
+	emoji1 := &model.Emoji{
 		CreatorId: model.NewId(),
 		Name:      model.NewId(),
 	}
 
-	if result := <-store.Emoji().Save(&emoji); result.Err != nil {
+	if result := <-store.Emoji().Save(emoji1); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
-	if len(emoji.Id) != 26 {
+	if len(emoji1.Id) != 26 {
 		t.Fatal("should've set id for emoji")
 	}
 
-	if result := <-store.Emoji().Delete(emoji.Id, time.Now().Unix()); result.Err != nil {
+	emoji2 := model.Emoji{
+		CreatorId: model.NewId(),
+		Name:      emoji1.Name,
+	}
+	if result := <-store.Emoji().Save(&emoji2); result.Err == nil {
+		t.Fatal("shouldn't be able to save emoji with duplicate name")
+	}
+
+	if result := <-store.Emoji().Delete(emoji1.Id, time.Now().Unix()); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if result := <-store.Emoji().Save(&emoji2); result.Err != nil {
+		t.Fatal("should be able to save emoji with duplicate name now that original has been deleted", result.Err)
+	}
+
+	if result := <-store.Emoji().Delete(emoji2.Id, time.Now().Unix()+1); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 }
@@ -60,6 +76,40 @@ func TestEmojiGet(t *testing.T) {
 	for _, emoji := range emojis {
 		if result := <-store.Emoji().Get(emoji.Id); result.Err != nil {
 			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
+		}
+	}
+}
+
+func TestEmojiGetByName(t *testing.T) {
+	Setup()
+
+	emojis := []model.Emoji{
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+	}
+
+	for i, emoji := range emojis {
+		emojis[i] = *Must(store.Emoji().Save(&emoji)).(*model.Emoji)
+	}
+	defer func() {
+		for _, emoji := range emojis {
+			Must(store.Emoji().Delete(emoji.Id, time.Now().Unix()))
+		}
+	}()
+
+	for _, emoji := range emojis {
+		if result := <-store.Emoji().GetByName(emoji.Name); result.Err != nil {
+			t.Fatalf("failed to get emoji with name %v: %v", emoji.Name, result.Err)
 		}
 	}
 }

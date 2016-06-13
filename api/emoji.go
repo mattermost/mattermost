@@ -94,10 +94,17 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	// wipe the emoji id so that existing emojis can't get overwritten
 	emoji.Id = ""
 
-	// make sure the emoji data is okay before we spend time uploading the image when we don't need to
+	// do our best to validate the emoji before committing anything to the DB so that we don't have to clean up
+	// orphaned files left over when validation fails later on
 	emoji.PreSave()
 	if err := emoji.IsValid(); err != nil {
 		c.Err = err
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if result := <-Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
+		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}

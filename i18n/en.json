@@ -576,6 +576,10 @@
     "translation": "An unknown error has occurred. Please contact support."
   },
   {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Unable to create emoji. Another emoji with the same name already exists."
+  },
+  {
     "id": "api.emoji.create.parse.app_error",
     "translation": "Unable to create emoji. Image exceeds maximum file size."
   },
@@ -3273,6 +3277,10 @@
   },
   {
     "id": "store.sql_emoji.get.app_error",
+    "translation": "We couldn't get the emoji"
+  },
+  {
+    "id": "store.sql_emoji.get_by_name.app_error",
     "translation": "We couldn't get the emoji"
   },
   {
