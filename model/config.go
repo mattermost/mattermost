@@ -73,13 +73,14 @@ type SSOSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName         string
-	DataSource         string
-	DataSourceReplicas []string
-	MaxIdleConns       int
-	MaxOpenConns       int
-	Trace              bool
-	AtRestEncryptKey   string
+	DriverName               string
+	DataSource               string
+	DataSourceReplicas       []string
+	MaxIdleConns             int
+	MaxOpenConns             int
+	Trace                    bool
+	AtRestEncryptKey         string
+	PostgresTextSearchConfig *string
 }
 
 type LogSettings struct {
@@ -293,6 +294,10 @@ func (o *Config) SetDefaults() {
 
 	if len(o.EmailSettings.PasswordResetSalt) == 0 {
 		o.EmailSettings.PasswordResetSalt = NewRandomString(32)
+	}
+
+	if *o.SqlSettings.PostgresTextSearchConfig == "" {
+		*o.SqlSettings.PostgresTextSearchConfig = "en"
 	}
 
 	if o.ServiceSettings.EnableDeveloper == nil {

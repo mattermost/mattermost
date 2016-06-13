@@ -4,6 +4,7 @@
 import React from 'react';
 
 import * as Utils from 'utils/utils.jsx';
+import * as I18n from 'i18n/i18n.jsx';
 
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
@@ -12,6 +13,7 @@ import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 import RecycleDbButton from './recycle_db.jsx';
+import DropdownSetting from './dropdown_setting.jsx';
 
 export default class DatabaseSettings extends AdminSettings {
     constructor(props) {
@@ -27,7 +29,8 @@ export default class DatabaseSettings extends AdminSettings {
             maxIdleConns: props.config.SqlSettings.MaxIdleConns,
             maxOpenConns: props.config.SqlSettings.MaxOpenConns,
             atRestEncryptKey: props.config.SqlSettings.AtRestEncryptKey,
-            trace: props.config.SqlSettings.Trace
+            trace: props.config.SqlSettings.Trace,
+            postgresTextSeachConfig: props.config.SqlSettings.PostgresTextSearchConfig
         });
     }
 
@@ -38,6 +41,7 @@ export default class DatabaseSettings extends AdminSettings {
         config.SqlSettings.MaxOpenConns = this.parseIntNonZero(this.state.maxOpenConns);
         config.SqlSettings.AtRestEncryptKey = this.state.atRestEncryptKey;
         config.SqlSettings.Trace = this.state.trace;
+        config.SqlSettings.PostgresTextSearchConfig = Utils.getI18nLanguage(this.state.postgresTextSeachConfig);
 
         return config;
     }
@@ -55,6 +59,35 @@ export default class DatabaseSettings extends AdminSettings {
 
     renderSettings() {
         const dataSource = '**********' + this.state.dataSource.substring(this.state.dataSource.indexOf('@'));
+
+        let textSearchConfig = null;
+        if (this.state.driverName === 'postgres') {
+            const locales = I18n.getAllLanguages();
+
+            const languages = Object.keys(locales).map((l) => {
+                return {value: locales[l].value, text: locales[l].name};
+            });
+            textSearchConfig = (
+                <DropdownSetting
+                    id='postgresTextSeachConfig'
+                    values={languages}
+                    label={
+                        <FormattedMessage
+                            id='admin.sql.postgresTextSeachConfig'
+                            defaultMessage='Postgres Text Search Localization:'
+                        />
+                    }
+                    value={this.state.postgresTextSeachConfig}
+                    onChange={this.handleChange}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.sql.postgresTextSeachConfigDescription'
+                            defaultMessage='Language used to search the PostgreSQL database.'
+                        />
+                    }
+                />
+            );
+        }
 
         return (
             <SettingsGroup>
@@ -128,6 +161,7 @@ export default class DatabaseSettings extends AdminSettings {
                     value={this.state.maxOpenConns}
                     onChange={this.handleChange}
                 />
+                {textSearchConfig}
                 <GeneratedSetting
                     id='atRestEncryptKey'
                     label={

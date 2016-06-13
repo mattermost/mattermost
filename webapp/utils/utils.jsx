@@ -1372,3 +1372,19 @@ export function localizeMessage(id, defaultMessage) {
 export function mod(a, b) {
     return ((a % b) + b) % b;
 }
+
+export function getI18nLanguage(value) {
+    switch (value) {
+    case 'en':
+        return 'english';
+    case 'es':
+        return 'spanish';
+    case 'fr':
+        return 'french';
+    case 'ja':
+        return 'japanese';
+    case 'pt-BR':
+        return 'portuguese';
+    }
+    return 'english';
+}
