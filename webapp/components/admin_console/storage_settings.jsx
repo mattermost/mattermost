@@ -71,7 +71,7 @@ export default class StorageSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.image.maxFileSizeDescription'
-                            defaultMessage='This feature does not work. It was contributed by a community member and not tested until after the Mattermost 3.1 release was locked, when it was found to be inoperable. It will be either fixed or removed in 3.2.'
+                            defaultMessage='This feature is not functional. It was contributed by a community member and not tested until after the Mattermost 3.1 release was locked, when it was found to be inoperable. It will be either fixed or removed in 3.2.'
                         />
                     }
                     value={this.state.maxFileSize}
