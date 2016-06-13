@@ -205,6 +205,15 @@ func TestCreateEmoji(t *testing.T) {
 		t.Fatal("shouldn't be able to create an emoji with non-image data")
 	}
 
+	// try to create an emoji as another user
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser2.Id,
+		Name:      model.NewId(),
+	}
+	if _, err := Client.CreateEmoji(emoji, createTestGif(t, 10, 10), "image.gif"); err == nil {
+		t.Fatal("shouldn't be able to create an emoji as another user")
+	}
+
 	*utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ADMIN
 
 	// try to create an emoji when only system admins are allowed to create them
@@ -212,7 +221,7 @@ func TestCreateEmoji(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
-	if _, err := Client.CreateEmoji(emoji, make([]byte, 100, 100), "image.gif"); err == nil {
+	if _, err := Client.CreateEmoji(emoji, createTestGif(t, 10, 10), "image.gif"); err == nil {
 		t.Fatal("shouldn't be able to create an emoji when not a system admin")
 	}
 

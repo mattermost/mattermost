@@ -103,6 +103,12 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if emoji.CreatorId != c.Session.UserId {
+		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.other_user.app_error", nil, "")
+		c.Err.StatusCode = http.StatusUnauthorized
+		return
+	}
+
 	if result := <-Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
 		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
