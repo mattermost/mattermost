@@ -515,14 +515,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				keywordMap[profile.FirstName] = append(keywordMap[profile.FirstName], profile.Id)
 			}
 
-			//Add @all to keywords if user has them turned on
-			if profile.NotifyProps["all"] == "true" {
-				keywordMap["@all"] = append(keywordMap["@all"], profile.Id)
-			}
-
-			// Add @channel to keywords if user has them turned on
+			// Add @channel and @all to keywords if user has them turned on
 			if profile.NotifyProps["channel"] == "true" {
 				keywordMap["@channel"] = append(keywordMap["@channel"], profile.Id)
+				keywordMap["@all"] = append(keywordMap["@all"], profile.Id)
 			}
 
 			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&

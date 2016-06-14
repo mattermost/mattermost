@@ -125,12 +125,9 @@ export default class ChannelHeader extends React.Component {
         if (user.notify_props && user.notify_props.mention_keys) {
             const termKeys = UserStore.getMentionKeys(user.id);
 
-            if (user.notify_props.all === 'true' && termKeys.indexOf('@all') !== -1) {
-                termKeys.splice(termKeys.indexOf('@all'), 1);
-            }
-
-            if (user.notify_props.channel === 'true' && termKeys.indexOf('@channel') !== -1) {
+            if (user.notify_props.channel === 'true' && termKeys.indexOf('@channel') !== -1 && termKeys.indexOf('@all') !== -1) {
                 termKeys.splice(termKeys.indexOf('@channel'), 1);
+                termKeys.splice(termKeys.indexOf('@all'), 1);
             }
             terms = termKeys.join(' ');
         }

@@ -208,7 +208,6 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps["desktop"] = USER_NOTIFY_ALL
 	u.NotifyProps["desktop_sound"] = "true"
 	u.NotifyProps["mention_keys"] = u.Username + ",@" + u.Username
-	u.NotifyProps["all"] = "true"
 	u.NotifyProps["channel"] = "true"
 
 	if u.FirstName == "" {

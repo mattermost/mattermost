@@ -39,7 +39,6 @@ function getNotificationsStateFromStores() {
     var mentionKey = false;
     var customKeys = '';
     var firstNameKey = false;
-    var allKey = false;
     var channelKey = false;
 
     if (user.notify_props) {
@@ -67,10 +66,6 @@ function getNotificationsStateFromStores() {
             firstNameKey = user.notify_props.first_name === 'true';
         }
 
-        if (user.notify_props.all) {
-            allKey = user.notify_props.all === 'true';
-        }
-
         if (user.notify_props.channel) {
             channelKey = user.notify_props.channel === 'true';
         }
@@ -87,7 +82,6 @@ function getNotificationsStateFromStores() {
         customKeys,
         customKeysChecked: customKeys.length > 0,
         firstNameKey,
-        allKey,
         channelKey
     };
 }
@@ -132,7 +126,6 @@ class NotificationsTab extends React.Component {
         this.updateUsernameKey = this.updateUsernameKey.bind(this);
         this.updateMentionKey = this.updateMentionKey.bind(this);
         this.updateFirstNameKey = this.updateFirstNameKey.bind(this);
-        this.updateAllKey = this.updateAllKey.bind(this);
         this.updateChannelKey = this.updateChannelKey.bind(this);
         this.updateCustomMentionKeys = this.updateCustomMentionKeys.bind(this);
         this.onCustomChange = this.onCustomChange.bind(this);
@@ -227,9 +220,6 @@ class NotificationsTab extends React.Component {
     }
     updateFirstNameKey(val) {
         this.setState({firstNameKey: val});
-    }
-    updateAllKey(val) {
-        this.setState({allKey: val});
     }
     updateChannelKey(val) {
         this.setState({channelKey: val});
@@ -730,7 +720,6 @@ class NotificationsTab extends React.Component {
             let handleUpdateFirstNameKey;
             let handleUpdateUsernameKey;
             let handleUpdateMentionKey;
-            let handleUpdateAllKey;
             let handleUpdateChannelKey;
 
             if (user.first_name) {
@@ -801,27 +790,6 @@ class NotificationsTab extends React.Component {
                                 values={{
                                     username: user.username
                                 }}
-                            />
-                        </label>
-                    </div>
-                </div>
-            );
-
-            handleUpdateAllKey = function handleAllKeyChange(e) {
-                this.updateAllKey(e.target.checked);
-            }.bind(this);
-            inputs.push(
-                <div key='userNotificationAllOption'>
-                    <div className='checkbox hidden'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={this.state.allKey}
-                                onChange={handleUpdateAllKey}
-                            />
-                            <FormattedMessage
-                                id='user.settings.notifications.teamWide'
-                                defaultMessage='Team-wide mentions "@all"'
                             />
                         </label>
                     </div>
