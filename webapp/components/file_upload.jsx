@@ -199,7 +199,7 @@ class FileUpload extends React.Component {
         var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         const {formatMessage} = this.props.intl;
 
-        if (!e.clipboardData) {
+        if (!e.clipboardData || !e.clipboardData.items) {
             return;
         }
 
@@ -211,73 +211,69 @@ class FileUpload extends React.Component {
 
         this.props.onUploadError(null);
 
-        // This looks redundant, but must be done this way due to
-        // setState being an asynchronous call
-        var items = e.clipboardData.items;
-        var numItems = 0;
-        if (items) {
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf('image') !== -1) {
-                    var testExt = items[i].type.split('/')[1].toLowerCase();
+        const items = [];
+        for (let i = 0; i < e.clipboardData.items.length; i++) {
+            const item = e.clipboardData.items[i];
 
-                    if (Constants.IMAGE_TYPES.indexOf(testExt) < 0) {
-                        continue;
-                    }
-
-                    numItems++;
-                }
+            if (item.type.indexOf('image') === -1) {
+                continue;
             }
 
-            var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(ChannelStore.getCurrentId()), numItems);
+            if (Constants.IMAGE_TYPES.indexOf(item.type.split('/')[1].toLowerCase()) === -1) {
+                continue;
+            }
 
-            if (numItems > numToUpload) {
+            items.push(item);
+        }
+
+        // This looks redundant, but must be done this way due to
+        // setState being an asynchronous call
+        if (items) {
+            var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(ChannelStore.getCurrentId()), items.length);
+
+            if (items.length > numToUpload) {
                 this.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
             }
 
+            const channelId = this.props.channelId || ChannelStore.getCurrentId();
+
             for (var i = 0; i < items.length && i < numToUpload; i++) {
-                if (items[i].type.indexOf('image') !== -1) {
-                    var file = items[i].getAsFile();
+                var file = items[i].getAsFile();
 
-                    var ext = items[i].type.split('/')[1].toLowerCase();
+                var ext = items[i].type.split('/')[1].toLowerCase();
 
-                    if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
-                        continue;
-                    }
-                    var channelId = this.props.channelId || ChannelStore.getCurrentId();
+                // generate a unique id that can be used by other components to refer back to this file upload
+                var clientId = Utils.generateId();
 
-                    // generate a unique id that can be used by other components to refer back to this file upload
-                    var clientId = Utils.generateId();
-
-                    var d = new Date();
-                    var hour;
-                    if (d.getHours() < 10) {
-                        hour = '0' + d.getHours();
-                    } else {
-                        hour = String(d.getHours());
-                    }
-                    var min;
-                    if (d.getMinutes() < 10) {
-                        min = '0' + d.getMinutes();
-                    } else {
-                        min = String(d.getMinutes());
-                    }
-
-                    const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
-
-                    const request = Client.uploadFile(file,
-                        name,
-                        channelId,
-                        clientId,
-                        this.fileUploadSuccess.bind(this, channelId),
-                        this.fileUploadFail.bind(this, clientId)
-                    );
-
-                    const requests = this.state.requests;
-                    requests[clientId] = request;
-                    this.setState({requests});
-
-                    this.props.onUploadStart([clientId], channelId);
+                var d = new Date();
+                var hour;
+                if (d.getHours() < 10) {
+                    hour = '0' + d.getHours();
+                } else {
+                    hour = String(d.getHours());
                 }
+                var min;
+                if (d.getMinutes() < 10) {
+                    min = '0' + d.getMinutes();
+                } else {
+                    min = String(d.getMinutes());
+                }
+
+                const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
+
+                const request = Client.uploadFile(file,
+                    name,
+                    channelId,
+                    clientId,
+                    this.fileUploadSuccess.bind(this, channelId),
+                    this.fileUploadFail.bind(this, clientId)
+                );
+
+                const requests = this.state.requests;
+                requests[clientId] = request;
+                this.setState({requests});
+
+                this.props.onUploadStart([clientId], channelId);
             }
         }
     }
