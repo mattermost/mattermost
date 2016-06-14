@@ -52,9 +52,14 @@ const languages = {
 let availableLanguages = null;
 
 function setAvailableLanguages() {
-    const available = global.window.mm_config.AvailableLocales.split(',');
-
+    let available;
     availableLanguages = {};
+
+    if (global.window.mm_config.AvailableLocales) {
+        available = global.window.mm_config.AvailableLocales.split(',');
+    } else {
+        available = Object.keys(languages);
+    }
 
     available.forEach((l) => {
         if (languages[l]) {
