@@ -301,8 +301,14 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	}
 
 	if result := <-euchan; result.Err == nil {
-		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error",
-			map[string]interface{}{"Service": service}, "email="+user.Email)
+		authService := result.Data.(*model.User).AuthService
+		if authService == "" {
+			c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error",
+				map[string]interface{}{"Service": service, "Auth": model.USER_AUTH_SERVICE_EMAIL}, "email="+user.Email)
+		} else {
+			c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error",
+				map[string]interface{}{"Service": service, "Auth": authService}, "email="+user.Email)
+		}
 		return nil
 	}
 
