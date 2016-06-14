@@ -795,11 +795,11 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.RemoveSessionCookie(w, r)
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(), w, r) {
+	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), w, r) {
 		return
 	} else {
 		result.Data.(*model.User).Sanitize(map[string]bool{})
-		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.User).Etag())
+		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
 		w.Write([]byte(result.Data.(*model.User).ToJson()))
 		return
 	}
@@ -906,11 +906,11 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result := <-Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(), w, r) {
+	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), w, r) {
 		return
 	} else {
 		result.Data.(*model.User).Sanitize(map[string]bool{})
-		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.User).Etag())
+		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
 		w.Write([]byte(result.Data.(*model.User).ToJson()))
 		return
 	}

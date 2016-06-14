@@ -4,8 +4,6 @@
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
 
-import {FormattedMessage} from 'react-intl';
-
 import {Popover, OverlayTrigger} from 'react-bootstrap';
 
 var id = 0;
@@ -22,6 +20,7 @@ export default class UserProfile extends React.Component {
         super(props);
         this.uniqueId = nextId();
     }
+
     shouldComponentUpdate(nextProps) {
         if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
@@ -45,6 +44,7 @@ export default class UserProfile extends React.Component {
 
         return false;
     }
+
     render() {
         let name = '...';
         let email = '';
@@ -78,19 +78,7 @@ export default class UserProfile extends React.Component {
             />
         );
 
-        if (!global.window.mm_config.ShowEmailAddress === 'true') {
-            dataContent.push(
-                <div
-                    className='text-nowrap'
-                    key='user-popover-no-email'
-                >
-                    <FormattedMessage
-                        id='user_profile.notShared'
-                        defaultMessage='Email not shared'
-                    />
-                </div>
-            );
-        } else {
+        if (global.window.mm_config.ShowEmailAddress === 'true') {
             dataContent.push(
                 <div
                     data-toggle='tooltip'

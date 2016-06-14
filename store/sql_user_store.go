@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 const (
@@ -485,9 +486,9 @@ func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
 			ORDER BY UpdateAt DESC LIMIT 1
         `, map[string]interface{}{"UserId": userId})
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result
@@ -505,9 +506,9 @@ func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
 
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result
@@ -557,9 +558,9 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result

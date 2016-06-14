@@ -1442,7 +1442,6 @@
   "user.settings.security.title": "Paramètres de sécurité",
   "user.settings.security.viewHistory": "Voir l'historique des accès",
   "user_list.notFound": "Aucun utilisateur trouvé.",
-  "user_profile.notShared": "L'adresse électronique n'est pas partagée",
   "view_image.loading": "Chargement ",
   "view_image_popover.download": "Télécharger",
   "view_image_popover.file": "Fichier {count} sur {total}",

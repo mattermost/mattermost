@@ -244,8 +244,8 @@ func (u *User) ToJson() string {
 }
 
 // Generate a valid strong etag so the browser can cache the results
-func (u *User) Etag() string {
-	return Etag(u.Id, u.UpdateAt)
+func (u *User) Etag(showFullName, showEmail bool) string {
+	return Etag(u.Id, u.UpdateAt, showFullName, showEmail)
 }
 
 func (u *User) IsOffline() bool {

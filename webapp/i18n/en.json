@@ -1455,7 +1455,6 @@
   "user.settings.security.title": "Security Settings",
   "user.settings.security.viewHistory": "View Access History",
   "user_list.notFound": "No users found",
-  "user_profile.notShared": "Email not shared",
   "view_image.loading": "Loading ",
   "view_image_popover.download": "Download",
   "view_image_popover.file": "File {count} of {total}",
