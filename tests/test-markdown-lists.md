@@ -162,7 +162,7 @@ Verify that all list types render as expected.
 
 ### Ordered Lists Separated by Carriage Returns
 
-**Expected:*
+**Expected:**
 ```
 1. One
   • Two
@@ -176,7 +176,6 @@ Verify that all list types render as expected.
 1. One
   - Two
 
-
 1. One
 2. Two
 
@@ -185,15 +184,15 @@ Verify that all list types render as expected.
 **Expected:**
 ```
 1. One
- - Two
+- Two
 This text should be on a new line.
 ```
 
 **Actual:**
 
 1. One
- - Two
-This text should be on a new line.
+- Two
+ This text should be on a new line.
 
 **Expected:**
 ```
