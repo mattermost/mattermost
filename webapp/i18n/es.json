@@ -1444,7 +1444,6 @@
   "user.settings.security.title": "Configuración de Seguridad",
   "user.settings.security.viewHistory": "Visualizar historial de acceso",
   "user_list.notFound": "No se encontraron usuarios",
-  "user_profile.notShared": "Correo no compartido",
   "view_image.loading": "Cargando ",
   "view_image_popover.download": "Descargar",
   "view_image_popover.file": "Archivo {count} de {total}",

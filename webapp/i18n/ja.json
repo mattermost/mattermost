@@ -1442,7 +1442,6 @@
   "user.settings.security.title": "セキュリティーの設定",
   "user.settings.security.viewHistory": "アクセス履歴を見る",
   "user_list.notFound": "ユーザーが見付かりません",
-  "user_profile.notShared": "電子メールは共有されません",
   "view_image.loading": "読み込み中です ",
   "view_image_popover.download": "ダウンロードする",
   "view_image_popover.file": "ファイル {count} / {total}",
