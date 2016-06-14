@@ -589,7 +589,7 @@ func (o *Config) SetDefaults() {
 		*o.LocalizationSettings.DefaultClientLocale = DEFAULT_LOCALE
 	}
 
-	if o.LocalizationSettings.AvailableLocales == nil {
+	if o.LocalizationSettings.AvailableLocales == nil || *o.LocalizationSettings.AvailableLocales == "" {
 		o.LocalizationSettings.AvailableLocales = new(string)
 		*o.LocalizationSettings.AvailableLocales = strings.Join(LOCALES, ",")
 	}
