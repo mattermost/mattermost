@@ -73,10 +73,10 @@ export default class SignupUserComplete extends React.Component {
                     data,
                     hash,
                     inviteId,
-                    () => {
+                    (team) => {
                         GlobalActions.emitInitialLoad(
                             () => {
-                                browserHistory.push('/select_team');
+                                browserHistory.push('/' + team.name);
                             }
                         );
                     },
