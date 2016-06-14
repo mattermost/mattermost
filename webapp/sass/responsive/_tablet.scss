@@ -117,20 +117,13 @@
                     .col__name {
                         font-weight: bold;
                         margin-right: 2px;
-                        padding-right: 10px;
+                        padding-right: 5px;
                         position: relative;
                         z-index: 1;
+                    }
 
-                        &:after {
-                            content: ':';
-                            display: inline-block;
-                            font-family: FontAwesome;
-                            font-size: 19px;
-                            position: absolute;
-                            right: 3px;
-                            text-rendering: auto;
-                            top: -5px;
-                        }
+                    strong {
+                        display: inline;
                     }
 
                     .col__reply {
@@ -176,6 +169,7 @@
             &.same--root {
                 &.same--user {
                     padding-left: 70px;
+                    padding-top: 0;
 
                     .post__header {
                         .col__reply {

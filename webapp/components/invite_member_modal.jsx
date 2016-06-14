@@ -286,7 +286,7 @@ class InviteMemberModal extends React.Component {
                     lastNameClass += ' has-error';
                 }
                 nameFields = (
-                    <div className='row--invite'>
+                    <div className='row row--invite'>
                         <div className='col-sm-6'>
                             <div className={firstNameClass}>
                                 <input

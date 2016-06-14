@@ -370,6 +370,15 @@ export default class Sidebar extends React.Component {
         this.setState({showDirectChannelsModal: false});
     }
 
+    openLeftSidebar() {
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .inner-wrap').classList.add('move--right');
+                document.querySelector('.app__body .sidebar--left').classList.add('move--right');
+            });
+        }
+    }
+
     createTutorialTip() {
         const screens = [];
 
@@ -535,6 +544,7 @@ export default class Sidebar extends React.Component {
         let tutorialTip = null;
         if (this.state.showTutorialTip && channel.name === Constants.DEFAULT_CHANNEL) {
             tutorialTip = this.createTutorialTip();
+            this.openLeftSidebar();
         }
 
         let link = '';

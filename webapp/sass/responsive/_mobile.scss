@@ -136,6 +136,13 @@
             }
         }
 
+        &.post--comment {
+            .post__body {
+                margin-top: 5px;
+                padding: 2px 0 0 7px;
+            }
+        }
+
         &.other--root {
             &.post--comment {
                 .post__header {
@@ -309,7 +316,9 @@
 
     .row--invite {
         .col-sm-6 {
-            padding: 0;
+            &:first-child {
+                padding-right: 15px;
+            }
         }
     }
 

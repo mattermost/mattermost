@@ -486,7 +486,6 @@ body.ios {
     &.post--compact {
         &.post--thread {
             .post__header {
-                height: 22px;
                 padding-top: 3px;
             }
         }
@@ -508,6 +507,10 @@ body.ios {
         .markdown__heading {
             font-size: 1em;
             margin: 0 0 7px;
+        }
+
+        .post__header {
+            height: 22px;
         }
 
         .post__body {
@@ -535,10 +538,6 @@ body.ios {
                 margin-top: 1px;
                 padding-left: 30px;
             }
-        }
-
-        .post-image__columns {
-            clear: both;
         }
 
         .post-image__column {
@@ -765,7 +764,14 @@ body.ios {
                 @include clearfix;
                 max-width: 200px;
                 text-overflow: ellipsis;
+                vertical-align: top;
                 white-space: nowrap;
+            }
+
+            strong {
+                display: none;
+                font-weight: 900;
+                margin-left: 2px;
             }
         }
 
@@ -1036,6 +1042,7 @@ body.ios {
         display: inline-block;
         margin-right: 6px;
         visibility: hidden;
+
         svg {
             fill: inherit;
             position: relative;
