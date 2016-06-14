@@ -35,6 +35,11 @@ export default class RhsRootPost extends React.Component {
         if (nextProps.compactDisplay !== this.props.compactDisplay) {
             return true;
         }
+
+        if (nextProps.useMilitaryTime !== this.props.useMilitaryTime) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
@@ -255,7 +260,7 @@ export default class RhsRootPost extends React.Component {
                                         day='numeric'
                                         month='long'
                                         year='numeric'
-                                        hour12={!Utils.isMilitaryTime()}
+                                        hour12={!this.props.useMilitaryTime}
                                         hour='2-digit'
                                         minute='2-digit'
                                     />
@@ -289,5 +294,6 @@ RhsRootPost.propTypes = {
     user: React.PropTypes.object.isRequired,
     currentUser: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number,
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+    useMilitaryTime: React.PropTypes.bool.isRequired
 };

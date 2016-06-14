@@ -223,10 +223,6 @@ export function displayTime(ticks, utc) {
     return hours + ':' + minutes + ampm + timezone;
 }
 
-export function isMilitaryTime() {
-    return PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
-}
-
 // returns Unix timestamp in milliseconds
 export function getTimestamp() {
     return Date.now();
