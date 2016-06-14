@@ -127,11 +127,11 @@ export default class EmailSettings extends AdminSettings {
                             defaultMessage='Notification Footer Address:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.email.notificationOrganizationExample', 'Ex: "(c) 2015 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"')}
+                    placeholder={Utils.localizeMessage('admin.email.notificationOrganizationExample', 'Ex: "© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA"')}
                     helpText={
                         <FormattedMessage
                             id='admin.email.notificationOrganizationDescription'
-                            defaultMessage='Organization name and address displayed in email footer when sending emails from Mattermost. Defaults to Notfication Email Address if empty.'
+                            defaultMessage='Organization name and address displayed on email notifications from Mattermost, such as "© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA". If the field is left empty, the organization name and address will not be displayed.'
                         />
                     }
                     value={this.state.feedbackOrganization}

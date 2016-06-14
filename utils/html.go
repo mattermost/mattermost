@@ -90,7 +90,7 @@ func (t *HTMLTemplate) addDefaultProps() {
 	if *Cfg.EmailSettings.FeedbackOrganization != "" {
 		t.Props["Organization"] = localT("api.templates.email_organization") + *Cfg.EmailSettings.FeedbackOrganization
 	} else {
-		t.Props["Organization"] = localT("api.templates.email_organization") + Cfg.EmailSettings.FeedbackEmail
+		t.Props["Organization"] = ""
 	}
 
 	t.Html["EmailInfo"] = template.HTML(localT("api.templates.email_info",
