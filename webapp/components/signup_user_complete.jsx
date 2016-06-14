@@ -317,22 +317,6 @@ export default class SignupUserComplete extends React.Component {
         }
 
         const providedPassword = ReactDOM.findDOMNode(this.refs.password).value;
-        if (!providedPassword || providedPassword.length < Constants.MIN_PASSWORD_LENGTH) {
-            this.setState({
-                nameError: '',
-                emailError: '',
-                passwordError: (
-                    <FormattedMessage
-                        id='signup_user_completed.passwordLength'
-                        values={{
-                            min: Constants.MIN_PASSWORD_LENGTH
-                        }}
-                    />
-                ),
-                serverError: ''
-            });
-            return;
-        }
 
         this.setState({
             nameError: '',
