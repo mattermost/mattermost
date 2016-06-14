@@ -71,6 +71,7 @@ export default class Sidebar extends React.Component {
         state.loadingDMChannel = -1;
         this.state = state;
     }
+
     getTotalUnreadCount() {
         let msgs = 0;
         let mentions = 0;
@@ -83,6 +84,7 @@ export default class Sidebar extends React.Component {
 
         return {msgs, mentions};
     }
+
     getStateFromStores() {
         const members = ChannelStore.getAllMembers();
         const currentChannelId = ChannelStore.getCurrentId();
@@ -165,12 +167,14 @@ export default class Sidebar extends React.Component {
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
+
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextState, this.state)) {
             return true;
         }
         return false;
     }
+
     componentDidUpdate(prevProps, prevState) {
         this.updateTitle();
         this.updateUnreadIndicators();
@@ -190,6 +194,7 @@ export default class Sidebar extends React.Component {
             $('.app__body .sidebar--left').removeClass('move--right');
         }
     }
+
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
@@ -199,9 +204,11 @@ export default class Sidebar extends React.Component {
         document.removeEventListener('keydown', this.navigateChannelShortcut);
         document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
+
     onChange() {
         this.setState(this.getStateFromStores());
     }
+
     updateTitle() {
         const channel = ChannelStore.getCurrent();
         if (channel && this.state.currentTeam) {
@@ -224,9 +231,11 @@ export default class Sidebar extends React.Component {
             document.title = mentionTitle + unreadTitle + currentChannelName + ' - ' + this.state.currentTeam.display_name + ' ' + currentSiteName;
         }
     }
+
     onScroll() {
         this.updateUnreadIndicators();
     }
+
     updateUnreadIndicators() {
         const container = $(ReactDOM.findDOMNode(this.refs.container));
 
@@ -254,6 +263,7 @@ export default class Sidebar extends React.Component {
             showBottomUnread
         });
     }
+
     updateScrollbarOnChannelChange(channel) {
         const curChannel = this.refs[channel.name].getBoundingClientRect();
         if ((curChannel.top - Constants.CHANNEL_SCROLL_ADJUSTMENT < 0) || (curChannel.top + curChannel.height > this.refs.container.getBoundingClientRect().height)) {
@@ -261,6 +271,7 @@ export default class Sidebar extends React.Component {
             $('.nav-pills__container').perfectScrollbar('update');
         }
     }
+
     navigateChannelShortcut(e) {
         if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
@@ -284,6 +295,7 @@ export default class Sidebar extends React.Component {
             this.updateScrollbarOnChannelChange(nextChannel);
         }
     }
+
     navigateUnreadChannelShortcut(e) {
         if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
@@ -318,9 +330,11 @@ export default class Sidebar extends React.Component {
             }
         }
     }
+
     getDisplayedChannels() {
         return this.state.publicChannels.concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
     }
+
     handleLeaveDirectChannel(e, channel) {
         e.preventDefault();
 
@@ -359,6 +373,7 @@ export default class Sidebar extends React.Component {
     showNewChannelModal(type) {
         this.setState({newChannelModalType: type});
     }
+
     hideNewChannelModal() {
         this.setState({newChannelModalType: ''});
     }
@@ -366,6 +381,7 @@ export default class Sidebar extends React.Component {
     showMoreDirectChannelsModal() {
         this.setState({showDirectChannelsModal: true});
     }
+
     hideMoreDirectChannelsModal() {
         this.setState({showDirectChannelsModal: false});
     }
