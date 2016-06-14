@@ -86,12 +86,11 @@ func (t *HTMLTemplate) addDefaultProps() {
 	}
 
 	t.Props["Footer"] = localT("api.templates.email_footer")
-	t.Props["Organization"] = localT("api.templates.email_organization")
 
 	if *Cfg.EmailSettings.FeedbackOrganization != "" {
-		t.Props["Organization"] = t.Props["Organization"] + *Cfg.EmailSettings.FeedbackOrganization
+		t.Props["Organization"] = localT("api.templates.email_organization") + *Cfg.EmailSettings.FeedbackOrganization
 	} else {
-		t.Props["Organization"] = t.Props["Organization"] + Cfg.EmailSettings.FeedbackEmail
+		t.Props["Organization"] = localT("api.templates.email_organization") + Cfg.EmailSettings.FeedbackEmail
 	}
 
 	t.Html["EmailInfo"] = template.HTML(localT("api.templates.email_info",
