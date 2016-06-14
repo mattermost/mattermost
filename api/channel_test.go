@@ -320,6 +320,7 @@ func TestGetChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	team := th.BasicTeam
+	team2 := th.CreateTeam(Client)
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -369,6 +370,11 @@ func TestGetChannel(t *testing.T) {
 
 	if _, err := Client.GetChannel("junk", ""); err == nil {
 		t.Fatal("should have failed - bad channel id")
+	}
+
+	Client.SetTeamId(team2.Id)
+	if _, err := Client.GetChannel(channel2.Id, ""); err == nil {
+		t.Fatal("should have failed - wrong team")
 	}
 }
 
