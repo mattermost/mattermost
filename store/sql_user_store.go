@@ -53,7 +53,7 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	// ADDED for 3.2 REMOVE for 3.6
 	var data []*model.User
 	shouldUpdate := false
-	if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE ThemeProps LIKE '%solaris%'"); err == nil {
+	if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE ThemeProps LIKE '%solarized%'"); err == nil {
 		for _, user := range data {
 			if user.ThemeProps["codetheme"] == "solarized_dark" {
 				user.ThemeProps["codetheme"] = "solarized-dark"
