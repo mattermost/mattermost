@@ -260,9 +260,12 @@ package: build build-client
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/webapp/dist
 	cp -RL $(BUILD_WEBAPP_DIR)/dist $(DIST_PATH)/webapp
-	mv $(DIST_PATH)/webapp/dist/bundle.js $(DIST_PATH)/webapp/dist/bundle-$(BUILD_NUMBER).js
-	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).js|g' $(DIST_PATH)/webapp/dist/root.html
+	mv $(DIST_PATH)/webapp/dist/plt.bundle.js $(DIST_PATH)/webapp/dist/plt.bundle-$(BUILD_NUMBER).js
+	sed -i'.bak' 's|plt.bundle.js|plt.bundle-$(BUILD_NUMBER).js|g' $(DIST_PATH)/webapp/dist/root.html
+	mv $(DIST_PATH)/webapp/dist/oauth.bundle.js $(DIST_PATH)/webapp/dist/oauth.bundle-$(BUILD_NUMBER).js
+	sed -i'.bak' 's|oauth.bundle.js|oauth.bundle-$(BUILD_NUMBER).js|g' $(DIST_PATH)/templates/authorize.html
 	rm $(DIST_PATH)/webapp/dist/root.html.bak
+	rm $(DIST_PATH)/templates/authorize.html.bak
 
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)

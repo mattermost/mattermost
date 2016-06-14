@@ -1,6 +1,19 @@
 {{define "authorize"}}
+<!DOCTYPE html>
 <html>
-{{template "head" . }}
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
+    <meta name='robots' content='noindex, nofollow'>
+    <meta name='referrer' content='no-referrer'>
+
+    <title>Mattermost</title>
+
+    <!-- CSS Should always go first -->
+    <link rel='stylesheet' class='code_theme'>
+
+    <script src='/static/oauth.bundle.js'></script>
+</head>
 <body>
     <div id="authorize">
     </div>

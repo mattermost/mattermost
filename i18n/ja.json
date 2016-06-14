@@ -3916,10 +3916,6 @@
     "translation": "response_type、client_id、redirect_uriのいずれから不足しています"
   },
   {
-    "id": "web.authorize_oauth.title",
-    "translation": "アプリケーションを認証する"
-  },
-  {
     "id": "web.check_browser_compatibility.app_error",
     "translation": "あなたの使用中のブラウザーはサポートされていません。以下のブラウザーを使ってください。Google Chrome 21以降、Internet Explorer 11以降、Firefox 14以降、Safari 9以降"
   },

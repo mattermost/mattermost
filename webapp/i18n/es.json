@@ -639,7 +639,7 @@
   "authorize.allow": "Permitir",
   "authorize.app": "La app <strong>{appName}</strong> quiere tener la habilidad de accesar y modificar tu información básica.",
   "authorize.deny": "Denegar",
-  "authorize.title": "Una aplicación quiere conectarse con tu cuenta de {teamName}",
+  "authorize.title": "Una aplicación quiere conectarse con tu cuenta",
   "backstage_navbar.backToMattermost": "Volver a {siteName}",
   "backstage_sidebar.integrations": "Integraciones",
   "backstage_sidebar.integrations.commands": "Comandos de Barra",

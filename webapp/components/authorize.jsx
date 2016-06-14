@@ -28,7 +28,7 @@ export default class Authorize extends React.Component {
         Client.allowOAuth2(responseType, clientId, redirectUri, state, scope,
             (data) => {
                 if (data.redirect) {
-                    window.location.replace(data.redirect);
+                    window.location.href = data.redirect;
                 }
             },
             () => {
@@ -55,10 +55,7 @@ export default class Authorize extends React.Component {
                         <div className='text'>
                             <FormattedMessage
                                 id='authorize.title'
-                                defaultMessage='An application would like to connect to your {teamName} account'
-                                values={{
-                                    teamName: this.props.teamName
-                                }}
+                                defaultMessage='An application would like to connect to your account'
                             />
                         </div>
                     </div>

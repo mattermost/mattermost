@@ -658,7 +658,7 @@
   "authorize.allow": "Allow",
   "authorize.app": "The app <strong>{appName}</strong> would like the ability to access and modify your basic information.",
   "authorize.deny": "Deny",
-  "authorize.title": "An application would like to connect to your {teamName} account",
+  "authorize.title": "An application would like to connect to your account",
   "backstage_navbar.backToMattermost": "Back to {siteName}",
   "backstage_sidebar.integrations": "Integrations",
   "backstage_sidebar.integrations.commands": "Slash Commands",

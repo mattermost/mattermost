@@ -24,11 +24,14 @@ if (NPM_TARGET === 'test') {
 }
 
 var config = {
-    entry: ['babel-polyfill', './root.jsx', 'root.html'],
+    entry: {
+        plt: ['babel-polyfill', './root.jsx', 'root.html'],
+        oauth: ['babel-polyfill', './oauth.jsx']
+    },
     output: {
         path: 'dist',
         publicPath: '/static/',
-        filename: 'bundle.js'
+        filename: '[name].bundle.js'
     },
     module: {
         loaders: [

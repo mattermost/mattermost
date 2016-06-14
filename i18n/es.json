@@ -3916,10 +3916,6 @@
     "translation": "Falta uno o más de response_type, client_id, or redirect_uri"
   },
   {
-    "id": "web.authorize_oauth.title",
-    "translation": "Autorizar Aplicación"
-  },
-  {
     "id": "web.check_browser_compatibility.app_error",
     "translation": "Tu navegador actual no está soportado, por favor actualiza a uno de los siguientes navegadores: Google Chrome 21 o superior, Internet Explorer 11 o superior, FireFox 14 o superior, Safari 9 o superior"
   },

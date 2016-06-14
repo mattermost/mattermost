@@ -30,10 +30,10 @@ func InitOAuth() {
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/complete", AppHandlerIndependent(completeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/{service:[A-Za-z]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
+	BaseRoutes.OAuth.Handle("/authorize", UserRequiredTrustRequester(authorizeOAuth)).Methods("GET")
 	BaseRoutes.OAuth.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
-	BaseRoutes.Root.Handle("/authorize", ApiUserRequired(authorizeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/authorize", UserRequiredTrustRequester(authorizeOAuth)).Methods("GET")
 	BaseRoutes.Root.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 
 	// Handle all the old routes, to be later removed
@@ -172,7 +172,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	responseData["redirect"] = redirectUri + "?code=" + url.QueryEscape(authData.Code) + "&state=" + url.QueryEscape(authData.State)
-
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(model.MapToJson(responseData)))
 }
 
@@ -280,6 +280,10 @@ func authorizeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	scope := r.URL.Query().Get("scope")
 	state := r.URL.Query().Get("state")
 
+	if len(scope) == 0 {
+		scope = model.DEFAULT_SCOPE
+	}
+
 	if len(responseType) == 0 || len(clientId) == 0 || len(redirect) == 0 {
 		c.Err = model.NewLocAppError("authorizeOAuth", "web.authorize_oauth.missing.app_error", nil, "")
 		return
@@ -293,17 +297,7 @@ func authorizeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		app = result.Data.(*model.OAuthApp)
 	}
 
-	var team *model.Team
-	if result := <-Srv.Store.Team().Get(c.TeamId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
 	page := utils.NewHTMLTemplate("authorize", c.Locale)
-	page.Props["Title"] = c.T("web.authorize_oauth.title")
-	page.Props["TeamName"] = team.Name
 	page.Props["AppName"] = app.Name
 	page.Props["ResponseType"] = responseType
 	page.Props["ClientId"] = clientId

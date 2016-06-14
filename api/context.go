@@ -68,6 +68,10 @@ func UserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Han
 	return &handler{h, true, false, false, false, false, false}
 }
 
+func UserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{h, true, false, false, false, false, true}
+}
+
 func ApiAdminSystemRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &handler{h, true, true, true, false, false, false}
 }
@@ -102,7 +106,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
 	c.TeamId = mux.Vars(r)["team_id"]
-	h.isApi = IsApiCall(r)
+
+	// this is being set by the handler functions, no need to re-assign here
+	//h.isApi = IsApiCall(r)
 
 	token := ""
 	isTokenFromQueryString := false
