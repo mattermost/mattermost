@@ -42,6 +42,7 @@ type Store interface {
 	Preference() PreferenceStore
 	License() LicenseStore
 	PasswordRecovery() PasswordRecoveryStore
+	Emoji() EmojiStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -253,4 +254,12 @@ type PasswordRecoveryStore interface {
 	Delete(userId string) StoreChannel
 	Get(userId string) StoreChannel
 	GetByCode(code string) StoreChannel
+}
+
+type EmojiStore interface {
+	Save(emoji *model.Emoji) StoreChannel
+	Get(id string) StoreChannel
+	GetByName(name string) StoreChannel
+	GetAll() StoreChannel
+	Delete(id string, time int64) StoreChannel
 }

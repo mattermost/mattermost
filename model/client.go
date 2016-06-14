@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -106,6 +108,10 @@ func (c *Client) GetChannelNameRoute(channelName string) string {
 	return fmt.Sprintf("/teams/%v/channels/name/%v", c.GetTeamId(), channelName)
 }
 
+func (c *Client) GetEmojiRoute() string {
+	return "/emoji"
+}
+
 func (c *Client) GetGeneralRoute() string {
 	return "/general"
 }
@@ -176,6 +182,17 @@ func getCookie(name string, resp *http.Response) *http.Cookie {
 
 // Must is a convenience function used for testing.
 func (c *Client) Must(result *Result, err *AppError) *Result {
+	if err != nil {
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(err)
+	}
+
+	return result
+}
+
+// MustGeneric is a convenience function used for testing.
+func (c *Client) MustGeneric(result interface{}, err *AppError) interface{} {
 	if err != nil {
 		l4g.Close()
 		time.Sleep(time.Second)
@@ -1508,4 +1525,75 @@ func (c *Client) GetInitialLoad() (*Result, *AppError) {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), InitialLoadFromJson(r.Body)}, nil
 	}
+}
+
+// ListEmoji returns a list of all user-created emoji for the server.
+func (c *Client) ListEmoji() ([]*Emoji, *AppError) {
+	if r, err := c.DoApiGet(c.GetEmojiRoute()+"/list", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return EmojiListFromJson(r.Body), nil
+	}
+}
+
+// CreateEmoji will save an emoji to the server if the current user has permission
+// to do so. If successful, the provided emoji will be returned with its Id field
+// filled in. Otherwise, an error will be returned.
+func (c *Client) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emoji, *AppError) {
+	c.clearExtraProperties()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("image", filename); err != nil {
+		return nil, NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())
+	} else if _, err = io.Copy(part, bytes.NewBuffer(image)); err != nil {
+		return nil, NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())
+	}
+
+	if err := writer.WriteField("emoji", emoji.ToJson()); err != nil {
+		return nil, NewLocAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error())
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, NewLocAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error())
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetEmojiRoute()+"/create", body)
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+	}
+
+	if r, err := c.HttpClient.Do(rq); err != nil {
+		return nil, NewLocAppError("CreateEmoji", "model.client.connecting.app_error", nil, err.Error())
+	} else if r.StatusCode >= 300 {
+		return nil, AppErrorFromJson(r.Body)
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return EmojiFromJson(r.Body), nil
+	}
+}
+
+// DeleteEmoji will delete an emoji from the server if the current user has permission
+// to do so. If successful, it will return status=ok. Otherwise, an error will be returned.
+func (c *Client) DeleteEmoji(id string) (bool, *AppError) {
+	data := map[string]string{"id": id}
+
+	if r, err := c.DoApiPost(c.GetEmojiRoute()+"/delete", MapToJson(data)); err != nil {
+		return false, err
+	} else {
+		c.fillInExtraProperties(r)
+		return c.CheckStatusOK(r), nil
+	}
+}
+
+// GetCustomEmojiImageUrl returns the API route that can be used to get the image used by
+// the given emoji.
+func (c *Client) GetCustomEmojiImageUrl(id string) string {
+	return c.GetEmojiRoute() + "/" + id
 }

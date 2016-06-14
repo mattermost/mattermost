@@ -52,10 +52,6 @@
     "translation": "System"
   },
   {
-    "id": "api.general.init.debug",
-    "translation": "Initializing general api routes"
-  },
-  {
     "id": "api.admin.file_read_error",
     "translation": "Error reading log file"
   },
@@ -580,6 +576,54 @@
     "translation": "An unknown error has occurred. Please contact support."
   },
   {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Unable to create emoji. Another emoji with the same name already exists."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Unable to create emoji. Image exceeds maximum file size."
+  },
+  {
+    "id": "api.emoji.create.permissions.app_error",
+    "translation": "Inappropriate permissions to create emoji."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Unable to create emoji. Could not understand request."
+  },
+  {
+    "id": "api.emoji.delete.permissions.app_error",
+    "translation": "Inappropriate permissions to delete emoji."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Custom emoji have been disabled by the system admin."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Unable to decode image file for emoji."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Unable to read image file for emoji."
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.app_error",
+    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
+  },
+  {
+    "id": "api.emoji.init.debug",
+    "translation": "Initializing emoji api routes"
+  },
+  {
     "id": "api.export.json.app_error",
     "translation": "Unable to convert to json"
   },
@@ -742,6 +786,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Encountered an error writing to local server storage"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Initializing general api routes"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -2324,6 +2372,18 @@
     "translation": "We encountered an error while connecting to the server"
   },
   {
+    "id": "model.client.create_emoji.emoji.app_error",
+    "translation": "Unable to attach emoji data to request"
+  },
+  {
+    "id": "model.client.create_emoji.image.app_error",
+    "translation": "Unable to attach image to request"
+  },
+  {
+    "id": "model.client.create_emoji.writer.app_error",
+    "translation": "Unable to write request"
+  },
+  {
     "id": "model.client.login.app_error",
     "translation": "Authentication tokens didn't match"
   },
@@ -2498,6 +2558,26 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.emoji.creator_id.app_error",
+    "translation": "Invalid creator id"
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "Invalid emoji id"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "Name must be 1 to 64 lowercase alphanumeric characters"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "Update at must be a valid time"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -3194,6 +3274,30 @@
   {
     "id": "store.sql_compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report"
+  },
+  {
+    "id": "store.sql_emoji.delete.app_error",
+    "translation": "We couldn't delete the emoji"
+  },
+  {
+    "id": "store.sql_emoji.delete.no_results",
+    "translation": "We couldn’t find the emoji to delete"
+  },
+  {
+    "id": "store.sql_emoji.get.app_error",
+    "translation": "We couldn't get the emoji"
+  },
+  {
+    "id": "store.sql_emoji.get_by_name.app_error",
+    "translation": "We couldn't get the emoji"
+  },
+  {
+    "id": "store.sql_emoji.get_all.app_error",
+    "translation": "We couldn't get the emoji"
+  },
+  {
+    "id": "store.sql_emoji.save.app_error",
+    "translation": "We couldn't save the emoji"
   },
   {
     "id": "store.sql_license.get.app_error",

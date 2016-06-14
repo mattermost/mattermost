@@ -52,6 +52,7 @@ type SqlStore struct {
 	preference    PreferenceStore
 	license       LicenseStore
 	recovery      PasswordRecoveryStore
+	emoji         EmojiStore
 	SchemaVersion string
 }
 
@@ -127,6 +128,7 @@ func NewSqlStore() Store {
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
 	sqlStore.license = NewSqlLicenseStore(sqlStore)
 	sqlStore.recovery = NewSqlPasswordRecoveryStore(sqlStore)
+	sqlStore.emoji = NewSqlEmojiStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
@@ -149,6 +151,7 @@ func NewSqlStore() Store {
 	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
 	sqlStore.license.(*SqlLicenseStore).UpgradeSchemaIfNeeded()
 	sqlStore.recovery.(*SqlPasswordRecoveryStore).UpgradeSchemaIfNeeded()
+	sqlStore.emoji.(*SqlEmojiStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -164,6 +167,7 @@ func NewSqlStore() Store {
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 	sqlStore.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
 	sqlStore.recovery.(*SqlPasswordRecoveryStore).CreateIndexesIfNotExists()
+	sqlStore.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -686,6 +690,10 @@ func (ss SqlStore) License() LicenseStore {
 
 func (ss SqlStore) PasswordRecovery() PasswordRecoveryStore {
 	return ss.recovery
+}
+
+func (ss SqlStore) Emoji() EmojiStore {
+	return ss.emoji
 }
 
 func (ss SqlStore) DropAllTables() {
