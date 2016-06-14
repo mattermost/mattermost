@@ -572,6 +572,54 @@
     "translation": "Ocorreu um erro desconhecido. Por favor contato com o suporte."
   },
   {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Unable to create emoji. Another emoji with the same name already exists."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Unable to create emoji. Image exceeds maximum file size."
+  },
+  {
+    "id": "api.emoji.create.permissions.app_error",
+    "translation": "Permissões inadequadas para deletar o comando"
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Unable to create emoji. Could not understand request."
+  },
+  {
+    "id": "api.emoji.delete.permissions.app_error",
+    "translation": "Permissões inadequadas para deletar o comando"
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Os comandos foram desabilitados para o administrador do sistema."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Unable to decode image file for emoji."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Unable to read image file for emoji."
+  },
+  {
+    "id": "api.emoji.init.debug",
+    "translation": "Inicializando post api routes"
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "O armazenamento de arquivos não está configurado corretamente. Por favor, configure o S3 ou o armazenamento de arquivos no servidor local."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.app_error",
+    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
+  },
+  {
     "id": "api.export.json.app_error",
     "translation": "Não é possível converter para json"
   },
@@ -1561,7 +1609,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Um usuário existente já está conectado a sua conta {{.Service}}"
+    "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
@@ -1952,6 +2000,14 @@
     "translation": "Webhooks de saída foram desabilitados pelo administrador do sistema."
   },
   {
+    "id": "api.webhook.incoming.debug",
+    "translation": "Webhook de entrada recebido. Contendo="
+  },
+  {
+    "id": "api.webhook.incoming.debug.error",
+    "translation": "Não foi possível ler o payload do webhook de entrada."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Inicializando webhook api routes"
   },
@@ -2312,6 +2368,18 @@
     "translation": "Encontramos um erro enquanto conectava ao servidor"
   },
   {
+    "id": "model.client.create_emoji.emoji.app_error",
+    "translation": "Unable to attach emoji data to request"
+  },
+  {
+    "id": "model.client.create_emoji.image.app_error",
+    "translation": "Unable to attach image to request"
+  },
+  {
+    "id": "model.client.create_emoji.writer.app_error",
+    "translation": "Unable to write request"
+  },
+  {
     "id": "model.client.login.app_error",
     "translation": "Tokens de autenticação não são iguais"
   },
@@ -2486,6 +2554,26 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Inválido máximo de conexões abertas em configurações SQL.  Deve ser um número positivo."
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "Create deve ser um tempo válido"
+  },
+  {
+    "id": "model.emoji.creator_id.app_error",
+    "translation": "Id de criador inválido"
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "Id raiz inválida"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "Update deve ser um tempo válido"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -3182,6 +3270,30 @@
   {
     "id": "store.sql_compliance.save.saving.app_error",
     "translation": "Encontramos um erro ao salvar o relatório de compliance"
+  },
+  {
+    "id": "store.sql_emoji.delete.app_error",
+    "translation": "Não foi possível deletar o post"
+  },
+  {
+    "id": "store.sql_emoji.delete.no_results",
+    "translation": "We couldn’t find the emoji to delete"
+  },
+  {
+    "id": "store.sql_emoji.get.app_error",
+    "translation": "Não foi obter o post"
+  },
+  {
+    "id": "store.sql_emoji.get_all.app_error",
+    "translation": "Não foi obter o post"
+  },
+  {
+    "id": "store.sql_emoji.get_by_name.app_error",
+    "translation": "Não foi obter o post"
+  },
+  {
+    "id": "store.sql_emoji.save.app_error",
+    "translation": "Não foi possível salvar o Post"
   },
   {
     "id": "store.sql_license.get.app_error",

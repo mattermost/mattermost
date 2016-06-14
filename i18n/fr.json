@@ -349,19 +349,19 @@
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Encountered an error sending email invite(s)"
+    "translation": "Un problème s'est produit à l'envoi du courriel d'invitation"
   },
   {
     "id": "api.command.invite_people.hint",
-    "translation": "[name@domain.com ...]"
+    "translation": "[nom@domaine.com…]"
   },
   {
     "id": "api.command.invite_people.name",
-    "translation": "invite_people"
+    "translation": "inviter_personne"
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Please specify one or more valid email addresses"
+    "translation": "Veuillez fournir au moins une adresse mail valide"
   },
   {
     "id": "api.command.invite_people.sent",
@@ -373,11 +373,11 @@
   },
   {
     "id": "api.command_collapse.desc",
-    "translation": "Turn on auto-collapsing of image previews"
+    "translation": "Activer la réduction automatique des aperçus d'images"
   },
   {
     "id": "api.command_collapse.name",
-    "translation": "collapse"
+    "translation": "réduire"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -405,7 +405,7 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "Turn off auto-collapsing of image previews"
+    "translation": "Désactiver la réduction automatique des aperçus d'images"
   },
   {
     "id": "api.command_expand.name",
@@ -413,7 +413,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "An error occured while expanding previews"
+    "translation": "Une erreur est survenue lors de l'expansion des aperçus"
   },
   {
     "id": "api.command_join.desc",
@@ -570,6 +570,54 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Une erreur inconnue est survenue. Veuillez contacter le support."
+  },
+  {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "Unable to create emoji. Another emoji with the same name already exists."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "Unable to create emoji. Image exceeds maximum file size."
+  },
+  {
+    "id": "api.emoji.create.permissions.app_error",
+    "translation": "Droits insuffisants pour supprimer la commande"
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "Unable to create emoji. Could not understand request."
+  },
+  {
+    "id": "api.emoji.delete.permissions.app_error",
+    "translation": "Droits insuffisants pour supprimer la commande"
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Les commandes ont été désactivées par l'administrateur."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Unable to decode image file for emoji."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "Unable to read image file for emoji."
+  },
+  {
+    "id": "api.emoji.init.debug",
+    "translation": "Initialisation des routes de l'api des messages"
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "Le stockage de fichier n'est pas configuré correctement. Veuillez le paramétrer soit pour utiliser S3 soit le système de fichier local du serveur."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.app_error",
+    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
   },
   {
     "id": "api.export.json.app_error",
@@ -1493,7 +1541,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFA is not available for this account type"
+    "translation": "Le MFA n'est pas disponible pour ce type de compte"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -1561,7 +1609,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Un utilisateur existant est déjà connecté à votre {{.Service}} compte"
+    "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
@@ -1913,7 +1961,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+    "translation": "Les webhooks sortants d'un même canal ne peuvent pas avoir les mêmes mots de déclenchement/URLs de rappel."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -1950,6 +1998,14 @@
   {
     "id": "api.webhook.get_outgoing.disabled.app_error",
     "translation": "Les webhooks sortants ont été désactivés par l'administrateur système."
+  },
+  {
+    "id": "api.webhook.incoming.debug",
+    "translation": "Incoming webhook received. Content="
+  },
+  {
+    "id": "api.webhook.incoming.debug.error",
+    "translation": "Could not read payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -2312,6 +2368,18 @@
     "translation": "Une erreur est survenue durant la connexion au serveur"
   },
   {
+    "id": "model.client.create_emoji.emoji.app_error",
+    "translation": "Unable to attach emoji data to request"
+  },
+  {
+    "id": "model.client.create_emoji.image.app_error",
+    "translation": "Unable to attach image to request"
+  },
+  {
+    "id": "model.client.create_emoji.writer.app_error",
+    "translation": "Unable to write request"
+  },
+  {
     "id": "model.client.login.app_error",
     "translation": "Les jetons d’authentification ne correspondent pas"
   },
@@ -2486,6 +2554,26 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Nombre maximum de connexions ouvertes invalide dans les paramètres SQL. Doit être un entier positif."
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "La date de création doit être une date valide"
+  },
+  {
+    "id": "model.emoji.creator_id.app_error",
+    "translation": "Id créateur invalide"
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "Id racine invalide"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques en minuscules."
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "La date de mise à jour doit être une date valide"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -3182,6 +3270,30 @@
   {
     "id": "store.sql_compliance.save.saving.app_error",
     "translation": "Nous avons rencontré une erreur durant l'enregistrement du rapport de conformité"
+  },
+  {
+    "id": "store.sql_emoji.delete.app_error",
+    "translation": "Nous n'avons pas pu supprimer le message"
+  },
+  {
+    "id": "store.sql_emoji.delete.no_results",
+    "translation": "We couldn’t find the emoji to delete"
+  },
+  {
+    "id": "store.sql_emoji.get.app_error",
+    "translation": "Nous n'avons pas pu obtenir le message"
+  },
+  {
+    "id": "store.sql_emoji.get_all.app_error",
+    "translation": "Nous n'avons pas pu obtenir le message"
+  },
+  {
+    "id": "store.sql_emoji.get_by_name.app_error",
+    "translation": "Nous n'avons pas pu obtenir le message"
+  },
+  {
+    "id": "store.sql_emoji.save.app_error",
+    "translation": "Nous n'avons pas pu enregistrer le message"
   },
   {
     "id": "store.sql_license.get.app_error",
