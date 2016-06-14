@@ -19,9 +19,7 @@ export default class MultiSelectSetting extends React.Component {
             return n.value;
         });
 
-        if (!newValue || newValue.length === 0) {
-            this.setState({error: this.props.errorText});
-        } else if (this.props.mustBePresent && values.join(',').indexOf(this.props.mustBePresent) === -1) {
+        if (this.props.selected.length > 0 && this.props.mustBePresent && values.join(',').indexOf(this.props.mustBePresent) === -1) {
             this.setState({error: this.props.notPresent});
         } else {
             this.props.onChange(this.props.id, values);
@@ -30,7 +28,7 @@ export default class MultiSelectSetting extends React.Component {
     }
 
     componentWillReceiveProps(newProps) {
-        if (newProps.mustBePresent && newProps.selected.join(',').indexOf(newProps.mustBePresent) === -1) {
+        if (newProps.selected.length > 0 && newProps.mustBePresent && newProps.selected.join(',').indexOf(newProps.mustBePresent) === -1) {
             this.setState({error: this.props.notPresent});
         } else {
             this.setState({error: false});

@@ -26,7 +26,7 @@ export default class LocalizationSettings extends AdminSettings {
             hasErrors: false,
             defaultServerLocale: props.config.LocalizationSettings.DefaultServerLocale,
             defaultClientLocale: props.config.LocalizationSettings.DefaultClientLocale,
-            availableLocales: props.config.LocalizationSettings.AvailableLocales.split(','),
+            availableLocales: props.config.LocalizationSettings.AvailableLocales ? props.config.LocalizationSettings.AvailableLocales.split(',') : [],
             languages: Object.keys(locales).map((l) => {
                 return {value: locales[l].value, text: locales[l].name};
             })
@@ -34,7 +34,7 @@ export default class LocalizationSettings extends AdminSettings {
     }
 
     canSave() {
-        return this.state.availableLocales.join(',').indexOf(this.state.defaultClientLocale) !== -1;
+        return this.state.availableLocales.join(',').indexOf(this.state.defaultClientLocale) !== -1 || this.state.availableLocales.length === 0;
     }
 
     getConfigFromState(config) {
@@ -112,24 +112,17 @@ export default class LocalizationSettings extends AdminSettings {
                         />
                     }
                     selected={this.state.availableLocales}
-                    mustBePresent={this.state.defaultClientLocale}
                     onChange={this.handleChange}
                     helpText={
                         <FormattedMessage
                             id='admin.general.localization.availableLocalesDescription'
-                            defaultMessage='Determines which languages are available for users in Account Settings.'
+                            defaultMessage='Determines which languages are available for users in Account Settings. (Leave it blank to have all supported languages available)'
                         />
                     }
                     noResultText={
                         <FormattedMessage
                             id='admin.general.localization.availableLocalesNoResults'
                             defaultMessage='No results found'
-                        />
-                    }
-                    errorText={
-                        <FormattedMessage
-                            id='admin.general.localization.availableLocalesError'
-                            defaultMessage='There has to be at least one language available'
                         />
                     }
                     notPresent={
