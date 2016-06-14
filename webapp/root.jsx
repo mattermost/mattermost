@@ -100,6 +100,9 @@ import CreateTeamController from 'components/create_team/create_team_controller.
 import CreateTeamDisplayName from 'components/create_team/components/display_name.jsx';
 import CreateTeamTeamUrl from 'components/create_team/components/team_url.jsx';
 
+import AppCenter from 'components/app_center/app_center_controller.jsx';
+import AppView from 'components/app_center/app_view_controller.jsx';
+
 import * as I18n from 'i18n/i18n.jsx';
 
 const notFoundParams = {
@@ -642,6 +645,16 @@ function renderRootComponent() {
                             />
                         </Route>
                     </Route>
+                </Route>
+                <Route
+                    path=':team/app-center'
+                    component={AppCenter}
+                    onEnter={preNeedsTeam}
+                >
+                    <Route
+                        path=':name'
+                        component={AppView}
+                    />
                 </Route>
                 <Redirect
                     from='*'
