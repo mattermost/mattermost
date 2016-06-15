@@ -69,7 +69,8 @@ class SecurityTab extends React.Component {
             confirmPassword: '',
             authService: this.props.user.auth_service,
             mfaShowQr: false,
-            mfaToken: ''
+            mfaToken: '',
+            serverError: ''
         };
     }
 
