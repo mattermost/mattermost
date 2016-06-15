@@ -65,7 +65,7 @@ export default class AboutBuildModal extends React.Component {
             subTitle = (
                 <FormattedMessage
                     id='about.enterpriseEditionSt'
-                    defaultMessage='Modern enterprise communication from behind your firewall.'
+                    defaultMessage='Modern communication from behind your firewall.'
                 />
             );
 
