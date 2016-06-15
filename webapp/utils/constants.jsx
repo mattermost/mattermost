@@ -170,8 +170,7 @@ export default {
         POST: 5
     },
 
-    //SPECIAL_MENTIONS: ['all', 'channel'],
-    SPECIAL_MENTIONS: ['channel'],
+    SPECIAL_MENTIONS: ['all', 'channel'],
     CHARACTER_LIMIT: 4000,
     IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg'],
     AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac', 'ogg'],
