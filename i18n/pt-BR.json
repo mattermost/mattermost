@@ -200,6 +200,10 @@
     "translation": "Você não tem a permissão apropriada"
   },
   {
+    "id": "api.channel.get_channel.wrong_team.app_error",
+    "translation": "There is no channel with channel_id={{.ChannelId}} on team with team_id={{.TeamId}}"
+  },
+  {
     "id": "api.channel.get_channel_counts.app_error",
     "translation": "Não é possível obter o número de canais do banco de dados"
   },
@@ -301,7 +305,7 @@
   },
   {
     "id": "api.command.disabled.app_error",
-    "translation": "Os comandos foram desabilitados para o administrador do sistema."
+    "translation": "Os comandos foram desabilitados pelo administrador do sistema."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
@@ -573,39 +577,39 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Unable to create emoji. Another emoji with the same name already exists."
+    "translation": "Não foi possível criar o emoji. Outro emoji com o mesmo nome já existe."
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum file size."
+    "translation": "Não foi possível criar o emoji. Imagem excede o tamanho máximo do arquivo."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "Permissões inadequadas para deletar o comando"
+    "translation": "Permissões inadequadas para criar emoji."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Could not understand request."
+    "translation": "Não foi possível criar o emoji. A requisição não foi entendida."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Permissões inadequadas para deletar o comando"
+    "translation": "Permissões inadequadas para deletar emoji."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Os comandos foram desabilitados para o administrador do sistema."
+    "translation": "Emoji personalizado foi desabilitados pelo o administrador do sistema."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Unable to decode image file for emoji."
+    "translation": "Não foi possível decodificar arquivo de imagem para emoji."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Unable to read image file for emoji."
+    "translation": "Não foi possível ler arquivo de imagem para emoji."
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Inicializando post api routes"
+    "translation": "Inicializando emoji api routes"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -613,11 +617,11 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
+    "translation": "Não foi possível criar o emoji. Arquivo precisa ser um PNG, JPEG ou GIF."
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
+    "translation": "Não foi possível criar o emoji. A imagem excede as dimensões máximas."
   },
   {
     "id": "api.export.json.app_error",
@@ -1609,7 +1613,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
+    "translation": "Já existe uma conta associada a esse endereço de e-mail usando um método de login diferente de {{.Service}}. Por favor faça login usando {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
@@ -2369,15 +2373,15 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Unable to attach emoji data to request"
+    "translation": "Não é possível anexar dados emoji ao pedido"
   },
   {
     "id": "model.client.create_emoji.image.app_error",
-    "translation": "Unable to attach image to request"
+    "translation": "Não é possível anexar a imagem ao pedido"
   },
   {
     "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Unable to write request"
+    "translation": "Não foi possível escrever o pedido"
   },
   {
     "id": "model.client.login.app_error",
@@ -2565,11 +2569,11 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Id raiz inválida"
+    "translation": "Id do emoji inválido"
   },
   {
     "id": "model.emoji.name.app_error",
-    "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas"
+    "translation": "Nome deve ter de 1 a 64 caracteres alfanuméricos minusculos"
   },
   {
     "id": "model.emoji.update_at.app_error",
@@ -3273,27 +3277,27 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Não foi possível deletar o post"
+    "translation": "Não foi possível deletar o emoji"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "We couldn’t find the emoji to delete"
+    "translation": "Não foi possível encontrar o emoji para deletar"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Não foi obter o post"
+    "translation": "Não foi obter o emoji"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Não foi obter o post"
+    "translation": "Não foi obter o emoji"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Não foi obter o post"
+    "translation": "Não foi obter o emoji"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Não foi possível salvar o Post"
+    "translation": "Não foi possível salvar o emoji"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -3814,6 +3818,10 @@
   {
     "id": "store.sql_user.update_auth_data.app_error",
     "translation": "Não foi possível atualizar os dados de autenticação"
+  },
+  {
+    "id": "store.sql_user.update_auth_data.email_exists.app_error",
+    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",

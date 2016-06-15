@@ -200,6 +200,10 @@
     "translation": "Vous n'avez pas les permissions nécessaires"
   },
   {
+    "id": "api.channel.get_channel.wrong_team.app_error",
+    "translation": "There is no channel with channel_id={{.ChannelId}} on team with team_id={{.TeamId}}"
+  },
+  {
     "id": "api.channel.get_channel_counts.app_error",
     "translation": "Impossible d'obtenir le nombre de canaux depuis la base de données"
   },
@@ -3814,6 +3818,10 @@
   {
     "id": "store.sql_user.update_auth_data.app_error",
     "translation": "Nous n'avons pas pu mettre à jour les données d'authentification"
+  },
+  {
+    "id": "store.sql_user.update_auth_data.email_exists.app_error",
+    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",

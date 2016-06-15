@@ -200,6 +200,10 @@
     "translation": "Sie haben nicht die erforderichen Zugriffsrechte"
   },
   {
+    "id": "api.channel.get_channel.wrong_team.app_error",
+    "translation": "There is no channel with channel_id={{.ChannelId}} on team with team_id={{.TeamId}}"
+  },
+  {
     "id": "api.channel.get_channel_counts.app_error",
     "translation": "Die Anzahl der Channels konnte aus der Datenbank nicht ermittelt werden"
   },
@@ -573,15 +577,15 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Unable to create emoji. Another emoji with the same name already exists."
+    "translation": "Das Emoji kann nicht erstellt werden. Ein anderes Emoji mit dem selben Namen existiert bereits."
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum file size."
+    "translation": "Das Emoji kann nicht erstellt werden. Das Bild überschreitet die zulässige maximale Dateigröße."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "Die Berechtigungen für den Lösch-Befehl sind ungeeignet"
+    "translation": "Keine passenden Berechtigungen um das Emoji zu erstellen."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
@@ -589,7 +593,7 @@
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Die Berechtigungen für den Lösch-Befehl sind ungeeignet"
+    "translation": "Keine passenden Berechtigungen um das Emoji zu löschen."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -597,11 +601,11 @@
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Unable to decode image file for emoji."
+    "translation": "Die Bilddatei für das Emoji kann nicht dekodiert werden."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Unable to read image file for emoji."
+    "translation": "Die Bilddatei für das Emoji kann nicht gelesen werden."
   },
   {
     "id": "api.emoji.init.debug",
@@ -613,11 +617,11 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
+    "translation": "Das Emoji kann nicht erstellt werden. Die Datei muss vom Typ PNG, JPEG oder GIF sein."
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
+    "translation": "Das Emoji kann nicht erstellt werden. Das Bild überschreitet die maximalen Maße."
   },
   {
     "id": "api.export.json.app_error",
@@ -1609,7 +1613,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
+    "translation": "Mit dieser E-Mail-Adresse ist bereits ein Account verknüpft, der nicht die Anmeldemethode {{.Service}} verwendet. Bitte verwenden Sie {{.Auth}} zum anmelden."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
@@ -2369,11 +2373,11 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Unable to attach emoji data to request"
+    "translation": "Das Bild kann der Anfrage nicht beigefügt werden "
   },
   {
     "id": "model.client.create_emoji.image.app_error",
-    "translation": "Unable to attach image to request"
+    "translation": "Das Bild kann der Anfrage nicht beigefügt werden "
   },
   {
     "id": "model.client.create_emoji.writer.app_error",
@@ -2565,11 +2569,11 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Ungültige root ID"
+    "translation": "Ungültige Emoji ID"
   },
   {
     "id": "model.emoji.name.app_error",
-    "translation": "Name muss 2 oder mehr Kleinbuchstaben haben"
+    "translation": "Der Name darf aus 1 bis 64 Kleinbuchstaben bestehen"
   },
   {
     "id": "model.emoji.update_at.app_error",
@@ -3273,27 +3277,27 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Wir konnten die Nachricht nicht löschen"
+    "translation": "Wir konnten das Emoji nicht löschen"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "We couldn’t find the emoji to delete"
+    "translation": "Wir konnten das zu löschende Emoji nicht finden"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Wir konnten die Nachricht nicht finden"
+    "translation": "Wir konnten das Emoji nicht abrufen"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Wir konnten die Nachricht nicht finden"
+    "translation": "Wir konnten das Emoji nicht abrufen"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Wir konnten die Nachricht nicht finden"
+    "translation": "Wir konnten das Emoji nicht abrufen"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Wir konnten die Nachricht nicht speichern"
+    "translation": "Wir konnten das Emoji nicht speichern "
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -3814,6 +3818,10 @@
   {
     "id": "store.sql_user.update_auth_data.app_error",
     "translation": "Wir konnten die Authentifikationsdaten nicht aktualisieren"
+  },
+  {
+    "id": "store.sql_user.update_auth_data.email_exists.app_error",
+    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
