@@ -73,6 +73,15 @@ class SecurityTab extends React.Component {
         };
     }
 
+    componentWillUpdate() {
+        if ((this.state.passwordError !== '' || this.state.serverError) && (this.state.currentPassword !== '' || this.state.newPassword !== '' || this.state.confirmPassword !== '')) {
+            this.setState({
+                passwordError: '',
+                serverError: ''
+            });
+        }
+    }
+
     submitPassword(e) {
         e.preventDefault();
 
