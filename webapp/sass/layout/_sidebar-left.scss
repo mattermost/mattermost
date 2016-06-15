@@ -60,38 +60,6 @@
         top: 5px;
     }
 
-    .status {
-        display: inline-block;
-        margin-right: 6px;
-        position: relative;
-        top: 1px;
-        width: 12px;
-
-        svg {
-            max-height: 14px;
-        }
-
-        i,
-        path,
-        ellipse {
-            @include opacity(.5);
-
-            &.online--icon,
-            &.away--icon {
-                @include opacity(1);
-            }
-        }
-
-        .fa-lock {
-            margin-left: 1px;
-        }
-
-        .fa-globe {
-            position: relative;
-            top: -1px;
-        }
-    }
-
     .nav-pills__container {
         -webkit-overflow-scrolling: touch;
         height: calc(100% - 80px);
@@ -234,6 +202,8 @@
             color: #666666;
         }
     }
+
+    @import "../components/status-icon";
 }
 
 .channel-loading-gif {

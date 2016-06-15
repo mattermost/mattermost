@@ -8,6 +8,7 @@ import MoreDirectChannels from './more_direct_channels.jsx';
 import SidebarHeader from './sidebar_header.jsx';
 import UnreadChannelIndicator from './unread_channel_indicator.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
+import StatusIcon from './status_icon.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -503,30 +504,14 @@ export default class Sidebar extends React.Component {
             rowClass += ' has-badge';
         }
 
-        // set up status icon for direct message channels
-        var status = null;
-        if (channel.type === 'D') {
-            var statusIcon = '';
-            if (channel.status === 'online') {
-                statusIcon = Constants.ONLINE_ICON_SVG;
-            } else if (channel.status === 'away') {
-                statusIcon = Constants.AWAY_ICON_SVG;
-            } else {
-                statusIcon = Constants.OFFLINE_ICON_SVG;
-            }
-            status = (
-                <span
-                    className='status'
-                    dangerouslySetInnerHTML={{__html: statusIcon}}
-                />
-            );
-        }
-
         var icon = null;
         if (channel.type === 'O') {
             icon = <div className='status'><i className='fa fa-globe'></i></div>;
         } else if (channel.type === 'P') {
             icon = <div className='status'><i className='fa fa-lock'></i></div>;
+        } else {
+            // set up status icon for direct message channels (status is null for other channel types)
+            icon = <StatusIcon status={channel.status}/>;
         }
 
         let closeButton = null;
@@ -581,7 +566,6 @@ export default class Sidebar extends React.Component {
                     className={rowClass}
                 >
                     {icon}
-                    {status}
                     {channel.display_name}
                     {badge}
                     {closeButton}
