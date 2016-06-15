@@ -43,14 +43,29 @@ class EmoticonSuggestion extends Suggestion {
 
 export default class EmoticonProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/(?:^|\s)(:([a-zA-Z0-9_+\-]*))$/g).exec(pretext);
+        let hasSuggestions = false;
+
+        // look for partial matches among the named emojis
+        const captured = (/(?:^|\s)(:([^:\s]*))$/g).exec(pretext);
         if (captured) {
             const text = captured[1];
             const partialName = captured[2];
 
             const matched = [];
 
-            for (const [name, emoticon] of Emoticons.getEmoticonsByName()) {
+            const emoticons = Emoticons.getEmoticonsByName();
+
+            // check for text emoticons
+            for (const emoticon of Object.keys(Emoticons.emoticonPatterns)) {
+                if (Emoticons.emoticonPatterns[emoticon].test(text)) {
+                    SuggestionStore.addSuggestion(suggestionId, text, emoticons.get(emoticon), EmoticonSuggestion, text);
+
+                    hasSuggestions = true;
+                }
+            }
+
+            // checked for named emoji
+            for (const [name, emoticon] of emoticons) {
                 if (name.indexOf(partialName) !== -1) {
                     matched.push(emoticon);
 
@@ -79,9 +94,13 @@ export default class EmoticonProvider {
             if (terms.length > 0) {
                 SuggestionStore.addSuggestions(suggestionId, terms, matched, EmoticonSuggestion, text);
 
-                // force the selection to be cleared since the order of elements may have changed
-                SuggestionStore.clearSelection(suggestionId);
+                hasSuggestions = true;
             }
+        }
+
+        if (hasSuggestions) {
+            // force the selection to be cleared since the order of elements may have changed
+            SuggestionStore.clearSelection(suggestionId);
         }
     }
 }
