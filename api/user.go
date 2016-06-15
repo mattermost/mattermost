@@ -2055,6 +2055,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	RevokeAllSession(c, c.Session.UserId)
+	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
 	}
@@ -2111,6 +2112,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	RevokeAllSession(c, user.Id)
+	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
 	}
@@ -2194,6 +2196,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	RevokeAllSession(c, user.Id)
+	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
 	}
