@@ -572,6 +572,54 @@
     "translation": "Ocurrió un error inesperado. Por favor contacta a soporte."
   },
   {
+    "id": "api.emoji.create.duplicate.app_error",
+    "translation": "No se puede crear el emoji. Ya existe otro emoji con el mismo nombre."
+  },
+  {
+    "id": "api.emoji.create.parse.app_error",
+    "translation": "No se puede crear el emoji. La imagen supera el máximo de tamaño de archivo."
+  },
+  {
+    "id": "api.emoji.create.permissions.app_error",
+    "translation": "Permisos inapropiados para crear el emoji."
+  },
+  {
+    "id": "api.emoji.create.too_large.app_error",
+    "translation": "No se puede crear el emoji. No se comprendió la solicitud."
+  },
+  {
+    "id": "api.emoji.delete.permissions.app_error",
+    "translation": "Permisos inapropiados para eliminar el emoji."
+  },
+  {
+    "id": "api.emoji.disabled.app_error",
+    "translation": "Los emojis personalizados han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.emoji.get_image.decode.app_error",
+    "translation": "Incapaz de decodificar archivo de imagen para emoji."
+  },
+  {
+    "id": "api.emoji.get_image.read.app_error",
+    "translation": "No se puede leer el archivo de imagen para emoji."
+  },
+  {
+    "id": "api.emoji.init.debug",
+    "translation": "Inicializando rutas del API para los emoji"
+  },
+  {
+    "id": "api.emoji.storage.app_error",
+    "translation": "No ha sido configurado apropiadamente el almacenamiento. Por favor configuralo para utilizar ya sea S3 o almacenamiento local."
+  },
+  {
+    "id": "api.emoji.upload.image.app_error",
+    "translation": "No se puede crear el emoji. El archivo debe ser un archivo PNG, JPEG o GIF."
+  },
+  {
+    "id": "api.emoji.upload.large_image.app_error",
+    "translation": "No se puede crear el emoji. Imagen supera las dimensiones máximas."
+  },
+  {
     "id": "api.export.json.app_error",
     "translation": "No se puede convertir a JSON"
   },
@@ -1561,7 +1609,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Ya existe un usuario vinculado con tu cuenta de {{.Service}}"
+    "translation": "Ya existe una cuenta asociada a esa dirección de correo electrónico utilizando un método de inicio de sesión diferente a {{.Servicio}}. Por favor inicia sesión utilizando {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
@@ -1952,6 +2000,14 @@
     "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
   },
   {
+    "id": "api.webhook.incoming.debug",
+    "translation": "Recibido webhook de entrada. Contenido="
+  },
+  {
+    "id": "api.webhook.incoming.debug.error",
+    "translation": "No se pudo leer la carga del webhook de entrada."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Inicializando rutas del API para los Webhooks"
   },
@@ -2312,6 +2368,18 @@
     "translation": "Encontramos un error mientras conectabamos al servidor"
   },
   {
+    "id": "model.client.create_emoji.emoji.app_error",
+    "translation": "No se puede asociar datos del emoji a la solicitud"
+  },
+  {
+    "id": "model.client.create_emoji.image.app_error",
+    "translation": "No se puede asociar la imagen a la solicitud"
+  },
+  {
+    "id": "model.client.create_emoji.writer.app_error",
+    "translation": "No se puede escribir la solicitud"
+  },
+  {
     "id": "model.client.login.app_error",
     "translation": "Token de autenticación no coincidió"
   },
@@ -2486,6 +2554,26 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Inválida cantidad de conexiones abiertas para la configuración de SQL.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.emoji.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.emoji.creator_id.app_error",
+    "translation": "Id del creador inválido"
+  },
+  {
+    "id": "model.emoji.id.app_error",
+    "translation": "Id del emoji no es válido"
+  },
+  {
+    "id": "model.emoji.name.app_error",
+    "translation": "Debe tener de 1 hasta 64 caracteres alfanuméricos en minúscula"
+  },
+  {
+    "id": "model.emoji.update_at.app_error",
+    "translation": "Update debe ser un tiempo válido"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -3182,6 +3270,30 @@
   {
     "id": "store.sql_compliance.save.saving.app_error",
     "translation": "Se ha detectado un error al guardar el informe de cumplimiento"
+  },
+  {
+    "id": "store.sql_emoji.delete.app_error",
+    "translation": "No pudimos eliminar el emoji"
+  },
+  {
+    "id": "store.sql_emoji.delete.no_results",
+    "translation": "No pudimos encontrar el emoji a eliminar"
+  },
+  {
+    "id": "store.sql_emoji.get.app_error",
+    "translation": "No pudimos obtener el emoji"
+  },
+  {
+    "id": "store.sql_emoji.get_all.app_error",
+    "translation": "No pudimos obtener el emoji"
+  },
+  {
+    "id": "store.sql_emoji.get_by_name.app_error",
+    "translation": "No pudimos obtener el emoji"
+  },
+  {
+    "id": "store.sql_emoji.save.app_error",
+    "translation": "No pudimos guardar el emoji"
   },
   {
     "id": "store.sql_license.get.app_error",

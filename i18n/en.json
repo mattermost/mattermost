@@ -48,10 +48,6 @@
     "translation": "September"
   },
   {
-    "id": "system.message.name",
-    "translation": "System"
-  },
-  {
     "id": "api.admin.file_read_error",
     "translation": "Error reading log file"
   },
@@ -68,24 +64,24 @@
     "translation": "Initializing admin api routes"
   },
   {
-    "id": "api.admin.recycle_db_start.warn",
-    "translation": "Attempting to recycle the database connection"
-  },
-  {
     "id": "api.admin.recycle_db_end.warn",
     "translation": "Finished recycling the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
   },
   {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!"
   },
   {
-    "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Testing Email Settings"
-  },
-  {
     "id": "api.admin.test_email.missing_server",
     "translation": "SMTP Server is required"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Testing Email Settings"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -304,16 +300,16 @@
     "translation": "Integrations have been limited to admins only."
   },
   {
-    "id": "api.command.duplicate_trigger.app_error",
-    "translation": "This trigger word is already in use. Please choose another word."
-  },
-  {
     "id": "api.command.delete.app_error",
     "translation": "Inappropriate permissions to delete command"
   },
   {
     "id": "api.command.disabled.app_error",
     "translation": "Commands have been disabled by the system admin."
+  },
+  {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "This trigger word is already in use. Please choose another word."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -344,6 +340,10 @@
     "translation": "No command trigger found"
   },
   {
+    "id": "api.command.init.debug",
+    "translation": "Initializing command api routes"
+  },
+  {
     "id": "api.command.invite_people.desc",
     "translation": "Send an email invite to your Mattermost team"
   },
@@ -372,12 +372,16 @@
     "translation": "Email invite(s) sent"
   },
   {
-    "id": "api.command.init.debug",
-    "translation": "Initializing command api routes"
-  },
-  {
     "id": "api.command.regen.app_error",
     "translation": "Inappropriate permissions to regenerate command token"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Turn on auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "collapse"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -404,24 +408,16 @@
     "translation": "echo"
   },
   {
-    "id": "api.command_collapse.desc",
-    "translation": "Turn on auto-collapsing of image previews"
-  },
-  {
-    "id": "api.command_collapse.name",
-    "translation": "collapse"
-  },
-  {
     "id": "api.command_expand.desc",
     "translation": "Turn off auto-collapsing of image previews"
   },
   {
-    "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "An error occured while expanding previews"
-  },
-  {
     "id": "api.command_expand.name",
     "translation": "expand"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "An error occured while expanding previews"
   },
   {
     "id": "api.command_join.desc",
@@ -512,6 +508,18 @@
     "translation": "Messaged user."
   },
   {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Displays a list of keyboard shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL/CMD+K: Open a quick channel switcher dialog\nCTRL/CMD+SHIFT+A: Open account settings\nCTRL/CMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL/CMD+U: Upload file(s)\n\n#### Messages\n\nCTRL/CMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL/CMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT/CMD+[: Previous channel in your history\nALT+RIGHT/CMD+]: Next channel in your history\nCTRL/CMD+PLUS: Increase font size (zoom in)\nCTRL/CMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "shortcuts"
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "Adds ¯\\_(ツ)_/¯ to your message"
   },
@@ -522,18 +530,6 @@
   {
     "id": "api.command_shrug.name",
     "translation": "shrug"
-  },
-  {
-    "id": "api.command_shortcuts.desc",
-    "translation": "Displays a list of keyboard shortcuts"
-  },
-  {
-    "id": "api.command_shortcuts.name",
-    "translation": "shortcuts"
-  },
-  {
-    "id": "api.command_shortcuts.list",
-    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL/CMD+K: Open a quick channel switcher dialog\nCTRL/CMD+SHIFT+A: Open account settings\nCTRL/CMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL/CMD+U: Upload file(s)\n\n#### Messages\n\nCTRL/CMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL/CMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT/CMD+[: Previous channel in your history\nALT+RIGHT/CMD+]: Next channel in your history\nCTRL/CMD+PLUS: Increase font size (zoom in)\nCTRL/CMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
   },
   {
     "id": "api.context.404.app_error",
@@ -612,6 +608,10 @@
     "translation": "Unable to read image file for emoji."
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "Initializing emoji api routes"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -622,10 +622,6 @@
   {
     "id": "api.emoji.upload.large_image.app_error",
     "translation": "Unable to create emoji. Image exceeds maximum dimensions."
-  },
-  {
-    "id": "api.emoji.init.debug",
-    "translation": "Initializing emoji api routes"
   },
   {
     "id": "api.export.json.app_error",
@@ -1024,20 +1020,20 @@
     "translation": "New Direct Message"
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_mention",
-    "translation": " mentioned you in "
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " in "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_non_mention",
-    "translation": " posted in "
+    "id": "api.post.send_notifications_and_forget.push_mention",
+    "translation": " mentioned you in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " sent you a direct message"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " posted in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -1348,18 +1344,6 @@
     "translation": "Your email address has changed for {{.TeamDisplayName}}"
   },
   {
-    "id": "api.templates.username_change_body.info",
-    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
-  },
-  {
-    "id": "api.templates.username_change_body.title",
-    "translation": "You updated your username"
-  },
-  {
-    "id": "api.templates.username_change_subject",
-    "translation": "Your username has changed for {{.TeamDisplayName}}"
-  },
-  {
     "id": "api.templates.email_change_verify_body.button",
     "translation": "Verify Email"
   },
@@ -1508,6 +1492,18 @@
     "translation": "[MATTERMOST] Changes to your account for Mattermost 3.0 Upgrade"
   },
   {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "You updated your username"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Your username has changed for {{.TeamDisplayName}}"
+  },
+  {
     "id": "api.templates.verify_body.button",
     "translation": "Verify Email"
   },
@@ -1546,6 +1542,10 @@
   {
     "id": "api.templates.welcome_subject",
     "translation": "You joined {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA is not available for this account type"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -1840,10 +1840,6 @@
     "translation": "MFA not configured or available on this server"
   },
   {
-    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFA is not available for this account type"
-  },
-  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Update password failed because context user_id did not match props user_id"
   },
@@ -2108,16 +2104,16 @@
     "translation": "User not registered on LDAP server"
   },
   {
-    "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Invalid LDAP Filter"
+    "id": "ent.ldap.syncdone.info",
+    "translation": "LDAP Synchronization completed"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Unable to get all users using LDAP"
   },
   {
-    "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP Synchronization completed"
+    "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Invalid LDAP Filter"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2528,6 +2524,10 @@
     "translation": "Invalid maximum login attempts for service settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Invalid max file size for file settings. Must be a zero or positive number."
+  },
+  {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
   },
@@ -2554,10 +2554,6 @@
   {
     "id": "model.config.is_valid.sql_idle.app_error",
     "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Invalid max file size for file settings. Must be a zero or positive number."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
@@ -3292,11 +3288,11 @@
     "translation": "We couldn't get the emoji"
   },
   {
-    "id": "store.sql_emoji.get_by_name.app_error",
+    "id": "store.sql_emoji.get_all.app_error",
     "translation": "We couldn't get the emoji"
   },
   {
-    "id": "store.sql_emoji.get_all.app_error",
+    "id": "store.sql_emoji.get_by_name.app_error",
     "translation": "We couldn't get the emoji"
   },
   {
@@ -3632,12 +3628,12 @@
     "translation": "We couldn't find the existing team"
   },
   {
-    "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "No team member found for that user id and team id"
-  },
-  {
     "id": "store.sql_team.get_member.app_error",
     "translation": "We couldn't get the team member"
+  },
+  {
+    "id": "store.sql_team.get_member.missing.app_error",
+    "translation": "No team member found for that user id and team id"
   },
   {
     "id": "store.sql_team.get_members.app_error",
@@ -3704,16 +3700,16 @@
     "translation": "We encountered an error finding the account"
   },
   {
+    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
+    "translation": "We encountered an error trying to find all the accounts using a specific authentication type."
+  },
+  {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
     "translation": "We couldn't find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
     "translation": "We encountered an error trying to find the account by authentication type."
-  },
-  {
-    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
-    "translation": "We encountered an error trying to find all the accounts using a specific authentication type."
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
@@ -3922,6 +3918,10 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "We couldn't update the webhook"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "System"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
