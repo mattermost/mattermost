@@ -204,6 +204,10 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.channel.get_channel.wrong_team.app_error",
+    "translation": "There is no channel with channel_id={{.ChannelId}} on team with team_id={{.TeamId}}"
+  },
+  {
     "id": "api.channel.get_channel_counts.app_error",
     "translation": "Unable to get channel counts from the database"
   },
