@@ -13,9 +13,7 @@ var ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from './async_client.jsx';
 import Client from './web_client.jsx';
 
-import React from 'react';
 import {browserHistory} from 'react-router';
-import {FormattedTime} from 'react-intl';
 
 import icon50 from 'images/icon50x50.png';
 import bing from 'images/bing.mp3';
@@ -223,56 +221,6 @@ export function displayTime(ticks, utc) {
     }
 
     return hours + ':' + minutes + ampm + timezone;
-}
-
-export function displayTimeFormatted(ticks) {
-    const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
-
-    return (
-        <FormattedTime
-            value={ticks}
-            hour='2-digit'
-            minute='2-digit'
-            hour12={!useMilitaryTime}
-        />
-    );
-}
-
-export function isMilitaryTime() {
-    return PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
-}
-
-export function displayDateTime(ticks) {
-    var seconds = Math.floor((Date.now() - ticks) / 1000);
-
-    var interval = Math.floor(seconds / 3600);
-
-    if (interval > 24) {
-        return this.displayTime(ticks);
-    }
-
-    if (interval > 1) {
-        return interval + ' hours ago';
-    }
-
-    if (interval === 1) {
-        return interval + ' hour ago';
-    }
-
-    interval = Math.floor(seconds / 60);
-    if (interval >= 2) {
-        return interval + ' minutes ago';
-    }
-
-    if (interval >= 1) {
-        return '1 minute ago';
-    }
-
-    return 'just now';
-}
-
-export function displayCommentDateTime(ticks) {
-    return displayDate(ticks) + ' ' + displayTime(ticks);
 }
 
 // returns Unix timestamp in milliseconds

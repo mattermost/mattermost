@@ -113,7 +113,7 @@ export default class SearchResultsItem extends React.Component {
                                     <time className='search-item-time'>
                                         <FormattedDate
                                             value={post.create_at}
-                                            hour12={!Utils.isMilitaryTime()}
+                                            hour12={!this.props.useMilitaryTime}
                                             hour='2-digit'
                                             minute='2-digit'
                                         />
@@ -186,5 +186,6 @@ SearchResultsItem.propTypes = {
     user: React.PropTypes.object,
     channel: React.PropTypes.object,
     isMentionSearch: React.PropTypes.bool,
-    term: React.PropTypes.string
+    term: React.PropTypes.string,
+    useMilitaryTime: React.PropTypes.bool.isRequired
 };

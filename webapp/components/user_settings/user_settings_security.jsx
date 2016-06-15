@@ -8,6 +8,7 @@ import AccessHistoryModal from '../access_history_modal.jsx';
 import ActivityLogModal from '../activity_log_modal.jsx';
 import ToggleModalButton from '../toggle_modal_button.jsx';
 
+import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import Client from 'utils/web_client.jsx';
@@ -471,7 +472,7 @@ class SecurityTab extends React.Component {
 
         if (this.props.user.auth_service === '') {
             const d = new Date(this.props.user.last_password_update);
-            const hours12 = !Utils.isMilitaryTime();
+            const hours12 = !PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, Constants.Preferences.USE_MILITARY_TIME, false);
 
             describe = (
                 <FormattedMessage

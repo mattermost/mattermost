@@ -170,6 +170,7 @@ export default class SearchResults extends React.Component {
                         user={profile}
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
+                        useMilitaryTime={this.props.useMilitaryTime}
                     />
                 );
             }, this);
@@ -193,5 +194,6 @@ export default class SearchResults extends React.Component {
 }
 
 SearchResults.propTypes = {
-    isMentionSearch: React.PropTypes.bool
+    isMentionSearch: React.PropTypes.bool,
+    useMilitaryTime: React.PropTypes.bool.isRequired
 };

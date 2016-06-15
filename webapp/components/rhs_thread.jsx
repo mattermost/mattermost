@@ -112,6 +112,10 @@ export default class RhsThread extends React.Component {
             return true;
         }
 
+        if (nextProps.useMilitaryTime !== this.props.useMilitaryTime) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextState.profiles, this.state.profiles)) {
             return true;
         }
@@ -243,6 +247,7 @@ export default class RhsThread extends React.Component {
                                 user={profile}
                                 currentUser={this.props.currentUser}
                                 compactDisplay={this.state.compactDisplay}
+                                useMilitaryTime={this.props.useMilitaryTime}
                             />
                             <div className='post-right-comments-container'>
                                 {postsArray.map((comPost) => {
@@ -260,6 +265,7 @@ export default class RhsThread extends React.Component {
                                             user={p}
                                             currentUser={this.props.currentUser}
                                             compactDisplay={this.state.compactDisplay}
+                                            useMilitaryTime={this.props.useMilitaryTime}
                                         />
                                     );
                                 })}
@@ -286,5 +292,6 @@ RhsThread.defaultProps = {
 RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
     isMentionSearch: React.PropTypes.bool,
-    currentUser: React.PropTypes.object.isRequired
+    currentUser: React.PropTypes.object.isRequired,
+    useMilitaryTime: React.PropTypes.bool.isRequired
 };

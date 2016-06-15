@@ -76,6 +76,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.useMilitaryTime !== this.props.useMilitaryTime) {
+            return true;
+        }
+
         if (!Utils.areObjectsEqual(nextProps.user, this.props.user)) {
             return true;
         }
@@ -187,6 +191,7 @@ export default class Post extends React.Component {
                                 currentUser={this.props.currentUser}
                                 compactDisplay={this.props.compactDisplay}
                                 displayNameType={this.props.displayNameType}
+                                useMilitaryTime={this.props.useMilitaryTime}
                             />
                             <PostBody
                                 post={post}
@@ -219,5 +224,6 @@ Post.propTypes = {
     center: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool,
     previewCollapsed: React.PropTypes.string,
-    commentCount: React.PropTypes.number
+    commentCount: React.PropTypes.number,
+    useMilitaryTime: React.PropTypes.bool.isRequired
 };

@@ -264,6 +264,7 @@ export default class PostList extends React.Component {
                     commentCount={commentCount}
                     compactDisplay={this.props.compactDisplay}
                     previewCollapsed={this.props.previewsCollapsed}
+                    useMilitaryTime={this.props.useMilitaryTime}
                 />
             );
 
@@ -525,5 +526,6 @@ PostList.propTypes = {
     displayPostsInCenter: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool,
     previewsCollapsed: React.PropTypes.string,
+    useMilitaryTime: React.PropTypes.bool.isRequired,
     isFocusPost: React.PropTypes.bool
 };

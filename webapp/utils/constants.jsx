@@ -551,7 +551,8 @@ export default {
         MESSAGE_DISPLAY_COMPACT: 'compact',
         MESSAGE_DISPLAY_DEFAULT: 'clean',
         COLLAPSE_DISPLAY: 'collapse_previews',
-        COLLAPSE_DISPLAY_DEFAULT: 'false'
+        COLLAPSE_DISPLAY_DEFAULT: 'false',
+        USE_MILITARY_TIME: 'use_military_time'
     },
     TutorialSteps: {
         INTRO_SCREENS: 0,

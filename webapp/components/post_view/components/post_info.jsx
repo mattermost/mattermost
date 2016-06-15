@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import * as Utils from 'utils/utils.jsx';
-import TimeSince from 'components/time_since.jsx';
+import PostTime from './post_time.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -217,10 +217,11 @@ export default class PostInfo extends React.Component {
         return (
             <ul className='post__header--info'>
                 <li className='col'>
-                    <TimeSince
+                    <PostTime
                         eventTime={post.create_at}
                         sameUser={this.props.sameUser}
                         compactDisplay={this.props.compactDisplay}
+                        useMilitaryTime={this.props.useMilitaryTime}
                     />
                 </li>
                 <li className='col col__reply'>
@@ -253,5 +254,6 @@ PostInfo.propTypes = {
     handleCommentClick: React.PropTypes.func.isRequired,
     sameUser: React.PropTypes.bool.isRequired,
     currentUser: React.PropTypes.object.isRequired,
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+    useMilitaryTime: React.PropTypes.bool.isRequired
 };
