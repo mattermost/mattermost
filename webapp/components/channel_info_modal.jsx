@@ -20,8 +20,11 @@ export default class ChannelInfoModal extends React.Component {
 
         return false;
     }
+
     render() {
         let channel = this.props.channel;
+        let channelIcon;
+
         if (!channel) {
             const notFound = Utils.localizeMessage('channel_info.notFound', 'No Channel Found');
 
@@ -33,68 +36,58 @@ export default class ChannelInfoModal extends React.Component {
             };
         }
 
+        if (channel.type === 'O') {
+            channelIcon = (<span className='fa fa-globe'/>);
+        } else if (channel.type === 'P') {
+            channelIcon = (<span className='fa fa-lock'/>);
+        }
+
         const channelURL = Utils.getTeamURLFromAddressBar() + '/channels/' + channel.name;
 
         return (
             <Modal
+                dialogClassName='about-modal'
                 show={this.props.show}
                 onHide={this.props.onHide}
             >
-                <Modal.Header closeButtton={true}>
+                <Modal.Header closeButton={true}>
                     <Modal.Title>
-                        {channel.display_name}
+                        <FormattedMessage
+                            id='channel_info.about'
+                            defaultMessage='About'
+                        />
+                        <strong>{channelIcon}{channel.display_name}</strong>
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
-                    <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>
-                            <FormattedMessage
-                                id='channel_info.name'
-                                defaultMessage='Channel Name:'
-                            />
-                        </div>
-                        <div className='col-sm-9'>{channel.display_name}</div>
-                    </div>
-                    <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>
-                            <FormattedMessage
-                                id='channel_info.url'
-                                defaultMessage='Channel URL:'
-                            />
-                        </div>
-                        <div className='col-sm-9'>{channelURL}</div>
-                    </div>
-                    <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>
-                            <FormattedMessage
-                                id='channel_info.id'
-                                defaultMessage='Channel ID:'
-                            />
-                        </div>
-                        <div className='col-sm-9'>{channel.id}</div>
-                    </div>
-                    <div className='row'>
-                        <div className='col-sm-3 info__label'>
+                    <div className='form-group'>
+                        <div className='info__label'>
                             <FormattedMessage
                                 id='channel_info.purpose'
-                                defaultMessage='Channel Purpose:'
+                                defaultMessage='Purpose:'
                             />
                         </div>
-                        <div className='col-sm-9'>{channel.purpose}</div>
+                        <div className='info__value'>{channel.purpose}</div>
+                    </div>
+                    <div className='form-group'>
+                        <div className='info__label'>
+                            <FormattedMessage
+                                id='channel_info.url'
+                                defaultMessage='URL:'
+                            />
+                        </div>
+                        <div className='info__value'>{channelURL}</div>
+                    </div>
+                    <div className='about-modal__hash form-group padding-top x2'>
+                        <p>
+                            <FormattedMessage
+                                id='channel_info.id'
+                                defaultMessage='ID: '
+                            />
+                            {channel.id}
+                        </p>
                     </div>
                 </Modal.Body>
-                <Modal.Footer>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.props.onHide}
-                    >
-                        <FormattedMessage
-                            id='channel_info.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

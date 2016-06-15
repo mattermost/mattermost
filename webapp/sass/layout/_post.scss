@@ -768,7 +768,7 @@ body.ios {
                 white-space: nowrap;
             }
 
-            strong {
+            .colon {
                 display: none;
                 font-weight: 900;
                 margin-left: 2px;
@@ -1118,7 +1118,7 @@ body.ios {
     font-family: inherit;
     font-size: 11px;
     font-weight: 600;
-    margin: 0 0 0 -4px;
+    margin: 0 10px 0 -4px;
     padding: 2px 4px;
 }
 

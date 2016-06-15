@@ -64,7 +64,7 @@ export default class UserProfile extends React.Component {
         }
 
         if (this.props.disablePopover) {
-            return <div>{name}</div>;
+            return <div className='user-popover'>{name}</div>;
         }
 
         var dataContent = [];

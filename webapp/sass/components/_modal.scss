@@ -89,9 +89,15 @@
         }
 
         .info__label {
+            @include opacity(.5);
+            font-size: .9em;
             font-weight: 600;
-            padding-right: 0;
-            text-align: right;
+            margin-bottom: 3px;
+        }
+
+        .info__value {
+            padding-left: 10px;
+            word-break: break-word;
         }
 
         .team-member-list {
