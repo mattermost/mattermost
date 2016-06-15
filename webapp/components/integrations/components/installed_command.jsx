@@ -61,7 +61,7 @@ export default class InstalledCommand extends React.Component {
         } else {
             name = (
                 <FormattedMessage
-                    id='installed_integraions.unnamed_command'
+                    id='installed_commands.unnamed_command'
                     defaultMessage='Unnamed Slash Command'
                 />
             );
