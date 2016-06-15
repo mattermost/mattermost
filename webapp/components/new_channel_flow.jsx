@@ -57,6 +57,7 @@ class NewChannelFlow extends React.Component {
         this.urlChangeSubmitted = this.urlChangeSubmitted.bind(this);
         this.urlChangeDismissed = this.urlChangeDismissed.bind(this);
         this.channelDataChanged = this.channelDataChanged.bind(this);
+        this.enterKeyDown = this.enterKeyDown.bind(this);
 
         this.state = {
             serverError: '',
@@ -68,6 +69,15 @@ class NewChannelFlow extends React.Component {
             nameModified: false
         };
     }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.enterKeyDown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.enterKeyDown);
+    }
+
     componentWillReceiveProps(nextProps) {
         // If we are being shown, grab channel type from props and clear
         if (nextProps.show === true && this.props.show === false) {
@@ -82,6 +92,7 @@ class NewChannelFlow extends React.Component {
             });
         }
     }
+
     doSubmit() {
         if (!this.state.channelDisplayName) {
             this.setState({serverError: Utils.localizeMessage('channel_flow.invalidName', 'Invalid Channel Name')});
@@ -130,6 +141,14 @@ class NewChannelFlow extends React.Component {
             }
         );
     }
+
+    enterKeyDown(e) {
+        if (e.keyCode === Constants.KeyCodes.ENTER) {
+            e.preventDefault();
+            this.doSubmit();
+        }
+    }
+
     typeSwitched() {
         if (this.state.channelType === 'P') {
             this.setState({channelType: 'O'});
@@ -137,9 +156,11 @@ class NewChannelFlow extends React.Component {
             this.setState({channelType: 'P'});
         }
     }
+
     urlChangeRequested() {
         this.setState({flowState: SHOW_EDIT_URL});
     }
+
     urlChangeSubmitted(newURL) {
         if (this.state.flowState === SHOW_EDIT_URL_THEN_COMPLETE) {
             this.setState({channelName: newURL, nameModified: true}, this.doSubmit);
@@ -147,9 +168,11 @@ class NewChannelFlow extends React.Component {
             this.setState({flowState: SHOW_NEW_CHANNEL, serverError: '', channelName: newURL, nameModified: true});
         }
     }
+
     urlChangeDismissed() {
         this.setState({flowState: SHOW_NEW_CHANNEL});
     }
+
     channelDataChanged(data) {
         this.setState({
             channelDisplayName: data.displayName,
@@ -159,6 +182,7 @@ class NewChannelFlow extends React.Component {
             this.setState({channelName: Utils.cleanUpUrlable(data.displayName.trim())});
         }
     }
+
     render() {
         const channelData = {
             name: this.state.channelName,
