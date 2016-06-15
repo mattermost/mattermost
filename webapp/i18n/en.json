@@ -189,7 +189,7 @@
   "admin.email.testing": "Testing...",
   "admin.false": "false",
   "admin.general.localization": "Localization",
-  "admin.general.localization.availableLocalesDescription": "Determines which languages are available for users in Account Settings.",
+  "admin.general.localization.availableLocalesDescription": "Determines which languages are available for users in Account Settings. (Leave it blank to have all supported languages available)",
   "admin.general.localization.clientLocaleDescription": "Default language for newly created users and pages where the user hasn't logged in.",
   "admin.general.localization.serverLocaleDescription": "Default language for system messages and logs. Changing this will require a server restart before taking effect.",
   "admin.gitab.clientSecretDescription": "Obtain this value via the instructions above for logging into GitLab.",

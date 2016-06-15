@@ -189,7 +189,7 @@
   "admin.email.testing": "Probando...",
   "admin.false": "falso",
   "admin.general.localization": "Idiomas",
-  "admin.general.localization.availableLocalesDescription": "Determina qué idiomas están disponibles para los usuarios en la Configuración de la Cuenta.",
+  "admin.general.localization.availableLocalesDescription": "Determina qué idiomas están disponibles para los usuarios en la Configuración de la Cuenta. (al dejarlo en blanco se tienen disponibles todos los idiomas soportados.",
   "admin.general.localization.clientLocaleDescription": "Idioma predeterminado para nuevos usuarios y páginas donde el usuario no ha iniciado sesión.",
   "admin.general.localization.serverLocaleDescription": "Idioma predeterminado para los mensajes del sistema y los registros. Cambiar esto requerirá un reinicio del servidor antes de tomar efecto.",
   "admin.gitab.clientSecretDescription": "Utilizar este valor vía instrucciones suministradas anteriormente para iniciar sesión en GitLab.",
