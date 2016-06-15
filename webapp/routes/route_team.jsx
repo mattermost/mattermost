@@ -162,7 +162,7 @@ export default {
             }
         },
         {
-            path: 'settings',
+            path: 'integrations',
             getChildRoutes: (location, callback) => {
                 System.import('routes/route_integrations.jsx').then((comp) => callback(null, [comp.default]));
             }

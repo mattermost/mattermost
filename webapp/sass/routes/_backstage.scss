@@ -1,35 +1,11 @@
-body {
-    &.backstage {
-        height: auto;
-        overflow: auto;
-
-        .inner-wrap {
-            @include translateX(0);
-            margin-right: 0 !important;
-
-            &:before {
-                display: none;
-            }
-        }
-
-        .sidebar--right,
-        .sidebar--menu,
-        .navbar {
-            display: none;
-        }
-    }
-}
-
-.backstage-content {
-    background-color: $bg--gray;
-    height: 100%;
-    margin: 46px auto;
-    max-width: 960px;
-    padding-left: 135px;
+.backstage {
+    height: 100vh;
+    width: 100vw;
 }
 
 .backstage-navbar {
     background: $white;
+    height: 41px;
     border-bottom: 1px solid $light-gray;
     padding: 10px 20px;
     z-index: 10;
@@ -51,13 +27,30 @@ body {
     }
 }
 
+.backstage-body {
+    background-color: $bg--gray;
+    bottom: 0;
+    display: inline-block;
+    height: calc(100vh - 41px);
+    overflow: auto;
+    top: 0;
+    width: 100%;
+}
+
+.backstage-content {
+    background-color: $bg--gray;
+    display: inline-block;
+    margin: 46px;
+    max-width: 960px;
+    vertical-align: top;
+    width: 100%;
+}
+
 .backstage-sidebar {
-    height: 100%;
-    left: 0;
-    padding: 50px 20px;
-    position: absolute;
-    width: 260px;
-    z-index: 5;
+    display: inline-block;
+    margin: 46px 20px;
+    width: 240px;
+    vertical-align: top;
 
     ul {
         list-style: none;

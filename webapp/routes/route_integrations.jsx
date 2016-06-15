@@ -16,7 +16,7 @@ import AddOutgoingWebhook from 'components/backstage/add_outgoing_webhook.jsx';
 import AddCommand from 'components/backstage/add_command.jsx';
 
 export default (
-    <Route path='integrations'>
+    <Route>
         <IndexRoute
             components={{
                 navbar: BackstageNavbar,

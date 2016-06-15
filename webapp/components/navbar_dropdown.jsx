@@ -166,7 +166,7 @@ export default class NavbarDropdown extends React.Component {
         if (integrationsEnabled && (isAdmin || window.mm_config.EnableOnlyAdminIntegrations !== 'true')) {
             integrationsLink = (
                 <li>
-                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations'}>
+                    <Link to={'/' + Utils.getTeamNameFromUrl() + '/integrations'}>
                         <FormattedMessage
                             id='navbar_dropdown.integrations'
                             defaultMessage='Integrations'

@@ -6,13 +6,18 @@ import React from 'react';
 import * as AsyncClient from 'utils/async_client.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import InstalledCommand from './installed_command.jsx';
 import InstalledIntegrations from './installed_integrations.jsx';
 
 export default class InstalledCommands extends React.Component {
+    static get propTypes() {
+        return {
+            team: React.propTypes.object.isRequired
+        };
+    }
+
     constructor(props) {
         super(props);
 
@@ -84,7 +89,7 @@ export default class InstalledCommands extends React.Component {
                         defaultMessage='Add Slash Command'
                     />
                 }
-                addLink={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations/commands/add'}
+                addLink={'/' + this.props.team.name + '/integrations/commands/add'}
                 emptyText={
                     <FormattedMessage
                         id='installed_commands.empty'

@@ -8,8 +8,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Router, browserHistory} from 'react-router/es6';
 import * as GlobalActions from 'actions/global_actions.jsx';
-import * as Websockets from 'actions/websocket_actions.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
+
 import * as I18n from 'i18n/i18n.jsx';
 
 // Import our styles
