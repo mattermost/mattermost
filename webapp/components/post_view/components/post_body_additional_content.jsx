@@ -18,7 +18,8 @@ export default class PostBodyAdditionalContent extends React.Component {
 
         this.getSlackAttachment = this.getSlackAttachment.bind(this);
         this.getOEmbedProvider = this.getOEmbedProvider.bind(this);
-        this.generateEmbed = this.generateEmbed.bind(this);
+        this.generateToggleableEmbed = this.generateToggleableEmbed.bind(this);
+        this.generateStaticEmbed = this.generateStaticEmbed.bind(this);
         this.toggleEmbedVisibility = this.toggleEmbedVisibility.bind(this);
 
         this.state = {
@@ -69,27 +70,10 @@ export default class PostBodyAdditionalContent extends React.Component {
         return null;
     }
 
-    generateEmbed() {
-        if (this.props.post.type === 'slack_attachment') {
-            return this.getSlackAttachment();
-        }
-
+    generateToggleableEmbed() {
         const link = Utils.extractFirstLink(this.props.post.message);
         if (!link) {
             return null;
-        }
-
-        if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMBED_PREVIEW)) {
-            const provider = this.getOEmbedProvider(link);
-
-            if (provider) {
-                return (
-                    <PostAttachmentOEmbed
-                        provider={provider}
-                        link={link}
-                    />
-                );
-            }
         }
 
         if (YoutubeVideo.isYoutubeLink(link)) {
@@ -117,10 +101,47 @@ export default class PostBodyAdditionalContent extends React.Component {
         return null;
     }
 
-    render() {
-        const generateEmbed = this.generateEmbed();
+    generateStaticEmbed() {
+        if (this.props.post.type === Constants.POST_TYPE_ATTACHMENT) {
+            return this.getSlackAttachment();
+        }
 
-        if (generateEmbed) {
+        const link = Utils.extractFirstLink(this.props.post.message);
+        if (!link) {
+            return null;
+        }
+
+        if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMBED_PREVIEW)) {
+            const provider = this.getOEmbedProvider(link);
+
+            if (provider) {
+                return (
+                    <PostAttachmentOEmbed
+                        provider={provider}
+                        link={link}
+                    />
+                );
+            }
+        }
+
+        return null;
+    }
+
+    render() {
+        const staticEmbed = this.generateStaticEmbed();
+
+        if (staticEmbed) {
+            return (
+                <div>
+                    {this.props.message}
+                    {staticEmbed}
+                </div>
+            );
+        }
+
+        const toggleableEmbed = this.generateToggleableEmbed();
+
+        if (toggleableEmbed) {
             let messageWithToggle = [];
 
             // if message has only one line and starts with a link place toggle in this only line
@@ -148,7 +169,7 @@ export default class PostBodyAdditionalContent extends React.Component {
                         className='post__embed-container'
                         hidden={!this.state.embedVisible}
                     >
-                    {generateEmbed}
+                    {toggleableEmbed}
                     </div>
                 </div>
             );

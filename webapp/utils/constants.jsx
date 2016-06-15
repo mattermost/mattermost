@@ -237,6 +237,7 @@ export default {
     POST_DELETED: 'deleted',
     POST_TYPE_EPHEMERAL: 'system_ephemeral',
     POST_TYPE_JOIN_LEAVE: 'system_join_leave',
+    POST_TYPE_ATTACHMENT: 'slack_attachment',
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SYSTEM_MESSAGE_PROFILE_NAME: 'System',
     SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
