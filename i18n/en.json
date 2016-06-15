@@ -3816,6 +3816,10 @@
     "translation": "This username is already taken. Please choose another."
   },
   {
+    "id": "store.sql_user.update_auth_data.email_exists.app_error",
+    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
+  },
+  {
     "id": "store.sql_user.update_auth_data.app_error",
     "translation": "We couldn't update the auth data"
   },
