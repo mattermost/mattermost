@@ -1921,6 +1921,12 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	comments := props["comments"]
+	if len(comments) == 0 {
+		c.SetInvalidParam("updateUserNotify", "comments")
+		return
+	}
+
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
 		c.Err = result.Err

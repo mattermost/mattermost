@@ -26,6 +26,10 @@ function getNotificationsStateFromStores() {
     if (user.notify_props && user.notify_props.desktop) {
         desktop = user.notify_props.desktop;
     }
+    var comments = 'never';
+    if (user.notify_props && user.notify_props.comments) {
+        comments = user.notify_props.comments;
+    }
     var email = 'true';
     if (user.notify_props && user.notify_props.email) {
         email = user.notify_props.email;
@@ -82,7 +86,8 @@ function getNotificationsStateFromStores() {
         customKeys,
         customKeysChecked: customKeys.length > 0,
         firstNameKey,
-        channelKey
+        channelKey,
+        notifyCommentsLevel: comments
     };
 }
 
@@ -102,6 +107,10 @@ const holders = defineMessages({
     wordsTrigger: {
         id: 'user.settings.notifications.wordsTrigger',
         defaultMessage: 'Words that trigger mentions'
+    },
+    comments: {
+        id: 'user.settings.notifications.comments',
+        defaultMessage: 'Comment threads notifications'
     },
     close: {
         id: 'user.settings.notifications.close',
@@ -140,6 +149,7 @@ class NotificationsTab extends React.Component {
         data.desktop_sound = this.state.enableSound;
         data.desktop = this.state.notifyLevel;
         data.push = this.state.notifyPushLevel;
+        data.comments = this.state.notifyCommentsLevel;
 
         var mentionKeys = [];
         if (this.state.usernameKey) {
@@ -195,6 +205,11 @@ class NotificationsTab extends React.Component {
     }
     handleNotifyRadio(notifyLevel) {
         this.setState({notifyLevel});
+        ReactDOM.findDOMNode(this.refs.wrapper).focus();
+    }
+
+    handleNotifyCommentsRadio(notifyCommentsLevel) {
+        this.setState({notifyCommentsLevel});
         ReactDOM.findDOMNode(this.refs.wrapper).focus();
     }
 
@@ -902,6 +917,126 @@ class NotificationsTab extends React.Component {
             );
         }
 
+        var commentsSection;
+        var handleUpdateCommentsSection;
+        if (this.props.activeSection === 'comments') {
+            var commentsActive = [false, false, false];
+            if (this.state.notifyCommentsLevel === 'never') {
+                commentsActive[2] = true;
+            } else if (this.state.notifyCommentsLevel === 'root') {
+                commentsActive[1] = true;
+            } else {
+                commentsActive[0] = true;
+            }
+
+            let inputs = [];
+
+            inputs.push(
+                <div key='userNotificationLevelOption'>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                name='commentsNotificationLevel'
+                                checked={commentsActive[0]}
+                                onChange={this.handleNotifyCommentsRadio.bind(this, 'any')}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.commentsAny'
+                                defaultMessage='Mention any comments in a thread you participated in (This will include both mentions to your root post and any comments after you commented on a post)'
+                            />
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                name='commentsNotificationLevel'
+                                checked={commentsActive[1]}
+                                onChange={this.handleNotifyCommentsRadio.bind(this, 'root')}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.commentsRoot'
+                                defaultMessage='Mention any comments on your post'
+                            />
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                name='commentsNotificationLevel'
+                                checked={commentsActive[2]}
+                                onChange={this.handleNotifyCommentsRadio.bind(this, 'never')}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.commentsNever'
+                                defaultMessage='No mentions for comments'
+                            />
+                        </label>
+                    </div>
+                </div>
+            );
+
+            const extraInfo = (
+                <span>
+                    <FormattedMessage
+                        id='user.settings.notifications.commentsInfo'
+                        defaultMessage='Mode of triggering notifications on posts in comment threads you participated in.'
+                    />
+                </span>
+            );
+
+            commentsSection = (
+                <SettingItemMax
+                    title={formatMessage(holders.comments)}
+                    extraInfo={extraInfo}
+                    inputs={inputs}
+                    submit={this.handleSubmit}
+                    server_error={serverError}
+                    updateSection={this.handleCancel}
+                />
+            );
+        } else {
+            let describe = '';
+            if (this.state.notifyCommentsLevel === 'never') {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.notifications.commentsNever'
+                        defaultMessage='No mentions for comments'
+                    />
+                );
+            } else if (this.state.notifyCommentsLevel === 'root') {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.notifications.commentsRoot'
+                        defaultMessage='Mention any comments on your post'
+                    />
+                );
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.notifications.commentsAny'
+                        defaultMessage='Mention any comments in a thread you participated in (This will include both mentions to your root post and any comments after you commented on a post)'
+                    />
+                );
+            }
+
+            handleUpdateCommentsSection = function updateCommentsSection() {
+                this.props.updateSection('comments');
+            }.bind(this);
+
+            commentsSection = (
+                <SettingItemMin
+                    title={formatMessage(holders.comments)}
+                    describe={describe}
+                    updateSection={handleUpdateCommentsSection}
+                />
+            );
+        }
+
         const pushNotificationSection = this.createPushNotificationSection();
 
         return (
@@ -952,6 +1087,8 @@ class NotificationsTab extends React.Component {
                     {pushNotificationSection}
                     <div className='divider-light'/>
                     {keysSection}
+                    <div className='divider-light'/>
+                    {commentsSection}
                     <div className='divider-dark'/>
                 </div>
             </div>

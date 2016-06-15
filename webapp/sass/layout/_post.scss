@@ -1069,6 +1069,10 @@ body.ios {
         fill: $primary-color;
         visibility: hidden;
 
+        &.mention--highlight {
+            visibility: visible;
+        }
+
         &:focus {
             outline: none;
         }

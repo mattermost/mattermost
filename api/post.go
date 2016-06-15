@@ -571,10 +571,13 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				l4g.Error(utils.T("api.post.send_notifications_and_forget.comment_thread.error"), post.RootId, result.Err)
 				return
 			} else {
-				list := result.Data.(*model.PostList).Posts
+				list := result.Data.(*model.PostList)
 
-				for _, threadPost := range list {
-					userIds = append(userIds, threadPost.UserId)
+				for _, threadPost := range list.Posts {
+					profile := profileMap[threadPost.UserId]
+					if profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0]) {
+						userIds = append(userIds, threadPost.UserId)
+					}
 				}
 			}
 		}
