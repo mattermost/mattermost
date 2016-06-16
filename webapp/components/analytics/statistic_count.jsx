@@ -15,7 +15,7 @@ export default class StatisticCount extends React.Component {
         );
 
         return (
-            <div className='col-sm-3'>
+            <div className='col-md-3 col-sm-6'>
                 <div className='total-count'>
                     <div className='title'>
                         {this.props.title}

@@ -303,14 +303,14 @@ body {
     border: 1px solid $light-gray;
     display: inline-block;
     height: 210px;
-    margin: 0 0 20px 30px;
+    margin: 0 30px 30px 0;
     padding: 20px;
     text-align: center;
     vertical-align: top;
     width: 250px;
 
-    &:first-child {
-        margin-left: 0;
+    &:last-child {
+        margin-right: 0;
     }
 
     &:hover {

@@ -4,7 +4,6 @@
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
-import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
@@ -218,40 +217,34 @@ export default class TutorialIntroScreens extends React.Component {
         );
     }
     render() {
-        const height = Utils.windowHeight() - 100;
         const screen = this.createScreen();
 
         return (
-            <div
-                className='tutorials__scroll'
-                style={{height}}
-            >
-                <div className='tutorial-steps__container'>
-                    <div className='tutorial__content'>
-                        <div className='tutorial__steps'>
-                            {screen}
-                            <div className='tutorial__footer'>
-                                <button
-                                    className='btn btn-primary'
-                                    tabIndex='1'
-                                    onClick={this.handleNext}
-                                >
-                                    <FormattedMessage
-                                        id='tutorial_intro.next'
-                                        defaultMessage='Next'
-                                    />
-                                </button>
-                                <a
-                                    className='tutorial-skip'
-                                    href='#'
-                                    onClick={this.skipTutorial}
-                                >
-                                    <FormattedMessage
-                                        id='tutorial_intro.skip'
-                                        defaultMessage='Skip tutorial'
-                                    />
-                                </a>
-                            </div>
+            <div className='tutorial-steps__container'>
+                <div className='tutorial__content'>
+                    <div className='tutorial__steps'>
+                        {screen}
+                        <div className='tutorial__footer'>
+                            <button
+                                className='btn btn-primary'
+                                tabIndex='1'
+                                onClick={this.handleNext}
+                            >
+                                <FormattedMessage
+                                    id='tutorial_intro.next'
+                                    defaultMessage='Next'
+                                />
+                            </button>
+                            <a
+                                className='tutorial-skip'
+                                href='#'
+                                onClick={this.skipTutorial}
+                            >
+                                <FormattedMessage
+                                    id='tutorial_intro.skip'
+                                    defaultMessage='Skip tutorial'
+                                />
+                            </a>
                         </div>
                     </div>
                 </div>
