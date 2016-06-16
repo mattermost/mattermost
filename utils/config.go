@@ -178,7 +178,6 @@ func LoadConfig(fileName string) {
 	}
 
 	configureLog(&config.LogSettings)
-	TestConnection(&config)
 
 	if config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		dir := config.FileSettings.Directory

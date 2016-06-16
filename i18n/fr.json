@@ -2252,10 +2252,6 @@
     "translation": "Échec du chargement de la liste des administrateurs système pour les informer d'une mise à jour de sécurité de Mattermost."
   },
   {
-    "id": "mattermost.unable_to_load_config",
-    "translation": "Impossible de charger le fichier de configuration mattermost :"
-  },
-  {
     "id": "mattermost.working_dir",
     "translation": "Le dossier de travail actuel est %v"
   },

@@ -2252,10 +2252,6 @@
     "translation": "Falha ao obter administradores do sistema para a informação de atualização de segurança do Mattermost."
   },
   {
-    "id": "mattermost.unable_to_load_config",
-    "translation": "Não foi possível carregar o arquivo de configuração do mattermost:"
-  },
-  {
     "id": "mattermost.working_dir",
     "translation": "Diretório atual é %v"
   },

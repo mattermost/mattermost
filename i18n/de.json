@@ -2252,10 +2252,6 @@
     "translation": "Fehler beim Laden der Systemadministratoren für Sicherheitsupdates von Mattermost."
   },
   {
-    "id": "mattermost.unable_to_load_config",
-    "translation": "Laden der Mattermost Konfigurationsdatei nicht möglich:"
-  },
-  {
     "id": "mattermost.working_dir",
     "translation": "Aktuelles Arbeitsverzeichnis ist %v"
   },

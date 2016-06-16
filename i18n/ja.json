@@ -2252,10 +2252,6 @@
     "translation": "Mattermostからのセキュリティーアップデート情報に関してシステム管理者を取得できません"
   },
   {
-    "id": "mattermost.unable_to_load_config",
-    "translation": "Mattermostの設定ファイルを読み込めません:"
-  },
-  {
     "id": "mattermost.working_dir",
     "translation": "現在のワーキングディレクトリーは%vです"
   },

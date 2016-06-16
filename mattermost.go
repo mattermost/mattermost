@@ -71,7 +71,7 @@ var flagRunCmds bool
 func doLoadConfig(filename string) (err string) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = r.(string)
+			err = fmt.Sprintf("Error loding config, err=%v", r)
 		}
 	}()
 	utils.LoadConfig(filename)
@@ -83,7 +83,7 @@ func main() {
 	parseCmds()
 
 	if errstr := doLoadConfig(flagConfigFile); errstr != "" {
-		l4g.Exit(utils.T("mattermost.unable_to_load_config"), errstr)
+		l4g.Exit("Unable to load mattermost configuration file:", errstr)
 		return
 	}
 
@@ -91,6 +91,7 @@ func main() {
 		utils.ConfigureCmdLineLog()
 	}
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+	utils.TestConnection(utils.Cfg)
 
 	pwd, _ := os.Getwd()
 	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
