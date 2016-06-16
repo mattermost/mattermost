@@ -25,6 +25,7 @@ export default class EmailSettings extends AdminSettings {
             sendEmailNotifications: props.config.EmailSettings.SendEmailNotifications,
             feedbackName: props.config.EmailSettings.FeedbackName,
             feedbackEmail: props.config.EmailSettings.FeedbackEmail,
+            feedbackOrganization: props.config.EmailSettings.FeedbackOrganization,
             smtpUsername: props.config.EmailSettings.SMTPUsername,
             smtpPassword: props.config.EmailSettings.SMTPPassword,
             smtpServer: props.config.EmailSettings.SMTPServer,
@@ -38,6 +39,7 @@ export default class EmailSettings extends AdminSettings {
         config.EmailSettings.SendEmailNotifications = this.state.sendEmailNotifications;
         config.EmailSettings.FeedbackName = this.state.feedbackName;
         config.EmailSettings.FeedbackEmail = this.state.feedbackEmail;
+        config.EmailSettings.FeedbackOrganization = this.state.feedbackOrganization;
         config.EmailSettings.SMTPUsername = this.state.smtpUsername;
         config.EmailSettings.SMTPPassword = this.state.smtpPassword;
         config.EmailSettings.SMTPServer = this.state.smtpServer;
@@ -114,6 +116,25 @@ export default class EmailSettings extends AdminSettings {
                         />
                     }
                     value={this.state.feedbackEmail}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
+                />
+                <TextSetting
+                    id='feedbackOrganization'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.notificationOrganization'
+                            defaultMessage='Notification Footer Address:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.email.notificationOrganizationExample', 'Ex: "© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.email.notificationOrganizationDescription'
+                            defaultMessage='Organization name and address displayed on email notifications from Mattermost, such as "© ABC Corporation, 565 Knight Way, Palo Alto, California, 94305, USA". If the field is left empty, the organization name and address will not be displayed.'
+                        />
+                    }
+                    value={this.state.feedbackOrganization}
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications}
                 />

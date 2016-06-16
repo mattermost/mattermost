@@ -87,6 +87,7 @@
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "",
+        "FeedbackOrganization": "",
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "",

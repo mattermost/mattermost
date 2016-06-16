@@ -128,6 +128,7 @@ type EmailSettings struct {
 	RequireEmailVerification bool
 	FeedbackName             string
 	FeedbackEmail            string
+	FeedbackOrganization     *string
 	SMTPUsername             string
 	SMTPPassword             string
 	SMTPServer               string
@@ -373,6 +374,11 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.PushNotificationContents == nil {
 		o.EmailSettings.PushNotificationContents = new(string)
 		*o.EmailSettings.PushNotificationContents = GENERIC_NOTIFICATION
+	}
+
+	if o.EmailSettings.FeedbackOrganization == nil {
+		o.EmailSettings.FeedbackOrganization = new(string)
+		*o.EmailSettings.FeedbackOrganization = ""
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
