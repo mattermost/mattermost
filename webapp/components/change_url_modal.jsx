@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
-import {Modal} from 'react-bootstrap';
+import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -131,6 +131,9 @@ export default class ChangeUrlModal extends React.Component {
 
         const fullTeamUrl = Utils.getTeamURLFromAddressBar();
         const teamURL = Utils.getShortenedTeamURL();
+        const urlTooltip = (
+            <Tooltip id='urlTooltip'>{fullTeamUrl}</Tooltip>
+        );
 
         return (
             <Modal
@@ -150,13 +153,12 @@ export default class ChangeUrlModal extends React.Component {
                             <label className='col-sm-2 form__label control-label'>{this.props.urlLabel}</label>
                             <div className='col-sm-10'>
                                 <div className={urlClass}>
-                                    <span
-                                        data-toggle='tooltip'
-                                        title={fullTeamUrl}
-                                        className='input-group-addon'
+                                    <OverlayTrigger
+                                        placement='top'
+                                        overlay={urlTooltip}
                                     >
-                                        {teamURL}
-                                    </span>
+                                        <span className='input-group-addon'>{teamURL}</span>
+                                    </OverlayTrigger>
                                     <input
                                         type='text'
                                         ref='urlinput'

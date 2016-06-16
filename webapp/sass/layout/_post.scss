@@ -534,9 +534,8 @@ body.ios {
 
             ol,
             ul {
-                display: inline-block;
-                margin-top: 1px;
-                padding-left: 30px;
+                clear: both;
+                padding-left: 20px;
             }
         }
 
@@ -911,14 +910,18 @@ body.ios {
         ul,
         ol {
             margin-bottom: .4em;
+            padding-left: 20px;
 
             p {
                 margin-bottom: 0;
             }
 
-            li ul,
-            li ol {
-                padding: 10px 0 0 20px;
+            li {
+                ul,
+                ol {
+                    margin: 0;
+                    padding: 0 0 0 20px;
+                }
             }
 
             li.list-item--task-list ul,
@@ -991,7 +994,7 @@ body.ios {
         margin: 0 0 10px;
         text-rendering: auto;
 
-        &.pull-left{
+        &.pull-left {
             margin: 5px 5px 0 0;
         }
 

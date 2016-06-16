@@ -320,7 +320,7 @@ class NotificationsTab extends React.Component {
                 inputs.push(
                     <div
                         key='oauthEmailInfo'
-                        className='form-group'
+                        className='padding-top'
                     >
                         <FormattedMessage
                             id='user.settings.push_notification.disabled_long'

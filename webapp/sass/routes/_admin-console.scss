@@ -82,6 +82,12 @@
             text-align: left;
         }
 
+        .has-error {
+            .control-label {
+                font-weight: normal;
+            }
+        }
+
         .form-group {
             margin-bottom: 25px;
         }
@@ -321,7 +327,6 @@
 
     .sidebar-section-title,
     .sidebar-subsection-title {
-        @include clearfix;
         color: alpha-color($white, .5);
         display: block;
         font-size: 13px;

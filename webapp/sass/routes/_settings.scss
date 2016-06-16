@@ -269,6 +269,7 @@
                         display: none;
                         font-size: 12px;
                         margin-right: 5px;
+
                         &.fa-chevron-down {
                             margin-right: 0;
                             position: relative;
@@ -290,6 +291,14 @@
 
                 .divider-light {
                     border-bottom: 1px solid lightgrey;
+
+                    & + .divider-light {
+                        display: none;
+                    }
+
+                    & + .divider-dark {
+                        display: none;
+                    }
                 }
 
                 .setting-list {

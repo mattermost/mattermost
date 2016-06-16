@@ -66,11 +66,11 @@
         margin-top: -10px;
 
         .arrow {
-            border-top-width: 0;
             border-bottom-color: $white;
-            top: -10px;
+            border-top-width: 0;
             left: 50%;
             margin-left: -10px;
+            top: -10px;
         }
     }
 
@@ -168,12 +168,15 @@
 .tutorial-steps__container {
     display: table;
     height: 100%;
+    left: 0;
+    position: absolute;
     text-align: center;
+    top: 0;
     width: 100%;
 
     .tutorial__content {
         display: table-cell;
-        padding: 20px 40px 40px;
+        padding: 20px 40px 80px;
         vertical-align: middle;
 
         .tutorial__steps {
