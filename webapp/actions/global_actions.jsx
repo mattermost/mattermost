@@ -480,6 +480,6 @@ export function emitJoinChannelEvent(channel, success, failure) {
     Client.joinChannel(
         channel.id,
         success,
-        failure,
+        failure
     );
 }
