@@ -52,7 +52,7 @@ export default class PostHeader extends React.Component {
         }
 
         if (this.props.compactDisplay) {
-            colon = (<strong>{':'}</strong>);
+            colon = (<strong className='colon'>{':'}</strong>);
         }
 
         return (

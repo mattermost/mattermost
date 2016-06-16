@@ -20,10 +20,20 @@
                     color: inherit;
                     font-size: 16px;
                 }
+
+                .fa {
+                    margin: 0 4px 0 8px;
+                }
             }
 
             .modal-body {
                 padding: 20px 25px 5px;
+            }
+
+            &.large {
+                .modal-body {
+                    padding-bottom: 20px;
+                }
             }
 
             .about-modal__content {
