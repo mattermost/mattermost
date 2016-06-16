@@ -25,7 +25,7 @@ export default class EmojiListItem extends React.Component {
 
         this.state = {
             creator: UserStore.getProfile(this.props.emoji.creator_id)
-        }
+        };
     }
 
     handleDelete(e) {
@@ -66,7 +66,7 @@ export default class EmojiListItem extends React.Component {
 
         let creatorName;
         if (creator) {
-            creatorName = Utils.displayUsername(creator);
+            creatorName = Utils.displayUsernameForUser(creator);
 
             if (creatorName !== creator.username) {
                 creatorName += ' (@' + creator.username + ')';
@@ -77,7 +77,7 @@ export default class EmojiListItem extends React.Component {
                     id='emoji_list.somebody'
                     defaultMessage='Somebody on another team'
                 />
-            )
+            );
         }
 
         return (

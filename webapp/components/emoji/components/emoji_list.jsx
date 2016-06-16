@@ -14,7 +14,8 @@ import EmojiListItem from './emoji_list_item.jsx';
 export default class EmojiList extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.propTypes.object.isRequired,
+            user: React.propTypes.object.isRequired
         };
     }
 

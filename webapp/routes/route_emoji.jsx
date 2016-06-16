@@ -20,6 +20,10 @@ export default (
         <IndexRoute
             component={EmojiList}
         />
+        <Route
+            path='add'
+            component={AddEmoji}
+        />
         <Redirect
             from='*'
             to='/error'

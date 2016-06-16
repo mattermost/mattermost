@@ -59,7 +59,8 @@ export default class BackstageController extends React.Component {
                             }
 
                             return React.cloneElement(child, {
-                                team: this.state.team
+                                team: this.state.team,
+                                user: this.props.user
                             });
                         })
                     }

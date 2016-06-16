@@ -240,44 +240,6 @@
     }
 }
 
-.emoji-list {
-    table {
-        width: 100%;
-    }
-
-    .backstage-list__item {
-        display: table-row;
-    }
-
-    .backstage-list__empty td {
-        padding: 15px 20px;
-    }
-}
-
-.emoji-list__table-header {
-    font-weight: bold;
-}
-
-.emoji-list__name {
-    padding: 20px 0px 20px 15px;
-    width: 20%;
-}
-
-.emoji-list__image {
-    padding: 15px 0px;
-    width: 20%;
-}
-
-&.emoji-list__creator {
-    padding: 15px 0px;
-    width: 40%;
-}
-
-&.emoji-list__actions {
-    padding: 20px 15px 20px 0px;
-    width: 20%;
-}
-
 // Backstage Form
 
 .backstage-form {
@@ -364,4 +326,67 @@
 
 .integration-option__description {
     color: $dark-gray;
+}
+
+.emoji-list {
+    table {
+        width: 100%;
+    }
+
+    .backstage-list__item {
+        display: table-row;
+    }
+
+    .backstage-list__empty td {
+        padding: 15px 20px;
+    }
+}
+
+.emoji-list__table-header {
+    font-weight: bold;
+}
+
+.emoji-list__name {
+    padding: 20px 0px 20px 15px;
+    width: 30%;
+}
+
+.emoji-list__image {
+    padding: 15px 0px;
+    width: 15%;
+}
+
+&.emoji-list__creator {
+    padding: 15px 0px;
+    width: 40%;
+}
+
+&.emoji-list__actions {
+    padding: 20px 15px 20px 0px;
+    width: 15%;
+}
+
+.add-emoji__upload {
+    display: inline-block;
+    margin: 0 10px 10px 0;
+    position: relative;
+
+    input {
+        @include opacity(0);
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        z-index: 5;
+    }
+}
+
+.add-emoji__filename,
+.add-emoji__preview {
+    padding-top: 7px;
+
+    .emoticon {
+        margin-bottom: 0;
+    }
 }

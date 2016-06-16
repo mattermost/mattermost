@@ -1455,7 +1455,7 @@ export function deleteEmoji(id) {
 
     Client.deleteEmoji(
         id,
-        (data) => {
+        () => {
             callTracker[callName] = 0;
 
             AppDispatcher.handleServerAction({

@@ -581,7 +581,7 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum file size."
+    "translation": "Unable to create emoji. Could not understand request."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
@@ -589,7 +589,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Could not understand request."
+    "translation": "Unable to create emoji. Image must be less than 64 KB in size."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -621,7 +621,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
+    "translation": "Unable to create emoji. Image must be at most 128 by 128 pixels."
   },
   {
     "id": "api.export.json.app_error",
