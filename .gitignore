@@ -18,6 +18,7 @@ imports.go
 # Build Targets
 .prebuild
 .npminstall
+.npm
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -77,3 +78,5 @@ ecover.out
 .agignore
 .ctags
 tags
+
+gopath
