@@ -50,8 +50,9 @@ export default class InstalledCommand extends React.Component {
 
     render() {
         const command = this.props.command;
+        const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
 
-        if (!this.matchesFilter(command, this.props.filter)) {
+        if (!this.matchesFilter(command, filter)) {
             return null;
         }
 

@@ -62,6 +62,7 @@
     border: 1px solid $light-gray;
 
     .category-title {
+        color: $black;
         display: block;
         line-height: 36px;
         padding: 0 10px;
@@ -69,7 +70,8 @@
     }
 
     .category-title--active {
-        color: $black;
+        background-color: $primary-color;
+        color: $white;
     }
 
     .category-title__text {
@@ -103,8 +105,8 @@
     }
 }
 
-.backstage__sidebar__category + .backstage__sidebar__category {
-    border-top-width: 0;
+.backstage-sidebar__category + .backstage-sidebar__category {
+    margin-top: 1em;
 }
 
 .backstage-header__divider {
@@ -236,6 +238,44 @@
         flex-shrink: 0;
         padding-left: 20px;
     }
+}
+
+.emoji-list {
+    table {
+        width: 100%;
+    }
+
+    .backstage-list__item {
+        display: table-row;
+    }
+
+    .backstage-list__empty td {
+        padding: 15px 20px;
+    }
+}
+
+.emoji-list__table-header {
+    font-weight: bold;
+}
+
+.emoji-list__name {
+    padding: 20px 0px 20px 15px;
+    width: 20%;
+}
+
+.emoji-list__image {
+    padding: 15px 0px;
+    width: 20%;
+}
+
+&.emoji-list__creator {
+    padding: 15px 0px;
+    width: 40%;
+}
+
+&.emoji-list__actions {
+    padding: 20px 15px 20px 0px;
+    width: 20%;
 }
 
 // Backstage Form

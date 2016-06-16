@@ -982,7 +982,10 @@ export function getDisplayName(user) {
 }
 
 export function displayUsername(userId) {
-    const user = UserStore.getProfile(userId);
+    return displayUsernameForUser(UserStore.getProfile(userId));
+}
+
+export function displayUsernameForUser(user) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false');
 
     let username = '';

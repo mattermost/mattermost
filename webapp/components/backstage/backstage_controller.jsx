@@ -12,8 +12,9 @@ import ErrorBar from 'components/error_bar.jsx';
 export default class BackstageController extends React.Component {
     static get propTypes() {
         return {
-            children: React.PropTypes.node,
-            params: React.PropTypes.object
+            children: React.PropTypes.node.isRequired,
+            params: React.PropTypes.object.isRequired,
+            user: React.PropTypes.user.isRequired
         };
     }
 
@@ -47,7 +48,10 @@ export default class BackstageController extends React.Component {
                 <ErrorBar/>
                 <BackstageNavbar team={this.state.team}/>
                 <div className='backstage-body'>
-                    <BackstageSidebar team={this.state.team}/>
+                    <BackstageSidebar
+                        team={this.state.team}
+                        user={this.props.user}
+                    />
                     {
                         React.Children.map(this.props.children, (child) => {
                             if (!child) {

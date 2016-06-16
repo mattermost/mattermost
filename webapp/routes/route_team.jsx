@@ -166,6 +166,12 @@ export default {
             getChildRoutes: (location, callback) => {
                 System.import('routes/route_integrations.jsx').then((comp) => callback(null, [comp.default]));
             }
+        },
+        {
+            path: 'emoji',
+            getChildRoutes: (location, callback) => {
+                System.import('routes/route_emoji.jsx').then((comp) => callback(null, [comp.default]));
+            }
         }
     ]
 };

@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import TeamStore from 'stores/team_store.jsx';
+
 import BackstageCategory from './backstage_category.jsx';
 import BackstageSection from './backstage_section.jsx';
 import {FormattedMessage} from 'react-intl';
@@ -10,14 +12,39 @@ import {FormattedMessage} from 'react-intl';
 export default class BackstageSidebar extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object.isRequired,
+            user: React.PropTypes.object.isRequired
         };
+    }
+
+    renderCustomEmoji() {
+        if (window.mm_config.EnableCustomEmoji !== 'true') {
+            return null;
+        }
+
+        return (
+            <BackstageCategory
+                name='emoji'
+                parentLink={'/' + this.props.team.name}
+                icon='fa-smile-o'
+                title={
+                    <FormattedMessage
+                        id='backstage_sidebar.emoji'
+                        defaultMessage='Custom Emoji'
+                    />
+                }
+            />
+        );
     }
 
     renderIntegrations() {
         if (window.mm_config.EnableIncomingWebhooks !== 'true' &&
             window.mm_config.EnableOutgoingWebhooks !== 'true' &&
             window.mm_config.EnableCommands !== 'true') {
+            return null;
+        }
+
+        if (window.mm_config.RestrictCustomEmojiCreation !== 'all' && !TeamStore.isAdmin(this.props.user.id, this.props.team.id)) {
             return null;
         }
 
@@ -89,6 +116,7 @@ export default class BackstageSidebar extends React.Component {
         return (
             <div className='backstage-sidebar'>
                 <ul>
+                    {this.renderCustomEmoji()}
                     {this.renderIntegrations()}
                 </ul>
             </div>

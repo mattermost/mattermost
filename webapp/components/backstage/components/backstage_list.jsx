@@ -11,11 +11,12 @@ import LoadingScreen from 'components/loading_screen.jsx';
 export default class BackstageList extends React.Component {
     static get propTypes() {
         return {
+            listClassName: React.PropTypes.string,
             children: React.PropTypes.node,
             header: React.PropTypes.node.isRequired,
-            addLink: React.PropTypes.string.isRequired,
-            addText: React.PropTypes.node.isRequired,
-            emptyText: React.PropTypes.node.isRequired,
+            addLink: React.PropTypes.string,
+            addText: React.PropTypes.node,
+            emptyText: React.PropTypes.node,
             loading: React.PropTypes.bool.isRequired,
             searchPlaceholder: React.PropTypes.string
         };
@@ -47,7 +48,6 @@ export default class BackstageList extends React.Component {
         const filter = this.state.filter.toLowerCase();
 
         let children;
-
         if (this.props.loading) {
             children = <LoadingScreen/>;
         } else {
@@ -55,13 +55,37 @@ export default class BackstageList extends React.Component {
                 return React.cloneElement(child, {filter});
             });
 
-            if (children.length === 0) {
+            if (children.length === 0 && this.props.emptyText) {
                 children = (
-                    <span className='backstage-list__item backstage-list_empty'>
+                    <span className='backstage-list__item backstage-list__empty'>
                         {this.props.emptyText}
                     </span>
                 );
             }
+        }
+
+        let addLink = null;
+        if (this.props.addLink && this.props.addText) {
+            addLink = (
+                <Link
+                    className='add-link'
+                    to={this.props.addLink}
+                >
+                    <button
+                        type='button'
+                        className='btn btn-primary'
+                    >
+                        <span>
+                            {this.props.addText}
+                        </span>
+                    </button>
+                </Link>
+            );
+        }
+
+        let listClassName = 'backstage-list';
+        if (this.props.listClassName) {
+            listClassName += ' ' + this.props.listClassName;
         }
 
         return (
@@ -70,19 +94,7 @@ export default class BackstageList extends React.Component {
                     <h1>
                         {this.props.header}
                     </h1>
-                    <Link
-                        className='add-link'
-                        to={this.props.addLink}
-                    >
-                        <button
-                            type='button'
-                            className='btn btn-primary'
-                        >
-                            <span>
-                                {this.props.addText}
-                            </span>
-                        </button>
-                    </Link>
+                    {addLink}
                 </div>
                 <div className='backstage-filters'>
                     <div className='backstage-filter__search'>
@@ -97,7 +109,7 @@ export default class BackstageList extends React.Component {
                         />
                     </div>
                 </div>
-                <div className='backstage-list'>
+                <div className={listClassName}>
                     {children}
                 </div>
             </div>
