@@ -4,6 +4,7 @@
 //import $ from 'jquery';
 //import Client from 'utils/web_client.jsx';
 
+import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 import Client from 'utils/web_client.jsx';
@@ -72,6 +73,8 @@ export default class Root extends React.Component {
 
         // Get our localizaiton
         GlobalActions.loadDefaultLocale();
+
+        AsyncClient.listEmoji();
     }
     componentWillUnmount() {
         LocalizationStore.removeChangeListener(this.localizationChanged);

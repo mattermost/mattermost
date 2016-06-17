@@ -3,6 +3,7 @@
 
 import Constants from './constants.jsx';
 import emojis from './emoji.json';
+import EmojiStore from 'stores/emoji_store.jsx';
 
 export const emoticonPatterns = {
     slightly_smiling_face: /(^|\s)(:-?\))(?=$|\s)/g, // :)
@@ -67,7 +68,7 @@ function initializeEmoticons() {
 
         for (const alias of emoji.aliases) {
             emoticonsByName.set(alias, {
-                alias,
+                name: alias,
                 path: getImagePathForEmoticon(filename)
             });
         }
@@ -133,11 +134,18 @@ export function handleEmoticons(text, tokens) {
     let output = text;
 
     function replaceEmoticonWithToken(fullMatch, prefix, matchText, name) {
-        if (getEmoticonsByName().has(name)) {
-            const index = tokens.size;
-            const alias = `MM_EMOTICON${index}`;
-            const path = getEmoticonsByName().get(name).path;
+        const index = tokens.size;
+        const alias = `MM_EMOTICON${index}`;
 
+        let path = '';
+        if (getEmoticonsByName().has(name)) {
+            path = getEmoticonsByName().get(name).path;
+        } else if (EmojiStore.has(name)) {
+            path = EmojiStore.getCustomEmojiImageUrl(EmojiStore.get(name));
+        }
+
+        if (path) {
+            // we have an image path so we found a matching emoticon
             tokens.set(alias, {
                 value: `<img align="absmiddle" alt="${matchText}" class="emoticon" src="${path}" title="${matchText}" />`,
                 originalText: fullMatch

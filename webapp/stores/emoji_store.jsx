@@ -39,6 +39,10 @@ class EmojiStore extends EventEmitter {
         return Array.from(this.customEmojis.values());
     }
 
+    getCustomEmojisAsMap() {
+        return this.customEmojis;
+    }
+
     setCustomEmojis(customEmojis) {
         this.customEmojis = new Map();
 
@@ -58,6 +62,19 @@ class EmojiStore extends EventEmitter {
                 break;
             }
         }
+    }
+
+    has(name) {
+        return this.customEmojis.has(name);
+    }
+
+    get(name) {
+        return this.customEmojis.get(name);
+    }
+
+    getCustomEmojiImageUrl(emoji) {
+        // must match Client.getCustomEmojiImageUrl
+        return `/api/v3/emoji/${emoji.id}`;
     }
 
     handleEventPayload(payload) {

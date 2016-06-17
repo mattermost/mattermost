@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import EmojiStore from 'stores/emoji_store.jsx';
 import * as Emoticons from 'utils/emoticons.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 
@@ -20,6 +21,15 @@ class EmoticonSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
+        let imageSrc;
+        if (emoticon.path) {
+            // non-custom emoji
+            imageSrc = emoticon.path;
+        } else {
+            // custom emoji
+            imageSrc = EmojiStore.getCustomEmojiImageUrl(emoticon);
+        }
+
         return (
             <div
                 className={className}
@@ -29,7 +39,7 @@ class EmoticonSuggestion extends Suggestion {
                     <img
                         alt={text}
                         className='emoticon-suggestion__image'
-                        src={emoticon.path}
+                        src={imageSrc}
                         title={text}
                     />
                 </div>
@@ -64,7 +74,7 @@ export default class EmoticonProvider {
                 }
             }
 
-            // checked for named emoji
+            // check for named emoji
             for (const [name, emoticon] of emoticons) {
                 if (name.indexOf(partialName) !== -1) {
                     matched.push(emoticon);
@@ -75,13 +85,24 @@ export default class EmoticonProvider {
                 }
             }
 
+            // check for custom emoji
+            for (const [name, emoji] of EmojiStore.getCustomEmojisAsMap()) {
+                if (name.indexOf(partialName) !== -1) {
+                    matched.push(emoji);
+
+                    if (matched.length >= MAX_EMOTICON_SUGGESTIONS) {
+                        break;
+                    }
+                }
+            }
+
             // sort the emoticons so that emoticons starting with the entered text come first
             matched.sort((a, b) => {
-                const aPrefix = a.alias.startsWith(partialName);
-                const bPrefix = b.alias.startsWith(partialName);
+                const aPrefix = a.name.startsWith(partialName);
+                const bPrefix = b.name.startsWith(partialName);
 
                 if (aPrefix === bPrefix) {
-                    return a.alias.localeCompare(b.alias);
+                    return a.name.localeCompare(b.name);
                 } else if (aPrefix) {
                     return -1;
                 }
@@ -89,7 +110,7 @@ export default class EmoticonProvider {
                 return 1;
             });
 
-            const terms = matched.map((emoticon) => ':' + emoticon.alias + ':');
+            const terms = matched.map((emoticon) => ':' + emoticon.name + ':');
 
             if (terms.length > 0) {
                 SuggestionStore.addSuggestions(suggestionId, terms, matched, EmoticonSuggestion, text);

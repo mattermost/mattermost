@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import Client from 'utils/web_client.jsx';
+import EmojiStore from 'stores/emoji_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -88,7 +88,7 @@ export default class EmojiListItem extends React.Component {
                 <td className='emoji-list__image'>
                     <img
                         className='emoticon'
-                        src={Client.getCustomEmojiImageUrl(emoji.id)}
+                        src={EmojiStore.getCustomEmojiImageUrl(emoji)}
                     />
                 </td>
                 <td className='emoji-list__creator'>
