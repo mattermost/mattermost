@@ -24,7 +24,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;

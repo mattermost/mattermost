@@ -11,7 +11,7 @@ import * as Utils from 'utils/utils.jsx';
 import AdminSidebarHeader from './admin_sidebar_header.jsx';
 import AdminSidebarTeam from './admin_sidebar_team.jsx';
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import SelectTeamModal from './select_team_modal.jsx';
 import AdminSidebarCategory from './admin_sidebar_category.jsx';

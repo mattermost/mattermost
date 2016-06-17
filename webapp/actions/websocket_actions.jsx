@@ -18,7 +18,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 const MAX_WEBSOCKET_FAILS = 7;
 const WEBSOCKET_RETRY_TIME = 3000;

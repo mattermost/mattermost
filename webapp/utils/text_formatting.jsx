@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import Autolinker from 'autolinker';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 import Constants from './constants.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';

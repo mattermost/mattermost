@@ -6,7 +6,7 @@ import Client from 'utils/web_client.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 export default class TeamExportTab extends React.Component {
     constructor(props) {

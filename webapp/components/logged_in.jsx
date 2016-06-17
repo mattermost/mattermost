@@ -11,7 +11,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as Websockets from 'actions/websocket_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 const CLIENT_STATUS_INTERVAL = 30000;
 const BACKSPACE_CHAR = 8;

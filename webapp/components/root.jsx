@@ -14,7 +14,7 @@ import React from 'react';
 
 import FastClick from 'fastclick';
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 import UserStore from 'stores/user_store.jsx';
 
 export default class Root extends React.Component {

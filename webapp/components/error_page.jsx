@@ -4,7 +4,7 @@
 import $ from 'jquery';
 
 import React from 'react';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 import * as Utils from 'utils/utils.jsx';
 

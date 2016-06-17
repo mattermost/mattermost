@@ -17,7 +17,7 @@ import Constants from 'utils/constants.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {browserHistory, Link} from 'react-router';
+import {browserHistory, Link} from 'react-router/es6';
 
 import logoImage from 'images/logo.png';
 

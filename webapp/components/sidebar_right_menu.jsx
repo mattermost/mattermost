@@ -20,7 +20,7 @@ const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
 
 import React from 'react';

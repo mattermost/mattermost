@@ -13,7 +13,7 @@ var ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from './async_client.jsx';
 import Client from './web_client.jsx';
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 import icon50 from 'images/icon50x50.png';
 import bing from 'images/bing.mp3';

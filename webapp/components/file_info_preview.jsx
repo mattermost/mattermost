@@ -5,7 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import {defineMessages} from 'react-intl';
 import React from 'react';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 const holders = defineMessages({
     type: {

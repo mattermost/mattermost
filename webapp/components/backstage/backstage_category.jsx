@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 export default class BackstageCategory extends React.Component {
     static get propTypes() {

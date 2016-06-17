@@ -9,7 +9,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 

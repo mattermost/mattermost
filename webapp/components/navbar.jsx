@@ -33,7 +33,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
 
-import {Link, browserHistory} from 'react-router';
+import {Link, browserHistory} from 'react-router/es6';
 
 import React from 'react';
 

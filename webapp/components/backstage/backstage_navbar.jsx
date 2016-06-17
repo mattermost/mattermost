@@ -8,7 +8,7 @@ import React from 'react';
 import TeamStore from 'stores/team_store.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 export default class BackstageNavbar extends React.Component {
     constructor(props) {

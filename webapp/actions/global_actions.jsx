@@ -20,7 +20,7 @@ import * as I18n from 'i18n/i18n.jsx';
 
 import {trackPage} from 'actions/analytics_actions.jsx';
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 import en from 'i18n/en.json';
 

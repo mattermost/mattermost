@@ -10,7 +10,7 @@ import TeamStore from 'stores/team_store.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 export default class UserItem extends React.Component {
     constructor(props) {

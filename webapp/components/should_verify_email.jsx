@@ -5,7 +5,7 @@ import {FormattedMessage} from 'react-intl';
 import Client from 'utils/web_client.jsx';
 
 import React from 'react';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 export default class ShouldVerifyEmail extends React.Component {
     constructor(props) {
