@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import ChannelStore from 'stores/channel_store.jsx';
+import SearchStore from 'stores/search_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import SearchBox from './search_bar.jsx';
 import * as Utils from 'utils/utils.jsx';
