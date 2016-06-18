@@ -119,7 +119,10 @@ export default class AddIncomingWebhook extends React.Component {
                     />
                 </BackstageHeader>
                 <div className='backstage-form'>
-                    <form className='form-horizontal'>
+                    <form
+                        className='form-horizontal'
+                        onSubmit={this.handleSubmit}
+                    >
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
