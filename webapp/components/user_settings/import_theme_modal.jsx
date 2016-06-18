@@ -2,12 +2,8 @@
 // See License.txt for license information.
 
 import ModalStore from 'stores/modal_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
 import {Modal} from 'react-bootstrap';
 
-import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -27,7 +23,8 @@ export default class ImportThemeModal extends React.Component {
         this.state = {
             value: '',
             inputError: '',
-            show: false
+            show: false,
+            callback: null
         };
     }
 
@@ -39,8 +36,11 @@ export default class ImportThemeModal extends React.Component {
         ModalStore.removeModalListener(ActionTypes.TOGGLE_IMPORT_THEME_MODAL, this.updateShow);
     }
 
-    updateShow(show) {
-        this.setState({show});
+    updateShow(show, args) {
+        this.setState({
+            show,
+            callback: args.callback
+        });
     }
 
     handleSubmit(e) {
@@ -85,25 +85,11 @@ export default class ImportThemeModal extends React.Component {
         theme.mentionHighlightLink = '#2f81b7';
         theme.codeTheme = 'github';
 
-        const user = UserStore.getCurrentUser();
-        user.theme_props = theme;
-
-        Client.updateUser(user, Constants.UserUpdateEvents.THEME,
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_ME,
-                    me: data
-                });
-
-                this.setState({show: false});
-                Utils.applyTheme(theme);
-            },
-            (err) => {
-                var state = this.getStateFromStores();
-                state.serverError = err;
-                this.setState(state);
-            }
-        );
+        this.state.callback(theme);
+        this.setState({
+            show: false,
+            callback: null
+        });
     }
 
     isInputValid(text) {

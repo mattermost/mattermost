@@ -165,7 +165,8 @@ export default class ThemeSetting extends React.Component {
     handleImportModal() {
         AppDispatcher.handleViewAction({
             type: ActionTypes.TOGGLE_IMPORT_THEME_MODAL,
-            value: true
+            value: true,
+            callback: this.updateTheme
         });
 
         this.props.setEnforceFocus(false);
