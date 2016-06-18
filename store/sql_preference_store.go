@@ -26,7 +26,7 @@ func NewSqlPreferenceStore(sqlStore *SqlStore) PreferenceStore {
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Category").SetMaxSize(32)
 		table.ColMap("Name").SetMaxSize(32)
-		table.ColMap("Value").SetMaxSize(128)
+		table.ColMap("Value").SetMaxSize(2000)
 	}
 
 	return s
@@ -99,6 +99,8 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 
 func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
 	result := StoreResult{}
+
+	preference.PreUpdate()
 
 	if result.Err = preference.IsValid(); result.Err != nil {
 		return result

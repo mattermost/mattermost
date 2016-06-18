@@ -49,7 +49,6 @@ type User struct {
 	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
 	Props              StringMap `json:"props,omitempty"`
 	NotifyProps        StringMap `json:"notify_props,omitempty"`
-	ThemeProps         StringMap `json:"theme_props,omitempty"`
 	LastPasswordUpdate int64     `json:"last_password_update,omitempty"`
 	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
 	FailedAttempts     int       `json:"failed_attempts,omitempty"`
@@ -104,10 +103,6 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id)
-	}
-
-	if len(u.ThemeProps) > 2000 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.theme.app_error", nil, "user_id="+u.Id)
 	}
 
 	return nil
@@ -178,21 +173,6 @@ func (u *User) PreUpdate() {
 			}
 		}
 		u.NotifyProps["mention_keys"] = strings.Join(goodKeys, ",")
-	}
-
-	if u.ThemeProps != nil {
-		colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
-
-		// blank out any invalid theme values
-		for name, value := range u.ThemeProps {
-			if name == "image" || name == "type" || name == "codeTheme" {
-				continue
-			}
-
-			if !colorPattern.MatchString(value) {
-				u.ThemeProps[name] = "#ffffff"
-			}
-		}
 	}
 }
 
@@ -282,7 +262,6 @@ func (u *User) ClearNonProfileFields() {
 	u.AllowMarketing = false
 	u.Props = StringMap{}
 	u.NotifyProps = StringMap{}
-	u.ThemeProps = StringMap{}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0

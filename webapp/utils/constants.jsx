@@ -174,7 +174,6 @@ export default {
         FULLNAME: 'fullname',
         NICKNAME: 'nickname',
         EMAIL: 'email',
-        THEME: 'theme',
         LANGUAGE: 'language'
     },
 
@@ -568,7 +567,8 @@ export default {
         MESSAGE_DISPLAY_DEFAULT: 'clean',
         COLLAPSE_DISPLAY: 'collapse_previews',
         COLLAPSE_DISPLAY_DEFAULT: 'false',
-        USE_MILITARY_TIME: 'use_military_time'
+        USE_MILITARY_TIME: 'use_military_time',
+        CATEGORY_THEME: 'theme'
     },
     TutorialSteps: {
         INTRO_SCREENS: 0,

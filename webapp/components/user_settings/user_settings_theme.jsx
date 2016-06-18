@@ -8,9 +8,13 @@ import PremadeThemeChooser from './premade_theme_chooser.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 
+import PreferenceStore from 'stores/preference_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
+
+import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -68,25 +72,16 @@ export default class ThemeSetting extends React.Component {
     }
 
     getStateFromStores() {
-        const user = UserStore.getCurrentUser();
-        let theme = null;
-
-        if ($.isPlainObject(user.theme_props) && !$.isEmptyObject(user.theme_props)) {
-            theme = Object.assign({}, user.theme_props);
-        } else {
-            theme = $.extend(true, {}, Constants.THEMES.default);
-        }
-
-        let type = 'premade';
-        if (theme.type === 'custom') {
-            type = 'custom';
-        }
+        const theme = PreferenceStore.getTheme(TeamStore.getCurrentId());
 
         if (!theme.codeTheme) {
             theme.codeTheme = Constants.DEFAULT_CODE_THEME;
         }
 
-        return {theme, type};
+        return {
+            theme,
+            type: theme.type || 'premade'
+        };
     }
 
     onChange() {
@@ -105,16 +100,12 @@ export default class ThemeSetting extends React.Component {
 
     submitTheme(e) {
         e.preventDefault();
-        var user = UserStore.getCurrentUser();
-        user.theme_props = this.state.theme;
 
-        Client.updateUser(user, Constants.UserUpdateEvents.THEME,
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_ME,
-                    me: data
-                });
-
+        AsyncClient.savePreference(
+            Constants.Preferences.CATEGORY_THEME,
+            '',
+            JSON.stringify(this.state.theme),
+            () => {
                 this.props.setRequireConfirm(false);
                 this.originalTheme = Object.assign({}, this.state.theme);
                 this.scrollToTop();

@@ -3008,6 +3008,10 @@
     "translation": "Invalid name"
   },
   {
+    "id": "model.preference.is_valid.theme.app_error",
+    "translation": "Invalid theme"
+  },
+  {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "Value is too long"
   },
@@ -3170,10 +3174,6 @@
   {
     "id": "model.user.is_valid.team_id.app_error",
     "translation": "Invalid team id"
-  },
-  {
-    "id": "model.user.is_valid.theme.app_error",
-    "translation": "Invalid theme"
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -4046,6 +4046,10 @@
   {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "We could not get the unread message count for the user"
+  },
+  {
+    "id": "store.sql_user.migrate_theme.critical",
+    "translation": "Failed to migrate User.ThemeProps to Preferences table %v"
   },
   {
     "id": "store.sql_user.missing_account.const",
