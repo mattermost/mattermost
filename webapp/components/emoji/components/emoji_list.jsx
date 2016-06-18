@@ -27,7 +27,7 @@ export default class EmojiList extends React.Component {
         this.deleteEmoji = this.deleteEmoji.bind(this);
 
         this.state = {
-            emojis: EmojiStore.getCustomEmojis(),
+            emojis: EmojiStore.getCustomEmojiMap(),
             loading: !EmojiStore.hasReceivedCustomEmojis()
         };
     }
@@ -46,7 +46,7 @@ export default class EmojiList extends React.Component {
 
     handleEmojiChange() {
         this.setState({
-            emojis: EmojiStore.getCustomEmojis(),
+            emojis: EmojiStore.getCustomEmojiMap(),
             loading: !EmojiStore.hasReceivedCustomEmojis()
         });
     }
@@ -56,15 +56,16 @@ export default class EmojiList extends React.Component {
     }
 
     render() {
-        let emojis = this.state.emojis.map((emoji) => {
-            return (
+        let emojis = [];
+        for (const [, emoji] of this.state.emojis) {
+            emojis.push(
                 <EmojiListItem
                     key={emoji.id}
                     emoji={emoji}
                     onDelete={this.deleteEmoji}
                 />
             );
-        });
+        }
 
         if (emojis.length === 0) {
             emojis = (

@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Constants from './constants.jsx';
-import emojis from './emoji.json';
 import EmojiStore from 'stores/emoji_store.jsx';
 
 export const emoticonPatterns = {
@@ -28,108 +26,6 @@ export const emoticonPatterns = {
     thumbsdown: /(^|\s)(:\-1:)(?=$|\s)/g // :-1:
 };
 
-let emoticonsByName;
-let emoticonsByCodePoint;
-
-function initializeEmoticons() {
-    emoticonsByName = new Map();
-    emoticonsByCodePoint = new Set();
-
-    for (const emoji of emojis) {
-        const unicode = emoji.emoji;
-
-        let filename = '';
-        if (unicode) {
-            // this is a unicode emoji so the character code determines the file name
-            let codepoint = '';
-
-            for (let i = 0; i < unicode.length; i += 2) {
-                const code = fixedCharCodeAt(unicode, i);
-
-                // ignore variation selector characters
-                if (code >= 0xfe00 && code <= 0xfe0f) {
-                    continue;
-                }
-
-                // some emoji (such as country flags) span multiple unicode characters
-                if (i !== 0) {
-                    codepoint += '-';
-                }
-
-                codepoint += pad(code.toString(16));
-            }
-
-            filename = codepoint;
-            emoticonsByCodePoint.add(codepoint);
-        } else {
-            // this isn't a unicode emoji so the first alias determines the file name
-            filename = emoji.aliases[0];
-        }
-
-        for (const alias of emoji.aliases) {
-            emoticonsByName.set(alias, {
-                name: alias,
-                path: getImagePathForEmoticon(filename)
-            });
-        }
-    }
-}
-
-// Pads a hexadecimal number with zeroes to be at least 4 digits long
-function pad(n) {
-    if (n.length >= 4) {
-        return n;
-    }
-
-    // http://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
-    return ('0000' + n).slice(-4);
-}
-
-// Gets the unicode character code of a character starting at the given index in the string
-// Adapted from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt
-function fixedCharCodeAt(str, idx = 0) {
-    // ex. fixedCharCodeAt('\uD800\uDC00', 0); // 65536
-    // ex. fixedCharCodeAt('\uD800\uDC00', 1); // false
-    const code = str.charCodeAt(idx);
-
-    // High surrogate (could change last hex to 0xDB7F to treat high
-    // private surrogates as single characters)
-    if (code >= 0xD800 && code <= 0xDBFF) {
-        const hi = code;
-        const low = str.charCodeAt(idx + 1);
-
-        if (isNaN(low)) {
-            console.log('High surrogate not followed by low surrogate in fixedCharCodeAt()'); // eslint-disable-line
-        }
-
-        return ((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000;
-    }
-
-    if (code >= 0xDC00 && code <= 0xDFFF) { // Low surrogate
-        // We return false to allow loops to skip this iteration since should have
-        // already handled high surrogate above in the previous iteration
-        return false;
-    }
-
-    return code;
-}
-
-export function getEmoticonsByName() {
-    if (!emoticonsByName) {
-        initializeEmoticons();
-    }
-
-    return emoticonsByName;
-}
-
-export function getEmoticonsByCodePoint() {
-    if (!emoticonsByCodePoint) {
-        initializeEmoticons();
-    }
-
-    return emoticonsByCodePoint;
-}
-
 export function handleEmoticons(text, tokens) {
     let output = text;
 
@@ -137,14 +33,9 @@ export function handleEmoticons(text, tokens) {
         const index = tokens.size;
         const alias = `MM_EMOTICON${index}`;
 
-        let path = '';
-        if (getEmoticonsByName().has(name)) {
-            path = getEmoticonsByName().get(name).path;
-        } else if (EmojiStore.has(name)) {
-            path = EmojiStore.getCustomEmojiImageUrl(EmojiStore.get(name));
-        }
+        if (EmojiStore.has(name)) {
+            const path = EmojiStore.getEmojiImageUrl(EmojiStore.get(name));
 
-        if (path) {
             // we have an image path so we found a matching emoticon
             tokens.set(alias, {
                 value: `<img align="absmiddle" alt="${matchText}" class="emoticon" src="${path}" title="${matchText}" />`,
@@ -170,8 +61,4 @@ export function handleEmoticons(text, tokens) {
     }
 
     return output;
-}
-
-export function getImagePathForEmoticon(name) {
-    return Constants.EMOJI_PATH + '/' + name + '.png';
 }

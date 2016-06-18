@@ -21,15 +21,6 @@ class EmoticonSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
-        let imageSrc;
-        if (emoticon.path) {
-            // non-custom emoji
-            imageSrc = emoticon.path;
-        } else {
-            // custom emoji
-            imageSrc = EmojiStore.getCustomEmojiImageUrl(emoticon);
-        }
-
         return (
             <div
                 className={className}
@@ -39,7 +30,7 @@ class EmoticonSuggestion extends Suggestion {
                     <img
                         alt={text}
                         className='emoticon-suggestion__image'
-                        src={imageSrc}
+                        src={EmojiStore.getEmojiImageUrl(emoticon)}
                         title={text}
                     />
                 </div>
@@ -63,30 +54,17 @@ export default class EmoticonProvider {
 
             const matched = [];
 
-            const emoticons = Emoticons.getEmoticonsByName();
-
             // check for text emoticons
             for (const emoticon of Object.keys(Emoticons.emoticonPatterns)) {
                 if (Emoticons.emoticonPatterns[emoticon].test(text)) {
-                    SuggestionStore.addSuggestion(suggestionId, text, emoticons.get(emoticon), EmoticonSuggestion, text);
+                    SuggestionStore.addSuggestion(suggestionId, text, EmojiStore.get(emoticon), EmoticonSuggestion, text);
 
                     hasSuggestions = true;
                 }
             }
 
             // check for named emoji
-            for (const [name, emoticon] of emoticons) {
-                if (name.indexOf(partialName) !== -1) {
-                    matched.push(emoticon);
-
-                    if (matched.length >= MAX_EMOTICON_SUGGESTIONS) {
-                        break;
-                    }
-                }
-            }
-
-            // check for custom emoji
-            for (const [name, emoji] of EmojiStore.getCustomEmojisAsMap()) {
+            for (const [name, emoji] of EmojiStore.getEmojiMap()) {
                 if (name.indexOf(partialName) !== -1) {
                     matched.push(emoji);
 

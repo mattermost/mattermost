@@ -88,7 +88,7 @@ export default class EmojiListItem extends React.Component {
                 <td className='emoji-list__image'>
                     <img
                         className='emoticon'
-                        src={EmojiStore.getCustomEmojiImageUrl(emoji)}
+                        src={EmojiStore.getEmojiImageUrl(emoji)}
                     />
                 </td>
                 <td className='emoji-list__creator'>
