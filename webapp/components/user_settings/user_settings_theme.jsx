@@ -16,20 +16,9 @@ import * as Utils from 'utils/utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 const ActionTypes = Constants.ActionTypes;
-
-const holders = defineMessages({
-    themeTitle: {
-        id: 'user.settings.display.theme.title',
-        defaultMessage: 'Theme'
-    },
-    themeDescribe: {
-        id: 'user.settings.display.theme.describe',
-        defaultMessage: 'Open to manage your theme'
-    }
-});
 
 import React from 'react';
 
@@ -47,6 +36,7 @@ export default class ThemeSetting extends React.Component {
 
         this.originalTheme = Object.assign({}, this.state.theme);
     }
+
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
 
@@ -54,17 +44,20 @@ export default class ThemeSetting extends React.Component {
             $(ReactDOM.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
     }
+
     componentDidUpdate() {
         if (this.props.selected) {
             $('.color-btn').removeClass('active-border');
             $(ReactDOM.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
     }
+
     componentWillReceiveProps(nextProps) {
         if (this.props.selected && !nextProps.selected) {
             this.resetFields();
         }
     }
+
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
 
@@ -73,6 +66,7 @@ export default class ThemeSetting extends React.Component {
             Utils.applyTheme(state.theme);
         }
     }
+
     getStateFromStores() {
         const user = UserStore.getCurrentUser();
         let theme = null;
@@ -94,6 +88,7 @@ export default class ThemeSetting extends React.Component {
 
         return {theme, type};
     }
+
     onChange() {
         const newState = this.getStateFromStores();
 
@@ -103,9 +98,11 @@ export default class ThemeSetting extends React.Component {
 
         this.props.setEnforceFocus(true);
     }
+
     scrollToTop() {
         $('.ps-container.modal-body').scrollTop(0);
     }
+
     submitTheme(e) {
         e.preventDefault();
         var user = UserStore.getCurrentUser();
@@ -130,6 +127,7 @@ export default class ThemeSetting extends React.Component {
             }
         );
     }
+
     updateTheme(theme) {
         let themeChanged = this.state.theme.length === theme.length;
         if (!themeChanged) {
@@ -148,9 +146,11 @@ export default class ThemeSetting extends React.Component {
         this.setState({theme});
         Utils.applyTheme(theme);
     }
+
     updateType(type) {
         this.setState({type});
     }
+
     resetFields() {
         const state = this.getStateFromStores();
         state.serverError = null;
@@ -161,6 +161,7 @@ export default class ThemeSetting extends React.Component {
 
         this.props.setRequireConfirm(false);
     }
+
     handleImportModal() {
         AppDispatcher.handleViewAction({
             type: ActionTypes.TOGGLE_IMPORT_THEME_MODAL,
@@ -169,9 +170,8 @@ export default class ThemeSetting extends React.Component {
 
         this.props.setEnforceFocus(false);
     }
-    render() {
-        const {formatMessage} = this.props.intl;
 
+    render() {
         var serverError;
         if (this.state.serverError) {
             serverError = this.state.serverError;
@@ -281,8 +281,18 @@ export default class ThemeSetting extends React.Component {
         } else {
             themeUI = (
                 <SettingItemMin
-                    title={formatMessage(holders.themeTitle)}
-                    describe={formatMessage(holders.themeDescribe)}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.theme.title'
+                            defaultMessage='Theme'
+                        />
+                    }
+                    describe={
+                        <FormattedMessage
+                            id='user.settings.display.theme.describe'
+                            defaultMessage='Open to manage your theme'
+                        />
+                    }
                     updateSection={() => {
                         this.props.updateSection('theme');
                     }}
@@ -295,11 +305,8 @@ export default class ThemeSetting extends React.Component {
 }
 
 ThemeSetting.propTypes = {
-    intl: intlShape.isRequired,
     selected: React.PropTypes.bool.isRequired,
     updateSection: React.PropTypes.func.isRequired,
     setRequireConfirm: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(ThemeSetting);

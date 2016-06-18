@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
 import ModalStore from 'stores/modal_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -11,20 +10,13 @@ import {Modal} from 'react-bootstrap';
 import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
-
-const holders = defineMessages({
-    submitError: {
-        id: 'user.settings.import_theme.submitError',
-        defaultMessage: 'Invalid format, please try copying and pasting in again.'
-    }
-});
+import {FormattedMessage} from 'react-intl';
 
 const ActionTypes = Constants.ActionTypes;
 
 import React from 'react';
 
-class ImportThemeModal extends React.Component {
+export default class ImportThemeModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -33,26 +25,38 @@ class ImportThemeModal extends React.Component {
         this.handleChange = this.handleChange.bind(this);
 
         this.state = {
+            value: '',
             inputError: '',
             show: false
         };
     }
+
     componentDidMount() {
         ModalStore.addModalListener(ActionTypes.TOGGLE_IMPORT_THEME_MODAL, this.updateShow);
     }
+
     componentWillUnmount() {
         ModalStore.removeModalListener(ActionTypes.TOGGLE_IMPORT_THEME_MODAL, this.updateShow);
     }
+
     updateShow(show) {
         this.setState({show});
     }
+
     handleSubmit(e) {
         e.preventDefault();
 
-        const text = ReactDOM.findDOMNode(this.refs.input).value;
+        const text = this.state.value;
 
         if (!this.isInputValid(text)) {
-            this.setState({inputError: this.props.intl.formatMessage(holders.submitError)});
+            this.setState({
+                inputError: (
+                    <FormattedMessage
+                        id='user.settings.import_theme.submitError'
+                        defaultMessage='Invalid format, please try copying and pasting in again.'
+                    />
+                )
+            });
             return;
         }
 
@@ -101,6 +105,7 @@ class ImportThemeModal extends React.Component {
             }
         );
     }
+
     isInputValid(text) {
         if (text.length === 0) {
             return false;
@@ -134,13 +139,25 @@ class ImportThemeModal extends React.Component {
 
         return true;
     }
+
     handleChange(e) {
-        if (this.isInputValid(e.target.value)) {
+        const value = e.target.value;
+        this.setState({value});
+
+        if (this.isInputValid(value)) {
             this.setState({inputError: null});
         } else {
-            this.setState({inputError: this.props.intl.formatMessage(holders.submitError)});
+            this.setState({
+                inputError: (
+                    <FormattedMessage
+                        id='user.settings.import_theme.submitError'
+                        defaultMessage='Invalid format, please try copying and pasting in again.'
+                    />
+                )
+            });
         }
     }
+
     render() {
         return (
             <span>
@@ -170,9 +187,9 @@ class ImportThemeModal extends React.Component {
                             <div className='form-group less'>
                                 <div className='col-sm-9'>
                                     <input
-                                        ref='input'
                                         type='text'
                                         className='form-control'
+                                        value={this.state.value}
                                         onChange={this.handleChange}
                                     />
                                     <div className='input__help'>
@@ -210,9 +227,3 @@ class ImportThemeModal extends React.Component {
         );
     }
 }
-
-ImportThemeModal.propTypes = {
-    intl: intlShape.isRequired
-};
-
-export default injectIntl(ImportThemeModal);
