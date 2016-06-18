@@ -140,7 +140,7 @@ export default class SearchResults extends React.Component {
                     <h4>
                         <FormattedMessage
                             id='search_results.noResults'
-                            defaultMessage='No result found. Try again?'
+                            defaultMessage='No results found. Try again?'
                         />
                     </h4>
                     <FormattedHTMLMessage
