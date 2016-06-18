@@ -7,6 +7,9 @@ import Post from './post.jsx';
 import FloatingTimestamp from './floating_timestamp.jsx';
 import ScrollToBottomArrows from './scroll_to_bottom_arrows.jsx';
 
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+
 import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
@@ -37,10 +40,13 @@ export default class PostList extends React.Component {
         this.handleResize = this.handleResize.bind(this);
         this.scrollToBottom = this.scrollToBottom.bind(this);
         this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
+        this.handleCopyCiteShortcut = this.handleCopyCiteShortcut.bind(this);
+        this.handleCopyCiteEvent = this.handleCopyCiteEvent.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
         this.scrollHeight = 0;
+        this.copyKeyPressed = false;
 
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
@@ -379,6 +385,72 @@ export default class PostList extends React.Component {
         this.updateScrolling();
     }
 
+    handleCopyCiteShortcut(e) {
+        if (e.which === Constants.KeyCodes.C && e.ctrlKey && e.shiftKey) {
+            e.preventDefault();
+            this.copyKeyPressed = true;
+            document.execCommand('copy');
+        }
+    }
+
+    handleCopyCiteEvent(e) {
+        if (!this.copyKeyPressed) {
+            return;
+        }
+        this.copyKeyPressed = false;
+        e.preventDefault();
+
+        let range;
+        if (window.getSelection && window.getSelection().rangeCount > 0) {
+            range = window.getSelection().getRangeAt(0);
+        } else if (document.selection && document.selection.type !== 'Control') {
+            range = document.selection.createRange();
+        }
+        if (!range) {
+            return;
+        }
+
+        const $startPost = $(range.startContainer).closest('.post');
+        const $endPost = $(range.endContainer).closest('.post');
+
+        const citedPosts = [];
+        if ($startPost.is($endPost) && $startPost.length && $endPost.length) {
+            const text = range.toString().trim();
+            if (text) {
+                citedPosts.push({
+                    text: text,
+                    id: $startPost.attr('id').substr(5)
+                });
+            }
+        } else {
+            $(range.cloneContents()).find('.post').each((i, post) => {
+                const text = $(post).find('.post__body').text().trim();
+                if (text) {
+                    citedPosts.push({
+                        text: text,
+                        id: post.id.substr(5)
+                    });
+                }
+            });
+        }
+        if (citedPosts.length === 0) {
+            return;
+        }
+
+        let text = '';
+        for (let i = 0; i < citedPosts.length; i++) {
+            const post = this.props.postList.posts[citedPosts[i].id];
+            const username = UserStore.getProfile(post.user_id).username;
+            const datetext = new Date(post.create_at).toLocaleString();
+            const link = TeamStore.getCurrentTeamUrl() + '/pl/' + citedPosts[i].id;
+            const replacedText = citedPosts[i].text.replace(/\n/g, '\n> ');
+            text += `> ${replacedText}\n-- @${username} [${datetext}](${link})\n\n`;
+        }
+        text += ' ';
+
+        (e.clipboardData || window.clipboardData).setData('Text', text);
+    }
+
     scrollToBottom() {
         window.requestAnimationFrame(() => {
             this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
@@ -409,11 +481,15 @@ export default class PostList extends React.Component {
         }
 
         window.addEventListener('resize', this.handleResize);
+        document.addEventListener('keydown', this.handleCopyCiteShortcut);
+        document.addEventListener('copy', this.handleCopyCiteEvent);
     }
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
         this.scrollStopAction.cancel();
+        document.removeEventListener('keydown', this.handleCopyCiteShortcut);
+        document.removeEventListener('copy', this.handleCopyCiteEvent);
     }
 
     componentDidUpdate() {
