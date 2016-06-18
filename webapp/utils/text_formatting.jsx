@@ -62,7 +62,7 @@ export function doFormatText(text, options) {
     output = autolinkHashtags(output, tokens);
 
     if (!('emoticons' in options) || options.emoticon) {
-        output = Emoticons.handleEmoticons(output, tokens);
+        output = Emoticons.handleEmoticons(output, tokens, options.emojis || EmojiStore.getEmojis());
     }
 
     if (options.searchTerm) {
@@ -76,15 +76,13 @@ export function doFormatText(text, options) {
     if (!('emoticons' in options) || options.emoticon) {
         output = twemoji.parse(output, {
             className: 'emoticon',
-            base: '',
-            folder: Constants.EMOJI_PATH,
-            callback: (icon, twemojiOptions) => {
+            callback: (icon) => {
                 if (!EmojiStore.hasUnicode(icon)) {
                     // just leave the unicode characters and hope the browser can handle it
                     return null;
                 }
 
-                return ''.concat(twemojiOptions.base, twemojiOptions.size, '/', icon, twemojiOptions.ext);
+                return EmojiStore.getEmojiImageUrl(EmojiStore.getUnicode(icon));
             }
         });
     }

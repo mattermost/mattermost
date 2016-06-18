@@ -4,6 +4,7 @@
 import PostList from './components/post_list.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
+import EmojiStore from 'stores/emoji_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
@@ -20,6 +21,7 @@ export default class PostFocusView extends React.Component {
         this.onChannelChange = this.onChannelChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
+        this.onEmojiChange = this.onEmojiChange.bind(this);
         this.onPostListScroll = this.onPostListScroll.bind(this);
 
         const focusedPostId = PostStore.getFocusedPostId();
@@ -38,7 +40,8 @@ export default class PostFocusView extends React.Component {
             currentChannel: ChannelStore.getCurrentId().slice(),
             scrollPostId: focusedPostId,
             atTop: PostStore.getVisibilityAtTop(focusedPostId),
-            atBottom: PostStore.getVisibilityAtBottom(focusedPostId)
+            atBottom: PostStore.getVisibilityAtBottom(focusedPostId),
+            emojis: EmojiStore.getEmojis()
         };
     }
 
@@ -46,12 +49,14 @@ export default class PostFocusView extends React.Component {
         ChannelStore.addChangeListener(this.onChannelChange);
         PostStore.addChangeListener(this.onPostsChange);
         UserStore.addChangeListener(this.onUserChange);
+        EmojiStore.addChangeListener(this.onEmojiChange);
     }
 
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChannelChange);
         PostStore.removeChangeListener(this.onPostsChange);
         UserStore.removeChangeListener(this.onUserChange);
+        EmojiStore.removeChangeListener(this.onEmojiChange);
     }
 
     onChannelChange() {
@@ -87,6 +92,12 @@ export default class PostFocusView extends React.Component {
         this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
     }
 
+    onEmojiChange() {
+        this.setState({
+            emojis: EmojiStore.getEmojis()
+        });
+    }
+
     onPostListScroll() {
         this.setState({scrollType: ScrollTypes.FREE});
     }
@@ -116,6 +127,7 @@ export default class PostFocusView extends React.Component {
                     showMoreMessagesBottom={!this.state.atBottom}
                     postsToHighlight={postsToHighlight}
                     isFocusPost={true}
+                    emojis={this.state.emojis}
                 />
             );
         }

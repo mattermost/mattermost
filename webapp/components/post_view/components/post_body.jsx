@@ -37,6 +37,10 @@ export default class PostBody extends React.Component {
             return true;
         }
 
+        if (nextProps.emojis !== this.props.emojis) {
+            return true;
+        }
+
         return false;
     }
 
@@ -151,7 +155,7 @@ export default class PostBody extends React.Component {
             message = (
                 <span
                     onClick={TextFormatting.handleClick}
-                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message)}}
+                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, {emojis: this.props.emojis})}}
                 />
             );
         }
@@ -199,5 +203,6 @@ PostBody.propTypes = {
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.string
+    previewCollapsed: React.PropTypes.string,
+    emojis: React.PropTypes.object.isRequired
 };

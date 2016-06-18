@@ -20,10 +20,10 @@ class EmojiStore extends EventEmitter {
         this.emojis = new Map(EmojiJson);
         this.systemEmojis = new Map(EmojiJson);
 
-        this.unicodeEmojis = new Set();
+        this.unicodeEmojis = new Map();
         for (const [, emoji] of this.systemEmojis) {
             if (emoji.unicode) {
-                this.unicodeEmojis.add(emoji.unicode, emoji);
+                this.unicodeEmojis.set(emoji.unicode, emoji);
             }
         }
 
@@ -75,7 +75,7 @@ class EmojiStore extends EventEmitter {
         return this.customEmojis;
     }
 
-    getEmojiMap() {
+    getEmojis() {
         return this.emojis;
     }
 
@@ -90,6 +90,10 @@ class EmojiStore extends EventEmitter {
 
     hasUnicode(codepoint) {
         return this.unicodeEmojis.has(codepoint);
+    }
+
+    getUnicode(codepoint) {
+        return this.unicodeEmojis.get(codepoint);
     }
 
     getEmojiImageUrl(emoji) {
@@ -124,4 +128,6 @@ class EmojiStore extends EventEmitter {
     }
 }
 
-export default new EmojiStore();
+const asdf = new EmojiStore();
+window.EmojiStore = asdf;
+export default asdf;

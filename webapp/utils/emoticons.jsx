@@ -26,15 +26,15 @@ export const emoticonPatterns = {
     thumbsdown: /(^|\s)(:\-1:)(?=$|\s)/g // :-1:
 };
 
-export function handleEmoticons(text, tokens) {
+export function handleEmoticons(text, tokens, emojis) {
     let output = text;
 
     function replaceEmoticonWithToken(fullMatch, prefix, matchText, name) {
         const index = tokens.size;
         const alias = `MM_EMOTICON${index}`;
 
-        if (EmojiStore.has(name)) {
-            const path = EmojiStore.getEmojiImageUrl(EmojiStore.get(name));
+        if (emojis.has(name)) {
+            const path = EmojiStore.getEmojiImageUrl(emojis.get(name));
 
             // we have an image path so we found a matching emoticon
             tokens.set(alias, {

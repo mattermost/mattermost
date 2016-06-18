@@ -64,7 +64,7 @@ export default class EmoticonProvider {
             }
 
             // check for named emoji
-            for (const [name, emoji] of EmojiStore.getEmojiMap()) {
+            for (const [name, emoji] of EmojiStore.getEmojis()) {
                 if (name.indexOf(partialName) !== -1) {
                     matched.push(emoji);
 
