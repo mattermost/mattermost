@@ -128,6 +128,4 @@ class EmojiStore extends EventEmitter {
     }
 }
 
-const asdf = new EmojiStore();
-window.EmojiStore = asdf;
-export default asdf;
+export default new EmojiStore();
