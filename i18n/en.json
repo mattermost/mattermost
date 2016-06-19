@@ -1140,6 +1140,14 @@
     "translation": "Unable to get post"
   },
   {
+    "id": "api.preference.delete_preferences.decode.app_error",
+    "translation": "Unable to decode preferences from request"
+  },
+  {
+    "id": "api.preference.delete_preferences.user_id.app_error",
+    "translation": "Unable to delete preferences for other user"
+  },
+  {
     "id": "api.preference.init.debug",
     "translation": "Initializing preference api routes"
   },
@@ -3766,6 +3774,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "We couldn't update the Post"
+  },
+  {
+    "id": "store.sql_preference.delete.app_error",
+    "translation": "We encountered an error while deleting preferences"
   },
   {
     "id": "store.sql_preference.delete_unused_features.debug",
