@@ -56,9 +56,12 @@ func checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaTok
 		user = ldapUser
 	}
 
-	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
-		err.StatusCode = http.StatusUnauthorized
-		return user, err
+	if err := checkUserMfa(user, mfaToken); err != nil {
+		return nil, err
+	}
+
+	if err := checkUserNotDisabled(user); err != nil {
+		return nil, err
 	}
 
 	// user successfully authenticated

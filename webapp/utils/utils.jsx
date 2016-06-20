@@ -34,38 +34,6 @@ export function cleanUpUrlable(input) {
     return cleaned;
 }
 
-export function isTestDomain() {
-    if ((/^localhost/).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^dockerhost/).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^test/).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^127.0./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^192.168./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^10./).test(window.location.hostname)) {
-        return true;
-    }
-
-    if ((/^176./).test(window.location.hostname)) {
-        return true;
-    }
-
-    return false;
-}
-
 export function isChrome() {
     if (navigator.userAgent.indexOf('Chrome') > -1) {
         return true;
@@ -151,7 +119,7 @@ export function getCookie(name) {
 
 var requestedNotificationPermission = false;
 
-export function notifyMe(title, body, channel) {
+export function notifyMe(title, body, channel, teamId) {
     if (!('Notification' in window)) {
         return;
     }
@@ -166,7 +134,9 @@ export function notifyMe(title, body, channel) {
                     notification.onclick = () => {
                         window.focus();
                         if (channel) {
-                            browserHistory.push(getTeamURLNoOriginFromAddressBar() + '/channels/' + channel.name);
+                            browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);
+                        } else if (teamId) {
+                            browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/town-square');
                         } else {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
                         }
@@ -261,8 +231,8 @@ export function displayTimeFormatted(ticks) {
     return (
         <FormattedTime
             value={ticks}
-            hour='numeric'
-            minute='numeric'
+            hour='2-digit'
+            minute='2-digit'
             hour12={!useMilitaryTime}
         />
     );
@@ -457,7 +427,7 @@ export function replaceHtmlEntities(text) {
     };
     var newtext = text;
     for (var tag in tagsToReplace) {
-        if ({}.hasOwnProperty.call(tagsToReplace, tag)) {
+        if (Reflect.apply({}.hasOwnProperty, this, [tagsToReplace, tag])) {
             var regex = new RegExp(tag, 'g');
             newtext = newtext.replace(regex, tagsToReplace[tag]);
         }
@@ -473,7 +443,7 @@ export function insertHtmlEntities(text) {
     };
     var newtext = text;
     for (var tag in tagsToReplace) {
-        if ({}.hasOwnProperty.call(tagsToReplace, tag)) {
+        if (Reflect.apply({}.hasOwnProperty, this, [tagsToReplace, tag])) {
             var regex = new RegExp(tag, 'g');
             newtext = newtext.replace(regex, tagsToReplace[tag]);
         }
@@ -588,6 +558,10 @@ export function toTitleCase(str) {
     return str.replace(/\w\S*/g, doTitleCase);
 }
 
+export function isHexColor(value) {
+    return value && (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i).test(value);
+}
+
 export function applyTheme(theme) {
     if (theme.sidebarBg) {
         changeCss('.app__body .sidebar--left, .app__body .sidebar--left .sidebar__divider .sidebar__divider__text, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .sidebar--menu', 'background:' + theme.sidebarBg, 1);
@@ -661,7 +635,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelBg) {
-        changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .post.post--compact .post-image__column', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
         changeCss('.app__body .date-separator .separator__text, .app__body .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
@@ -682,7 +656,8 @@ export function applyTheme(theme) {
         changeCss('.app__body .post-list__arrows', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.app__body .sidebar--left, .app__body .sidebar--right .sidebar--right__header, .app__body .suggestion-list__content .command', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__body .app__content, .app__body .post-create__container .post-create-body .btn-file, .app__body .post-create__container .post-create-footer .msg-typing, .app__body .suggestion-list__content .command, .app__body .modal .modal-content, .app__body .dropdown-menu, .app__body .popover, .app__body .mentions__name, .app__body .tip-overlay', 'color:' + theme.centerChannelColor, 1);
-        changeCss('.app__body #archive-link-home', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
+        changeCss('.app__body .post .post__link', 'color:' + changeOpacity(theme.centerChannelColor, 0.65), 1);
+        changeCss('.app__body #archive-link-home, .video-div .video-thumbnail__error', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('.app__body #post-create', 'color:' + theme.centerChannelColor, 2);
         changeCss('.app__body .mentions--top, .app__body .suggestion-list', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 3);
         changeCss('.app__body .mentions--top, .app__body .suggestion-list', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 2);
@@ -734,7 +709,8 @@ export function applyTheme(theme) {
         changeCss('.app__body .scrollbar--horizontal, .app__body .scrollbar--vertical', 'background:' + changeOpacity(theme.centerChannelColor, 0.5), 2);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5), 2);
         changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
-        changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.13), 1);
+        changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
     }
 
     if (theme.newMessageSeparator) {
@@ -744,6 +720,7 @@ export function applyTheme(theme) {
 
     if (theme.linkColor) {
         changeCss('.app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor, 1);
+        changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5), 1);
         changeCss('.app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor, 1);
     }
 
@@ -812,18 +789,6 @@ export function changeCss(className, classValue, classRepeat) {
 
     // append additional style
     classContainer.html('<style>' + className + ' {' + classValue + '}</style>');
-}
-
-export function rgb2hex(rgbIn) {
-    if (/^#[0-9A-F]{6}$/i.test(rgbIn)) {
-        return rgbIn;
-    }
-
-    var rgb = rgbIn.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-    function hex(x) {
-        return ('0' + parseInt(x, 10).toString(16)).slice(-2);
-    }
-    return '#' + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
 }
 
 export function updateCodeTheme(userTheme) {
@@ -924,7 +889,7 @@ export function isValidUsername(name) {
         error = 'This field is required';
     } else if (name.length < Constants.MIN_USERNAME_LENGTH || name.length > Constants.MAX_USERNAME_LENGTH) {
         error = 'Must be between ' + Constants.MIN_USERNAME_LENGTH + ' and ' + Constants.MAX_USERNAME_LENGTH + ' characters';
-    } else if (!(/^[a-z0-9\.\-\_]+$/).test(name)) {
+    } else if (!(/^[a-z0-9\.\-_]+$/).test(name)) {
         error = "Must contain only letters, numbers, and the symbols '.', '-', and '_'.";
     } else if (!(/[a-z]/).test(name.charAt(0))) { //eslint-disable-line no-negated-condition
         error = 'First character must be a letter.';
@@ -941,14 +906,7 @@ export function isValidUsername(name) {
 }
 
 export function isMobile() {
-    return window.innerWidth <= 768;
-}
-
-export function isComment(post) {
-    if ('root_id' in post) {
-        return post.root_id !== '' && post.root_id != null;
-    }
-    return false;
+    return window.innerWidth <= Constants.MOBILE_SCREEN_WIDTH;
 }
 
 export function getDirectTeammate(channelId) {
@@ -977,7 +935,7 @@ Image.prototype.load = function imageLoad(url, progressCallback) {
     xmlHTTP.responseType = 'arraybuffer';
     xmlHTTP.onload = function onLoad() {
         var h = xmlHTTP.getAllResponseHeaders();
-        var m = h.match(/^Content-Type\:\s*(.*?)$/mi);
+        var m = h.match(/^Content-Type:\s*(.*?)$/mi);
         var mimeType = m[1] || 'image/png';
 
         var blob = new Blob([this.response], {type: mimeType});
@@ -1142,7 +1100,7 @@ export function generateId() {
     // implementation taken from http://stackoverflow.com/a/2117523
     var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
 
-    id = id.replace(/[xy]/g, function replaceRandom(c) {
+    id = id.replace(/[xy]/g, (c) => {
         var r = Math.floor(Math.random() * 16);
 
         var v;
@@ -1187,6 +1145,13 @@ export function getDirectChannelName(id, otherId) {
     }
 
     return handle;
+}
+
+export function getDirectChannelNameByUsername(username, otherUsername) {
+    const id = UserStore.getProfileByUsername(username).id;
+    const otherId = UserStore.getProfileByUsername(otherUsername).id;
+
+    return getDirectChannelName(id, otherId);
 }
 
 // Used to get the id of the other user from a DM channel
@@ -1347,10 +1312,6 @@ export function isFeatureEnabled(feature) {
     return PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label);
 }
 
-export function isSystemMessage(post) {
-    return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
-}
-
 export function fillArray(value, length) {
     const arr = [];
 
@@ -1408,17 +1369,6 @@ export function localizeMessage(id, defaultMessage) {
     return id;
 }
 
-export function getProfilePicSrcForPost(post, timestamp) {
-    let src = Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
-    if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
-        if (post.props.override_icon_url) {
-            src = post.props.override_icon_url;
-        } else {
-            src = Constants.DEFAULT_WEBHOOK_LOGO;
-        }
-    } else if (isSystemMessage(post)) {
-        src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;
-    }
-
-    return src;
+export function mod(a, b) {
+    return ((a % b) + b) % b;
 }

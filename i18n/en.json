@@ -48,6 +48,14 @@
     "translation": "September"
   },
   {
+    "id": "system.message.name",
+    "translation": "System"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "Initializing general api routes"
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error reading log file"
   },
@@ -64,12 +72,24 @@
     "translation": "Initializing admin api routes"
   },
   {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "Attempting to recycle the database connection"
+  },
+  {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "Finished recycling the database connection"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!"
   },
   {
     "id": "api.admin.test_email.subject",
     "translation": "Mattermost - Testing Email Settings"
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Server is required"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -224,6 +244,10 @@
     "translation": "Cannot leave a direct message channel"
   },
   {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "You're the only member left, try removing the Private Group instead of leaving."
+  },
+  {
     "id": "api.channel.leave.left",
     "translation": "%v has left the channel."
   },
@@ -280,6 +304,10 @@
     "translation": "Integrations have been limited to admins only."
   },
   {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "This trigger word is already in use. Please choose another word."
+  },
+  {
     "id": "api.command.delete.app_error",
     "translation": "Inappropriate permissions to delete command"
   },
@@ -316,6 +344,34 @@
     "translation": "No command trigger found"
   },
   {
+    "id": "api.command.invite_people.desc",
+    "translation": "Send an email invite to your Mattermost team"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Email has not been configured, no invite(s) sent"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "Encountered an error sending email invite(s)"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Please specify one or more valid email addresses"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Email invite(s) sent"
+  },
+  {
     "id": "api.command.init.debug",
     "translation": "Initializing command api routes"
   },
@@ -346,6 +402,26 @@
   {
     "id": "api.command_echo.name",
     "translation": "echo"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Turn on auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "collapse"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Turn off auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "An error occured while expanding previews"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "expand"
   },
   {
     "id": "api.command_join.desc",
@@ -446,6 +522,18 @@
   {
     "id": "api.command_shrug.name",
     "translation": "shrug"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "Displays a list of keyboard shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### Keyboard Shortcuts\n\n#### Navigation\n\nALT+UP: Previous channel or direct message in left hand sidebar\nALT+DOWN: Next channel or direct message in left hand sidebar\nALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\nALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\nCTRL/CMD+K: Open a quick channel switcher dialog\nCTRL/CMD+SHIFT+A: Open account settings\nCTRL/CMD+SHIFT+M: Open recent mentions\n\n#### Files\n\nCTRL/CMD+U: Upload file(s)\n\n#### Messages\n\nCTRL/CMD+UP (in empty input field): Reprint the previous message or slash command you entered\nCTRL/CMD+DOWN (in empty input field): Reprint the next message or slash command you entered\nUP (in empty input field): Edit your last message in the current channel\n@[character]+TAB: Autocomplete @username beginning with [character]\n:[character]+TAB: Autocomplete emoji beginning with [character]\n\n#### Built-in Browser Commands\n\nALT+LEFT/CMD+[: Previous channel in your history\nALT+RIGHT/CMD+]: Next channel in your history\nCTRL/CMD+PLUS: Increase font size (zoom in)\nCTRL/CMD+MINUS: Decrease font size (zoom out)\nSHIFT+UP (in input field): Highlight text to the previous line\nSHIFT+DOWN (in input field): Highlight text to the next line\nSHIFT+ENTER (in input field): Create a new line\n"
   },
   {
     "id": "api.context.404.app_error",
@@ -888,6 +976,14 @@
     "translation": " mentioned you in "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": " in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " posted in "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " sent you a direct message"
   },
@@ -930,6 +1026,10 @@
   {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Already deleted id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "Unable to update system message"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1185,7 +1285,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "You email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
+    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1194,6 +1294,18 @@
   {
     "id": "api.templates.email_change_subject",
     "translation": "Your email address has changed for {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.username_change_body.info",
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}.<br>If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "You updated your username"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "Your username has changed for {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1632,6 +1744,10 @@
     "translation": "Failed to send email change notification email successfully err=%v"
   },
   {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "Failed to send username change notification email successfully err=%v"
+  },
+  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully err=%v"
   },
@@ -1670,6 +1786,10 @@
   {
     "id": "api.user.update_mfa.not_available.app_error",
     "translation": "MFA not configured or available on this server"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFA is not available for this account type"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -1794,6 +1914,10 @@
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -1928,6 +2052,14 @@
     "translation": "Invalid LDAP Filter"
   },
   {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "Unable to get all users using LDAP"
+  },
+  {
+    "id": "ent.ldap.syncdone.info",
+    "translation": "LDAP Synchronization completed"
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
     "translation": "Error attempting to authenticate MFA token"
   },
@@ -2029,7 +2161,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "Current version is %v (%v/%v/%v)"
+    "translation": "Current version is %v (%v/%v/%v/%v)"
   },
   {
     "id": "mattermost.entreprise_enabled",
@@ -2312,6 +2444,10 @@
     "translation": "Invalid connection security for LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
   },
   {
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "Invalid sync interval time. Must be at least one minute."
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
   },
@@ -2346,6 +2482,10 @@
   {
     "id": "model.config.is_valid.sql_idle.app_error",
     "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "Invalid max file size for file settings. Must be a zero or positive number."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
@@ -3376,6 +3516,14 @@
     "translation": "We couldn't find the existing team"
   },
   {
+    "id": "store.sql_team.get_member.missing.app_error",
+    "translation": "No team member found for that user id and team id"
+  },
+  {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "We couldn't get the team member"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "We couldn't get the team members"
   },
@@ -3446,6 +3594,10 @@
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
     "translation": "We encountered an error trying to find the account by authentication type."
+  },
+  {
+    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
+    "translation": "We encountered an error trying to find all the accounts using a specific authentication type."
   },
   {
     "id": "store.sql_user.get_by_username.app_error",

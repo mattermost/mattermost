@@ -40,7 +40,7 @@
     }
 
     .dropdown-menu {
-        max-height: 400px;
+        max-height: 80vh;
         max-width: 200px;
         overflow-x: hidden;
         overflow-y: auto;
@@ -140,6 +140,12 @@
                 text-transform: uppercase;
             }
 
+            .divider {
+                & + .divider {
+                    display: none;
+                }
+            }
+
             > a {
                 border-radius: 0;
                 line-height: 1.5;
@@ -176,10 +182,6 @@
                             @include opacity(1);
                         }
                     }
-                }
-
-                &.nav-more {
-                    text-decoration: underline;
                 }
 
                 &.unread-title {

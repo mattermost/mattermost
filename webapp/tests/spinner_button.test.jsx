@@ -1,9 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable global-require */
-/* eslint-disable func-names */
-/* eslint-disable prefer-arrow-callback */
-/* eslint-disable no-magic-numbers */
-/* eslint-disable no-unreachable */
 
 var jsdom = require('mocha-jsdom');
 var assert = require('assert');
@@ -12,6 +6,7 @@ import SpinnerButton from '../components/spinner_button.jsx';
 import React from 'react';
 
 describe('SpinnerButton', function() {
+    this.timeout(10000);
     jsdom();
 
     it('check props', function() {

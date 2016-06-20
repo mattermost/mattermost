@@ -64,8 +64,20 @@
     "translation": "管理者APIルートを初期化しています"
   },
   {
+    "id": "api.admin.recycle_db_end.warn",
+    "translation": "データベース接続の再利用が完了しました"
+  },
+  {
+    "id": "api.admin.recycle_db_start.warn",
+    "translation": "データベース接続を再利用しようとしています"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>あなたのMattermostの電子メールアドレスは正しく設定されています!"
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTPサーバーが必要です"
   },
   {
     "id": "api.admin.test_email.subject",
@@ -224,6 +236,10 @@
     "translation": "ダイレクトメッセージチャンネルから脱退することはできません"
   },
   {
+    "id": "api.channel.leave.last_member.app_error",
+    "translation": "あなたが最後のメンバーです。脱退する代わりにプライベートグループを削除しましょう。"
+  },
+  {
     "id": "api.channel.leave.left",
     "translation": "%vがチャンネルから脱退しました。"
   },
@@ -288,6 +304,10 @@
     "translation": "コマンドがシステム管理者によって無効化されています。"
   },
   {
+    "id": "api.command.duplicate_trigger.app_error",
+    "translation": "このトリガーワードは既に使われています。他の単語を選んでください。"
+  },
+  {
     "id": "api.command.execute_command.debug",
     "translation": "実行中 cmd=%v userId=%v"
   },
@@ -320,8 +340,44 @@
     "translation": "コマンドAPIルートを初期化しています"
   },
   {
+    "id": "api.command.invite_people.desc",
+    "translation": "あなたのMattermostチームに招待の電子メールを送る"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "電子メールが使えるように設定されていません。招待の電子メールは送信できませんでした。"
+  },
+  {
+    "id": "api.command.invite_people.fail",
+    "translation": "招待の電子メールを送信する際にエラーが発生しました"
+  },
+  {
+    "id": "api.command.invite_people.hint",
+    "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "招待した人々"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "1つ以上の有効な電子メールアドレスを指定してください"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "招待の電子メールを送信しました"
+  },
+  {
     "id": "api.command.regen.app_error",
     "translation": "コマンドトークンを再生成するために必要な権限が付与されていません"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Turn on auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "collapse"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -329,7 +385,7 @@
   },
   {
     "id": "api.command_echo.delay.app_error",
-    "translation": "遅延時間は10000秒より短かく設定してください"
+    "translation": "遅延時間は10000秒より短く設定してください"
   },
   {
     "id": "api.command_echo.desc",
@@ -346,6 +402,18 @@
   {
     "id": "api.command_echo.name",
     "translation": "エコー"
+  },
+  {
+    "id": "api.command_expand.desc",
+    "translation": "Turn off auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "expand"
+  },
+  {
+    "id": "api.command_expand_collapse.fail.app_error",
+    "translation": "An error occured while expanding previews"
   },
   {
     "id": "api.command_join.desc",
@@ -378,6 +446,10 @@
   {
     "id": "api.command_logout.desc",
     "translation": "Mattermostからログアウトする"
+  },
+  {
+    "id": "api.command_logout.fail_message",
+    "translation": "ログアウトに失敗しました"
   },
   {
     "id": "api.command_logout.name",
@@ -430,6 +502,18 @@
   {
     "id": "api.command_msg.success",
     "translation": "ユーザーにメッセージを送信しました。"
+  },
+  {
+    "id": "api.command_shortcuts.desc",
+    "translation": "キーボードショートカットのリストを表示する"
+  },
+  {
+    "id": "api.command_shortcuts.list",
+    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+UP: 未読のメッセージのある左側のサイドバーの前のチャンネルまたはダイレクトメッセージ\nALT+SHIFT+DOWN: 未読のメッセージのある左側のサイドバーの次のチャンネルまたはダイレクトメッセージ\nCTRL/CMD+SHIFT+A: アカウント設定を開く\nCTRL/CMD+SHIFT+K: 簡易チャンネル変更ダイアログボックスを開く\nCTRL/CMD+SHIFT+M: 最近のあなたについての投稿を開く\nESC: 右側のサイドバーを閉じる\n\n#### ファイル\n\nCTRL/CMD+U: ファイルをアップロードする\n\n#### メッセージ\n\nCTRL/CMD+UP (空の入力欄で): 前のメッセージまたはスラッシュコマンドを表示する\nCTRL/CMD+DOWN (空の入力欄で): 次のメッセージまたはスラッシュコマンドを表示する\nUP (空の入力欄で): 現在のチャンネルの最新のメッセージを編集する\n@[文字]+TAB: [文字]で始まる@usernameを補完する\n:[文字]+TAB: [文字]で始まる絵文字を補完する\n\n#### ブラウザー内蔵のコマンド\n\nALT+LEFT/CMD+[: 履歴の前のチャンネル\nALT+RIGHT/CMD+]: 履歴の次のチャンネル\nCTRL/CMD+PLUS: フォントサイズを大きくする (ズームイン)\nCTRL/CMD+MINUS: フォントサイズを小さくする (ズームアウト)\nSHIFT+UP (入力欄で): 前の行を反転させる\nSHIFT+DOWN (入力欄で): 次の行を反転させる\nSHIFT+ENTER (入力欄で): 改行する\n"
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "ショートカット"
   },
   {
     "id": "api.command_shrug.desc",
@@ -518,6 +602,10 @@
   {
     "id": "api.export.s3.app_error",
     "translation": "S3はローカルストレージへのエクスポートではサポートされません。"
+  },
+  {
+    "id": "api.file.file_upload.exceeds",
+    "translation": "ファイルが最大の画像サイズを超過しました。"
   },
   {
     "id": "api.file.file_upload.exceeds",
@@ -646,6 +734,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "ローカルサーバーストレージへの書き込みに失敗しました"
+  },
+  {
+    "id": "api.general.init.debug",
+    "translation": "全般APIルートを初期化しています"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -876,12 +968,20 @@
     "translation": "新しいダイレクトメッセージ"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_in",
+    "translation": " in "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_mention",
     "translation": "があなたについて話しました:"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "があなたにダイレクトメッセージを送りました"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention",
+    "translation": " posted in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.debug",
@@ -922,6 +1022,10 @@
   {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "既に削除されたIDです id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.system_message.app_error",
+    "translation": "システムメッセージをアップデートできません"
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1336,6 +1440,18 @@
     "translation": "[MATTERMOST] Mattermost 3.0アップデートのためのあなたのアカウントの変更"
   },
   {
+    "id": "api.templates.username_change_body.info",
+    "translation": "あなたの{{.TeamDisplayName}}用のユーザー名が{{.NewUsernamel}}に変更されました。<br>あなたがこの変更をしていない場合には、システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "api.templates.username_change_body.title",
+    "translation": "あなたはユーザー名を更新しました"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "{{.TeamDisplayName}}用にユーザー名が変更されました"
+  },
+  {
     "id": "api.templates.verify_body.button",
     "translation": "電子メールアドレスを確認する"
   },
@@ -1374,6 +1490,10 @@
   {
     "id": "api.templates.welcome_subject",
     "translation": "あなたは{{ .TeamDisplayName }}に参加しました"
+  },
+  {
+    "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
+    "translation": "MFAはこのアカウントタイプでは使用できません"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -1624,6 +1744,10 @@
     "translation": "電子メールアドレス変更の確認の電子メールを送信できませんでした err=%v"
   },
   {
+    "id": "api.user.send_email_change_username_and_forget.error",
+    "translation": "ユーザー名変更の確認の電子メールを送信しました err=%v"
+  },
+  {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "電子メールアドレス変更確認の電子メールを送信できませんでした err=%v"
   },
@@ -1696,8 +1820,16 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
+    "id": "api.user.update_roles.system_admin_needed.app_error",
+    "translation": "この操作には、システム管理者の役割が必要です"
+  },
+  {
     "id": "api.user.update_roles.system_admin_set.app_error",
     "translation": "システム管理者の役割は、他のシステム管理者だけが設定できます"
+  },
+  {
+    "id": "api.user.update_roles.team_admin_needed.app_error",
+    "translation": "この操作には、チーム管理者の役割が必要です"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -1778,6 +1910,10 @@
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.webhook.create_outgoing.intersect.app_error",
+    "translation": "同一のチャンネルからの外向きのウェブフックには、同一のトリガーワード/コールバックURLを指定できません。"
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -1908,6 +2044,14 @@
     "translation": "ユーザーがLDAPサーバーに登録されていません"
   },
   {
+    "id": "ent.ldap.syncdone.info",
+    "translation": "LDAPの同期が完了しました"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "LDAPを使っている全てのユーザーを取得できません"
+  },
+  {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "不正なLDAPフィルターです"
   },
@@ -2013,7 +2157,7 @@
   },
   {
     "id": "mattermost.current_version",
-    "translation": "現在のバージョンは%v (%v/%v/%v)です"
+    "translation": "現在のバージョンは%v (%v/%v/%v/%v)です"
   },
   {
     "id": "mattermost.entreprise_enabled",
@@ -2296,8 +2440,8 @@
     "translation": "LDAP設定の接続セキュリティーが不正です。'TLS'か'STARTTLS'にしてください"
   },
   {
-    "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "ダイレクトメッセージの制限が無効です。'any'か'team'にしてください"
+    "id": "model.config.is_valid.ldap_sync_interval.app_error",
+    "translation": "同期の時間間隔が不正です。少なくとも1分間以上にしてください。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2306,6 +2450,10 @@
   {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "サービス設定の最大ログイン試行回数が不正です。正の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.max_file_size.app_error",
+    "translation": "ファイル設定の最大ファイルサイズが不正です。ゼロ以上の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -2318,6 +2466,10 @@
   {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "投稿頻度設定の1秒当たりの投稿数が不正です。正の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.restrict_direct_message.app_error",
+    "translation": "ダイレクトメッセージの制限が無効です。'any'か'team'にしてください"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -3360,6 +3512,14 @@
     "translation": "チームが保存できませんでした"
   },
   {
+    "id": "store.sql_team.get_member.app_error",
+    "translation": "チームのメンバーが取得できませんでした"
+  },
+  {
+    "id": "store.sql_team.get_member.missing.app_error",
+    "translation": "そのユーザーIDとチームIDに合致するチームのメンバーが見付かりません"
+  },
+  {
     "id": "store.sql_team.get_members.app_error",
     "translation": "チャンネルのメンバーが取得できませんでした"
   },
@@ -3424,6 +3584,10 @@
     "translation": "アカウントを探す際にエラーが発生しました"
   },
   {
+    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
+    "translation": "特定の認証形式を使う全てのアカウントを抽出する際にエラーが発生しました。"
+  },
+  {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
     "translation": "このチームの認証形式に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
   },
@@ -3484,6 +3648,10 @@
     "translation": "その電子メールアドレスを持つアカウントは既に存在しています"
   },
   {
+    "id": "store.sql_user.save.email_exists.ldap_app_error",
+    "translation": "このアカウントはLDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "既存のユーザーの更新をしなくてはいけません"
   },
@@ -3498,6 +3666,10 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "そのユーザー名を持つアカウントは既に存在しています"
+  },
+  {
+    "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "このユーザー名を使ったアカウントは既に存在しています。システム管理者に連絡してください。"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -3632,6 +3804,10 @@
     "translation": "ウェブフックを更新できませんでした"
   },
   {
+    "id": "system.message.name",
+    "translation": "System"
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "設定値をデコードできません file={{.Filename}}, err={{.Error}}"
   },
@@ -3677,7 +3853,7 @@
   },
   {
     "id": "utils.license.validate_license.not_long.error",
-    "translation": "署名済みのライセンスが短過ぎます"
+    "translation": "署名済みのライセンスが十分に長くありません"
   },
   {
     "id": "utils.license.validate_license.signing.error",

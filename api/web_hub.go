@@ -29,10 +29,8 @@ var hub = &Hub{
 	invalidateChannel: make(chan string),
 }
 
-func PublishAndForget(message *model.Message) {
-	go func() {
-		hub.Broadcast(message)
-	}()
+func Publish(message *model.Message) {
+	hub.Broadcast(message)
 }
 
 func InvalidateCacheForUser(userId string) {

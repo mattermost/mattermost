@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -28,6 +28,7 @@ export default class NavbarDropdown extends React.Component {
         this.handleAboutModal = this.handleAboutModal.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
         this.onTeamChange = this.onTeamChange.bind(this);
+        this.openAccountSettings = this.openAccountSettings.bind(this);
 
         this.state = {
             showUserSettingsModal: false,
@@ -53,6 +54,7 @@ export default class NavbarDropdown extends React.Component {
         });
 
         TeamStore.addChangeListener(this.onTeamChange);
+        document.addEventListener('keydown', this.openAccountSettings);
     }
 
     onTeamChange() {
@@ -65,14 +67,19 @@ export default class NavbarDropdown extends React.Component {
     componentWillUnmount() {
         $(ReactDOM.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
         TeamStore.removeChangeListener(this.onTeamChange);
+        document.removeEventListener('keydown', this.openAccountSettings);
     }
-
+    openAccountSettings(e) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
+            e.preventDefault();
+            this.setState({showUserSettingsModal: true});
+        }
+    }
     render() {
         var teamLink = '';
         var inviteLink = '';
         var manageLink = '';
         var sysAdminLink = '';
-        var adminDivider = '';
         var currentUser = this.props.currentUser;
         var isAdmin = false;
         var isSystemAdmin = false;
@@ -126,8 +133,6 @@ export default class NavbarDropdown extends React.Component {
                 </li>
             );
 
-            adminDivider = (<li className='divider'></li>);
-
             teamSettings = (
                 <li>
                     <a
@@ -148,7 +153,7 @@ export default class NavbarDropdown extends React.Component {
             window.mm_config.EnableIncomingWebhooks === 'true' ||
             window.mm_config.EnableOutgoingWebhooks === 'true' ||
             window.mm_config.EnableCommands === 'true';
-        if (integrationsEnabled && (isAdmin || window.EnableOnlyAdminIntegrations !== 'true')) {
+        if (integrationsEnabled && (isAdmin || window.mm_config.EnableOnlyAdminIntegrations !== 'true')) {
             integrationsLink = (
                 <li>
                     <Link to={'/' + Utils.getTeamNameFromUrl() + '/settings/integrations'}>
@@ -213,6 +218,10 @@ export default class NavbarDropdown extends React.Component {
                                 <Link
                                     to={'/' + team.name + '/channels/town-square'}
                                 >
+                                    <FormattedMessage
+                                        id='navbar_dropdown.switchTo'
+                                        defaultMessage='Switch to '
+                                    />
                                     {team.display_name}
                                 </Link>
                             </li>
@@ -228,8 +237,8 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <Link
                         target='_blank'
+                        rel='noopener noreferrer'
                         to={global.window.mm_config.HelpLink}
-                        rel='noreferrer'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.help'
@@ -246,8 +255,8 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <Link
                         target='_blank'
+                        rel='noopener noreferrer'
                         to={global.window.mm_config.ReportAProblemLink}
-                        rel='noreferrer'
                     >
                         <FormattedMessage
                             id='navbar_dropdown.report'
@@ -283,7 +292,10 @@ export default class NavbarDropdown extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                onClick={() => this.setState({showUserSettingsModal: true})}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    this.setState({showUserSettingsModal: true});
+                                }}
                             >
                                 <FormattedMessage
                                     id='navbar_dropdown.accountSettings'
@@ -304,7 +316,7 @@ export default class NavbarDropdown extends React.Component {
                                 />
                             </a>
                         </li>
-                        {adminDivider}
+                        <li className='divider'></li>
                         {teamSettings}
                         {integrationsLink}
                         {manageLink}

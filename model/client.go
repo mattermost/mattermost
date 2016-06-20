@@ -28,6 +28,8 @@ const (
 	HEADER_AUTH               = "Authorization"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
+	STATUS                    = "status"
+	STATUS_OK                 = "OK"
 
 	API_URL_SUFFIX_V1 = "/api/v1"
 	API_URL_SUFFIX_V3 = "/api/v3"
@@ -41,18 +43,28 @@ type Result struct {
 }
 
 type Client struct {
-	Url        string       // The location of the server like "http://localhost:8065"
-	ApiUrl     string       // The api location of the server like "http://localhost:8065/api/v3"
-	HttpClient *http.Client // The http client
-	AuthToken  string
-	AuthType   string
-	TeamId     string
+	Url           string       // The location of the server like "http://localhost:8065"
+	ApiUrl        string       // The api location of the server like "http://localhost:8065/api/v3"
+	HttpClient    *http.Client // The http client
+	AuthToken     string
+	AuthType      string
+	TeamId        string
+	RequestId     string
+	Etag          string
+	ServerVersion string
 }
 
 // NewClient constructs a new client with convienence methods for talking to
 // the server.
 func NewClient(url string) *Client {
-	return &Client{url, url + API_URL_SUFFIX, &http.Client{}, "", "", ""}
+	return &Client{url, url + API_URL_SUFFIX, &http.Client{}, "", "", "", "", "", ""}
+}
+
+func closeBody(r *http.Response) {
+	if r.Body != nil {
+		ioutil.ReadAll(r.Body)
+		r.Body.Close()
+	}
 }
 
 func (c *Client) SetOAuthToken(token string) {
@@ -94,6 +106,10 @@ func (c *Client) GetChannelNameRoute(channelName string) string {
 	return fmt.Sprintf("/teams/%v/channels/name/%v", c.GetTeamId(), channelName)
 }
 
+func (c *Client) GetGeneralRoute() string {
+	return "/general"
+}
+
 func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppError) {
 	rq, _ := http.NewRequest("POST", c.Url+url, strings.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
@@ -101,6 +117,7 @@ func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppErro
 	if rp, err := c.HttpClient.Do(rq); err != nil {
 		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
+		defer closeBody(rp)
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
 		return rp, nil
@@ -117,6 +134,7 @@ func (c *Client) DoApiPost(url string, data string) (*http.Response, *AppError) 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
 		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
+		defer closeBody(rp)
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
 		return rp, nil
@@ -139,6 +157,7 @@ func (c *Client) DoApiGet(url string, data string, etag string) (*http.Response,
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode >= 300 {
+		defer closeBody(rp)
 		return rp, AppErrorFromJson(rp.Body)
 	} else {
 		return rp, nil
@@ -155,6 +174,7 @@ func getCookie(name string, resp *http.Response) *http.Cookie {
 	return nil
 }
 
+// Must is a convenience function used for testing.
 func (c *Client) Must(result *Result, err *AppError) *Result {
 	if err != nil {
 		l4g.Close()
@@ -165,6 +185,80 @@ func (c *Client) Must(result *Result, err *AppError) *Result {
 	return result
 }
 
+// CheckStatusOK is a convenience function for checking the return of Web Service
+// call that return the a map of status=OK.
+func (c *Client) CheckStatusOK(r *http.Response) bool {
+	m := MapFromJson(r.Body)
+	defer closeBody(r)
+
+	if m != nil && m[STATUS] == STATUS_OK {
+		return true
+	}
+
+	return false
+}
+
+func (c *Client) fillInExtraProperties(r *http.Response) {
+	c.RequestId = r.Header.Get(HEADER_REQUEST_ID)
+	c.Etag = r.Header.Get(HEADER_ETAG_SERVER)
+	c.ServerVersion = r.Header.Get(HEADER_VERSION_ID)
+}
+
+func (c *Client) clearExtraProperties() {
+	c.RequestId = ""
+	c.Etag = ""
+	c.ServerVersion = ""
+}
+
+// General Routes Section
+
+// GetClientProperties returns properties needed by the client to show/hide
+// certian features.  It returns a map of strings.
+func (c *Client) GetClientProperties() (map[string]string, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet(c.GetGeneralRoute()+"/client_props", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return MapFromJson(r.Body), nil
+	}
+}
+
+// LogClient is a convenience Web Service call so clients can log messages into
+// the server-side logs.  For example we typically log javascript error messages
+// into the server-side.  It returns true if the logging was successful.
+func (c *Client) LogClient(message string) (bool, *AppError) {
+	c.clearExtraProperties()
+	m := make(map[string]string)
+	m["level"] = "ERROR"
+	m["message"] = message
+
+	if r, err := c.DoApiPost(c.GetGeneralRoute()+"/log_client", MapToJson(m)); err != nil {
+		return false, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return c.CheckStatusOK(r), nil
+	}
+}
+
+// GetPing returns a map of strings with server time, server version, and node Id.
+// Systems that want to check on health status of the server should check the
+// url /api/v3/ping for a 200 status response.
+func (c *Client) GetPing() (map[string]string, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet(c.GetGeneralRoute()+"/ping", "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		c.fillInExtraProperties(r)
+		return MapFromJson(r.Body), nil
+	}
+}
+
+// Team Routes Section
+
 func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["email"] = email
@@ -172,6 +266,7 @@ func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppErro
 	if r, err := c.DoApiPost("/teams/signup", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -181,6 +276,7 @@ func (c *Client) CreateTeamFromSignup(teamSignup *TeamSignup) (*Result, *AppErro
 	if r, err := c.DoApiPost("/teams/create_from_signup", teamSignup.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamSignupFromJson(r.Body)}, nil
 	}
@@ -190,6 +286,7 @@ func (c *Client) CreateTeam(team *Team) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/teams/create", team.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
 	}
@@ -199,7 +296,7 @@ func (c *Client) GetAllTeams() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/teams/all", "", ""); err != nil {
 		return nil, err
 	} else {
-
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamMapFromJson(r.Body)}, nil
 	}
@@ -209,7 +306,7 @@ func (c *Client) GetAllTeamListings() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/teams/all_team_listings", "", ""); err != nil {
 		return nil, err
 	} else {
-
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamMapFromJson(r.Body)}, nil
 	}
@@ -225,7 +322,7 @@ func (c *Client) FindTeamByName(name string) (*Result, *AppError) {
 		if body, _ := ioutil.ReadAll(r.Body); string(body) == "true" {
 			val = true
 		}
-
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), val}, nil
 	}
@@ -237,6 +334,7 @@ func (c *Client) AddUserToTeam(userId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/add_user_to_team", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -250,6 +348,7 @@ func (c *Client) AddUserToTeamFromInvite(hash, dataToHash, inviteId string) (*Re
 	if r, err := c.DoApiPost("/teams/add_user_to_team_from_invite", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
 	}
@@ -259,6 +358,7 @@ func (c *Client) InviteMembers(invites *Invites) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/invite_members", invites.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), InvitesFromJson(r.Body)}, nil
 	}
@@ -268,6 +368,7 @@ func (c *Client) UpdateTeam(team *Team) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/update", team.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -277,6 +378,7 @@ func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/create", user.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -289,6 +391,7 @@ func (c *Client) CreateUserWithInvite(user *User, hash string, data string, invi
 	if r, err := c.DoApiPost(url, user.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -298,6 +401,7 @@ func (c *Client) CreateUserFromSignup(user *User, data string, hash string) (*Re
 	if r, err := c.DoApiPost("/users/create?d="+url.QueryEscape(data)+"&h="+hash, user.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -307,6 +411,7 @@ func (c *Client) GetUser(id string, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/"+id+"/get", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -316,6 +421,7 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/me", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -325,6 +431,7 @@ func (c *Client) GetProfilesForDirectMessageList(teamId string) (*Result, *AppEr
 	if r, err := c.DoApiGet("/users/profiles_for_dm_list/"+teamId, "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
 	}
@@ -334,6 +441,7 @@ func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
 	}
@@ -343,6 +451,7 @@ func (c *Client) GetDirectProfiles(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/direct_profiles", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserMapFromJson(r.Body)}, nil
 	}
@@ -390,6 +499,7 @@ func (c *Client) login(m map[string]string) (*Result, *AppError) {
 			NewLocAppError("/users/login", "model.client.login.app_error", nil, "")
 		}
 
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -403,6 +513,7 @@ func (c *Client) Logout() (*Result, *AppError) {
 		c.AuthType = HEADER_BEARER
 		c.TeamId = ""
 
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -415,6 +526,7 @@ func (c *Client) CheckMfa(loginId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/mfa", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -424,6 +536,7 @@ func (c *Client) GenerateMfaQrCode() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/generate_mfa_qr", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), r.Body}, nil
 	}
@@ -437,6 +550,7 @@ func (c *Client) UpdateMfa(activate bool, token string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/update_mfa", StringInterfaceToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -449,6 +563,7 @@ func (c *Client) AdminResetMfa(userId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/admin/reset_mfa", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -461,6 +576,7 @@ func (c *Client) RevokeSession(sessionAltId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/revoke_session", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -470,6 +586,7 @@ func (c *Client) GetSessions(id string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/"+id+"/sessions", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), SessionsFromJson(r.Body)}, nil
 	}
@@ -479,6 +596,7 @@ func (c *Client) EmailToOAuth(m map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/claim/email_to_sso", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -488,6 +606,7 @@ func (c *Client) OAuthToEmail(m map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/claim/oauth_to_email", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -497,6 +616,7 @@ func (c *Client) LDAPToEmail(m map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/claim/ldap_to_email", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -506,6 +626,7 @@ func (c *Client) EmailToLDAP(m map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/claim/ldap_to_email", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -519,6 +640,7 @@ func (c *Client) Command(channelId string, command string, suggest bool) (*Resul
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/execute", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), CommandResponseFromJson(r.Body)}, nil
 	}
@@ -528,6 +650,7 @@ func (c *Client) ListCommands() (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/commands/list", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), CommandListFromJson(r.Body)}, nil
 	}
@@ -537,6 +660,7 @@ func (c *Client) ListTeamCommands() (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/commands/list_team_commands", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), CommandListFromJson(r.Body)}, nil
 	}
@@ -546,6 +670,7 @@ func (c *Client) CreateCommand(cmd *Command) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/create", cmd.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), CommandFromJson(r.Body)}, nil
 	}
@@ -555,6 +680,7 @@ func (c *Client) RegenCommandToken(data map[string]string) (*Result, *AppError) 
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/regen_token", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), CommandFromJson(r.Body)}, nil
 	}
@@ -564,6 +690,7 @@ func (c *Client) DeleteCommand(data map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/commands/delete", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -573,6 +700,7 @@ func (c *Client) GetAudits(id string, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/"+id+"/audits", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), AuditsFromJson(r.Body)}, nil
 	}
@@ -582,6 +710,7 @@ func (c *Client) GetLogs() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/logs", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ArrayFromJson(r.Body)}, nil
 	}
@@ -591,17 +720,9 @@ func (c *Client) GetAllAudits() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/audits", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), AuditsFromJson(r.Body)}, nil
-	}
-}
-
-func (c *Client) GetClientProperties() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/admin/client_props", "", ""); err != nil {
-		return nil, err
-	} else {
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 
@@ -609,8 +730,23 @@ func (c *Client) GetConfig() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/config", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ConfigFromJson(r.Body)}, nil
+	}
+}
+
+// ReloadConfig will reload the config.json file from disk.  Properties
+// requiring a server restart will still need a server restart.  You must
+// have the system admin role to call this method.  It will return status=OK
+// if it's successfully reloaded the config file, otherwise check the returned error.
+func (c *Client) ReloadConfig() (bool, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet("/admin/reload_config", "", ""); err != nil {
+		return false, err
+	} else {
+		c.fillInExtraProperties(r)
+		return c.CheckStatusOK(r), nil
 	}
 }
 
@@ -618,8 +754,22 @@ func (c *Client) SaveConfig(config *Config) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/admin/save_config", config.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+// RecycleDatabaseConnection will attempt to recycle the database connections.
+// You must have the system admin role to call this method.  It will return status=OK
+// if it's successfully recycled the connections, otherwise check the returned error.
+func (c *Client) RecycleDatabaseConnection() (bool, *AppError) {
+	c.clearExtraProperties()
+	if r, err := c.DoApiGet("/admin/recycle_db_conn", "", ""); err != nil {
+		return false, err
+	} else {
+		c.fillInExtraProperties(r)
+		return c.CheckStatusOK(r), nil
 	}
 }
 
@@ -627,6 +777,7 @@ func (c *Client) TestEmail(config *Config) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/admin/test_email", config.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -636,6 +787,7 @@ func (c *Client) GetComplianceReports() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/compliance_reports", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), CompliancesFromJson(r.Body)}, nil
 	}
@@ -645,6 +797,7 @@ func (c *Client) SaveComplianceReport(job *Compliance) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/admin/save_compliance_report", job.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ComplianceFromJson(r.Body)}, nil
 	}
@@ -661,8 +814,10 @@ func (c *Client) DownloadComplianceReport(id string) (*Result, *AppError) {
 	if rp, err := c.HttpClient.Do(rq); err != nil {
 		return nil, NewLocAppError("/admin/download_compliance_report", "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
+		defer rp.Body.Close()
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
+		defer closeBody(rp)
 		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
 			rp.Header.Get(HEADER_ETAG_SERVER), rp.Body}, nil
 	}
@@ -672,6 +827,7 @@ func (c *Client) GetTeamAnalytics(teamId, name string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/analytics/"+teamId+"/"+name, "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), AnalyticsRowsFromJson(r.Body)}, nil
 	}
@@ -681,6 +837,7 @@ func (c *Client) GetSystemAnalytics(name string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/admin/analytics/"+name, "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), AnalyticsRowsFromJson(r.Body)}, nil
 	}
@@ -690,6 +847,7 @@ func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/create", channel.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelFromJson(r.Body)}, nil
 	}
@@ -701,6 +859,7 @@ func (c *Client) CreateDirectChannel(userId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/create_direct", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelFromJson(r.Body)}, nil
 	}
@@ -710,6 +869,7 @@ func (c *Client) UpdateChannel(channel *Channel) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/update", channel.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelFromJson(r.Body)}, nil
 	}
@@ -719,6 +879,7 @@ func (c *Client) UpdateChannelHeader(data map[string]string) (*Result, *AppError
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/update_header", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelFromJson(r.Body)}, nil
 	}
@@ -728,6 +889,7 @@ func (c *Client) UpdateChannelPurpose(data map[string]string) (*Result, *AppErro
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/update_purpose", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelFromJson(r.Body)}, nil
 	}
@@ -737,6 +899,7 @@ func (c *Client) UpdateNotifyProps(data map[string]string) (*Result, *AppError) 
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/update_notify_props", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -746,6 +909,7 @@ func (c *Client) GetChannels(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
 	}
@@ -755,6 +919,7 @@ func (c *Client) GetChannel(id, etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetChannelRoute(id)+"/", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelDataFromJson(r.Body)}, nil
 	}
@@ -764,6 +929,7 @@ func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/more", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
 	}
@@ -773,6 +939,7 @@ func (c *Client) GetChannelCounts(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/counts", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelCountsFromJson(r.Body)}, nil
 	}
@@ -849,6 +1016,7 @@ func (c *Client) GetChannelExtraInfo(id string, memberLimit int, etag string) (*
 	if r, err := c.DoApiGet(c.GetChannelRoute(id)+"/extra_info/"+strconv.FormatInt(int64(memberLimit), 10), "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ChannelExtraFromJson(r.Body)}, nil
 	}
@@ -858,6 +1026,7 @@ func (c *Client) CreatePost(post *Post) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(post.ChannelId)+"/posts/create", post.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
 	}
@@ -867,6 +1036,7 @@ func (c *Client) UpdatePost(post *Post) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(post.ChannelId)+"/posts/update", post.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
 	}
@@ -876,6 +1046,7 @@ func (c *Client) GetPosts(channelId string, offset int, limit int, etag string) 
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/page/%v/%v", offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
 	}
@@ -885,6 +1056,7 @@ func (c *Client) GetPostsSince(channelId string, time int64) (*Result, *AppError
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/since/%v", time), "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
 	}
@@ -894,6 +1066,7 @@ func (c *Client) GetPostsBefore(channelId string, postid string, offset int, lim
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/before/%v/%v", postid, offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
 	}
@@ -903,6 +1076,7 @@ func (c *Client) GetPostsAfter(channelId string, postid string, offset int, limi
 	if r, err := c.DoApiGet(fmt.Sprintf(c.GetChannelRoute(channelId)+"/posts/%v/after/%v/%v", postid, offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
 	}
@@ -912,6 +1086,7 @@ func (c *Client) GetPost(channelId string, postId string, etag string) (*Result,
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/get", postId), "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
 	}
@@ -921,6 +1096,7 @@ func (c *Client) DeletePost(channelId string, postId string) (*Result, *AppError
 	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+fmt.Sprintf("/posts/%v/delete", postId), ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -933,6 +1109,7 @@ func (c *Client) SearchPosts(terms string, isOrSearch bool) (*Result, *AppError)
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/posts/search", StringInterfaceToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
 	}
@@ -959,6 +1136,7 @@ func (c *Client) uploadFile(url string, data []byte, contentType string) (*Resul
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
+		defer closeBody(rp)
 		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
 			rp.Header.Get(HEADER_ETAG_SERVER), FileUploadResponseFromJson(rp.Body)}, nil
 	}
@@ -981,6 +1159,7 @@ func (c *Client) GetFile(url string, isFullUrl bool) (*Result, *AppError) {
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
+		defer closeBody(rp)
 		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
 			rp.Header.Get(HEADER_ETAG_SERVER), rp.Body}, nil
 	}
@@ -999,6 +1178,7 @@ func (c *Client) GetFileInfo(url string) (*Result, *AppError) {
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
+		defer closeBody(rp)
 		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
 			rp.Header.Get(HEADER_ETAG_SERVER), FileInfoFromJson(rp.Body)}, nil
 	}
@@ -1008,6 +1188,7 @@ func (c *Client) GetPublicLink(filename string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/files/get_public_link", MapToJson(map[string]string{"filename": filename})); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), StringFromJson(r.Body)}, nil
 	}
@@ -1017,6 +1198,7 @@ func (c *Client) UpdateUser(user *User) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/update", user.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -1026,6 +1208,7 @@ func (c *Client) UpdateUserRoles(data map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/update_roles", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1037,6 +1220,7 @@ func (c *Client) AttachDeviceId(deviceId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/attach_device", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -1049,6 +1233,7 @@ func (c *Client) UpdateActive(userId string, active bool) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/update_active", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -1058,6 +1243,7 @@ func (c *Client) UpdateUserNotify(data map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/update_notify", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), UserFromJson(r.Body)}, nil
 	}
@@ -1072,6 +1258,7 @@ func (c *Client) UpdateUserPassword(userId, currentPassword, newPassword string)
 	if r, err := c.DoApiPost("/users/newpassword", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1083,6 +1270,7 @@ func (c *Client) SendPasswordReset(email string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/send_password_reset", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1095,6 +1283,7 @@ func (c *Client) ResetPassword(code, newPassword string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/reset_password", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1107,6 +1296,7 @@ func (c *Client) AdminResetPassword(userId, newPassword string) (*Result, *AppEr
 	if r, err := c.DoApiPost("/admin/reset_password", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1116,6 +1306,7 @@ func (c *Client) GetStatuses(data []string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/status", ArrayToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1125,6 +1316,7 @@ func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/me", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
 	}
@@ -1134,6 +1326,7 @@ func (c *Client) GetTeamMembers(teamId string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/teams/members/"+teamId, "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamMembersFromJson(r.Body)}, nil
 	}
@@ -1143,6 +1336,7 @@ func (c *Client) RegisterApp(app *OAuthApp) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/oauth/register", app.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), OAuthAppFromJson(r.Body)}, nil
 	}
@@ -1152,6 +1346,7 @@ func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*
 	if r, err := c.DoApiGet("/oauth/allow?response_type="+rspType+"&client_id="+clientId+"&redirect_uri="+url.QueryEscape(redirect)+"&scope="+scope+"&state="+url.QueryEscape(state), "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1161,6 +1356,7 @@ func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/oauth/access_token", data.Encode()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), AccessResponseFromJson(r.Body)}, nil
 	}
@@ -1170,6 +1366,7 @@ func (c *Client) CreateIncomingWebhook(hook *IncomingWebhook) (*Result, *AppErro
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/incoming/create", hook.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), IncomingWebhookFromJson(r.Body)}, nil
 	}
@@ -1190,6 +1387,7 @@ func (c *Client) DeleteIncomingWebhook(id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/incoming/delete", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1199,6 +1397,7 @@ func (c *Client) ListIncomingWebhooks() (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/hooks/incoming/list", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), IncomingWebhookListFromJson(r.Body)}, nil
 	}
@@ -1208,6 +1407,7 @@ func (c *Client) GetAllPreferences() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/preferences/", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		preferences, _ := PreferencesFromJson(r.Body)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID), r.Header.Get(HEADER_ETAG_SERVER), preferences}, nil
 	}
@@ -1226,6 +1426,7 @@ func (c *Client) GetPreference(category string, name string) (*Result, *AppError
 	if r, err := c.DoApiGet("/preferences/"+category+"/"+name, "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID), r.Header.Get(HEADER_ETAG_SERVER), PreferenceFromJson(r.Body)}, nil
 	}
 }
@@ -1234,6 +1435,7 @@ func (c *Client) GetPreferenceCategory(category string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/preferences/"+category, "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		preferences, _ := PreferencesFromJson(r.Body)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID), r.Header.Get(HEADER_ETAG_SERVER), preferences}, nil
 	}
@@ -1243,6 +1445,7 @@ func (c *Client) CreateOutgoingWebhook(hook *OutgoingWebhook) (*Result, *AppErro
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/create", hook.ToJson()); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), OutgoingWebhookFromJson(r.Body)}, nil
 	}
@@ -1254,6 +1457,7 @@ func (c *Client) DeleteOutgoingWebhook(id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/delete", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1263,6 +1467,7 @@ func (c *Client) ListOutgoingWebhooks() (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+"/hooks/outgoing/list", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), OutgoingWebhookListFromJson(r.Body)}, nil
 	}
@@ -1274,6 +1479,7 @@ func (c *Client) RegenOutgoingWebhookToken(id string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/regen_token", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), OutgoingWebhookFromJson(r.Body)}, nil
 	}
@@ -1288,6 +1494,7 @@ func (c *Client) GetClientLicenceConfig(etag string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/license/client_config", "", etag); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
@@ -1297,6 +1504,7 @@ func (c *Client) GetInitialLoad() (*Result, *AppError) {
 	if r, err := c.DoApiGet("/users/initial_load", "", ""); err != nil {
 		return nil, err
 	} else {
+		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), InitialLoadFromJson(r.Body)}, nil
 	}

@@ -72,8 +72,10 @@ export default class SearchSuggestionList extends SuggestionList {
                     key={term}
                     ref={term}
                     item={item}
+                    term={term}
+                    matchedPretext={this.state.matchedPretext[i]}
                     isSelection={isSelection}
-                    onClick={this.handleItemClick.bind(this, term)}
+                    onClick={this.handleItemClick}
                 />
             );
         }

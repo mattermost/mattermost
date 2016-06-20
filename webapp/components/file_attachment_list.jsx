@@ -29,6 +29,7 @@ export default class FileAttachmentList extends React.Component {
                     filename={filenames[i]}
                     index={i}
                     handleImageClick={this.handleImageClick}
+                    compactDisplay={this.props.compactDisplay}
                 />
             );
         }
@@ -60,5 +61,7 @@ FileAttachmentList.propTypes = {
     channelId: React.PropTypes.string,
 
     // the user that owns the post that this is attached to
-    userId: React.PropTypes.string
+    userId: React.PropTypes.string,
+
+    compactDisplay: React.PropTypes.bool
 };

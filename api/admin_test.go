@@ -39,20 +39,6 @@ func TestGetAllAudits(t *testing.T) {
 	}
 }
 
-func TestGetClientProperties(t *testing.T) {
-	th := Setup().InitBasic()
-
-	if result, err := th.BasicClient.GetClientProperties(); err != nil {
-		t.Fatal(err)
-	} else {
-		props := result.Data.(map[string]string)
-
-		if len(props["Version"]) == 0 {
-			t.Fatal()
-		}
-	}
-}
-
 func TestGetConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
@@ -102,6 +88,21 @@ func TestGetConfig(t *testing.T) {
 	}
 }
 
+func TestReloadConfig(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if _, err := th.BasicClient.ReloadConfig(); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	if _, err := th.SystemAdminClient.ReloadConfig(); err != nil {
+		t.Fatal(err)
+	}
+
+	utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
+}
+
 func TestSaveConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
@@ -118,6 +119,18 @@ func TestSaveConfig(t *testing.T) {
 	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
+func TestRecycleDatabaseConnection(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if _, err := th.BasicClient.RecycleDatabaseConnection(); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	if _, err := th.SystemAdminClient.RecycleDatabaseConnection(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestEmailTest(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
@@ -125,8 +138,13 @@ func TestEmailTest(t *testing.T) {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	if _, err := th.SystemAdminClient.TestEmail(utils.Cfg); err != nil {
-		t.Fatal(err)
+	if _, err := th.SystemAdminClient.TestEmail(utils.Cfg); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		println(err.Id)
+		if err.Id != "api.admin.test_email.missing_server" {
+			t.Fatal(err)
+		}
 	}
 }
 

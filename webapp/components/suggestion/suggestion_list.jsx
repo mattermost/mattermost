@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 
 import React from 'react';
@@ -12,6 +12,8 @@ export default class SuggestionList extends React.Component {
     constructor(props) {
         super(props);
 
+        this.getStateFromStores = this.getStateFromStores.bind(this);
+
         this.getContent = this.getContent.bind(this);
 
         this.handleItemClick = this.handleItemClick.bind(this);
@@ -19,16 +21,29 @@ export default class SuggestionList extends React.Component {
 
         this.scrollToItem = this.scrollToItem.bind(this);
 
-        this.state = {
-            items: [],
-            terms: [],
-            components: [],
-            selection: ''
+        this.state = this.getStateFromStores(props.suggestionId);
+    }
+
+    getStateFromStores(suggestionId) {
+        const suggestions = SuggestionStore.getSuggestions(suggestionId || this.props.suggestionId);
+
+        return {
+            matchedPretext: suggestions.matchedPretext,
+            items: suggestions.items,
+            terms: suggestions.terms,
+            components: suggestions.components,
+            selection: suggestions.selection
         };
     }
 
     componentDidMount() {
         SuggestionStore.addSuggestionsChangedListener(this.props.suggestionId, this.handleSuggestionsChanged);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.selection !== prevState.selection && this.state.selection) {
+            this.scrollToItem(this.state.selection);
+        }
     }
 
     componentWillUnmount() {
@@ -39,29 +54,20 @@ export default class SuggestionList extends React.Component {
         return $(ReactDOM.findDOMNode(this.refs.content));
     }
 
-    handleItemClick(term, e) {
-        GlobalActions.emitCompleteWordSuggestion(this.props.suggestionId, term);
-
-        e.preventDefault();
+    handleItemClick(term, matchedPretext) {
+        GlobalActions.emitCompleteWordSuggestion(this.props.suggestionId, term, matchedPretext);
     }
 
     handleSuggestionsChanged() {
-        const selection = SuggestionStore.getSelection(this.props.suggestionId);
-
-        this.setState({
-            items: SuggestionStore.getItems(this.props.suggestionId),
-            terms: SuggestionStore.getTerms(this.props.suggestionId),
-            components: SuggestionStore.getComponents(this.props.suggestionId),
-            selection
-        });
-
-        if (selection) {
-            window.requestAnimationFrame(() => this.scrollToItem(this.state.selection));
-        }
+        this.setState(this.getStateFromStores());
     }
 
     scrollToItem(term) {
         const content = this.getContent();
+        if (!content) {
+            return;
+        }
+
         const visibleContentHeight = content[0].clientHeight;
         const actualContentHeight = content[0].scrollHeight;
 
@@ -92,7 +98,6 @@ export default class SuggestionList extends React.Component {
 
         const items = [];
         for (let i = 0; i < this.state.items.length; i++) {
-            const item = this.state.items[i];
             const term = this.state.terms[i];
             const isSelection = term === this.state.selection;
 
@@ -103,19 +108,23 @@ export default class SuggestionList extends React.Component {
                 <Component
                     key={term}
                     ref={term}
-                    item={item}
+                    item={this.state.items[i]}
                     term={term}
+                    matchedPretext={this.state.matchedPretext[i]}
                     isSelection={isSelection}
-                    onClick={this.handleItemClick.bind(this, term)}
+                    onClick={this.handleItemClick}
                 />
             );
         }
 
+        const mainClass = 'suggestion-list suggestion-list--' + this.props.location;
+        const contentClass = 'suggestion-list__content suggestion-list__content--' + this.props.location;
+
         return (
-            <div className='suggestion-list suggestion-list--top'>
+            <div className={mainClass}>
                 <div
                     ref='content'
-                    className='suggestion-list__content suggestion-list__content--top'
+                    className={contentClass}
                 >
                     {items}
                 </div>
@@ -125,5 +134,6 @@ export default class SuggestionList extends React.Component {
 }
 
 SuggestionList.propTypes = {
-    suggestionId: React.PropTypes.string.isRequired
+    suggestionId: React.PropTypes.string.isRequired,
+    location: React.PropTypes.string
 };

@@ -22,7 +22,7 @@ class PasswordResetForm extends React.Component {
     handlePasswordReset(e) {
         e.preventDefault();
 
-        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.password).value;
         if (!password || password.length < Constants.MIN_PASSWORD_LENGTH) {
             this.setState({
                 error: (

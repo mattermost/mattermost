@@ -13,6 +13,7 @@ import (
 // It should be maitained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"3.1.0",
 	"3.0.0",
 	"2.2.0",
 	"2.1.0",
@@ -33,6 +34,7 @@ var CurrentVersion string = versions[0]
 var BuildNumber string
 var BuildDate string
 var BuildHash string
+var BuildHashEnterprise string
 var BuildEnterpriseReady string
 var versionsWithoutHotFixes []string
 

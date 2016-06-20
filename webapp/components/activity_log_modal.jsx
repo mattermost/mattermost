@@ -23,7 +23,7 @@ export default class ActivityLogModal extends React.Component {
         this.onHide = this.onHide.bind(this);
         this.onShow = this.onShow.bind(this);
 
-        let state = this.getStateFromStores();
+        const state = this.getStateFromStores();
         state.moreInfo = [];
 
         this.state = state;
@@ -43,14 +43,14 @@ export default class ActivityLogModal extends React.Component {
             modalContent.removeClass('animation--highlight');
         }, 1500);
         Client.revokeSession(altId,
-            function handleRevokeSuccess() {
+            () => {
                 AsyncClient.getSessions();
             },
-            function handleRevokeError(err) {
-                let state = this.getStateFromStores();
+            (err) => {
+                const state = this.getStateFromStores();
                 state.serverError = err;
                 this.setState(state);
-            }.bind(this)
+            }
         );
     }
     onShow() {
@@ -85,7 +85,7 @@ export default class ActivityLogModal extends React.Component {
         }
     }
     handleMoreInfo(index) {
-        let newMoreInfo = this.state.moreInfo;
+        const newMoreInfo = this.state.moreInfo;
         newMoreInfo[index] = true;
         this.setState({moreInfo: newMoreInfo});
     }

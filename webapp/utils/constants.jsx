@@ -88,6 +88,7 @@ export default {
         RECEIVED_MSG: null,
 
         RECEIVED_MY_TEAM: null,
+        CREATED_TEAM: null,
 
         RECEIVED_CONFIG: null,
         RECEIVED_LOGS: null,
@@ -160,6 +161,14 @@ export default {
         EPHEMERAL_MESSAGE: 'ephemeral_message'
     },
 
+    ScrollTypes: {
+        FREE: 1,
+        BOTTOM: 2,
+        SIDEBBAR_OPEN: 3,
+        NEW_MESSAGE: 4,
+        POST: 5
+    },
+
     //SPECIAL_MENTIONS: ['all', 'channel'],
     SPECIAL_MENTIONS: ['channel'],
     CHARACTER_LIMIT: 4000,
@@ -203,6 +212,9 @@ export default {
     WEB_VIDEO_HEIGHT: 480,
     MOBILE_VIDEO_WIDTH: 480,
     MOBILE_VIDEO_HEIGHT: 360,
+    MOBILE_SCREEN_WIDTH: 768,
+    SCROLL_DELAY: 2000,
+    SCROLL_PAGE_FRACTION: 3,
     DEFAULT_CHANNEL: 'town-square',
     DEFAULT_CHANNEL_UI_NAME: 'Town Square',
     OFFTOPIC_CHANNEL: 'off-topic',
@@ -249,7 +261,8 @@ export default {
     RESERVED_USERNAMES: [
         'valet',
         'all',
-        'channel'
+        'channel',
+        'here'
     ],
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     MAX_DMS: 20,
@@ -304,7 +317,7 @@ export default {
             sidebarTextHoverBg: '#e6f2fa',
             sidebarTextActiveBorder: '#378FD2',
             sidebarTextActiveColor: '#111111',
-            sidebarHeaderBg: '#2389d7',
+            sidebarHeaderBg: '#3481B9',
             sidebarHeaderTextColor: '#ffffff',
             onlineIndicator: '#7DBE00',
             awayIndicator: '#DCBD4E',
@@ -314,7 +327,7 @@ export default {
             centerChannelColor: '#333333',
             newMessageSeparator: '#FF8800',
             linkColor: '#2389d7',
-            buttonBg: '#2389d7',
+            buttonBg: '#23A2FF',
             buttonColor: '#FFFFFF',
             mentionHighlightBg: '#fff2bb',
             mentionHighlightLink: '#2f81b7',
@@ -454,14 +467,14 @@ export default {
             uiName: 'Mention Highlight BG'
         },
         {
-            group: 'centerChannelElements',
-            id: 'mentionHighlightLink',
-            uiName: 'Mention Highlight Link'
-        },
-        {
             group: 'linkAndButtonElements',
             id: 'linkColor',
             uiName: 'Link Color'
+        },
+        {
+            group: 'centerChannelElements',
+            id: 'mentionHighlightLink',
+            uiName: 'Mention Highlight Link'
         },
         {
             group: 'linkAndButtonElements',
@@ -530,7 +543,13 @@ export default {
         CHANNEL_DISPLAY_MODE: 'channel_display_mode',
         CHANNEL_DISPLAY_MODE_CENTERED: 'centered',
         CHANNEL_DISPLAY_MODE_FULL_SCREEN: 'full',
-        CHANNEL_DISPLAY_MODE_DEFAULT: 'centered'
+        CHANNEL_DISPLAY_MODE_DEFAULT: 'centered',
+        MESSAGE_DISPLAY: 'message_display',
+        MESSAGE_DISPLAY_CLEAN: 'clean',
+        MESSAGE_DISPLAY_COMPACT: 'compact',
+        MESSAGE_DISPLAY_DEFAULT: 'clean',
+        COLLAPSE_DISPLAY: 'collapse_previews',
+        COLLAPSE_DISPLAY_DEFAULT: 'false'
     },
     TutorialSteps: {
         INTRO_SCREENS: 0,
@@ -539,16 +558,101 @@ export default {
         MENU_POPOVER: 3
     },
     KeyCodes: {
-        UP: 38,
-        DOWN: 40,
-        LEFT: 37,
-        RIGHT: 39,
         BACKSPACE: 8,
+        TAB: 9,
         ENTER: 13,
+        SHIFT: 16,
+        CTRL: 17,
+        ALT: 18,
+        CAPS_LOCK: 20,
         ESCAPE: 27,
         SPACE: 32,
-        TAB: 9,
-        U: 85
+        PAGE_UP: 33,
+        PAGE_DOWN: 34,
+        END: 35,
+        HOME: 36,
+        LEFT: 37,
+        UP: 38,
+        RIGHT: 39,
+        DOWN: 40,
+        INSERT: 45,
+        DELETE: 46,
+        ZERO: 48,
+        ONE: 49,
+        TWO: 50,
+        THREE: 51,
+        FOUR: 52,
+        FIVE: 53,
+        SIX: 54,
+        SEVEN: 55,
+        EIGHT: 56,
+        NINE: 57,
+        A: 65,
+        B: 66,
+        C: 67,
+        D: 68,
+        E: 69,
+        F: 70,
+        G: 71,
+        H: 72,
+        I: 73,
+        J: 74,
+        K: 75,
+        L: 76,
+        M: 77,
+        N: 78,
+        O: 79,
+        P: 80,
+        Q: 81,
+        R: 82,
+        S: 83,
+        T: 84,
+        U: 85,
+        V: 86,
+        W: 87,
+        X: 88,
+        Y: 89,
+        Z: 90,
+        CMD: 91,
+        MENU: 93,
+        NUMPAD_0: 96,
+        NUMPAD_1: 97,
+        NUMPAD_2: 98,
+        NUMPAD_3: 99,
+        NUMPAD_4: 100,
+        NUMPAD_5: 101,
+        NUMPAD_6: 102,
+        NUMPAD_7: 103,
+        NUMPAD_8: 104,
+        NUMPAD_9: 105,
+        MULTIPLY: 106,
+        ADD: 107,
+        SUBTRACT: 109,
+        DECIMAL: 110,
+        DIVIDE: 111,
+        F1: 112,
+        F2: 113,
+        F3: 114,
+        F4: 115,
+        F5: 116,
+        F6: 117,
+        F7: 118,
+        F8: 119,
+        F9: 120,
+        F10: 121,
+        F11: 122,
+        F12: 123,
+        NUM_LOCK: 144,
+        SEMICOLON: 186,
+        EQUAL: 187,
+        COMMA: 188,
+        DASH: 189,
+        PERIOD: 190,
+        FORWARD_SLASH: 191,
+        TILDE: 192,
+        OPEN_BRACKET: 219,
+        BACK_SLASH: 220,
+        CLOSE_BRACKET: 221
     },
     CODE_PREVIEW_MAX_FILE_SIZE: 500000, // 500 KB
     HighlightedLanguages: {
@@ -626,21 +730,28 @@ export default {
         EMBED_PREVIEW: {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
-        },
-        EMBED_TOGGLE: {
-            label: 'embed_toggle',
-            description: 'Show toggle for all embed previews'
         }
     },
     OVERLAY_TIME_DELAY: 400,
+    MIN_TEAMNAME_LENGTH: 4,
+    MAX_TEAMNAME_LENGTH: 15,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 22,
+    MAX_NICKNAME_LENGTH: 22,
     MIN_PASSWORD_LENGTH: 5,
     MAX_PASSWORD_LENGTH: 50,
+    MIN_TRIGGER_LENGTH: 1,
+    MAX_TRIGGER_LENGTH: 128,
     TIME_SINCE_UPDATE_INTERVAL: 30000,
     MIN_HASHTAG_LINK_LENGTH: 3,
+    CHANNEL_SCROLL_ADJUSTMENT: 100,
     EMOJI_PATH: '/static/emoji',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
-    MTPNS: 'http://push-test.mattermost.com'
+    MTPNS: 'http://push-test.mattermost.com',
+    BOT_NAME: 'BOT',
+    MAX_PREV_MSGS: 100,
+    POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
+    LICENSE_EXPIRY_NOTIFICATION: 1000 * 60 * 60 * 24 * 15, // 15 days
+    LICENSE_GRACE_PERIOD: 1000 * 60 * 60 * 24 * 15 // 15 days
 };

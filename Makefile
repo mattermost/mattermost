@@ -1,4 +1,7 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows
+.PHONY: build package run stop run-client run-server stop-client stop-server restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client
+
+# For golang 1.5.x compatibility (remove when we don't want to support it anymore)
+export GO15VENDOREXPERIMENT=1
 
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
@@ -12,10 +15,12 @@ BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
+BUILD_HASH_ENTERPRISE = none
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
 	ifeq ($(BUILD_ENTERPRISE),true)
 		BUILD_ENTERPRISE_READY = true
 		BUILD_TYPE_NAME = enterprise
+		BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
 	else
 		BUILD_ENTERPRISE_READY = false
 		BUILD_TYPE_NAME = team
@@ -27,13 +32,14 @@ endif
 BUILD_WEBAPP_DIR = ./webapp
 
 # Golang Flags
-GOPATH ?= $(GOPATH:)
+GOPATH ?= $(GOPATH:):./vendor
 GOFLAGS ?= $(GOFLAGS:)
-GO=$(GOPATH)/bin/godep go
+GO=go
 GO_LINKER_FLAGS ?= -ldflags \
 				   "-X github.com/mattermost/platform/model.BuildNumber=$(BUILD_NUMBER)\
 				    -X 'github.com/mattermost/platform/model.BuildDate=$(BUILD_DATE)'\
 				    -X github.com/mattermost/platform/model.BuildHash=$(BUILD_HASH)\
+				    -X github.com/mattermost/platform/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 				    -X github.com/mattermost/platform/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
 # Output paths
@@ -129,7 +135,12 @@ clean-docker:
 		docker rm -v mattermost-openldap > /dev/null; \
 	fi
 
-check-style:
+check-client-style:
+	@echo Checking client style
+
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) check-style
+	
+check-server-style:
 	@echo Running GOFMT
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ mattermost.go 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
@@ -140,37 +151,65 @@ check-style:
 		exit 1; \
 	fi
 
-test: start-docker
-	@echo Running tests
+check-style: check-client-style check-server-style
 
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=340s ./api || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./store || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+test-server: start-docker prepare-enterprise
+	@echo Running server tests
+
+	rm -f cover.out
+	echo "mode: count" > cover.out
+
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=340s -covermode=count -coverprofile=capi.out ./api || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=cmodel.out ./model || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s -covermode=count -coverprofile=cstore.out ./store || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cutils.out ./utils || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cweb.out ./web || exit 1
+
+	tail -n +2 capi.out >> cover.out
+	tail -n +2 cmodel.out >> cover.out
+	tail -n +2 cstore.out >> cover.out
+	tail -n +2 cutils.out >> cover.out
+	tail -n +2 cweb.out >> cover.out
+	rm -f capi.out cmodel.out cstore.out cutils.out cweb.out
+
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running Enterprise tests
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/ldap || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s $(BUILD_ENTERPRISE_DIR)/compliance || exit 1
+
+	rm -f ecover.out
+	echo "mode: count" > ecover.out
+
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=120s -test.coverprofile=cldap.out || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s -test.coverprofile=ccompliance.out || exit 1
+
+	tail -n +2 cldap.out >> ecover.out
+	tail -n +2 ccompliance.out >> ecover.out
+	rm -f cldap.out ccompliance.out
+	rm -r ldap.test
+	rm -r compliance.test
 endif
 
-setup-run-client-tests:
-	sed -i'.bak' 's|"EnableOpenServer": false,|"EnableOpenServer": true,|g' config/config.json
+internal-test-web-client: start-docker prepare-enterprise
+	$(GO) run $(GOFLAGS) *.go -run_web_client_tests
 
-cleanup-run-client-tests:
-	sed -i'.bak' 's|"EnableOpenServer": true,|"EnableOpenServer": false,|g' config/config.json
+internal-test-javascript-client: start-docker prepare-enterprise
+	$(GO) run $(GOFLAGS) *.go -run_javascript_client_tests
 
-run-client-tests:
+test-client: start-docker prepare-enterprise
+	@echo Running client tests
+
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
-	sleep 10
-	@echo Running client side unit tests
-	cd $(BUILD_WEBAPP_DIR) && npm test
 
-test-client: setup-run-client-tests run-server run-client-tests stop-server cleanup-run-client-tests
+test: test-server test-client
+
+cover:
+	@echo Opening coverage info in browser. If this failed run make test first
+
+	$(GO) tool cover -html=cover.out
+	$(GO) tool cover -html=ecover.out
 
 .prebuild:
 	@echo Preparation for running go code
-	go get $(GOFLAGS) github.com/tools/godep
+	go get $(GOFLAGS) github.com/Masterminds/glide
 
 	touch $@
 
@@ -178,19 +217,21 @@ prepare-enterprise:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Enterprise build selected, preparing
 	cp $(BUILD_ENTERPRISE_DIR)/imports.go .
+	rm -f enterprise
+	ln -s $(BUILD_ENTERPRISE_DIR) enterprise
 endif
 
 build-linux: .prebuild prepare-enterprise
 	@echo Build Linux amd64
-	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/)
 
 build-osx: .prebuild prepare-enterprise
 	@echo Build OSX amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=darwin GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/) 
 
 build-windows: .prebuild prepare-enterprise
 	@echo Build Windows amd64
-	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) $(go list ./... | grep -v /vendor/) 
 
 build: build-linux build-windows build-osx
 
@@ -315,10 +356,15 @@ clean: stop-docker
 	rm -rf api/data
 	rm -rf logs
 
-	rm -rf Godeps/_workspace/pkg/
-
 	rm -f mattermost.log
+	rm -f npm-debug.log
+	rm -f api/mattermost.log
 	rm -f .prepare-go
+	rm -f enterprise
+	rm -f cover.out
+	rm -f ecover.out
+	rm -f *.out
+	rm -f *.test
 
 nuke: clean clean-docker
 	@echo BOOM

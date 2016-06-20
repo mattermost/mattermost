@@ -67,8 +67,8 @@
 
 .channel-intro {
     border-bottom: 1px solid $light-gray;
-    margin: 0 18px 35px;
-    padding: 0 0 5px;
+    margin: 0 auto 15px;
+    padding: 0 15px;
 
     .intro-links {
         display: inline-block;
@@ -118,7 +118,8 @@
 
 // Team Header in Sidebar
 .sidebar--left,
-.sidebar--menu {
+.sidebar--menu,
+.admin-sidebar {
     .team__header {
         @include legacy-pie-clearfix;
         padding: 9px 10px;

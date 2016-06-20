@@ -262,6 +262,17 @@ func TestCreateOutgoingHook(t *testing.T) {
 		t.Fatal("team ids didn't match")
 	}
 
+	hook = &model.OutgoingWebhook{ChannelId: channel1.Id, TriggerWords: []string{"cats", "dogs"}, CallbackURLs: []string{"http://nowhere.com", "http://cats.com"}}
+	hook1 := &model.OutgoingWebhook{ChannelId: channel1.Id, TriggerWords: []string{"cats"}, CallbackURLs: []string{"http://nowhere.com"}}
+
+	if _, err := Client.CreateOutgoingWebhook(hook); err != nil {
+		t.Fatal("multiple trigger words and urls failed")
+	}
+
+	if _, err := Client.CreateOutgoingWebhook(hook1); err == nil {
+		t.Fatal("should have failed - duplicate trigger words and urls")
+	}
+
 	hook = &model.OutgoingWebhook{ChannelId: "junk", CallbackURLs: []string{"http://nowhere.com"}}
 	if _, err := Client.CreateOutgoingWebhook(hook); err == nil {
 		t.Fatal("should have failed - bad channel id")
@@ -511,6 +522,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 		t.Fatal("should have errored - webhooks turned off")
 	}
 }
+
 func TestIncomingWebhooks(t *testing.T) {
 	th := Setup().InitSystemAdmin()
 	Client := th.SystemAdminClient
@@ -529,8 +541,14 @@ func TestIncomingWebhooks(t *testing.T) {
 	hook = Client.Must(Client.CreateIncomingWebhook(hook)).Data.(*model.IncomingWebhook)
 
 	url := "/hooks/" + hook.Id
+	text := `this is a \"test\"
+	that contains a newline and a tab`
 
 	if _, err := Client.DoPost(url, "{\"text\":\"this is a test\"}", "application/json"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Client.DoPost(url, "{\"text\":\""+text+"\"}", "application/json"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -549,6 +567,10 @@ func TestIncomingWebhooks(t *testing.T) {
 	}
 
 	if _, err := Client.DoPost(url, "payload={\"text\":\"this is a test\"}", "application/x-www-form-urlencoded"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Client.DoPost(url, "payload={\"text\":\""+text+"\"}", "application/x-www-form-urlencoded"); err != nil {
 		t.Fatal(err)
 	}
 

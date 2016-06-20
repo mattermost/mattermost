@@ -260,7 +260,11 @@ class PostStoreClass extends EventEmitter {
     clearChannelVisibility(id, atBottom) {
         this.makePostsInfo(id);
         this.postsInfo[id].endVisible = Constants.POST_CHUNK_SIZE;
-        this.postsInfo[id].atTop = false;
+        if (this.postsInfo[id].postList) {
+            this.postsInfo[id].atTop = this.postsInfo[id].atTop && Constants.POST_CHUNK_SIZE >= this.postsInfo[id].postList.order.length;
+        } else {
+            this.postsInfo[id].atTop = false;
+        }
         this.postsInfo[id].atBottom = atBottom;
     }
 
@@ -454,10 +458,11 @@ class PostStoreClass extends EventEmitter {
         for (let i = 0; i < len; i++) {
             const post = postList.posts[postList.order[i]];
 
-            // don't edit webhook posts or deleted posts
+            // don't edit webhook posts, deleted posts, or system messages
             if (post.user_id !== userId ||
                 (post.props && post.props.from_webhook) ||
-                post.state === Constants.POST_DELETED) {
+                post.state === Constants.POST_DELETED ||
+                (post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX))) {
                 continue;
             }
 
@@ -546,7 +551,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_POSTS: {
-        const id = PostStore.currentFocusedPostId == null ? action.id : PostStore.currentFocusedPostId;
+        const id = PostStore.currentFocusedPostId !== null && action.isPost ? PostStore.currentFocusedPostId : action.id;
         PostStore.storePosts(id, makePostListNonNull(action.post_list));
         PostStore.checkBounds(id, action.numRequested, makePostListNonNull(action.post_list), action.before);
         PostStore.emitChange();

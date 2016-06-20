@@ -1,0 +1,41 @@
+package: github.com/mattermost/platform
+import:
+- package: github.com/NYTimes/gziphandler
+- package: github.com/alecthomas/log4go
+- package: github.com/braintree/manners
+- package: github.com/dgryski/dgoogauth
+- package: github.com/disintegration/imaging
+- package: github.com/go-gorp/gorp
+  version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
+- package: github.com/go-ldap/ldap
+- package: github.com/go-sql-driver/mysql
+- package: github.com/goamz/goamz
+  subpackages:
+  - aws
+  - s3
+- package: github.com/golang/freetype
+- package: github.com/gorilla/handlers
+- package: github.com/gorilla/mux
+- package: github.com/gorilla/websocket
+- package: github.com/lib/pq
+- package: github.com/mattermost/rsc
+  subpackages:
+  - qr
+- package: github.com/mssola/user_agent
+- package: github.com/nicksnyder/go-i18n
+  subpackages:
+  - i18n
+- package: github.com/pborman/uuid
+- package: github.com/rwcarlsen/goexif
+  subpackages:
+  - exif
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt
+- package: golang.org/x/image
+  subpackages:
+  - bmp
+- package: gopkg.in/fsnotify.v1
+- package: gopkg.in/throttled/throttled.v1
+  subpackages:
+  - store

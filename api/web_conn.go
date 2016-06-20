@@ -4,11 +4,12 @@
 package api
 
 import (
+	"time"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"time"
 )
 
 const (
@@ -77,7 +78,7 @@ func (c *WebConn) readPump() {
 			return
 		} else {
 			msg.UserId = c.UserId
-			PublishAndForget(&msg)
+			go Publish(&msg)
 		}
 	}
 }

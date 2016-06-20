@@ -129,11 +129,16 @@ func TestCreateDirectChannel(t *testing.T) {
 }
 
 func TestUpdateChannel(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	team := th.BasicTeam
-	user := th.BasicUser
-	user2 := th.CreateUser(th.BasicClient)
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+	sysAdminUser := th.SystemAdminUser
+	user := th.CreateUser(Client)
+	LinkUserToTeam(user, team)
+	user2 := th.CreateUser(Client)
+	LinkUserToTeam(user2, team)
+
+	Client.Login(user.Email, user.Password)
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -174,6 +179,30 @@ func TestUpdateChannel(t *testing.T) {
 
 	if _, err := Client.UpdateChannel(upChannel1); err == nil {
 		t.Fatal("Standard User should have failed to update")
+	}
+
+	Client.Must(Client.JoinChannel(channel1.Id))
+	UpdateUserToTeamAdmin(user2, team)
+
+	Client.Logout()
+	Client.Login(user2.Email, user2.Password)
+	Client.SetTeamId(team.Id)
+
+	if _, err := Client.UpdateChannel(upChannel1); err != nil {
+		t.Fatal(err)
+	}
+
+	Client.Login(sysAdminUser.Email, sysAdminUser.Password)
+	Client.Must(Client.JoinChannel(channel1.Id))
+
+	if _, err := Client.UpdateChannel(upChannel1); err != nil {
+		t.Fatal(err)
+	}
+
+	Client.Must(Client.DeleteChannel(channel1.Id))
+
+	if _, err := Client.UpdateChannel(upChannel1); err == nil {
+		t.Fatal("should have failed - channel deleted")
 	}
 }
 
@@ -433,10 +462,24 @@ func TestJoinChannelById(t *testing.T) {
 
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team)
-	Client.Login(user3.Email, "pwd")
+	Client.Must(Client.Login(user3.Email, "Password1"))
 
 	if _, err := Client.JoinChannel(rchannel.Id); err == nil {
 		t.Fatal("shoudn't be able to join direct channel")
+	}
+
+	th.LoginBasic()
+
+	if _, err := Client.JoinChannel(channel1.Id); err != nil {
+		t.Fatal("should be able to join public channel that we're a member of")
+	}
+
+	if _, err := Client.JoinChannel(channel3.Id); err != nil {
+		t.Fatal("should be able to join private channel that we're a member of")
+	}
+
+	if _, err := Client.JoinChannel(rchannel.Id); err != nil {
+		t.Fatal("should be able to join direct channel that we're a member of")
 	}
 }
 
@@ -463,10 +506,24 @@ func TestJoinChannelByName(t *testing.T) {
 
 	user3 := th.CreateUser(th.BasicClient)
 	LinkUserToTeam(user3, team)
-	Client.Login(user3.Email, "pwd")
+	Client.Must(Client.Login(user3.Email, "Password1"))
 
 	if _, err := Client.JoinChannelByName(rchannel.Name); err == nil {
 		t.Fatal("shoudn't be able to join direct channel")
+	}
+
+	th.LoginBasic()
+
+	if _, err := Client.JoinChannelByName(channel1.Name); err != nil {
+		t.Fatal("should be able to join public channel that we're a member of")
+	}
+
+	if _, err := Client.JoinChannelByName(channel3.Name); err != nil {
+		t.Fatal("should be able to join private channel that we're a member of")
+	}
+
+	if _, err := Client.JoinChannelByName(rchannel.Name); err != nil {
+		t.Fatal("should be able to join direct channel that we're a member of")
 	}
 }
 
@@ -485,8 +542,10 @@ func TestLeaveChannel(t *testing.T) {
 
 	Client.Must(Client.JoinChannel(channel1.Id))
 
-	// No error if you leave a channel you cannot see
-	Client.Must(Client.LeaveChannel(channel3.Id))
+	// Cannot leave a the private group if you are the only member
+	if _, err := Client.LeaveChannel(channel3.Id); err == nil {
+		t.Fatal("should have errored, cannot leave private group if only one member")
+	}
 
 	rchannel := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id)).Data.(*model.Channel)
 
@@ -507,12 +566,16 @@ func TestLeaveChannel(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	team := th.BasicTeam
-	userTeamAdmin := th.BasicUser
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+	userSystemAdmin := th.SystemAdminUser
+	userTeamAdmin := th.CreateUser(Client)
+	LinkUserToTeam(userTeamAdmin, team)
+	user2 := th.CreateUser(Client)
+	LinkUserToTeam(user2, team)
 
-	th.LoginBasic2()
+	Client.Login(user2.Email, user2.Password)
 
 	channelMadeByCA := &model.Channel{DisplayName: "C Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channelMadeByCA = Client.Must(Client.CreateChannel(channelMadeByCA)).Data.(*model.Channel)
@@ -540,7 +603,7 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal("should have failed to post to deleted channel")
 	}
 
-	userStd := th.CreateUser(th.BasicClient)
+	userStd := th.CreateUser(Client)
 	LinkUserToTeam(userStd, team)
 	Client.Login(userStd.Email, userStd.Password)
 
@@ -563,6 +626,30 @@ func TestDeleteChannel(t *testing.T) {
 			}
 			break
 		}
+	}
+
+	UpdateUserToTeamAdmin(userStd, team)
+
+	Client.Logout()
+	Client.Login(userStd.Email, userStd.Password)
+	Client.SetTeamId(team.Id)
+
+	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	channel3 := &model.Channel{DisplayName: "B Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
+
+	Client.Login(userSystemAdmin.Email, userSystemAdmin.Password)
+	Client.Must(Client.JoinChannel(channel3.Id))
+
+	if _, err := Client.DeleteChannel(channel3.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Client.DeleteChannel(channel3.Id); err == nil {
+		t.Fatal("should have failed - channel already deleted")
 	}
 }
 
@@ -690,6 +777,7 @@ func TestAddChannelMember(t *testing.T) {
 	Client := th.BasicClient
 	team := th.BasicTeam
 	user2 := th.BasicUser2
+	user3 := th.CreateUser(Client)
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -731,6 +819,9 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("Should have errored, channel deleted")
 	}
 
+	if _, err := Client.AddChannelMember(channel1.Id, user3.Id); err == nil {
+		t.Fatal("Should have errored, user not on team")
+	}
 }
 
 func TestRemoveChannelMember(t *testing.T) {

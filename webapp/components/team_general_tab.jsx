@@ -9,7 +9,7 @@ import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 const holders = defineMessages({
     dirDisabled: {
@@ -314,7 +314,7 @@ class GeneralTab extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='general_tab.openInviteDesc'
-                            defaultMessage='When allowed, a link to this team will be including on the landing page allowing anyone with an account to join this team.'
+                            defaultMessage='When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team.'
                         />
                     </div>
                 </div>
@@ -378,9 +378,9 @@ class GeneralTab extends React.Component {
                         </div>
                     </div>
                     <div className='setting-list__hint'>
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='general_tab.codeLongDesc'
-                            defaultMessage='The Invite Code is used as part of the URL in the team invitation link created by **Get Team Invite Link** in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.'
+                            defaultMessage='The Invite Code is used as part of the URL in the team invitation link created by <strong>Get Team Invite Link</strong> in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.'
                         />
                     </div>
                 </div>
@@ -473,7 +473,9 @@ class GeneralTab extends React.Component {
                         data-dismiss='modal'
                         aria-label='Close'
                     >
-                        <span aria-hidden='true'>&times;</span>
+                        <span aria-hidden='true'>
+                            {'×'}
+                        </span>
                     </button>
                     <h4
                         className='modal-title'

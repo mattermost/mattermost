@@ -26,16 +26,13 @@
     overflow-y: hidden;
     position: relative;
 
-    pre {
-        border: 1px solid rgba(221,221,221,0.2);
-        border-radius: .25em;
-        margin: 5px 0;
-        padding: 0;
-        text-align: left;
-    }
-
     code {
-        border: none;
+        border: 1px solid rgba(221,221,221,1);
+        border-radius: .25em;
+        font-size: 13px;
+        margin: 5px 0;
+        padding: 6.5px;
+        text-align: left;
         white-space: pre;
     }
 
@@ -51,22 +48,22 @@
     &--wrap code {
         white-space: pre-wrap;
     }
+
+    .hljs {
+        position: relative;
+    }
 }
 
 .post-code__language {
     @include opacity(0);
-    @include translate3d(0, 0, 0);
+    @include transition(opacity, .6s);
     background: #21586d;
-    border-radius: 0 .25em;
+    border-radius: 0 0 0 2px;
     color: $white;
     padding: 4px 10px 5px;
     position: absolute;
     right: 0;
     top: 0;
-    -webkit-transition: opacity 0.6s;
-    -moz-transition: opacity 0.6s;
-    -o-transition: opacity 0.6s;
-    transition: opacity 0.6s;
     z-index: 5;
 }
 
@@ -80,6 +77,15 @@
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none;
+}
+
+.post-code__search-highlighting {
+    color: transparent;
+    right: 6.5px;
+    left: 6.5px;
+    pointer-events: none;
+    position: absolute;
+    @include user-select(none);
 }
 
 .post__body {

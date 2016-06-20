@@ -136,7 +136,6 @@ func (u *User) PreSave() {
 
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
-	u.Locale = strings.ToLower(u.Locale)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
@@ -166,7 +165,6 @@ func (u *User) PreSave() {
 func (u *User) PreUpdate() {
 	u.Username = strings.ToLower(u.Username)
 	u.Email = strings.ToLower(u.Email)
-	u.Locale = strings.ToLower(u.Locale)
 	u.UpdateAt = GetMillis()
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -186,11 +184,27 @@ func (u *User) PreUpdate() {
 		}
 		u.NotifyProps["mention_keys"] = strings.Join(goodKeys, ",")
 	}
+
+	if u.ThemeProps != nil {
+		colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+
+		// blank out any invalid theme values
+		for name, value := range u.ThemeProps {
+			if name == "image" || name == "type" || name == "codeTheme" {
+				continue
+			}
+
+			if !colorPattern.MatchString(value) {
+				u.ThemeProps[name] = "#ffffff"
+			}
+		}
+	}
 }
 
 func (u *User) SetDefaultNotifications() {
 	u.NotifyProps = make(map[string]string)
 	u.NotifyProps["email"] = "true"
+	u.NotifyProps["push"] = USER_NOTIFY_MENTION
 	u.NotifyProps["desktop"] = USER_NOTIFY_ALL
 	u.NotifyProps["desktop_sound"] = "true"
 	u.NotifyProps["mention_keys"] = u.Username + ",@" + u.Username

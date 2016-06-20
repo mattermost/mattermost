@@ -6,9 +6,14 @@ import {browserHistory} from 'react-router';
 import Constants from './constants.jsx';
 import * as Emoticons from './emoticons.jsx';
 import * as Markdown from './markdown.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import twemoji from 'twemoji';
 import * as Utils from './utils.jsx';
+
+// pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
+// http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
+const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
@@ -19,13 +24,18 @@ import * as Utils from './utils.jsx';
 // - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
 export function formatText(text, options = {}) {
-    let output;
+    let output = text;
+
+    // would probably make more sense if it was on the calling components, but this option is intended primarily for debugging
+    if (PreferenceStore.get(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true') === 'false') {
+        return output;
+    }
 
     if (!('markdown' in options) || options.markdown) {
         // the markdown renderer will call doFormatText as necessary
-        output = Markdown.format(text, options);
+        output = Markdown.format(output, options);
     } else {
-        output = sanitizeHtml(text);
+        output = sanitizeHtml(output);
         output = doFormatText(output, options);
     }
 
@@ -33,6 +43,8 @@ export function formatText(text, options = {}) {
     if (options.singleline) {
         output = replaceNewlines(output);
     }
+
+    output = insertLongLinkWbr(output);
 
     return output;
 }
@@ -53,7 +65,7 @@ export function doFormatText(text, options) {
     }
 
     if (options.searchTerm) {
-        output = highlightSearchTerm(output, tokens, options.searchTerm);
+        output = highlightSearchTerms(output, tokens, options.searchTerm);
     }
 
     if (!('mentionHighlight' in options) || options.mentionHighlight) {
@@ -312,18 +324,27 @@ function parseSearchTerms(searchTerm) {
             continue;
         }
 
+        // capture at mentions differently from the server so we can highlight them with the preceeding at sign
+        captured = (/^@\w+\b/).exec(termString);
+        if (captured) {
+            termString = termString.substring(captured[0].length);
+
+            terms.push(captured[0]);
+            continue;
+        }
+
         // capture any plain text up until the next quote or search flag
         captured = (/^.+?(?=\bin|\bfrom|\bchannel|"|$)/).exec(termString);
         if (captured) {
             termString = termString.substring(captured[0].length);
 
             // break the text up into words based on how the server splits them in SqlPostStore.SearchPosts and then discard empty terms
-            terms.push(...captured[0].split(/[ <>+\-\(\)\~\@]/).filter((term) => !!term));
+            terms.push(...captured[0].split(/[ <>+\(\)~@]/).filter((term) => !!term));
             continue;
         }
 
         // we should never reach this point since at least one of the regexes should match something in the remaining text
-        throw new Error('Infinite loop in search term parsing: ' + termString);
+        throw new Error('Infinite loop in search term parsing: "' + termString + '"');
     }
 
     // remove punctuation from each term
@@ -334,16 +355,23 @@ function parseSearchTerms(searchTerm) {
 
 function convertSearchTermToRegex(term) {
     let pattern;
-    if (term.endsWith('*')) {
-        pattern = '\\b' + escapeRegex(term.substring(0, term.length - 1));
+
+    if (cjkPattern.test(term)) {
+        // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
+        pattern = '()(' + escapeRegex(term.replace(/\*/g, '')) + ')';
+    } else if (term.endsWith('*')) {
+        pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) + ')';
+    } else if (term.startsWith('@')) {
+        // needs special handling of the first boundary because a word boundary doesn't work before an @ sign
+        pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b';
     } else {
-        pattern = '\\b' + escapeRegex(term) + '\\b';
+        pattern = '\\b()(' + escapeRegex(term) + ')\\b';
     }
 
     return new RegExp(pattern, 'gi');
 }
 
-function highlightSearchTerm(text, tokens, searchTerm) {
+export function highlightSearchTerms(text, tokens, searchTerm) {
     const terms = parseSearchTerms(searchTerm);
 
     if (terms.length === 0) {
@@ -352,7 +380,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
 
     let output = text;
 
-    function replaceSearchTermWithToken(word) {
+    function replaceSearchTermWithToken(match, prefix, word) {
         const index = tokens.size;
         const alias = `MM_SEARCHTERM${index}`;
 
@@ -361,14 +389,14 @@ function highlightSearchTerm(text, tokens, searchTerm) {
             originalText: word
         });
 
-        return alias;
+        return prefix + alias;
     }
 
     for (const term of terms) {
         // highlight existing tokens matching search terms
         var newTokens = new Map();
         for (const [alias, token] of tokens) {
-            if (token.originalText === term.replace(/\*$/, '')) {
+            if (token.originalText.toLowerCase() === term.replace(/\*$/, '').toLowerCase()) {
                 const index = tokens.size + newTokens.size;
                 const newAlias = `MM_SEARCHTERM${index}`;
 
@@ -392,7 +420,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
     return output;
 }
 
-function replaceTokens(text, tokens) {
+export function replaceTokens(text, tokens) {
     let output = text;
 
     // iterate backwards through the map so that we do replacement in the opposite order that we added tokens
@@ -422,6 +450,19 @@ export function handleClick(e) {
     } else if (hashtagAttribute) {
         Utils.searchForTerm(hashtagAttribute.value);
     } else if (linkAttribute) {
-        browserHistory.push(linkAttribute.value);
+        const MIDDLE_MOUSE_BUTTON = 1;
+
+        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
+            e.preventDefault();
+
+            browserHistory.push(linkAttribute.value);
+        }
     }
+}
+
+//replace all "/" inside <a> tags to "/<wbr />"
+function insertLongLinkWbr(test) {
+    return test.replace(/\//g, (match, position, string) => {
+        return match + ((/a[^>]*>[^<]*$/).test(string.substr(0, position)) ? '<wbr />' : '');
+    });
 }

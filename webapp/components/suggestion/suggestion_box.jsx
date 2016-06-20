@@ -5,7 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
 import Constants from 'utils/constants.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -27,10 +27,10 @@ export default class SuggestionBox extends React.Component {
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
         this.suggestionId = Utils.generateId();
+        SuggestionStore.registerSuggestionBox(this.suggestionId);
     }
 
     componentDidMount() {
-        SuggestionStore.registerSuggestionBox(this.suggestionId);
         $(document).on('click', this.handleDocumentClick);
 
         SuggestionStore.addCompleteWordListener(this.suggestionId, this.handleCompleteWord);
@@ -81,17 +81,28 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
-    handleCompleteWord(term) {
+    handleCompleteWord(term, matchedPretext) {
         const textbox = ReactDOM.findDOMNode(this.refs.textbox);
         const caret = Utils.getCaretPosition(textbox);
+        const text = textbox.value;
+        const pretext = text.substring(0, caret);
+        let prefix;
+        if (pretext.endsWith(matchedPretext)) {
+            prefix = pretext.substring(0, pretext.length - matchedPretext.length);
+        } else {
+            // the pretext has changed since we got a term to complete so see if the term still fits the pretext
+            const termWithoutMatched = term.substring(matchedPretext.length);
+            const overlap = SuggestionBox.findOverlap(pretext, termWithoutMatched);
 
-        const text = this.props.value;
-        const prefix = text.substring(0, caret - SuggestionStore.getMatchedPretext(this.suggestionId).length);
+            prefix = pretext.substring(0, pretext.length - overlap.length - matchedPretext.length);
+        }
+
         const suffix = text.substring(caret);
 
         if (this.props.onUserInput) {
             this.props.onUserInput(prefix + term + ' ' + suffix);
         }
+        this.refs.textbox.value = (prefix + term + ' ' + suffix);
 
         // set the caret position after the next rendering
         window.requestAnimationFrame(() => {
@@ -164,14 +175,32 @@ export default class SuggestionBox extends React.Component {
         return (
             <div>
                 {textbox}
-                <SuggestionListComponent suggestionId={this.suggestionId}/>
+                <SuggestionListComponent
+                    suggestionId={this.suggestionId}
+                    location={this.props.listStyle}
+                />
             </div>
         );
+    }
+
+    // Finds the longest substring that's at both the end of b and the start of a. For example,
+    // if a = "firepit" and b = "pitbull", findOverlap would return "pit".
+    static findOverlap(a, b) {
+        for (let i = b.length; i > 0; i--) {
+            const substring = b.substring(0, i);
+
+            if (a.endsWith(substring)) {
+                return substring;
+            }
+        }
+
+        return '';
     }
 }
 
 SuggestionBox.defaultProps = {
-    type: 'input'
+    type: 'input',
+    listStyle: 'top'
 };
 
 SuggestionBox.propTypes = {
@@ -180,6 +209,7 @@ SuggestionBox.propTypes = {
     value: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
+    listStyle: React.PropTypes.string,
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,

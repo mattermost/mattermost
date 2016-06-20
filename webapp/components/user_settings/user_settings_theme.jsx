@@ -212,7 +212,9 @@ export default class ThemeSetting extends React.Component {
                     key='premadeThemeColorLabel'
                 >
                     <label>
-                        <input type='radio'
+                        <input
+                            type='radio'
+                            name='theme'
                             checked={!displayCustom}
                             onChange={this.updateType.bind(this, 'premade')}
                         />
@@ -233,7 +235,9 @@ export default class ThemeSetting extends React.Component {
                     key='customThemeColorLabel'
                 >
                     <label>
-                        <input type='radio'
+                        <input
+                            type='radio'
+                            name='theme'
                             checked={displayCustom}
                             onChange={this.updateType.bind(this, 'custom')}
                         />

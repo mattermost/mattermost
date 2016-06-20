@@ -10,7 +10,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -174,8 +174,8 @@ export default class SidebarRightMenu extends React.Component {
                 <li>
                     <Link
                         target='_blank'
+                        rel='noopener noreferrer'
                         to={global.window.mm_config.HelpLink}
-                        rel='noreferrer'
                     >
                         <i className='fa fa-question'></i>
                         <FormattedMessage
@@ -193,8 +193,8 @@ export default class SidebarRightMenu extends React.Component {
                 <li>
                     <Link
                         target='_blank'
+                        rel='noopener noreferrer'
                         to={global.window.mm_config.ReportAProblemLink}
-                        rel='noreferrer'
                     >
                         <i className='fa fa-phone'></i>
                         <FormattedMessage
@@ -250,7 +250,7 @@ export default class SidebarRightMenu extends React.Component {
                                 <i className='fa fa-exchange'></i>
                                 <FormattedMessage
                                     id='sidebar_right_menu.switch_team'
-                                    defaultMessage='Switch Team'
+                                    defaultMessage='Team Selection'
                                 />
                             </Link>
                         </li>

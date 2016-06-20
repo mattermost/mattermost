@@ -31,9 +31,7 @@ var CfgFileName string = ""
 var ClientCfg map[string]string = map[string]string{}
 
 func FindConfigFile(fileName string) string {
-	if _, err := os.Stat("/tmp/" + fileName); err == nil {
-		fileName, _ = filepath.Abs("/tmp/" + fileName)
-	} else if _, err := os.Stat("./config/" + fileName); err == nil {
+	if _, err := os.Stat("./config/" + fileName); err == nil {
 		fileName, _ = filepath.Abs("./config/" + fileName)
 	} else if _, err := os.Stat("../config/" + fileName); err == nil {
 		fileName, _ = filepath.Abs("../config/" + fileName)
@@ -50,8 +48,6 @@ func FindDir(dir string) string {
 		fileName, _ = filepath.Abs("./" + dir + "/")
 	} else if _, err := os.Stat("../" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("../" + dir + "/")
-	} else if _, err := os.Stat("/tmp/" + dir); err == nil {
-		fileName, _ = filepath.Abs("/tmp/" + dir)
 	}
 
 	return fileName + "/"
@@ -202,6 +198,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["BuildNumber"] = model.BuildNumber
 	props["BuildDate"] = model.BuildDate
 	props["BuildHash"] = model.BuildHash
+	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName
@@ -220,9 +217,11 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableOnlyAdminIntegrations"] = strconv.FormatBool(*c.ServiceSettings.EnableOnlyAdminIntegrations)
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostIconOverride)
+	props["EnableTesting"] = strconv.FormatBool(c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
+	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
@@ -248,7 +247,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 
-	props["AllowCorsFrom"] = *c.ServiceSettings.AllowCorsFrom
+	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
+	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {

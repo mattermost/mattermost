@@ -24,7 +24,7 @@ Get Involved:
 
 Learn More: 
 
-- **API Options** - Underestand API options via [webhooks, slash commands, drivers and RESTful Web Service](http://docs.mattermost.com/developer/api.html).
+- **API Options** - Understand API options via [webhooks, slash commands, drivers and RESTful Web Service](http://docs.mattermost.com/developer/api.html).
 - **Localization Guide** - Learn [how Mattermost supports different languages](http://docs.mattermost.com/developer/localization.html#translation-process). 
 
 Get the Latest News: 

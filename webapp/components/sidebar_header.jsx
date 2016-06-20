@@ -89,7 +89,7 @@ export default class SidebarHeader extends React.Component {
                             overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDisplayName}</Tooltip>}
                             ref='descriptionOverlay'
                         >
-                        <div className='team__name'>{this.props.teamDisplayName}</div>
+                            <div className='team__name'>{this.props.teamDisplayName}</div>
                         </OverlayTrigger>
                     </div>
                 </a>

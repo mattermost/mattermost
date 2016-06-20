@@ -160,6 +160,11 @@ class UserSettingsGeneralTab extends React.Component {
         const email = this.state.email.trim().toLowerCase();
         const confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
+        if (user.email === email) {
+            this.updateSection('');
+            return;
+        }
+
         const {formatMessage} = this.props.intl;
         if (email === '' || !Utils.isEmail(email)) {
             this.setState({emailError: formatMessage(holders.validEmail), clientError: '', serverError: ''});
@@ -168,11 +173,6 @@ class UserSettingsGeneralTab extends React.Component {
 
         if (email !== confirmEmail) {
             this.setState({emailError: formatMessage(holders.emailMatch), clientError: '', serverError: ''});
-            return;
-        }
-
-        if (user.email === email) {
-            this.updateSection('');
             return;
         }
 
@@ -342,7 +342,7 @@ class UserSettingsGeneralTab extends React.Component {
                             <div className='col-sm-7'>
                                 <input
                                     className='form-control'
-                                    type='text'
+                                    type='email'
                                     onChange={this.updateEmail}
                                     value={this.state.email}
                                 />
@@ -363,7 +363,7 @@ class UserSettingsGeneralTab extends React.Component {
                             <div className='col-sm-7'>
                                 <input
                                     className='form-control'
-                                    type='text'
+                                    type='email'
                                     onChange={this.updateConfirmEmail}
                                     value={this.state.confirmEmail}
                                 />
@@ -649,7 +649,7 @@ class UserSettingsGeneralTab extends React.Component {
         if (this.props.activeSection === 'nickname') {
             let extraInfo;
             let submit = null;
-            if (this.props.user.auth_service === 'ldap' && global.window.mm_config.NicknameAttributeSet) {
+            if (this.props.user.auth_service === 'ldap' && global.window.mm_config.NicknameAttributeSet === 'true') {
                 extraInfo = (
                     <span>
                         <FormattedMessage
@@ -681,6 +681,8 @@ class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateNickname}
                                 value={this.state.nickname}
+                                maxLength={Constants.MAX_NICKNAME_LENGTH}
+                                autoCapitalize='off'
                             />
                         </div>
                     </div>
@@ -764,6 +766,7 @@ class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateUsername}
                                 value={this.state.username}
+                                autoCapitalize='off'
                             />
                         </div>
                     </div>

@@ -2,7 +2,8 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'utils/web_client.jsx';
+
+import {switchFromLdapToEmail} from 'actions/user_actions.jsx';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -16,25 +17,26 @@ export default class LDAPToEmail extends React.Component {
 
         this.state = {};
     }
+
     submit(e) {
         e.preventDefault();
         var state = {};
 
-        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.password).value;
         if (!password) {
             state.error = Utils.localizeMessage('claim.ldap_to_email.pwdError', 'Please enter your password.');
             this.setState(state);
             return;
         }
 
-        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value.trim();
+        const confirmPassword = ReactDOM.findDOMNode(this.refs.passwordconfirm).value;
         if (!confirmPassword || password !== confirmPassword) {
             state.error = Utils.localizeMessage('claim.ldap_to_email.pwdNotMatch', 'Passwords do not match.');
             this.setState(state);
             return;
         }
 
-        const ldapPassword = ReactDOM.findDOMNode(this.refs.ldappassword).value.trim();
+        const ldapPassword = ReactDOM.findDOMNode(this.refs.ldappassword).value;
         if (!ldapPassword) {
             state.error = Utils.localizeMessage('claim.ldap_to_email.ldapPasswordError', 'Please enter your LDAP password.');
             this.setState(state);
@@ -44,20 +46,15 @@ export default class LDAPToEmail extends React.Component {
         state.error = null;
         this.setState(state);
 
-        Client.ldapToEmail(
+        switchFromLdapToEmail(
             this.props.email,
             password,
             ldapPassword,
-            (data) => {
-                if (data.follow_link) {
-                    window.location.href = data.follow_link;
-                }
-            },
-            (error) => {
-                this.setState({error});
-            }
+            null,
+            (err) => this.setState({error: err.message})
         );
     }
+
     render() {
         var error = null;
         if (this.state.error) {

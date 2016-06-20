@@ -29,6 +29,21 @@
         }
     }
 
+    .modal__hint {
+        @include opacity(.8);
+        display: block;
+        font-size: .9em;
+        margin: 0 0 10px;
+    }
+
+    .modal__error {
+        color: $red;
+        float: left;
+        font-size: .95em;
+        font-weight: normal;
+        margin-top: 6px;
+    }
+
     .more-table {
         margin: 0;
         table-layout: fixed;
@@ -448,7 +463,7 @@
             @include opacity(.8);
             float: right;
             margin-right: 3px;
-            margin-top: 12px;
+            margin-top: 8px;
         }
 
         .member-select__container {
@@ -459,7 +474,7 @@
             select {
                 @include opacity(.8);
                 float: right;
-                margin: 5px 5px 0 2px;
+                margin: 1px 5px 0 2px;
                 width: auto;
             }
         }

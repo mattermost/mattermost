@@ -203,6 +203,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 								handleResponse(c, w, response, channelId, cmd, false)
 							}
 						} else {
+							defer resp.Body.Close()
 							body, _ := ioutil.ReadAll(resp.Body)
 							c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": trigger, "Status": resp.Status}, string(body))
 						}
@@ -239,7 +240,7 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 		if len(cmd.IconURL) != 0 {
 			post.AddProp("override_icon_url", cmd.IconURL)
 		} else {
-			post.AddProp("override_icon_url", model.DEFAULT_WEBHOOK_ICON)
+			post.AddProp("override_icon_url", "")
 		}
 	}
 
@@ -287,6 +288,26 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd.CreatorId = c.Session.UserId
 	cmd.TeamId = c.TeamId
+
+	if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		teamCmds := result.Data.([]*model.Command)
+		for _, existingCommand := range teamCmds {
+			if cmd.Trigger == existingCommand.Trigger {
+				c.Err = model.NewLocAppError("createCommand", "api.command.duplicate_trigger.app_error", nil, "")
+				return
+			}
+		}
+		for _, builtInProvider := range commandProviders {
+			builtInCommand := *builtInProvider.GetCommand(c)
+			if cmd.Trigger == builtInCommand.Trigger {
+				c.Err = model.NewLocAppError("createCommand", "api.command.duplicate_trigger.app_error", nil, "")
+				return
+			}
+		}
+	}
 
 	if result := <-Srv.Store.Command().Save(cmd); result.Err != nil {
 		c.Err = result.Err

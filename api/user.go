@@ -6,15 +6,6 @@ package api
 import (
 	"bytes"
 	"fmt"
-	l4g "github.com/alecthomas/log4go"
-	"github.com/disintegration/imaging"
-	"github.com/golang/freetype"
-	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/einterfaces"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
-	"github.com/mssola/user_agent"
 	"hash/fnv"
 	"html/template"
 	"image"
@@ -30,6 +21,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
+	"github.com/golang/freetype"
+	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
+	"github.com/mssola/user_agent"
 )
 
 func InitUser() {
@@ -89,7 +90,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("h")
 	teamId := ""
 	var team *model.Team
-	sendWelcomeEmail := true
+	shouldSendWelcomeEmail := true
 	user.EmailVerified = false
 
 	if len(hash) > 0 {
@@ -119,7 +120,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		user.Email = props["email"]
 		user.EmailVerified = true
-		sendWelcomeEmail = false
+		shouldSendWelcomeEmail = false
 	}
 
 	inviteId := r.URL.Query().Get("iid")
@@ -169,11 +170,11 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		addDirectChannelsAndForget(team.Id, ruser)
+		go addDirectChannels(team.Id, ruser)
 	}
 
-	if sendWelcomeEmail {
-		sendWelcomeEmailAndForget(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
+	if shouldSendWelcomeEmail {
+		go sendWelcomeEmail(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
 	}
 
 	w.Write([]byte(ruser.ToJson()))
@@ -226,7 +227,7 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 
 	user.Roles = ""
 
-	// Below is a speical case where the first user in the entire
+	// Below is a special case where the first user in the entire
 	// system is granted the system_admin role instead of admin
 	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
 		return nil, result.Err
@@ -238,6 +239,7 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	user.MakeNonNil()
+	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		l4g.Error(utils.T("api.user.create_user.save.error"), result.Err)
@@ -259,7 +261,7 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		ruser.Sanitize(map[string]bool{})
 
 		// This message goes to every channel, so the channelId is irrelevant
-		PublishAndForget(model.NewMessage("", "", ruser.Id, model.ACTION_NEW_USER))
+		go Publish(model.NewMessage("", "", ruser.Id, model.ACTION_NEW_USER))
 
 		return ruser, nil
 	}
@@ -282,11 +284,6 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 
 	suchan := Srv.Store.User().GetByAuth(user.AuthData, service)
 	euchan := Srv.Store.User().GetByEmail(user.Email)
-
-	var tchan store.StoreChannel
-	if len(teamId) != 0 {
-		tchan = Srv.Store.Team().Get(teamId)
-	}
 
 	found := true
 	count := 0
@@ -317,20 +314,14 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 		return nil
 	}
 
-	if tchan != nil {
-		if result := <-tchan; result.Err != nil {
-			c.Err = result.Err
+	if len(teamId) > 0 {
+		err = JoinUserToTeamById(teamId, user)
+		if err != nil {
+			c.Err = err
 			return nil
-		} else {
-			team := result.Data.(*model.Team)
-			err = JoinUserToTeam(team, user)
-			if err != nil {
-				c.Err = err
-				return nil
-			}
-
-			addDirectChannelsAndForget(team.Id, user)
 		}
+
+		go addDirectChannels(teamId, user)
 	}
 
 	doLogin(c, w, r, ruser, "")
@@ -341,91 +332,83 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 	return ruser
 }
 
-func sendWelcomeEmailAndForget(c *Context, userId string, email string, siteURL string, verified bool) {
-	go func() {
+func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, verified bool) {
+	subjectPage := utils.NewHTMLTemplate("welcome_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"TeamDisplayName": siteURL})
 
-		subjectPage := utils.NewHTMLTemplate("welcome_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.welcome_subject", map[string]interface{}{"TeamDisplayName": siteURL})
+	bodyPage := utils.NewHTMLTemplate("welcome_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"TeamDisplayName": siteURL})
+	bodyPage.Props["Info"] = c.T("api.templates.welcome_body.info")
+	bodyPage.Props["Button"] = c.T("api.templates.welcome_body.button")
+	bodyPage.Props["Info2"] = c.T("api.templates.welcome_body.info2")
+	bodyPage.Props["Info3"] = c.T("api.templates.welcome_body.info3")
+	bodyPage.Props["TeamURL"] = siteURL
 
-		bodyPage := utils.NewHTMLTemplate("welcome_body", c.Locale)
-		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"TeamDisplayName": siteURL})
-		bodyPage.Props["Info"] = c.T("api.templates.welcome_body.info")
-		bodyPage.Props["Button"] = c.T("api.templates.welcome_body.button")
-		bodyPage.Props["Info2"] = c.T("api.templates.welcome_body.info2")
-		bodyPage.Props["Info3"] = c.T("api.templates.welcome_body.info3")
-		bodyPage.Props["TeamURL"] = siteURL
-
-		if !verified {
-			link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(email))
-			bodyPage.Props["VerifyUrl"] = link
-		}
-
-		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error(utils.T("api.user.send_welcome_email_and_forget.failed.error"), err)
-		}
-	}()
-}
-
-func addDirectChannelsAndForget(teamId string, user *model.User) {
-	go func() {
-		var profiles map[string]*model.User
-		if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
-			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
-			return
-		} else {
-			profiles = result.Data.(map[string]*model.User)
-		}
-
-		var preferences model.Preferences
-
-		for id := range profiles {
-			if id == user.Id {
-				continue
-			}
-
-			profile := profiles[id]
-
-			preference := model.Preference{
-				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-				Name:     profile.Id,
-				Value:    "true",
-			}
-
-			preferences = append(preferences, preference)
-
-			if len(preferences) >= 10 {
-				break
-			}
-		}
-
-		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
-			l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
-		}
-	}()
-}
-
-func SendVerifyEmailAndForget(c *Context, userId, userEmail, siteURL string) {
-	go func() {
-
-		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(userEmail))
-
-		subjectPage := utils.NewHTMLTemplate("verify_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.verify_subject",
-			map[string]interface{}{"TeamDisplayName": utils.ClientCfg["SiteName"], "SiteName": utils.ClientCfg["SiteName"]})
-
-		bodyPage := utils.NewHTMLTemplate("verify_body", c.Locale)
-		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Title"] = c.T("api.templates.verify_body.title", map[string]interface{}{"TeamDisplayName": utils.ClientCfg["SiteName"]})
-		bodyPage.Props["Info"] = c.T("api.templates.verify_body.info")
+	if !verified {
+		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(email))
 		bodyPage.Props["VerifyUrl"] = link
-		bodyPage.Props["Button"] = c.T("api.templates.verify_body.button")
+	}
 
-		if err := utils.SendMail(userEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error(utils.T("api.user.send_verify_email_and_forget.failed.error"), err)
+	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_welcome_email_and_forget.failed.error"), err)
+	}
+}
+
+func addDirectChannels(teamId string, user *model.User) {
+	var profiles map[string]*model.User
+	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
+		return
+	} else {
+		profiles = result.Data.(map[string]*model.User)
+	}
+
+	var preferences model.Preferences
+
+	for id := range profiles {
+		if id == user.Id {
+			continue
 		}
-	}()
+
+		profile := profiles[id]
+
+		preference := model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     profile.Id,
+			Value:    "true",
+		}
+
+		preferences = append(preferences, preference)
+
+		if len(preferences) >= 10 {
+			break
+		}
+	}
+
+	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
+	}
+}
+
+func SendVerifyEmail(c *Context, userId, userEmail, siteURL string) {
+	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(userEmail))
+
+	subjectPage := utils.NewHTMLTemplate("verify_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.verify_subject",
+		map[string]interface{}{"TeamDisplayName": utils.ClientCfg["SiteName"], "SiteName": utils.ClientCfg["SiteName"]})
+
+	bodyPage := utils.NewHTMLTemplate("verify_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = c.T("api.templates.verify_body.title", map[string]interface{}{"TeamDisplayName": utils.ClientCfg["SiteName"]})
+	bodyPage.Props["Info"] = c.T("api.templates.verify_body.info")
+	bodyPage.Props["VerifyUrl"] = link
+	bodyPage.Props["Button"] = c.T("api.templates.verify_body.button")
+
+	if err := utils.SendMail(userEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_verify_email_and_forget.failed.error"), err)
+	}
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -710,6 +693,7 @@ func RevokeSessionById(c *Context, sessionId string) {
 	}
 }
 
+// IF YOU UPDATE THIS PLEASE UPDATE BELOW
 func RevokeAllSession(c *Context, userId string) {
 	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
 		c.Err = result.Err
@@ -730,6 +714,28 @@ func RevokeAllSession(c *Context, userId string) {
 			}
 		}
 	}
+}
+
+// UGH...
+// If you update this please update above
+func RevokeAllSessionsNoContext(userId string) *model.AppError {
+	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+		return result.Err
+	} else {
+		sessions := result.Data.([]*model.Session)
+
+		for _, session := range sessions {
+			if session.IsOAuth {
+				RevokeAccessToken(session.Token)
+			} else {
+				sessionCache.Remove(session.Token)
+				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+					return result.Err
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -800,7 +806,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cchan store.StoreChannel
 
 	if sessionCache.Len() == 0 {
-		// Below is a speical case when intializating a new server
+		// Below is a special case when intializating a new server
 		// Lets check to make sure the server is really empty
 
 		cchan = Srv.Store.User().GetTotalUsersCount()
@@ -1184,13 +1190,13 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.ContentLength > model.MAX_FILE_SIZE {
+	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "")
 		c.Err.StatusCode = http.StatusRequestEntityTooLarge
 		return
 	}
 
-	if err := r.ParseMultipartForm(model.MAX_FILE_SIZE); err != nil {
+	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "")
 		return
 	}
@@ -1284,11 +1290,15 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		rusers := result.Data.([2]*model.User)
 
 		if rusers[0].Email != rusers[1].Email {
-			sendEmailChangeEmailAndForget(c, rusers[1].Email, rusers[0].Email, c.GetSiteURL())
+			go sendEmailChangeEmail(c, rusers[1].Email, rusers[0].Email, c.GetSiteURL())
 
 			if utils.Cfg.EmailSettings.RequireEmailVerification {
-				SendEmailChangeVerifyEmailAndForget(c, rusers[0].Id, rusers[0].Email, c.GetSiteURL())
+				go SendEmailChangeVerifyEmail(c, rusers[0].Id, rusers[0].Email, c.GetSiteURL())
 			}
+		}
+
+		if rusers[0].Username != rusers[1].Username {
+			go sendEmailChangeUsername(c, rusers[1].Username, rusers[0].Username, rusers[0].Email, c.GetSiteURL())
 		}
 
 		rusers[0].Password = ""
@@ -1360,7 +1370,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		c.LogAudit("completed")
 
-		sendPasswordChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.user.update_password.menu"))
+		go sendPasswordChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.user.update_password.menu"))
 
 		data := make(map[string]string)
 		data["user_id"] = uresult.Data.(string)
@@ -1762,74 +1772,81 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 		return result.Err
 	}
 
-	sendPasswordChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.user.reset_password.method"))
+	go sendPasswordChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.user.reset_password.method"))
 
 	return nil
 }
 
-func sendPasswordChangeEmailAndForget(c *Context, email, siteURL, method string) {
-	go func() {
+func sendPasswordChangeEmail(c *Context, email, siteURL, method string) {
+	subjectPage := utils.NewHTMLTemplate("password_change_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.password_change_subject",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "SiteName": utils.Cfg.TeamSettings.SiteName})
 
-		subjectPage := utils.NewHTMLTemplate("password_change_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.password_change_subject",
-			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "SiteName": utils.Cfg.TeamSettings.SiteName})
+	bodyPage := utils.NewHTMLTemplate("password_change_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = c.T("api.templates.password_change_body.title")
+	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.password_change_body.info",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "TeamURL": siteURL, "Method": method}))
 
-		bodyPage := utils.NewHTMLTemplate("password_change_body", c.Locale)
-		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Title"] = c.T("api.templates.password_change_body.title")
-		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.password_change_body.info",
-			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "TeamURL": siteURL, "Method": method}))
-
-		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error(utils.T("api.user.send_password_change_email_and_forget.error"), err)
-		}
-
-	}()
+	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_password_change_email_and_forget.error"), err)
+	}
 }
 
-func sendEmailChangeEmailAndForget(c *Context, oldEmail, newEmail, siteURL string) {
-	go func() {
+func sendEmailChangeEmail(c *Context, oldEmail, newEmail, siteURL string) {
+	subjectPage := utils.NewHTMLTemplate("email_change_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.email_change_subject",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
+	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
-		subjectPage := utils.NewHTMLTemplate("email_change_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.email_change_subject",
-			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
-		subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
+	bodyPage := utils.NewHTMLTemplate("email_change_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = c.T("api.templates.email_change_body.title")
+	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.email_change_body.info",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewEmail": newEmail}))
 
-		bodyPage := utils.NewHTMLTemplate("email_change_body", c.Locale)
-		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Title"] = c.T("api.templates.email_change_body.title")
-		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.email_change_body.info",
-			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewEmail": newEmail}))
-
-		if err := utils.SendMail(oldEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error(utils.T("api.user.send_email_change_email_and_forget.error"), err)
-		}
-
-	}()
+	if err := utils.SendMail(oldEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_email_change_email_and_forget.error"), err)
+	}
 }
 
-func SendEmailChangeVerifyEmailAndForget(c *Context, userId, newUserEmail, siteURL string) {
-	go func() {
+func SendEmailChangeVerifyEmail(c *Context, userId, newUserEmail, siteURL string) {
+	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(newUserEmail))
 
-		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId), url.QueryEscape(newUserEmail))
+	subjectPage := utils.NewHTMLTemplate("email_change_verify_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.email_change_verify_subject",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
+	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
 
-		subjectPage := utils.NewHTMLTemplate("email_change_verify_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.email_change_verify_subject",
-			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
-		subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
+	bodyPage := utils.NewHTMLTemplate("email_change_verify_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = c.T("api.templates.email_change_verify_body.title")
+	bodyPage.Props["Info"] = c.T("api.templates.email_change_verify_body.info",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
+	bodyPage.Props["VerifyUrl"] = link
+	bodyPage.Props["VerifyButton"] = c.T("api.templates.email_change_verify_body.button")
 
-		bodyPage := utils.NewHTMLTemplate("email_change_verify_body", c.Locale)
-		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Title"] = c.T("api.templates.email_change_verify_body.title")
-		bodyPage.Props["Info"] = c.T("api.templates.email_change_verify_body.info",
-			map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
-		bodyPage.Props["VerifyUrl"] = link
-		bodyPage.Props["VerifyButton"] = c.T("api.templates.email_change_verify_body.button")
+	if err := utils.SendMail(newUserEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_email_change_verify_email_and_forget.error"), err)
+	}
+}
 
-		if err := utils.SendMail(newUserEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error(utils.T("api.user.send_email_change_verify_email_and_forget.error"), err)
-		}
-	}()
+func sendEmailChangeUsername(c *Context, oldUsername, newUsername, email, siteURL string) {
+	subjectPage := utils.NewHTMLTemplate("username_change_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.username_change_subject",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
+	subjectPage.Props["SiteName"] = utils.Cfg.TeamSettings.SiteName
+
+	bodyPage := utils.NewHTMLTemplate("email_change_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = c.T("api.templates.username_change_body.title")
+	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.username_change_body.info",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewUsername": newUsername}))
+
+	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_email_change_username_and_forget.error"), err)
+	}
+
 }
 
 func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2029,7 +2046,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
+	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	RevokeAllSession(c, c.Session.UserId)
 	if c.Err != nil {
@@ -2105,7 +2122,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), "LDAP")
+	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), "LDAP")
 
 	m := map[string]string{}
 	m["follow_link"] = "/login?extra=signin_change"
@@ -2175,7 +2192,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendSignInChangeEmailAndForget(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
+	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
 
 	m := map[string]string{}
 	m["follow_link"] = "/login?extra=signin_change"
@@ -2184,24 +2201,20 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(m)))
 }
 
-func sendSignInChangeEmailAndForget(c *Context, email, siteURL, method string) {
-	go func() {
+func sendSignInChangeEmail(c *Context, email, siteURL, method string) {
+	subjectPage := utils.NewHTMLTemplate("signin_change_subject", c.Locale)
+	subjectPage.Props["Subject"] = c.T("api.templates.singin_change_email.subject",
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
 
-		subjectPage := utils.NewHTMLTemplate("signin_change_subject", c.Locale)
-		subjectPage.Props["Subject"] = c.T("api.templates.singin_change_email.subject",
-			map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+	bodyPage := utils.NewHTMLTemplate("signin_change_body", c.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = c.T("api.templates.signin_change_email.body.title")
+	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.singin_change_email.body.info",
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method}))
 
-		bodyPage := utils.NewHTMLTemplate("signin_change_body", c.Locale)
-		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Title"] = c.T("api.templates.signin_change_email.body.title")
-		bodyPage.Html["Info"] = template.HTML(c.T("api.templates.singin_change_email.body.info",
-			map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method}))
-
-		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-			l4g.Error(utils.T("api.user.send_sign_in_change_email_and_forget.error"), err)
-		}
-
-	}()
+	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+		l4g.Error(utils.T("api.user.send_sign_in_change_email_and_forget.error"), err)
+	}
 }
 
 func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2248,9 +2261,9 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		user := result.Data.(*model.User)
 
 		if user.LastActivityAt > 0 {
-			SendEmailChangeVerifyEmailAndForget(c, user.Id, user.Email, c.GetSiteURL())
+			go SendEmailChangeVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
 		} else {
-			SendVerifyEmailAndForget(c, user.Id, user.Email, c.GetSiteURL())
+			go SendVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
 		}
 	}
 }
@@ -2334,6 +2347,10 @@ func ActivateMfa(userId, token string) *model.AppError {
 		return result.Err
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	if len(user.AuthService) > 0 && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+		return model.NewLocAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "")
 	}
 
 	if err := mfaInterface.Activate(user, token); err != nil {

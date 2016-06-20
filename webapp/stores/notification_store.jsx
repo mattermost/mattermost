@@ -7,6 +7,7 @@ import Constants from 'utils/constants.jsx';
 import UserStore from './user_store.jsx';
 import ChannelStore from './channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
@@ -26,11 +27,16 @@ class NotificationStoreClass extends EventEmitter {
 
     handleRecievedPost(post, msgProps) {
         // Send desktop notification
-        if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true') && !Utils.isSystemMessage(post)) {
+        if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true')) {
+            if (PostUtils.isSystemMessage(post) && post.type !== 'system_join_leave') {
+                return;
+            }
+
             let mentions = [];
             if (msgProps.mentions) {
                 mentions = JSON.parse(msgProps.mentions);
             }
+            const teamId = msgProps.team_id;
 
             const channel = ChannelStore.get(post.channel_id);
             const user = UserStore.getCurrentUser();
@@ -50,6 +56,8 @@ class NotificationStoreClass extends EventEmitter {
             let username = Utils.localizeMessage('channel_loader.someone', 'Someone');
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 username = post.props.override_username;
+            } else if (msgProps.sender_name) {
+                username = msgProps.sender_name;
             } else if (UserStore.hasProfile(post.user_id)) {
                 username = UserStore.getProfile(post.user_id).username;
             }
@@ -57,6 +65,8 @@ class NotificationStoreClass extends EventEmitter {
             let title = Utils.localizeMessage('channel_loader.posted', 'Posted');
             if (channel) {
                 title = channel.display_name;
+            } else if (msgProps.channel_display_name) {
+                title = msgProps.channel_display_name;
             }
 
             let notifyText = post.message.replace(/\n+/g, ' ');
@@ -66,14 +76,14 @@ class NotificationStoreClass extends EventEmitter {
 
             if (notifyText.length === 0) {
                 if (msgProps.image) {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image'), channel);
+                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image'), channel, teamId);
                 } else if (msgProps.otherFile) {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file'), channel);
+                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file'), channel, teamId);
                 } else {
-                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.something', ' did something new'), channel);
+                    Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.something', ' did something new'), channel, teamId);
                 }
             } else {
-                Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.wrote', ' wrote: ') + notifyText, channel);
+                Utils.notifyMe(title, username + Utils.localizeMessage('channel_loader.wrote', ' wrote: ') + notifyText, channel, teamId);
             }
             if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
                 Utils.ding();

@@ -47,6 +47,7 @@ export default class ChannelHeader extends React.Component {
         this.searchMentions = this.searchMentions.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
+        this.openRecentMentions = this.openRecentMentions.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -82,6 +83,7 @@ export default class ChannelHeader extends React.Component {
         PreferenceStore.addChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
+        document.addEventListener('keydown', this.openRecentMentions);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
@@ -89,6 +91,7 @@ export default class ChannelHeader extends React.Component {
         SearchStore.removeSearchChangeListener(this.onListenerChange);
         PreferenceStore.removeChangeListener(this.onListenerChange);
         UserStore.removeChangeListener(this.onListenerChange);
+        document.removeEventListener('keydown', this.openRecentMentions);
     }
     onListenerChange() {
         const newState = this.getStateFromStores();
@@ -138,6 +141,12 @@ export default class ChannelHeader extends React.Component {
             do_search: true,
             is_mention_search: true
         });
+    }
+    openRecentMentions(e) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.keyCode === Constants.KeyCodes.M) {
+            e.preventDefault();
+            this.searchMentions(e);
+        }
     }
     showRenameChannelModal(e) {
         e.preventDefault();
@@ -409,7 +418,8 @@ export default class ChannelHeader extends React.Component {
                 }
             }
 
-            if (!ChannelStore.isDefault(channel)) {
+            const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
+            if (!ChannelStore.isDefault(channel) && canLeave) {
                 dropdownContents.push(
                     <li
                         key='leave_channel'
@@ -469,11 +479,11 @@ export default class ChannelHeader extends React.Component {
                                         overlay={popoverContent}
                                         ref='headerOverlay'
                                     >
-                                    <div
-                                        onClick={TextFormatting.handleClick}
-                                        className='description'
-                                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false})}}
-                                    />
+                                        <div
+                                            onClick={TextFormatting.handleClick}
+                                            className='description'
+                                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false})}}
+                                        />
                                     </OverlayTrigger>
                                 </div>
                             </th>

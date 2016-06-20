@@ -273,7 +273,6 @@ export default class ComplianceReports extends React.Component {
                         defaultMessage='Compliance Reports'
                     />
                 </h3>
-
                 <div className='row'>
                     <div className='col-sm-6 col-md-4 form-group'>
                         <label>

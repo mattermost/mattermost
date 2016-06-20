@@ -6,10 +6,12 @@ import UserProfile from './user_profile.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-import * as Utils from 'utils/utils.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
-import PostBodyAdditionalContent from './post_body_additional_content.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
+
+import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -30,6 +32,9 @@ export default class RhsRootPost extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
     shouldComponentUpdate(nextProps) {
+        if (nextProps.compactDisplay !== this.props.compactDisplay) {
+            return true;
+        }
         if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
@@ -39,8 +44,10 @@ export default class RhsRootPost extends React.Component {
     render() {
         const post = this.props.post;
         const user = this.props.user;
+        const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
         var isOwner = this.props.currentUser.id === post.user_id;
         var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
 
@@ -55,7 +62,7 @@ export default class RhsRootPost extends React.Component {
         }
 
         var systemMessageClass = '';
-        if (Utils.isSystemMessage(post)) {
+        if (PostUtils.isSystemMessage(post)) {
             systemMessageClass = 'post--system';
         }
 
@@ -94,7 +101,7 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        if (isOwner) {
+        if (isOwner && !isSystemMessage) {
             dropdownContents.push(
                 <li
                     key='rhs-root-edit'
@@ -168,6 +175,7 @@ export default class RhsRootPost extends React.Component {
                     filenames={post.filenames}
                     channelId={post.channel_id}
                     userId={post.user_id}
+                    compactDisplay={this.props.compactDisplay}
                 />
             );
         }
@@ -187,7 +195,7 @@ export default class RhsRootPost extends React.Component {
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
-        } else if (Utils.isSystemMessage(post)) {
+        } else if (PostUtils.isSystemMessage(post)) {
             userProfile = (
                 <UserProfile
                     user={{}}
@@ -198,17 +206,39 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        const profilePic = (
+        let profilePic = (
             <img
                 className='post-profile-img'
-                src={Utils.getProfilePicSrcForPost(post, timestamp)}
+                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 height='36'
                 width='36'
             />
         );
 
+        if (PostUtils.isSystemMessage(post)) {
+            profilePic = (
+                <span
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: mattermostLogo}}
+                />
+            );
+        }
+
+        let compactClass = '';
+        if (this.props.compactDisplay) {
+            compactClass = 'post--compact';
+        }
+
+        const messageWrapper = (
+            <div
+                ref='message_holder'
+                onClick={TextFormatting.handleClick}
+                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
+            />
+        );
+
         return (
-            <div className={'post post--root ' + userCss + ' ' + systemMessageClass}>
+            <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
                 <div className='post__content'>
                     <div className='post__img'>
@@ -238,13 +268,9 @@ export default class RhsRootPost extends React.Component {
                             </li>
                         </ul>
                         <div className='post__body'>
-                            <div
-                                ref='message_holder'
-                                onClick={TextFormatting.handleClick}
-                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
-                            />
                             <PostBodyAdditionalContent
                                 post={post}
+                                message={messageWrapper}
                             />
                             {fileAttachment}
                         </div>
@@ -262,5 +288,6 @@ RhsRootPost.propTypes = {
     post: React.PropTypes.object.isRequired,
     user: React.PropTypes.object.isRequired,
     currentUser: React.PropTypes.object.isRequired,
-    commentCount: React.PropTypes.number
+    commentCount: React.PropTypes.number,
+    compactDisplay: React.PropTypes.bool
 };

@@ -4,8 +4,14 @@
 package store
 
 import (
+	"database/sql"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+)
+
+const (
+	TEAM_MEMBER_EXISTS_ERROR = "store.sql_team.save_member.exists.app_error"
 )
 
 type SqlTeamStore struct {
@@ -370,8 +376,8 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(member); err != nil {
-			if IsUniqueConstraintError(err.Error(), []string{"TeamId", "teammembers_pkey"}) {
-				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.exists.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
+			if IsUniqueConstraintError(err.Error(), []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", TEAM_MEMBER_EXISTS_ERROR, nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
 			}
@@ -400,6 +406,31 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) StoreChannel {
 
 		if _, err := s.GetMaster().Update(member); err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.UpdateMember", "store.sql_team.save_member.save.app_error", nil, err.Error())
+		} else {
+			result.Data = member
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var member model.TeamMember
+		err := s.GetReplica().SelectOne(&member, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId AND UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
+			} else {
+				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
+			}
 		} else {
 			result.Data = member
 		}

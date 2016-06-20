@@ -30,6 +30,10 @@ function getNotificationsStateFromStores() {
     if (user.notify_props && user.notify_props.email) {
         email = user.notify_props.email;
     }
+    var push = 'mention';
+    if (user.notify_props && user.notify_props.push) {
+        push = user.notify_props.push;
+    }
 
     var usernameKey = false;
     var mentionKey = false;
@@ -72,9 +76,20 @@ function getNotificationsStateFromStores() {
         }
     }
 
-    return {notifyLevel: desktop, enableEmail: email, soundNeeded: soundNeeded, enableSound: sound,
-            usernameKey: usernameKey, mentionKey: mentionKey, customKeys: customKeys, customKeysChecked: customKeys.length > 0,
-            firstNameKey: firstNameKey, allKey: allKey, channelKey: channelKey};
+    return {
+        notifyLevel: desktop,
+        notifyPushLevel: push,
+        enableEmail: email,
+        soundNeeded,
+        enableSound: sound,
+        usernameKey,
+        mentionKey,
+        customKeys,
+        customKeysChecked: customKeys.length > 0,
+        firstNameKey,
+        allKey,
+        channelKey
+    };
 }
 
 const holders = defineMessages({
@@ -121,6 +136,7 @@ class NotificationsTab extends React.Component {
         this.updateChannelKey = this.updateChannelKey.bind(this);
         this.updateCustomMentionKeys = this.updateCustomMentionKeys.bind(this);
         this.onCustomChange = this.onCustomChange.bind(this);
+        this.createPushNotificationSection = this.createPushNotificationSection.bind(this);
 
         this.state = getNotificationsStateFromStores();
     }
@@ -130,6 +146,7 @@ class NotificationsTab extends React.Component {
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.enableSound;
         data.desktop = this.state.notifyLevel;
+        data.push = this.state.notifyPushLevel;
 
         var mentionKeys = [];
         if (this.state.usernameKey) {
@@ -150,13 +167,13 @@ class NotificationsTab extends React.Component {
         data.channel = this.state.channelKey.toString();
 
         Client.updateUserNotifyProps(data,
-            function success() {
+            () => {
                 this.props.updateSection('');
                 AsyncClient.getMe();
-            }.bind(this),
-            function failure(err) {
+            },
+            (err) => {
                 this.setState({serverError: err.message});
-            }.bind(this)
+            }
         );
     }
     handleCancel(e) {
@@ -185,15 +202,21 @@ class NotificationsTab extends React.Component {
         this.updateState();
     }
     handleNotifyRadio(notifyLevel) {
-        this.setState({notifyLevel: notifyLevel});
+        this.setState({notifyLevel});
         ReactDOM.findDOMNode(this.refs.wrapper).focus();
     }
+
+    handlePushRadio(notifyPushLevel) {
+        this.setState({notifyPushLevel});
+        ReactDOM.findDOMNode(this.refs.wrapper).focus();
+    }
+
     handleEmailRadio(enableEmail) {
-        this.setState({enableEmail: enableEmail});
+        this.setState({enableEmail});
         ReactDOM.findDOMNode(this.refs.wrapper).focus();
     }
     handleSoundRadio(enableSound) {
-        this.setState({enableSound: enableSound});
+        this.setState({enableSound});
         ReactDOM.findDOMNode(this.refs.wrapper).focus();
     }
     updateUsernameKey(val) {
@@ -227,12 +250,154 @@ class NotificationsTab extends React.Component {
         ReactDOM.findDOMNode(this.refs.customcheck).checked = true;
         this.updateCustomMentionKeys();
     }
+    createPushNotificationSection() {
+        var handleUpdateDesktopSection;
+        if (this.props.activeSection === 'push') {
+            var notifyActive = [false, false, false];
+            if (this.state.notifyPushLevel === 'all') {
+                notifyActive[0] = true;
+            } else if (this.state.notifyPushLevel === 'none') {
+                notifyActive[2] = true;
+            } else {
+                notifyActive[1] = true;
+            }
+
+            let inputs = [];
+            let extraInfo = null;
+            let submit = null;
+
+            if (global.window.mm_config.SendPushNotifications === 'true') {
+                inputs.push(
+                    <div key='userNotificationLevelOption'>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    type='radio'
+                                    name='pushNotificationLevel'
+                                    checked={notifyActive[0]}
+                                    onChange={this.handlePushRadio.bind(this, 'all')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.push_notification.allActivity'
+                                    defaultMessage='For all activity'
+                                />
+                            </label>
+                            <br/>
+                        </div>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    type='radio'
+                                    name='pushNotificationLevel'
+                                    checked={notifyActive[1]}
+                                    onChange={this.handlePushRadio.bind(this, 'mention')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.push_notification.onlyMentions'
+                                    defaultMessage='For mentions and direct messages'
+                                />
+                            </label>
+                            <br/>
+                        </div>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    type='radio'
+                                    name='pushNotificationLevel'
+                                    checked={notifyActive[2]}
+                                    onChange={this.handlePushRadio.bind(this, 'none')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.push_notification.off'
+                                    defaultMessage='Off'
+                                />
+                            </label>
+                        </div>
+                    </div>
+                );
+
+                extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.push_notification.info'
+                            defaultMessage='Notification alerts are pushed to your mobile device when there is activity in Mattermost.'
+                        />
+                    </span>
+                );
+
+                submit = this.handleSubmit;
+            } else {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <FormattedMessage
+                            id='user.settings.push_notification.disabled_long'
+                            defaultMessage='Push notifications for mobile devices have been disabled by your System Administrator.'
+                        />
+                    </div>
+                );
+            }
+
+            return (
+                <SettingItemMax
+                    title={Utils.localizeMessage('user.settings.notifications.push', 'Mobile push notifications')}
+                    extraInfo={extraInfo}
+                    inputs={inputs}
+                    submit={submit}
+                    server_error={this.state.serverError}
+                    updateSection={this.handleCancel}
+                />
+            );
+        }
+
+        let describe = '';
+        if (this.state.notifyPushLevel === 'all') {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.push_notification.allActivity'
+                    defaultMessage='For all activity'
+                />
+            );
+        } else if (this.state.notifyPushLevel === 'none') {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.push_notification.off'
+                    defaultMessage='Off'
+                />
+            );
+        } else if (global.window.mm_config.SendPushNotifications === 'false') {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.push_notification.disabled'
+                    defaultMessage='Disabled by system administrator'
+                />
+            );
+        } else {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.push_notification.onlyMentions'
+                    defaultMessage='For mentions and direct messages'
+                />
+            );
+        }
+
+        handleUpdateDesktopSection = function updateDesktopSection() {
+            this.props.updateSection('push');
+        }.bind(this);
+
+        return (
+            <SettingItemMin
+                title={Utils.localizeMessage('user.settings.notification.push', 'Mobile push notifications')}
+                describe={describe}
+                updateSection={handleUpdateDesktopSection}
+            />
+        );
+    }
     render() {
         const {formatMessage} = this.props.intl;
-        var serverError = null;
-        if (this.state.serverError) {
-            serverError = this.state.serverError;
-        }
+        const serverError = this.state.serverError;
 
         var user = this.props.user;
 
@@ -254,7 +419,9 @@ class NotificationsTab extends React.Component {
                 <div key='userNotificationLevelOption'>
                     <div className='radio'>
                         <label>
-                            <input type='radio'
+                            <input
+                                type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[0]}
                                 onChange={this.handleNotifyRadio.bind(this, 'all')}
                             />
@@ -269,6 +436,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[1]}
                                 onChange={this.handleNotifyRadio.bind(this, 'mention')}
                             />
@@ -283,6 +451,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='desktopNotificationLevel'
                                 checked={notifyActive[2]}
                                 onChange={this.handleNotifyRadio.bind(this, 'none')}
                             />
@@ -370,6 +539,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='notificationSounds'
                                 checked={soundActive[0]}
                                 onChange={this.handleSoundRadio.bind(this, 'true')}
                             />
@@ -384,6 +554,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='notificationSounds'
                                 checked={soundActive[1]}
                                 onChange={this.handleSoundRadio.bind(this, 'false')}
                             />
@@ -393,8 +564,8 @@ class NotificationsTab extends React.Component {
                             />
                         </label>
                         <br/>
-                     </div>
-                 </div>
+                    </div>
+                </div>
             );
 
             const extraInfo = (
@@ -473,6 +644,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='emailNotifications'
                                 checked={emailActive[0]}
                                 onChange={this.handleEmailRadio.bind(this, 'true')}
                             />
@@ -487,6 +659,7 @@ class NotificationsTab extends React.Component {
                         <label>
                             <input
                                 type='radio'
+                                name='emailNotifications'
                                 checked={emailActive[1]}
                                 onChange={this.handleEmailRadio.bind(this, 'false')}
                             />
@@ -669,7 +842,7 @@ class NotificationsTab extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.channelWide'
-                                defaultMessage='Channel-wide mentions "@channel"'
+                                defaultMessage='Channel-wide mentions "@channel", "@all"'
                             />
                         </label>
                     </div>
@@ -723,12 +896,9 @@ class NotificationsTab extends React.Component {
                 keys.push('@' + user.username);
             }
 
-            // if (this.state.allKey) {
-            //     keys.push('@all');
-            // }
-
             if (this.state.channelKey) {
                 keys.push('@channel');
+                keys.push('@all');
             }
             if (this.state.customKeys.length > 0) {
                 keys = keys.concat(this.state.customKeys.split(','));
@@ -736,7 +906,9 @@ class NotificationsTab extends React.Component {
 
             let describe = '';
             for (var i = 0; i < keys.length; i++) {
-                describe += '"' + keys[i] + '", ';
+                if (keys[i] !== '') {
+                    describe += '"' + keys[i] + '", ';
+                }
             }
 
             if (describe.length > 0) {
@@ -762,6 +934,8 @@ class NotificationsTab extends React.Component {
                 />
             );
         }
+
+        const pushNotificationSection = this.createPushNotificationSection();
 
         return (
             <div>
@@ -807,6 +981,8 @@ class NotificationsTab extends React.Component {
                     {soundSection}
                     <div className='divider-light'/>
                     {emailSection}
+                    <div className='divider-light'/>
+                    {pushNotificationSection}
                     <div className='divider-light'/>
                     {keysSection}
                     <div className='divider-dark'/>

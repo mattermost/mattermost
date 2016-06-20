@@ -258,6 +258,10 @@ body.ios {
         position: absolute;
         width: 100%;
 
+        .modal-open & {
+            @include clearfix;
+        }
+
         &.active {
             display: inline;
         }
@@ -417,7 +421,8 @@ body.ios {
     .post-create-footer {
         @include clearfix;
         font-size: 13px;
-        padding: 3px 0 0 0;
+        padding: 3px 0 0;
+
         .control-label {
             font-weight: normal;
             margin-bottom: 0;
@@ -482,6 +487,121 @@ body.ios {
         background-color: beige;
     }
 
+    &.post--compact {
+        &.post--thread {
+            .post__header {
+                height: 22px;
+                padding-top: 3px;
+            }
+        }
+
+        blockquote {
+            display: inline-block;
+            font-size: 1em;
+            margin-left: 0;
+            padding: 3px 0 0 25px;
+            vertical-align: top;
+
+            &:before {
+                font-size: 15px;
+                left: 4px;
+                top: 2px;
+            }
+        }
+
+        .markdown__heading {
+            font-size: 1em;
+            margin: 0 0 7px;
+        }
+
+        .post__body {
+            background: transparent !important;
+            line-height: 1.6;
+            margin-top: -1px;
+            padding: 3px 0;
+
+            .img-div {
+                max-height: 150px;
+                max-width: 150px;
+            }
+
+            p {
+                line-height: inherit;
+            }
+
+            p + p {
+                margin-top: 1em;
+            }
+
+            ol,
+            ul {
+                display: inline-block;
+                margin-top: 1px;
+                padding-left: 30px;
+            }
+        }
+
+        .post-image__columns {
+            clear: both;
+        }
+
+        .post-image__column {
+            @include border-radius(2px);
+            font-size: .9em;
+            height: 26px;
+            line-height: 25px;
+            padding: 0 7px;
+            width: auto;
+
+            .post-image__thumbnail {
+                display: none;
+            }
+
+            .post-image__details {
+                background: transparent;
+                border: none;
+                padding: 0;
+                width: 100%;
+
+                > div {
+                    display: none;
+                }
+            }
+
+            .post-image__name {
+                @include clearfix;
+                display: block;
+                margin: 0;
+                padding-right: 10px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
+                i {
+                    font-size: .9em;
+                    margin-right: 5px;
+                    opacity: .5;
+                }
+            }
+
+            a {
+                &:hover {
+                    text-decoration: none;
+                }
+            }
+        }
+
+        .post__img {
+            padding-top: 3px;
+            width: 27px;
+
+            img,
+            svg {
+                height: 20px;
+                width: 20px;
+            }
+        }
+    }
+
     p {
         font-size: .97em;
         line-height: 1.6em;
@@ -511,8 +631,8 @@ body.ios {
 
     &.post--comment {
         .post__body {
-            padding-left: 7px;
             border-left: 4px solid $gray;
+            padding-left: 7px;
         }
     }
 
@@ -520,9 +640,42 @@ body.ios {
         &.same--user {
             padding: 0 .5em 0 1em;
 
+            &.post--system {
+                padding: 8px .5em 0 1em;
+
+                .post__header {
+                    height: auto;
+                    margin-bottom: 2px;
+
+                    .col__name {
+                        display: inline-block;
+                    }
+
+                    .col__reply {
+
+                    }
+                }
+
+                .post__time {
+                    @include opacity(.6);
+                    font-size: .9em;
+                    left: inherit;
+                    line-height: inherit;
+                    position: inherit;
+                    text-rendering: inherit;
+                    top: inherit;
+                }
+            }
+
             &:hover {
                 .post__time {
                     @include opacity(.5);
+                }
+            }
+
+            .post__img {
+                img {
+                    display: none;
                 }
             }
 
@@ -545,9 +698,11 @@ body.ios {
                 display: none;
             }
 
-            .post__img {
-                img {
-                    display: none;
+            &.same--user {
+                .post__img {
+                    img {
+                        display: none;
+                    }
                 }
             }
         }
@@ -620,7 +775,7 @@ body.ios {
 
         .col__reply {
             position: absolute;
-            right: 10px;
+            right: 0;
             top: 30px;
             white-space: nowrap;
             width: 65px;
@@ -644,11 +799,11 @@ body.ios {
     }
 
     .post__img {
-        width: 46px;
+        width: 42px;
 
         svg {
-            height: 36px;
-            width: 36px;
+            height: 32px;
+            width: 32px;
         }
 
         path {
@@ -657,9 +812,9 @@ body.ios {
 
         img {
             @include border-radius(50px);
-            height: 36px;
+            height: 32px;
             vertical-align: inherit;
-            width: 36px;
+            width: 32px;
         }
     }
 
@@ -731,6 +886,7 @@ body.ios {
         padding: .2em .5em;
         width: calc(100% - 75px);
         word-wrap: break-word;
+        position: relative;
 
         p {
             margin: 0 0 .4em;
@@ -796,6 +952,20 @@ body.ios {
                 margin-right: 8px;
             }
         }
+
+        .pending-post-actions {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 5px 7px;
+            background: rgba(0, 0, 0, .7);
+            color: white;
+            font-size: .9em;
+
+            a {
+                color: white;
+            }
+        }
     }
 
     .post__link {
@@ -816,8 +986,12 @@ body.ios {
         cursor: pointer;
         display: inline-block;
         font: normal normal normal 14px/1 FontAwesome;
-        margin: 5px 0 10px;
+        margin: 0 0 10px;
         text-rendering: auto;
+
+        &.pull-left{
+            margin: 5px 5px 0 0;
+        }
 
         &:hover {
             text-decoration: none;
@@ -943,102 +1117,6 @@ body.ios {
     font-weight: 600;
     margin: 0 0 0 -4px;
     padding: 2px 4px;
-}
-
-.attachment {
-    .attachment__content {
-        border-radius: 4px;
-        border-style: solid;
-        border-width: 1px;
-        margin: 0 0 5px 0;
-        padding: 2px 5px;
-    }
-
-    .attachment__thumb-pretext {
-        background: transparent;
-        border: none;
-        margin-left: 5px;
-    }
-
-    .attachment__container {
-        border-left-style: solid;
-        border-left-width: 4px;
-        padding: 2px 0 2px 10px;
-
-        &.attachment__container--good {
-            border-left-color: #00c100;
-        }
-
-        &.attachment__container--warning {
-            border-left-color: #dede01;
-        }
-
-        &.attachment__container--danger {
-            border-left-color: #e40303;
-        }
-    }
-
-    .attachment__body {
-        float: left;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-right: 5px;
-        width: 80%;
-
-        &.attachment__body--no_thumb {
-            width: 100%;
-        }
-    }
-
-    .attachment__text p:last-of-type {
-        display: inline-block;
-    }
-
-    .attachment__title {
-        font-size: 16px;
-        height: 22px;
-        line-height: 16px;
-        margin: 5px 0;
-        padding: 0;
-
-        a {
-            font-size: 16px;
-        }
-    }
-
-    .attachment__author-icon {
-        @include border-radius(50px);
-        height: 14px;
-        margin-right: 5px;
-        width: 14px;
-    }
-
-    .attachment__image {
-        margin-bottom: 1em;
-        max-width: 100%;
-    }
-
-    .attachment__thumb-container {
-        float: right;
-        width: 20%;
-
-        img {
-            max-height: 75px;
-            max-width: 100%;
-        }
-    }
-
-    .attachment___fields {
-        width: 100%;
-
-        .attachment___field-caption {
-            font-weight: 700;
-        }
-
-        .attachment___field p {
-            margin: 0;
-        }
-    }
 }
 
 .permalink-text {

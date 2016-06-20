@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -39,7 +40,7 @@ func InitTeam() {
 
 	BaseRoutes.NeedTeam.Handle("/add_user_to_team", ApiUserRequired(addUserToTeam)).Methods("POST")
 
-	// These should be moved to the global admain console
+	// These should be moved to the global admin console
 	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequired(addUserToTeamFromInvite)).Methods("POST")
 }
@@ -247,6 +248,14 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 	}
 }
 
+func JoinUserToTeamById(teamId string, user *model.User) *model.AppError {
+	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+		return result.Err
+	} else {
+		return JoinUserToTeam(result.Data.(*model.Team), user)
+	}
+}
+
 func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
 	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id}
@@ -258,6 +267,9 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	}
 
 	if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
+		if tmr.Err.Id == store.TEAM_MEMBER_EXISTS_ERROR {
+			return nil
+		}
 		return tmr.Err
 	}
 
@@ -274,7 +286,7 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 	InvalidateCacheForUser(user.Id)
 
 	// This message goes to every channel, so the channelId is irrelevant
-	PublishAndForget(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
+	go Publish(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
 
 	return nil
 }
@@ -399,12 +411,12 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
-	ia := make([]string, len(invites.Invites))
+	emailList := make([]string, len(invites.Invites))
 	for _, invite := range invites.Invites {
-		ia = append(ia, invite["email"])
+		emailList = append(emailList, invite["email"])
 	}
 
-	InviteMembers(c, team, user, ia)
+	InviteMembers(c, team, user, emailList)
 
 	w.Write([]byte(invites.ToJson()))
 }

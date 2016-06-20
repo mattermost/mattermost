@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const (
@@ -34,6 +35,15 @@ const (
 
 	FAKE_SETTING = "********************************"
 )
+
+// should match the values in webapp/i18n/i18n.jsx
+var LOCALES = []string{
+	"en",
+	"es",
+	"fr",
+	"ja",
+	"pt-BR",
+}
 
 type ServiceSettings struct {
 	ListenAddress                     string
@@ -92,6 +102,7 @@ type LogSettings struct {
 }
 
 type FileSettings struct {
+	MaxFileSize                *int64
 	DriverName                 string
 	Directory                  string
 	EnablePublicLink           bool
@@ -189,6 +200,9 @@ type LdapSettings struct {
 	NicknameAttribute  *string
 	IdAttribute        *string
 
+	// Syncronization
+	SyncIntervalMinutes *int
+
 	// Advanced
 	SkipCertificateVerification *bool
 	QueryTimeout                *int
@@ -203,20 +217,27 @@ type ComplianceSettings struct {
 	EnableDaily *bool
 }
 
+type LocalizationSettings struct {
+	DefaultServerLocale *string
+	DefaultClientLocale *string
+	AvailableLocales    *string
+}
+
 type Config struct {
-	ServiceSettings    ServiceSettings
-	TeamSettings       TeamSettings
-	SqlSettings        SqlSettings
-	LogSettings        LogSettings
-	FileSettings       FileSettings
-	EmailSettings      EmailSettings
-	RateLimitSettings  RateLimitSettings
-	PrivacySettings    PrivacySettings
-	SupportSettings    SupportSettings
-	GitLabSettings     SSOSettings
-	GoogleSettings     SSOSettings
-	LdapSettings       LdapSettings
-	ComplianceSettings ComplianceSettings
+	ServiceSettings      ServiceSettings
+	TeamSettings         TeamSettings
+	SqlSettings          SqlSettings
+	LogSettings          LogSettings
+	FileSettings         FileSettings
+	EmailSettings        EmailSettings
+	RateLimitSettings    RateLimitSettings
+	PrivacySettings      PrivacySettings
+	SupportSettings      SupportSettings
+	GitLabSettings       SSOSettings
+	GoogleSettings       SSOSettings
+	LdapSettings         LdapSettings
+	ComplianceSettings   ComplianceSettings
+	LocalizationSettings LocalizationSettings
 }
 
 func (o *Config) ToJson() string {
@@ -254,6 +275,11 @@ func (o *Config) SetDefaults() {
 
 	if len(o.SqlSettings.AtRestEncryptKey) == 0 {
 		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
+	}
+
+	if o.FileSettings.MaxFileSize == nil {
+		o.FileSettings.MaxFileSize = new(int64)
+		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
 	}
 
 	if len(o.FileSettings.PublicLinkSalt) == 0 {
@@ -403,24 +429,84 @@ func (o *Config) SetDefaults() {
 		*o.SupportSettings.SupportEmail = "feedback@mattermost.com"
 	}
 
-	if o.LdapSettings.LdapPort == nil {
-		o.LdapSettings.LdapPort = new(int)
-		*o.LdapSettings.LdapPort = 389
-	}
-
-	if o.LdapSettings.QueryTimeout == nil {
-		o.LdapSettings.QueryTimeout = new(int)
-		*o.LdapSettings.QueryTimeout = 60
-	}
-
 	if o.LdapSettings.Enable == nil {
 		o.LdapSettings.Enable = new(bool)
 		*o.LdapSettings.Enable = false
 	}
 
+	if o.LdapSettings.LdapServer == nil {
+		o.LdapSettings.LdapServer = new(string)
+		*o.LdapSettings.LdapServer = ""
+	}
+
+	if o.LdapSettings.LdapPort == nil {
+		o.LdapSettings.LdapPort = new(int)
+		*o.LdapSettings.LdapPort = 389
+	}
+
+	if o.LdapSettings.ConnectionSecurity == nil {
+		o.LdapSettings.ConnectionSecurity = new(string)
+		*o.LdapSettings.ConnectionSecurity = ""
+	}
+
+	if o.LdapSettings.BaseDN == nil {
+		o.LdapSettings.BaseDN = new(string)
+		*o.LdapSettings.BaseDN = ""
+	}
+
+	if o.LdapSettings.BindUsername == nil {
+		o.LdapSettings.BindUsername = new(string)
+		*o.LdapSettings.BindUsername = ""
+	}
+
+	if o.LdapSettings.BindPassword == nil {
+		o.LdapSettings.BindPassword = new(string)
+		*o.LdapSettings.BindPassword = ""
+	}
+
 	if o.LdapSettings.UserFilter == nil {
 		o.LdapSettings.UserFilter = new(string)
 		*o.LdapSettings.UserFilter = ""
+	}
+
+	if o.LdapSettings.FirstNameAttribute == nil {
+		o.LdapSettings.FirstNameAttribute = new(string)
+		*o.LdapSettings.FirstNameAttribute = ""
+	}
+
+	if o.LdapSettings.LastNameAttribute == nil {
+		o.LdapSettings.LastNameAttribute = new(string)
+		*o.LdapSettings.LastNameAttribute = ""
+	}
+
+	if o.LdapSettings.EmailAttribute == nil {
+		o.LdapSettings.EmailAttribute = new(string)
+		*o.LdapSettings.EmailAttribute = ""
+	}
+
+	if o.LdapSettings.NicknameAttribute == nil {
+		o.LdapSettings.NicknameAttribute = new(string)
+		*o.LdapSettings.NicknameAttribute = ""
+	}
+
+	if o.LdapSettings.IdAttribute == nil {
+		o.LdapSettings.IdAttribute = new(string)
+		*o.LdapSettings.IdAttribute = ""
+	}
+
+	if o.LdapSettings.SyncIntervalMinutes == nil {
+		o.LdapSettings.SyncIntervalMinutes = new(int)
+		*o.LdapSettings.SyncIntervalMinutes = 60
+	}
+
+	if o.LdapSettings.SkipCertificateVerification == nil {
+		o.LdapSettings.SkipCertificateVerification = new(bool)
+		*o.LdapSettings.SkipCertificateVerification = false
+	}
+
+	if o.LdapSettings.QueryTimeout == nil {
+		o.LdapSettings.QueryTimeout = new(int)
+		*o.LdapSettings.QueryTimeout = 60
 	}
 
 	if o.LdapSettings.LoginFieldName == nil {
@@ -493,19 +579,19 @@ func (o *Config) SetDefaults() {
 		*o.ComplianceSettings.EnableDaily = false
 	}
 
-	if o.LdapSettings.ConnectionSecurity == nil {
-		o.LdapSettings.ConnectionSecurity = new(string)
-		*o.LdapSettings.ConnectionSecurity = ""
+	if o.LocalizationSettings.DefaultServerLocale == nil {
+		o.LocalizationSettings.DefaultServerLocale = new(string)
+		*o.LocalizationSettings.DefaultServerLocale = DEFAULT_LOCALE
 	}
 
-	if o.LdapSettings.SkipCertificateVerification == nil {
-		o.LdapSettings.SkipCertificateVerification = new(bool)
-		*o.LdapSettings.SkipCertificateVerification = false
+	if o.LocalizationSettings.DefaultClientLocale == nil {
+		o.LocalizationSettings.DefaultClientLocale = new(string)
+		*o.LocalizationSettings.DefaultClientLocale = DEFAULT_LOCALE
 	}
 
-	if o.LdapSettings.NicknameAttribute == nil {
-		o.LdapSettings.NicknameAttribute = new(string)
-		*o.LdapSettings.NicknameAttribute = ""
+	if o.LocalizationSettings.AvailableLocales == nil {
+		o.LocalizationSettings.AvailableLocales = new(string)
+		*o.LocalizationSettings.AvailableLocales = strings.Join(LOCALES, ",")
 	}
 }
 
@@ -545,6 +631,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.SqlSettings.MaxOpenConns <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "")
+	}
+
+	if *o.FileSettings.MaxFileSize <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "")
 	}
 
 	if !(o.FileSettings.DriverName == IMAGE_DRIVER_LOCAL || o.FileSettings.DriverName == IMAGE_DRIVER_S3) {
@@ -601,6 +691,10 @@ func (o *Config) IsValid() *AppError {
 
 	if !(*o.LdapSettings.ConnectionSecurity == CONN_SECURITY_NONE || *o.LdapSettings.ConnectionSecurity == CONN_SECURITY_TLS || *o.LdapSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "")
+	}
+
+	if *o.LdapSettings.SyncIntervalMinutes <= 0 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_sync_interval.app_error", nil, "")
 	}
 
 	return nil

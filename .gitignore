@@ -69,6 +69,11 @@ web/sass-files/sass/.sass-cache/
 data/*
 api/data/*
 
+enterprise
+
+cover.out
+ecover.out
+
 .agignore
 .ctags
 tags

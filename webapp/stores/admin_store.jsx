@@ -22,7 +22,7 @@ class AdminStoreClass extends EventEmitter {
         this.logs = null;
         this.audits = null;
         this.config = null;
-        this.teams = null;
+        this.teams = {};
         this.complianceReports = null;
     }
 
@@ -124,6 +124,10 @@ class AdminStoreClass extends EventEmitter {
 
     saveAllTeams(teams) {
         this.teams = teams;
+    }
+
+    getTeam(id) {
+        return this.teams[id];
     }
 
     getSelectedTeams() {

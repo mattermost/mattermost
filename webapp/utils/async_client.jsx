@@ -3,7 +3,7 @@
 
 import $ from 'jquery';
 import Client from './web_client.jsx';
-import * as GlobalActions from 'action_creators/global_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
@@ -47,7 +47,21 @@ function isCallInProgress(callName) {
     return true;
 }
 
-export function getChannels(checkVersion) {
+export function checkVersion() {
+    var serverVersion = Client.getServerVersion();
+
+    if (serverVersion !== BrowserStore.getLastServerVersion()) {
+        if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
+            BrowserStore.setLastServerVersion(serverVersion);
+        } else {
+            BrowserStore.setLastServerVersion(serverVersion);
+            window.location.reload(true);
+            console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+        }
+    }
+}
+
+export function getChannels(doVersionCheck) {
     if (isCallInProgress('getChannels')) {
         return null;
     }
@@ -58,18 +72,8 @@ export function getChannels(checkVersion) {
         (data) => {
             callTracker.getChannels = 0;
 
-            if (checkVersion) {
-                var serverVersion = Client.getServerVersion();
-
-                if (serverVersion !== BrowserStore.getLastServerVersion()) {
-                    if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
-                        BrowserStore.setLastServerVersion(serverVersion);
-                    } else {
-                        BrowserStore.setLastServerVersion(serverVersion);
-                        window.location.reload(true);
-                        console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
-                    }
-                }
+            if (doVersionCheck) {
+                checkVersion();
             }
 
             AppDispatcher.handleServerAction({
@@ -599,7 +603,7 @@ export function getPosts(id) {
     );
 }
 
-export function getPostsBefore(postId, offset, numPost) {
+export function getPostsBefore(postId, offset, numPost, isPost) {
     const channelId = ChannelStore.getCurrentId();
     if (channelId == null) {
         return;
@@ -620,7 +624,8 @@ export function getPostsBefore(postId, offset, numPost) {
                 id: channelId,
                 before: true,
                 numRequested: numPost,
-                post_list: data
+                post_list: data,
+                isPost
             });
 
             getProfiles();
@@ -634,7 +639,7 @@ export function getPostsBefore(postId, offset, numPost) {
     );
 }
 
-export function getPostsAfter(postId, offset, numPost) {
+export function getPostsAfter(postId, offset, numPost, isPost) {
     const channelId = ChannelStore.getCurrentId();
     if (channelId == null) {
         return;
@@ -655,7 +660,8 @@ export function getPostsAfter(postId, offset, numPost) {
                 id: channelId,
                 before: false,
                 numRequested: numPost,
-                post_list: data
+                post_list: data,
+                isPost
             });
 
             getProfiles();
