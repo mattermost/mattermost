@@ -42,7 +42,7 @@ const holders = defineMessages({
     },
     openInviteTitle: {
         id: 'general_tab.openInviteTitle',
-        defaultMessage: 'Allow anyone to join this team'
+        defaultMessage: 'Allow any authenticated user to join this team'
     },
     codeTitle: {
         id: 'general_tab.codeTitle',
