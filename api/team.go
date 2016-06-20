@@ -300,6 +300,13 @@ func isTeamCreationAllowed(c *Context, email string) bool {
 		return false
 	}
 
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err == nil {
+		user := result.Data.(*model.User)
+		if len(user.AuthService) > 0 && len(*user.AuthData) > 0 {
+			return true
+		}
+	}
+
 	// commas and @ signs are optional
 	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
 	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(utils.Cfg.TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
