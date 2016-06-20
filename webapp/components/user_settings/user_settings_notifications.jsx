@@ -156,7 +156,6 @@ class NotificationsTab extends React.Component {
 
         data.mention_keys = stringKeys;
         data.first_name = this.state.firstNameKey.toString();
-        data.all = this.state.allKey.toString();
         data.channel = this.state.channelKey.toString();
 
         Client.updateUserNotifyProps(data,
