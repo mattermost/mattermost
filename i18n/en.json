@@ -2256,10 +2256,6 @@
     "translation": "Failed to get system admins for security update information from Mattermost."
   },
   {
-    "id": "mattermost.unable_to_load_config",
-    "translation": "Unable to load mattermost configuration file:"
-  },
-  {
     "id": "mattermost.working_dir",
     "translation": "Current working directory is %v"
   },
