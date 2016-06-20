@@ -371,7 +371,7 @@ class GeneralTab extends React.Component {
                                 >
                                     <FormattedMessage
                                         id='general_tab.regenerate'
-                                        defaultMessage='Re-Generate'
+                                        defaultMessage='Regenerate'
                                     />
                                 </a>
                             </div>
