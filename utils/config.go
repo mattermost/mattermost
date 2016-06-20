@@ -253,6 +253,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
 	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
 
+	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
+
 	if IsLicensed {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)

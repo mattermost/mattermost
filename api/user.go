@@ -29,6 +29,7 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/twilio/accesstoken"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
 )
@@ -57,6 +58,8 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/direct_profiles", ApiUserRequired(getDirectProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
+
+	BaseRoutes.Users.Handle("/twilio_token", ApiUserRequired(twilioToken)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
@@ -2416,4 +2419,36 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		rdata["mfa_required"] = strconv.FormatBool(result.Data.(*model.User).MfaActive)
 	}
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func twilioToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.WebrtcSettings.Enable {
+		c.Err = model.NewLocAppError("twilioToken", "api.user.webrtc.disabled.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	// Create an Access Token
+	myToken := accesstoken.New(*utils.Cfg.WebrtcSettings.TwilioAccountSid,
+		*utils.Cfg.WebrtcSettings.TwilioApiKey, *utils.Cfg.WebrtcSettings.TwilioApiSecret)
+
+	myToken.Identity = c.Session.UserId
+
+	grant := accesstoken.NewConversationsGrant(*utils.Cfg.WebrtcSettings.TwilioConfigurationProfileSid)
+	myToken.AddGrant(grant)
+
+	signedJWT, err := myToken.ToJWT(accesstoken.DefaultAlgorithm)
+
+	if err != nil {
+		c.Err = model.NewLocAppError("twilioToken", "api.user.twilio_token.signed.app_error", nil, err.Error())
+		return
+	}
+
+	result := make(map[string]string)
+	result["identity"] = c.Session.UserId
+	result["token"] = signedJWT
+
+	w.Write([]byte(model.MapToJson(result)))
 }

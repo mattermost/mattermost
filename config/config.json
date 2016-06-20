@@ -165,5 +165,12 @@
         "DefaultServerLocale": "en",
         "DefaultClientLocale": "en",
         "AvailableLocales": ""
+    },
+    "WebrtcSettings": {
+        "Enable": false,
+        "TwilioAccountSid": "",
+        "TwilioApiKey": "",
+        "TwilioApiSecret": "",
+        "TwilioConfigurationProfileSid": ""
     }
 }

@@ -107,6 +107,9 @@ function handleMessage(msg) {
     // Let the store know we are online. This probably shouldn't be here.
     UserStore.setStatus(msg.user_id, 'online');
 
+    const userId = UserStore.getCurrentId();
+    const props = msg.props;
+
     switch (msg.action) {
     case SocketEvents.POSTED:
     case SocketEvents.EPHEMERAL_MESSAGE:
@@ -151,6 +154,54 @@ function handleMessage(msg) {
 
     case SocketEvents.TYPING:
         handleUserTypingEvent(msg);
+        break;
+
+    case SocketEvents.START_VIDEO_CALL:
+        if (userId === props.to_id) {
+            handleIncomingVideoCall(msg);
+        }
+        break;
+
+    case SocketEvents.CANCEL_VIDEO_CALL:
+        if (userId === props.to_id) {
+            handleCancelVideoCall(msg);
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_ANSWER:
+        if (userId === props.from_id || userId === props.to_id) {
+            handleAnswerVideoCall(msg);
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_REJECT:
+        if (userId === props.from_id) {
+            handleRejectVideoCall();
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_NOT_SUPPORTED:
+        if (userId === props.from_id) {
+            handleNotSupportedVideoCall();
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_FAILED:
+        if (userId === props.from_id || userId === props.to_id) {
+            handleVideoCallFailed(msg);
+        }
+        break;
+
+    case SocketEvents.USER_CONNECTED:
+        if (userId) {
+            AsyncClient.getStatuses();
+        }
+        break;
+
+    case SocketEvents.USER_DISCONNECTED:
+        if (userId) {
+            AsyncClient.getStatuses();
+        }
         break;
 
     default:
@@ -269,4 +320,34 @@ function handleUserTypingEvent(msg) {
     if (TeamStore.getCurrentId() === msg.team_id) {
         GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.props.parent_id);
     }
+}
+
+function handleIncomingVideoCall(msg) {
+    const incoming = msg.props;
+
+    incoming.channel_id = msg.channel_id;
+    GlobalActions.notifyIncomingVideoCall(incoming);
+}
+
+function handleCancelVideoCall(msg) {
+    const call = msg.props;
+    call.channel_id = msg.channel_id;
+
+    GlobalActions.cancelVideoCall(call);
+}
+
+function handleAnswerVideoCall(msg) {
+    GlobalActions.connectVideoCall(msg.props);
+}
+
+function handleRejectVideoCall() {
+    GlobalActions.rejectedVideoCall();
+}
+
+function handleNotSupportedVideoCall() {
+    GlobalActions.notSupportedVideoCall();
+}
+
+function handleVideoCallFailed(msg) {
+    GlobalActions.videoCallFailed(msg.props);
 }
