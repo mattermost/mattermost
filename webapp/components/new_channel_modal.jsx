@@ -4,8 +4,6 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import Constants from 'utils/constants.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
@@ -26,16 +24,11 @@ class NewChannelModal extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
-        this.onEnterKeyDown = this.onEnterKeyDown.bind(this);
-        this.onPreferenceChange = this.onPreferenceChange.bind(this);
-
-        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
 
         this.state = {
             displayNameError: ''
         };
     }
-
     componentWillReceiveProps(nextProps) {
         if (nextProps.show === true && this.props.show === false) {
             this.setState({
@@ -43,32 +36,11 @@ class NewChannelModal extends React.Component {
             });
         }
     }
-
     componentDidMount() {
         if (Utils.isBrowserIE()) {
             $('body').addClass('browser--ie');
         }
-        document.addEventListener('keydown', this.onEnterKeyDown);
-        PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.onEnterKeyDown);
-        PreferenceStore.removeChangeListener(this.onPreferenceChange);
-    }
-
-    onPreferenceChange() {
-        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
-    }
-
-    onEnterKeyDown(e) {
-        if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
-            this.handleSubmit(e);
-        } else if (!this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
-            this.handleSubmit(e);
-        }
-    }
-
     handleSubmit(e) {
         e.preventDefault();
 
@@ -80,7 +52,6 @@ class NewChannelModal extends React.Component {
 
         this.props.onSubmitChannel();
     }
-
     handleChange() {
         const newData = {
             displayName: ReactDOM.findDOMNode(this.refs.display_name).value,
@@ -88,7 +59,6 @@ class NewChannelModal extends React.Component {
         };
         this.props.onDataChanged(newData);
     }
-
     render() {
         var displayNameError = null;
         var serverError = null;
