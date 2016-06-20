@@ -483,3 +483,57 @@ export function emitJoinChannelEvent(channel, success, failure) {
         failure
     );
 }
+
+export function makeVideoCall(userId) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.INITIALIZE_VIDEO_CALL,
+        user_id: userId
+    });
+}
+
+export function notifyIncomingVideoCall(incoming) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.INCOMING_VIDEO_CALL,
+        incoming
+    });
+}
+
+export function cancelVideoCall(call) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.CANCEL_VIDEO_CALL,
+        call
+    });
+}
+
+export function answerVideoCall(userId) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.ANSWER_VIDEO_CALL,
+        user_id: userId
+    });
+}
+
+export function rejectedVideoCall() {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.REJECTED_VIDEO_CALL
+    });
+}
+
+export function notSupportedVideoCall() {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.NOT_SUPPORTED_VIDEO_CALL
+    });
+}
+
+export function connectVideoCall(call) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.CONNECT_VIDEO_CALL,
+        call
+    });
+}
+
+export function videoCallFailed(call) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.FAILED_VIDEO_CALL,
+        call
+    });
+}

@@ -491,6 +491,15 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                <AdminSidebarSection
+                                    name='webrtc'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.webrtc'
+                                            defaultMessage='WebRTC'
+                                        />
+                                    }
+                                />
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='files'

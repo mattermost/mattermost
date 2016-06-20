@@ -272,6 +272,10 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
 		}
+
+		if *License.Features.WebRTC {
+			props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
+		}
 	}
 
 	return props

@@ -220,6 +220,14 @@ type LocalizationSettings struct {
 	AvailableLocales    *string
 }
 
+type WebrtcSettings struct {
+	Enable                        *bool
+	TwilioAccountSid              *string
+	TwilioApiKey                  *string
+	TwilioApiSecret               *string
+	TwilioConfigurationProfileSid *string
+}
+
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
@@ -235,6 +243,7 @@ type Config struct {
 	LdapSettings         LdapSettings
 	ComplianceSettings   ComplianceSettings
 	LocalizationSettings LocalizationSettings
+	WebrtcSettings       WebrtcSettings
 }
 
 func (o *Config) ToJson() string {
@@ -605,6 +614,31 @@ func (o *Config) SetDefaults() {
 		o.LocalizationSettings.AvailableLocales = new(string)
 		*o.LocalizationSettings.AvailableLocales = ""
 	}
+
+	if o.WebrtcSettings.Enable == nil {
+		o.WebrtcSettings.Enable = new(bool)
+		*o.WebrtcSettings.Enable = false
+	}
+
+	if o.WebrtcSettings.TwilioAccountSid == nil {
+		o.WebrtcSettings.TwilioAccountSid = new(string)
+		*o.WebrtcSettings.TwilioAccountSid = ""
+	}
+
+	if o.WebrtcSettings.TwilioApiKey == nil {
+		o.WebrtcSettings.TwilioApiKey = new(string)
+		*o.WebrtcSettings.TwilioApiKey = ""
+	}
+
+	if o.WebrtcSettings.TwilioApiSecret == nil {
+		o.WebrtcSettings.TwilioApiSecret = new(string)
+		*o.WebrtcSettings.TwilioApiSecret = ""
+	}
+
+	if o.WebrtcSettings.TwilioConfigurationProfileSid == nil {
+		o.WebrtcSettings.TwilioConfigurationProfileSid = new(string)
+		*o.WebrtcSettings.TwilioConfigurationProfileSid = ""
+	}
 }
 
 func (o *Config) IsValid() *AppError {
@@ -707,6 +741,18 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.LdapSettings.SyncIntervalMinutes <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_sync_interval.app_error", nil, "")
+	}
+
+	if *o.WebrtcSettings.Enable {
+		if len(*o.WebrtcSettings.TwilioAccountSid) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.twilio_account_sid.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.TwilioApiKey) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.twilio_api_key.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.TwilioApiSecret) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.twilio_api_secret.app_error", nil, "")
+		} else if len(*o.WebrtcSettings.TwilioConfigurationProfileSid) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.twilio_config_sid.app_error", nil, "")
+		}
 	}
 
 	return nil
