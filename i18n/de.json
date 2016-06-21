@@ -201,7 +201,7 @@
   },
   {
     "id": "api.channel.get_channel.wrong_team.app_error",
-    "translation": "There is no channel with channel_id={{.ChannelId}} on team with team_id={{.TeamId}}"
+    "translation": "Es gibt keinen Channel mit der channel_id={{.ChannelId}} im Team mit der team_id={{.TeamId}}"
   },
   {
     "id": "api.channel.get_channel_counts.app_error",
@@ -589,7 +589,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Could not understand request."
+    "translation": "Das Emoji kann nicht erstellt werden. Die Anfrage war nicht verständlich."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -597,7 +597,7 @@
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Befehle wurden durch den Systemadministrator deaktiviert."
+    "translation": "Benutzerdefinierte Emoji wurden durch den Systemadministrator deaktiviert."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
@@ -609,11 +609,11 @@
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Initialisieren Datei-Api-Routen"
+    "translation": "Initialisiere Emoji-Api-Routen"
   },
   {
     "id": "api.emoji.storage.app_error",
-    "translation": "Dateispeicher wurde nicht vollständig konfiguriert. Bitte konfigurieren Sie diesen entweder für S3 oder einen lokalen Server mit Dateispeicher."
+    "translation": "Der Dateispeicher ist nicht korrekt konfiguriert. Bitte konfigurieren Sie diesen entweder für S3 oder den Dateispeicher des lokalen Servers."
   },
   {
     "id": "api.emoji.upload.image.app_error",
@@ -1366,6 +1366,10 @@
   {
     "id": "api.templates.email_info",
     "translation": "Bei Fragen senden Sie uns jederzeit eine E-Mail an <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Beste Grüße, <br> Das {{.SiteName}} Team<br>"
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "Versandt durch"
   },
   {
     "id": "api.templates.error.link",
@@ -2369,7 +2373,7 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Das Bild kann der Anfrage nicht beigefügt werden "
+    "translation": "Die Emoji-Daten können der Anfrage nicht angefügt werden."
   },
   {
     "id": "model.client.create_emoji.image.app_error",
@@ -2377,7 +2381,7 @@
   },
   {
     "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Unable to write request"
+    "translation": "Problem beim Schreiben der Anfrage"
   },
   {
     "id": "model.client.login.app_error",
@@ -2573,7 +2577,7 @@
   },
   {
     "id": "model.emoji.update_at.app_error",
-    "translation": "Aktualisier am muss eine gültige Zeit sein"
+    "translation": "Aktualisiere am muss eine gültige Zeit sein"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -3817,7 +3821,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
+    "translation": "Es war nicht möglich den Account zu {{.Service}} zu wechseln. Es existiert bereits ein Account mit der E-Mail: {{.Email}}"
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",

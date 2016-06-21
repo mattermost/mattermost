@@ -201,7 +201,7 @@
   },
   {
     "id": "api.channel.get_channel.wrong_team.app_error",
-    "translation": "There is no channel with channel_id={{.ChannelId}} on team with team_id={{.TeamId}}"
+    "translation": "team_id={{.TeamId}}のチームに、channel_id={{.ChannelId}}のチャンネルがありません"
   },
   {
     "id": "api.channel.get_channel_counts.app_error",
@@ -577,39 +577,39 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Unable to create emoji. Another emoji with the same name already exists."
+    "translation": "絵文字を作成できません。同じ名前を持つ他の絵文字が既に存在しています。"
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum file size."
+    "translation": "絵文字を作成できません。画像ファイルが最大のファイルサイズを越えています。"
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "削除コマンドに必要な権限が付与されていません"
+    "translation": "絵文字の作成に必要な権限が付与されていません"
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Could not understand request."
+    "translation": "絵文字を作成できません。リクエストを理解できません。"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "削除コマンドに必要な権限が付与されていません"
+    "translation": "絵文字の削除に必要な権限が付与されていません"
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "コマンドがシステム管理者によって無効化されています。"
+    "translation": "カスタム絵文字はシステム管理者によって無効化されています。"
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Unable to decode image file for emoji."
+    "translation": "絵文字の画像ファイルをデコードできません。"
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Unable to read image file for emoji."
+    "translation": "絵文字の画像ファイルを読み込めません。"
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "POST APIルートを初期化しています"
+    "translation": "絵文字APIルートを初期化しています"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -617,11 +617,11 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
+    "translation": "絵文字を作成できません。ファイルはPNGまたはJPEG、GIFにしてください。"
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
+    "translation": "絵文字を作成できません。画像が最大のピクセル数を越えています。"
   },
   {
     "id": "api.export.json.app_error",
@@ -1368,6 +1368,10 @@
     "translation": "何か質問があったら、いつでも私たちに問い合わせてください: <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>よろしくお願いします。<br>{{.SiteName}}チームより<br>"
   },
   {
+    "id": "api.templates.email_organization",
+    "translation": "送信者: "
+  },
+  {
     "id": "api.templates.error.link",
     "translation": "Mattermostに戻る"
   },
@@ -1613,7 +1617,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
+    "translation": "{{.Service}}以外のサインイン方法を使ってその電子メールアドレスを関連付けられたアカウントが既に存在します。{{.Auth}}でサインインしてください。"
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
@@ -2009,7 +2013,7 @@
   },
   {
     "id": "api.webhook.incoming.debug.error",
-    "translation": "Could not read payload of incoming webhook."
+    "translation": "内向きのウェブフックのペイロードを読み込めませんでした。"
   },
   {
     "id": "api.webhook.init.debug",
@@ -2369,15 +2373,15 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Unable to attach emoji data to request"
+    "translation": "リクエストに絵文字データを添付できません"
   },
   {
     "id": "model.client.create_emoji.image.app_error",
-    "translation": "Unable to attach image to request"
+    "translation": "リクエストに絵文字データを添付できません"
   },
   {
     "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Unable to write request"
+    "translation": "リクエストを書き込めません"
   },
   {
     "id": "model.client.login.app_error",
@@ -2565,11 +2569,11 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "不正なルートIDです"
+    "translation": "不正な絵文字IDです"
   },
   {
     "id": "model.emoji.name.app_error",
-    "translation": "名前は2文字以上の小文字の英数字にしてください"
+    "translation": "名前は1~64文字の小文字の英数字にしてください"
   },
   {
     "id": "model.emoji.update_at.app_error",
@@ -3273,27 +3277,27 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "投稿を削除できませんでした"
+    "translation": "絵文字を削除できませんでした"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "We couldn’t find the emoji to delete"
+    "translation": "削除する絵文字を削除できませんでした"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "投稿を取得できませんでした"
+    "translation": "絵文字を取得できませんでした"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "投稿を取得できませんでした"
+    "translation": "絵文字を取得できませんでした"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "投稿を取得できませんでした"
+    "translation": "絵文字を取得できませんでした"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "投稿を保存できませんでした"
+    "translation": "絵文字を保存できませんでした"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -3817,7 +3821,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
+    "translation": "アカウントを{{.Service}}に変更できません。電子メールアドレスとして{{.Email}}を使っているアカウントが既に存在します。"
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",

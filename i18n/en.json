@@ -1364,12 +1364,12 @@
     "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
   },
   {
-    "id": "api.templates.email_organization",
-    "translation": "Sent by "
-  },
-  {
     "id": "api.templates.email_info",
     "translation": "Any questions at all, mail us any time: <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Best wishes,<br>The {{.SiteName}} Team<br>"
+  },
+  {
+    "id": "api.templates.email_organization",
+    "translation": "Sent by "
   },
   {
     "id": "api.templates.error.link",
