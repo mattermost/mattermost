@@ -306,7 +306,7 @@ class SecurityTab extends React.Component {
 
             updateSectionStatus = function resetSection(e) {
                 this.props.updateSection('');
-                this.setState({mfaToken: '', mfaShowQr: false, mfaError: null});
+                this.setState({mfaToken: '', mfaShowQr: false, mfaError: null, serverError: null});
                 e.preventDefault();
             }.bind(this);
 
