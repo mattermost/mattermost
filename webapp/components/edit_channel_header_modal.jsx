@@ -34,6 +34,8 @@ class EditChannelHeaderModal extends React.Component {
 
         this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
 
+        this.submitted = false;
+
         this.state = {
             header: props.channel.header,
             serverError: ''
@@ -57,12 +59,14 @@ class EditChannelHeaderModal extends React.Component {
             this.setState({
                 header: nextProps.channel.header
             });
+            this.submitted = false;
         }
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
             this.onShow();
+            this.submitted = false;
         }
     }
 
@@ -77,6 +81,12 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     handleSubmit() {
+        if (this.submitted === true) {
+            return;
+        }
+
+        this.submitted = true;
+
         Client.updateChannelHeader(
             this.props.channel.id,
             this.state.header,
@@ -102,6 +112,7 @@ class EditChannelHeaderModal extends React.Component {
     onShow() {
         const textarea = ReactDOM.findDOMNode(this.refs.textarea);
         Utils.placeCaretAtEnd(textarea);
+        this.submitted = false;
     }
 
     onHide() {
@@ -176,6 +187,7 @@ class EditChannelHeaderModal extends React.Component {
                         />
                     </button>
                     <button
+                        disabled={this.submitted}
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSubmit}
