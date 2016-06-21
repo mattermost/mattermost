@@ -109,7 +109,7 @@
   },
   {
     "id": "api.api.init.parsing_templates.debug",
-    "translation": "Server templates at %v werden geparst"
+    "translation": "Vorlagen in %v werden verarbeitet"
   },
   {
     "id": "api.api.init.parsing_templates.error",
@@ -117,7 +117,7 @@
   },
   {
     "id": "api.api.render.error",
-    "translation": "Fehler beim Render der Vorlage %v err=%v"
+    "translation": "Fehler beim Verarbeiten der Vorlage %v err=%v"
   },
   {
     "id": "api.channel.add_member.added",
@@ -2601,7 +2601,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ungültige Id"
+    "translation": "Ungültige ID"
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
