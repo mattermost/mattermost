@@ -566,7 +566,7 @@ export default class AdminSidebar extends React.Component {
                                     name='rate'
                                     title={
                                         <FormattedMessage
-                                            id='admin.sidebar.rate'
+                                            id='admin.sidebar.rateLimiting'
                                             defaultMessage='Rate Limiting'
                                         />
                                     }
