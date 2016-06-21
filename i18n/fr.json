@@ -581,7 +581,7 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum file size."
+    "translation": "Impossible de créer un emoji. L'image dépasse la taille maximale."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
@@ -589,7 +589,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Unable to create emoji. Could not understand request."
+    "translation": "Impossible de créer un emoji. Impossible de comprendre la demande."
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -601,11 +601,11 @@
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Unable to decode image file for emoji."
+    "translation": "Impossible de décoder le fichier image pour emoji."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Unable to read image file for emoji."
+    "translation": "Impossible de décoder le fichier image pour emoji."
   },
   {
     "id": "api.emoji.init.debug",
@@ -617,11 +617,11 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
+    "translation": "Impossible de créer emoji. Le fichier doit être un PNG, JPG ou GIF."
   },
   {
     "id": "api.emoji.upload.large_image.app_error",
-    "translation": "Unable to create emoji. Image exceeds maximum dimensions."
+    "translation": "Impossible de créer emoji. L'image dépasse les dimensions maximales."
   },
   {
     "id": "api.export.json.app_error",
@@ -1368,6 +1368,10 @@
     "translation": "Pour toutes vos questions, contactez-nous par courrriel : <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Cordialement,<br>L'équipe {{.SiteName}}<br>"
   },
   {
+    "id": "api.templates.email_organization",
+    "translation": "Envoyée par"
+  },
+  {
     "id": "api.templates.error.link",
     "translation": "Retourner sur Mattermost"
   },
@@ -1613,7 +1617,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
+    "translation": "Il existe déjà un compte associé à cette adresse e-mail utilisant une méthode de connexion autre que {{.Service}}. S'il vous plaît connectez-vous en utilisant {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
@@ -2005,11 +2009,11 @@
   },
   {
     "id": "api.webhook.incoming.debug",
-    "translation": "Incoming webhook received. Content="
+    "translation": "webhook entrant reçu. Contenu ="
   },
   {
     "id": "api.webhook.incoming.debug.error",
-    "translation": "Could not read payload of incoming webhook."
+    "translation": "Impossible de lire la charge utile du webhook entrant."
   },
   {
     "id": "api.webhook.init.debug",
@@ -2105,11 +2109,11 @@
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "LDAP Synchronization completed"
+    "translation": "Synchronisation LDAP terminée"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Unable to get all users using LDAP"
+    "translation": "Impossible d'obtenir tous les utilisateurs utilisant LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -2369,15 +2373,15 @@
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Unable to attach emoji data to request"
+    "translation": "Impossible de joindre l'image à la demande"
   },
   {
     "id": "model.client.create_emoji.image.app_error",
-    "translation": "Unable to attach image to request"
+    "translation": "Impossible de joindre l'image à la demande"
   },
   {
     "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Unable to write request"
+    "translation": "Impossible d'écrire la demande"
   },
   {
     "id": "model.client.login.app_error",
@@ -2509,7 +2513,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
-    "translation": "Invalid sync interval time. Must be at least one minute."
+    "translation": "Synchronisation invalide du temps d'intervalle d'au moins une minute."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -2557,7 +2561,7 @@
   },
   {
     "id": "model.emoji.create_at.app_error",
-    "translation": "La date de création doit être une date valide"
+    "translation": "La date de création doit être une vraie date valide"
   },
   {
     "id": "model.emoji.creator_id.app_error",
@@ -2565,11 +2569,11 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Id racine invalide"
+    "translation": "Id emoji invalide"
   },
   {
     "id": "model.emoji.name.app_error",
-    "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques en minuscules."
+    "translation": "Le nom doit être compris entre 1 et 64 caractères alphanumériques en minuscules."
   },
   {
     "id": "model.emoji.update_at.app_error",
@@ -3273,19 +3277,19 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Nous n'avons pas pu supprimer le message"
+    "translation": "Nous n'avons pas pu supprimer votre emoji"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "We couldn’t find the emoji to delete"
+    "translation": "Nous n'avons pas trouvé l' emoji à supprimer"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir le message"
+    "translation": "Nous n'avons pas pu obtenir l'emoji"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Nous n'avons pas pu obtenir le message"
+    "translation": "Nous n'avons pas pu obtenir l'emoji"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
@@ -3697,7 +3701,7 @@
   },
   {
     "id": "store.sql_user.get_all_using_auth_service.other.app_error",
-    "translation": "Nous avons rencontré une erreur en essayer de trouver le compte par type d'authentification."
+    "translation": "Nous avons rencontré une erreur en essayant de trouver tous les comptes utilisant un type d'authentification spécifique."
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
@@ -4069,7 +4073,7 @@
   },
   {
     "id": "web.email_verified.title",
-    "translation": "Courriel vérifié"
+    "translation": "Email vérifié"
   },
   {
     "id": "web.find_team.title",
