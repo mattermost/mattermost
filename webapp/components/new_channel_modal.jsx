@@ -41,6 +41,10 @@ class NewChannelModal extends React.Component {
             this.setState({
                 displayNameError: ''
             });
+
+            document.addEventListener('keydown', this.onEnterKeyDown);
+        } else if (nextProps.show === false && this.props.show === true) {
+            document.removeEventListener('keydown', this.onEnterKeyDown);
         }
     }
 
@@ -48,12 +52,10 @@ class NewChannelModal extends React.Component {
         if (Utils.isBrowserIE()) {
             $('body').addClass('browser--ie');
         }
-        document.addEventListener('keydown', this.onEnterKeyDown);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('keydown', this.onEnterKeyDown);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
 
@@ -62,12 +64,10 @@ class NewChannelModal extends React.Component {
     }
 
     onEnterKeyDown(e) {
-        if (this.props.show) {
-            if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
-                this.handleSubmit(e);
-            } else if (!this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
-                this.handleSubmit(e);
-            }
+        if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
+            this.handleSubmit(e);
+        } else if (!this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+            this.handleSubmit(e);
         }
     }
 
