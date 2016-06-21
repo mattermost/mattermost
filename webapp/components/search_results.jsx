@@ -171,6 +171,7 @@ export default class SearchResults extends React.Component {
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
                         useMilitaryTime={this.props.useMilitaryTime}
+                        shrink={this.props.shrink}
                     />
                 );
             }, this);
@@ -180,7 +181,11 @@ export default class SearchResults extends React.Component {
             <div className='sidebar--right__content'>
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
-                    <SearchResultsHeader isMentionSearch={this.props.isMentionSearch}/>
+                    <SearchResultsHeader
+                        isMentionSearch={this.props.isMentionSearch}
+                        toggleSize={this.props.toggleSize}
+                        shrink={this.props.shrink}
+                    />
                     <div
                         id='search-items-container'
                         className='search-items-container'
@@ -195,5 +200,7 @@ export default class SearchResults extends React.Component {
 
 SearchResults.propTypes = {
     isMentionSearch: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    toggleSize: React.PropTypes.function,
+    shrink: React.PropTypes.function
 };

@@ -16,6 +16,7 @@ export default class GetLinkModal extends React.Component {
         this.onHide = this.onHide.bind(this);
 
         this.copyLink = this.copyLink.bind(this);
+        this.copyLinkOnClick = this.copyLinkOnClick.bind(this);
 
         this.state = {
             copiedLink: false
@@ -26,6 +27,13 @@ export default class GetLinkModal extends React.Component {
         this.setState({copiedLink: false});
 
         this.props.onHide();
+    }
+
+    copyLinkOnClick() {
+        $(ReactDOM.findDOMNode(this.refs.textarea)).on('click', function copyLinkOnClick() {
+            $(this).select();
+            this.setSelectionRange(0, this.value.length);
+        });
     }
 
     copyLink() {
@@ -76,7 +84,6 @@ export default class GetLinkModal extends React.Component {
         const linkText = (
             <textarea
                 className='form-control no-resize min-height'
-                readOnly='true'
                 ref='textarea'
                 value={this.props.link}
             />
@@ -99,6 +106,7 @@ export default class GetLinkModal extends React.Component {
             <Modal
                 show={this.props.show}
                 onHide={this.onHide}
+                onEntered={this.copyLinkOnClick}
             >
                 <Modal.Header closeButton={true}>
                     <h4 className='modal-title'>{this.props.title}</h4>

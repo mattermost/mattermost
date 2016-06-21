@@ -122,7 +122,7 @@ export default class NeedsTeam extends React.Component {
                 <ErrorBar/>
                 <div className='container-fluid'>
                     <SidebarRight/>
-                    <SidebarRightMenu/>
+                    <SidebarRightMenu teamType={this.state.team.type}/>
                     {content}
 
                     <GetPostLinkModal/>
