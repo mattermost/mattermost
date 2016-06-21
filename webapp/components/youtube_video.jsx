@@ -46,6 +46,10 @@ export default class YoutubeVideo extends React.Component {
             return;
         }
 
+        if (props.show === false) {
+            this.stop();
+        }
+
         this.setState({
             videoId: match[2],
             time: this.handleYoutubeTime(link)
@@ -221,5 +225,6 @@ export default class YoutubeVideo extends React.Component {
 
 YoutubeVideo.propTypes = {
     channelId: React.PropTypes.string.isRequired,
-    link: React.PropTypes.string.isRequired
+    link: React.PropTypes.string.isRequired,
+    show: React.PropTypes.bool.isRequired
 };
