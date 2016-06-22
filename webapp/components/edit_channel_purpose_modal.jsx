@@ -30,10 +30,9 @@ export default class EditChannelPurposeModal extends React.Component {
 
         this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
 
-        this.submitted = false;
-
         this.state = {
-            serverError: ''
+            serverError: '',
+            submitted: false
         };
     }
 
@@ -48,7 +47,6 @@ export default class EditChannelPurposeModal extends React.Component {
     componentDidUpdate() {
         if (this.props.show) {
             $(ReactDOM.findDOMNode(this.refs.purpose)).focus();
-            this.submitted = false;
         }
     }
 
@@ -79,11 +77,7 @@ export default class EditChannelPurposeModal extends React.Component {
             return;
         }
 
-        if (this.submitted === true) {
-            return;
-        }
-
-        this.submitted = true;
+        this.setState({submitted: true});
 
         Client.updateChannelPurpose(
             this.props.channel.id,
@@ -199,7 +193,7 @@ export default class EditChannelPurposeModal extends React.Component {
                     <button
                         type='button'
                         className='btn btn-primary'
-                        disabled={this.submitted}
+                        disabled={this.state.submitted}
                         onClick={this.handleSave}
                     >
                         <FormattedMessage

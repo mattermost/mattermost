@@ -34,11 +34,10 @@ class EditChannelHeaderModal extends React.Component {
 
         this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
 
-        this.submitted = false;
-
         this.state = {
             header: props.channel.header,
-            serverError: ''
+            serverError: '',
+            submitted: false
         };
     }
 
@@ -57,16 +56,15 @@ class EditChannelHeaderModal extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (this.props !== nextProps) {
             this.setState({
-                header: nextProps.channel.header
+                header: nextProps.channel.header,
+                submitted: false
             });
-            this.submitted = false;
         }
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
             this.onShow();
-            this.submitted = false;
         }
     }
 
@@ -81,11 +79,7 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     handleSubmit() {
-        if (this.submitted === true) {
-            return;
-        }
-
-        this.submitted = true;
+        this.setState({submitted: true});
 
         Client.updateChannelHeader(
             this.props.channel.id,
@@ -187,7 +181,7 @@ class EditChannelHeaderModal extends React.Component {
                         />
                     </button>
                     <button
-                        disabled={this.submitted}
+                        disabled={this.state.submitted}
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSubmit}
