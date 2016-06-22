@@ -298,8 +298,8 @@ function autolinkHashtags(text, tokens) {
     return output.replace(/(^|\W)(#[a-zA-ZäöüÄÖÜß][a-zA-Z0-9äöüÄÖÜß.\-_]*)\b/g, replaceHashtagWithToken);
 }
 
-const puncStart = /^[.,()&$!\[\]{}':;\\]+/;
-const puncEnd = /[.,()&$#!\[\]{}':;\\]+$/;
+const puncStart = /^[^a-zA-Z0-9#]+/;
+const puncEnd = /[^a-zA-Z0-9]+$/;
 
 function parseSearchTerms(searchTerm) {
     let terms = [];
@@ -334,7 +334,7 @@ function parseSearchTerms(searchTerm) {
         }
 
         // capture any plain text up until the next quote or search flag
-        captured = (/^.+?(?=\bin|\bfrom|\bchannel|"|$)/).exec(termString);
+        captured = (/^.+?(?=\bin:|\bfrom:|\bchannel:|"|$)/).exec(termString);
         if (captured) {
             termString = termString.substring(captured[0].length);
 
@@ -446,8 +446,12 @@ export function handleClick(e) {
     const linkAttribute = e.target.getAttributeNode('data-link');
 
     if (mentionAttribute) {
+        e.preventDefault();
+
         Utils.searchForTerm(mentionAttribute.value);
     } else if (hashtagAttribute) {
+        e.preventDefault();
+
         Utils.searchForTerm(hashtagAttribute.value);
     } else if (linkAttribute) {
         const MIDDLE_MOUSE_BUTTON = 1;
