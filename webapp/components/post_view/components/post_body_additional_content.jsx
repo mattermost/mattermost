@@ -81,6 +81,7 @@ export default class PostBodyAdditionalContent extends React.Component {
                 <YoutubeVideo
                     channelId={this.props.post.channel_id}
                     link={link}
+                    show={this.state.embedVisible}
                 />
             );
         }
