@@ -446,8 +446,12 @@ export function handleClick(e) {
     const linkAttribute = e.target.getAttributeNode('data-link');
 
     if (mentionAttribute) {
+        e.preventDefault();
+
         Utils.searchForTerm(mentionAttribute.value);
     } else if (hashtagAttribute) {
+        e.preventDefault();
+
         Utils.searchForTerm(hashtagAttribute.value);
     } else if (linkAttribute) {
         const MIDDLE_MOUSE_BUTTON = 1;
