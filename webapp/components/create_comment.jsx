@@ -146,8 +146,13 @@ class CreateComment extends React.Component {
         GlobalActions.emitUserCommentedEvent(post);
         Client.createPost(
             post,
-            () => {
+            (data) => {
                 PostStore.removePendingPost(post.channel_id, post.pending_post_id);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_POST,
+                    post: data
+                });
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
