@@ -32,14 +32,15 @@ type Customer struct {
 }
 
 type Features struct {
-	Users          *int  `json:"users"`
-	LDAP           *bool `json:"ldap"`
-	MFA            *bool `json:"mfa"`
-	GoogleSSO      *bool `json:"google_sso"`
-	Compliance     *bool `json:"compliance"`
-	CustomBrand    *bool `json:"custom_brand"`
-	MHPNS          *bool `json:"mhpns"`
-	FutureFeatures *bool `json:"future_features"`
+	Users                *int  `json:"users"`
+	LDAP                 *bool `json:"ldap"`
+	MFA                  *bool `json:"mfa"`
+	GoogleSSO            *bool `json:"google_sso"`
+	Compliance           *bool `json:"compliance"`
+	CustomBrand          *bool `json:"custom_brand"`
+	MHPNS                *bool `json:"mhpns"`
+	PasswordRequirements *bool `json:"password_requirements"`
+	FutureFeatures       *bool `json:"future_features"`
 }
 
 func (f *Features) SetDefaults() {
@@ -81,6 +82,11 @@ func (f *Features) SetDefaults() {
 	if f.MHPNS == nil {
 		f.MHPNS = new(bool)
 		*f.MHPNS = *f.FutureFeatures
+	}
+
+	if f.PasswordRequirements == nil {
+		f.PasswordRequirements = new(bool)
+		*f.PasswordRequirements = *f.FutureFeatures
 	}
 }
 

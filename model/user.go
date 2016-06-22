@@ -27,7 +27,6 @@ const (
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"
-	MIN_PASSWORD_LENGTH        = 5
 )
 
 type User struct {
@@ -93,10 +92,6 @@ func (u *User) IsValid() *AppError {
 
 	if utf8.RuneCountInString(u.LastName) > 64 {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id)
-	}
-
-	if len(u.Password) > 128 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.pwd.app_error", nil, "user_id="+u.Id)
 	}
 
 	if u.AuthData != nil && len(*u.AuthData) > 128 {
@@ -484,6 +479,15 @@ func IsValidUsername(s string) bool {
 	}
 
 	return true
+}
+
+func (u *User) IsPasswordValid(requirements PasswordSettings) *AppError {
+
+	if len(u.AuthService) != 0 {
+		return nil
+	}
+
+	return IsPasswordValid(u.Password, requirements)
 }
 
 func CleanUsername(s string) string {
