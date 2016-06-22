@@ -493,7 +493,9 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		// Find out who is a member of the channel, only keep those profiles
 		tempProfileMap := make(map[string]*model.User)
 		for _, member := range members {
-			tempProfileMap[member.UserId] = profileMap[member.UserId]
+			if profile, ok := profileMap[member.UserId]; ok {
+				tempProfileMap[member.UserId] = profile
+			}
 		}
 
 		profileMap = tempProfileMap
