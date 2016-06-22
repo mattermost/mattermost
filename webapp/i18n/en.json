@@ -144,6 +144,7 @@
   "admin.email.allowSignupTitle": "Allow Sign Up With Email: ",
   "admin.email.allowUsernameSignInDescription": "When true, Mattermost allows users to sign in using their username and password.  This setting is typically only used when email verification is disabled.",
   "admin.email.allowUsernameSignInTitle": "Allow Sign In With Username: ",
+  "admin.email.connectionSecurityTest": "Test Connection",
   "admin.email.easHelp": "Learn more about compiling and deploying your own mobile apps from an <a href=\"http://docs.mattermost.com/deployment/push.html#enterprise-app-store-eas\" target=\"_blank\">Enterprise App Store</a>.",
   "admin.email.emailFail": "Connection unsuccessful: {error}",
   "admin.email.emailSuccess": "No errors were reported while sending an email.  Please check your inbox to make sure.",
