@@ -24,6 +24,7 @@ import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -49,6 +50,7 @@ export default class ChannelHeader extends React.Component {
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
         this.openRecentMentions = this.openRecentMentions.bind(this);
+        this.makeCall = this.makeCall.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -175,6 +177,12 @@ export default class ChannelHeader extends React.Component {
         return null;
     }
 
+    makeCall(contactId, isOnline) {
+        if (isOnline) {
+            GlobalActions.makeVideoCall(contactId);
+        }
+    }
+
     render() {
         if (!this.validState()) {
             return null;
@@ -208,16 +216,69 @@ export default class ChannelHeader extends React.Component {
         const currentId = this.state.currentUser.id;
         const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isDirect = (this.state.channel.type === 'D');
+        let makeCall;
 
         if (isDirect) {
+            const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            let contact;
             if (this.state.users.length > 1) {
-                let contact;
                 if (this.state.users[0].id === currentId) {
                     contact = this.state.users[1];
                 } else {
                     contact = this.state.users[0];
                 }
                 channelTitle = Utils.displayUsername(contact.id);
+            }
+
+            if (global.window.mm_config.EnableWebrtc === 'true' && userMedia) {
+                const isOffline = UserStore.getStatus(contact.id) === 'offline';
+                let circleClass = '';
+                let offlineClass = 'on';
+                if (isOffline) {
+                    circleClass = 'offline';
+                    offlineClass = 'off';
+                }
+
+                makeCall = (
+                    <div className='webrtc__header'>
+                        <a
+                            href='#'
+                            onClick={() => this.makeCall(contact.id, !isOffline)}
+                            disabled={isOffline}
+                        >
+                            <svg
+                                id='webrtc-btn'
+                                xmlns='http://www.w3.org/2000/svg'
+                            >
+                                <circle
+                                    className={circleClass}
+                                    cx='16'
+                                    cy='16'
+                                    r='18'
+                                >
+                                    <title>
+                                        <FormattedMessage
+                                            id='channel_header.webrtc.call'
+                                            defaultMessage='Start Video Call'
+                                        />
+                                    </title>
+                                </circle>
+                                <path
+                                    className={offlineClass}
+                                    transform='scale(0.4), translate(17,16)'
+                                    d='M40 8H15.64l8 8H28v4.36l1.13 1.13L36 16v12.36l7.97 7.97L44 36V12c0-2.21-1.79-4-4-4zM4.55 2L2 4.55l4.01 4.01C4.81 9.24 4 10.52 4 12v24c0 2.21 1.79 4 4 4h29.45l4 4L44 41.46 4.55 2zM12 16h1.45L28 30.55V32H12V16z'
+                                    fill='white'
+                                />
+                                <path
+                                    className='off'
+                                    transform='scale(0.4), translate(17,16)'
+                                    d='M40 8H8c-2.21 0-4 1.79-4 4v24c0 2.21 1.79 4 4 4h32c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4zm-4 24l-8-6.4V32H12V16h16v6.4l8-6.4v16z'
+                                    fill='white'
+                                />
+                            </svg>
+                        </a>
+                    </div>
+                );
             }
         }
 
@@ -468,6 +529,7 @@ export default class ChannelHeader extends React.Component {
                         <tr>
                             <th>
                                 <div className='channel-header__info'>
+                                    {makeCall}
                                     <div className='dropdown'>
                                         <a
                                             href='#'

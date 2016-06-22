@@ -95,6 +95,16 @@ class WebClientClass extends Client {
             return success(res.body);
         });
     }
+
+    getTwilioToken(success, error) {
+        request.
+        post(`${this.getUsersRoute()}/twilio_token`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        send().
+        end(this.handleResponse.bind(this, 'getTwilioToken', success, error));
+    }
 }
 
 var WebClient = new WebClientClass();

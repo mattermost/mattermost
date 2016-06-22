@@ -119,7 +119,16 @@ export default {
         SUGGESTION_CLEAR_SUGGESTIONS: null,
         SUGGESTION_COMPLETE_WORD: null,
         SUGGESTION_SELECT_NEXT: null,
-        SUGGESTION_SELECT_PREVIOUS: null
+        SUGGESTION_SELECT_PREVIOUS: null,
+
+        INITIALIZE_VIDEO_CALL: null,
+        INCOMING_VIDEO_CALL: null,
+        REJECTED_VIDEO_CALL: null,
+        CANCEL_VIDEO_CALL: null,
+        ANSWER_VIDEO_CALL: null,
+        CONNECT_VIDEO_CALL: null,
+        NOT_SUPPORTED_VIDEO_CALL: null,
+        FAILED_VIDEO_CALL: null
     }),
 
     PayloadSources: keyMirror({
@@ -159,7 +168,13 @@ export default {
         USER_REMOVED: 'user_removed',
         TYPING: 'typing',
         PREFERENCE_CHANGED: 'preference_changed',
-        EPHEMERAL_MESSAGE: 'ephemeral_message'
+        EPHEMERAL_MESSAGE: 'ephemeral_message',
+        START_VIDEO_CALL: 'start_video_call',
+        CANCEL_VIDEO_CALL: 'cancel_video_call',
+        VIDEO_CALL_ANSWER: 'video_call_answer',
+        VIDEO_CALL_REJECT: 'video_call_reject',
+        VIDEO_CALL_NOT_SUPPORTED: 'video_call_not_supported',
+        VIDEO_CALL_FAILED: 'video_call_failed'
     },
 
     ScrollTypes: {

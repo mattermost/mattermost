@@ -1836,6 +1836,10 @@
     "translation": "Failed to send welcome email successfully err=%v"
   },
   {
+    "id": "api.user.twilio_token.signed.app_error",
+    "translation": "We encountered an error trying to sign the Token for Video Calls"
+  },
+  {
     "id": "api.user.update_active.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
   },
@@ -1930,6 +1934,10 @@
   {
     "id": "api.user.verify_email.bad_link.app_error",
     "translation": "Bad verify email link."
+  },
+  {
+    "id": "api.user.webrtc.disabled.app_error",
+    "translation": "WebRTC is not enabled in this server."
   },
   {
     "id": "api.web_conn.new_web_conn.last_activity.error",
@@ -2558,6 +2566,22 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.twilio_account_sid.app_error",
+    "translation": "Twilio Account Sid must be set"
+  },
+  {
+    "id": "model.config.is_valid.twilio_api_key.app_error",
+    "translation": "Twilio Api Key must be set"
+  },
+  {
+    "id": "model.config.is_valid.twilio_api_secret.app_error",
+    "translation": "Twilio Api Secret must be set"
+  },
+  {
+    "id": "model.config.is_valid.twilio_config_sid.app_error",
+    "translation": "Twilio Configuration Profile Sid must be set"
   },
   {
     "id": "model.emoji.create_at.app_error",
