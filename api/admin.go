@@ -184,7 +184,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(utils.Cfg.EmailSettings.SMTPServer) == 0 {
+	if len(cfg.EmailSettings.SMTPServer) == 0 {
 		c.Err = model.NewLocAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}))
 		return
 	}
