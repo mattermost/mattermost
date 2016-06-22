@@ -334,7 +334,7 @@ function parseSearchTerms(searchTerm) {
         }
 
         // capture any plain text up until the next quote or search flag
-        captured = (/^.+?(?=\bin|\bfrom|\bchannel|"|$)/).exec(termString);
+        captured = (/^.+?(?=\bin:|\bfrom:|\bchannel:|"|$)/).exec(termString);
         if (captured) {
             termString = termString.substring(captured[0].length);
 
