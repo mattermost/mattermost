@@ -10,7 +10,7 @@ import BackstageHeader from './backstage_header.jsx';
 import ChannelSelect from 'components/channel_select.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
-import {browserHistory, Link} from 'react-router';
+import {browserHistory, Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
 
 export default class AddOutgoingWebhook extends React.Component {

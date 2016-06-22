@@ -10,7 +10,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 import React from 'react';
 

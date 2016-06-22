@@ -16,7 +16,7 @@ const ActionTypes = Constants.ActionTypes;
 
 import {FormattedMessage, FormattedDate} from 'react-intl';
 import React from 'react';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 export default class SearchResultsItem extends React.Component {
     constructor(props) {

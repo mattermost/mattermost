@@ -7,7 +7,7 @@ import Client from 'utils/web_client.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 export default class OAuthToEmail extends React.Component {
     constructor(props) {

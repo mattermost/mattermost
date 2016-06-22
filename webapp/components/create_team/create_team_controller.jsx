@@ -4,7 +4,7 @@
 import ErrorBar from 'components/error_bar.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {browserHistory, Link} from 'react-router';
+import {browserHistory, Link} from 'react-router/es6';
 
 import React from 'react';
 

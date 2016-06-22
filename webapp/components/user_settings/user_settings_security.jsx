@@ -17,7 +17,7 @@ import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedTime, FormattedDate} from 'react-intl';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 const holders = defineMessages({
     currentPasswordError: {

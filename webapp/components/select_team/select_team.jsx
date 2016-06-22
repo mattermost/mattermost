@@ -9,7 +9,7 @@ import LoadingScreen from 'components/loading_screen.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 import {FormattedMessage} from 'react-intl';
 

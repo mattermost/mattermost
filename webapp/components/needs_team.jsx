@@ -5,7 +5,7 @@ import React from 'react';
 
 import $ from 'jquery';
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import TeamStore from 'stores/team_store.jsx';

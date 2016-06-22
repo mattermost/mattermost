@@ -10,7 +10,7 @@ import PostFocusViewController from 'components/post_view/post_focus_view_contro
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
 
 export default class PermalinkView extends React.Component {

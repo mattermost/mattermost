@@ -12,7 +12,7 @@ import TeamStore from 'stores/team_store.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 export default class TeamMembersDropdown extends React.Component {
     constructor(props) {

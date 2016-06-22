@@ -5,7 +5,7 @@ import React from 'react';
 
 import * as Utils from 'utils/utils.jsx';
 
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 import LoadingScreen from 'components/loading_screen.jsx';
 
 export default class InstalledIntegrations extends React.Component {

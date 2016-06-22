@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 import * as Utils from 'utils/utils.jsx';
 
 const notSupportedParams = {

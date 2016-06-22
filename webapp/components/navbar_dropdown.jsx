@@ -16,7 +16,7 @@ import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 
 import React from 'react';
 

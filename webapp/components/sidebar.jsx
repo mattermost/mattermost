@@ -30,7 +30,7 @@ import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import loadingGif from 'images/load.gif';
 
 import React from 'react';
-import {browserHistory, Link} from 'react-router';
+import {browserHistory, Link} from 'react-router/es6';
 
 import favicon from 'images/favicon/favicon-16x16.png';
 import redFavicon from 'images/favicon/redfavicon-16x16.png';

@@ -105,7 +105,13 @@ var config = {
             'process.env': {
                 NODE_ENV: JSON.stringify('production')
             }
+        }),
+        new webpack.optimize.CommonsChunkPlugin({
+            minChunks: 2,
+            children: true,
+            name: 'main'
         })
+        //new webpack.optimize.AggressiveMergingPlugin()
     ],
     resolve: {
         alias: {
@@ -143,9 +149,6 @@ if (!DEV) {
             },
             comments: false
         })
-    );
-    config.plugins.push(
-        new webpack.optimize.AggressiveMergingPlugin()
     );
     config.plugins.push(
         new webpack.optimize.OccurrenceOrderPlugin(true)

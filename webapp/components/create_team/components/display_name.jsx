@@ -10,7 +10,7 @@ import logoImage from 'images/logo.png';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Link} from 'react-router';
+import {Link} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
 
 export default class TeamSignupDisplayNamePage extends React.Component {

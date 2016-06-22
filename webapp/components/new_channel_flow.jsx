@@ -9,7 +9,7 @@ import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
-import {browserHistory} from 'react-router';
+import {browserHistory} from 'react-router/es6';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
