@@ -179,8 +179,13 @@ class CreatePost extends React.Component {
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
         Client.createPost(post,
-            () => {
+            (data) => {
                 PostStore.removePendingPost(post.pending_post_id);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_POST,
+                    post: data
+                });
             },
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
