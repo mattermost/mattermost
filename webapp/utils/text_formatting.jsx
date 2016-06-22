@@ -298,8 +298,8 @@ function autolinkHashtags(text, tokens) {
     return output.replace(/(^|\W)(#[a-zA-ZäöüÄÖÜß][a-zA-Z0-9äöüÄÖÜß.\-_]*)\b/g, replaceHashtagWithToken);
 }
 
-const puncStart = /^[.,()&$!\[\]{}':;\\]+/;
-const puncEnd = /[.,()&$#!\[\]{}':;\\]+$/;
+const puncStart = /^[^a-zA-Z0-9#]+/;
+const puncEnd = /[^a-zA-Z0-9]+$/;
 
 function parseSearchTerms(searchTerm) {
     let terms = [];
