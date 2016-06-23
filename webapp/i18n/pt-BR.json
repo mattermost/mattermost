@@ -144,6 +144,7 @@
   "admin.email.allowSignupTitle": "Permitir Inscrição com E-Mail: ",
   "admin.email.allowUsernameSignInDescription": "Quando verdadeiro, Mattermost permite os usuários fazer login usando seu nome de usuário e senha.  Esta configuração é normalmente utilizado apenas quando a verificação de e-mail está desativada.",
   "admin.email.allowUsernameSignInTitle": "Permitir Login Com Usuário: ",
+  "admin.email.connectionSecurityTest": "Testar Conexão",
   "admin.email.easHelp": "Leia mais sobre compilar e publicar seu próprio aplicativo móvel em <a href=\"http://docs.mattermost.com/deployment/push.html#enterprise-app-store-eas\" target=\"_blank\">Enterprise App Store</a>.",
   "admin.email.emailFail": "Conexão falhou: {error}",
   "admin.email.emailSuccess": "Nenhum erro foram relatados durante o envio de um e-mail.  Por favor verifique a sua caixa de entrada para se certificar.",
