@@ -19,7 +19,7 @@ import ptLocaleData from 'react-intl/locale-data/pt';
 const languages = {
     de: {
         value: 'de',
-        name: 'Deutsche (Beta)',
+        name: 'Deutsch (Beta)',
         url: de
     },
     en: {
