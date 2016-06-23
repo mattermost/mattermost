@@ -546,7 +546,7 @@ body.ios {
             .img-div {
                 max-height: 150px;
                 max-width: 150px;
-            }
+        }
 
             p {
                 line-height: inherit;
@@ -558,7 +558,7 @@ body.ios {
 
             ol,
             ul {
-                clear: both;
+            clear: both;
                 padding-left: 20px;
             }
         }
@@ -1055,7 +1055,6 @@ body.ios {
         display: inline-block;
         margin-right: 6px;
         visibility: hidden;
-
         svg {
             fill: inherit;
             position: relative;
@@ -1068,10 +1067,6 @@ body.ios {
         display: inline-block;
         fill: $primary-color;
         visibility: hidden;
-
-        &.mention--highlight {
-            visibility: visible;
-        }
 
         &:focus {
             outline: none;
