@@ -121,14 +121,15 @@ export default {
         SUGGESTION_SELECT_NEXT: null,
         SUGGESTION_SELECT_PREVIOUS: null,
 
-        INITIALIZE_VIDEO_CALL: null,
-        INCOMING_VIDEO_CALL: null,
-        REJECTED_VIDEO_CALL: null,
-        CANCEL_VIDEO_CALL: null,
-        ANSWER_VIDEO_CALL: null,
-        CONNECT_VIDEO_CALL: null,
-        NOT_SUPPORTED_VIDEO_CALL: null,
-        FAILED_VIDEO_CALL: null
+        VIDEO_CALL_INITIALIZE: null,
+        VIDEO_CALL_INCOMING: null,
+        VIDEO_CALL_DECLINED: null,
+        VIDEO_CALL_CANCEL: null,
+        VIDEO_CALL_ANSWER: null,
+        VIDEO_CALL_CONNECT: null,
+        VIDEO_CALL_NOT_SUPPORTED: null,
+        VIDEO_CALL_FAILED: null,
+        VIDEO_CALL_NO_ANSWER: null
     }),
 
     PayloadSources: keyMirror({
@@ -169,12 +170,13 @@ export default {
         TYPING: 'typing',
         PREFERENCE_CHANGED: 'preference_changed',
         EPHEMERAL_MESSAGE: 'ephemeral_message',
-        START_VIDEO_CALL: 'start_video_call',
-        CANCEL_VIDEO_CALL: 'cancel_video_call',
+        VIDEO_CALL_START: 'start_video_call',
+        VIDEO_CALL_CANCEL: 'cancel_video_call',
         VIDEO_CALL_ANSWER: 'video_call_answer',
-        VIDEO_CALL_REJECT: 'video_call_reject',
+        VIDEO_CALL_DECLINE: 'video_call_decline',
         VIDEO_CALL_NOT_SUPPORTED: 'video_call_not_supported',
-        VIDEO_CALL_FAILED: 'video_call_failed'
+        VIDEO_CALL_FAILED: 'video_call_failed',
+        VIDEO_CALL_NO_ANSWER: 'video_call_no_answer'
     },
 
     ScrollTypes: {

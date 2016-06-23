@@ -13,7 +13,7 @@ import * as Websockets from 'actions/websocket_actions.jsx';
 
 import SearchBox from '../search_bar.jsx';
 import WebrtcHeader from './components/webrtc_header.jsx';
-import ConnectingScreen from './components/connecting_screen.jsx';
+import ConnectingScreen from 'components/loading_screen.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
@@ -53,6 +53,7 @@ export default class WebrtcController extends React.Component {
         this.onToggleRemoteVideo = this.onToggleRemoteVideo.bind(this);
         this.onNotSupported = this.onNotSupported.bind(this);
         this.onFailed = this.onFailed.bind(this);
+        this.onNoAnswer = this.onNoAnswer.bind(this);
 
         this.onInvite = this.onInvite.bind(this);
         this.onParticipantConnected = this.onParticipantConnected.bind(this);
@@ -98,6 +99,7 @@ export default class WebrtcController extends React.Component {
         WebrtcStore.addConnectCallListener(this.onConnectCall);
         WebrtcStore.addNotSupportedCallListener(this.onNotSupported);
         WebrtcStore.addFailedCallListener(this.onFailed);
+        WebrtcStore.addNoAnswerListener(this.onNoAnswer);
 
         UserStore.addStatusesChangeListener(this.onStatusChange);
 
@@ -113,6 +115,7 @@ export default class WebrtcController extends React.Component {
         WebrtcStore.removeConnectCallListener(this.onConnectCall);
         WebrtcStore.removeNotSupportedCallListener(this.onNotSupported);
         WebrtcStore.removeFailedCallListener(this.onFailed);
+        WebrtcStore.removeNoAnswerListener(this.onNoAnswer);
 
         UserStore.removeStatusesChangeListener(this.onStatusChange);
 
@@ -167,7 +170,7 @@ export default class WebrtcController extends React.Component {
 
             Websockets.sendMessage({
                 channel_id: this.state.channelId,
-                action: Constants.SocketEvents.START_VIDEO_CALL,
+                action: Constants.SocketEvents.VIDEO_CALL_START,
                 props: {
                     from_id: UserStore.getCurrentId(),
                     to_id: this.props.userId
@@ -179,7 +182,7 @@ export default class WebrtcController extends React.Component {
     handleCancelCall() {
         Websockets.sendMessage({
             channel_id: this.state.channelId,
-            action: Constants.SocketEvents.CANCEL_VIDEO_CALL,
+            action: Constants.SocketEvents.VIDEO_CALL_CANCEL,
             props: {
                 from_id: UserStore.getCurrentId(),
                 to_id: this.props.userId
@@ -392,6 +395,28 @@ export default class WebrtcController extends React.Component {
         this.previewVideo();
     }
 
+    onNoAnswer() {
+        let error = null;
+
+        if (this.state.isCalling) {
+            error = (
+                <FormattedMessage
+                    id='webrtc.noAnswer'
+                    defaultMessage='{username} is not answering the call'
+                    values={{
+                        username: Utils.displayUsername(this.props.userId)
+                    }}
+                />
+            );
+        }
+
+        this.setState({
+            isCalling: false,
+            callInProgress: false,
+            error
+        });
+    }
+
     onInvite(invite) {
         if (invite.from === this.props.userId) {
             invite.accept().then(this.conversationStarted);
@@ -404,7 +429,7 @@ export default class WebrtcController extends React.Component {
 
             Websockets.sendMessage({
                 channel_id: this.state.channelId,
-                action: Constants.SocketEvents.VIDEO_CALL_REJECT,
+                action: Constants.SocketEvents.VIDEO_CALL_DECLINE,
                 props: {
                     from_id: this.props.userId,
                     to_id: this.state.currentUserId
@@ -866,9 +891,18 @@ export default class WebrtcController extends React.Component {
         const buttons = this.renderButtons();
         let connecting;
         if (this.state.isCalling || this.state.isAnswering) {
+            const connectingMsg = (
+                <FormattedMessage
+                    id='connecting_screen'
+                    defaultMessage='Connecting'
+                />
+            );
             connecting = (
                 <div className='connecting'>
-                    <ConnectingScreen position='absolute'/>
+                    <ConnectingScreen
+                        position='absolute'
+                        message={connectingMsg}
+                    />
                 </div>
             );
         }

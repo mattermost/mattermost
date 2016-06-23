@@ -18,10 +18,7 @@ export default class LoadingScreen extends React.Component {
             >
                 <div className='loading__content'>
                     <h3>
-                        <FormattedMessage
-                            id='loading_screen.loading'
-                            defaultMessage='Loading'
-                        />
+                        {this.props.message}
                     </h3>
                     <div className='round round-1'></div>
                     <div className='round round-2'></div>
@@ -33,8 +30,15 @@ export default class LoadingScreen extends React.Component {
 }
 
 LoadingScreen.defaultProps = {
-    position: 'relative'
+    position: 'relative',
+    message: (
+        <FormattedMessage
+            id='loading_screen.loading'
+            defaultMessage='Loading'
+        />
+    )
 };
 LoadingScreen.propTypes = {
-    position: React.PropTypes.oneOf(['absolute', 'fixed', 'relative', 'static', 'inherit'])
+    position: React.PropTypes.oneOf(['absolute', 'fixed', 'relative', 'static', 'inherit']),
+    message: React.PropTypes.node
 };

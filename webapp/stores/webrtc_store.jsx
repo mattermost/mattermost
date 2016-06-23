@@ -9,12 +9,13 @@ import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const CALL_EVENT = 'call';
-const INCOMING_CALL_EVENT = 'incoming_call';
-const CANCEL_CALL_EVENT = 'cancel_call';
-const REJECTED_CALL_EVENT = 'rejected_call';
-const CONNECT_CALL_EVENT = 'connect_call';
-const NOT_SUPPORTED_EVENT = 'not_supported_call';
+const CALL_INCOMING_EVENT = 'incoming_call';
+const CALL_CANCEL_EVENT = 'cancel_call';
+const CALL_DECLINED_EVENT = 'declined_call';
+const CALL_CONNECT_EVENT = 'connect_call';
+const CALL_NOT_SUPPORTED_EVENT = 'not_supported_call';
 const CALL_FAILED_EVENT = 'call_failed';
+const CALL_NO_ANSWER_EVENT = 'call_no_answer';
 
 class WebrtcStoreClass extends EventEmitter {
     emitCall(userId, isCaller) {
@@ -30,63 +31,63 @@ class WebrtcStoreClass extends EventEmitter {
     }
 
     emitIncomingCall(incoming) {
-        this.emit(INCOMING_CALL_EVENT, incoming);
+        this.emit(CALL_INCOMING_EVENT, incoming);
     }
 
     addIncomingCallListener(callback) {
-        this.on(INCOMING_CALL_EVENT, callback);
+        this.on(CALL_INCOMING_EVENT, callback);
     }
 
     removeIncomingCallListener(callback) {
-        this.removeListener(INCOMING_CALL_EVENT, callback);
+        this.removeListener(CALL_INCOMING_EVENT, callback);
     }
 
     emitCancelCall(call) {
-        this.emit(CANCEL_CALL_EVENT, call);
+        this.emit(CALL_CANCEL_EVENT, call);
     }
 
     addCancelCallListener(callback) {
-        this.on(CANCEL_CALL_EVENT, callback);
+        this.on(CALL_CANCEL_EVENT, callback);
     }
 
     removeCancelCallListener(callback) {
-        this.removeListener(CANCEL_CALL_EVENT, callback);
+        this.removeListener(CALL_CANCEL_EVENT, callback);
     }
 
     emitRejectedCall() {
-        this.emit(REJECTED_CALL_EVENT);
+        this.emit(CALL_DECLINED_EVENT);
     }
 
     addRejectedCallListener(callback) {
-        this.on(REJECTED_CALL_EVENT, callback);
+        this.on(CALL_DECLINED_EVENT, callback);
     }
 
     removeRejectedCallListener(callback) {
-        this.removeListener(REJECTED_CALL_EVENT, callback);
+        this.removeListener(CALL_DECLINED_EVENT, callback);
     }
 
     emitNotSupportedCall() {
-        this.emit(NOT_SUPPORTED_EVENT);
+        this.emit(CALL_NOT_SUPPORTED_EVENT);
     }
 
     addNotSupportedCallListener(callback) {
-        this.on(NOT_SUPPORTED_EVENT, callback);
+        this.on(CALL_NOT_SUPPORTED_EVENT, callback);
     }
 
     removeNotSupportedCallListener(callback) {
-        this.removeListener(NOT_SUPPORTED_EVENT, callback);
+        this.removeListener(CALL_NOT_SUPPORTED_EVENT, callback);
     }
 
     emitConnectCall(call) {
-        this.emit(CONNECT_CALL_EVENT, call);
+        this.emit(CALL_CONNECT_EVENT, call);
     }
 
     addConnectCallListener(callback) {
-        this.on(CONNECT_CALL_EVENT, callback);
+        this.on(CALL_CONNECT_EVENT, callback);
     }
 
     removeConnectCallListener(callback) {
-        this.removeListener(CONNECT_CALL_EVENT, callback);
+        this.removeListener(CALL_CONNECT_EVENT, callback);
     }
 
     emitFailedCall(call) {
@@ -100,6 +101,18 @@ class WebrtcStoreClass extends EventEmitter {
     removeFailedCallListener(callback) {
         this.removeListener(CALL_FAILED_EVENT, callback);
     }
+
+    emitNoAnswerCall() {
+        this.emit(CALL_NO_ANSWER_EVENT);
+    }
+
+    addNoAnswerListener(callback) {
+        this.on(CALL_NO_ANSWER_EVENT, callback);
+    }
+
+    removeNoAnswerListener(callback) {
+        this.removeListener(CALL_NO_ANSWER_EVENT, callback);
+    }
 }
 
 var WebrtcStore = new WebrtcStoreClass();
@@ -109,29 +122,32 @@ WebrtcStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.INITIALIZE_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_INITIALIZE:
         WebrtcStore.emitCall(action.user_id, true);
         break;
-    case ActionTypes.INCOMING_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_INCOMING:
         WebrtcStore.emitIncomingCall(action.incoming);
         break;
-    case ActionTypes.CANCEL_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_CANCEL:
         WebrtcStore.emitCancelCall(action.call);
         break;
-    case ActionTypes.ANSWER_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_ANSWER:
         WebrtcStore.emitCall(action.user_id, false);
         break;
-    case ActionTypes.REJECTED_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_DECLINED:
         WebrtcStore.emitRejectedCall();
         break;
-    case ActionTypes.CONNECT_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_CONNECT:
         WebrtcStore.emitConnectCall(action.call);
         break;
-    case ActionTypes.NOT_SUPPORTED_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_NOT_SUPPORTED:
         WebrtcStore.emitNotSupportedCall();
         break;
-    case ActionTypes.FAILED_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_FAILED:
         WebrtcStore.emitFailedCall(action.call);
+        break;
+    case ActionTypes.VIDEO_CALL_NO_ANSWER:
+        WebrtcStore.emitNoAnswerCall();
         break;
     default:
     }

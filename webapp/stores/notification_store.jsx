@@ -121,7 +121,7 @@ NotificationStore.dispatchToken = AppDispatcher.register((payload) => {
         NotificationStore.handleRecievedPost(action.post, action.websocketMessageProps);
         NotificationStore.emitChange();
         break;
-    case ActionTypes.INCOMING_VIDEO_CALL:
+    case ActionTypes.VIDEO_CALL_INCOMING:
         NotificationStore.handleIncomingVideoCall(action.incoming);
         NotificationStore.emitChange();
         break;

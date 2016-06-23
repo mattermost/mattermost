@@ -14,6 +14,7 @@ import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
@@ -156,13 +157,13 @@ function handleMessage(msg) {
         handleUserTypingEvent(msg);
         break;
 
-    case SocketEvents.START_VIDEO_CALL:
+    case SocketEvents.VIDEO_CALL_START:
         if (userId === props.to_id) {
             handleIncomingVideoCall(msg);
         }
         break;
 
-    case SocketEvents.CANCEL_VIDEO_CALL:
+    case SocketEvents.VIDEO_CALL_CANCEL:
         if (userId === props.to_id) {
             handleCancelVideoCall(msg);
         }
@@ -174,7 +175,7 @@ function handleMessage(msg) {
         }
         break;
 
-    case SocketEvents.VIDEO_CALL_REJECT:
+    case SocketEvents.VIDEO_CALL_DECLINE:
         if (userId === props.from_id) {
             handleRejectVideoCall();
         }
@@ -192,15 +193,9 @@ function handleMessage(msg) {
         }
         break;
 
-    case SocketEvents.USER_CONNECTED:
-        if (userId) {
-            AsyncClient.getStatuses();
-        }
-        break;
-
-    case SocketEvents.USER_DISCONNECTED:
-        if (userId) {
-            AsyncClient.getStatuses();
+    case SocketEvents.VIDEO_CALL_NO_ANSWER:
+        if (userId === props.from_id) {
+            handleNoAnswerVideoCall();
         }
         break;
 
@@ -326,28 +321,32 @@ function handleIncomingVideoCall(msg) {
     const incoming = msg.props;
 
     incoming.channel_id = msg.channel_id;
-    GlobalActions.notifyIncomingVideoCall(incoming);
+    WebrtcActions.notifyIncomingVideoCall(incoming);
 }
 
 function handleCancelVideoCall(msg) {
     const call = msg.props;
     call.channel_id = msg.channel_id;
 
-    GlobalActions.cancelVideoCall(call);
+    WebrtcActions.cancelVideoCall(call);
 }
 
 function handleAnswerVideoCall(msg) {
-    GlobalActions.connectVideoCall(msg.props);
+    WebrtcActions.connectVideoCall(msg.props);
 }
 
 function handleRejectVideoCall() {
-    GlobalActions.rejectedVideoCall();
+    WebrtcActions.rejectedVideoCall();
 }
 
 function handleNotSupportedVideoCall() {
-    GlobalActions.notSupportedVideoCall();
+    WebrtcActions.notSupportedVideoCall();
 }
 
 function handleVideoCallFailed(msg) {
-    GlobalActions.videoCallFailed(msg.props);
+    WebrtcActions.videoCallFailed(msg.props);
+}
+
+function handleNoAnswerVideoCall() {
+    WebrtcActions.noAnswerVideoCall();
 }

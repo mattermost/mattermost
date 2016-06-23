@@ -5,7 +5,7 @@
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import * as Websockets from 'actions/websocket_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
@@ -14,6 +14,8 @@ import Constants from 'utils/constants.jsx';
 import React from 'react';
 
 import {FormattedMessage} from 'react-intl';
+
+import ring from 'images/ring.mp3';
 
 export default class WebrtcNotification extends React.Component {
     constructor() {
@@ -26,6 +28,7 @@ export default class WebrtcNotification extends React.Component {
         this.onCancelCall = this.onCancelCall.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.handleAnswer = this.handleAnswer.bind(this);
+        this.handleTimeout = this.handleTimeout.bind(this);
 
         this.state = {
             channelId: ChannelStore.getCurrentId(),
@@ -43,7 +46,14 @@ export default class WebrtcNotification extends React.Component {
     componentWillUnmount() {
         WebrtcStore.removeIncomingCallListener(this.onIncomingCall);
         WebrtcStore.removeCancelCallListener(this.onCancelCall);
+        this.refs.ring.removeListener('ended', this.handleTimeout);
         this.mounted = false;
+    }
+
+    componentDidUpdate() {
+        if (this.state.userCalling) {
+            this.refs.ring.addEventListener('ended', this.handleTimeout);
+        }
     }
 
     closeBar() {
@@ -88,6 +98,19 @@ export default class WebrtcNotification extends React.Component {
         this.closeBar();
     }
 
+    handleTimeout() {
+        Websockets.sendMessage({
+            channel_id: this.state.channelId,
+            action: Constants.SocketEvents.VIDEO_CALL_NO_ANSWER,
+            props: {
+                from_id: this.state.userCalling.id,
+                to_id: UserStore.getCurrentId()
+            }
+        });
+
+        this.closeBar();
+    }
+
     handleAnswer(e) {
         if (e) {
             e.preventDefault();
@@ -96,7 +119,7 @@ export default class WebrtcNotification extends React.Component {
         const caller = this.state.userCalling;
         if (caller) {
             const callerId = caller.id;
-            GlobalActions.answerVideoCall(callerId);
+            WebrtcActions.answerVideoCall(callerId);
 
             Websockets.sendMessage({
                 channel_id: this.state.channelId,
@@ -119,7 +142,7 @@ export default class WebrtcNotification extends React.Component {
         if (this.state.userCalling && !this.state.notSupported) {
             Websockets.sendMessage({
                 channel_id: this.state.channelId,
-                action: Constants.SocketEvents.VIDEO_CALL_REJECT,
+                action: Constants.SocketEvents.VIDEO_CALL_DECLINE,
                 props: {
                     from_id: this.state.userCalling.id,
                     to_id: UserStore.getCurrentId()
@@ -237,6 +260,11 @@ export default class WebrtcNotification extends React.Component {
 
             return (
                 <div className='webrtc-notification'>
+                    <audio
+                        ref='ring'
+                        src={ring}
+                        autoPlay={true}
+                    />
                     <div>
                         {profileImg}
                     </div>

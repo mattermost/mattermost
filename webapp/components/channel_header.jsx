@@ -24,7 +24,7 @@ import SearchStore from 'stores/search_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -179,7 +179,7 @@ export default class ChannelHeader extends React.Component {
 
     makeCall(contactId, isOnline) {
         if (isOnline) {
-            GlobalActions.makeVideoCall(contactId);
+            WebrtcActions.makeVideoCall(contactId);
         }
     }
 

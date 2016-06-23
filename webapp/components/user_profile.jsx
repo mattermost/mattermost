@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import UserStore from 'stores/user_store.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
 
@@ -31,7 +31,7 @@ export default class UserProfile extends React.Component {
 
     makeCall() {
         if (UserStore.getStatus(this.props.user.id) !== 'offline') {
-            GlobalActions.makeVideoCall(this.props.user.id);
+            WebrtcActions.makeVideoCall(this.props.user.id);
         }
     }
 
