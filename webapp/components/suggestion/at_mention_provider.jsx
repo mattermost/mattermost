@@ -81,17 +81,25 @@ class AtMentionSuggestion extends Suggestion {
 
 export default class AtMentionProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext);
+        const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
         if (captured) {
-            const usernamePrefix = captured[1];
+            const prefix = captured[1];
 
             const users = UserStore.getActiveOnlyProfiles(true);
-            let filtered = [];
+
+            const filtered = [];
 
             for (const id of Object.keys(users)) {
                 const user = users[id];
 
-                if (user.username.startsWith(usernamePrefix) && user.delete_at <= 0) {
+                if (user.delete_at > 0) {
+                    continue;
+                }
+
+                if (user.username.startsWith(prefix) ||
+                    (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
+                    (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
+                    (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
                     filtered.push(user);
                 }
 
@@ -102,15 +110,26 @@ export default class AtMentionProvider {
 
             if (!pretext.startsWith('/msg')) {
                 // add dummy users to represent the @channel and @all special mentions when not using the /msg command
-                if ('channel'.startsWith(usernamePrefix)) {
+                if ('channel'.startsWith(prefix)) {
                     filtered.push({username: 'channel'});
                 }
-                if ('all'.startsWith(usernamePrefix)) {
+                if ('all'.startsWith(prefix)) {
                     filtered.push({username: 'all'});
                 }
             }
 
-            filtered = filtered.sort((a, b) => a.username.localeCompare(b.username));
+            filtered.sort((a, b) => {
+                const aPrefix = a.username.startsWith(prefix);
+                const bPrefix = b.username.startsWith(prefix);
+
+                if (aPrefix === bPrefix) {
+                    return a.username.localeCompare(b.username);
+                } else if (aPrefix) {
+                    return -1;
+                }
+
+                return 1;
+            });
 
             const mentions = filtered.map((user) => '@' + user.username);
 
