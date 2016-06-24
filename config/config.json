@@ -120,13 +120,13 @@
         "SupportEmail": "feedback@mattermost.com"
     },
     "GitLabSettings": {
-        "Enable": true,
-        "Secret": "44be6abdcc09c76cd336a48aec1d155fce48c120453d7f40667ede11c8af9a02",
-        "Id": "399bfdb2b96e5bc02578bf6fddbabf9c59faa03b7b7d6fa2c4c859216e6be8c2",
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
         "Scope": "",
-        "AuthEndpoint": "http://parnasadev.com/oauth/authorize",
-        "TokenEndpoint": "http://parnasadev.com/oauth/token",
-        "UserApiEndpoint": "http://parnasadev.com/api/v3/user"
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
     },
     "GoogleSettings": {
         "Enable": false,
