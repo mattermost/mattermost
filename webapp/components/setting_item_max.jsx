@@ -84,6 +84,7 @@ export default class SettingItemMax extends React.Component {
                         </li>
                         <li className='setting-list-item'>
                             <hr/>
+                            {this.props.submitExtra}
                             {serverError}
                             {clientError}
                             {submit}
@@ -113,5 +114,6 @@ SettingItemMax.propTypes = {
     updateSection: React.PropTypes.func,
     submit: React.PropTypes.func,
     title: React.PropTypes.node,
-    width: React.PropTypes.string
+    width: React.PropTypes.string,
+    submitExtra: React.PropTypes.node
 };

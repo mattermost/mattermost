@@ -13,16 +13,13 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
+import * as UserActions from 'actions/user_actions.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-
-import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
-const ActionTypes = Constants.ActionTypes;
+import {ActionTypes, Constants, Preferences} from 'utils/constants.jsx';
 
 import React from 'react';
 
@@ -72,15 +69,25 @@ export default class ThemeSetting extends React.Component {
     }
 
     getStateFromStores() {
-        const theme = PreferenceStore.getTheme(TeamStore.getCurrentId());
+        const teamId = TeamStore.getCurrentId();
 
+        const theme = PreferenceStore.getTheme(teamId);
         if (!theme.codeTheme) {
             theme.codeTheme = Constants.DEFAULT_CODE_THEME;
         }
 
+        // show the "apply to all teams" checkbox if the user is on more than one team
+        const showAllTeamsCheckbox = Object.keys(TeamStore.getAll()).length > 1;
+
+        // check the "apply to all teams" checkbox by default if the user has any team-specific themes
+        const applyToAllTeams = PreferenceStore.getCategory(Preferences.CATEGORY_THEME).size === 1;
+
         return {
+            teamId: TeamStore.getCurrentId(),
             theme,
-            type: theme.type || 'premade'
+            type: theme.type || 'premade',
+            showAllTeamsCheckbox,
+            applyToAllTeams
         };
     }
 
@@ -101,10 +108,11 @@ export default class ThemeSetting extends React.Component {
     submitTheme(e) {
         e.preventDefault();
 
-        AsyncClient.savePreference(
-            Constants.Preferences.CATEGORY_THEME,
-            '',
-            JSON.stringify(this.state.theme),
+        const teamId = this.state.applyToAllTeams ? '' : this.state.teamId;
+
+        UserActions.saveTheme(
+            teamId,
+            this.state.theme,
             () => {
                 this.props.setRequireConfirm(false);
                 this.originalTheme = Object.assign({}, this.state.theme);
@@ -258,9 +266,29 @@ export default class ThemeSetting extends React.Component {
                 </div>
             );
 
+            let allTeamsCheckbox = null;
+            if (this.state.showAllTeamsCheckbox) {
+                allTeamsCheckbox = (
+                    <div className='checkbox user-settings__submit-checkbox'>
+                        <label>
+                            <input
+                                type='checkbox'
+                                checked={this.state.applyToAllTeams}
+                                onChange={(e) => this.setState({applyToAllTeams: e.target.checked})}
+                            />
+                            <FormattedMessage
+                                id='user.settings.display.theme.applyToAllTeams'
+                                defaultMessage='Apply New Theme to All Teams'
+                            />
+                        </label>
+                    </div>
+                );
+            }
+
             themeUI = (
                 <SettingItemMax
                     inputs={inputs}
+                    submitExtra={allTeamsCheckbox}
                     submit={this.submitTheme}
                     server_error={serverError}
                     width='full'

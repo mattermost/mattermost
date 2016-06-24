@@ -88,6 +88,10 @@ class PreferenceStoreClass extends EventEmitter {
         }
     }
 
+    deletePreference(preference) {
+        this.preferences.delete(this.getKey(preference.category, preference.name));
+    }
+
     clear() {
         this.preferences.clear();
     }
@@ -128,6 +132,12 @@ class PreferenceStoreClass extends EventEmitter {
         }
         case ActionTypes.RECEIVED_PREFERENCES:
             this.setPreferencesFromServer(action.preferences);
+            this.emitChange();
+            break;
+        case ActionTypes.DELETED_PREFERENCES:
+            for (const preference of action.preferences) {
+                this.deletePreference(preference);
+            }
             this.emitChange();
             break;
         }
