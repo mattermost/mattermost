@@ -1617,7 +1617,7 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Ya existe una cuenta asociada a esa dirección de correo electrónico utilizando un método de inicio de sesión diferente a {{.Servicio}}. Por favor inicia sesión utilizando {{.Auth}}."
+    "translation": "Ya existe una cuenta asociada a esa dirección de correo electrónico utilizando un método de inicio de sesión diferente a {{.Service}}. Por favor inicia sesión utilizando {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",

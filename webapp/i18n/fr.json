@@ -144,6 +144,7 @@
   "admin.email.allowSignupTitle": "Autoriser la création de compte avec une adresse électronique : ",
   "admin.email.allowUsernameSignInDescription": "Si activé, les utilisateurs seront autorisés à se connecter avec leur nom d'utilisateur et leur mot de passe. Cette option n'est généralement utilisée que lorsque la vérification de l'adresse électronique est désactivée.",
   "admin.email.allowUsernameSignInTitle": "Autoriser la connexion avec le nom d'utilisateur: ",
+  "admin.email.connectionSecurityTest": "test de connexion",
   "admin.email.easHelp": "En savoir plus sur la compilation et le déploiement de vos propres applications mobiles à partir de <a href=\"http://docs.mattermost.com/deployment/push.html#enterprise-app-store-eas\" target=\"_blank\">Enterprise App Store</a>.",
   "admin.email.emailFail": "Echec de la connexion : {error}",
   "admin.email.emailSuccess": "Aucune erreur signalée lors de l'envoi du courriel. Vérifiez votre boîte de réception ou vos spams.",
