@@ -25,6 +25,7 @@ export default class ComplianceReports extends React.Component {
         this.getDateTime = this.getDateTime.bind(this);
 
         this.state = {
+            enabled: AdminStore.getConfig().ComplianceSettings.Enable,
             reports: AdminStore.getComplianceReports(),
             serverError: null
         };
@@ -33,7 +34,7 @@ export default class ComplianceReports extends React.Component {
     componentDidMount() {
         AdminStore.addComplianceReportsChangeListener(this.onComplianceReportsListenerChange);
 
-        if (global.window.mm_license.IsLicensed !== 'true' || global.window.mm_config.EnableCompliance !== 'true') {
+        if (global.window.mm_license.IsLicensed !== 'true' || !this.state.enabled) {
             return;
         }
 
@@ -112,7 +113,7 @@ export default class ComplianceReports extends React.Component {
     render() {
         var content = null;
 
-        if (global.window.mm_license.IsLicensed !== 'true' || global.window.mm_config.EnableCompliance !== 'true') {
+        if (global.window.mm_license.IsLicensed !== 'true' || !this.state.enabled) {
             return <div/>;
         }
 
