@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
+import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -10,6 +11,7 @@ import Constants from 'utils/constants.jsx';
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
 import {Modal} from 'react-bootstrap';
+import {browserHistory} from 'react-router';
 
 const holders = defineMessages({
     required: {
@@ -165,8 +167,9 @@ export default class RenameChannelModal extends React.Component {
         Client.updateChannel(
             channel,
             () => {
+                const team = TeamStore.getCurrent().name;
                 AsyncClient.getChannel(channel.id);
-
+                browserHistory.replace(`/${team}/channels/${channel.name}`);
                 this.handleHide();
             },
             (err) => {
