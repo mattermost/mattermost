@@ -54,27 +54,6 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 
 	// ADDED for 3.2 REMOVE for 3.6
 	if us.DoesColumnExist("Users", "ThemeProps") {
-		// rename solarized_* code themes to solarized-* to match client changes in 3.0
-		var data []*model.User
-		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE ThemeProps LIKE '%solarized%'"); err == nil {
-			for _, user := range data {
-				shouldUpdate := false
-				if user.ThemeProps["codeTheme"] == "solarized_dark" {
-					user.ThemeProps["codeTheme"] = "solarized-dark"
-					shouldUpdate = true
-				} else if user.ThemeProps["codeTheme"] == "solarized_light" {
-					user.ThemeProps["codeTheme"] = "solarized-light"
-					shouldUpdate = true
-				}
-
-				if shouldUpdate {
-					if result := <-us.Update(user, true); result.Err != nil {
-						return
-					}
-				}
-			}
-		}
-
 		params := map[string]interface{}{
 			"Category": model.PREFERENCE_CATEGORY_THEME,
 			"Name":     "",
@@ -114,6 +93,16 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 
 		if err := transaction.Commit(); err != nil {
 			themeMigrationFailed(err)
+		}
+
+		// rename solarized_* code themes to solarized-* to match client changes in 3.0
+		var data model.Preferences
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PREFERENCE_CATEGORY_THEME+"' AND Value LIKE '%solarized_%'"); err == nil {
+			for i := range data {
+				data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
+			}
+
+			us.Preference().Save(&data)
 		}
 	}
 }
