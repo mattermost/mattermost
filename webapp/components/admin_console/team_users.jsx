@@ -43,6 +43,22 @@ export default class UserList extends React.Component {
 
     componentDidMount() {
         this.getCurrentTeamProfiles();
+
+        AdminStore.addAllTeamsChangeListener(this.onAllTeamsChange);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.params.team !== this.props.params.team) {
+            this.setState({
+                team: AdminStore.getTeam(nextProps.params.team)
+            });
+
+            this.getTeamProfiles(nextProps.params.team);
+        }
+    }
+
+    componentWillUnmount() {
+        AdminStore.removeAllTeamsChangeListener(this.onAllTeamsChange);
     }
 
     onAllTeamsChange() {
@@ -142,10 +158,6 @@ export default class UserList extends React.Component {
         }
 
         return null;
-    }
-
-    componentWillReceiveProps(newProps) {
-        this.getTeamProfiles(newProps.params.team);
     }
 
     render() {
