@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-
 import * as Utils from 'utils/utils.jsx';
 
 import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
@@ -13,6 +11,7 @@ import logoImage from 'images/logo.png';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Button, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 export default class TeamUrl extends React.Component {
@@ -23,7 +22,10 @@ export default class TeamUrl extends React.Component {
         this.submitNext = this.submitNext.bind(this);
         this.handleFocus = this.handleFocus.bind(this);
 
-        this.state = {nameError: ''};
+        this.state = {
+            nameError: '',
+            isLoading: false
+        };
     }
     submitBack(e) {
         e.preventDefault();
@@ -59,7 +61,7 @@ export default class TeamUrl extends React.Component {
             }
         }
 
-        $('#finish-button').button('loading');
+        this.setState({isLoading: true});
         var teamSignup = JSON.parse(JSON.stringify(this.props.state));
         teamSignup.team.type = 'O';
         teamSignup.team.name = name;
@@ -68,37 +70,32 @@ export default class TeamUrl extends React.Component {
             (foundTeam) => {
                 if (foundTeam) {
                     this.setState({nameError: Utils.localizeMessage('create_team.team_url.unavailable', 'This URL is unavailable. Please try another.')});
-                    $('#finish-button').button('reset');
+                    this.setState({isLoading: false});
                     return;
                 }
 
                 createTeam(teamSignup.team,
                     () => {
                         track('signup', 'signup_team_08_complete');
-                        $('#sign-up-button').button('reset');
                     },
                     (err) => {
                         this.setState({nameError: err.message});
-                        $('#finish-button').button('reset');
+                        this.setState({isLoading: false});
                     }
                 );
             },
             (err) => {
                 this.setState({nameError: err.message});
-                $('#finish-button').button('reset');
             }
         );
     }
 
     handleFocus(e) {
         e.preventDefault();
-
         e.currentTarget.select();
     }
 
     render() {
-        $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
-
         track('signup', 'signup_team_03_url');
 
         let nameError = null;
@@ -109,6 +106,25 @@ export default class TeamUrl extends React.Component {
         }
 
         const title = `${Utils.getWindowLocationOrigin()}/`;
+        const urlTooltip = (
+            <Tooltip id='urlTooltip'>{title}</Tooltip>
+        );
+
+        let finishMessage = (
+            <FormattedMessage
+                id='create_team.team_url.finish'
+                defaultMessage='Finish'
+            />
+        );
+
+        if (this.state.isLoading) {
+            finishMessage = (
+                <FormattedMessage
+                    id='create_team.team_url.creatingTeam'
+                    defaultMessage='Creating team...'
+                />
+            );
+        }
 
         return (
             <div>
@@ -127,13 +143,15 @@ export default class TeamUrl extends React.Component {
                         <div className='row'>
                             <div className='col-sm-11'>
                                 <div className='input-group input-group--limit'>
-                                    <span
-                                        data-toggle='tooltip'
-                                        title={title}
-                                        className='input-group-addon'
+                                    <OverlayTrigger
+                                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                                        placement='top'
+                                        overlay={urlTooltip}
                                     >
-                                        {title}
-                                    </span>
+                                        <span className='input-group-addon'>
+                                            {title}
+                                        </span>
+                                    </OverlayTrigger>
                                     <input
                                         type='text'
                                         ref='name'
@@ -164,17 +182,16 @@ export default class TeamUrl extends React.Component {
                             <li>Must start with a letter and can't end in a dash</li>"
                         />
                     </ul>
-                    <button
-                        type='submit'
-                        id='finish-button'
-                        className='btn btn-primary margin--extra'
-                        onClick={this.submitNext}
-                    >
-                        <FormattedMessage
-                            id='create_team.team_url.finish'
-                            defaultMessage='Finish'
-                        />
-                    </button>
+                    <div className='margin--extra'>
+                        <Button
+                            type='submit'
+                            bsStyle='primary'
+                            disabled={this.state.isLoading}
+                            onClick={this.submitNext}
+                        >
+                            {finishMessage}
+                        </Button>
+                    </div>
                     <div className='margin--extra'>
                         <a
                             href='#'

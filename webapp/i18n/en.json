@@ -839,6 +839,7 @@
   "create_team.team_url.back": "Back to previous step",
   "create_team.team_url.charLength": "Name must be 4 or more characters up to a maximum of 15",
   "create_team.team_url.finish": "Finish",
+  "create_team.team_url.creatingTeam": "Creating team...",
   "create_team.team_url.hint": "<li>Short and memorable is best</li><li>Use lowercase letters, numbers and dashes</li><li>Must start with a letter and can't end in a dash</li>",
   "create_team.team_url.regex": "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.",
   "create_team.team_url.required": "This field is required",
