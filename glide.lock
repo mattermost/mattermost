@@ -42,6 +42,8 @@ imports:
   version: 9c19ed558d5df4da88e2ade9c8940d742aef0e7e
 - name: github.com/gorilla/websocket
   version: 1f512fc3f05332ba7117626cdfb4e07474e58e60
+  - name: github.com/kardianos/osext
+    version: 29ae4ffbc9a6fe9fb2bc5029050ce6996ea1d3bc
 - name: github.com/lib/pq
   version: ee1442bda7bd1b6a84e913bdb421cb1874ec629d
   subpackages:
@@ -61,6 +63,8 @@ imports:
   - i18n/bundle
   - i18n/language
   - i18n/translation
+- name: github.com/nu7hatch/gouuid
+  version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
 - name: github.com/NYTimes/gziphandler
   version: 63027b26b87e2ae2ce3810393d4b81021cfd3a35
 - name: github.com/pborman/uuid
