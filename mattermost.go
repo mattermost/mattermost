@@ -137,6 +137,14 @@ func main() {
 			complianceI.StartComplianceDailyJob()
 		}
 
+		if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
+			ldapI.StartLdapSyncJob()
+		}
+
+		if samlI := einterfaces.GetSamlInterface(); samlI != nil {
+			samlI.ConfigureSP()
+		}
+
 		// wait for kill signal before attempting to gracefully shutdown
 		// the running service
 		c := make(chan os.Signal)

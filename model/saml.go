@@ -10,6 +10,11 @@ const (
 	SAML_PRIVATE_KEY            = 2
 )
 
+type SamlAuthRequest struct {
+	Base64AuthRequest string
+	URL               string
+}
+
 type SamlRecord struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
