@@ -245,23 +245,25 @@ export default class PostList extends React.Component {
             } else {
                 commentRootId = post.id;
             }
-            const commentsNotifyLevel = UserStore.getCurrentUser().notify_props.comments;
-            for (const postId in posts) {
-                if (posts[postId].root_id === commentRootId) {
-                    commentCount += 1;
-                    if (posts[postId].user_id === this.props.currentUser.id && commentsNotifyLevel === 'any' && !isCommentMention) {
-                        for (const nextPostId in posts) {
-                            if (posts[nextPostId].root_id === commentRootId && posts[nextPostId].user_id !== this.props.currentUser.id &&
-                                    posts[postId].create_at < posts[nextPostId].create_at) {
-                                isCommentMention = true;
-                                break;
+            if (commentRootId) {
+                const commentsNotifyLevel = UserStore.getCurrentUser().notify_props.comments;
+                for (const postId in posts) {
+                    if (posts[postId].root_id === commentRootId) {
+                        commentCount += 1;
+                        if (posts[postId].user_id === this.props.currentUser.id && commentsNotifyLevel === 'any' && !isCommentMention) {
+                            for (const nextPostId in posts) {
+                                if (posts[nextPostId].root_id === commentRootId && posts[nextPostId].user_id !== this.props.currentUser.id &&
+                                        posts[postId].create_at < posts[nextPostId].create_at) {
+                                    isCommentMention = true;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-            }
-            if (commentCount > 0 && posts[commentRootId].user_id === this.props.currentUser.id && commentsNotifyLevel !== 'never') {
-                isCommentMention = true;
+                if (commentCount > 0 && posts[commentRootId].user_id === this.props.currentUser.id && commentsNotifyLevel !== 'never') {
+                    isCommentMention = true;
+                }
             }
 
             const postCtl = (
