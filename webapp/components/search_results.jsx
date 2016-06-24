@@ -141,14 +141,14 @@ export default class SearchResults extends React.Component {
                     <h4>
                         <FormattedMessage
                             id='search_results.noResults'
-                            defaultMessage='NO RESULTS'
+                            defaultMessage='No results found. Try again?'
                         />
                     </h4>
                     <FormattedHTMLMessage
                         id='search_results.because'
                         defaultMessage='<ul>
-                        <li>If you&#39;re searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term</li>
-                        <li>Due to the volume of results, two letter searches and common words like "this", "a" and "is" won&#39;t appear in search results</li>
+                        <li>If you&#39;re searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term.</li>
+                        <li>Two letter searches and common words like "this", "a" and "is" won&#39;t appear in search results, due to the excessive results returned.</li>
                     </ul>'
                     />
                 </div>
