@@ -226,6 +226,25 @@ type LocalizationSettings struct {
 	AvailableLocales    *string
 }
 
+type SamlSettings struct {
+	// Basic
+	Enable                      *bool
+	Verify                      *bool
+	Encrypt                     *bool
+	IdpUrl                      *string
+	IdpDescriptorUrl            *string
+	LoginButtonText             *string
+	AssertionConsumerServiceURL *string
+
+	// User Mapping
+	FirstNameAttribute *string
+	LastNameAttribute  *string
+	EmailAttribute     *string
+	UsernameAttribute  *string
+	NicknameAttribute  *string
+	LocaleAttribute    *string
+}
+
 type Config struct {
 	ServiceSettings      ServiceSettings
 	TeamSettings         TeamSettings
@@ -241,6 +260,7 @@ type Config struct {
 	LdapSettings         LdapSettings
 	ComplianceSettings   ComplianceSettings
 	LocalizationSettings LocalizationSettings
+	SamlSettings         SamlSettings
 }
 
 func (o *Config) ToJson() string {
@@ -626,6 +646,66 @@ func (o *Config) SetDefaults() {
 		o.LocalizationSettings.AvailableLocales = new(string)
 		*o.LocalizationSettings.AvailableLocales = ""
 	}
+
+	if o.SamlSettings.Enable == nil {
+		o.SamlSettings.Enable = new(bool)
+		*o.SamlSettings.Enable = false
+	}
+
+	if o.SamlSettings.Verify == nil {
+		o.SamlSettings.Verify = new(bool)
+		*o.SamlSettings.Verify = false
+	}
+
+	if o.SamlSettings.Encrypt == nil {
+		o.SamlSettings.Encrypt = new(bool)
+		*o.SamlSettings.Encrypt = false
+	}
+
+	if o.SamlSettings.IdpUrl == nil {
+		o.SamlSettings.IdpUrl = new(string)
+		*o.SamlSettings.IdpUrl = ""
+	}
+
+	if o.SamlSettings.IdpDescriptorUrl == nil {
+		o.SamlSettings.IdpDescriptorUrl = new(string)
+		*o.SamlSettings.IdpDescriptorUrl = ""
+	}
+
+	if o.SamlSettings.AssertionConsumerServiceURL == nil {
+		o.SamlSettings.AssertionConsumerServiceURL = new(string)
+		*o.SamlSettings.AssertionConsumerServiceURL = ""
+	}
+
+	if o.SamlSettings.LoginButtonText == nil {
+		o.SamlSettings.LoginButtonText = new(string)
+		*o.SamlSettings.LoginButtonText = USER_AUTH_SERVICE_SAML_TEXT
+	}
+
+	if o.SamlSettings.FirstNameAttribute == nil {
+		o.SamlSettings.FirstNameAttribute = new(string)
+		*o.SamlSettings.FirstNameAttribute = ""
+	}
+
+	if o.SamlSettings.LastNameAttribute == nil {
+		o.SamlSettings.LastNameAttribute = new(string)
+		*o.SamlSettings.LastNameAttribute = ""
+	}
+
+	if o.SamlSettings.EmailAttribute == nil {
+		o.SamlSettings.EmailAttribute = new(string)
+		*o.SamlSettings.EmailAttribute = ""
+	}
+
+	if o.SamlSettings.NicknameAttribute == nil {
+		o.SamlSettings.NicknameAttribute = new(string)
+		*o.SamlSettings.NicknameAttribute = ""
+	}
+
+	if o.SamlSettings.LocaleAttribute == nil {
+		o.SamlSettings.LocaleAttribute = new(string)
+		*o.SamlSettings.LocaleAttribute = ""
+	}
 }
 
 func (o *Config) IsValid() *AppError {
@@ -745,6 +825,26 @@ func (o *Config) IsValid() *AppError {
 			*o.LdapSettings.UsernameAttribute == "" ||
 			*o.LdapSettings.IdAttribute == "" {
 			return NewLocAppError("Config.IsValid", "Required LDAP field missing", nil, "")
+		}
+	}
+
+	if *o.SamlSettings.Enable {
+		if len(*o.SamlSettings.EmailAttribute) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "")
+		}
+
+		if len(*o.SamlSettings.IdpUrl) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "")
+		}
+
+		if len(*o.SamlSettings.IdpDescriptorUrl) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "")
+		}
+
+		if *o.SamlSettings.Verify {
+			if len(*o.SamlSettings.AssertionConsumerServiceURL) == 0 {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "")
+			}
 		}
 	}
 
