@@ -14,11 +14,11 @@
         @include single-transition(background-color, .5s, ease);
         background-color: alpha-color($black, 0);
         height: 100%;
-        left: -100px;
+        left: -100%;
         position: absolute;
         top: 0;
         visibility: hidden;
-        width: calc(100% - 100px);
+        width: 300%;
     }
 
     .post-body {
