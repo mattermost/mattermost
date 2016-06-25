@@ -1051,3 +1051,9 @@
         }
     }
 }
+
+// on iOS, allow clicks within an input's label to actually propagate through to the input itself
+// http://stackoverflow.com/a/34810294/6325807
+label span {
+    pointer-events: none;
+}
