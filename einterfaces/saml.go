@@ -11,6 +11,7 @@ type SamlInterface interface {
 	ConfigureSP() *model.AppError
 	BuildRequest() (*model.SamlAuthRequest, *model.AppError)
 	DoLogin(encodedXML string) (*model.User, *model.AppError)
+	GetMetadata() (string, *model.AppError)
 }
 
 var theSamlInterface SamlInterface

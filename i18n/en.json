@@ -72,6 +72,10 @@
     "translation": "Attempting to recycle the database connection"
   },
   {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "An error occurred while building Service Provider Metadata"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!"
   },
@@ -2177,39 +2181,47 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "An error ocurred while building the request"
+    "translation": "An error occurred while building the request"
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "An error ocurred while encoding the request"
+    "translation": "An error occurred while encoding the request"
   },
   {
     "id": "ent.saml.build_request.encoding_signed.app_error",
-    "translation": "An error ocurred while encoding the signed request"
+    "translation": "An error occurred while encoding the signed request"
   },
   {
     "id": "ent.saml.configure.app_error",
-    "translation": "An error ocurred while configuring SAML Service Provider, err=%v"
+    "translation": "An error occurred while configuring SAML Service Provider, err=%v"
   },
   {
     "id": "ent.saml.configure.load_idp_certificate.app_error",
-    "translation": "An error ocurred while trying to load the Identity Provider Certificate."
+    "translation": "An error occurred while trying to load the Identity Provider Certificate."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "An error ocurred while trying to load the Service Provider Private Key."
+    "translation": "An error occurred while trying to load the Service Provider Private Key."
+  },
+  {
+    "id": "ent.saml.configure.load_pub_certificate.app_error",
+    "translation": "An error occurred while trying to load the Service Provider Certificate."
   },
   {
     "id": "ent.saml.configure.save_fs_idp_certificate.app_error",
-    "translation": "An error ocurred while saving the Identity Provider Certificate to disk."
+    "translation": "An error occurred while saving the Identity Provider Certificate to disk."
   },
   {
     "id": "ent.saml.configure.save_fs_private_key.app_error",
-    "translation": "An error ocurred while saving the Service Provider Private Key to disk."
+    "translation": "An error occurred while saving the Service Provider Private Key to disk."
+  },
+  {
+    "id": "ent.saml.configure.save_fs_pub_certificate.app_error",
+    "translation": "An error occurred while saving the Identity Service Certificate to disk."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "An error ocurred while decrypting the response from the Identity Provider"
+    "translation": "An error occurred while decrypting the response from the Identity Provider"
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -2217,15 +2229,19 @@
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "An error ocurred while parsing the response from the Identity Provider"
+    "translation": "An error occurred while parsing the response from the Identity Provider"
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "An error ocurred while validating the response from the Identity Provider"
+    "translation": "An error occurred while validating the response from the Identity Provider"
   },
   {
     "id": "ent.saml.license_disable.app_error",
     "translation": "Your license does not support using SAML authentication"
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "An error occurred while building Service Provider Metadata"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
