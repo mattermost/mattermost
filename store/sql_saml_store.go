@@ -44,16 +44,16 @@ func (ss SqlSamlStore) Save(saml *model.SamlRecord) StoreChannel {
 		}
 
 		var oldRecord *model.SamlRecord
+		var certType string
+		if saml.Type == model.SAML_IDP_CERTIFICATE {
+			certType = "IDP CERTIFICATE"
+		} else {
+			certType = "PRIVATE KEY"
+		}
 
 		// Insert or update depending if it exists or not
 		if err := ss.GetReplica().SelectOne(&oldRecord, "SELECT * FROM Saml WHERE Type = :Type", map[string]interface{}{"Type": saml.Type}); err != nil {
 			if err := ss.GetMaster().Insert(saml); err != nil {
-				var certType string
-				if saml.Type == model.SAML_IDP_CERTIFICATE {
-					certType = "SAML IDP CERTIFICATE"
-				} else {
-					certType = "SAML PRIVATE KEY"
-				}
 				result.Err = model.NewLocAppError("SqlSamlStore.Save", "store.sql_saml.save.app_error", nil, "saml_type="+certType+", "+err.Error())
 			} else {
 				result.Data = saml
@@ -61,9 +61,9 @@ func (ss SqlSamlStore) Save(saml *model.SamlRecord) StoreChannel {
 		} else {
 			saml.Id = oldRecord.Id
 			if count, err := ss.GetMaster().Update(saml); err != nil {
-				result.Err = model.NewLocAppError("SqlSamlStore.Save", "store.sql_saml.update_app.updating.app_error", nil, "app_id="+saml.Id+", "+err.Error())
+				result.Err = model.NewLocAppError("SqlSamlStore.Save", "store.sql_saml.save.updating.app_error", nil, "saml_type="+certType+", "+err.Error())
 			} else if count != 1 {
-				result.Err = model.NewLocAppError("SqlSamlStore.Save", "store.sql_saml.update_app.update.app_error", nil, "app_id="+saml.Id)
+				result.Err = model.NewLocAppError("SqlSamlStore.Save", "store.sql_saml.save.update.app_error", nil, "saml_type="+certType)
 			} else {
 				result.Data = saml
 			}
