@@ -898,7 +898,7 @@
   "general_tab.includeDirTitle": "Include this team in the Team Directory",
   "general_tab.no": "No",
   "general_tab.openInviteDesc": "When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team.",
-  "general_tab.openInviteTitle": "Allow any authenticated user to join this team",
+  "general_tab.openInviteTitle": "Allow any user with an account on this server to join this team",
   "general_tab.regenerate": "Regenerate",
   "general_tab.required": "This field is required",
   "general_tab.teamName": "Team Name",
