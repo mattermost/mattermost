@@ -45,10 +45,13 @@ func (ss SqlSamlStore) Save(saml *model.SamlRecord) StoreChannel {
 
 		var oldRecord *model.SamlRecord
 		var certType string
-		if saml.Type == model.SAML_IDP_CERTIFICATE {
+		switch saml.Type {
+		case model.SAML_IDP_CERTIFICATE:
 			certType = "IDP CERTIFICATE"
-		} else {
+		case model.SAML_PRIVATE_KEY:
 			certType = "PRIVATE KEY"
+		default:
+			certType = "PUBLIC CERTIFICATE"
 		}
 
 		// Insert or update depending if it exists or not
@@ -85,10 +88,13 @@ func (ss SqlSamlStore) Get(certType int) StoreChannel {
 
 		var samlRecord *model.SamlRecord
 		var certTypeStr string
-		if certType == model.SAML_IDP_CERTIFICATE {
+		switch certType {
+		case model.SAML_IDP_CERTIFICATE:
 			certTypeStr = "SAML IDP CERTIFICATE"
-		} else {
+		case model.SAML_PRIVATE_KEY:
 			certTypeStr = "SAML PRIVATE KEY"
+		default:
+			certTypeStr = "SAML PUBLIC CERTIFICATE"
 		}
 
 		if err := ss.GetReplica().SelectOne(&samlRecord, "SELECT * FROM Saml WHERE Type = :Type", map[string]interface{}{"Type": certType}); err != nil {

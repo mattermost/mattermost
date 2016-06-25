@@ -8,6 +8,7 @@ const (
 	USER_AUTH_SERVICE_SAML_TEXT = "With SAML"
 	SAML_IDP_CERTIFICATE        = 1
 	SAML_PRIVATE_KEY            = 2
+	SAML_PUBLIC_CERT            = 3
 )
 
 type SamlAuthRequest struct {
@@ -35,7 +36,7 @@ func (sr *SamlRecord) IsValid() *AppError {
 		return NewLocAppError("SamlRecord.IsValid", "model.saml_record.is_valid.bytes.app_error", nil, "")
 	}
 
-	if sr.Type != SAML_IDP_CERTIFICATE && sr.Type != SAML_PRIVATE_KEY {
+	if sr.Type != SAML_IDP_CERTIFICATE && sr.Type != SAML_PRIVATE_KEY && sr.Type != SAML_PUBLIC_CERT {
 		return NewLocAppError("SamlRecord.IsValid", "model.saml_record.is_valid.type.app_error", nil, "")
 	}
 

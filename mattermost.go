@@ -60,6 +60,7 @@ var flagUsername string
 var flagCmdUploadLicense bool
 var flagCmdUploadIdentityProviderCert bool
 var flagCmdUploadSamlPrivateKey bool
+var flagCmdUploadSamlCertificate bool
 var flagConfigFile string
 var flagLicenseFile string
 var flagCertificateFile string
@@ -297,6 +298,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdUploadLicense, "upload_license", false, "")
 	flag.BoolVar(&flagCmdUploadIdentityProviderCert, "idp_cert", false, "")
 	flag.BoolVar(&flagCmdUploadSamlPrivateKey, "saml_key", false, "")
+	flag.BoolVar(&flagCmdUploadSamlCertificate, "saml_cert", false, "")
 
 	flag.Parse()
 
@@ -317,7 +319,8 @@ func parseCmds() {
 		flagCmdRunLdapSync ||
 		flagCmdUploadLicense ||
 		flagCmdUploadIdentityProviderCert ||
-		flagCmdUploadSamlPrivateKey)
+		flagCmdUploadSamlPrivateKey ||
+		flagCmdUploadSamlCertificate)
 }
 
 func runCmds() {
@@ -338,6 +341,7 @@ func runCmds() {
 	cmdRunLdapSync()
 	cmdUploadIdentityProviderCert()
 	cmdUploadSamlPrivateKey()
+	cmdUploadSamlCertificate()
 }
 
 type TeamForUpgrade struct {
@@ -1294,6 +1298,37 @@ func cmdUploadSamlPrivateKey() {
 	}
 }
 
+func cmdUploadSamlCertificate() {
+	if flagCmdUploadSamlCertificate {
+		if model.BuildEnterpriseReady != "true" {
+			fmt.Fprintln(os.Stderr, "build must be enterprise ready")
+			os.Exit(1)
+		}
+
+		if len(flagCertificateFile) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -certificate")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var fileBytes []byte
+		var err error
+		if fileBytes, err = ioutil.ReadFile(flagCertificateFile); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		if err := api.SaveCertificate(string(fileBytes), model.SAML_PUBLIC_CERT); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			flushLogAndExit(0)
+		}
+
+		flushLogAndExit(0)
+	}
+}
+
 func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
@@ -1419,13 +1454,19 @@ COMMANDS:
     				      Requires the -certificate flag.
 
      	Example:
-     	    platform -idp_cert -certificate="/path/to/public/certificate/mattermost.crt"
+     	    platform -idp_cert -certificate="/path/to/public/idp/certificate/mattermost-idp.crt"
 
     -saml_key			      Uploads a private key certificate to be use for SAML
     				      authentication decryption. Requires the -privkey flag.
 
      	Example:
      	    platform -saml_key -privkey="/path/to/private/key/certificate/mattermost.key"
+
+    -saml_cert			      Uploads a public certificate to be use for SAML
+    				      authentication decryption. Requires the -certificate flag.
+
+     	Example:
+     	    platform -saml_cert -certificate="/path/to/public/certificate/mattermost.crt"
 
     -upgrade_db_30                   Upgrades the database from a version 2.x schema to version 3 see
                                       http://www.mattermost.org/upgrading-to-mattermost-3-0/
