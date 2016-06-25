@@ -23,7 +23,6 @@ import (
 func TestUploadFile(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
-	team := th.BasicTeam
 	user := th.BasicUser
 	channel := th.BasicChannel
 
@@ -84,17 +83,17 @@ func TestUploadFile(t *testing.T) {
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename)
+		err = bucket.Del("channels/" + channel.Id + "/users/" + user.Id + "/" + filename)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg")
+		err = bucket.Del("channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg")
+		err = bucket.Del("channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -109,17 +108,17 @@ func TestUploadFile(t *testing.T) {
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
 
-		path := utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename
+		path := utils.Cfg.FileSettings.Directory + "channels/" + channel.Id + "/users/" + user.Id + "/" + filename
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
 
-		path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg"
+		path = utils.Cfg.FileSettings.Directory + "channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
 
-		path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg"
+		path = utils.Cfg.FileSettings.Directory + "channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
@@ -133,7 +132,6 @@ func TestUploadFile(t *testing.T) {
 func TestGetFile(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
-	team := th.BasicTeam
 	user := th.BasicUser
 	channel := th.BasicChannel
 
@@ -207,17 +205,17 @@ func TestGetFile(t *testing.T) {
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename)
+			err = bucket.Del("channels/" + channel.Id + "/users/" + user.Id + "/" + filename)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg")
+			err = bucket.Del("channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg")
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			err = bucket.Del("teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg")
+			err = bucket.Del("channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -226,17 +224,17 @@ func TestGetFile(t *testing.T) {
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]
 
-			path := utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + filename
+			path := utils.Cfg.FileSettings.Directory + "channels/" + channel.Id + "/users/" + user.Id + "/" + filename
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg"
+			path = utils.Cfg.FileSettings.Directory + "channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_thumb.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.FileSettings.Directory + "teams/" + team.Id + "/channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg"
+			path = utils.Cfg.FileSettings.Directory + "channels/" + channel.Id + "/users/" + user.Id + "/" + fileId + "_preview.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
@@ -347,7 +345,7 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link while not logged in after salt changed")
 	}
 
-	if err := cleanupTestFile(filenames[0], th.BasicTeam.Id, channel.Id, th.BasicUser.Id); err != nil {
+	if err := cleanupTestFile(filenames[0], channel.Id, th.BasicUser.Id); err != nil {
 		t.Fatal("failed to cleanup test file", err)
 	}
 }
@@ -403,7 +401,7 @@ func TestGetPublicLink(t *testing.T) {
 
 	th.LoginBasic()
 
-	if err := cleanupTestFile(filenames[0], th.BasicTeam.Id, channel.Id, th.BasicUser.Id); err != nil {
+	if err := cleanupTestFile(filenames[0], channel.Id, th.BasicUser.Id); err != nil {
 		t.Fatal("failed to cleanup test file", err)
 	}
 }
@@ -443,7 +441,7 @@ func uploadTestFile(Client *model.Client, channelId string) ([]string, error) {
 	}
 }
 
-func cleanupTestFile(fullFilename, teamId, channelId, userId string) error {
+func cleanupTestFile(fullFilename, channelId, userId string) error {
 	filenames := strings.Split(fullFilename, "/")
 	filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 	fileId := strings.Split(filename, ".")[0]
@@ -457,29 +455,29 @@ func cleanupTestFile(fullFilename, teamId, channelId, userId string) error {
 		s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
 		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
 
-		if err := bucket.Del("teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename); err != nil {
+		if err := bucket.Del("channels/" + channelId + "/users/" + userId + "/" + filename); err != nil {
 			return err
 		}
 
-		if err := bucket.Del("teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + fileId + "_thumb.jpg"); err != nil {
+		if err := bucket.Del("channels/" + channelId + "/users/" + userId + "/" + fileId + "_thumb.jpg"); err != nil {
 			return err
 		}
 
-		if err := bucket.Del("teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + fileId + "_preview.jpg"); err != nil {
+		if err := bucket.Del("channels/" + channelId + "/users/" + userId + "/" + fileId + "_preview.jpg"); err != nil {
 			return err
 		}
 	} else {
-		path := utils.Cfg.FileSettings.Directory + "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
+		path := utils.Cfg.FileSettings.Directory + "channels/" + channelId + "/users/" + userId + "/" + filename
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("Couldn't remove file at " + path)
 		}
 
-		path = utils.Cfg.FileSettings.Directory + "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + fileId + "_thumb.jpg"
+		path = utils.Cfg.FileSettings.Directory + "channels/" + channelId + "/users/" + userId + "/" + fileId + "_thumb.jpg"
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("Couldn't remove file at " + path)
 		}
 
-		path = utils.Cfg.FileSettings.Directory + "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + fileId + "_preview.jpg"
+		path = utils.Cfg.FileSettings.Directory + "channels/" + channelId + "/users/" + userId + "/" + fileId + "_preview.jpg"
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("Couldn't remove file at " + path)
 		}
