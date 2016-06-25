@@ -1100,6 +1100,10 @@
     "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
   },
   {
+    "id": "api.saml.save_certificate.app_error",
+    "translation": "Certificate did not save properly."
+  },
+  {
     "id": "api.server.new_server.init.info",
     "translation": "Server is initializing..."
   },
@@ -1796,6 +1800,10 @@
     "translation": "Trying to reset password for user on wrong team."
   },
   {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML is not configured or supported on this server."
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Failed to send email change notification email successfully err=%v"
   },
@@ -2154,6 +2162,62 @@
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
     "translation": "Error trying to authenticate MFA token"
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "An error ocurred while building the request"
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "An error ocurred while encoding the request"
+  },
+  {
+    "id": "ent.saml.build_request.encoding_signed.app_error",
+    "translation": "An error ocurred while encoding the signed request"
+  },
+  {
+    "id": "ent.saml.configure.app_error",
+    "translation": "An error ocurred while configuring SAML Service Provider, err=%v"
+  },
+  {
+    "id": "ent.saml.configure.load_idp_certificate.app_error",
+    "translation": "An error ocurred while trying to load the Identity Provider Certificate."
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "An error ocurred while trying to load the Service Provider Private Key."
+  },
+  {
+    "id": "ent.saml.configure.save_fs_idp_certificate.app_error",
+    "translation": "An error ocurred while saving the Identity Provider Certificate to disk."
+  },
+  {
+    "id": "ent.saml.configure.save_fs_private_key.app_error",
+    "translation": "An error ocurred while saving the Service Provider Private Key to disk."
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "An error ocurred while decrypting the response from the Identity Provider"
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "We received an empty response from the Identity Provider"
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "An error ocurred while parsing the response from the Identity Provider"
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "An error ocurred while validating the response from the Identity Provider"
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "Your license does not support using SAML authentication"
+  },
+  {
+    "id": "ent.saml.update_saml_user.unable_error",
+    "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
   },
   {
     "id": "error.generic.link_message",
@@ -2544,6 +2608,22 @@
     "translation": "Invalid direct message restriction.  Must be 'any', or 'team'"
   },
   {
+    "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
+    "translation": "Invalid Assertion Consumer Service URL for SAML settings. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_email_attribute.app_error",
+    "translation": "Invalid Email attribute for SAML settings. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
+    "translation": "Invalid Identity Provider Descriptor URL for SAML settings. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_url.app_error",
+    "translation": "Invalid Identity Provider URL for SAML settings. Must be set."
+  },
+  {
     "id": "model.config.is_valid.sql_data_src.app_error",
     "translation": "Invalid data source for SQL settings.  Must be set."
   },
@@ -2774,6 +2854,22 @@
   {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "Value is too long"
+  },
+  {
+    "id": "model.saml_record.is_valid.bytes.app_error",
+    "translation": "Bytes must be a valid certificate"
+  },
+  {
+    "id": "model.saml_record.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.saml_record.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
+    "id": "model.saml_record.is_valid.type.app_error",
+    "translation": "Type must be a certificate or a private key"
   },
   {
     "id": "model.team.is_valid.characters.app_error",
@@ -3524,6 +3620,22 @@
     "translation": "We couldn't update the preference"
   },
   {
+    "id": "store.sql_saml.get.app_error",
+    "translation": "Unable to get the SAML certificate"
+  },
+  {
+    "id": "store.sql_saml.save.app_error",
+    "translation": "An error while saving the SAML certificate"
+  },
+  {
+    "id": "store.sql_saml.save.update.app_error",
+    "translation": "We couldn't update the SAML certificate"
+  },
+  {
+    "id": "store.sql_saml.save.updating.app_error",
+    "translation": "We encountered an error updating the SAML certificate"
+  },
+  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "We couldn't count the sessions"
   },
@@ -3768,6 +3880,10 @@
     "translation": "This account does not use LDAP authentication. Please sign in using email and password."
   },
   {
+    "id": "store.sql_user.save.email_exists.saml_app_error",
+    "translation": "This account does not use SAML authentication. Please sign in using email and password."
+  },
+  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Must call update for exisiting user"
   },
@@ -3785,6 +3901,10 @@
   },
   {
     "id": "store.sql_user.save.username_exists.ldap_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
+  },
+  {
+    "id": "store.sql_user.save.username_exists.saml_app_error",
     "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
