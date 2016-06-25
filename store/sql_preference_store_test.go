@@ -378,8 +378,6 @@ func TestPreferenceDelete(t *testing.T) {
 		Value:    "value1a",
 	}
 
-	t.Fatal("asdf")
-
 	Must(store.Preference().Save(&model.Preferences{preference}))
 
 	if prefs := Must(store.Preference().GetAll(preference.UserId)).(model.Preferences); len([]model.Preference(prefs)) != 1 {
