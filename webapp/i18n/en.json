@@ -1388,6 +1388,7 @@
   "user.settings.general.emailHelp4": "A verification email was sent to {email}.",
   "user.settings.general.emailLdapCantUpdate": "Login occurs through LDAP. Email cannot be updated. Email address used for notifications is {email}.",
   "user.settings.general.emailMatch": "The new emails you entered do not match.",
+  "user.settings.general.emailUnchanged": "Your new email address is the same as your old email address.",
   "user.settings.general.emptyName": "Click 'Edit' to add your full name",
   "user.settings.general.emptyNickname": "Click 'Edit' to add a nickname",
   "user.settings.general.field_handled_externally": "This field is handled through your login provider. If you want to change it, you need to do so through your login provider.",
