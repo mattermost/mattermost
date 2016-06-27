@@ -190,7 +190,7 @@ func CheckUserDomain(user *model.User, domains string) bool {
 
 	matched := false
 	for _, d := range domainArray {
-		if strings.HasSuffix(user.Email, "@"+d) {
+		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
 			matched = true
 			break
 		}
