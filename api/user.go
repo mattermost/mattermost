@@ -241,7 +241,7 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 	user.MakeNonNil()
 	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
 
-	if err := utils.IsPasswordValid(user.Password); err != nil {
+	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
 		err.StatusCode = http.StatusNotAcceptable
 		return nil, err
 	}
