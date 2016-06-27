@@ -345,10 +345,14 @@ func (c *Client) FindTeamByName(name string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) AddUserToTeam(userId string) (*Result, *AppError) {
+func (c *Client) AddUserToTeam(teamId string, userId string) (*Result, *AppError) {
+	if len(teamId) == 0 {
+		teamId = c.GetTeamId()
+	}
+
 	data := make(map[string]string)
 	data["user_id"] = userId
-	if r, err := c.DoApiPost(c.GetTeamRoute()+"/add_user_to_team", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v", teamId)+"/add_user_to_team", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -368,6 +372,22 @@ func (c *Client) AddUserToTeamFromInvite(hash, dataToHash, inviteId string) (*Re
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) RemoveUserFromTeam(teamId string, userId string) (*Result, *AppError) {
+	if len(teamId) == 0 {
+		teamId = c.GetTeamId()
+	}
+
+	data := make(map[string]string)
+	data["user_id"] = userId
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v", teamId)+"/remove_user_from_team", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 

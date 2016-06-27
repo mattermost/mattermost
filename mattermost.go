@@ -46,6 +46,7 @@ var flagCmdCreateUser bool
 var flagCmdInviteUser bool
 var flagCmdAssignRole bool
 var flagCmdJoinTeam bool
+var flagCmdLeaveTeam bool
 var flagCmdVersion bool
 var flagCmdRunWebClientTests bool
 var flagCmdRunJavascriptClientTests bool
@@ -274,6 +275,7 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdInviteUser, "invite_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdJoinTeam, "join_team", false, "")
+	flag.BoolVar(&flagCmdLeaveTeam, "leave_team", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdRunWebClientTests, "run_web_client_tests", false, "")
 	flag.BoolVar(&flagCmdRunJavascriptClientTests, "run_javascript_client_tests", false, "")
@@ -291,6 +293,7 @@ func parseCmds() {
 	flagRunCmds = (flagCmdCreateTeam ||
 		flagCmdCreateUser ||
 		flagCmdInviteUser ||
+		flagCmdLeaveTeam ||
 		flagCmdAssignRole ||
 		flagCmdJoinTeam ||
 		flagCmdResetPassword ||
@@ -312,6 +315,7 @@ func runCmds() {
 	cmdCreateTeam()
 	cmdCreateUser()
 	cmdInviteUser()
+	cmdLeaveTeam()
 	cmdAssignRole()
 	cmdJoinTeam()
 	cmdResetPassword()
@@ -947,6 +951,47 @@ func cmdJoinTeam() {
 	}
 }
 
+func cmdLeaveTeam() {
+	if flagCmdLeaveTeam {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		err := api.LeaveTeam(team, user)
+
+		if err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		os.Exit(0)
+	}
+}
+
 func cmdResetPassword() {
 	if flagCmdResetPassword {
 		if len(flagEmail) == 0 {
@@ -1276,6 +1321,11 @@ COMMANDS:
                                       , -email and -site_url flags.
         Example:
 				platform -invite_user -team_name="name" -email="user@example.com" -site_url="https://mattermost.example.com"
+
+-leave_team                           Removes a user from a team.  It requires the -team_name
+                                      and -email.
+        Example:
+				platform -remove_user_from_team -team_name="name" -email="user@example.com"
 
     -join_team                        Joins a user to the team.  It required the -email and
                                        -team_name.  You may need to logout of your current session
