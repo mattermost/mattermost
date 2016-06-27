@@ -160,12 +160,12 @@ class UserSettingsGeneralTab extends React.Component {
         const email = this.state.email.trim().toLowerCase();
         const confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
+        const {formatMessage} = this.props.intl;
         if (user.email === email) {
-            this.updateSection('');
+            this.setState({emailError: Utils.localizeMessage('user.settings.general.emailUnchanged', 'Your new email address is the same as your old email address.'), clientError: '', serverError: ''});
             return;
         }
 
-        const {formatMessage} = this.props.intl;
         if (email === '' || !Utils.isEmail(email)) {
             this.setState({emailError: formatMessage(holders.validEmail), clientError: '', serverError: ''});
             return;
