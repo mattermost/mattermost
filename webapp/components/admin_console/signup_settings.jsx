@@ -81,7 +81,7 @@ export default class SignupSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.inviteSaltDescription'
-                            defaultMessage='32-character salt added to signing of email invites. Randomly generated on install. Click "Re-Generate" to create new salt.'
+                            defaultMessage='32-character salt added to signing of email invites. Randomly generated on install. Click "Regenerate" to create new salt.'
                         />
                     }
                     value={this.state.inviteSalt}

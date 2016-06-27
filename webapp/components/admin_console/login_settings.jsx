@@ -85,7 +85,7 @@ export default class LoginSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.passwordSaltDescription'
-                            defaultMessage='32-character salt added to signing of password reset emails. Randomly generated on install. Click "Re-Generate" to create new salt.'
+                            defaultMessage='32-character salt added to signing of password reset emails. Randomly generated on install. Click "Regenerate" to create new salt.'
                         />
                     }
                     value={this.state.passwordResetSalt}
