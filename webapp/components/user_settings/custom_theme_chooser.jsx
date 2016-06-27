@@ -121,6 +121,11 @@ class CustomThemeChooser extends React.Component {
         $('.group--code').on('change', this.onCodeThemeChange);
     }
 
+    componentWillUnmount() {
+        $('.color-picker').off('changeColor', this.onPickerChange);
+        $('.group--code').off('changeColor', this.onCodeThemeChange);
+    }
+
     componentDidUpdate() {
         const theme = this.props.theme;
         Constants.THEME_ELEMENTS.forEach((element) => {
