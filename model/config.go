@@ -486,6 +486,11 @@ func (o *Config) SetDefaults() {
 		*o.LdapSettings.EmailAttribute = ""
 	}
 
+	if o.LdapSettings.UsernameAttribute == nil {
+		o.LdapSettings.UsernameAttribute = new(string)
+		*o.LdapSettings.UsernameAttribute = ""
+	}
+
 	if o.LdapSettings.NicknameAttribute == nil {
 		o.LdapSettings.NicknameAttribute = new(string)
 		*o.LdapSettings.NicknameAttribute = ""
@@ -707,6 +712,20 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.LdapSettings.SyncIntervalMinutes <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_sync_interval.app_error", nil, "")
+	}
+
+	if *o.LdapSettings.Enable {
+		if *o.LdapSettings.LdapServer == "" ||
+			*o.LdapSettings.BaseDN == "" ||
+			*o.LdapSettings.BindUsername == "" ||
+			*o.LdapSettings.BindPassword == "" ||
+			*o.LdapSettings.FirstNameAttribute == "" ||
+			*o.LdapSettings.LastNameAttribute == "" ||
+			*o.LdapSettings.EmailAttribute == "" ||
+			*o.LdapSettings.UsernameAttribute == "" ||
+			*o.LdapSettings.IdAttribute == "" {
+			return NewLocAppError("Config.IsValid", "Required LDAP field missing", nil, "")
+		}
 	}
 
 	return nil
