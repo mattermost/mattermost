@@ -36,7 +36,8 @@ class EditChannelHeaderModal extends React.Component {
 
         this.state = {
             header: props.channel.header,
-            serverError: ''
+            serverError: '',
+            submitted: false
         };
     }
 
@@ -55,7 +56,8 @@ class EditChannelHeaderModal extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (this.props !== nextProps) {
             this.setState({
-                header: nextProps.channel.header
+                header: nextProps.channel.header,
+                submitted: false
             });
         }
     }
@@ -77,6 +79,8 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     handleSubmit() {
+        this.setState({submitted: true});
+
         Client.updateChannelHeader(
             this.props.channel.id,
             this.state.header,
@@ -102,6 +106,7 @@ class EditChannelHeaderModal extends React.Component {
     onShow() {
         const textarea = ReactDOM.findDOMNode(this.refs.textarea);
         Utils.placeCaretAtEnd(textarea);
+        this.submitted = false;
     }
 
     onHide() {
@@ -190,6 +195,7 @@ class EditChannelHeaderModal extends React.Component {
                         />
                     </button>
                     <button
+                        disabled={this.state.submitted}
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSubmit}
