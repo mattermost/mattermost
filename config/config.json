@@ -165,5 +165,20 @@
         "DefaultServerLocale": "en",
         "DefaultClientLocale": "en",
         "AvailableLocales": ""
+    },
+    "SamlSettings": {
+        "Enable": false,
+        "Verify": false,
+        "Encrypt": false,
+        "IdpUrl": "",
+        "IdpDescriptorUrl": "",
+        "LoginButtonText": "",
+        "AssertionConsumerServiceURL": "",
+        "FirstNameAttribute": "",
+        "LastNameAttribute": "",
+        "EmailAttribute": "",
+        "UsernameAttribute": "",
+        "NicknameAttribute": "",
+        "LocaleAttribute": ""
     }
 }

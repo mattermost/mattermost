@@ -71,6 +71,9 @@ func InitUser() {
 	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
 	BaseRoutes.NeedUser.Handle("/image", ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
+
+	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(loginWithSaml)).Methods("GET")
+	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(completeSaml)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2416,4 +2419,48 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		rdata["mfa_required"] = strconv.FormatBool(result.Data.(*model.User).MfaActive)
 	}
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	samlInterface := einterfaces.GetSamlInterface()
+
+	if samlInterface == nil {
+		c.Err = model.NewLocAppError("loginWithSaml", "api.user.saml.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusFound
+		return
+	}
+
+	if data, err := samlInterface.BuildRequest(); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Header().Set("Content-Type", "text/html")
+		t := template.New("saml")
+		t, _ = t.Parse("<html><body style=\"display: none\" onload=\"document.frm.submit()\"><form method=\"GET\" name=\"frm\" action=\"{{.URL}}\"><input type=\"hidden\" name=\"SAMLRequest\" value=\"{{.Base64AuthRequest}}\" /><input type=\"submit\" value=\"Submit\" /></form></body></html>")
+
+		// how you might respond to a request with the templated form that will auto post
+		t.Execute(w, data)
+	}
+}
+
+func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	samlInterface := einterfaces.GetSamlInterface()
+
+	if samlInterface == nil {
+		c.Err = model.NewLocAppError("loginWithSaml", "api.user.saml.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusFound
+		return
+	}
+
+	//Validate that the user is with SAML and all that
+	encodedXML := r.FormValue("SAMLResponse")
+	if user, err := samlInterface.DoLogin(encodedXML); err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusFound
+		return
+	} else {
+		doLogin(c, w, r, user, "")
+		l4g.Debug("Redirecting to " + GetProtocol(r) + "://" + r.Host)
+		http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusFound)
+	}
 }

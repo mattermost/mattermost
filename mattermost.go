@@ -58,8 +58,13 @@ var flagCmdResetDatabase bool
 var flagCmdRunLdapSync bool
 var flagUsername string
 var flagCmdUploadLicense bool
+var flagCmdUploadIdentityProviderCert bool
+var flagCmdUploadSamlPrivateKey bool
+var flagCmdUploadSamlCertificate bool
 var flagConfigFile string
 var flagLicenseFile string
+var flagCertificateFile string
+var flagPrivateKeyFile string
 var flagEmail string
 var flagPassword string
 var flagTeamName string
@@ -135,6 +140,10 @@ func main() {
 
 		if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
 			ldapI.StartLdapSyncJob()
+		}
+
+		if samlI := einterfaces.GetSamlInterface(); samlI != nil {
+			samlI.ConfigureSP()
 		}
 
 		// wait for kill signal before attempting to gracefully shutdown
@@ -267,6 +276,8 @@ func parseCmds() {
 	flag.StringVar(&flagSiteURL, "site_url", "", "")
 	flag.StringVar(&flagConfirmBackup, "confirm_backup", "", "")
 	flag.StringVar(&flagRole, "role", "", "")
+	flag.StringVar(&flagCertificateFile, "certificate", "", "")
+	flag.StringVar(&flagPrivateKeyFile, "privkey", "", "")
 
 	flag.BoolVar(&flagCmdUpdateDb30, "upgrade_db_30", false, "")
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
@@ -285,6 +296,9 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdResetDatabase, "reset_database", false, "")
 	flag.BoolVar(&flagCmdRunLdapSync, "ldap_sync", false, "")
 	flag.BoolVar(&flagCmdUploadLicense, "upload_license", false, "")
+	flag.BoolVar(&flagCmdUploadIdentityProviderCert, "idp_cert", false, "")
+	flag.BoolVar(&flagCmdUploadSamlPrivateKey, "saml_key", false, "")
+	flag.BoolVar(&flagCmdUploadSamlCertificate, "saml_cert", false, "")
 
 	flag.Parse()
 
@@ -303,7 +317,10 @@ func parseCmds() {
 		flagCmdPermanentDeleteAllUsers ||
 		flagCmdResetDatabase ||
 		flagCmdRunLdapSync ||
-		flagCmdUploadLicense)
+		flagCmdUploadLicense ||
+		flagCmdUploadIdentityProviderCert ||
+		flagCmdUploadSamlPrivateKey ||
+		flagCmdUploadSamlCertificate)
 }
 
 func runCmds() {
@@ -322,6 +339,9 @@ func runCmds() {
 	cmdResetDatabase()
 	cmdUploadLicense()
 	cmdRunLdapSync()
+	cmdUploadIdentityProviderCert()
+	cmdUploadSamlPrivateKey()
+	cmdUploadSamlCertificate()
 }
 
 type TeamForUpgrade struct {
@@ -1216,6 +1236,99 @@ func cmdUploadLicense() {
 	}
 }
 
+func cmdUploadIdentityProviderCert() {
+	if flagCmdUploadIdentityProviderCert {
+		if model.BuildEnterpriseReady != "true" {
+			fmt.Fprintln(os.Stderr, "build must be enterprise ready")
+			os.Exit(1)
+		}
+
+		if len(flagCertificateFile) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -certificate")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var fileBytes []byte
+		var err error
+		if fileBytes, err = ioutil.ReadFile(flagCertificateFile); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		if err := api.SaveCertificate(string(fileBytes), model.SAML_IDP_CERTIFICATE); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			flushLogAndExit(0)
+		}
+
+		flushLogAndExit(0)
+	}
+}
+
+func cmdUploadSamlPrivateKey() {
+	if flagCmdUploadSamlPrivateKey {
+		if model.BuildEnterpriseReady != "true" {
+			fmt.Fprintln(os.Stderr, "build must be enterprise ready")
+			os.Exit(1)
+		}
+
+		if len(flagPrivateKeyFile) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -privkey")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var fileBytes []byte
+		var err error
+		if fileBytes, err = ioutil.ReadFile(flagPrivateKeyFile); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		if err := api.SaveCertificate(string(fileBytes), model.SAML_PRIVATE_KEY); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			flushLogAndExit(0)
+		}
+
+		flushLogAndExit(0)
+	}
+}
+
+func cmdUploadSamlCertificate() {
+	if flagCmdUploadSamlCertificate {
+		if model.BuildEnterpriseReady != "true" {
+			fmt.Fprintln(os.Stderr, "build must be enterprise ready")
+			os.Exit(1)
+		}
+
+		if len(flagCertificateFile) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -certificate")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		var fileBytes []byte
+		var err error
+		if fileBytes, err = ioutil.ReadFile(flagCertificateFile); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		}
+
+		if err := api.SaveCertificate(string(fileBytes), model.SAML_PUBLIC_CERT); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			flushLogAndExit(0)
+		}
+
+		flushLogAndExit(0)
+	}
+}
+
 func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
@@ -1245,6 +1358,10 @@ FLAGS:
     -username="someuser"              Username used in other commands
 
     -license="ex.mattermost-license"  Path to your license file
+
+    -certificate="mattermost.crt"     Path to your certificate file
+
+    -privkey="mattermost.key"	      Path to your private key file
 
     -email="user@example.com"         Email address used in other commands
 
@@ -1332,6 +1449,24 @@ COMMANDS:
 
         Example:
             platform -upload_license -license="/path/to/license/example.mattermost-license"
+
+    -idp_cert			      Uploads a public certificate to be use for SAML authentication.
+    				      Requires the -certificate flag.
+
+     	Example:
+     	    platform -idp_cert -certificate="/path/to/public/idp/certificate/mattermost-idp.crt"
+
+    -saml_key			      Uploads a private key certificate to be use for SAML
+    				      authentication decryption. Requires the -privkey flag.
+
+     	Example:
+     	    platform -saml_key -privkey="/path/to/private/key/certificate/mattermost.key"
+
+    -saml_cert			      Uploads a public certificate to be use for SAML
+    				      authentication decryption. Requires the -certificate flag.
+
+     	Example:
+     	    platform -saml_cert -certificate="/path/to/public/certificate/mattermost.crt"
 
     -upgrade_db_30                   Upgrades the database from a version 2.x schema to version 3 see
                                       http://www.mattermost.org/upgrading-to-mattermost-3-0/
