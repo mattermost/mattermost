@@ -69,6 +69,7 @@ export default class Navbar extends React.Component {
             channel: ChannelStore.getCurrent(),
             member: ChannelStore.getCurrentMember(),
             users: ChannelStore.getCurrentExtraInfo().members,
+            userCount: ChannelStore.getCurrentExtraInfo().member_count,
             currentUser: UserStore.getCurrentUser()
         };
     }
@@ -176,6 +177,21 @@ export default class Navbar extends React.Component {
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
         if (channel) {
+            let channelTerm = (
+                <FormattedMessage
+                    id='channel_header.channel'
+                    defaultMessage='Channel'
+                />
+                );
+            if (channel.type === Constants.PRIVATE_CHANNEL) {
+                channelTerm = (
+                    <FormattedMessage
+                        id='channel_header.group'
+                        defaultMessage='Group'
+                    />
+                );
+            }
+
             var viewInfoOption = (
                 <li role='presentation'>
                     <ToggleModalButton
@@ -199,8 +215,11 @@ export default class Navbar extends React.Component {
                         onClick={this.showEditChannelHeaderModal}
                     >
                         <FormattedMessage
-                            id='navbar.setHeader'
-                            defaultMessage='Set Channel Header...'
+                            id='channel_header.setHeader'
+                            defaultMessage='Set {term} Header...'
+                            values={{
+                                term: (channelTerm)
+                            }}
                         />
                     </a>
                 </li>
@@ -216,8 +235,11 @@ export default class Navbar extends React.Component {
                             onClick={() => this.setState({showEditChannelPurposeModal: true})}
                         >
                             <FormattedMessage
-                                id='navbar.setPurpose'
-                                defaultMessage='Set Channel Purpose...'
+                                id='channel_header.setPurpose'
+                                defaultMessage='Set {term} Purpose...'
+                                values={{
+                                    term: (channelTerm)
+                                }}
                             />
                         </a>
                     </li>
@@ -252,8 +274,11 @@ export default class Navbar extends React.Component {
                                 onClick={this.handleLeave}
                             >
                                 <FormattedMessage
-                                    id='navbar.leave'
-                                    defaultMessage='Leave Channel'
+                                    id='channel_header.leave'
+                                    defaultMessage='Leave {term}'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
                                 />
                             </a>
                         </li>
@@ -289,8 +314,11 @@ export default class Navbar extends React.Component {
                                 dialogProps={{channel}}
                             >
                                 <FormattedMessage
-                                    id='navbar.delete'
-                                    defaultMessage='Delete Channel...'
+                                    id='channel_header.delete'
+                                    defaultMessage='Delete {term}...'
+                                    values={{
+                                        term: (channelTerm)
+                                    }}
                                 />
                             </ToggleModalButton>
                         </li>
@@ -305,8 +333,11 @@ export default class Navbar extends React.Component {
                             onClick={this.showRenameChannelModal}
                         >
                             <FormattedMessage
-                                id='navbar.rename'
-                                defaultMessage='Rename Channel...'
+                                id='channel_header.rename'
+                                defaultMessage='Rename {term}...'
+                                values={{
+                                    term: (channelTerm)
+                                }}
                             />
                         </a>
                     </li>
