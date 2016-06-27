@@ -2120,6 +2120,10 @@
     "translation": "Invalid LDAP Filter"
   },
   {
+    "id": "ent.ldap.mattermost_user_update",
+    "translation": "Mattermost user was updated by LDAP server."
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
     "translation": "Error attempting to authenticate MFA token"
   },
