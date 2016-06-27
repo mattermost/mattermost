@@ -865,6 +865,7 @@
   "edit_channel_header_modal.error": "This channel header is too long, please enter a shorter one",
   "edit_channel_header_modal.save": "Save",
   "edit_channel_header_modal.title": "Edit Header for {channel}",
+  "edit_channel_header_modal.title_dm": "Edit Header",
   "edit_channel_purpose_modal.body": "Describe how this {type} should be used. This text appears in the channel list in the \"More...\" menu and helps others decide whether to join.",
   "edit_channel_purpose_modal.cancel": "Cancel",
   "edit_channel_purpose_modal.channel": "Channel",

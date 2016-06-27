@@ -129,6 +129,26 @@ class EditChannelHeaderModal extends React.Component {
             serverError = <div className='form-group has-error'><br/><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
+        let headerTitle = null;
+        if (this.props.channel.type === Constants.DM_CHANNEL) {
+            headerTitle = (
+                <FormattedMessage
+                    id='edit_channel_header_modal.title_dm'
+                    defaultMessage='Edit Header'
+                />
+            );
+        } else {
+            headerTitle = (
+                <FormattedMessage
+                    id='edit_channel_header_modal.title'
+                    defaultMessage='Edit Header for {channel}'
+                    values={{
+                        channel: this.props.channel.display_name
+                    }}
+                />
+            );
+        }
+
         return (
             <Modal
                 show={this.props.show}
@@ -136,13 +156,7 @@ class EditChannelHeaderModal extends React.Component {
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
-                        <FormattedMessage
-                            id='edit_channel_header_modal.title'
-                            defaultMessage='Edit Header for {channel}'
-                            values={{
-                                channel: this.props.channel.display_name
-                            }}
-                        />
+                        {headerTitle}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
