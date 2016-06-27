@@ -493,3 +493,12 @@ func TestAdminResetPassword(t *testing.T) {
 		t.Fatal("Should have errored - not sytem admin")
 	}
 }
+
+func TestAdminLdapSyncNow(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+
+	if _, err := Client.LdapSyncNow(); err != nil {
+		t.Fatal("Returned Failure")
+	}
+}
