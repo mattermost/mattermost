@@ -6,7 +6,7 @@ import React from 'react';
 import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 export default class RecycleDbButton extends React.Component {
     constructor(props) {
@@ -64,6 +64,13 @@ export default class RecycleDbButton extends React.Component {
             );
         }
 
+        let helpText = (
+            <FormattedHTMLMessage
+                id='admin.recycle.recycleDescription'
+                defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired confugration and using the <a href="../general/configuration"><b>Configuration > Reload Configuration from Disk</b></a> feature to load the new settings while the server is running. The administrator should then use <b>Recycle Database Connections</b> feature to recycle the database connections based on the new settings.'
+            />
+        );
+
         let contents = null;
         if (this.state.loading) {
             contents = (
@@ -92,6 +99,9 @@ export default class RecycleDbButton extends React.Component {
                             {contents}
                         </button>
                         {testMessage}
+                    </div>
+                    <div className='help-text'>
+                        {helpText}
                     </div>
                 </div>
             </div>

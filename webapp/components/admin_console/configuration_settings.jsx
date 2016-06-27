@@ -44,7 +44,6 @@ export default class ConfigurationSettings extends AdminSettings {
     renderSettings() {
         return (
             <SettingsGroup>
-                <ReloadConfigButton/>
                 <TextSetting
                     id='listenAddress'
                     label={
@@ -63,6 +62,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     value={this.state.listenAddress}
                     onChange={this.handleChange}
                 />
+                <ReloadConfigButton/>
             </SettingsGroup>
         );
     }
