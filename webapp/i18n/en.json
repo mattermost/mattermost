@@ -1099,7 +1099,7 @@
   "password_send.title": "Password Reset",
   "pending_post_actions.cancel": "Cancel",
   "pending_post_actions.retry": "Retry",
-  "permalink.error.access": "Permalink belongs to a channel you do not have access to",
+  "permalink.error.access": "Permalink belongs to a message that has been deleted or exists in a channel you do not have access to",
   "post_attachment.collapse": "Show less...",
   "post_attachment.more": "Show more...",
   "post_body.commentedOn": "Commented on {name}{apostrophe} message: ",
