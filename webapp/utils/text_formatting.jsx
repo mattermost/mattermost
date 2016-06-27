@@ -27,7 +27,7 @@ export function formatText(text, options = {}) {
     let output = text;
 
     // would probably make more sense if it was on the calling components, but this option is intended primarily for debugging
-    if (PreferenceStore.get(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true') === 'false') {
+    if (window.mm_config.EnableDeveloper === 'true' && PreferenceStore.get(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', 'true') === 'false') {
         return output;
     }
 
