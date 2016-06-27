@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import React from 'react';
+import 'bootstrap';
 
 import ErrorBar from 'components/error_bar.jsx';
 import AdminStore from 'stores/admin_store.jsx';
