@@ -23,7 +23,7 @@
         "SessionCacheInMinutes": 10,
         "WebsocketSecurePort": 443,
         "WebsocketPort": 80,
-        "WebserverMode": "regular",
+        "WebserverMode": "gzip",
         "EnableCustomEmoji": true,
         "RestrictCustomEmojiCreation": "all"
     },
