@@ -280,6 +280,18 @@
                 }
             }
 
+            &.saml {
+                background: #dd4b39;
+
+                &:hover {
+                    background: darken(#dd4b39, 10%);
+                }
+
+                span {
+                    vertical-align: middle;
+                }
+            }
+
             &.btn-full {
                 padding-left: 35px;
                 text-align: left;

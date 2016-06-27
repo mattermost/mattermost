@@ -14,6 +14,7 @@ const (
 type SamlAuthRequest struct {
 	Base64AuthRequest string
 	URL               string
+	RelayState        string
 }
 
 type SamlRecord struct {

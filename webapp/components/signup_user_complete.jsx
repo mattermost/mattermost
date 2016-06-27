@@ -588,6 +588,20 @@ export default class SignupUserComplete extends React.Component {
            );
         }
 
+        if (global.window.mm_config.EnableSaml === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.SAML === 'true') {
+            signupMessage.push(
+                <a
+                    className='btn btn-custom-login saml'
+                    key='saml'
+                    href={`/login/sso/saml${window.location.search}${window.location.search ? '&' : '?'}action=signup`}
+                >
+                    <span>
+                        {global.window.mm_config.SamlLoginButtonText}
+                    </span>
+                </a>
+            );
+        }
+
         let ldapSignup;
         if (global.window.mm_config.EnableLdap === 'true' && global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP) {
             ldapSignup = (

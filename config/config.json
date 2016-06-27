@@ -32,7 +32,7 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "EnableOpenServer": false,
+        "EnableOpenServer": true,
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
@@ -168,18 +168,18 @@
         "AvailableLocales": ""
     },
     "SamlSettings": {
-        "Enable": false,
-        "Verify": false,
-        "Encrypt": false,
-        "IdpUrl": "",
-        "IdpDescriptorUrl": "",
-        "LoginButtonText": "",
-        "AssertionConsumerServiceURL": "",
-        "FirstNameAttribute": "",
-        "LastNameAttribute": "",
-        "EmailAttribute": "",
-        "UsernameAttribute": "",
+        "Enable": true,
+        "Verify": true,
+        "Encrypt": true,
+        "IdpUrl": "https://dev-331079.oktapreview.com/app/mattermostdev331079_mattermost_1/exk6ig6s8n7Axdkvi0h7/sso/saml",
+        "IdpDescriptorUrl": "http://www.okta.com/exk6ig6s8n7Axdkvi0h7",
+        "LoginButtonText": "With OKTA",
+        "AssertionConsumerServiceURL": "http://elias.ngrok.io/login/sso/saml",
+        "FirstNameAttribute": "FirstName",
+        "LastNameAttribute": "LastName",
+        "EmailAttribute": "Email",
+        "UsernameAttribute": "Username",
         "NicknameAttribute": "",
-        "LocaleAttribute": ""
+        "LocaleAttribute": "Locale"
     }
 }
