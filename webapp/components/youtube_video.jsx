@@ -96,7 +96,10 @@ export default class YoutubeVideo extends React.Component {
     }
 
     loadWithoutKey() {
-        this.setState({loaded: true});
+        this.setState({
+            loaded: true,
+            thumb: 'https://i.ytimg.com/vi/' + this.state.videoId + '/hqdefault.jpg'
+        });
     }
 
     handleMetadataError() {
@@ -116,11 +119,17 @@ export default class YoutubeVideo extends React.Component {
             });
             return null;
         }
-        var metadata = data.items[0].snippet;
+        const metadata = data.items[0].snippet;
+        let thumb = 'https://i.ytimg.com/vi/' + this.state.videoId + '/hqdefault.jpg';
+        if (metadata.liveBroadcastContent === 'live') {
+            thumb = 'https://i.ytimg.com/vi/' + this.state.videoId + '/hqdefault_live.jpg';
+        }
+
         this.setState({
             loaded: true,
             receivedYoutubeData: true,
-            title: metadata.title
+            title: metadata.title,
+            thumb
         });
         return null;
     }
@@ -195,7 +204,7 @@ export default class YoutubeVideo extends React.Component {
                     <div className='video-thumbnail__container'>
                         <img
                             className='video-thumbnail'
-                            src={'https://i.ytimg.com/vi/' + this.state.videoId + '/hqdefault.jpg'}
+                            src={this.state.thumb}
                         />
                         <div className='block'>
                             <span className='play-button'><span/></span>
