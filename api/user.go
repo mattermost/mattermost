@@ -2441,28 +2441,24 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
+	relayState := ""
 
-	if data, err := samlInterface.BuildRequest(); err != nil {
+	if len(action) != 0 {
+		relayProps := map[string]string{}
+		relayProps["team_id"] = teamId
+		relayProps["action"] = action
+		if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
+			relayProps["email"] = r.URL.Query().Get("email")
+		}
+		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
+	}
+
+	if data, err := samlInterface.BuildRequest(relayState); err != nil {
 		c.Err = err
 		return
 	} else {
-		html := "<html><body style=\"display: none\" onload=\"document.frm.submit()\"><form method=\"GET\" name=\"frm\" action=\"{{.URL}}\"><input type=\"hidden\" name=\"SAMLRequest\" value=\"{{.Base64AuthRequest}}\" /><input type=\"submit\" value=\"Submit\" /></form></body></html>"
-		if len(action) != 0 {
-			relayProps := map[string]string{}
-			relayProps["team_id"] = teamId
-			relayProps["action"] = action
-			if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
-				relayProps["email"] = r.URL.Query().Get("email")
-			}
-			data.RelayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
-			html = "<html><body style=\"display: none\" onload=\"document.frm.submit()\"><form method=\"GET\" name=\"frm\" action=\"{{.URL}}\"><input type=\"hidden\" name=\"SAMLRequest\" value=\"{{.Base64AuthRequest}}\" /><input type=\"hidden\" name=\"RelayState\" value=\"{{.RelayState}}\" /><input type=\"submit\" value=\"Submit\" /></form></body></html>"
-		}
-		w.Header().Set("Content-Type", "text/html")
-		t := template.New("saml")
-		t, _ = t.Parse(html)
-
-		// how you might respond to a request with the templated form that will auto post
-		t.Execute(w, data)
+		w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+		http.Redirect(w, r, data.URL, http.StatusFound)
 	}
 }
 

@@ -43,7 +43,6 @@ type Store interface {
 	License() LicenseStore
 	PasswordRecovery() PasswordRecoveryStore
 	Emoji() EmojiStore
-	Saml() SamlStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -263,9 +262,4 @@ type EmojiStore interface {
 	GetByName(name string) StoreChannel
 	GetAll() StoreChannel
 	Delete(id string, time int64) StoreChannel
-}
-
-type SamlStore interface {
-	Save(saml *model.SamlRecord) StoreChannel
-	Get(certType int) StoreChannel
 }

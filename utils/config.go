@@ -192,6 +192,10 @@ func LoadConfig(fileName string) {
 		// This restarts the job if nessisary (works for config reloads)
 		ldapI.StartLdapSyncJob()
 	}
+
+	if samlI := einterfaces.GetSamlInterface(); samlI != nil {
+		samlI.ConfigureSP()
+	}
 }
 
 func getClientConfig(c *model.Config) map[string]string {

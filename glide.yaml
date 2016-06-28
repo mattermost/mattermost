@@ -40,4 +40,3 @@ import:
   subpackages:
   - store
 - package: github.com/kardianos/osext
-- package: github.com/nu7hatch/gouuid

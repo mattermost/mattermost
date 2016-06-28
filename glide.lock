@@ -63,8 +63,6 @@ imports:
   - i18n/bundle
   - i18n/language
   - i18n/translation
-- name: github.com/nu7hatch/gouuid
-  version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
 - name: github.com/NYTimes/gziphandler
   version: 63027b26b87e2ae2ce3810393d4b81021cfd3a35
 - name: github.com/pborman/uuid

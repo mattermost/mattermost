@@ -2196,30 +2196,6 @@
     "translation": "An error occurred while configuring SAML Service Provider, err=%v"
   },
   {
-    "id": "ent.saml.configure.load_idp_certificate.app_error",
-    "translation": "An error occurred while trying to load the Identity Provider Certificate."
-  },
-  {
-    "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "An error occurred while trying to load the Service Provider Private Key."
-  },
-  {
-    "id": "ent.saml.configure.load_pub_certificate.app_error",
-    "translation": "An error occurred while trying to load the Service Provider Certificate."
-  },
-  {
-    "id": "ent.saml.configure.save_fs_idp_certificate.app_error",
-    "translation": "An error occurred while saving the Identity Provider Certificate to disk."
-  },
-  {
-    "id": "ent.saml.configure.save_fs_private_key.app_error",
-    "translation": "An error occurred while saving the Service Provider Private Key to disk."
-  },
-  {
-    "id": "ent.saml.configure.save_fs_pub_certificate.app_error",
-    "translation": "An error occurred while saving the Identity Service Certificate to disk."
-  },
-  {
     "id": "ent.saml.do_login.decrypt.app_error",
     "translation": "An error occurred while decrypting the response from the Identity Provider"
   },
@@ -2894,22 +2870,6 @@
   {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "Value is too long"
-  },
-  {
-    "id": "model.saml_record.is_valid.bytes.app_error",
-    "translation": "Bytes must be a valid certificate"
-  },
-  {
-    "id": "model.saml_record.is_valid.create_at.app_error",
-    "translation": "Create at must be a valid time"
-  },
-  {
-    "id": "model.saml_record.is_valid.id.app_error",
-    "translation": "Invalid Id"
-  },
-  {
-    "id": "model.saml_record.is_valid.type.app_error",
-    "translation": "Type must be a certificate or a private key"
   },
   {
     "id": "model.team.is_valid.characters.app_error",
@@ -3658,22 +3618,6 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "We couldn't update the preference"
-  },
-  {
-    "id": "store.sql_saml.get.app_error",
-    "translation": "Unable to get the SAML certificate"
-  },
-  {
-    "id": "store.sql_saml.save.app_error",
-    "translation": "An error while saving the SAML certificate"
-  },
-  {
-    "id": "store.sql_saml.save.update.app_error",
-    "translation": "We couldn't update the SAML certificate"
-  },
-  {
-    "id": "store.sql_saml.save.updating.app_error",
-    "translation": "We encountered an error updating the SAML certificate"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -4426,5 +4370,29 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
+  },
+  {
+    "id": "model.config.is_valid.saml_idp_cert.app_error",
+    "translation": "Idp Certificate File missing in SAML Settings"
+  },
+  {
+    "id": "model.config.is_valid.saml_public_cert.app_error",
+    "translation": "Public Certificate File missing in SAML Settings"
+  },
+  {
+    "id": "model.config.is_valid.saml_private_key.app_error",
+    "translation": "Private Key File missing in SAML Settings"
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "SAML Private Key File does not exists"
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "SAML Idp Certificate File does not exists"
+  },
+  {
+    "id": "ent.saml.configure.load_public_cert.app_error",
+    "translation": "SAML Public Certificate File does not exists"
   }
 ]

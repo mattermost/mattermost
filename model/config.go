@@ -231,6 +231,9 @@ type SamlSettings struct {
 	Enable                      *bool
 	Verify                      *bool
 	Encrypt                     *bool
+	IdpCertificateFile          *string
+	PublicCertificateFile       *string
+	PrivateKeyFile              *string
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
 	LoginButtonText             *string
@@ -672,6 +675,21 @@ func (o *Config) SetDefaults() {
 		*o.SamlSettings.IdpDescriptorUrl = ""
 	}
 
+	if o.SamlSettings.IdpCertificateFile == nil {
+		o.SamlSettings.IdpCertificateFile = new(string)
+		*o.SamlSettings.IdpCertificateFile = ""
+	}
+
+	if o.SamlSettings.PublicCertificateFile == nil {
+		o.SamlSettings.PublicCertificateFile = new(string)
+		*o.SamlSettings.PublicCertificateFile = ""
+	}
+
+	if o.SamlSettings.PrivateKeyFile == nil {
+		o.SamlSettings.PrivateKeyFile = new(string)
+		*o.SamlSettings.PrivateKeyFile = ""
+	}
+
 	if o.SamlSettings.AssertionConsumerServiceURL == nil {
 		o.SamlSettings.AssertionConsumerServiceURL = new(string)
 		*o.SamlSettings.AssertionConsumerServiceURL = ""
@@ -695,6 +713,11 @@ func (o *Config) SetDefaults() {
 	if o.SamlSettings.EmailAttribute == nil {
 		o.SamlSettings.EmailAttribute = new(string)
 		*o.SamlSettings.EmailAttribute = ""
+	}
+
+	if o.SamlSettings.UsernameAttribute == nil {
+		o.SamlSettings.UsernameAttribute = new(string)
+		*o.SamlSettings.UsernameAttribute = ""
 	}
 
 	if o.SamlSettings.NicknameAttribute == nil {
@@ -841,9 +864,23 @@ func (o *Config) IsValid() *AppError {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "")
 		}
 
+		if len(*o.SamlSettings.IdpCertificateFile) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_cert.app_error", nil, "")
+		}
+
 		if *o.SamlSettings.Verify {
 			if len(*o.SamlSettings.AssertionConsumerServiceURL) == 0 {
 				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "")
+			}
+		}
+
+		if *o.SamlSettings.Encrypt {
+			if len(*o.SamlSettings.PublicCertificateFile) == 0 {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "")
+			}
+
+			if len(*o.SamlSettings.PrivateKeyFile) == 0 {
+				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "")
 			}
 		}
 	}
