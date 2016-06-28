@@ -6,7 +6,7 @@ import React from 'react';
 import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 export default class ReloadConfigButton extends React.Component {
     constructor(props) {
@@ -64,6 +64,13 @@ export default class ReloadConfigButton extends React.Component {
             );
         }
 
+        let helpText = (
+            <FormattedHTMLMessage
+                id='admin.reload.reloadDescription'
+                defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the <b>Reload Configuration from Disk</b> feature to load the new settings while the server is running. The administrator should then use the <a href="../advanced/database"><b>Database > Recycle Database Connections</b></a> feature to recycle the database connections based on the new settings.'
+            />
+        );
+
         let contents = null;
         if (this.state.loading) {
             contents = (
@@ -92,6 +99,9 @@ export default class ReloadConfigButton extends React.Component {
                             {contents}
                         </button>
                         {testMessage}
+                    </div>
+                    <div className='help-text'>
+                        {helpText}
                     </div>
                 </div>
             </div>
