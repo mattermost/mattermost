@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
-import Constants from 'utils/constants.jsx';
 import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import * as Utils from 'utils/utils.jsx';
 
@@ -155,7 +154,6 @@ export default class ChangeUrlModal extends React.Component {
                             <div className='col-sm-10'>
                                 <div className={urlClass}>
                                     <OverlayTrigger
-                                        delayShow={Constants.OVERLAY_TIME_DELAY}
                                         placement='top'
                                         overlay={urlTooltip}
                                     >
