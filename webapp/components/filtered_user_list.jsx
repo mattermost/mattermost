@@ -111,6 +111,7 @@ class FilteredUserList extends React.Component {
                 return user.username.toLowerCase().indexOf(filter) !== -1 ||
                     (user.first_name && user.first_name.toLowerCase().indexOf(filter) !== -1) ||
                     (user.last_name && user.last_name.toLowerCase().indexOf(filter) !== -1) ||
+                    (user.email && user.email.toLowerCase().indexOf(filter) !== -1) ||
                     (user.nickname && user.nickname.toLowerCase().indexOf(filter) !== -1);
             });
         }
