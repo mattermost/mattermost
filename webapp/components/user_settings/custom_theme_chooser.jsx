@@ -338,7 +338,10 @@ class CustomThemeChooser extends React.Component {
                         className='theme-elements__header'
                         onClick={this.toggleContent}
                     >
-                        {'Sidebar Styles'}
+                        <FormattedMessage
+                            id='user.settings.custom_theme.sidebarTitle'
+                            defaultMessage='Sidebar Styles'
+                        />
                         <div className='header__icon'>
                             <i className='fa fa-plus'></i>
                             <i className='fa fa-minus'></i>
@@ -353,7 +356,10 @@ class CustomThemeChooser extends React.Component {
                         className='theme-elements__header'
                         onClick={this.toggleContent}
                     >
-                        {'Center Channel Styles'}
+                        <FormattedMessage
+                            id='user.settings.custom_theme.centerChannelTitle'
+                            defaultMessage='Center Channel Styles'
+                        />
                         <div className='header__icon'>
                             <i className='fa fa-plus'></i>
                             <i className='fa fa-minus'></i>
@@ -368,7 +374,10 @@ class CustomThemeChooser extends React.Component {
                         className='theme-elements__header'
                         onClick={this.toggleContent}
                     >
-                        {'Link and Button Styles'}
+                        <FormattedMessage
+                            id='user.settings.custom_theme.linkButtonTitle'
+                            defaultMessage='Link and Button Styles'
+                        />
                         <div className='header__icon'>
                             <i className='fa fa-plus'></i>
                             <i className='fa fa-minus'></i>

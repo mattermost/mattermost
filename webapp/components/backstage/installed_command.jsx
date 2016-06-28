@@ -126,7 +126,7 @@ export default class InstalledCommand extends React.Component {
                     >
                         <FormattedMessage
                             id='installed_integrations.regenToken'
-                            defaultMessage='Regen Token'
+                            defaultMessage='Regenerate Token'
                         />
                     </a>
                     {' - '}
