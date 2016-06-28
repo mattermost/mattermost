@@ -58,6 +58,8 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	BaseRoutes.Users.Handle("/profiles_for_dm_list/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfilesForDirectMessageList)).Methods("GET")
 
+	BaseRoutes.Users.Handle("/twilio_token", ApiUserRequired(twilioToken)).Methods("POST")
+
 	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
 	BaseRoutes.Users.Handle("/generate_mfa_qr", ApiUserRequiredTrustRequester(generateMfaQrCode)).Methods("GET")
 	BaseRoutes.Users.Handle("/update_mfa", ApiUserRequired(updateMfa)).Methods("POST")
@@ -2416,4 +2418,21 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		rdata["mfa_required"] = strconv.FormatBool(result.Data.(*model.User).MfaActive)
 	}
 	w.Write([]byte(model.MapToJson(rdata)))
+}
+
+func twilioToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	webrtcInterface := einterfaces.GetWebRTCInterface()
+
+	if webrtcInterface == nil {
+		c.Err = model.NewLocAppError("twilioToken", "api.user.webrtc.not_available.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if result, err := webrtcInterface.Token(c.Session.UserId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.MapToJson(result)))
+	}
 }

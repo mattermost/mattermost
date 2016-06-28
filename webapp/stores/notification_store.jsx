@@ -90,6 +90,25 @@ class NotificationStoreClass extends EventEmitter {
             }
         }
     }
+
+    handleIncomingVideoCall(incoming) {
+        if (UserStore.getCurrentId() === incoming.to_id) {
+            const channel = ChannelStore.get(incoming.channel_id);
+            const user = UserStore.getCurrentUser();
+
+            const title = Utils.localizeMessage('webrtc.notifications.incoming', 'Incoming Call');
+            let username = Utils.localizeMessage('webrtc.notifications.someone', 'Someone');
+            if (UserStore.hasProfile(incoming.from_id)) {
+                username = UserStore.getProfile(incoming.from_id).username;
+            }
+
+            Utils.notifyMe(title, username + Utils.localizeMessage('webrtc.notifications.calling', ' wants to start a video call with you'), channel, null, true);
+
+            if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
+                Utils.ding();
+            }
+        }
+    }
 }
 
 var NotificationStore = new NotificationStoreClass();
@@ -100,6 +119,10 @@ NotificationStore.dispatchToken = AppDispatcher.register((payload) => {
     switch (action.type) {
     case ActionTypes.RECEIVED_POST:
         NotificationStore.handleRecievedPost(action.post, action.websocketMessageProps);
+        NotificationStore.emitChange();
+        break;
+    case ActionTypes.VIDEO_CALL_INCOMING:
+        NotificationStore.handleIncomingVideoCall(action.incoming);
         NotificationStore.emitChange();
         break;
     }

@@ -117,7 +117,7 @@ export function getCookie(name) {
 
 var requestedNotificationPermission = false;
 
-export function notifyMe(title, body, channel, teamId) {
+export function notifyMe(title, body, channel, teamId, bypass) {
     if (!('Notification' in window)) {
         return;
     }
@@ -131,11 +131,11 @@ export function notifyMe(title, body, channel, teamId) {
                     var notification = new Notification(title, {body: body, tag: body, icon: icon50});
                     notification.onclick = () => {
                         window.focus();
-                        if (channel) {
+                        if (channel && teamId) {
                             browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);
                         } else if (teamId) {
                             browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/town-square');
-                        } else {
+                        } else if (!bypass) {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
                         }
                     };

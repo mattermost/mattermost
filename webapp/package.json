@@ -32,6 +32,8 @@
     "react-textarea-autosize": "4.0.1",
     "superagent": "1.8.3",
     "twemoji": "2.0.5",
+    "twilio-common": "0.1.5",
+    "twilio-conversations": "0.13.7",
     "velocity-animate": "1.2.3"
   },
   "devDependencies": {

@@ -14,6 +14,7 @@ import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
@@ -107,6 +108,9 @@ function handleMessage(msg) {
     // Let the store know we are online. This probably shouldn't be here.
     UserStore.setStatus(msg.user_id, 'online');
 
+    const userId = UserStore.getCurrentId();
+    const props = msg.props;
+
     switch (msg.action) {
     case SocketEvents.POSTED:
     case SocketEvents.EPHEMERAL_MESSAGE:
@@ -151,6 +155,48 @@ function handleMessage(msg) {
 
     case SocketEvents.TYPING:
         handleUserTypingEvent(msg);
+        break;
+
+    case SocketEvents.VIDEO_CALL_START:
+        if (userId === props.to_id) {
+            handleIncomingVideoCall(msg);
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_CANCEL:
+        if (userId === props.to_id) {
+            handleCancelVideoCall(msg);
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_ANSWER:
+        if (userId === props.from_id || userId === props.to_id) {
+            handleAnswerVideoCall(msg);
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_DECLINE:
+        if (userId === props.from_id) {
+            handleRejectVideoCall();
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_NOT_SUPPORTED:
+        if (userId === props.from_id) {
+            handleNotSupportedVideoCall();
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_FAILED:
+        if (userId === props.from_id || userId === props.to_id) {
+            handleVideoCallFailed(msg);
+        }
+        break;
+
+    case SocketEvents.VIDEO_CALL_NO_ANSWER:
+        if (userId === props.from_id) {
+            handleNoAnswerVideoCall();
+        }
         break;
 
     default:
@@ -269,4 +315,38 @@ function handleUserTypingEvent(msg) {
     if (TeamStore.getCurrentId() === msg.team_id) {
         GlobalActions.emitRemoteUserTypingEvent(msg.channel_id, msg.user_id, msg.props.parent_id);
     }
+}
+
+function handleIncomingVideoCall(msg) {
+    const incoming = msg.props;
+
+    incoming.channel_id = msg.channel_id;
+    WebrtcActions.notifyIncomingVideoCall(incoming);
+}
+
+function handleCancelVideoCall(msg) {
+    const call = msg.props;
+    call.channel_id = msg.channel_id;
+
+    WebrtcActions.cancelVideoCall(call);
+}
+
+function handleAnswerVideoCall(msg) {
+    WebrtcActions.connectVideoCall(msg.props);
+}
+
+function handleRejectVideoCall() {
+    WebrtcActions.rejectedVideoCall();
+}
+
+function handleNotSupportedVideoCall() {
+    WebrtcActions.notSupportedVideoCall();
+}
+
+function handleVideoCallFailed(msg) {
+    WebrtcActions.videoCallFailed(msg.props);
+}
+
+function handleNoAnswerVideoCall() {
+    WebrtcActions.noAnswerVideoCall();
 }
