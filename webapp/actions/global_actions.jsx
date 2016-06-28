@@ -155,7 +155,7 @@ export function emitPostFocusEvent(postId) {
             doFocusPost(channelId, postId, data);
         },
         () => {
-            browserHistory.push('/error?message=' + encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a channel you do not have access to')));
+            browserHistory.push('/error?message=' + encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.')));
         }
     );
 }
