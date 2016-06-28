@@ -295,7 +295,7 @@ func isTeamCreationAllowed(c *Context, email string) bool {
 
 	email = strings.ToLower(email)
 
-	if !utils.Cfg.TeamSettings.EnableTeamCreation {
+	if !c.IsSystemAdmin() && !utils.Cfg.TeamSettings.EnableTeamCreation {
 		c.Err = model.NewLocAppError("isTeamCreationAllowed", "api.team.is_team_creation_allowed.disabled.app_error", nil, "")
 		return false
 	}
