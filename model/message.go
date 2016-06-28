@@ -17,6 +17,7 @@ const (
 	ACTION_CHANNEL_VIEWED     = "channel_viewed"
 	ACTION_DIRECT_ADDED       = "direct_added"
 	ACTION_NEW_USER           = "new_user"
+	ACTION_LEAVE_TEAM         = "leave_team"
 	ACTION_USER_ADDED         = "user_added"
 	ACTION_USER_REMOVED       = "user_removed"
 	ACTION_PREFERENCE_CHANGED = "preference_changed"

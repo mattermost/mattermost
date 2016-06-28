@@ -316,7 +316,12 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 	var channelMembers *model.ChannelList
 
 	if result := <-Srv.Store.Channel().GetChannels(team.Id, user.Id); result.Err != nil {
-		return result.Err
+		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+			channelMembers = &model.ChannelList{make([]*model.Channel, 0), make(map[string]*model.ChannelMember)}
+		} else {
+			return result.Err
+		}
+
 	} else {
 		channelMembers = result.Data.(*model.ChannelList)
 	}
@@ -343,9 +348,7 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 	RemoveAllSessionsForUserId(user.Id)
 	InvalidateCacheForUser(user.Id)
 
-	// This message goes to every channel, so the channelId is irrelevant
-	// TODO XXX FIXME not sure this is needed
-	// go Publish(model.NewMessage("", "", user.Id, model.ACTION_NEW_USER))
+	go Publish(model.NewMessage(team.Id, "", user.Id, model.ACTION_LEAVE_TEAM))
 
 	return nil
 }

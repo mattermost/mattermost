@@ -253,6 +253,19 @@ export function emitPostRecievedEvent(post, msg) {
     });
 }
 
+export function emitLeaveTeam() {
+    Client.removeUserFromTeam(
+        TeamStore.getCurrentId(),
+        UserStore.getCurrentId(),
+        () => {
+            // DO nothing.  The websocket should cause a re-direct
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'removeUserFromTeam');
+        }
+    );
+}
+
 export function emitUserPostedEvent(post) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.CREATE_POST,
@@ -309,6 +322,13 @@ export function showGetTeamInviteLinkModal() {
 export function showInviteMemberModal() {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_INVITE_MEMBER_MODAL,
+        value: true
+    });
+}
+
+export function showLeaveTeamModal() {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_LEAVE_TEAM_MODAL,
         value: true
     });
 }
