@@ -3,6 +3,7 @@
 
 import * as Utils from 'utils/utils.jsx';
 import Client from 'utils/web_client.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
 
@@ -78,7 +79,7 @@ export default class UserProfile extends React.Component {
             />
         );
 
-        if (global.window.mm_config.ShowEmailAddress === 'true') {
+        if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
             dataContent.push(
                 <div
                     data-toggle='tooltip'
