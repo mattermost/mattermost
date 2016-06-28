@@ -246,7 +246,7 @@ export default class PostList extends React.Component {
                 commentRootId = post.id;
             }
             if (commentRootId) {
-                const commentsNotifyLevel = UserStore.getCurrentUser().notify_props.comments;
+                const commentsNotifyLevel = UserStore.getCurrentUser().notify_props.comments || 'never';
                 for (const postId in posts) {
                     if (posts[postId].root_id === commentRootId) {
                         commentCount += 1;
