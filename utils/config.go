@@ -186,6 +186,12 @@ func LoadConfig(fileName string) {
 
 	Cfg = &config
 	ClientCfg = getClientConfig(Cfg)
+
+	// Actions that need to run every time the config is loaded
+	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
+		// This restarts the job if nessisary (works for config reloads)
+		ldapI.StartLdapSyncJob()
+	}
 }
 
 func getClientConfig(c *model.Config) map[string]string {
