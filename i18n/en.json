@@ -2532,6 +2532,14 @@
     "translation": "Invalid sync interval time. Must be at least one minute."
   },
   {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Required LDAP field missing."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_page_size.app_error",
+    "translation": "Invalid max page size value."
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
   },
