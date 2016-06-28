@@ -168,13 +168,11 @@ func LoadConfig(fileName string) {
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		panic(T("utils.config.load_config.validating.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
+		panic(err.Error())
 	}
 
 	if err := ValidateLdapFilter(&config); err != nil {
-		panic(T("utils.config.load_config.validating.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Message}))
+		panic(err.Error())
 	}
 
 	configureLog(&config.LogSettings)
