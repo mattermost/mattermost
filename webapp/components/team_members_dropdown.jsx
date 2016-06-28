@@ -293,7 +293,7 @@ export default class TeamMembersDropdown extends React.Component {
             //     </li>
             // );
         }
-        
+
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
             const title = (
