@@ -123,7 +123,7 @@ class CustomThemeChooser extends React.Component {
 
     componentWillUnmount() {
         $('.color-picker').off('changeColor', this.onPickerChange);
-        $('.group--code').off('changeColor', this.onCodeThemeChange);
+        $('.group--code').off('change', this.onCodeThemeChange);
     }
 
     componentDidUpdate() {
