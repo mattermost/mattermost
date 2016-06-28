@@ -692,7 +692,7 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
-	bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
+	bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
 	bodyPage.Props["BodyText"] = bodyText
 	bodyPage.Props["Button"] = userLocale("api.templates.post_body.button")
 	bodyPage.Html["Info"] = template.HTML(userLocale("api.templates.post_body.info",
