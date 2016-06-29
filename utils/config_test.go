@@ -8,6 +8,7 @@ import (
 )
 
 func TestConfig(t *testing.T) {
+	TranslationsPreInit()
 	LoadConfig("config.json")
 	InitTranslations(Cfg.LocalizationSettings)
 }
