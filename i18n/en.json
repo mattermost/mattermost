@@ -2108,6 +2108,10 @@
     "translation": "User not registered on LDAP server"
   },
   {
+    "id": "ent.ldap.mattermost_user_update",
+    "translation": "Mattermost user was updated by LDAP server."
+  },
+  {
     "id": "ent.ldap.syncdone.info",
     "translation": "LDAP Synchronization completed"
   },
@@ -2118,10 +2122,6 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid LDAP Filter"
-  },
-  {
-    "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost user was updated by LDAP server."
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -2512,16 +2512,16 @@
     "translation": "Invalid thumbnail width for file settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Required LDAP field missing."
+  },
+  {
     "id": "model.config.is_valid.ldap_security.app_error",
     "translation": "Invalid connection security for LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
     "translation": "Invalid sync interval time. Must be at least one minute."
-  },
-  {
-    "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Required LDAP field missing."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",

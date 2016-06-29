@@ -353,11 +353,11 @@
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Un problème s'est produit à l'envoi du courriel d'invitation"
+    "translation": "Un problème s'est produit à l'envoi du courriel d'invitation."
   },
   {
     "id": "api.command.invite_people.hint",
-    "translation": "[nom@domaine.com…]"
+    "translation": "[Nom@domaine.com ...]"
   },
   {
     "id": "api.command.invite_people.name",
@@ -365,7 +365,7 @@
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Veuillez fournir au moins une adresse mail valide"
+    "translation": "S'il vous plaît spécifier une ou plusieurs adresses e-mail valides"
   },
   {
     "id": "api.command.invite_people.sent",
@@ -1429,7 +1429,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Aller sur ce canal"
+    "translation": "Go To Post"
   },
   {
     "id": "api.templates.post_body.info",
@@ -2108,12 +2108,16 @@
     "translation": "Utilisateur non enregistré sur le serveur LDAP"
   },
   {
+    "id": "ent.ldap.mattermost_user_update",
+    "translation": "Mattermost user was updated by LDAP server."
+  },
+  {
     "id": "ent.ldap.syncdone.info",
-    "translation": "Synchronisation LDAP terminée"
+    "translation": "Synchronisation LDAP terminé"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Impossible d'obtenir tous les utilisateurs utilisant LDAP"
+    "translation": "Impossible d'obtenir tous les utilisateurs à l'aide de LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -2508,12 +2512,16 @@
     "translation": "Largeur des aperçus invalide dans les paramètres de fichiers. Doit être un entier positif."
   },
   {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Required LDAP field missing."
+  },
+  {
     "id": "model.config.is_valid.ldap_security.app_error",
     "translation": "Sécurité de connexion invalide dans les paramètres de messagerie. Doit être '', 'TLS' ou 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
-    "translation": "Synchronisation invalide du temps d'intervalle d'au moins une minute."
+    "translation": "La synchronisation du temps d'interval est invalide. Doit être au moins d'une minute."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
