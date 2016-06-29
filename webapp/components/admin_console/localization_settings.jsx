@@ -49,8 +49,8 @@ export default class LocalizationSettings extends AdminSettings {
         return (
             <h3>
                 <FormattedMessage
-                    id='admin.general.title'
-                    defaultMessage='General Settings'
+                    id='admin.general.localization'
+                    defaultMessage='Localization'
                 />
             </h3>
         );
@@ -58,14 +58,7 @@ export default class LocalizationSettings extends AdminSettings {
 
     renderSettings() {
         return (
-            <SettingsGroup
-                header={
-                    <FormattedMessage
-                        id='admin.general.localization'
-                        defaultMessage='Localization'
-                    />
-                }
-            >
+            <SettingsGroup>
                 <DropdownSetting
                     id='defaultServerLocale'
                     values={this.state.languages}

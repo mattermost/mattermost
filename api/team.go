@@ -394,9 +394,21 @@ func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	invites := model.InvitesFromJson(r.Body)
 	if len(invites.Invites) == 0 {
-		c.Err = model.NewLocAppError("Team.InviteMembers", "api.team.invite_members.no_one.app_error", nil, "")
+		c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.no_one.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
+	}
+
+	if utils.IsLicensed {
+		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.TEAM_INVITE_SYSTEM_ADMIN && !c.IsSystemAdmin() {
+			c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.restricted_system_admin.app_error", nil, "")
+			return
+		}
+
+		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.TEAM_INVITE_TEAM_ADMIN && !c.IsTeamAdmin() {
+			c.Err = model.NewLocAppError("inviteMembers", "api.team.invite_members.restricted_team_admin.app_error", nil, "")
+			return
+		}
 	}
 
 	tchan := Srv.Store.Team().Get(c.TeamId)

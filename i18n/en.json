@@ -1300,6 +1300,14 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.restricted_system_admin.app_error",
+    "translation": "Inviting new users to a team is restricted to System Administrators."
+  },
+  {
+    "id": "api.team.invite_members.restricted_team_admin.app_error",
+    "translation": "Inviting new users to a team is restricted to Team and System Administrators."
+  },
+  {
     "id": "api.team.invite_members.send.error",
     "translation": "Failed to send invite email successfully err=%v"
   },

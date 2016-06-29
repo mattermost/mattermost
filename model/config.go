@@ -32,6 +32,10 @@ const (
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
 
+	TEAM_INVITE_ALL          = "all"
+	TEAM_INVITE_TEAM_ADMIN   = "team_admin"
+	TEAM_INVITE_SYSTEM_ADMIN = "system_admin"
+
 	FAKE_SETTING = "********************************"
 
 	RESTRICT_EMOJI_CREATION_ALL   = "all"
@@ -174,6 +178,7 @@ type TeamSettings struct {
 	EnableCustomBrand         *bool
 	CustomBrandText           *string
 	RestrictDirectMessage     *string
+	RestrictTeamInvite        *string
 }
 
 type LdapSettings struct {
@@ -344,6 +349,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictDirectMessage == nil {
 		o.TeamSettings.RestrictDirectMessage = new(string)
 		*o.TeamSettings.RestrictDirectMessage = DIRECT_MESSAGE_ANY
+	}
+
+	if o.TeamSettings.RestrictTeamInvite == nil {
+		o.TeamSettings.RestrictTeamInvite = new(string)
+		*o.TeamSettings.RestrictTeamInvite = TEAM_INVITE_ALL
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
