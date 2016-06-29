@@ -6,6 +6,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -27,10 +28,21 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
+	forceToDebug := false
+
+	if !*utils.Cfg.ServiceSettings.EnableDeveloper {
+		forceToDebug = true
+	}
+
 	m := model.MapFromJson(r.Body)
 
 	lvl := m["level"]
 	msg := m["message"]
+
+	// filter out javascript errors from franz that are poluting the log files
+	if strings.Contains(msg, "/franz") {
+		forceToDebug = true
+	}
 
 	if len(msg) > 400 {
 		msg = msg[0:399]
@@ -41,7 +53,12 @@ func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
 		err.Message = msg
 		err.Id = msg
 		err.Where = "client"
-		c.LogError(err)
+
+		if forceToDebug {
+			c.LogDebug(err)
+		} else {
+			c.LogError(err)
+		}
 	}
 
 	ReturnStatusOK(w)
