@@ -783,6 +783,7 @@ func (o *Config) IsValid() *AppError {
 			*o.LdapSettings.IdAttribute == "" {
 			return NewLocAppError("Config.IsValid", "Required LDAP field missing", nil, "")
 		}
+	}
 
 	if *o.PasswordSettings.MinimumLength < PASSWORD_MINIMUM_LENGTH {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length_min.app_error", map[string]interface{}{"MinLength": PASSWORD_MINIMUM_LENGTH}, "")
