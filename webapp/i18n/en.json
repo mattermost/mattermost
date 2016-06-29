@@ -1097,6 +1097,7 @@
   "navbar_dropdown.switchTo": "Switch to ",
   "navbar_dropdown.teamLink": "Get Team Invite Link",
   "navbar_dropdown.teamSettings": "Team Settings",
+  "notification.dm": "Direct Message",
   "password_form.change": "Change my password",
   "password_form.click": "Click <a href={url}>here</a> to log in.",
   "password_form.enter": "Enter a new password for your {siteName} account.",
