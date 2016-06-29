@@ -100,7 +100,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                         <FormattedMessage
                             id='create_team.display_name.next'
                             defaultMessage='Next'
-                        /><i className='glyphicon glyphicon-chevron-right'></i>
+                        /><i className='fa fa-chevron-right'></i>
                     </button>
                     <div className='margin--extra'>
                         <Link to='/select_team'>

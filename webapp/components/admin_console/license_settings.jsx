@@ -131,7 +131,7 @@ class LicenseSettings extends React.Component {
                         className='btn btn-danger'
                         onClick={this.handleRemove}
                         id='remove-button'
-                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + this.props.intl.formatMessage(holders.removing)}
+                        data-loading-text={'<span class=\'fa fa-refresh icon--rotate\'></span> ' + this.props.intl.formatMessage(holders.removing)}
                     >
                         <FormattedMessage
                             id='admin.license.keyRemove'
@@ -195,7 +195,7 @@ class LicenseSettings extends React.Component {
                         disabled={!this.state.fileSelected}
                         onClick={this.handleSubmit}
                         id='upload-button'
-                        data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + this.props.intl.formatMessage(holders.uploading)}
+                        data-loading-text={'<span class=\'fa fa-refresh icon--rotate\'></span> ' + this.props.intl.formatMessage(holders.uploading)}
                     >
                         <FormattedMessage
                             id='admin.license.upload'

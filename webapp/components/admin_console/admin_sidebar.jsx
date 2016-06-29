@@ -157,7 +157,7 @@ export default class AdminSidebar extends React.Component {
         return (
             <AdminSidebarCategory
                 parentLink='/admin_console'
-                icon='fa-gear'
+                icon='fa-user'
                 title={
                     <FormattedMessage
                         id='admin.sidebar.teams'
@@ -275,7 +275,7 @@ export default class AdminSidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <AdminSidebarCategory
                             parentLink='/admin_console'
-                            icon='fa-gear'
+                            icon='fa-bar-chart'
                             title={
                                 <FormattedMessage
                                     id='admin.sidebar.reports'
@@ -608,7 +608,7 @@ export default class AdminSidebar extends React.Component {
                         {this.renderTeams()}
                         <AdminSidebarCategory
                             parentLink='/admin_console'
-                            icon='fa-gear'
+                            icon='fa-wrench'
                             title={
                                 <FormattedMessage
                                     id='admin.sidebar.other'

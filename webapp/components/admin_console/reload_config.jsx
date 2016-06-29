@@ -78,7 +78,7 @@ export default class ReloadConfigButton extends React.Component {
         if (this.state.loading) {
             contents = (
                 <span>
-                    <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
+                    <span className='fa fa-refresh icon--rotate'/>
                     {Utils.localizeMessage('admin.reload.loading', ' Loading...')}
                 </span>
             );

@@ -387,7 +387,7 @@ export default class Navbar extends React.Component {
                             aria-expanded='true'
                         >
                             <span className='heading'><StatusIcon status={this.getTeammateStatus()}/>{channelTitle} </span>
-                            <span className='glyphicon glyphicon-chevron-down header-dropdown__icon'></span>
+                            <span className='fa fa-chevron-down header-dropdown__icon'></span>
                         </a>
                         <ul
                             className='dropdown-menu'
@@ -628,7 +628,7 @@ export default class Navbar extends React.Component {
                 className='navbar-toggle pull-right'
                 onClick={this.showSearch}
             >
-                <span className='glyphicon glyphicon-search icon--white'/>
+                <span className='fa fa-search icon-search icon--white'/>
             </button>
         );
 

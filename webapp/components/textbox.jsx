@@ -130,7 +130,7 @@ export default class Textbox extends React.Component {
 
         const helpText = (
             <div
-                style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '0.3' : '0'}}
+                style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '0.45' : '0'}}
                 className='help__format-text'
             >
                 <b>
@@ -155,18 +155,18 @@ export default class Textbox extends React.Component {
                     </strike>
                     {'~~ '}
                 </span>
-                <code>
+                <span>
                     <FormattedMessage
                         id='textbox.inlinecode'
                         defaultMessage='`inline code`'
                     />
-                </code>
-                <code>
+                </span>
+                <span>
                     <FormattedMessage
                         id='textbox.preformatted'
                         defaultMessage='```preformatted```'
                     />
-                </code>
+                </span>
                 <span>
                     <FormattedMessage
                         id='textbox.quote'

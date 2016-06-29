@@ -283,9 +283,22 @@
             padding: 10px;
 
             .category-icon {
+                font-size: 15px;
+                margin-right: 7px;
+                overflow: hidden;
                 right: 12px;
+                text-align: center;
                 top: 6px;
-                width: 17px;
+                vertical-align: bottom;
+                width: 16px;
+
+                &.fa-user {
+                    font-size: 14px;
+                }
+
+                &.fa-bar-chart {
+                    font-size: 16px;
+                }
             }
         }
 

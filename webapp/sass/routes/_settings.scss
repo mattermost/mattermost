@@ -342,13 +342,16 @@
 
             a {
                 border-radius: 0;
-                color: #777;
+                color: $gray;
                 padding: 8px 5px 8px 15px;
             }
 
-            .glyphicon {
+            .icon {
+                font-size: 15px;
+                margin-right: 10px;
+                text-align: center;
                 top: 2px;
-                width: 25px;
+                width: 14px;
             }
 
             &:hover {

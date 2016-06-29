@@ -230,8 +230,10 @@ export default class RhsRootPost extends React.Component {
         }
 
         let compactClass = '';
+        let profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
+            profilePicContainer = '';
         }
 
         const messageWrapper = (
@@ -246,9 +248,7 @@ export default class RhsRootPost extends React.Component {
             <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
                 <div className='post__content'>
-                    <div className='post__img'>
-                        {profilePic}
-                    </div>
+                    {profilePicContainer}
                     <div>
                         <ul className='post__header'>
                             <li className='col__name'>{userProfile}</li>
