@@ -1429,7 +1429,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Ir al Canal"
+    "translation": "Ir a al mensaje"
   },
   {
     "id": "api.templates.post_body.info",
@@ -2108,6 +2108,10 @@
     "translation": "Usuario no registrado en el servidor LDAP"
   },
   {
+    "id": "ent.ldap.mattermost_user_update",
+    "translation": "El usuario de Mattermost fue actualizado por el servidor LDAP."
+  },
+  {
     "id": "ent.ldap.syncdone.info",
     "translation": "Sincronización de LDAP completada"
   },
@@ -2506,6 +2510,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "El ancho para la imagen de miniatura es inválido en la configuración de archivos.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.ldap_required.app_error",
+    "translation": "Falta un campo requerido por LDAP."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
