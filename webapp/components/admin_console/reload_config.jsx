@@ -6,6 +6,8 @@ import React from 'react';
 import Client from 'utils/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import {getConfig} from 'utils/async_client.jsx';
+
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 export default class ReloadConfigButton extends React.Component {
@@ -30,6 +32,7 @@ export default class ReloadConfigButton extends React.Component {
 
         Client.reloadConfig(
             () => {
+                getConfig();
                 this.setState({
                     loading: false
                 });
